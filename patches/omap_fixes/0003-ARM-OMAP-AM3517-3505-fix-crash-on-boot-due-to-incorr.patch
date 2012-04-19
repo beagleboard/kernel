@@ -1,0 +1,110 @@
+From 275fce1d891ab0f196445a0b9b89c581e1dd82b3 Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Fri, 16 Dec 2011 16:09:11 -0800
+Subject: [PATCH 3/7] ARM: OMAP: AM3517/3505: fix crash on boot due to
+ incorrect voltagedomain data
+
+AM3517/3505 chips don't have voltage controller and voltage processor
+IP blocks.  Trying to use OMAP34xx/36xx voltage domain data on these
+chips causes a crash during boot:
+
+  omap_vc_init_channel: PMIC info requried to configure vc forvdd_core not populated.Hence cannot initialize vc
+  Unable to handle kernel NULL pointer dereference at virtual address 00000025
+  pgd = c0004000
+  [00000025] *pgd=00000000
+  Internal error: Oops: 5 [#1] SMP
+  Modules linked in:
+  CPU: 0    Tainted: G        W     (3.2.0-rc5-00006-g402ecf4 #304)
+  PC is at omap_vp_init+0x5c/0x14c
+  LR is at omap_vp_init+0x54/0x14c
+
+Fix this by using very minimal voltage domain definitions for AM3517/3505.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |   40 +++++++++++++++++++++----
+ 1 file changed, 34 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+index 071101d..636b688 100644
+--- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+@@ -31,6 +31,14 @@
+  * VDD data
+  */
+ 
++/* OMAP3-common voltagedomain data */
++
++static struct voltagedomain omap3_voltdm_wkup = {
++	.name = "wakeup",
++};
++
++/* 34xx/36xx voltagedomain data */
++
+ static const struct omap_vfsm_instance omap3_vdd1_vfsm = {
+ 	.voltsetup_reg = OMAP3_PRM_VOLTSETUP1_OFFSET,
+ 	.voltsetup_mask = OMAP3430_SETUP_TIME1_MASK,
+@@ -63,10 +71,6 @@ static struct voltagedomain omap3_voltdm_core = {
+ 	.vp = &omap3_vp_core,
+ };
+ 
+-static struct voltagedomain omap3_voltdm_wkup = {
+-	.name = "wakeup",
+-};
+-
+ static struct voltagedomain *voltagedomains_omap3[] __initdata = {
+ 	&omap3_voltdm_mpu,
+ 	&omap3_voltdm_core,
+@@ -74,11 +78,30 @@ static struct voltagedomain *voltagedomains_omap3[] __initdata = {
+ 	NULL,
+ };
+ 
++/* AM35xx voltagedomain data */
++
++static struct voltagedomain am35xx_voltdm_mpu = {
++	.name = "mpu_iva",
++};
++
++static struct voltagedomain am35xx_voltdm_core = {
++	.name = "core",
++};
++
++static struct voltagedomain *voltagedomains_am35xx[] __initdata = {
++	&am35xx_voltdm_mpu,
++	&am35xx_voltdm_core,
++	&omap3_voltdm_wkup,
++	NULL,
++};
++
++
+ static const char *sys_clk_name __initdata = "sys_ck";
+ 
+ void __init omap3xxx_voltagedomains_init(void)
+ {
+ 	struct voltagedomain *voltdm;
++	struct voltagedomain **voltdms;
+ 	int i;
+ 
+ 	/*
+@@ -93,8 +116,13 @@ void __init omap3xxx_voltagedomains_init(void)
+ 		omap3_voltdm_core.volt_data = omap34xx_vddcore_volt_data;
+ 	}
+ 
+-	for (i = 0; voltdm = voltagedomains_omap3[i], voltdm; i++)
++	if (cpu_is_omap3517() || cpu_is_omap3505())
++		voltdms = voltagedomains_am35xx;
++	else
++		voltdms = voltagedomains_omap3;
++
++	for (i = 0; voltdm = voltdms[i], voltdm; i++)
+ 		voltdm->sys_clk.name = sys_clk_name;
+ 
+-	voltdm_init(voltagedomains_omap3);
++	voltdm_init(voltdms);
+ };
+-- 
+1.7.9.5
+

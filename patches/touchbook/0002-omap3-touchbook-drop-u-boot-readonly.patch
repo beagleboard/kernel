@@ -1,0 +1,25 @@
+From 79acc5e964fd47d624fd51db38eb8a143730418e Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Fri, 25 Feb 2011 11:32:37 -0600
+Subject: [PATCH 2/2] omap3: touchbook: drop u-boot readonly
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap3touchbook.c |    1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 6b4cd92..5d209c1 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -74,7 +74,6 @@ static struct mtd_partition omap3touchbook_nand_partitions[] = {
+ 		.name		= "U-Boot",
+ 		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
+ 		.size		= 15 * NAND_BLOCK_SIZE,
+-		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+ 	},
+ 	{
+ 		.name		= "U-Boot Env",
+-- 
+1.7.9.5
+

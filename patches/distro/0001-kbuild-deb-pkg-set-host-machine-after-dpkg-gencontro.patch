@@ -1,0 +1,114 @@
+From e3b710d120779358c4a7f6909048e21752b6c919 Mon Sep 17 00:00:00 2001
+From: Robert Gordon <robert@greenroomsoftware.com>
+Date: Wed, 13 Apr 2011 11:32:29 -0500
+Subject: [PATCH] kbuild, deb-pkg: set host machine after dpkg-gencontrol
+
+scripts/package/builddeb script was setting the host machine
+$arch in the KERNEL/debian/control prior to an invocation of
+dpkg-gencontrol.  The patch modifies the script to guarantee the correct
+debian arch for the target is written to the control file instead.
+
+Signed-off-by: Robert Gordon <robert@greenroomsoftware.com>
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ scripts/package/builddeb |   70 ++++++++++++++++++++++++----------------------
+ 1 file changed, 36 insertions(+), 34 deletions(-)
+
+diff --git a/scripts/package/builddeb b/scripts/package/builddeb
+index 3c6c0b1..2f86d7b 100644
+--- a/scripts/package/builddeb
++++ b/scripts/package/builddeb
+@@ -26,37 +26,7 @@ create_package() {
+ 	chmod -R go-w "$pdir"
+ 
+ 	# Attempt to find the correct Debian architecture
+-	local forcearch="" debarch=""
+-	case "$UTS_MACHINE" in
+-	i386|ia64|alpha)
+-		debarch="$UTS_MACHINE" ;;
+-	x86_64)
+-		debarch=amd64 ;;
+-	sparc*)
+-		debarch=sparc ;;
+-	s390*)
+-		debarch=s390 ;;
+-	ppc*)
+-		debarch=powerpc ;;
+-	parisc*)
+-		debarch=hppa ;;
+-	mips*)
+-		debarch=mips$(grep -q CPU_LITTLE_ENDIAN=y .config && echo el) ;;
+-	arm*)
+-		debarch=arm$(grep -q CONFIG_AEABI=y .config && echo el) ;;
+-	*)
+-		echo "" >&2
+-		echo "** ** **  WARNING  ** ** **" >&2
+-		echo "" >&2
+-		echo "Your architecture doesn't have it's equivalent" >&2
+-		echo "Debian userspace architecture defined!" >&2
+-		echo "Falling back to using your current userspace instead!" >&2
+-		echo "Please add support for $UTS_MACHINE to ${0} ..." >&2
+-		echo "" >&2
+-	esac
+-	if [ -n "$KBUILD_DEBARCH" ] ; then
+-		debarch="$KBUILD_DEBARCH"
+-	fi
++	local forcearch=""
+ 	if [ -n "$debarch" ] ; then
+ 		forcearch="-DArchitecture=$debarch"
+ 	fi
+@@ -66,6 +36,38 @@ create_package() {
+ 	dpkg --build "$pdir" ..
+ }
+ 
++#Set the correct debian arch
++case "$UTS_MACHINE" in
++i386|ia64|alpha)
++    debarch="$UTS_MACHINE" ;;
++x86_64)
++    debarch=amd64 ;;
++sparc*)
++    debarch=sparc ;;
++s390*)
++    debarch=s390 ;;
++ppc*)
++    debarch=powerpc ;;
++parisc*)
++    debarch=hppa ;;
++mips*)
++    debarch=mips$(grep -q CPU_LITTLE_ENDIAN=y .config && echo el) ;;
++arm*)
++    debarch=arm$(grep -q CONFIG_AEABI=y .config && echo el) ;;
++*)
++    echo "" >&2
++    echo "** ** **  WARNING  ** ** **" >&2
++    echo "" >&2
++    echo "Your architecture doesn't have it's equivalent" >&2
++    echo "Debian userspace architecture defined!" >&2
++    echo "Falling back to using your current userspace instead!" >&2
++    echo "Please add support for $UTS_MACHINE to ${0} ..." >&2
++    echo "" >&2
++esac
++if [ -n "$KBUILD_DEBARCH" ] ; then
++    debarch="$KBUILD_DEBARCH"
++fi
++
+ # Some variables and settings used throughout the script
+ version=$KERNELRELEASE
+ revision=$(cat .version)
+@@ -252,9 +254,9 @@ cat <<EOF >> debian/control
+ 
+ Package: $kernel_headers_packagename
+ Provides: linux-headers, linux-headers-2.6
+-Architecture: $arch
+-Description: Linux kernel headers for $KERNELRELEASE on $arch
+- This package provides kernel header files for $KERNELRELEASE on $arch
++Architecture: $debarch
++Description: Linux kernel headers for $KERNELRELEASE on $debarch
++ This package provides kernel header files for $KERNELRELEASE on $debarch
+  .
+  This is useful for people who need to build external modules
+ EOF
+-- 
+1.7.9.5
+

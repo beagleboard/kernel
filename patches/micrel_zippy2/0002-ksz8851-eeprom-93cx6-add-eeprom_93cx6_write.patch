@@ -1,0 +1,129 @@
+From f75c558b7f735360ee4582315525d8e7702021f9 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Thu, 29 Sep 2011 11:35:38 -0500
+Subject: [PATCH 02/14] ksz8851 eeprom 93cx6 add eeprom_93cx6_write
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ drivers/misc/eeprom/eeprom_93cx6.c |   86 ++++++++++++++++++++++++++++++++++++
+ include/linux/eeprom_93cx6.h       |    6 +++
+ 2 files changed, 92 insertions(+)
+
+diff --git a/drivers/misc/eeprom/eeprom_93cx6.c b/drivers/misc/eeprom/eeprom_93cx6.c
+index a6037af..77ca81f 100644
+--- a/drivers/misc/eeprom/eeprom_93cx6.c
++++ b/drivers/misc/eeprom/eeprom_93cx6.c
+@@ -234,3 +234,89 @@ void eeprom_93cx6_multiread(struct eeprom_93cx6 *eeprom, const u8 word,
+ }
+ EXPORT_SYMBOL_GPL(eeprom_93cx6_multiread);
+ 
++
++/**
++ * eeprom_93cx6_wren - set the write enable state
++ * @eeprom: Pointer to eeprom structure
++ * @enable: true to enable writes, otherwise disable writes
++ *
++ * Set the EEPROM write enable state to either allow or deny
++ * writes depending on the @enable value.
++ */
++void eeprom_93cx6_wren(struct eeprom_93cx6 *eeprom, bool enable)
++{
++	u16 command;
++
++	/* start the command */
++	eeprom_93cx6_startup(eeprom);
++
++	/* create command to enable/disable */
++
++	command = enable ? PCI_EEPROM_EWEN_OPCODE : PCI_EEPROM_EWDS_OPCODE;
++	command <<= (eeprom->width - 2);
++
++	eeprom_93cx6_write_bits(eeprom, command,
++				PCI_EEPROM_WIDTH_OPCODE + eeprom->width);
++
++	eeprom_93cx6_cleanup(eeprom);
++}
++EXPORT_SYMBOL_GPL(eeprom_93cx6_wren);
++
++/**
++ * eeprom_93cx6_write - write data to the EEPROM
++ * @eeprom: Pointer to eeprom structure
++ * @addr: Address to write data to.
++ * @data: The data to write to address @addr.
++ *
++ * Write the @data to the specified @addr in the EEPROM and
++ * waiting for the device to finish writing.
++ *
++ * Note, since we do not expect large number of write operations
++ * we use msleep() to delay in between parts of the operation to
++ * avoid using excessive amounts of CPU time busy waiting.
++ */
++void eeprom_93cx6_write(struct eeprom_93cx6 *eeprom, u8 addr, u16 data)
++{
++	int timeout = 100;
++	u16 command;
++
++	/* start the command */
++	eeprom_93cx6_startup(eeprom);
++
++	command = PCI_EEPROM_WRITE_OPCODE << eeprom->width;
++	command |= addr;
++
++	/* send write command */
++	eeprom_93cx6_write_bits(eeprom, command,
++				PCI_EEPROM_WIDTH_OPCODE + eeprom->width);
++
++	/* send data */
++	eeprom_93cx6_write_bits(eeprom, data, 16);
++
++	/* get ready to check for busy */
++	eeprom->drive_data = 0;
++	eeprom->reg_chip_select = 1;
++	eeprom->register_write(eeprom);
++
++	/* wait at-least 250ns to get DO to be the busy signal */
++	msleep(1);
++
++	/* wait for DO to go high to signify finish */
++
++	while (true) {
++		eeprom->register_read(eeprom);
++
++		if (eeprom->reg_data_out)
++			break;
++
++		msleep(1);
++
++		if (--timeout <= 0) {
++			printk(KERN_ERR "%s: timeout\n", __func__);
++			break;
++		}
++	}
++
++	eeprom_93cx6_cleanup(eeprom);
++}
++EXPORT_SYMBOL_GPL(eeprom_93cx6_write);
+diff --git a/include/linux/eeprom_93cx6.h b/include/linux/eeprom_93cx6.h
+index e04546e..e50f98b 100644
+--- a/include/linux/eeprom_93cx6.h
++++ b/include/linux/eeprom_93cx6.h
+@@ -33,6 +33,7 @@
+ #define PCI_EEPROM_WIDTH_93C86	8
+ #define PCI_EEPROM_WIDTH_OPCODE	3
+ #define PCI_EEPROM_WRITE_OPCODE	0x05
++#define PCI_EEPROM_ERASE_OPCODE 0x07
+ #define PCI_EEPROM_READ_OPCODE	0x06
+ #define PCI_EEPROM_EWDS_OPCODE	0x10
+ #define PCI_EEPROM_EWEN_OPCODE	0x13
+@@ -74,3 +75,8 @@ extern void eeprom_93cx6_read(struct eeprom_93cx6 *eeprom,
+ 	const u8 word, u16 *data);
+ extern void eeprom_93cx6_multiread(struct eeprom_93cx6 *eeprom,
+ 	const u8 word, __le16 *data, const u16 words);
++
++extern void eeprom_93cx6_wren(struct eeprom_93cx6 *eeprom, bool enable);
++
++extern void eeprom_93cx6_write(struct eeprom_93cx6 *eeprom,
++			       u8 addr, u16 data);
+-- 
+1.7.9.5
+

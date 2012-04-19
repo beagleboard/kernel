@@ -1,0 +1,33 @@
+From f2f0ced4015475bc99f09d025482b05d8c158786 Mon Sep 17 00:00:00 2001
+From: Sanjeev Premi <premi@ti.com>
+Date: Thu, 29 Apr 2010 14:09:42 +0530
+Subject: [PATCH 1/7] omap3: Increase limit on bootarg 'mpurate'
+
+The value of mpurate is currently expected to be less
+than 1000 when specified in MHz.
+
+This patch raises this limit to 2000 to support 1GHz
+capable processors. The new limit should be reasonable
+for quite some time.
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/plat-omap/clock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index 567e4b5..fe4e67c 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -186,7 +186,7 @@ static int __init omap_clk_setup(char *str)
+ 	if (!mpurate)
+ 		return 1;
+ 
+-	if (mpurate < 1000)
++	if (mpurate < 2000)
+ 		mpurate *= 1000000;
+ 
+ 	return 1;
+-- 
+1.7.9.5
+

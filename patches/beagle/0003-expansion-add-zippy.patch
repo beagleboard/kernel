@@ -1,0 +1,82 @@
+From 83dab61b77a99db2a7eea3bc571838fea758cba1 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Mon, 10 Oct 2011 11:16:12 -0500
+Subject: [PATCH 03/13] expansion: add zippy
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |   51 +++++++++++++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 9f5706b..6ffafd6 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -159,6 +159,48 @@ static void __init omap3_beagle_init_rev(void)
+ 
+ char expansionboard_name[16];
+ 
++#if defined(CONFIG_ENC28J60) || defined(CONFIG_ENC28J60_MODULE)
++
++#include <plat/mcspi.h>
++#include <linux/spi/spi.h>
++
++#define OMAP3BEAGLE_GPIO_ENC28J60_IRQ 157
++
++static struct omap2_mcspi_device_config enc28j60_spi_chip_info = {
++	.turbo_mode	= 0,
++	.single_channel	= 1,	/* 0: slave, 1: master */
++};
++
++static struct spi_board_info omap3beagle_zippy_spi_board_info[] __initdata = {
++	{
++		.modalias		= "enc28j60",
++		.bus_num		= 4,
++		.chip_select		= 0,
++		.max_speed_hz		= 20000000,
++		.controller_data	= &enc28j60_spi_chip_info,
++	},
++};
++
++static void __init omap3beagle_enc28j60_init(void)
++{
++	if ((gpio_request(OMAP3BEAGLE_GPIO_ENC28J60_IRQ, "ENC28J60_IRQ") == 0) &&
++	    (gpio_direction_input(OMAP3BEAGLE_GPIO_ENC28J60_IRQ) == 0)) {
++		gpio_export(OMAP3BEAGLE_GPIO_ENC28J60_IRQ, 0);
++		omap3beagle_zippy_spi_board_info[0].irq	= OMAP_GPIO_IRQ(OMAP3BEAGLE_GPIO_ENC28J60_IRQ);
++		irq_set_irq_type(omap3beagle_zippy_spi_board_info[0].irq, IRQ_TYPE_EDGE_FALLING);
++	} else {
++		printk(KERN_ERR "could not obtain gpio for ENC28J60_IRQ\n");
++		return;
++	}
++
++	spi_register_board_info(omap3beagle_zippy_spi_board_info,
++			ARRAY_SIZE(omap3beagle_zippy_spi_board_info));
++}
++
++#else
++static inline void __init omap3beagle_enc28j60_init(void) { return; }
++#endif
++
+ static struct mtd_partition omap3beagle_nand_partitions[] = {
+ 	/* All the partition sizes are listed in terms of NAND block size */
+ 	{
+@@ -567,6 +609,15 @@ static void __init omap3_beagle_init(void)
+ 	/* REVISIT leave DVI powered down until it's needed ... */
+ 	gpio_request_one(170, GPIOF_OUT_INIT_HIGH, "DVI_nPD");
+ 
++	if(!strcmp(expansionboard_name, "zippy"))
++	{
++		printk(KERN_INFO "Beagle expansionboard: initializing enc28j60\n");
++		omap3beagle_enc28j60_init();
++		printk(KERN_INFO "Beagle expansionboard: assigning GPIO 141 and 162 to MMC1\n");
++		mmc[1].gpio_wp = 141;
++		mmc[1].gpio_cd = 162;
++	}
++
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3beagle_nand_partitions,
+-- 
+1.7.9.5
+

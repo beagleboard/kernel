@@ -1,0 +1,42 @@
+From d36f4850e9e34b2bef18302c8d08b33b7bce42f7 Mon Sep 17 00:00:00 2001
+From: Todd Poynor <toddpoynor@google.com>
+Date: Tue, 7 Jun 2011 13:57:52 -0700
+Subject: [PATCH 03/11] cpufreq: OMAP: Enable all CPUs in shared policy mask
+
+Enable all CPUs in the shared policy in the CPU init callback.
+Otherwise, the governor CPUFREQ_GOV_START event is invoked with
+a policy that only includes the first CPU, leaving other CPUs
+uninitialized by the governor.
+
+Signed-off-by: Todd Poynor <toddpoynor@google.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ drivers/cpufreq/omap-cpufreq.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
+index 1953f9d..3f5a816 100644
+--- a/drivers/cpufreq/omap-cpufreq.c
++++ b/drivers/cpufreq/omap-cpufreq.c
+@@ -152,7 +152,6 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+ {
+ 	int result = 0;
+ 	struct device *mpu_dev;
+-	static cpumask_var_t cpumask;
+ 
+ 	if (cpu_is_omap24xx())
+ 		mpu_clk = clk_get(NULL, "virt_prcm_set");
+@@ -200,8 +199,7 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+ 	 */
+ 	if (is_smp()) {
+ 		policy->shared_type = CPUFREQ_SHARED_TYPE_ANY;
+-		cpumask_or(cpumask, cpumask_of(policy->cpu), cpumask);
+-		cpumask_copy(policy->cpus, cpumask);
++		cpumask_setall(policy->cpus);
+ 	}
+ 
+ 	/* FIXME: what's the actual transition time? */
+-- 
+1.7.9.5
+

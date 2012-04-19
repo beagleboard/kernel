@@ -1,0 +1,43 @@
+From 88146b8cbef01ea731236b3dd19579af66da7b27 Mon Sep 17 00:00:00 2001
+From: Nishanth Menon <nm@ti.com>
+Date: Thu, 26 May 2011 19:39:18 -0700
+Subject: [PATCH 08/11] cpufreq: OMAP: only supports OPP library
+
+OMAP2 is the only family using clk_[init|exit]_cpufreq_table, however,
+the cpufreq code does not currently use clk_init_cpufreq_table. As a
+result, it is unusuable for OMAP2 and only usable only on platforms
+using OPP library.
+
+Remove the unbalanced clk_exit_cpufreq_table().  Any platforms where
+OPPs are not availble will fail on init because a freq table will not
+be properly initialized.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+[khilman@ti.com: changelog edits, and graceful failure mode changes]
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ drivers/cpufreq/omap-cpufreq.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
+index eecb096..8f778b9 100644
+--- a/drivers/cpufreq/omap-cpufreq.c
++++ b/drivers/cpufreq/omap-cpufreq.c
+@@ -1,5 +1,5 @@
+ /*
+- *  CPU frequency scaling for OMAP
++ *  CPU frequency scaling for OMAP using OPP information
+  *
+  *  Copyright (C) 2005 Nokia Corporation
+  *  Written by Tony Lindgren <tony@atomide.com>
+@@ -198,7 +198,6 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+ 
+ static int omap_cpu_exit(struct cpufreq_policy *policy)
+ {
+-	clk_exit_cpufreq_table(&freq_table);
+ 	clk_put(mpu_clk);
+ 	return 0;
+ }
+-- 
+1.7.9.5
+

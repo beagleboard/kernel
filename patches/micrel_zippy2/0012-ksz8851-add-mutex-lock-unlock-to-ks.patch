@@ -1,0 +1,42 @@
+From d9c5d425d12caeb199bd81f701ca51750dd0dd10 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Thu, 29 Sep 2011 11:53:36 -0500
+Subject: [PATCH 12/14] ksz8851 add mutex lock/unlock to ks
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ drivers/net/ethernet/micrel/ks8851.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/micrel/ks8851.c b/drivers/net/ethernet/micrel/ks8851.c
+index 4f68517..e22ce5d 100644
+--- a/drivers/net/ethernet/micrel/ks8851.c
++++ b/drivers/net/ethernet/micrel/ks8851.c
+@@ -1499,7 +1499,6 @@ static void ks8851_eeprom_regwrite(struct eeprom_93cx6 *ee)
+ 	if (ee->reg_chip_select)
+ 		val |= EEPCR_EECS;
+ 
+-	printk(KERN_INFO "%s: wr %04x\n", __func__, val);
+ 	ks8851_wrreg16(ks, KS_EEPCR, val);
+ }
+ 
+@@ -1515,6 +1514,8 @@ static int ks8851_eeprom_claim(struct ks8851_net *ks)
+ 	if (!(ks->rc_ccr & CCR_EEPROM))
+ 		return -ENOENT;
+ 
++	mutex_lock(&ks->lock);
++
+ 	/* start with clock low, cs high */
+ 	ks8851_wrreg16(ks, KS_EEPCR, EEPCR_EESA | EEPCR_EECS);
+ 	return 0;
+@@ -1531,6 +1532,7 @@ static void ks8851_eeprom_release(struct ks8851_net *ks)
+ 	unsigned val = ks8851_rdreg16(ks, KS_EEPCR);
+ 
+ 	ks8851_wrreg16(ks, KS_EEPCR, val & ~EEPCR_EESA);
++	mutex_unlock(&ks->lock);
+ }
+ 
+ static const struct ethtool_ops ks8851_ethtool_ops = {
+-- 
+1.7.9.5
+

@@ -1,0 +1,48 @@
+From 5b2efc213df8dbc1abc4341eb8d3785a361cd27c Mon Sep 17 00:00:00 2001
+From: Colin Cross <ccross@google.com>
+Date: Mon, 6 Jun 2011 21:05:29 -0500
+Subject: [PATCH 04/11] cpufreq: OMAP: notify even with bad boot frequency
+
+Sometimes, bootloaders starts up with a frequency which is not
+in the OPP table. At cpu_init, policy->cur contains the frequency
+we pick at boot.  It is possible that system might have fixed
+it's boot frequency later on as part of power initialization.
+After this condition, the first call to omap_target results in the
+following:
+
+omap_getspeed(actual device frequency) != policy->cur(frequency that
+cpufreq thinks that the system is at), and it is possible that
+freqs.old == freqs.new (because the governor requested a scale down).
+
+We exit without triggering the notifiers in the current code, which
+does'nt let code which depends on cpufreq_notify_transition to have
+accurate information as to what the system frequency is.
+
+Instead, we do a normal transition if policy->cur is wrong, then,
+freqs.old will be the actual cpu frequency, freqs.new will be the
+actual new cpu frequency and all required notifiers have the accurate
+information.
+
+Acked-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Colin Cross <ccross@google.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ drivers/cpufreq/omap-cpufreq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
+index 3f5a816..0a5d95c 100644
+--- a/drivers/cpufreq/omap-cpufreq.c
++++ b/drivers/cpufreq/omap-cpufreq.c
+@@ -97,7 +97,7 @@ static int omap_target(struct cpufreq_policy *policy,
+ 	freqs.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
+ 	freqs.cpu = policy->cpu;
+ 
+-	if (freqs.old == freqs.new)
++	if (freqs.old == freqs.new && policy->cur == freqs.new)
+ 		return ret;
+ 
+ 	/* notifiers */
+-- 
+1.7.9.5
+

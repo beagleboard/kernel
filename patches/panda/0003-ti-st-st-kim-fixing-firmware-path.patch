@@ -1,0 +1,35 @@
+From 03df53ece9910da6d2cdcf9f9f931d2ac0a86f4e Mon Sep 17 00:00:00 2001
+From: Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
+Date: Tue, 25 Oct 2011 10:06:39 +0200
+Subject: [PATCH 3/3] ti-st/st-kim: fixing firmware path
+
+Signed-off-by: Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
+---
+ drivers/misc/ti-st/st_kim.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/misc/ti-st/st_kim.c b/drivers/misc/ti-st/st_kim.c
+index 43ef8d1..00c2ecd 100644
+--- a/drivers/misc/ti-st/st_kim.c
++++ b/drivers/misc/ti-st/st_kim.c
+@@ -224,7 +224,7 @@ static long read_local_version(struct kim_data_s *kim_gdata, char *bts_scr_name)
+ 	if (version & 0x8000)
+ 		maj_ver |= 0x0008;
+ 
+-	sprintf(bts_scr_name, "TIInit_%d.%d.%d.bts", chip, maj_ver, min_ver);
++	sprintf(bts_scr_name, "ti-connectivity/TIInit_%d.%d.%d.bts", chip, maj_ver, min_ver);
+ 
+ 	/* to be accessed later via sysfs entry */
+ 	kim_gdata->version.full = version;
+@@ -267,7 +267,7 @@ static long download_firmware(struct kim_data_s *kim_gdata)
+ 	long len = 0;
+ 	unsigned char *ptr = NULL;
+ 	unsigned char *action_ptr = NULL;
+-	unsigned char bts_scr_name[30] = { 0 };	/* 30 char long bts scr name? */
++	unsigned char bts_scr_name[50] = { 0 };	/* 50 char long bts scr name? */
+ 	int wr_room_space;
+ 	int cmd_size;
+ 	unsigned long timeout;
+-- 
+1.7.9.5
+

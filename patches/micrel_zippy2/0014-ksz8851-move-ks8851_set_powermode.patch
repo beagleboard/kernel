@@ -1,0 +1,71 @@
+From 07a2058e69309e1d912893a25a302d0c7c6ac209 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Thu, 29 Sep 2011 11:54:51 -0500
+Subject: [PATCH 14/14] ksz8851 move ks8851_set_powermode
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ drivers/net/ethernet/micrel/ks8851.c |   40 +++++++++++++++++-----------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/net/ethernet/micrel/ks8851.c b/drivers/net/ethernet/micrel/ks8851.c
+index b72baa6..c420410 100644
+--- a/drivers/net/ethernet/micrel/ks8851.c
++++ b/drivers/net/ethernet/micrel/ks8851.c
+@@ -338,6 +338,26 @@ static void ks8851_soft_reset(struct ks8851_net *ks, unsigned op)
+ }
+ 
+ /**
++ * ks8851_set_powermode - set power mode of the device
++ * @ks: The device state
++ * @pwrmode: The power mode value to write to KS_PMECR.
++ *
++ * Change the power mode of the chip.
++ */
++static void ks8851_set_powermode(struct ks8851_net *ks, unsigned pwrmode)
++{
++	unsigned pmecr;
++
++	netif_dbg(ks, hw, ks->netdev, "setting power mode %d\n", pwrmode);
++
++	pmecr = ks8851_rdreg16(ks, KS_PMECR);
++	pmecr &= ~PMECR_PM_MASK;
++	pmecr |= pwrmode;
++
++	ks8851_wrreg16(ks, KS_PMECR, pmecr);
++}
++
++/**
+  * ks8851_write_mac_addr - write mac address to device registers
+  * @dev: The network device
+  *
+@@ -784,26 +804,6 @@ static void ks8851_tx_work(struct work_struct *work)
+ }
+ 
+ /**
+- * ks8851_set_powermode - set power mode of the device
+- * @ks: The device state
+- * @pwrmode: The power mode value to write to KS_PMECR.
+- *
+- * Change the power mode of the chip.
+- */
+-static void ks8851_set_powermode(struct ks8851_net *ks, unsigned pwrmode)
+-{
+-	unsigned pmecr;
+-
+-	netif_dbg(ks, hw, ks->netdev, "setting power mode %d\n", pwrmode);
+-
+-	pmecr = ks8851_rdreg16(ks, KS_PMECR);
+-	pmecr &= ~PMECR_PM_MASK;
+-	pmecr |= pwrmode;
+-
+-	ks8851_wrreg16(ks, KS_PMECR, pmecr);
+-}
+-
+-/**
+  * ks8851_net_open - open network device
+  * @dev: The network device being opened.
+  *
+-- 
+1.7.9.5
+

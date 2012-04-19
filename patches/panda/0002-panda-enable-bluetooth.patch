@@ -1,0 +1,88 @@
+From 1ada97910723bdaa4f65563ef8ad90444b3ebadf Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Fri, 16 Mar 2012 10:23:09 -0500
+Subject: [PATCH 2/3] panda enable bluetooth
+
+The PandaBoard features a Texas Instruments WiLink7 Bluetooth
+chip, supported by the "btwilink" driver. The "uim" deamon
+requires sysfs entries that are filled in using this platform data.
+
+Signed-off-by: Mircea Gherzan <mgherzan@gmail.com>
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap4panda.c |   21 +++++++++++++++++++--
+ include/linux/ti_wilink_st.h           |    2 ++
+ 2 files changed, 21 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 51b1c93..9f133ce 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -27,6 +27,7 @@
+ #include <linux/i2c/twl.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/fixed.h>
++#include <linux/ti_wilink_st.h>
+ #include <linux/wl12xx.h>
+ 
+ #include <mach/hardware.h>
+@@ -56,15 +57,29 @@
+ #define HDMI_GPIO_HPD  63 /* Hotplug detect */
+ 
+ /* wl127x BT, FM, GPS connectivity chip */
+-static int wl1271_gpios[] = {46, -1, -1};
++static struct ti_st_plat_data wilink_platform_data = {
++        .nshutdown_gpio	= 46,
++        .dev_name		= "/dev/ttyO1",
++        .flow_cntrl		= 1,
++        .baud_rate		= 3000000,
++        .chip_enable		= NULL,
++        .suspend		= NULL,
++        .resume		= NULL,
++};
++
+ static struct platform_device wl1271_device = {
+ 	.name	= "kim",
+ 	.id	= -1,
+ 	.dev	= {
+-		.platform_data	= &wl1271_gpios,
++		.platform_data	= &wilink_platform_data,
+ 	},
+ };
+ 
++static struct platform_device btwilink_device = {
++	.name	= "btwilink",
++	.id	= -1,
++};
++
+ static struct gpio_led gpio_leds[] = {
+ 	{
+ 		.name			= "pandaboard::status1",
+@@ -91,9 +106,11 @@ static struct platform_device leds_gpio = {
+ 	},
+ };
+ 
++
+ static struct platform_device *panda_devices[] __initdata = {
+ 	&leds_gpio,
+ 	&wl1271_device,
++	&btwilink_device,
+ };
+ 
+ static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
+diff --git a/include/linux/ti_wilink_st.h b/include/linux/ti_wilink_st.h
+index 2ef4385..3ca0269 100644
+--- a/include/linux/ti_wilink_st.h
++++ b/include/linux/ti_wilink_st.h
+@@ -25,6 +25,8 @@
+ #ifndef TI_WILINK_ST_H
+ #define TI_WILINK_ST_H
+ 
++#include <linux/skbuff.h>
++
+ /**
+  * enum proto-type - The protocol on WiLink chips which share a
+  *	common physical interface like UART.
+-- 
+1.7.9.5
+

@@ -1,0 +1,61 @@
+From f45b7e81b701ee35ffde83c6213ad770bb3e8667 Mon Sep 17 00:00:00 2001
+From: Nishanth Menon <nm@ti.com>
+Date: Thu, 26 May 2011 19:39:19 -0700
+Subject: [PATCH 09/11] cpufreq: OMAP: put clk if cpu_init failed
+
+Release the mpu_clk in fail paths.
+
+Reported-by: Todd Poynor <toddpoynor@google.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ drivers/cpufreq/omap-cpufreq.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
+index 8f778b9..8c54192 100644
+--- a/drivers/cpufreq/omap-cpufreq.c
++++ b/drivers/cpufreq/omap-cpufreq.c
+@@ -158,8 +158,10 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+ 	if (IS_ERR(mpu_clk))
+ 		return PTR_ERR(mpu_clk);
+ 
+-	if (policy->cpu >= NR_CPUS)
+-		return -EINVAL;
++	if (policy->cpu >= NR_CPUS) {
++		result = -EINVAL;
++		goto fail_ck;
++	}
+ 
+ 	policy->cur = policy->min = policy->max = omap_getspeed(policy->cpu);
+ 	result = opp_init_cpufreq_table(mpu_dev, &freq_table);
+@@ -167,12 +169,14 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+ 	if (result) {
+ 		dev_err(mpu_dev, "%s: cpu%d: failed creating freq table[%d]\n",
+ 				__func__, policy->cpu, result);
+-		return result;
++		goto fail_ck;
+ 	}
+ 
+ 	result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
+ 	if (!result)
+ 		cpufreq_frequency_table_get_attr(freq_table, policy->cpu);
++	else
++		goto fail_ck;
+ 
+ 	policy->min = policy->cpuinfo.min_freq;
+ 	policy->max = policy->cpuinfo.max_freq;
+@@ -194,6 +198,10 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+ 	policy->cpuinfo.transition_latency = 300 * 1000;
+ 
+ 	return 0;
++
++fail_ck:
++	clk_put(mpu_clk);
++	return result;
+ }
+ 
+ static int omap_cpu_exit(struct cpufreq_policy *policy)
+-- 
+1.7.9.5
+

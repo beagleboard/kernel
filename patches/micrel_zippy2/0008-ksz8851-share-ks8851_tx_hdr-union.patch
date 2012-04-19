@@ -1,0 +1,95 @@
+From 780ab3d33232e49e274d45758a9c49e966909bfd Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Thu, 29 Sep 2011 11:49:16 -0500
+Subject: [PATCH 08/14] ksz8851 share ks8851_tx_hdr union
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ drivers/net/ethernet/micrel/ks8851.c     |   13 -------------
+ drivers/net/ethernet/micrel/ks8851.h     |   14 ++++++++++++++
+ drivers/net/ethernet/micrel/ks8851_mll.c |   16 +---------------
+ 3 files changed, 15 insertions(+), 28 deletions(-)
+
+diff --git a/drivers/net/ethernet/micrel/ks8851.c b/drivers/net/ethernet/micrel/ks8851.c
+index 6a7f27f..64be436 100644
+--- a/drivers/net/ethernet/micrel/ks8851.c
++++ b/drivers/net/ethernet/micrel/ks8851.c
+@@ -46,19 +46,6 @@ struct ks8851_rxctrl {
+ 	u16	rxcr2;
+ };
+ 
+-/**
+- * union ks8851_tx_hdr - tx header data
+- * @txb: The header as bytes
+- * @txw: The header as 16bit, little-endian words
+- *
+- * A dual representation of the tx header data to allow
+- * access to individual bytes, and to allow 16bit accesses
+- * with 16bit alignment.
+- */
+-union ks8851_tx_hdr {
+-	u8	txb[6];
+-	__le16	txw[3];
+-};
+ 
+ /**
+  * struct ks8851_net - KS8851 driver private data
+diff --git a/drivers/net/ethernet/micrel/ks8851.h b/drivers/net/ethernet/micrel/ks8851.h
+index 1ed7cfa..bc2476e 100644
+--- a/drivers/net/ethernet/micrel/ks8851.h
++++ b/drivers/net/ethernet/micrel/ks8851.h
+@@ -334,3 +334,17 @@
+ #define KS_SPIOP_WR				(0x40)
+ #define KS_SPIOP_RXFIFO				(0x80)
+ #define KS_SPIOP_TXFIFO				(0xC0)
++
++/**
++ * union ks8851_tx_hdr - tx header data
++ * @txb: The header as bytes
++ * @txw: The header as 16bit, little-endian words
++ *
++ * A dual representation of the tx header data to allow
++ * access to individual bytes, and to allow 16bit accesses
++ * with 16bit alignment.
++ */
++union ks8851_tx_hdr {
++	u8	txb[6];
++	__le16	txw[3];
++};
+diff --git a/drivers/net/ethernet/micrel/ks8851_mll.c b/drivers/net/ethernet/micrel/ks8851_mll.c
+index d3bb46f..ffaf14e 100644
+--- a/drivers/net/ethernet/micrel/ks8851_mll.c
++++ b/drivers/net/ethernet/micrel/ks8851_mll.c
+@@ -76,20 +76,6 @@ static u8 KS_DEFAULT_MAC_ADDRESS[] = { 0x00, 0x10, 0xA1, 0x86, 0x95, 0x11 };
+ #define HW_MCAST_SIZE			8
+ 
+ /**
+- * union ks_tx_hdr - tx header data
+- * @txb: The header as bytes
+- * @txw: The header as 16bit, little-endian words
+- *
+- * A dual representation of the tx header data to allow
+- * access to individual bytes, and to allow 16bit accesses
+- * with 16bit alignment.
+- */
+-union ks_tx_hdr {
+-	u8      txb[4];
+-	__le16  txw[2];
+-};
+-
+-/**
+  * struct ks_net - KS8851 driver private data
+  * @net_device 	: The network device we're bound to
+  * @hw_addr	: start address of data register.
+@@ -141,7 +127,7 @@ struct ks_net {
+ 	struct net_device	*netdev;
+ 	void __iomem    	*hw_addr;
+ 	void __iomem    	*hw_addr_cmd;
+-	union ks_tx_hdr		txh ____cacheline_aligned;
++	union ks8851_tx_hdr	txh ____cacheline_aligned;
+ 	struct mutex      	lock; /* spinlock to be interrupt safe */
+ 	struct platform_device *pdev;
+ 	struct mii_if_info	mii;
+-- 
+1.7.9.5
+

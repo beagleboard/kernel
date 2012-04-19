@@ -1,0 +1,42 @@
+From 49574ad4d7dcb4fd1e1f6579edd6cbd2128acccc Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Thu, 29 Sep 2011 11:50:42 -0500
+Subject: [PATCH 10/14] ksz8851 turn off hardware interrupt druing receive
+ process
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ drivers/net/ethernet/micrel/ks8851.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/drivers/net/ethernet/micrel/ks8851.c b/drivers/net/ethernet/micrel/ks8851.c
+index f771fd8..347f38f 100644
+--- a/drivers/net/ethernet/micrel/ks8851.c
++++ b/drivers/net/ethernet/micrel/ks8851.c
+@@ -586,6 +586,13 @@ static void ks8851_irq_work(struct work_struct *work)
+ 
+ 	mutex_lock(&ks->lock);
+ 
++	/*
++	 * Turn off hardware interrupt during receive processing.  This fixes
++	 * the receive problem under heavy TCP traffic while transmit done
++	 * is enabled.
++	 */
++	ks8851_wrreg16(ks, KS_IER, 0);
++
+ 	status = ks8851_rdreg16(ks, KS_ISR);
+ 
+ 	netif_dbg(ks, intr, ks->netdev,
+@@ -655,6 +662,9 @@ static void ks8851_irq_work(struct work_struct *work)
+ 		ks8851_wrreg16(ks, KS_RXCR1, rxc->rxcr1);
+ 	}
+ 
++	/* Re-enable hardware interrupt. */
++	ks8851_wrreg16(ks, KS_IER, ks->rc_ier);
++
+ 	mutex_unlock(&ks->lock);
+ 
+ 	if (status & IRQ_TXI)
+-- 
+1.7.9.5
+

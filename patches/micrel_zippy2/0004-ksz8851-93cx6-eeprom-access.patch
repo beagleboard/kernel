@@ -1,0 +1,130 @@
+From 9af7d8bc0369060dcb43c03c3462a905b2706b32 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Thu, 29 Sep 2011 11:36:58 -0500
+Subject: [PATCH 04/14] ksz8851 93cx6 eeprom access
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ drivers/net/ethernet/micrel/Kconfig  |    1 +
+ drivers/net/ethernet/micrel/ks8851.c |   72 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 73 insertions(+)
+
+diff --git a/drivers/net/ethernet/micrel/Kconfig b/drivers/net/ethernet/micrel/Kconfig
+index d10c2e1..fe42fc0 100644
+--- a/drivers/net/ethernet/micrel/Kconfig
++++ b/drivers/net/ethernet/micrel/Kconfig
+@@ -42,6 +42,7 @@ config KS8851
+ 	select NET_CORE
+ 	select MII
+ 	select CRC32
++	select EEPROM_93CX6
+ 	---help---
+ 	  SPI driver for Micrel KS8851 SPI attached network chip.
+ 
+diff --git a/drivers/net/ethernet/micrel/ks8851.c b/drivers/net/ethernet/micrel/ks8851.c
+index da7cbea..6a7f27f 100644
+--- a/drivers/net/ethernet/micrel/ks8851.c
++++ b/drivers/net/ethernet/micrel/ks8851.c
+@@ -22,6 +22,7 @@
+ #include <linux/cache.h>
+ #include <linux/crc32.h>
+ #include <linux/mii.h>
++#include <linux/eeprom_93cx6.h>
+ 
+ #include <linux/spi/spi.h>
+ 
+@@ -128,6 +129,8 @@ struct ks8851_net {
+ 	struct spi_message	spi_msg2;
+ 	struct spi_transfer	spi_xfer1;
+ 	struct spi_transfer	spi_xfer2[2];
++
++	struct eeprom_93cx6	eeprom;
+ };
+ 
+ static int msg_enable;
+@@ -1449,6 +1452,68 @@ static int ks8851_set_eeprom(struct net_device *dev,
+ 	return ret_val;
+ }
+ 
++/* EEPROM support */
++
++static void ks8851_eeprom_regread(struct eeprom_93cx6 *ee)
++{
++	struct ks8851_net *ks = ee->data;
++	unsigned val;
++
++	val = ks8851_rdreg16(ks, KS_EEPCR);
++
++	ee->reg_data_out = (val & EEPCR_EESB) ? 1 : 0;
++	ee->reg_data_clock = (val & EEPCR_EESCK) ? 1 : 0;
++	ee->reg_chip_select = (val & EEPCR_EECS) ? 1 : 0;
++}
++
++static void ks8851_eeprom_regwrite(struct eeprom_93cx6 *ee)
++{
++	struct ks8851_net *ks = ee->data;
++	unsigned val = EEPCR_EESA;	/* default - eeprom access on */
++
++	if (ee->drive_data)
++		val |= EEPCR_EESRWA;
++	if (ee->reg_data_in)
++		val |= EEPCR_EEDO;
++	if (ee->reg_data_clock)
++		val |= EEPCR_EESCK;
++	if (ee->reg_chip_select)
++		val |= EEPCR_EECS;
++
++	printk(KERN_INFO "%s: wr %04x\n", __func__, val);
++	ks8851_wrreg16(ks, KS_EEPCR, val);
++}
++
++/**
++ * ks8851_eeprom_claim - claim device EEPROM and activate the interface
++ * @ks: The network deice state.
++ *
++ * Check for the presence of an EEPROM, and then activate software access
++ * to the device.
++ */
++static int ks8851_eeprom_claim(struct ks8851_net *ks)
++{
++	if (!(ks->rc_ccr & CCR_EEPROM))
++		return -ENOENT;
++
++	/* start with clock low, cs high */
++	ks8851_wrreg16(ks, KS_EEPCR, EEPCR_EESA | EEPCR_EECS);
++	return 0;
++}
++
++/**
++ * ks8851_eeprom_release - release the EEPROM interface
++ * @ks: The device state
++ *
++ * Release the software access to the device EEPROM
++ */
++static void ks8851_eeprom_release(struct ks8851_net *ks)
++{
++	unsigned val = ks8851_rdreg16(ks, KS_EEPCR);
++
++	ks8851_wrreg16(ks, KS_EEPCR, val & ~EEPCR_EESA);
++}
++
+ static const struct ethtool_ops ks8851_ethtool_ops = {
+ 	.get_drvinfo	= ks8851_get_drvinfo,
+ 	.get_msglevel	= ks8851_get_msglevel,
+@@ -1639,6 +1704,13 @@ static int __devinit ks8851_probe(struct spi_device *spi)
+ 	spi_message_add_tail(&ks->spi_xfer2[0], &ks->spi_msg2);
+ 	spi_message_add_tail(&ks->spi_xfer2[1], &ks->spi_msg2);
+ 
++	/* setup EEPROM state */
++
++	ks->eeprom.data = ks;
++	ks->eeprom.width = PCI_EEPROM_WIDTH_93C46;
++	ks->eeprom.register_read = ks8851_eeprom_regread;
++	ks->eeprom.register_write = ks8851_eeprom_regwrite;
++
+ 	/* setup mii state */
+ 	ks->mii.dev		= ndev;
+ 	ks->mii.phy_id		= 1,
+-- 
+1.7.9.5
+

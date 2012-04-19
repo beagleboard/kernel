@@ -1,0 +1,47 @@
+From d6d0b16e83a2b9977bb85132d03d46b867fc2f10 Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@ti.com>
+Date: Fri, 30 Sep 2011 10:41:26 -0700
+Subject: [PATCH 11/11] cpufreq: OMAP: fixup for omap_device changes, include
+ <linux/module.h>
+
+Minor fixups to work starting with v3.2:
+- use the new omap_device API for getting a device by name.
+- need to include <linux/module.h>
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ drivers/cpufreq/omap-cpufreq.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
+index ad94b4f..5d04c57 100644
+--- a/drivers/cpufreq/omap-cpufreq.c
++++ b/drivers/cpufreq/omap-cpufreq.c
+@@ -24,6 +24,7 @@
+ #include <linux/io.h>
+ #include <linux/opp.h>
+ #include <linux/cpu.h>
++#include <linux/module.h>
+ 
+ #include <asm/system.h>
+ #include <asm/smp_plat.h>
+@@ -32,6 +33,7 @@
+ #include <plat/clock.h>
+ #include <plat/omap-pm.h>
+ #include <plat/common.h>
++#include <plat/omap_device.h>
+ 
+ #include <mach/hardware.h>
+ 
+@@ -252,7 +254,7 @@ static int __init omap_cpufreq_init(void)
+ 		return -EINVAL;
+ 	}
+ 
+-	mpu_dev = omap2_get_mpuss_device();
++	mpu_dev = omap_device_get_by_hwmod_name("mpu");
+ 	if (!mpu_dev) {
+ 		pr_warning("%s: unable to get the mpu device\n", __func__);
+ 		return -EINVAL;
+-- 
+1.7.9.5
+

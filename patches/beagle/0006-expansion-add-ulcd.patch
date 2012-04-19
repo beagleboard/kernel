@@ -1,0 +1,262 @@
+From 8da59078cd7db57d5b101d7b374f96ff9644a079 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Fri, 16 Mar 2012 09:47:57 -0500
+Subject: [PATCH 06/13] expansion: add ulcd
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c          |  122 ++++++++++++++++++++++
+ drivers/video/omap2/displays/panel-generic-dpi.c |   25 +++++
+ 2 files changed, 147 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index b0b16b4..a546c2b 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -33,6 +33,7 @@
+ 
+ #include <linux/regulator/machine.h>
+ #include <linux/i2c/twl.h>
++#include <linux/i2c/tsc2007.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -84,11 +85,15 @@ static struct {
+ 	int usb_pwr_level;
+ 	int reset_gpio;
+ 	int usr_button_gpio;
++	char *lcd_driver_name;
++	int lcd_pwren;
+ } beagle_config = {
+ 	.mmc1_gpio_wp = -EINVAL,
+ 	.usb_pwr_level = GPIOF_OUT_INIT_LOW,
+ 	.reset_gpio = 129,
+ 	.usr_button_gpio = 4,
++	.lcd_driver_name = "",
++	.lcd_pwren = 156
+ };
+ 
+ static struct gpio omap3_beagle_rev_gpios[] __initdata = {
+@@ -158,6 +163,7 @@ static void __init omap3_beagle_init_rev(void)
+ }
+ 
+ char expansionboard_name[16];
++char expansionboard2_name[16];
+ 
+ #if defined(CONFIG_ENC28J60) || defined(CONFIG_ENC28J60_MODULE)
+ 
+@@ -312,9 +318,46 @@ static struct omap_dss_device beagle_tv_device = {
+ 	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
+ };
+ 
++static int beagle_enable_lcd(struct omap_dss_device *dssdev)
++{
++       if (gpio_is_valid(beagle_config.lcd_pwren)) {
++               printk(KERN_INFO "%s: Enabling LCD\n", __FUNCTION__);
++               gpio_set_value(beagle_config.lcd_pwren, 0);
++       } else {
++               printk(KERN_INFO "%s: Invalid LCD enable GPIO: %d\n",
++                       __FUNCTION__, beagle_config.lcd_pwren);
++       }
++
++       return 0;
++}
++
++static void beagle_disable_lcd(struct omap_dss_device *dssdev)
++{
++       if (gpio_is_valid(beagle_config.lcd_pwren)) {
++               printk(KERN_INFO "%s: Disabling LCD\n", __FUNCTION__);
++               gpio_set_value(beagle_config.lcd_pwren, 1);
++       } else {
++               printk(KERN_INFO "%s: Invalid LCD enable GPIO: %d\n",
++                       __FUNCTION__, beagle_config.lcd_pwren);
++       }
++
++       return;
++}
++
++static struct omap_dss_device beagle_lcd_device = {
++	.type                   = OMAP_DISPLAY_TYPE_DPI,
++	.name                   = "lcd",
++	.driver_name		= "tfc_s9700rtwv35tr-01b",
++	.phy.dpi.data_lines     = 24,
++	.platform_enable        = beagle_enable_lcd,
++	.platform_disable       = beagle_disable_lcd,
++	.reset_gpio 		= -EINVAL,
++};
++
+ static struct omap_dss_device *beagle_dss_devices[] = {
+ 	&beagle_dvi_device,
+ 	&beagle_tv_device,
++	&beagle_lcd_device,
+ };
+ 
+ static struct omap_dss_board_info beagle_dss_data = {
+@@ -331,6 +374,11 @@ static void __init beagle_display_init(void)
+ 			     "DVI reset");
+ 	if (r < 0)
+ 		printk(KERN_ERR "Unable to get DVI reset GPIO\n");
++
++	r = gpio_request_one(beagle_config.lcd_pwren, GPIOF_OUT_INIT_LOW,
++                            "LCD power");
++	if (r < 0)
++		printk(KERN_ERR "Unable to get LCD power enable GPIO\n");
+ }
+ 
+ #include "sdram-micron-mt46h32m32lf-6.h"
+@@ -480,6 +528,50 @@ static struct i2c_board_info __initdata beagle_i2c2_boardinfo[] = {
+ static struct i2c_board_info __initdata beagle_i2c2_boardinfo[] = {};
+ #endif
+ 
++#if defined(CONFIG_INPUT_TOUCHSCREEN) && \
++	( defined(CONFIG_TOUCHSCREEN_TSC2007) || defined(CONFIG_TOUCHSCREEN_TSC2007_MODULE))
++/* Touchscreen */
++#define OMAP3BEAGLE_TSC2007_GPIO 157
++static int omap3beagle_tsc2007_get_pendown_state(void)
++{
++	return !gpio_get_value(OMAP3BEAGLE_TSC2007_GPIO);
++}
++
++static void __init omap3beagle_tsc2007_init(void)
++{
++	int r;
++
++	omap_mux_init_gpio(OMAP3BEAGLE_TSC2007_GPIO, OMAP_PIN_INPUT_PULLUP);
++
++	r = gpio_request_one(OMAP3BEAGLE_TSC2007_GPIO, GPIOF_IN, "tsc2007_pen_down");
++	if (r < 0) {
++		printk(KERN_ERR "failed to request GPIO#%d for "
++		"tsc2007 pen down IRQ\n", OMAP3BEAGLE_TSC2007_GPIO);
++		return;
++	}
++
++	irq_set_irq_type(gpio_to_irq(OMAP3BEAGLE_TSC2007_GPIO), IRQ_TYPE_EDGE_FALLING);
++}
++
++static struct tsc2007_platform_data tsc2007_info = {
++	.model = 2007,
++	.x_plate_ohms = 180,
++	.get_pendown_state = omap3beagle_tsc2007_get_pendown_state,
++};
++
++static struct i2c_board_info __initdata beagle_i2c2_bbtoys_ulcd[] = {
++	{
++		I2C_BOARD_INFO("tlc59108", 0x40),
++		I2C_BOARD_INFO("tsc2007", 0x48),
++		.irq = OMAP_GPIO_IRQ(OMAP3BEAGLE_TSC2007_GPIO),
++		.platform_data = &tsc2007_info,
++	},
++};
++#else
++static struct i2c_board_info __initdata beagle_i2c2_bbtoys_ulcd[] = {};
++static void __init omap3beagle_tsc2007_init(void) { return; }
++#endif
++
+ static int __init omap3_beagle_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&beagle_twldata,
+@@ -490,7 +582,17 @@ static int __init omap3_beagle_i2c_init(void)
+ 	beagle_twldata.vpll2->constraints.name = "VDVI";
+ 
+ 	omap3_pmic_init("twl4030", &beagle_twldata);
++	if(!strcmp(expansionboard2_name, "bbtoys-ulcd"))
++	{
++		printk(KERN_INFO "Beagle second expansionboard: registering bbtoys-ulcd i2c bus\n");
++		omap_register_i2c_bus(2, 400,  beagle_i2c2_bbtoys_ulcd,
++							ARRAY_SIZE(beagle_i2c2_bbtoys_ulcd));
++	}
++	else
++	{
+ 	omap_register_i2c_bus(2, 400, beagle_i2c2_boardinfo, ARRAY_SIZE(beagle_i2c2_boardinfo));
++	}
++
+ 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
+ 	 * projector don't work reliably with 400kHz */
+ 	omap_register_i2c_bus(3, 100, beagle_i2c_eeprom, ARRAY_SIZE(beagle_i2c_eeprom));
+@@ -589,6 +691,15 @@ static int __init expansionboard_setup(char *str)
+ 	return 0;
+ }
+ 
++static int __init expansionboard2_setup(char *str)
++{
++	if (!str)
++		return -EINVAL;
++	strncpy(expansionboard2_name, str, 16);
++	printk(KERN_INFO "Beagle second expansionboard: %s\n", expansionboard2_name);
++	return 0;
++}
++
+ static void __init beagle_opp_init(void)
+ {
+ 	int r = 0;
+@@ -640,6 +751,10 @@ static void __init omap3_beagle_init(void)
+ 
+ 	gpio_buttons[0].gpio = beagle_config.usr_button_gpio;
+ 
++	/* TODO: set lcd_driver_name by command line or device tree */
++	beagle_config.lcd_driver_name = "tfc_s9700rtwv35tr-01b",
++	//lcd_panel.name = beagle_config.lcd_driver_name;
++
+ 	platform_add_devices(omap3_beagle_devices,
+ 			ARRAY_SIZE(omap3_beagle_devices));
+ 	omap_display_init(&beagle_dss_data);
+@@ -700,6 +815,12 @@ static void __init omap3_beagle_init(void)
+ 		gpio_export(162, 1);
+ 	}
+ 
++	if(!strcmp(expansionboard2_name, "bbtoys-ulcd"))
++	{
++		printk(KERN_INFO "Beagle second expansionboard: initializing touchscreen: tsc2007\n");
++		omap3beagle_tsc2007_init();
++	}
++
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3beagle_nand_partitions,
+@@ -717,6 +838,7 @@ static void __init omap3_beagle_init(void)
+ }
+ 
+ early_param("buddy", expansionboard_setup);
++early_param("buddy2", expansionboard2_setup);
+ 
+ MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
+ 	/* Maintainer: Syed Mohammed Khasim - http://beagleboard.org */
+diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
+index 519c47d..495d693 100644
+--- a/drivers/video/omap2/displays/panel-generic-dpi.c
++++ b/drivers/video/omap2/displays/panel-generic-dpi.c
+@@ -297,6 +297,31 @@ static struct panel_config generic_dpi_panels[] = {
+ 
+ 		.name			= "apollon",
+ 	},
++
++	/* ThreeFiveCorp S9700RTWV35TR-01B */
++	{
++		{
++			.x_res		= 800,
++			.y_res		= 480,
++
++			.pixel_clock	= 30000,
++
++			.hsw		= 49,
++			.hfp		= 41,
++			.hbp		= 40,
++
++			.vsw		= 4,
++			.vfp		= 14,
++			.vbp		= 29,
++		},
++		.acbi			= 0x0,
++		.acb			= 0x0,
++		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++					  OMAP_DSS_LCD_IHS, // | OMAP_DSS_LCD_IEO; - TODO check this - doesn't work with this enabled
++		.power_on_delay		= 50,
++		.power_off_delay	= 100,
++		.name			= "tfc_s9700rtwv35tr-01b",
++	},
+ };
+ 
+ struct panel_drv_data {
+-- 
+1.7.9.5
+

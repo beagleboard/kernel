@@ -1,0 +1,34 @@
+From 4d848d23bdbecfbad6e7571a4ac37ca55ec0ddd0 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Wed, 28 Dec 2011 10:32:54 -0600
+Subject: [PATCH 7/7] OMAP: HWMOD: add es3plus to am36xx/am35xx
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index dcbcd64..3e1a489 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3343,12 +3343,16 @@ static __initdata struct omap_hwmod *omap36xx_hwmods[] = {
+ 	&omap36xx_sr2_hwmod,
+ 	&omap3xxx_usbhsotg_hwmod,
+ 	&omap3xxx_mailbox_hwmod,
++	&omap3xxx_es3plus_mmc1_hwmod,
++	&omap3xxx_es3plus_mmc2_hwmod,
+ 	NULL
+ };
+ 
+ static __initdata struct omap_hwmod *am35xx_hwmods[] = {
+ 	&omap3xxx_dss_core_hwmod, /* XXX ??? */
+ 	&am35xx_usbhsotg_hwmod,
++	&omap3xxx_es3plus_mmc1_hwmod,
++	&omap3xxx_es3plus_mmc2_hwmod,
+ 	NULL
+ };
+ 
+-- 
+1.7.9.5
+

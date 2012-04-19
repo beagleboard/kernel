@@ -1,0 +1,29 @@
+From 312ee1ae237f52bd1f94e08e48d328d1612a486b Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Sat, 8 Jan 2011 14:31:37 -0600
+Subject: [PATCH 11/13] default to fifo mode 5, for old musb beagles
+
+The fifo mode 4, 16kb can cause corruption on musb/omap35xx,
+use mode 5, 8kb...
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ drivers/usb/musb/musb_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 920f04e..66ce5e0 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1015,7 +1015,7 @@ static void musb_shutdown(struct platform_device *pdev)
+ 	|| defined(CONFIG_USB_MUSB_OMAP2PLUS_MODULE)	\
+ 	|| defined(CONFIG_USB_MUSB_AM35X)		\
+ 	|| defined(CONFIG_USB_MUSB_AM35X_MODULE)
+-static ushort __initdata fifo_mode = 4;
++static ushort __initdata fifo_mode = 5;
+ #elif defined(CONFIG_USB_MUSB_UX500)			\
+ 	|| defined(CONFIG_USB_MUSB_UX500_MODULE)
+ static ushort __initdata fifo_mode = 5;
+-- 
+1.7.9.5
+

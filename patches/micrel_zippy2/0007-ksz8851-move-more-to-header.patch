@@ -1,0 +1,143 @@
+From 42a0055376f93795e493fe680187c55e87bd4583 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Thu, 29 Sep 2011 11:38:35 -0500
+Subject: [PATCH 07/14] ksz8851 move more to header
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ drivers/net/ethernet/micrel/ks8851.h     |   27 ++++++++++++++++++++
+ drivers/net/ethernet/micrel/ks8851_mll.c |   40 +-----------------------------
+ 2 files changed, 28 insertions(+), 39 deletions(-)
+
+diff --git a/drivers/net/ethernet/micrel/ks8851.h b/drivers/net/ethernet/micrel/ks8851.h
+index 537fb06e..1ed7cfa 100644
+--- a/drivers/net/ethernet/micrel/ks8851.h
++++ b/drivers/net/ethernet/micrel/ks8851.h
+@@ -3,6 +3,9 @@
+  * Copyright 2009 Simtec Electronics
+  *      Ben Dooks <ben@simtec.co.uk>
+  *
++ * portions from drivers/net/ks8851_mll.c,
++ *	Copyright (c) 2009 Micrel Inc.
++ *
+  * KS8851 register definitions
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -13,6 +16,10 @@
+ #define KS_CCR					0x08
+ #define CCR_EEPROM				(1 << 9)
+ #define CCR_SPI					(1 << 8)
++#define CCR_8BIT				(1 << 7)
++#define CCR_16BIT				(1 << 6)
++#define CCR_32BIT				(1 << 5)
++#define CCR_SHARED				(1 << 4)
+ #define CCR_32PIN				(1 << 0)
+ 
+ /* MAC address registers */
+@@ -261,7 +268,13 @@
+ 
+ /* Standard MII PHY data */
+ #define KS_P1MBCR				0xE4
++#define P1MBCR_FORCE_FDX			(1 << 8)
++
+ #define KS_P1MBSR				0xE6
++#define P1MBSR_AN_COMPLETE			(1 << 5)
++#define P1MBSR_AN_CAPABLE			(1 << 3)
++#define P1MBSR_LINK_UP				(1 << 2)
++
+ #define KS_PHY1ILR				0xE8
+ #define KS_PHY1IHR				0xEA
+ #define KS_P1ANAR				0xEC
+@@ -296,6 +309,20 @@
+ #define P1CR_PNTR_10BT_FDX			(1 << 1)
+ #define P1CR_PNTR_10BT_HDX			(1 << 0)
+ 
++#define KS_P1SR					0xF8
++#define P1SR_HP_MDIX				(1 << 15)
++#define P1SR_REV_POL				(1 << 13)
++#define P1SR_OP_100M				(1 << 10)
++#define P1SR_OP_FDX				(1 << 9)
++#define P1SR_OP_MDI				(1 << 7)
++#define P1SR_AN_DONE				(1 << 6)
++#define P1SR_LINK_GOOD				(1 << 5)
++#define P1SR_PNTR_FLOW				(1 << 4)
++#define P1SR_PNTR_100BT_FDX			(1 << 3)
++#define P1SR_PNTR_100BT_HDX			(1 << 2)
++#define P1SR_PNTR_10BT_FDX			(1 << 1)
++#define P1SR_PNTR_10BT_HDX			(1 << 0)
++
+ /* TX Frame control */
+ 
+ #define TXFR_TXIC				(1 << 15)
+diff --git a/drivers/net/ethernet/micrel/ks8851_mll.c b/drivers/net/ethernet/micrel/ks8851_mll.c
+index 530b962..d3bb46f 100644
+--- a/drivers/net/ethernet/micrel/ks8851_mll.c
++++ b/drivers/net/ethernet/micrel/ks8851_mll.c
+@@ -47,13 +47,6 @@ static u8 KS_DEFAULT_MAC_ADDRESS[] = { 0x00, 0x10, 0xA1, 0x86, 0x95, 0x11 };
+ #define TX_BUF_SIZE			2000
+ #define RX_BUF_SIZE			2000
+ 
+-#define CCR_8BIT			(1 << 7)
+-#define CCR_16BIT			(1 << 6)
+-#define CCR_32BIT			(1 << 5)
+-#define CCR_SHARED			(1 << 4)
+-
+-#define OBCR_ODS_16MA			(1 << 6)
+-
+ #define RXCR1_FILTER_MASK    		(RXCR1_RXINVF | RXCR1_RXAE | \
+ 					 RXCR1_RXMAFMA | RXCR1_RXPAFMA)
+ 
+@@ -69,41 +62,10 @@ static u8 KS_DEFAULT_MAC_ADDRESS[] = { 0x00, 0x10, 0xA1, 0x86, 0x95, 0x11 };
+ 
+ #define RXQCR_CMD_CNTL                	(RXQCR_RXFCTE|RXQCR_ADRFE)
+ 
+-#define KS_TXFDPR			0x84
+-#define TXFDPR_TXFPAI			(1 << 14)
+-#define TXFDPR_TXFP_MASK		(0x7ff << 0)
+-#define TXFDPR_TXFP_SHIFT		(0)
+-
+-#define KS_RXFDPR			0x86
+-#define RXFDPR_RXFPAI			(1 << 14)
+-
+ #define RXFCTR_THRESHOLD_MASK     	0x00FF
+ 
+-#define P1MBCR_FORCE_FDX		(1 << 8)
+-
+-#define P1MBSR_AN_COMPLETE		(1 << 5)
+-#define P1MBSR_AN_CAPABLE		(1 << 3)
+-#define P1MBSR_LINK_UP			(1 << 2)
+-
+ /* TX Frame control */
+ 
+-#define TXFR_TXIC			(1 << 15)
+-#define TXFR_TXFID_MASK			(0x3f << 0)
+-#define TXFR_TXFID_SHIFT		(0)
+-
+-#define KS_P1SR				0xF8
+-#define P1SR_HP_MDIX			(1 << 15)
+-#define P1SR_REV_POL			(1 << 13)
+-#define P1SR_OP_100M			(1 << 10)
+-#define P1SR_OP_FDX			(1 << 9)
+-#define P1SR_OP_MDI			(1 << 7)
+-#define P1SR_AN_DONE			(1 << 6)
+-#define P1SR_LINK_GOOD			(1 << 5)
+-#define P1SR_PNTR_FLOW			(1 << 4)
+-#define P1SR_PNTR_100BT_FDX		(1 << 3)
+-#define P1SR_PNTR_100BT_HDX		(1 << 2)
+-#define P1SR_PNTR_10BT_FDX		(1 << 1)
+-#define P1SR_PNTR_10BT_HDX		(1 << 0)
+ 
+ #define	ENUM_BUS_NONE			0
+ #define	ENUM_BUS_8BIT			1
+@@ -1350,7 +1312,7 @@ static int __devinit ks8851_probe(struct platform_device *pdev)
+ 	memcpy(netdev->dev_addr, ks->mac_addr, 6);
+ 
+ 	data = ks_rdreg16(ks, KS_OBCR);
+-	ks_wrreg16(ks, KS_OBCR, data | OBCR_ODS_16MA);
++	ks_wrreg16(ks, KS_OBCR, data | OBCR_ODS_16mA);
+ 
+ 	/**
+ 	 * If you want to use the default MAC addr,
+-- 
+1.7.9.5
+
