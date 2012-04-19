@@ -1,0 +1,31 @@
+From 4f6739c756baab556e7ad8ddb33c0d3fb822179a Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Sat, 9 Jul 2011 19:14:45 -0600
+Subject: [PATCH 048/149] OMAP4: clock data: Add sddiv to USB DPLL
+
+The USB DPLL is a J-Type DPLL with the sddiv extra parameter.  Add it
+in USB DPLL.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+[paul@pwsan.com: dropped UNIPRO change since it is removed in a later patch]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clock44xx_data.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 8c96567..f28a9c9 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -1015,6 +1015,7 @@ static struct dpll_data dpll_usb_dd = {
+ 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
+ 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
+ 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
++	.sddiv_mask	= OMAP4430_DPLL_SD_DIV_MASK,
+ 	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
+ 	.max_divider	= OMAP4430_MAX_DPLL_DIV,
+ 	.min_divider	= 1,
+-- 
+1.7.2.5
+

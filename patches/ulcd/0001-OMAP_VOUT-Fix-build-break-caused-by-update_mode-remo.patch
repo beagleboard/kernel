@@ -1,0 +1,44 @@
+From 9e3cacdf6fb8c5d704c9fb98f744eddbb25e3cda Mon Sep 17 00:00:00 2001
+From: archit taneja <archit@ti.com>
+Date: Fri, 5 Aug 2011 07:19:21 +0000
+Subject: [PATCH 1/4] OMAP_VOUT: Fix build break caused by update_mode removal in DSS2
+
+The DSS2 driver does not support the configuration of the update_mode of a
+panel anymore. Remove the setting of update_mode done in omap_vout_probe().
+Ignore configuration of TE since omap_vout driver doesn't support manual update
+displays anyway.
+
+Signed-off-by: Archit Taneja <archit@ti.com>
+Tested-by: Koen Kooi <koen@dominion.thruhere.net>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/media/video/omap/omap_vout.c |   13 -------------
+ 1 files changed, 0 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 4d07c58..d17d6b6 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -2557,19 +2557,6 @@ static int __init omap_vout_probe(struct platform_device *pdev)
+ 					"'%s' Display already enabled\n",
+ 					def_display->name);
+ 			}
+-			/* set the update mode */
+-			if (def_display->caps &
+-					OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
+-				if (dssdrv->enable_te)
+-					dssdrv->enable_te(def_display, 0);
+-				if (dssdrv->set_update_mode)
+-					dssdrv->set_update_mode(def_display,
+-							OMAP_DSS_UPDATE_MANUAL);
+-			} else {
+-				if (dssdrv->set_update_mode)
+-					dssdrv->set_update_mode(def_display,
+-							OMAP_DSS_UPDATE_AUTO);
+-			}
+ 		}
+ 	}
+ 
+-- 
+1.7.2.5
+

@@ -1,0 +1,54 @@
+From f4aed769e9e59998f44447e7309e192573e6fac6 Mon Sep 17 00:00:00 2001
+From: Steve Sakoman <steve@sakoman.com>
+Date: Sat, 23 Jan 2010 06:26:54 -0800
+Subject: [PATCH 2/2] mfd: twl-core: enable madc clock
+
+Now that the madc driver has been merged it is also necessary to enable the clock to the madc block
+
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
+ drivers/mfd/twl-core.c  |    8 ++++++++
+ include/linux/i2c/twl.h |    1 +
+ 2 files changed, 9 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index e39dbed..018ee53 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -217,6 +217,11 @@
+ 
+ /* Few power values */
+ #define R_CFG_BOOT			0x05
++#define R_GPBR1				0x0C
++
++/* MADC clock values for R_GPBR1 */
++#define MADC_HFCLK_EN			0x80
++#define DEFAULT_MADC_CLK_EN		0x10
+ 
+ /* some fields in R_CFG_BOOT */
+ #define HFCLK_FREQ_19p2_MHZ		(1 << 0)
+@@ -1152,6 +1157,9 @@ static void clocks_init(struct device *dev,
+ 
+ 	e |= unprotect_pm_master();
+ 	/* effect->MADC+USB ck en */
++	if (twl_has_madc())
++		e |= twl_i2c_write_u8(TWL_MODULE_INTBR,
++				MADC_HFCLK_EN | DEFAULT_MADC_CLK_EN, R_GPBR1);
+ 	e |= twl_i2c_write_u8(TWL_MODULE_PM_MASTER, ctrl, R_CFG_BOOT);
+ 	e |= protect_pm_master();
+ 
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index ba4f886..6802efc 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -74,6 +74,7 @@
+ 
+ #define TWL_MODULE_USB		TWL4030_MODULE_USB
+ #define TWL_MODULE_AUDIO_VOICE	TWL4030_MODULE_AUDIO_VOICE
++#define TWL_MODULE_INTBR	TWL4030_MODULE_INTBR
+ #define TWL_MODULE_PIH		TWL4030_MODULE_PIH
+ #define TWL_MODULE_MADC		TWL4030_MODULE_MADC
+ #define TWL_MODULE_MAIN_CHARGE	TWL4030_MODULE_MAIN_CHARGE
+-- 
+1.7.2.5
+

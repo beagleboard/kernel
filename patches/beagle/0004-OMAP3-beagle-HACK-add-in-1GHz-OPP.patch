@@ -1,0 +1,31 @@
+From 6ebc5081aba3428762e4e055a154fdda9ebe442e Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Wed, 25 May 2011 08:57:40 +0200
+Subject: [PATCH 04/10] OMAP3: beagle: HACK! add in 1GHz OPP
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index a04f5a0..5e1d9f9 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -701,11 +701,13 @@ static void __init beagle_opp_init(void)
+ 		/* Enable MPU 1GHz and lower opps */
+ 		dev = &mh->od->pdev.dev;
+ 		r = opp_enable(dev, 800000000);
++		r |= opp_enable(dev, 1000000000);
+ 		/* TODO: MPU 1GHz needs SR and ABB */
+ 
+ 		/* Enable IVA 800MHz and lower opps */
+ 		dev = &dh->od->pdev.dev;
+ 		r |= opp_enable(dev, 660000000);
++		r |= opp_enable(dev, 800000000);
+ 		/* TODO: DSP 800MHz needs SR and ABB */
+ 		if (r) {
+ 			pr_err("%s: failed to enable higher opp %d\n",
+-- 
+1.7.2.5
+

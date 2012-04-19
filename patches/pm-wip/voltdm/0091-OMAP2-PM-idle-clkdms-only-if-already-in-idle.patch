@@ -1,0 +1,53 @@
+From bc09c0fe93e874df8fcfd68f31302330646cbf24 Mon Sep 17 00:00:00 2001
+From: Rajendra Nayak <rnayak@ti.com>
+Date: Sun, 10 Jul 2011 05:56:54 -0600
+Subject: [PATCH 091/149] OMAP2+: PM: idle clkdms only if already in idle
+
+The omap_set_pwrdm_state function forces clockdomains
+to idle, without checking the existing idle state
+programmed, instead based solely on the HW capability
+of the clockdomain to support idle.
+This is wrong and the clockdomains should be idled
+post a state_switch *only* if idle transitions on the
+clockdomain were already enabled.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Acked-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/pm.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index d48813f..3feb359 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -108,6 +108,7 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ 	u32 cur_state;
+ 	int sleep_switch = -1;
+ 	int ret = 0;
++	int hwsup = 0;
+ 
+ 	if (pwrdm == NULL || IS_ERR(pwrdm))
+ 		return -EINVAL;
+@@ -127,6 +128,7 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ 			(pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE)) {
+ 			sleep_switch = LOWPOWERSTATE_SWITCH;
+ 		} else {
++			hwsup = clkdm_in_hwsup(pwrdm->pwrdm_clkdms[0]);
+ 			clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
+ 			pwrdm_wait_transition(pwrdm);
+ 			sleep_switch = FORCEWAKEUP_SWITCH;
+@@ -142,7 +144,7 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ 
+ 	switch (sleep_switch) {
+ 	case FORCEWAKEUP_SWITCH:
+-		if (pwrdm->pwrdm_clkdms[0]->flags & CLKDM_CAN_ENABLE_AUTO)
++		if (hwsup)
+ 			clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
+ 		else
+ 			clkdm_sleep(pwrdm->pwrdm_clkdms[0]);
+-- 
+1.7.2.5
+

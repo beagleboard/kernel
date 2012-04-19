@@ -1,0 +1,32 @@
+From be4be1a11360222f0b0add1dadfeaf76af199990 Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Date: Wed, 11 Aug 2010 17:05:38 -0700
+Subject: [PATCH 03/19] OMAP: CPUfreq: ensure policy is fully initialized
+
+Ensure policy min/max/cur values are initialized when OMAP
+CPUfreq driver starts.
+
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/plat-omap/cpu-omap.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+index cd09d4b..1b36664 100644
+--- a/arch/arm/plat-omap/cpu-omap.c
++++ b/arch/arm/plat-omap/cpu-omap.c
+@@ -126,6 +126,10 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+ 							VERY_HI_RATE) / 1000;
+ 	}
+ 
++	policy->min = policy->cpuinfo.min_freq;
++	policy->max = policy->cpuinfo.max_freq;
++	policy->cur = omap_getspeed(0);
++
+ 	/* FIXME: what's the actual transition time? */
+ 	policy->cpuinfo.transition_latency = 300 * 1000;
+ 
+-- 
+1.7.2.5
+

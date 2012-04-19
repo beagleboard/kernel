@@ -1,0 +1,40 @@
+From e060d73eef027063f687feae1c3d0ad2418a88aa Mon Sep 17 00:00:00 2001
+From: Nishanth Menon <nm@ti.com>
+Date: Mon, 14 Feb 2011 21:14:17 +0530
+Subject: [PATCH 011/149] OMAP3+: SR: enable/disable SR only on need
+
+Since we already know the state of the autocomp enablement, we can
+see if the requested state is different from the current state and
+enable/disable SR only on the need basis.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/smartreflex.c |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 6b69ada..1a370b9 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -807,10 +807,13 @@ static int omap_sr_autocomp_store(void *data, u64 val)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (!val)
+-		sr_stop_vddautocomp(sr_info);
+-	else
+-		sr_start_vddautocomp(sr_info);
++	/* control enable/disable only if there is a delta in value */
++	if (sr_info->autocomp_active != val) {
++		if (!val)
++			sr_stop_vddautocomp(sr_info);
++		else
++			sr_start_vddautocomp(sr_info);
++	}
+ 
+ 	return 0;
+ }
+-- 
+1.7.2.5
+

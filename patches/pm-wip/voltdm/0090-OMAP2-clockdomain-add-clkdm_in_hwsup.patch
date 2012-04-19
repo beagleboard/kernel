@@ -1,0 +1,141 @@
+From b1090dd5eb9e242f8426169718fd7241c025c1a2 Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 10 Jul 2011 05:56:54 -0600
+Subject: [PATCH 090/149] OMAP2+: clockdomain: add clkdm_in_hwsup()
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Add a new function, clkdm_in_hwsup(), that returns true if a clockdomain
+is configured for hardware-supervised idle.  It does not actually read the
+hardware; rather, it checks an internal flag in the struct clockdomain, which
+is changed when the clockdomain is switched in and out of hardware-supervised
+idle.  This should be safe, since all changes to the idle mode should
+pass through the clockdomain code.
+
+Based on a set of patches by Rajendra Nayak <rnayak@ti.com> which do
+the same thing by checking the hardware bits.  This approach should be
+faster and more compact.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Todd Poynor <toddpoynor@google.com>
+Cc: Benoît Cousson <b-cousson@ti.com>
+---
+ arch/arm/mach-omap2/clockdomain.c |   30 ++++++++++++++++++++++++++++--
+ arch/arm/mach-omap2/clockdomain.h |    6 ++++++
+ 2 files changed, 34 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 5a57de5..239b558 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -1,8 +1,8 @@
+ /*
+  * OMAP2/3/4 clockdomain framework functions
+  *
+- * Copyright (C) 2008-2010 Texas Instruments, Inc.
+- * Copyright (C) 2008-2010 Nokia Corporation
++ * Copyright (C) 2008-2011 Texas Instruments, Inc.
++ * Copyright (C) 2008-2011 Nokia Corporation
+  *
+  * Written by Paul Walmsley and Jouni Högander
+  * Added OMAP4 specific support by Abhijit Pagare <abhijitpagare@ti.com>
+@@ -704,6 +704,8 @@ int clkdm_sleep(struct clockdomain *clkdm)
+ 
+ 	pr_debug("clockdomain: forcing sleep on %s\n", clkdm->name);
+ 
++	clkdm->_flags &= ~_CLKDM_FLAG_HWSUP_ENABLED;
++
+ 	return arch_clkdm->clkdm_sleep(clkdm);
+ }
+ 
+@@ -732,6 +734,8 @@ int clkdm_wakeup(struct clockdomain *clkdm)
+ 
+ 	pr_debug("clockdomain: forcing wakeup on %s\n", clkdm->name);
+ 
++	clkdm->_flags &= ~_CLKDM_FLAG_HWSUP_ENABLED;
++
+ 	return arch_clkdm->clkdm_wakeup(clkdm);
+ }
+ 
+@@ -762,6 +766,8 @@ void clkdm_allow_idle(struct clockdomain *clkdm)
+ 	pr_debug("clockdomain: enabling automatic idle transitions for %s\n",
+ 		 clkdm->name);
+ 
++	clkdm->_flags |= _CLKDM_FLAG_HWSUP_ENABLED;
++
+ 	arch_clkdm->clkdm_allow_idle(clkdm);
+ 	pwrdm_clkdm_state_switch(clkdm);
+ }
+@@ -792,9 +798,29 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
+ 	pr_debug("clockdomain: disabling automatic idle transitions for %s\n",
+ 		 clkdm->name);
+ 
++	clkdm->_flags &= ~_CLKDM_FLAG_HWSUP_ENABLED;
++
+ 	arch_clkdm->clkdm_deny_idle(clkdm);
+ }
+ 
++/**
++ * clkdm_in_hwsup - is clockdomain @clkdm have hardware-supervised idle enabled?
++ * @clkdm: struct clockdomain *
++ *
++ * Returns true if clockdomain @clkdm currently has
++ * hardware-supervised idle enabled, or false if it does not or if
++ * @clkdm is NULL.  It is only valid to call this function after
++ * clkdm_init() has been called.  This function does not actually read
++ * bits from the hardware; it instead tests an in-memory flag that is
++ * changed whenever the clockdomain code changes the auto-idle mode.
++ */
++bool clkdm_in_hwsup(struct clockdomain *clkdm)
++{
++	if (!clkdm)
++		return false;
++
++	return (clkdm->_flags & _CLKDM_FLAG_HWSUP_ENABLED) ? true : false;
++}
+ 
+ /* Clockdomain-to-clock/hwmod framework interface code */
+ 
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index 8e0da64..8782a5c 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -83,6 +83,9 @@ struct clkdm_dep {
+ 	const struct omap_chip_id omap_chip;
+ };
+ 
++/* Possible flags for struct clockdomain._flags */
++#define _CLKDM_FLAG_HWSUP_ENABLED		BIT(0)
++
+ /**
+  * struct clockdomain - OMAP clockdomain
+  * @name: clockdomain name
+@@ -90,6 +93,7 @@ struct clkdm_dep {
+  * @clktrctrl_reg: CLKSTCTRL reg for the given clock domain
+  * @clktrctrl_mask: CLKTRCTRL/AUTOSTATE field mask in CM_CLKSTCTRL reg
+  * @flags: Clockdomain capability flags
++ * @_flags: Flags for use only by internal clockdomain code
+  * @dep_bit: Bit shift of this clockdomain's PM_WKDEP/CM_SLEEPDEP bit
+  * @prcm_partition: (OMAP4 only) PRCM partition ID for this clkdm's registers
+  * @cm_inst: (OMAP4 only) CM instance register offset
+@@ -114,6 +118,7 @@ struct clockdomain {
+ 	} pwrdm;
+ 	const u16 clktrctrl_mask;
+ 	const u8 flags;
++	u8 _flags;
+ 	const u8 dep_bit;
+ 	const u8 prcm_partition;
+ 	const s16 cm_inst;
+@@ -178,6 +183,7 @@ int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm);
+ 
+ void clkdm_allow_idle(struct clockdomain *clkdm);
+ void clkdm_deny_idle(struct clockdomain *clkdm);
++bool clkdm_in_hwsup(struct clockdomain *clkdm);
+ 
+ int clkdm_wakeup(struct clockdomain *clkdm);
+ int clkdm_sleep(struct clockdomain *clkdm);
+-- 
+1.7.2.5
+

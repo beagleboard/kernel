@@ -1,0 +1,38 @@
+From ccac5e6430353118ac7b9c46493e8cdf12114bf1 Mon Sep 17 00:00:00 2001
+From: Nishanth Menon <nm@ti.com>
+Date: Wed, 18 May 2011 00:17:32 -0500
+Subject: [PATCH 147/149] OMAP4: PM: TWL6030: address 0V conversions
+
+0V conversions should be mapped to 0 as it is meant to denote
+off voltages.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/omap_twl.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+index 5def7c2..b30adf3 100644
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ b/arch/arm/mach-omap2/omap_twl.c
+@@ -95,6 +95,8 @@ static unsigned long twl6030_vsel_to_uv(const u8 vsel)
+ 		is_offset_valid = true;
+ 	}
+ 
++	if (!vsel)
++		return 0;
+ 	/*
+ 	 * There is no specific formula for voltage to vsel
+ 	 * conversion above 1.3V. There are special hardcoded
+@@ -127,6 +129,8 @@ static u8 twl6030_uv_to_vsel(unsigned long uv)
+ 		is_offset_valid = true;
+ 	}
+ 
++	if (!uv)
++		return 0x00;
+ 	/*
+ 	 * There is no specific formula for voltage to vsel
+ 	 * conversion above 1.3V. There are special hardcoded
+-- 
+1.7.2.5
+

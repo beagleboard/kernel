@@ -1,0 +1,264 @@
+From 9dbc6c631f27b1e6ed6b058b8d3e57b2398b2d3b Mon Sep 17 00:00:00 2001
+From: Rajendra Nayak <rnayak@ti.com>
+Date: Sun, 10 Jul 2011 05:56:55 -0600
+Subject: [PATCH 092/149] OMAP2+: clockdomain: Add per clkdm lock to prevent concurrent state programming
+
+Since the clkdm state programming is now done from within the hwmod
+framework (which uses a per-hwmod lock) instead of the being done
+from the clock framework (which used a global lock), there is now a
+need to have per-clkdm locking to prevent races between different
+hwmods/modules belonging to the same clock domain concurrently
+programming the clkdm state.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clockdomain.c          |   47 +++++++++++++++++++++++----
+ arch/arm/mach-omap2/clockdomain.h          |    2 +
+ arch/arm/mach-omap2/clockdomain2xxx_3xxx.c |    6 ++-
+ arch/arm/mach-omap2/clockdomain44xx.c      |   13 ++-----
+ 4 files changed, 50 insertions(+), 18 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 239b558..ab7db08 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -92,6 +92,8 @@ static int _clkdm_register(struct clockdomain *clkdm)
+ 
+ 	pwrdm_add_clkdm(pwrdm, clkdm);
+ 
++	spin_lock_init(&clkdm->lock);
++
+ 	pr_debug("clockdomain: registered %s\n", clkdm->name);
+ 
+ 	return 0;
+@@ -690,6 +692,9 @@ int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm)
+  */
+ int clkdm_sleep(struct clockdomain *clkdm)
+ {
++	int ret;
++	unsigned long flags;
++
+ 	if (!clkdm)
+ 		return -EINVAL;
+ 
+@@ -704,9 +709,11 @@ int clkdm_sleep(struct clockdomain *clkdm)
+ 
+ 	pr_debug("clockdomain: forcing sleep on %s\n", clkdm->name);
+ 
++	spin_lock_irqsave(&clkdm->lock, flags);
+ 	clkdm->_flags &= ~_CLKDM_FLAG_HWSUP_ENABLED;
+-
+-	return arch_clkdm->clkdm_sleep(clkdm);
++	ret = arch_clkdm->clkdm_sleep(clkdm);
++	spin_unlock_irqrestore(&clkdm->lock, flags);
++	return ret;
+ }
+ 
+ /**
+@@ -720,6 +727,9 @@ int clkdm_sleep(struct clockdomain *clkdm)
+  */
+ int clkdm_wakeup(struct clockdomain *clkdm)
+ {
++	int ret;
++	unsigned long flags;
++
+ 	if (!clkdm)
+ 		return -EINVAL;
+ 
+@@ -734,9 +744,11 @@ int clkdm_wakeup(struct clockdomain *clkdm)
+ 
+ 	pr_debug("clockdomain: forcing wakeup on %s\n", clkdm->name);
+ 
++	spin_lock_irqsave(&clkdm->lock, flags);
+ 	clkdm->_flags &= ~_CLKDM_FLAG_HWSUP_ENABLED;
+-
+-	return arch_clkdm->clkdm_wakeup(clkdm);
++	ret = arch_clkdm->clkdm_wakeup(clkdm);
++	spin_unlock_irqrestore(&clkdm->lock, flags);
++	return ret;
+ }
+ 
+ /**
+@@ -751,6 +763,8 @@ int clkdm_wakeup(struct clockdomain *clkdm)
+  */
+ void clkdm_allow_idle(struct clockdomain *clkdm)
+ {
++	unsigned long flags;
++
+ 	if (!clkdm)
+ 		return;
+ 
+@@ -766,10 +780,11 @@ void clkdm_allow_idle(struct clockdomain *clkdm)
+ 	pr_debug("clockdomain: enabling automatic idle transitions for %s\n",
+ 		 clkdm->name);
+ 
++	spin_lock_irqsave(&clkdm->lock, flags);
+ 	clkdm->_flags |= _CLKDM_FLAG_HWSUP_ENABLED;
+-
+ 	arch_clkdm->clkdm_allow_idle(clkdm);
+ 	pwrdm_clkdm_state_switch(clkdm);
++	spin_unlock_irqrestore(&clkdm->lock, flags);
+ }
+ 
+ /**
+@@ -783,6 +798,8 @@ void clkdm_allow_idle(struct clockdomain *clkdm)
+  */
+ void clkdm_deny_idle(struct clockdomain *clkdm)
+ {
++	unsigned long flags;
++
+ 	if (!clkdm)
+ 		return;
+ 
+@@ -798,9 +815,10 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
+ 	pr_debug("clockdomain: disabling automatic idle transitions for %s\n",
+ 		 clkdm->name);
+ 
++	spin_lock_irqsave(&clkdm->lock, flags);
+ 	clkdm->_flags &= ~_CLKDM_FLAG_HWSUP_ENABLED;
+-
+ 	arch_clkdm->clkdm_deny_idle(clkdm);
++	spin_unlock_irqrestore(&clkdm->lock, flags);
+ }
+ 
+ /**
+@@ -816,16 +834,25 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
+  */
+ bool clkdm_in_hwsup(struct clockdomain *clkdm)
+ {
++	bool ret;
++	unsigned long flags;
++
+ 	if (!clkdm)
+ 		return false;
+ 
+-	return (clkdm->_flags & _CLKDM_FLAG_HWSUP_ENABLED) ? true : false;
++	spin_lock_irqsave(&clkdm->lock, flags);
++	ret = (clkdm->_flags & _CLKDM_FLAG_HWSUP_ENABLED) ? true : false;
++	spin_unlock_irqrestore(&clkdm->lock, flags);
++
++	return ret;
+ }
+ 
+ /* Clockdomain-to-clock/hwmod framework interface code */
+ 
+ static int _clkdm_clk_hwmod_enable(struct clockdomain *clkdm)
+ {
++	unsigned long flags;
++
+ 	if (!clkdm || !arch_clkdm || !arch_clkdm->clkdm_clk_enable)
+ 		return -EINVAL;
+ 
+@@ -837,9 +864,11 @@ static int _clkdm_clk_hwmod_enable(struct clockdomain *clkdm)
+ 	if ((atomic_inc_return(&clkdm->usecount) > 1) && autodeps)
+ 		return 0;
+ 
++	spin_lock_irqsave(&clkdm->lock, flags);
+ 	arch_clkdm->clkdm_clk_enable(clkdm);
+ 	pwrdm_wait_transition(clkdm->pwrdm.ptr);
+ 	pwrdm_clkdm_state_switch(clkdm);
++	spin_unlock_irqrestore(&clkdm->lock, flags);
+ 
+ 	pr_debug("clockdomain: clkdm %s: enabled\n", clkdm->name);
+ 
+@@ -848,6 +877,8 @@ static int _clkdm_clk_hwmod_enable(struct clockdomain *clkdm)
+ 
+ static int _clkdm_clk_hwmod_disable(struct clockdomain *clkdm)
+ {
++	unsigned long flags;
++
+ 	if (!clkdm || !arch_clkdm || !arch_clkdm->clkdm_clk_disable)
+ 		return -EINVAL;
+ 
+@@ -859,8 +890,10 @@ static int _clkdm_clk_hwmod_disable(struct clockdomain *clkdm)
+ 	if (atomic_dec_return(&clkdm->usecount) > 0)
+ 		return 0;
+ 
++	spin_lock_irqsave(&clkdm->lock, flags);
+ 	arch_clkdm->clkdm_clk_disable(clkdm);
+ 	pwrdm_clkdm_state_switch(clkdm);
++	spin_unlock_irqrestore(&clkdm->lock, flags);
+ 
+ 	pr_debug("clockdomain: clkdm %s: disabled\n", clkdm->name);
+ 
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index 8782a5c..1e50c88 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -17,6 +17,7 @@
+ #define __ARCH_ARM_MACH_OMAP2_CLOCKDOMAIN_H
+ 
+ #include <linux/init.h>
++#include <linux/spinlock.h>
+ 
+ #include "powerdomain.h"
+ #include <plat/clock.h>
+@@ -128,6 +129,7 @@ struct clockdomain {
+ 	const struct omap_chip_id omap_chip;
+ 	atomic_t usecount;
+ 	struct list_head node;
++	spinlock_t lock;
+ };
+ 
+ /**
+diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+index 48d0db7..f740edb 100644
+--- a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+@@ -183,7 +183,8 @@ static int omap2_clkdm_clk_enable(struct clockdomain *clkdm)
+ 		_clkdm_add_autodeps(clkdm);
+ 		_enable_hwsup(clkdm);
+ 	} else {
+-		clkdm_wakeup(clkdm);
++		if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
++			omap2_clkdm_wakeup(clkdm);
+ 	}
+ 
+ 	return 0;
+@@ -205,7 +206,8 @@ static int omap2_clkdm_clk_disable(struct clockdomain *clkdm)
+ 		_clkdm_del_autodeps(clkdm);
+ 		_enable_hwsup(clkdm);
+ 	} else {
+-		clkdm_sleep(clkdm);
++		if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP)
++			omap2_clkdm_sleep(clkdm);
+ 	}
+ 
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/clockdomain44xx.c b/arch/arm/mach-omap2/clockdomain44xx.c
+index a1a4ecd..b43706a 100644
+--- a/arch/arm/mach-omap2/clockdomain44xx.c
++++ b/arch/arm/mach-omap2/clockdomain44xx.c
+@@ -95,13 +95,8 @@ static void omap4_clkdm_deny_idle(struct clockdomain *clkdm)
+ 
+ static int omap4_clkdm_clk_enable(struct clockdomain *clkdm)
+ {
+-	bool hwsup = false;
+-
+-	hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
+-					clkdm->cm_inst, clkdm->clkdm_offs);
+-
+-	if (!hwsup)
+-		clkdm_wakeup(clkdm);
++	if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
++		return omap4_clkdm_wakeup(clkdm);
+ 
+ 	return 0;
+ }
+@@ -113,8 +108,8 @@ static int omap4_clkdm_clk_disable(struct clockdomain *clkdm)
+ 	hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
+ 					clkdm->cm_inst, clkdm->clkdm_offs);
+ 
+-	if (!hwsup)
+-		clkdm_sleep(clkdm);
++	if (!hwsup && (clkdm->flags & CLKDM_CAN_FORCE_SLEEP))
++		omap4_clkdm_sleep(clkdm);
+ 
+ 	return 0;
+ }
+-- 
+1.7.2.5
+

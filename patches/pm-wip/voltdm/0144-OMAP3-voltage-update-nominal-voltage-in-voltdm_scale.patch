@@ -1,0 +1,49 @@
+From 5bd4a2cb8354937390805ed248235670cf229935 Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@ti.com>
+Date: Mon, 18 Jul 2011 16:24:17 -0700
+Subject: [PATCH 144/149] OMAP3+: voltage: update nominal voltage in voltdm_scale() not VC post-scale
+
+Currently, the nominal voltage is updated in the VC post-scale function
+which is common to both scaling methods.  However, this has readabiliy
+problems as this update is not where it might be expected.  Instead, move
+the updated into voltdm_scale() upon a successful return of voltdm->scale()
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/vc.c      |    2 --
+ arch/arm/mach-omap2/voltage.c |    6 +++++-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index 3233c69..16fa912 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -143,8 +143,6 @@ void omap_vc_post_scale(struct voltagedomain *voltdm,
+ 	smps_delay = ((smps_steps * voltdm->pmic->step_size) /
+ 			voltdm->pmic->slew_rate) + 2;
+ 	udelay(smps_delay);
+-
+-	voltdm->nominal_volt = target_volt;
+ }
+ 
+ /* vc_bypass_scale - VC bypass method of voltage scaling */
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 031f6bf..cebc8b1 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -85,7 +85,11 @@ int voltdm_scale(struct voltagedomain *voltdm,
+ 		return -ENODATA;
+ 	}
+ 
+-	return voltdm->scale(voltdm, target_volt);
++	ret = voltdm->scale(voltdm, target_volt);
++	if (!ret)
++		voltdm->nominal_volt = target_volt;
++
++	return ret;
+ }
+ 
+ /**
+-- 
+1.7.2.5
+

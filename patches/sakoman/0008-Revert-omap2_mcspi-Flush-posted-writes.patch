@@ -1,0 +1,27 @@
+From baf40f002836b7c0fe9aeeba92ba483f6e9d2384 Mon Sep 17 00:00:00 2001
+From: Steve Sakoman <steve@sakoman.com>
+Date: Thu, 3 Mar 2011 13:29:30 -0800
+Subject: [PATCH 08/14] Revert "omap2_mcspi: Flush posted writes"
+
+This reverts commit a330ce2001b290c59fe98c37e981683ef0a75fdf.
+
+The above commit breaks the ads7846 driver
+---
+ drivers/spi/omap2_mcspi.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index 969cdd2..da981ee 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -195,7 +195,6 @@ static inline void mcspi_write_chconf0(const struct spi_device *spi, u32 val)
+ 
+ 	cs->chconf0 = val;
+ 	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, val);
+-	mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
+ }
+ 
+ static void omap2_mcspi_set_dma_req(const struct spi_device *spi,
+-- 
+1.7.2.5
+

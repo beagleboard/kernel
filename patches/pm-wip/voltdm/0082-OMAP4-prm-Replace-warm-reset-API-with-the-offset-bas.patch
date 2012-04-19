@@ -1,0 +1,125 @@
+From 21fe73d93ffbba01a14a70664d4f79cb680d12c0 Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Sun, 10 Jul 2011 05:56:31 -0600
+Subject: [PATCH 082/149] OMAP4: prm: Replace warm reset API with the offset based version
+
+The warm reset function was still using the obsolete API.
+Replace it by the new one and move the file to the proper c file.
+
+Change the function names to stick to the file convention as
+suggested by Paul Walmsley <paul@pwsan.com>:
+prm_xxx -> prminst_xxx
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/prcm.c        |    2 +-
+ arch/arm/mach-omap2/prm44xx.c     |   15 ---------------
+ arch/arm/mach-omap2/prm44xx.h     |    2 --
+ arch/arm/mach-omap2/prminst44xx.c |   19 +++++++++++++++++++
+ arch/arm/mach-omap2/prminst44xx.h |    8 ++++----
+ 5 files changed, 24 insertions(+), 22 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 6be1438..2e40a5c 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -70,7 +70,7 @@ static void omap_prcm_arch_reset(char mode, const char *cmd)
+ 		prcm_offs = OMAP3430_GR_MOD;
+ 		omap3_ctrl_write_boot_mode((cmd ? (u8)*cmd : 0));
+ 	} else if (cpu_is_omap44xx()) {
+-		omap4_prm_global_warm_sw_reset(); /* never returns */
++		omap4_prminst_global_warm_sw_reset(); /* never returns */
+ 	} else {
+ 		WARN_ON(1);
+ 	}
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index faec860..f815329 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -87,18 +87,3 @@ u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 reg)
+ {
+ 	return omap4_prm_rmw_inst_reg_bits(bits, 0x0, inst, reg);
+ }
+-
+-void omap4_prm_global_warm_sw_reset(void)
+-{
+-	u32 v;
+-
+-	v = omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
+-				    OMAP4_RM_RSTCTRL);
+-	v |= OMAP4430_RST_GLOBAL_WARM_SW_MASK;
+-	omap4_prm_write_inst_reg(v, OMAP4430_PRM_DEVICE_INST,
+-				 OMAP4_RM_RSTCTRL);
+-
+-	/* OCP barrier */
+-	v = omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
+-				    OMAP4_RM_RSTCTRL);
+-}
+diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
+index 3732e02..725a6a8 100644
+--- a/arch/arm/mach-omap2/prm44xx.h
++++ b/arch/arm/mach-omap2/prm44xx.h
+@@ -755,8 +755,6 @@ extern u32 omap4_prm_set_inst_reg_bits(u32 bits, s16 inst, s16 idx);
+ extern u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 idx);
+ extern u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask);
+ 
+-extern void omap4_prm_global_warm_sw_reset(void);
+-
+ # endif
+ 
+ #endif
+diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+index 35e02aa..3a7bab1 100644
+--- a/arch/arm/mach-omap2/prminst44xx.c
++++ b/arch/arm/mach-omap2/prminst44xx.c
+@@ -155,3 +155,22 @@ int omap4_prminst_deassert_hardreset(u8 shift, u8 part, s16 inst,
+ 
+ 	return (c == MAX_MODULE_HARDRESET_WAIT) ? -EBUSY : 0;
+ }
++
++
++void omap4_prminst_global_warm_sw_reset(void)
++{
++	u32 v;
++
++	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
++				    OMAP4430_PRM_DEVICE_INST,
++				    OMAP4_PRM_RSTCTRL_OFFSET);
++	v |= OMAP4430_RST_GLOBAL_WARM_SW_MASK;
++	omap4_prminst_write_inst_reg(v, OMAP4430_PRM_PARTITION,
++				 OMAP4430_PRM_DEVICE_INST,
++				 OMAP4_PRM_RSTCTRL_OFFSET);
++
++	/* OCP barrier */
++	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
++				    OMAP4430_PRM_DEVICE_INST,
++				    OMAP4_PRM_RSTCTRL_OFFSET);
++}
+diff --git a/arch/arm/mach-omap2/prminst44xx.h b/arch/arm/mach-omap2/prminst44xx.h
+index c14ae29..46f2efb 100644
+--- a/arch/arm/mach-omap2/prminst44xx.h
++++ b/arch/arm/mach-omap2/prminst44xx.h
+@@ -21,13 +21,13 @@ extern void omap4_prminst_write_inst_reg(u32 val, u8 part, s16 inst, u16 idx);
+ extern u32 omap4_prminst_rmw_inst_reg_bits(u32 mask, u32 bits, u8 part,
+ 					   s16 inst, u16 idx);
+ 
+-extern void omap4_prm_global_warm_sw_reset(void);
++extern void omap4_prminst_global_warm_sw_reset(void);
+ 
+ extern int omap4_prminst_is_hardreset_asserted(u8 shift, u8 part, s16 inst,
+-					   u16 rstctrl_offs);
++					       u16 rstctrl_offs);
+ extern int omap4_prminst_assert_hardreset(u8 shift, u8 part, s16 inst,
+-				      u16 rstctrl_offs);
++					  u16 rstctrl_offs);
+ extern int omap4_prminst_deassert_hardreset(u8 shift, u8 part, s16 inst,
+-					u16 rstctrl_offs);
++					    u16 rstctrl_offs);
+ 
+ #endif
+-- 
+1.7.2.5
+

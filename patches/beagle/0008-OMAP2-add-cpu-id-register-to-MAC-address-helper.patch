@@ -1,0 +1,89 @@
+From 2a9282daf94e8b9a1c8dc6fdf5b97461eb15348d Mon Sep 17 00:00:00 2001
+From: Andy Green <andy@warmcat.com>
+Date: Thu, 24 Mar 2011 21:27:29 +0000
+Subject: [PATCH 08/10] OMAP2+: add cpu id register to MAC address helper
+
+Introduce a generic helper function that can set a MAC address using
+data from the OMAP unique CPU ID register.
+
+For comparison purposes this produces a MAC address of
+
+  2e:40:70:f0:12:06
+
+for the ethernet device on my Panda.
+
+Note that this patch requires the fix patch for CPU ID register
+indexes previously posted to linux-omap, otherwise the CPU ID is
+misread on Panda by the existing function to do it.  This patch
+is already on linux-omap.
+
+"OMAP2+:Common CPU DIE ID reading code reads wrong registers for OMAP4430"
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=b235e007831dbf57710e59cd4a120e2f374eecb9
+
+Signed-off-by: Andy Green <andy.green@linaro.org>
+---
+ arch/arm/mach-omap2/id.c              |   39 +++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/include/mach/id.h |    1 +
+ 2 files changed, 40 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index b6ed78a..de993f1 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -567,3 +567,42 @@ void __init omap2_set_globals_tap(struct omap_globals *omap2_globals)
+ 	else
+ 		tap_prod_id = 0x0208;
+ }
++
++/*
++ * this uses the unique per-cpu info from the cpu fuses set at factory to
++ * generate a 6-byte MAC address.  Two bits in the generated code are used
++ * to elaborate the generated address into four, so it can be used on multiple
++ * network interfaces.
++ */
++
++void omap2_die_id_to_ethernet_mac(u8 *mac, int subtype)
++{
++	struct omap_die_id odi;
++	u32 tap = read_tap_reg(OMAP_TAP_IDCODE);
++
++	omap_get_die_id(&odi);
++
++	mac[0] = odi.id_2;
++	mac[1] = odi.id_2 >> 8;
++	mac[2] = odi.id_1;
++	mac[3] = odi.id_1 >> 8;
++	mac[4] = odi.id_1 >> 16;
++	mac[5] = odi.id_1 >> 24;
++
++	/* XOR other chip-specific data with ID */
++
++	tap ^= odi.id_3;
++
++	mac[0] ^= tap;
++	mac[1] ^= tap >> 8;
++	mac[2] ^= tap >> 16;
++	mac[3] ^= tap >> 24;
++
++	/* allow four MACs from this same basic data */
++
++	mac[1] = (mac[1] & ~0xc0) | ((subtype & 3) << 6);
++
++	/* mark it as not multicast and outside official 80211 MAC namespace */
++
++	mac[0] = (mac[0] & ~1) | 2;
++}
+diff --git a/arch/arm/mach-omap2/include/mach/id.h b/arch/arm/mach-omap2/include/mach/id.h
+index 02ed3aa..373313a 100644
+--- a/arch/arm/mach-omap2/include/mach/id.h
++++ b/arch/arm/mach-omap2/include/mach/id.h
+@@ -18,5 +18,6 @@ struct omap_die_id {
+ };
+ 
+ void omap_get_die_id(struct omap_die_id *odi);
++void omap2_die_id_to_ethernet_mac(u8 *mac, int subtype);
+ 
+ #endif
+-- 
+1.7.2.5
+

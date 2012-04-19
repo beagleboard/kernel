@@ -1,0 +1,84 @@
+From 01eed55ec7b57fb5109e7eb70cbdebdc030135a5 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jon-hunter@ti.com>
+Date: Sun, 10 Jul 2011 05:57:33 -0600
+Subject: [PATCH 095/149] OMAP: Add debugfs node to show the summary of all clocks
+
+Add a debugfs node called "summary" to /sys/kernel/debug/clock/
+that displays a quick summary of all clocks registered in the
+"clocks" structure. The format of the output from this node is:
+
+<clock-name> <parent-name> <rate> <usecount>
+
+This debugfs node was very helpful for taking a quick snapshot of
+the linux clock tree for OMAP and ensuring clock frequencies
+calculated by the kernel were indeed correct. This patch helped
+uncover some bugs in the linux clock tree for OMAP4.
+
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/plat-omap/clock.c |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 39 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index c9122dd..156b27d 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -475,8 +475,41 @@ int __init clk_init(struct clk_functions * custom_clocks)
+ /*
+  *	debugfs support to trace clock tree hierarchy and attributes
+  */
++
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
++
+ static struct dentry *clk_debugfs_root;
+ 
++static int clk_dbg_show_summary(struct seq_file *s, void *unused)
++{
++	struct clk *c;
++	struct clk *pa;
++
++	seq_printf(s, "%-30s %-30s %-10s %s\n",
++		"clock-name", "parent-name", "rate", "use-count");
++
++	list_for_each_entry(c, &clocks, node) {
++		pa = c->parent;
++		seq_printf(s, "%-30s %-30s %-10lu %d\n",
++			c->name, pa ? pa->name : "none", c->rate, c->usecount);
++	}
++
++	return 0;
++}
++
++static int clk_dbg_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, clk_dbg_show_summary, inode->i_private);
++}
++
++static const struct file_operations debug_clock_fops = {
++	.open           = clk_dbg_open,
++	.read           = seq_read,
++	.llseek         = seq_lseek,
++	.release        = single_release,
++};
++
+ static int clk_debugfs_register_one(struct clk *c)
+ {
+ 	int err;
+@@ -551,6 +584,12 @@ static int __init clk_debugfs_init(void)
+ 		if (err)
+ 			goto err_out;
+ 	}
++
++	d = debugfs_create_file("summary", S_IRUGO,
++		d, NULL, &debug_clock_fops);
++	if (!d)
++		return -ENOMEM;
++
+ 	return 0;
+ err_out:
+ 	debugfs_remove_recursive(clk_debugfs_root);
+-- 
+1.7.2.5
+

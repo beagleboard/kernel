@@ -1,0 +1,81 @@
+From fd94741b5ca1552a0c6e8c000f9f7530853862ea Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Sun, 10 Jul 2011 05:56:31 -0600
+Subject: [PATCH 083/149] OMAP4: prm: Remove deprecated functions
+
+The new prminst_xxx accessors based on partition and offset
+is now used, so removed all the previous prcm_xxx accessors.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+[paul@pwsan.com: remove fn prototypes also]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/prm44xx.c |   37 -------------------------------------
+ arch/arm/mach-omap2/prm44xx.h |    4 ----
+ 2 files changed, 0 insertions(+), 41 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index f815329..0016555 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -50,40 +50,3 @@ u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 reg)
+ 
+ 	return v;
+ }
+-
+-/* Read a PRM register, AND it, and shift the result down to bit 0 */
+-/* XXX deprecated */
+-u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask)
+-{
+-	u32 v;
+-
+-	v = __raw_readl(reg);
+-	v &= mask;
+-	v >>= __ffs(mask);
+-
+-	return v;
+-}
+-
+-/* Read-modify-write a register in a PRM module. Caller must lock */
+-/* XXX deprecated */
+-u32 omap4_prm_rmw_reg_bits(u32 mask, u32 bits, void __iomem *reg)
+-{
+-	u32 v;
+-
+-	v = __raw_readl(reg);
+-	v &= ~mask;
+-	v |= bits;
+-	__raw_writel(v, reg);
+-
+-	return v;
+-}
+-
+-u32 omap4_prm_set_inst_reg_bits(u32 bits, s16 inst, s16 reg)
+-{
+-	return omap4_prm_rmw_inst_reg_bits(bits, bits, inst, reg);
+-}
+-
+-u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 reg)
+-{
+-	return omap4_prm_rmw_inst_reg_bits(bits, 0x0, inst, reg);
+-}
+diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
+index 725a6a8..7dfa379 100644
+--- a/arch/arm/mach-omap2/prm44xx.h
++++ b/arch/arm/mach-omap2/prm44xx.h
+@@ -750,10 +750,6 @@
+ extern u32 omap4_prm_read_inst_reg(s16 inst, u16 idx);
+ extern void omap4_prm_write_inst_reg(u32 val, s16 inst, u16 idx);
+ extern u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
+-extern u32 omap4_prm_rmw_reg_bits(u32 mask, u32 bits, void __iomem *reg);
+-extern u32 omap4_prm_set_inst_reg_bits(u32 bits, s16 inst, s16 idx);
+-extern u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 idx);
+-extern u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask);
+ 
+ # endif
+ 
+-- 
+1.7.2.5
+

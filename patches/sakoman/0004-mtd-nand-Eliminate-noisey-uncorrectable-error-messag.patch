@@ -1,0 +1,28 @@
+From bf974dd3f24e623f04422b8013d047d78d430f0e Mon Sep 17 00:00:00 2001
+From: Steve Sakoman <steve@sakoman.com>
+Date: Fri, 1 Jul 2011 10:00:03 -0700
+Subject: [PATCH 04/14] mtd: nand: Eliminate noisey "uncorrectable error" messages
+
+Other layers of the stack give more informative messages when __nand_correct_data() fails
+
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
+ drivers/mtd/nand/nand_ecc.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/mtd/nand/nand_ecc.c b/drivers/mtd/nand/nand_ecc.c
+index 271b8e7..ad55e55 100644
+--- a/drivers/mtd/nand/nand_ecc.c
++++ b/drivers/mtd/nand/nand_ecc.c
+@@ -507,7 +507,7 @@ int __nand_correct_data(unsigned char *buf,
+ 	if ((bitsperbyte[b0] + bitsperbyte[b1] + bitsperbyte[b2]) == 1)
+ 		return 1;	/* error in ecc data; no action needed */
+ 
+-	printk(KERN_ERR "uncorrectable error : ");
++	// printk(KERN_ERR "uncorrectable error : ");
+ 	return -1;
+ }
+ EXPORT_SYMBOL(__nand_correct_data);
+-- 
+1.7.2.5
+

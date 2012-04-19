@@ -1,0 +1,184 @@
+From d0c5c4d43250d9e7aad920ce3e7f5e7d5061be47 Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@ti.com>
+Date: Mon, 4 Apr 2011 17:22:28 -0700
+Subject: [PATCH 131/149] OMAP3+: VP: move SoC-specific sys clock rate retreival late init
+
+Add sys clock name and rate to struct voltage domain.  SoC specific
+voltagedomain init code initializes sys clock name.  After clock
+framework is initialized, voltage late init will then use use the
+sys_clk rate to calculate the various timing that depend on that rate.
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/voltage.c                 |   47 +++++++++----------------
+ arch/arm/mach-omap2/voltage.h                 |    5 +++
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |    8 ++++
+ arch/arm/mach-omap2/voltagedomains44xx_data.c |    8 ++++
+ 4 files changed, 38 insertions(+), 30 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 5b16fd1..533ea38 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -21,10 +21,10 @@
+ 
+ #include <linux/delay.h>
+ #include <linux/io.h>
+-#include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/debugfs.h>
+ #include <linux/slab.h>
++#include <linux/clk.h>
+ 
+ #include <plat/common.h>
+ 
+@@ -45,36 +45,12 @@ static LIST_HEAD(voltdm_list);
+ 
+ static int __init _config_common_vdd_data(struct voltagedomain *voltdm)
+ {
+-	char *sys_ck_name;
+-	struct clk *sys_ck;
+-	u32 sys_clk_speed, timeout_val, waittime;
+ 	struct omap_vdd_info *vdd = voltdm->vdd;
++	u32 sys_clk_rate, timeout_val, waittime;
+ 
+-	/*
+-	 * XXX Clockfw should handle this, or this should be in a
+-	 * struct record
+-	 */
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+-		sys_ck_name = "sys_ck";
+-	else if (cpu_is_omap44xx())
+-		sys_ck_name = "sys_clkin_ck";
+-	else
+-		return -EINVAL;
+-
+-	/*
+-	 * Sys clk rate is require to calculate vp timeout value and
+-	 * smpswaittimemin and smpswaittimemax.
+-	 */
+-	sys_ck = clk_get(NULL, sys_ck_name);
+-	if (IS_ERR(sys_ck)) {
+-		pr_warning("%s: Could not get the sys clk to calculate"
+-			"various vdd_%s params\n", __func__, voltdm->name);
+-		return -EINVAL;
+-	}
+-	sys_clk_speed = clk_get_rate(sys_ck);
+-	clk_put(sys_ck);
+ 	/* Divide to avoid overflow */
+-	sys_clk_speed /= 1000;
++	sys_clk_rate = voltdm->sys_clk.rate / 1000;
++	WARN_ON(!sys_clk_rate);
+ 
+ 	/* Generic voltage parameters */
+ 	vdd->volt_scale = omap_vp_forceupdate_scale;
+@@ -84,13 +60,13 @@ static int __init _config_common_vdd_data(struct voltagedomain *voltdm)
+ 		(voltdm->pmic->vp_erroroffset <<
+ 		 __ffs(voltdm->vp->common->vpconfig_erroroffset_mask));
+ 
+-	timeout_val = (sys_clk_speed * voltdm->pmic->vp_timeout_us) / 1000;
++	timeout_val = (sys_clk_rate * voltdm->pmic->vp_timeout_us) / 1000;
+ 	vdd->vp_rt_data.vlimitto_timeout = timeout_val;
+ 	vdd->vp_rt_data.vlimitto_vddmin = voltdm->pmic->vp_vddmin;
+ 	vdd->vp_rt_data.vlimitto_vddmax = voltdm->pmic->vp_vddmax;
+ 
+ 	waittime = ((voltdm->pmic->step_size / voltdm->pmic->slew_rate) *
+-				sys_clk_speed) / 1000;
++		    sys_clk_rate) / 1000;
+ 	vdd->vp_rt_data.vstepmin_smpswaittimemin = waittime;
+ 	vdd->vp_rt_data.vstepmax_smpswaittimemax = waittime;
+ 	vdd->vp_rt_data.vstepmin_stepmin = voltdm->pmic->vp_vstepmin;
+@@ -346,9 +322,20 @@ int __init omap_voltage_late_init(void)
+ 	}
+ 
+ 	list_for_each_entry(voltdm, &voltdm_list, node) {
++		struct clk *sys_ck;
++
+ 		if (!voltdm->scalable)
+ 			continue;
+ 
++		sys_ck = clk_get(NULL, voltdm->sys_clk.name);
++		if (IS_ERR(sys_ck)) {
++			pr_warning("%s: Could not get sys clk.\n", __func__);
++			return -EINVAL;
++		}
++		voltdm->sys_clk.rate = clk_get_rate(sys_ck);
++		WARN_ON(!voltdm->sys_clk.rate);
++		clk_put(sys_ck);
++
+ 		if (voltdm->vc) {
+ 			voltdm->vdd->volt_scale = omap_vc_bypass_scale;
+ 			omap_vc_init_channel(voltdm);
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index 5261703..d73c956 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -76,6 +76,11 @@ struct voltagedomain {
+ 	void (*write) (u32 val, u8 offset);
+ 	u32 (*rmw)(u32 mask, u32 bits, u8 offset);
+ 
++	union {
++		const char *name;
++		u32 rate;
++	} sys_clk;
++
+ 	struct omap_vdd_info *vdd;
+ };
+ 
+diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+index 4db2c6c..e7a0be1 100644
+--- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+@@ -82,8 +82,13 @@ static struct voltagedomain *voltagedomains_omap3[] __initdata = {
+ 	NULL,
+ };
+ 
++static const char *sys_clk_name __initdata = "sys_ck";
++
+ void __init omap3xxx_voltagedomains_init(void)
+ {
++	struct voltagedomain *voltdm;
++	int i;
++
+ 	/*
+ 	 * XXX Will depend on the process, validation, and binning
+ 	 * for the currently-running IC
+@@ -96,5 +101,8 @@ void __init omap3xxx_voltagedomains_init(void)
+ 		omap3_vdd2_info.volt_data = omap34xx_vddcore_volt_data;
+ 	}
+ 
++	for (i = 0; voltdm = voltagedomains_omap3[i], voltdm; i++)
++		voltdm->sys_clk.name = sys_clk_name;
++
+ 	voltdm_init(voltagedomains_omap3);
+ };
+diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+index 3e7cb4e..9c20fbb 100644
+--- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+@@ -98,8 +98,13 @@ static struct voltagedomain *voltagedomains_omap4[] __initdata = {
+ 	NULL,
+ };
+ 
++static const char *sys_clk_name __initdata = "sys_clkin_ck";
++
+ void __init omap44xx_voltagedomains_init(void)
+ {
++	struct voltagedomain *voltdm;
++	int i;
++
+ 	/*
+ 	 * XXX Will depend on the process, validation, and binning
+ 	 * for the currently-running IC
+@@ -108,5 +113,8 @@ void __init omap44xx_voltagedomains_init(void)
+ 	omap4_vdd_iva_info.volt_data = omap44xx_vdd_iva_volt_data;
+ 	omap4_vdd_core_info.volt_data = omap44xx_vdd_core_volt_data;
+ 
++	for (i = 0; voltdm = voltagedomains_omap4[i], voltdm; i++)
++		voltdm->sys_clk.name = sys_clk_name;
++
+ 	voltdm_init(voltagedomains_omap4);
+ };
+-- 
+1.7.2.5
+

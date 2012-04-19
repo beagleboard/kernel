@@ -1,0 +1,31 @@
+From a8ee49ce71fcdf4e85720adabe9aeed2850678cc Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@ti.com>
+Date: Mon, 18 Jul 2011 15:31:00 -0700
+Subject: [PATCH 127/149] OMAP3+: VC: use last nominal voltage setting to get current_vsel
+
+Instead of reading current vsel value from the VP's voltage register,
+just use current nominal voltage translated into vsel via the PMIC.
+
+Doing this allows VC bypass scaling to work even without a VP configured.
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/vc.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index 9e51782..cee8fba 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -129,7 +129,7 @@ int omap_vc_pre_scale(struct voltagedomain *voltdm,
+ 		volt_data = NULL;
+ 
+ 	*target_vsel = voltdm->pmic->uv_to_vsel(target_volt);
+-	*current_vsel = voltdm->read(vdd->vp_data->voltage);
++	*current_vsel = voltdm->pmic->uv_to_vsel(vdd->curr_volt);
+ 
+ 	/* Setting the ON voltage to the new target voltage */
+ 	vc_cmdval = voltdm->read(vc->cmdval_reg);
+-- 
+1.7.2.5
+

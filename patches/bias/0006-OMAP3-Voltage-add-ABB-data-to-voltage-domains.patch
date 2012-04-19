@@ -1,0 +1,83 @@
+From 4a0f2caa6d49e185eac84e361ee4b40783ffeb16 Mon Sep 17 00:00:00 2001
+From: Mike Turquette <mturquette@ti.com>
+Date: Thu, 21 Jul 2011 12:31:50 +0200
+Subject: [PATCH 6/8] OMAP3+: Voltage: add ABB data to voltage domains
+
+Starting with OMAP36xx, some voltage domains have an ABB ldo meant to
+insure stability when that voltage domain is operating at a high OPP.
+
+This patch adds struct omap_abb_instance to struct voltagedomain and
+populates the data for those voltage domains that have an ABB ldo on
+both 36xx and 44xx silicon.
+
+Signed-off-by: Mike Turquette <mturquette@ti.com>
+---
+ arch/arm/mach-omap2/voltage.h                 |    1 +
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |    3 +++
+ arch/arm/mach-omap2/voltagedomains44xx_data.c |    3 +++
+ 3 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index 2aa6c43..4fe35d7 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -69,6 +69,7 @@ struct voltagedomain {
+ 	struct omap_vc_channel *vc;
+ 	const struct omap_vfsm_instance *vfsm;
+ 	struct omap_vp_instance *vp;
++	struct omap_abb_instance *abb;
+ 	struct omap_voltdm_pmic *pmic;
+ 
+ 	/* VC/VP register access functions: SoC specific */
+diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+index b0d0ae1..cdcfbdf 100644
+--- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+@@ -26,6 +26,7 @@
+ #include "voltage.h"
+ #include "vc.h"
+ #include "vp.h"
++#include "abb.h"
+ 
+ /*
+  * VDD data
+@@ -90,6 +91,8 @@ void __init omap3xxx_voltagedomains_init(void)
+ 	if (cpu_is_omap3630()) {
+ 		omap3_voltdm_mpu.volt_data = omap36xx_vddmpu_volt_data;
+ 		omap3_voltdm_core.volt_data = omap36xx_vddcore_volt_data;
++
++		omap3_voltdm_mpu.abb = &omap36xx_abb_mpu;
+ 	} else {
+ 		omap3_voltdm_mpu.volt_data = omap34xx_vddmpu_volt_data;
+ 		omap3_voltdm_core.volt_data = omap34xx_vddcore_volt_data;
+diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+index c4584e9..11e2458 100644
+--- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+@@ -31,6 +31,7 @@
+ #include "omap_opp_data.h"
+ #include "vc.h"
+ #include "vp.h"
++#include "abb.h"
+ 
+ static const struct omap_vfsm_instance omap4_vdd_mpu_vfsm = {
+ 	.voltsetup_reg = OMAP4_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET,
+@@ -53,6 +54,7 @@ static struct voltagedomain omap4_voltdm_mpu = {
+ 	.vc = &omap4_vc_mpu,
+ 	.vfsm = &omap4_vdd_mpu_vfsm,
+ 	.vp = &omap4_vp_mpu,
++	.abb = &omap4_abb_mpu,
+ };
+ 
+ static struct voltagedomain omap4_voltdm_iva = {
+@@ -64,6 +66,7 @@ static struct voltagedomain omap4_voltdm_iva = {
+ 	.vc = &omap4_vc_iva,
+ 	.vfsm = &omap4_vdd_iva_vfsm,
+ 	.vp = &omap4_vp_iva,
++	.abb = &omap4_abb_iva,
+ };
+ 
+ static struct voltagedomain omap4_voltdm_core = {
+-- 
+1.6.6.1
+

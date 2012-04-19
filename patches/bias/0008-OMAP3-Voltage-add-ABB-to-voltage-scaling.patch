@@ -1,0 +1,114 @@
+From ee2b116a1ee82ec94108035ed1ae047d69aee215 Mon Sep 17 00:00:00 2001
+From: Mike Turquette <mturquette@ti.com>
+Date: Thu, 21 Jul 2011 12:36:37 +0200
+Subject: [PATCH 8/8] OMAP3+: Voltage: add ABB to voltage scaling
+
+Adaptive Body-Bias ldo state should be transitioned (if necessary) after
+a voltage scaling sequence completes via vc_bypass or vp_forceupdate
+methods.
+
+This patch initializes the ABB ldo's as a part of the greater voltage
+initialization function and adds the ABB transition routine to both the
+vc_bypass and vp_forceupdate sequences.
+
+Signed-off-by: Mike Turquette <mturquette@ti.com>
+---
+ arch/arm/mach-omap2/vc.c      |   10 ++++++++--
+ arch/arm/mach-omap2/voltage.c |    4 ++++
+ arch/arm/mach-omap2/vp.c      |    9 +++++++--
+ 3 files changed, 19 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index 16fa912..c5d8550 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -6,6 +6,7 @@
+ 
+ #include "voltage.h"
+ #include "vc.h"
++#include "abb.h"
+ #include "prm-regbits-34xx.h"
+ #include "prm-regbits-44xx.h"
+ #include "prm44xx.h"
+@@ -153,7 +154,7 @@ int omap_vc_bypass_scale(struct voltagedomain *voltdm,
+ 	u32 loop_cnt = 0, retries_cnt = 0;
+ 	u32 vc_valid, vc_bypass_val_reg, vc_bypass_value;
+ 	u8 target_vsel, current_vsel;
+-	int ret;
++	int ret = 0;
+ 
+ 	ret = omap_vc_pre_scale(voltdm, target_volt, &target_vsel, &current_vsel);
+ 	if (ret)
+@@ -191,7 +192,12 @@ int omap_vc_bypass_scale(struct voltagedomain *voltdm,
+ 	}
+ 
+ 	omap_vc_post_scale(voltdm, target_volt, target_vsel, current_vsel);
+-	return 0;
++
++	/* transition Adaptive Body-Bias ldo */
++	if (voltdm->abb)
++		ret = omap_abb_set_opp(voltdm);
++
++	return ret;
+ }
+ 
+ static void __init omap3_vfsm_init(struct voltagedomain *voltdm)
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index cebc8b1..25f8604 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -40,6 +40,7 @@
+ 
+ #include "vc.h"
+ #include "vp.h"
++#include "abb.h"
+ 
+ static LIST_HEAD(voltdm_list);
+ 
+@@ -279,6 +280,9 @@ int __init omap_voltage_late_init(void)
+ 			voltdm->scale = omap_vp_forceupdate_scale;
+ 			omap_vp_init(voltdm);
+ 		}
++
++		if (voltdm->abb)
++			omap_abb_init(voltdm);
+ 	}
+ 
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+index 66bd700..886be89 100644
+--- a/arch/arm/mach-omap2/vp.c
++++ b/arch/arm/mach-omap2/vp.c
+@@ -5,6 +5,7 @@
+ 
+ #include "voltage.h"
+ #include "vp.h"
++#include "abb.h"
+ #include "prm-regbits-34xx.h"
+ #include "prm-regbits-44xx.h"
+ #include "prm44xx.h"
+@@ -116,7 +117,7 @@ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
+ 	struct omap_vp_instance *vp = voltdm->vp;
+ 	u32 vpconfig;
+ 	u8 target_vsel, current_vsel;
+-	int ret, timeout = 0;
++	int ret = 0, timeout = 0;
+ 
+ 	ret = omap_vc_pre_scale(voltdm, target_volt, &target_vsel, &current_vsel);
+ 	if (ret)
+@@ -178,7 +179,11 @@ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
+ 	/* Clear force bit */
+ 	voltdm->write(vpconfig, vp->vpconfig);
+ 
+-	return 0;
++	/* transition Adaptive Body-Bias LDO */
++	if (voltdm->abb)
++		ret = omap_abb_set_opp(voltdm);
++
++	return ret;
+ }
+ 
+ /**
+-- 
+1.6.6.1
+

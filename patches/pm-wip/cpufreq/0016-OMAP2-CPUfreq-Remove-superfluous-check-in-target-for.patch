@@ -1,0 +1,58 @@
+From f0e647da78b80946ab301787aba4330bd7d1429d Mon Sep 17 00:00:00 2001
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Fri, 3 Jun 2011 17:46:57 +0530
+Subject: [PATCH 16/19] OMAP2+: CPUfreq: Remove superfluous check in target() for online CPU's.
+
+Current OMAP2PLUS CPUfreq tagret() functions returns when all
+the CPU's are not online. This breaks CPUfreq when secondary CPUs
+are offlined on SMP system.
+
+The intention of that check was just avoid CPU frequency change
+during the window when CPU becomes online but it's cpufreq_init is
+not done yet. Otherwise it can lead to notifiers being sent on
+a CPU which is not yet registered to the governor.
+
+But this race conditions is already managed by the CPUfreq
+core driver by updating the available cpumask accordingly.
+
+OMAP CPUFReq driver make use same cpumask for the notifiers
+so the above problem doesn't exist. In my initial implementation
+of the OMAP4 CPUFreq driver, I was using 'for_each_online_cpu()'
+for notifiers which lead me to add that check. Later I fixed
+the notifies but didn't realise that the check has become
+redundant then.
+
+Fix it by removing the superfluous check in target().
+
+Thanks for Nishant Menon <nm@ti.com> for reporting issue
+with hot-plug and Kevin Hilman <khilman@ti.com> for his
+comment on excessive check in target().
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Reported-by: Nishanth Menon <nm@ti.com>
+Tested-by: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Tested-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/omap2plus-cpufreq.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+index a962a31..eaefa49 100644
+--- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
++++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+@@ -70,10 +70,6 @@ static int omap_target(struct cpufreq_policy *policy,
+ 	int ret = 0;
+ 	struct cpufreq_freqs freqs;
+ 
+-	/* Changes not allowed until all CPUs are online */
+-	if (is_smp() && (num_online_cpus() < NR_CPUS))
+-		return ret;
+-
+ 	if (!freq_table) {
+ 		dev_err(mpu_dev, "%s: cpu%d: no freq table!\n", __func__,
+ 				policy->cpu);
+-- 
+1.7.2.5
+

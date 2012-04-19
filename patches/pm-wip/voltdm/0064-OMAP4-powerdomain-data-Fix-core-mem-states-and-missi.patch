@@ -1,0 +1,68 @@
+From 2e67179b61fd7b58ecbafd72fe07943620863ae7 Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Sat, 9 Jul 2011 20:42:11 -0600
+Subject: [PATCH 064/149] OMAP4: powerdomain data: Fix core mem states and missing cefuse flag
+
+Since ES2.0, the core ocmram does not support a different state
+than the main power domain anymore during both ON and RET power
+domain state.
+Since PM is not supported at all in ES1.0, update the common
+structure.
+
+LOWPOWERSTATECHANGE is supported by the cefuse power domain but
+the flag was missing.
+Add the PWRDM_HAS_LOWPOWERSTATECHANGE in flags field.
+
+Update the TI copyright date to 2011.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+[paul@pwsan.com: moved the indentation changes to a different patch set]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/powerdomains44xx_data.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
+index 3a7e678..8f46e7d 100644
+--- a/arch/arm/mach-omap2/powerdomains44xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
+@@ -1,7 +1,7 @@
+ /*
+  * OMAP4 Power domains framework
+  *
+- * Copyright (C) 2009-2010 Texas Instruments, Inc.
++ * Copyright (C) 2009-2011 Texas Instruments, Inc.
+  * Copyright (C) 2009-2011 Nokia Corporation
+  *
+  * Abhijit Pagare (abhijitpagare@ti.com)
+@@ -41,14 +41,14 @@ static struct powerdomain core_44xx_pwrdm = {
+ 	.banks		  = 5,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRSTS_OFF,	/* core_nret_bank */
+-		[1] = PWRSTS_OFF_RET,	/* core_ocmram */
++		[1] = PWRSTS_RET,	/* core_ocmram */
+ 		[2] = PWRSTS_RET,	/* core_other_bank */
+ 		[3] = PWRSTS_OFF_RET,	/* ducati_l2ram */
+ 		[4] = PWRSTS_OFF_RET,	/* ducati_unicache */
+ 	},
+ 	.pwrsts_mem_on	= {
+ 		[0] = PWRSTS_ON,	/* core_nret_bank */
+-		[1] = PWRSTS_OFF_RET,	/* core_ocmram */
++		[1] = PWRSTS_ON,	/* core_ocmram */
+ 		[2] = PWRSTS_ON,	/* core_other_bank */
+ 		[3] = PWRSTS_ON,	/* ducati_l2ram */
+ 		[4] = PWRSTS_ON,	/* ducati_unicache */
+@@ -318,6 +318,7 @@ static struct powerdomain cefuse_44xx_pwrdm = {
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  = PWRSTS_OFF_ON,
++	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
+ };
+ 
+ /*
+-- 
+1.7.2.5
+

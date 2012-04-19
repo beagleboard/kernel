@@ -1,0 +1,30 @@
+From c9d2e22cc8ed08fb232d99c161f8d0be18c8569e Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@ti.com>
+Date: Wed, 16 Mar 2011 11:02:59 -0700
+Subject: [PATCH 096/149] OMAP2+: hwmod: remove unused voltagedomain pointer
+
+The voltage domain pointer currently in struct omap_hwmod is not used
+and does not belong here.  Instead, voltage domains will be associated
+with powerdomains in forthcoming patches.
+
+Acked-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 0e329ca..38ac4af 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -526,7 +526,6 @@ struct omap_hwmod {
+ 	char				*clkdm_name;
+ 	struct clockdomain		*clkdm;
+ 	char				*vdd_name;
+-	struct voltagedomain		*voltdm;
+ 	struct omap_hwmod_ocp_if	**masters; /* connect to *_IA */
+ 	struct omap_hwmod_ocp_if	**slaves;  /* connect to *_TA */
+ 	void				*dev_attr;
+-- 
+1.7.2.5
+

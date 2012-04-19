@@ -1,0 +1,643 @@
+From 00a526b77cb5b54dbf2086c63936629845b7f980 Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@ti.com>
+Date: Mon, 4 Apr 2011 15:25:07 -0700
+Subject: [PATCH 128/149] OMAP3+: VP: cleanup: move VP instance into voltdm, misc. renames
+
+- move VP instance struct from vdd_info into struct voltage domain
+- remove _data suffix from structure name
+- rename vp_ prefix from vp_common field: accesses are now vp->common
+- move vp_enabled bool from vdd_info into VP instance
+- remove remaining references to omap_vdd_info
+
+No functional changes.
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/vc.c                      |   11 +--
+ arch/arm/mach-omap2/voltage.c                 |    4 +-
+ arch/arm/mach-omap2/voltage.h                 |    6 +--
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |   10 +--
+ arch/arm/mach-omap2/voltagedomains44xx_data.c |   15 ++---
+ arch/arm/mach-omap2/vp.c                      |   88 ++++++++++++-------------
+ arch/arm/mach-omap2/vp.h                      |   24 ++++---
+ arch/arm/mach-omap2/vp3xxx_data.c             |   10 ++--
+ arch/arm/mach-omap2/vp44xx_data.c             |   14 ++--
+ 9 files changed, 83 insertions(+), 99 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index cee8fba..7058585 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -98,11 +98,8 @@ int omap_vc_pre_scale(struct voltagedomain *voltdm,
+ 	struct omap_vc_channel *vc = voltdm->vc;
+ 	struct omap_vdd_info *vdd = voltdm->vdd;
+ 	struct omap_volt_data *volt_data;
+-	const struct omap_vp_common_data *vp_common;
+ 	u32 vc_cmdval, vp_errgain_val;
+ 
+-	vp_common = vdd->vp_data->vp_common;
+-
+ 	/* Check if sufficient pmic info is available for this vdd */
+ 	if (!voltdm->pmic) {
+ 		pr_err("%s: Insufficient pmic info to scale the vdd_%s\n",
+@@ -139,12 +136,12 @@ int omap_vc_pre_scale(struct voltagedomain *voltdm,
+ 
+ 	/* Setting vp errorgain based on the voltage */
+ 	if (volt_data) {
+-		vp_errgain_val = voltdm->read(vdd->vp_data->vpconfig);
++		vp_errgain_val = voltdm->read(voltdm->vp->vpconfig);
+ 		vdd->vp_rt_data.vpconfig_errorgain = volt_data->vp_errgain;
+-		vp_errgain_val &= ~vp_common->vpconfig_errorgain_mask;
++		vp_errgain_val &= voltdm->vp->common->vpconfig_errorgain_mask;
+ 		vp_errgain_val |= vdd->vp_rt_data.vpconfig_errorgain <<
+-			vp_common->vpconfig_errorgain_shift;
+-		voltdm->write(vp_errgain_val, vdd->vp_data->vpconfig);
++			voltdm->vp->common->vpconfig_errorgain_shift;
++		voltdm->write(vp_errgain_val, voltdm->vp->vpconfig);
+ 	}
+ 
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 94f7fc4..c22b53c 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -81,11 +81,11 @@ static int __init _config_common_vdd_data(struct voltagedomain *voltdm)
+ 
+ 	/* Generic voltage parameters */
+ 	vdd->volt_scale = omap_vp_forceupdate_scale;
+-	vdd->vp_enabled = false;
++	voltdm->vp->enabled = false;
+ 
+ 	vdd->vp_rt_data.vpconfig_erroroffset =
+ 		(voltdm->pmic->vp_erroroffset <<
+-		 vdd->vp_data->vp_common->vpconfig_erroroffset_shift);
++		 voltdm->vp->common->vpconfig_erroroffset_shift);
+ 
+ 	timeout_val = (sys_clk_speed * voltdm->pmic->vp_timeout_us) / 1000;
+ 	vdd->vp_rt_data.vlimitto_timeout = timeout_val;
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index a0ae5c6..65f94c7 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -68,6 +68,7 @@ struct voltagedomain {
+ 	struct list_head pwrdm_list;
+ 	struct omap_vc_channel *vc;
+ 	const struct omap_vfsm_instance *vfsm;
++	struct omap_vp_instance *vp;
+ 	struct omap_voltdm_pmic *pmic;
+ 
+ 	/* VC/VP register access functions: SoC specific */
+@@ -134,21 +135,16 @@ struct omap_voltdm_pmic {
+  *
+  * @volt_data		: voltage table having the distinct voltages supported
+  *			  by the domain and other associated per voltage data.
+- * @vp_data		: the register values, shifts, masks for various
+- *			  vp registers
+  * @vp_rt_data          : VP data derived at runtime, not predefined
+  * @debug_dir		: debug directory for this voltage domain.
+  * @curr_volt		: current voltage for this vdd.
+- * @vp_enabled		: flag to keep track of whether vp is enabled or not
+  * @volt_scale		: API to scale the voltage of the vdd.
+  */
+ struct omap_vdd_info {
+ 	struct omap_volt_data *volt_data;
+-	struct omap_vp_instance_data *vp_data;
+ 	struct omap_vp_runtime_data vp_rt_data;
+ 	struct dentry *debug_dir;
+ 	u32 curr_volt;
+-	bool vp_enabled;
+ 
+ 	int (*volt_scale) (struct voltagedomain *voltdm,
+ 		unsigned long target_volt);
+diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+index 4ea9a7b..4db2c6c 100644
+--- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+@@ -37,9 +37,7 @@ static const struct omap_vfsm_instance omap3_vdd1_vfsm = {
+ 	.voltsetup_mask = OMAP3430_SETUP_TIME1_MASK,
+ };
+ 
+-static struct omap_vdd_info omap3_vdd1_info = {
+-	.vp_data = &omap3_vp1_data,
+-};
++static struct omap_vdd_info omap3_vdd1_info;
+ 
+ static const struct omap_vfsm_instance omap3_vdd2_vfsm = {
+ 	.voltsetup_reg = OMAP3_PRM_VOLTSETUP1_OFFSET,
+@@ -47,9 +45,7 @@ static const struct omap_vfsm_instance omap3_vdd2_vfsm = {
+ 	.voltsetup_mask = OMAP3430_SETUP_TIME2_MASK,
+ };
+ 
+-static struct omap_vdd_info omap3_vdd2_info = {
+-	.vp_data = &omap3_vp2_data,
+-};
++static struct omap_vdd_info omap3_vdd2_info;
+ 
+ static struct voltagedomain omap3_voltdm_mpu = {
+ 	.name = "mpu_iva",
+@@ -59,6 +55,7 @@ static struct voltagedomain omap3_voltdm_mpu = {
+ 	.rmw = omap3_prm_vcvp_rmw,
+ 	.vc = &omap3_vc_mpu,
+ 	.vfsm = &omap3_vdd1_vfsm,
++	.vp = &omap3_vp_mpu,
+ 	.vdd = &omap3_vdd1_info,
+ };
+ 
+@@ -70,6 +67,7 @@ static struct voltagedomain omap3_voltdm_core = {
+ 	.rmw = omap3_prm_vcvp_rmw,
+ 	.vc = &omap3_vc_core,
+ 	.vfsm = &omap3_vdd2_vfsm,
++	.vp = &omap3_vp_core,
+ 	.vdd = &omap3_vdd2_info,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+index dd4bd22..3e7cb4e 100644
+--- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+@@ -36,25 +36,19 @@ static const struct omap_vfsm_instance omap4_vdd_mpu_vfsm = {
+ 	.voltsetup_reg = OMAP4_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET,
+ };
+ 
+-static struct omap_vdd_info omap4_vdd_mpu_info = {
+-	.vp_data = &omap4_vp_mpu_data,
+-};
++static struct omap_vdd_info omap4_vdd_mpu_info;
+ 
+ static const struct omap_vfsm_instance omap4_vdd_iva_vfsm = {
+ 	.voltsetup_reg = OMAP4_PRM_VOLTSETUP_IVA_RET_SLEEP_OFFSET,
+ };
+ 
+-static struct omap_vdd_info omap4_vdd_iva_info = {
+-	.vp_data = &omap4_vp_iva_data,
+-};
++static struct omap_vdd_info omap4_vdd_iva_info;
+ 
+ static const struct omap_vfsm_instance omap4_vdd_core_vfsm = {
+ 	.voltsetup_reg = OMAP4_PRM_VOLTSETUP_CORE_RET_SLEEP_OFFSET,
+ };
+ 
+-static struct omap_vdd_info omap4_vdd_core_info = {
+-	.vp_data = &omap4_vp_core_data,
+-};
++static struct omap_vdd_info omap4_vdd_core_info;
+ 
+ static struct voltagedomain omap4_voltdm_mpu = {
+ 	.name = "mpu",
+@@ -64,6 +58,7 @@ static struct voltagedomain omap4_voltdm_mpu = {
+ 	.rmw = omap4_prm_vcvp_rmw,
+ 	.vc = &omap4_vc_mpu,
+ 	.vfsm = &omap4_vdd_mpu_vfsm,
++	.vp = &omap4_vp_mpu,
+ 	.vdd = &omap4_vdd_mpu_info,
+ };
+ 
+@@ -75,6 +70,7 @@ static struct voltagedomain omap4_voltdm_iva = {
+ 	.rmw = omap4_prm_vcvp_rmw,
+ 	.vc = &omap4_vc_iva,
+ 	.vfsm = &omap4_vdd_iva_vfsm,
++	.vp = &omap4_vp_iva,
+ 	.vdd = &omap4_vdd_iva_info,
+ };
+ 
+@@ -86,6 +82,7 @@ static struct voltagedomain omap4_voltdm_core = {
+ 	.rmw = omap4_prm_vcvp_rmw,
+ 	.vc = &omap4_vc_core,
+ 	.vfsm = &omap4_vdd_core_vfsm,
++	.vp = &omap4_vp_core,
+ 	.vdd = &omap4_vdd_core_info,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+index a3afcbe..53d6018 100644
+--- a/arch/arm/mach-omap2/vp.c
++++ b/arch/arm/mach-omap2/vp.c
+@@ -14,7 +14,7 @@ static void __init vp_debugfs_init(struct voltagedomain *voltdm);
+ 
+ static void vp_latch_vsel(struct voltagedomain *voltdm)
+ {
+-	struct omap_vp_instance_data *vp = voltdm->vdd->vp_data;
++	struct omap_vp_instance *vp = voltdm->vp;
+ 	u32 vpconfig;
+ 	unsigned long uvdc;
+ 	char vsel;
+@@ -35,14 +35,14 @@ static void vp_latch_vsel(struct voltagedomain *voltdm)
+ 	vsel = voltdm->pmic->uv_to_vsel(uvdc);
+ 
+ 	vpconfig = voltdm->read(vp->vpconfig);
+-	vpconfig &= ~(vp->vp_common->vpconfig_initvoltage_mask |
+-			vp->vp_common->vpconfig_initvdd);
+-	vpconfig |= vsel << vp->vp_common->vpconfig_initvoltage_shift;
++	vpconfig &= ~(vp->common->vpconfig_initvoltage_mask |
++			vp->common->vpconfig_initvdd);
++	vpconfig |= vsel << vp->common->vpconfig_initvoltage_shift;
+ 
+ 	voltdm->write(vpconfig, vp->vpconfig);
+ 
+ 	/* Trigger initVDD value copy to voltage processor */
+-	voltdm->write((vpconfig | vp->vp_common->vpconfig_initvdd),
++	voltdm->write((vpconfig | vp->common->vpconfig_initvdd),
+ 		       vp->vpconfig);
+ 
+ 	/* Clear initVDD copy trigger bit */
+@@ -52,7 +52,7 @@ static void vp_latch_vsel(struct voltagedomain *voltdm)
+ /* Generic voltage init functions */
+ void __init omap_vp_init(struct voltagedomain *voltdm)
+ {
+-	struct omap_vp_instance_data *vp = voltdm->vdd->vp_data;
++	struct omap_vp_instance *vp = voltdm->vp;
+ 	struct omap_vdd_info *vdd = voltdm->vdd;
+ 	u32 vp_val;
+ 
+@@ -64,28 +64,28 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
+ 
+ 	vp_val = vdd->vp_rt_data.vpconfig_erroroffset |
+ 		(vdd->vp_rt_data.vpconfig_errorgain <<
+-		vp->vp_common->vpconfig_errorgain_shift) |
+-		vp->vp_common->vpconfig_timeouten;
++		vp->common->vpconfig_errorgain_shift) |
++		vp->common->vpconfig_timeouten;
+ 	voltdm->write(vp_val, vp->vpconfig);
+ 
+ 	vp_val = ((vdd->vp_rt_data.vstepmin_smpswaittimemin <<
+-		vp->vp_common->vstepmin_smpswaittimemin_shift) |
++		vp->common->vstepmin_smpswaittimemin_shift) |
+ 		(vdd->vp_rt_data.vstepmin_stepmin <<
+-		vp->vp_common->vstepmin_stepmin_shift));
++		vp->common->vstepmin_stepmin_shift));
+ 	voltdm->write(vp_val, vp->vstepmin);
+ 
+ 	vp_val = ((vdd->vp_rt_data.vstepmax_smpswaittimemax <<
+-		vp->vp_common->vstepmax_smpswaittimemax_shift) |
++		vp->common->vstepmax_smpswaittimemax_shift) |
+ 		(vdd->vp_rt_data.vstepmax_stepmax <<
+-		vp->vp_common->vstepmax_stepmax_shift));
++		vp->common->vstepmax_stepmax_shift));
+ 	voltdm->write(vp_val, vp->vstepmax);
+ 
+ 	vp_val = ((vdd->vp_rt_data.vlimitto_vddmax <<
+-		vp->vp_common->vlimitto_vddmax_shift) |
++		vp->common->vlimitto_vddmax_shift) |
+ 		(vdd->vp_rt_data.vlimitto_vddmin <<
+-		vp->vp_common->vlimitto_vddmin_shift) |
++		vp->common->vlimitto_vddmin_shift) |
+ 		(vdd->vp_rt_data.vlimitto_timeout <<
+-		vp->vp_common->vlimitto_timeout_shift));
++		vp->common->vlimitto_timeout_shift));
+ 	voltdm->write(vp_val, vp->vlimitto);
+ 
+ 	vp_debugfs_init(voltdm);
+@@ -95,7 +95,7 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
+ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
+ 			      unsigned long target_volt)
+ {
+-	struct omap_vp_instance_data *vp = voltdm->vdd->vp_data;
++	struct omap_vp_instance *vp = voltdm->vp;
+ 	u32 vpconfig;
+ 	u8 target_vsel, current_vsel;
+ 	int ret, timeout = 0;
+@@ -109,8 +109,8 @@ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
+ 	 * is <3us
+ 	 */
+ 	while (timeout++ < VP_TRANXDONE_TIMEOUT) {
+-		vp->vp_common->ops->clear_txdone(vp->id);
+-		if (!vp->vp_common->ops->check_txdone(vp->id))
++		vp->common->ops->clear_txdone(vp->id);
++		if (!vp->common->ops->check_txdone(vp->id))
+ 			break;
+ 		udelay(1);
+ 	}
+@@ -122,19 +122,19 @@ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
+ 
+ 	/* Configure for VP-Force Update */
+ 	vpconfig = voltdm->read(vp->vpconfig);
+-	vpconfig &= ~(vp->vp_common->vpconfig_initvdd |
+-			vp->vp_common->vpconfig_forceupdate |
+-			vp->vp_common->vpconfig_initvoltage_mask);
++	vpconfig &= ~(vp->common->vpconfig_initvdd |
++			vp->common->vpconfig_forceupdate |
++			vp->common->vpconfig_initvoltage_mask);
+ 	vpconfig |= ((target_vsel <<
+-			vp->vp_common->vpconfig_initvoltage_shift));
++			vp->common->vpconfig_initvoltage_shift));
+ 	voltdm->write(vpconfig, vp->vpconfig);
+ 
+ 	/* Trigger initVDD value copy to voltage processor */
+-	vpconfig |= vp->vp_common->vpconfig_initvdd;
++	vpconfig |= vp->common->vpconfig_initvdd;
+ 	voltdm->write(vpconfig, vp->vpconfig);
+ 
+ 	/* Force update of voltage */
+-	vpconfig |= vp->vp_common->vpconfig_forceupdate;
++	vpconfig |= vp->common->vpconfig_forceupdate;
+ 	voltdm->write(vpconfig, vp->vpconfig);
+ 
+ 	/*
+@@ -142,7 +142,7 @@ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
+ 	 * Depends on SMPSWAITTIMEMIN/MAX and voltage change
+ 	 */
+ 	timeout = 0;
+-	omap_test_timeout(vp->vp_common->ops->check_txdone(vp->id),
++	omap_test_timeout(vp->common->ops->check_txdone(vp->id),
+ 			  VP_TRANXDONE_TIMEOUT, timeout);
+ 	if (timeout >= VP_TRANXDONE_TIMEOUT)
+ 		pr_err("%s: vdd_%s TRANXDONE timeout exceeded."
+@@ -157,8 +157,8 @@ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
+ 	 */
+ 	timeout = 0;
+ 	while (timeout++ < VP_TRANXDONE_TIMEOUT) {
+-		vp->vp_common->ops->clear_txdone(vp->id);
+-		if (!vp->vp_common->ops->check_txdone(vp->id))
++		vp->common->ops->clear_txdone(vp->id);
++		if (!vp->common->ops->check_txdone(vp->id))
+ 			break;
+ 		udelay(1);
+ 	}
+@@ -170,10 +170,10 @@ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
+ 
+ 	vpconfig = voltdm->read(vp->vpconfig);
+ 	/* Clear initVDD copy trigger bit */
+-	vpconfig &= ~vp->vp_common->vpconfig_initvdd;
++	vpconfig &= ~vp->common->vpconfig_initvdd;
+ 	voltdm->write(vpconfig, vp->vpconfig);
+ 	/* Clear force bit */
+-	vpconfig &= ~vp->vp_common->vpconfig_forceupdate;
++	vpconfig &= ~vp->common->vpconfig_forceupdate;
+ 	voltdm->write(vpconfig, vp->vpconfig);
+ 
+ 	return 0;
+@@ -187,8 +187,7 @@ int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
+  */
+ unsigned long omap_vp_get_curr_volt(struct voltagedomain *voltdm)
+ {
+-	struct omap_vp_instance_data *vp = voltdm->vdd->vp_data;
+-	struct omap_vdd_info *vdd;
++	struct omap_vp_instance *vp = voltdm->vp;
+ 	u8 curr_vsel;
+ 
+ 	if (!voltdm || IS_ERR(voltdm)) {
+@@ -196,7 +195,6 @@ unsigned long omap_vp_get_curr_volt(struct voltagedomain *voltdm)
+ 		return 0;
+ 	}
+ 
+-	vdd = voltdm->vdd;
+ 	if (!voltdm->read) {
+ 		pr_err("%s: No read API for reading vdd_%s regs\n",
+ 			__func__, voltdm->name);
+@@ -223,8 +221,7 @@ unsigned long omap_vp_get_curr_volt(struct voltagedomain *voltdm)
+  */
+ void omap_vp_enable(struct voltagedomain *voltdm)
+ {
+-	struct omap_vp_instance_data *vp;
+-	struct omap_vdd_info *vdd;
++	struct omap_vp_instance *vp;
+ 	u32 vpconfig;
+ 
+ 	if (!voltdm || IS_ERR(voltdm)) {
+@@ -232,8 +229,7 @@ void omap_vp_enable(struct voltagedomain *voltdm)
+ 		return;
+ 	}
+ 
+-	vdd = voltdm->vdd;
+-	vp = voltdm->vdd->vp_data;
++	vp = voltdm->vp;
+ 	if (!voltdm->read || !voltdm->write) {
+ 		pr_err("%s: No read/write API for accessing vdd_%s regs\n",
+ 			__func__, voltdm->name);
+@@ -241,16 +237,16 @@ void omap_vp_enable(struct voltagedomain *voltdm)
+ 	}
+ 
+ 	/* If VP is already enabled, do nothing. Return */
+-	if (vdd->vp_enabled)
++	if (vp->enabled)
+ 		return;
+ 
+ 	vp_latch_vsel(voltdm);
+ 
+ 	/* Enable VP */
+ 	vpconfig = voltdm->read(vp->vpconfig);
+-	vpconfig |= vp->vp_common->vpconfig_vpenable;
++	vpconfig |= vp->common->vpconfig_vpenable;
+ 	voltdm->write(vpconfig, vp->vpconfig);
+-	vdd->vp_enabled = true;
++	vp->enabled = true;
+ }
+ 
+ /**
+@@ -262,8 +258,7 @@ void omap_vp_enable(struct voltagedomain *voltdm)
+  */
+ void omap_vp_disable(struct voltagedomain *voltdm)
+ {
+-	struct omap_vp_instance_data *vp;
+-	struct omap_vdd_info *vdd;
++	struct omap_vp_instance *vp;
+ 	u32 vpconfig;
+ 	int timeout;
+ 
+@@ -272,8 +267,7 @@ void omap_vp_disable(struct voltagedomain *voltdm)
+ 		return;
+ 	}
+ 
+-	vdd = voltdm->vdd;
+-	vp = voltdm->vdd->vp_data;
++	vp = voltdm->vp;
+ 	if (!voltdm->read || !voltdm->write) {
+ 		pr_err("%s: No read/write API for accessing vdd_%s regs\n",
+ 			__func__, voltdm->name);
+@@ -281,7 +275,7 @@ void omap_vp_disable(struct voltagedomain *voltdm)
+ 	}
+ 
+ 	/* If VP is already disabled, do nothing. Return */
+-	if (!vdd->vp_enabled) {
++	if (!vp->enabled) {
+ 		pr_warning("%s: Trying to disable VP for vdd_%s when"
+ 			"it is already disabled\n", __func__, voltdm->name);
+ 		return;
+@@ -289,7 +283,7 @@ void omap_vp_disable(struct voltagedomain *voltdm)
+ 
+ 	/* Disable VP */
+ 	vpconfig = voltdm->read(vp->vpconfig);
+-	vpconfig &= ~vp->vp_common->vpconfig_vpenable;
++	vpconfig &= ~vp->common->vpconfig_vpenable;
+ 	voltdm->write(vpconfig, vp->vpconfig);
+ 
+ 	/*
+@@ -302,7 +296,7 @@ void omap_vp_disable(struct voltagedomain *voltdm)
+ 		pr_warning("%s: vdd_%s idle timedout\n",
+ 			__func__, voltdm->name);
+ 
+-	vdd->vp_enabled = false;
++	vp->enabled = false;
+ 
+ 	return;
+ }
+@@ -311,7 +305,7 @@ void omap_vp_disable(struct voltagedomain *voltdm)
+ static int vp_volt_debug_get(void *data, u64 *val)
+ {
+ 	struct voltagedomain *voltdm = (struct voltagedomain *)data;
+-	struct omap_vp_instance_data *vp = voltdm->vdd->vp_data;
++	struct omap_vp_instance *vp = voltdm->vp;
+ 	struct omap_vdd_info *vdd = voltdm->vdd;
+ 	u8 vsel;
+ 
+diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
+index 79aa8d3..1d63960 100644
+--- a/arch/arm/mach-omap2/vp.h
++++ b/arch/arm/mach-omap2/vp.h
+@@ -45,7 +45,7 @@ struct omap_vp_ops {
+ };
+ 
+ /**
+- * struct omap_vp_common_data - register data common to all VDDs
++ * struct omap_vp_common - register data common to all VDDs
+  * @vpconfig_errorgain_mask: ERRORGAIN bitmask in the PRM_VP*_CONFIG reg
+  * @vpconfig_initvoltage_mask: INITVOLTAGE bitmask in the PRM_VP*_CONFIG reg
+  * @vpconfig_timeouten_mask: TIMEOUT bitmask in the PRM_VP*_CONFIG reg
+@@ -67,7 +67,7 @@ struct omap_vp_ops {
+  *     bitfield - remove one
+  * XXX Many of these fields are wrongly named -- e.g., vpconfig_smps* -- fix!
+  */
+-struct omap_vp_common_data {
++struct omap_vp_common {
+ 	u32 vpconfig_errorgain_mask;
+ 	u32 vpconfig_initvoltage_mask;
+ 	u32 vpconfig_timeouten;
+@@ -89,18 +89,19 @@ struct omap_vp_common_data {
+ };
+ 
+ /**
+- * struct omap_vp_instance_data - VP register offsets (per-VDD)
+- * @vp_common: pointer to struct omap_vp_common_data * for this SoC
++ * struct omap_vp_instance - VP register offsets (per-VDD)
++ * @common: pointer to struct omap_vp_common * for this SoC
+  * @vpconfig: PRM_VP*_CONFIG reg offset from PRM start
+  * @vstepmin: PRM_VP*_VSTEPMIN reg offset from PRM start
+  * @vlimitto: PRM_VP*_VLIMITTO reg offset from PRM start
+  * @vstatus: PRM_VP*_VSTATUS reg offset from PRM start
+  * @voltage: PRM_VP*_VOLTAGE reg offset from PRM start
++ * @enabled: flag to keep track of whether vp is enabled or not
+  *
+  * XXX vp_common is probably not needed since it is per-SoC
+  */
+-struct omap_vp_instance_data {
+-	const struct omap_vp_common_data *vp_common;
++struct omap_vp_instance {
++	const struct omap_vp_common *common;
+ 	u8 vpconfig;
+ 	u8 vstepmin;
+ 	u8 vstepmax;
+@@ -108,6 +109,7 @@ struct omap_vp_instance_data {
+ 	u8 vstatus;
+ 	u8 voltage;
+ 	u8 id;
++	bool enabled;
+ };
+ 
+ /**
+@@ -139,12 +141,12 @@ struct omap_vp_runtime_data {
+ 	u8 vlimitto_vddmax;
+ };
+ 
+-extern struct omap_vp_instance_data omap3_vp1_data;
+-extern struct omap_vp_instance_data omap3_vp2_data;
++extern struct omap_vp_instance omap3_vp_mpu;
++extern struct omap_vp_instance omap3_vp_core;
+ 
+-extern struct omap_vp_instance_data omap4_vp_mpu_data;
+-extern struct omap_vp_instance_data omap4_vp_iva_data;
+-extern struct omap_vp_instance_data omap4_vp_core_data;
++extern struct omap_vp_instance omap4_vp_mpu;
++extern struct omap_vp_instance omap4_vp_iva;
++extern struct omap_vp_instance omap4_vp_core;
+ 
+ void omap_vp_init(struct voltagedomain *voltdm);
+ void omap_vp_enable(struct voltagedomain *voltdm);
+diff --git a/arch/arm/mach-omap2/vp3xxx_data.c b/arch/arm/mach-omap2/vp3xxx_data.c
+index b01d333..79c3df9 100644
+--- a/arch/arm/mach-omap2/vp3xxx_data.c
++++ b/arch/arm/mach-omap2/vp3xxx_data.c
+@@ -36,7 +36,7 @@ static const struct omap_vp_ops omap3_vp_ops = {
+  * VP data common to 34xx/36xx chips
+  * XXX This stuff presumably belongs in the vp3xxx.c or vp.c file.
+  */
+-static const struct omap_vp_common_data omap3_vp_common = {
++static const struct omap_vp_common omap3_vp_common = {
+ 	.vpconfig_erroroffset_shift = OMAP3430_ERROROFFSET_SHIFT,
+ 	.vpconfig_errorgain_mask = OMAP3430_ERRORGAIN_MASK,
+ 	.vpconfig_errorgain_shift = OMAP3430_ERRORGAIN_SHIFT,
+@@ -56,9 +56,9 @@ static const struct omap_vp_common_data omap3_vp_common = {
+ 	.ops = &omap3_vp_ops,
+ };
+ 
+-struct omap_vp_instance_data omap3_vp1_data = {
++struct omap_vp_instance omap3_vp_mpu = {
+ 	.id = OMAP3_VP_VDD_MPU_ID,
+-	.vp_common = &omap3_vp_common,
++	.common = &omap3_vp_common,
+ 	.vpconfig = OMAP3_PRM_VP1_CONFIG_OFFSET,
+ 	.vstepmin = OMAP3_PRM_VP1_VSTEPMIN_OFFSET,
+ 	.vstepmax = OMAP3_PRM_VP1_VSTEPMAX_OFFSET,
+@@ -67,9 +67,9 @@ struct omap_vp_instance_data omap3_vp1_data = {
+ 	.voltage = OMAP3_PRM_VP1_VOLTAGE_OFFSET,
+ };
+ 
+-struct omap_vp_instance_data omap3_vp2_data = {
++struct omap_vp_instance omap3_vp_core = {
+ 	.id = OMAP3_VP_VDD_CORE_ID,
+-	.vp_common = &omap3_vp_common,
++	.common = &omap3_vp_common,
+ 	.vpconfig = OMAP3_PRM_VP2_CONFIG_OFFSET,
+ 	.vstepmin = OMAP3_PRM_VP2_VSTEPMIN_OFFSET,
+ 	.vstepmax = OMAP3_PRM_VP2_VSTEPMAX_OFFSET,
+diff --git a/arch/arm/mach-omap2/vp44xx_data.c b/arch/arm/mach-omap2/vp44xx_data.c
+index 9704c7b..8f75cd9 100644
+--- a/arch/arm/mach-omap2/vp44xx_data.c
++++ b/arch/arm/mach-omap2/vp44xx_data.c
+@@ -36,7 +36,7 @@ static const struct omap_vp_ops omap4_vp_ops = {
+  * VP data common to 44xx chips
+  * XXX This stuff presumably belongs in the vp44xx.c or vp.c file.
+  */
+-static const struct omap_vp_common_data omap4_vp_common = {
++static const struct omap_vp_common omap4_vp_common = {
+ 	.vpconfig_erroroffset_shift = OMAP4430_ERROROFFSET_SHIFT,
+ 	.vpconfig_errorgain_mask = OMAP4430_ERRORGAIN_MASK,
+ 	.vpconfig_errorgain_shift = OMAP4430_ERRORGAIN_SHIFT,
+@@ -56,9 +56,9 @@ static const struct omap_vp_common_data omap4_vp_common = {
+ 	.ops = &omap4_vp_ops,
+ };
+ 
+-struct omap_vp_instance_data omap4_vp_mpu_data = {
++struct omap_vp_instance omap4_vp_mpu = {
+ 	.id = OMAP4_VP_VDD_MPU_ID,
+-	.vp_common = &omap4_vp_common,
++	.common = &omap4_vp_common,
+ 	.vpconfig = OMAP4_PRM_VP_MPU_CONFIG_OFFSET,
+ 	.vstepmin = OMAP4_PRM_VP_MPU_VSTEPMIN_OFFSET,
+ 	.vstepmax = OMAP4_PRM_VP_MPU_VSTEPMAX_OFFSET,
+@@ -67,9 +67,9 @@ struct omap_vp_instance_data omap4_vp_mpu_data = {
+ 	.voltage = OMAP4_PRM_VP_MPU_VOLTAGE_OFFSET,
+ };
+ 
+-struct omap_vp_instance_data omap4_vp_iva_data = {
++struct omap_vp_instance omap4_vp_iva = {
+ 	.id = OMAP4_VP_VDD_IVA_ID,
+-	.vp_common = &omap4_vp_common,
++	.common = &omap4_vp_common,
+ 	.vpconfig = OMAP4_PRM_VP_IVA_CONFIG_OFFSET,
+ 	.vstepmin = OMAP4_PRM_VP_IVA_VSTEPMIN_OFFSET,
+ 	.vstepmax = OMAP4_PRM_VP_IVA_VSTEPMAX_OFFSET,
+@@ -78,9 +78,9 @@ struct omap_vp_instance_data omap4_vp_iva_data = {
+ 	.voltage = OMAP4_PRM_VP_IVA_VOLTAGE_OFFSET,
+ };
+ 
+-struct omap_vp_instance_data omap4_vp_core_data = {
++struct omap_vp_instance omap4_vp_core = {
+ 	.id = OMAP4_VP_VDD_CORE_ID,
+-	.vp_common = &omap4_vp_common,
++	.common = &omap4_vp_common,
+ 	.vpconfig = OMAP4_PRM_VP_CORE_CONFIG_OFFSET,
+ 	.vstepmin = OMAP4_PRM_VP_CORE_VSTEPMIN_OFFSET,
+ 	.vstepmax = OMAP4_PRM_VP_CORE_VSTEPMAX_OFFSET,
+-- 
+1.7.2.5
+

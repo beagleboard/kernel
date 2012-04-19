@@ -1,0 +1,264 @@
+From fcd436dfb1c2d8e4866001700a5bba2a1d4079aa Mon Sep 17 00:00:00 2001
+From: Rajendra Nayak <rnayak@ti.com>
+Date: Mon, 10 Nov 2008 17:00:25 +0530
+Subject: [PATCH 04/19] OMAP3 PM: CPUFreq driver for OMAP3
+
+CPUFreq driver for OMAP3
+
+With additional fixes and cleanups from Tero Kristo:
+- Fix rate calculation bug in omap3_select_table_rate
+- Refreshed DVFS VDD1 control against latest clock fw
+
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+
+OMAP3: PM: CPUFreq: Fix omap_getspeed.
+
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+
+Make sure omap cpufreq driver initializes after cpufreq framework and governors
+
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+
+merge: CPUFreq: remove obsolete funcs
+
+OMAP3 clock: Update cpufreq driver
+
+This patch removes all refrences to virtual clock
+nodes in CPUFreq driver.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Jean Pihet <jpihet@mvista.com>
+
+PM: Prevent direct cpufreq scaling during initialization
+
+It is seen that the OMAP specific cpufreq initialization code tries to
+scale the MPU frequency to the highest possible without taking care of
+the voltage level. On power on reset the power IC does not provide the
+necessary voltage for the highest available MPU frequency (that would
+satisfy all Si families). This potentially is an window of opportunity
+for things to go wrong.
+
+Signed-off-by: Romit Dasgupta <romit@ti.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+
+OMAP3: PM: enable 600MHz (overdrive) OPP
+
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+
+omap3: introduce cpufreq
+
+OMAP OPP layer functions now have dependencies of CONFIG_CPU_FREQ only.
+
+With this patch, omap opp layer now has its compilation flags
+bound to CONFIG_CPU_FREQ. Also its code has been removed from pm34xx.c.
+
+A new file has been created to contain cpu freq code related to
+OMAP3: cpufreq34xx.c
+
+OMAP34xx and OMAP36xx family OPPs are made available
+
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Romit Dasgupta <romit@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+
+omap3: cpufreq: allow default opp table init
+
+For board files which choose to override the defaults, the existing
+mechanism will work, for boards that would like to work with defaults,
+allow init_common_hw to call init_opp_table to initialize if not
+already initialized. this will allow all omap boards which have opp
+tables predefined for a silicon to use the same.
+
+Originally reported for overo:
+http://marc.info/?t=127265269400004&r=1&w=2
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Reported-by: Peter Tseng <tsenpet09@gmail.com>
+Cc: Cliff Brake <cliff.brake@gmail.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+
+OMAP2: update OPP data to be device based
+
+Cc: Nishanth Menon <nm@ti.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+
+OMAP3: CPUfreq: update to device-based OPP API
+
+Update usage of OPP API to use new device-based API.  This requires
+getting the 'struct device' for the MPU and using that with the OPP
+API.
+
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+
+omap3: opp: make independent of cpufreq
+
+Make opp3xx data which is registered with the opp layer
+dependent purely on CONFIG_PM as opp layer and pm.c users
+are CONFIG_PM dependent not cpufreq dependent.
+so we rename the data definition to opp3xxx_data.c (inline with what
+we have for omap2), also move the build definition to be under
+the existing CONFIG_PM build instead of CPUFREQ.
+
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Sanjeev Premi <premi@ti.com>
+Cc: Thara Gopinath <thara@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/clock.h     |   14 +++++++++++++-
+ arch/arm/mach-omap2/clock34xx.c |    2 ++
+ arch/arm/plat-omap/cpu-omap.c   |   34 +++++++++++++++++++++++++++++++---
+ 3 files changed, 46 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index 48ac568..8bad1c6 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -144,7 +144,9 @@ extern const struct clksel_rate gpt_sys_rates[];
+ extern const struct clksel_rate gfx_l3_rates[];
+ extern const struct clksel_rate dsp_ick_rates[];
+ 
+-#if defined(CONFIG_ARCH_OMAP2) && defined(CONFIG_CPU_FREQ)
++#ifdef CONFIG_CPU_FREQ
++
++#ifdef CONFIG_ARCH_OMAP2
+ extern void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
+ extern void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
+ #else
+@@ -152,6 +154,16 @@ extern void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table)
+ #define omap2_clk_exit_cpufreq_table	0
+ #endif
+ 
++#ifdef CONFIG_ARCH_OMAP3
++extern void omap3_clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
++extern void omap3_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
++#else
++#define omap3_clk_init_cpufreq_table	0
++#define omap3_clk_exit_cpufreq_table	0
++#endif
++
++#endif /* CONFIG_CPU_FREQ */
++
+ extern const struct clkops clkops_omap2_iclk_dflt_wait;
+ extern const struct clkops clkops_omap2_iclk_dflt;
+ extern const struct clkops clkops_omap2_iclk_idle_only;
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 1fc96b9..119e135 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -20,6 +20,8 @@
+ #include <linux/kernel.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
++#include <linux/err.h>
++#include <linux/cpufreq.h>
+ 
+ #include <plat/clock.h>
+ 
+diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+index 1b36664..f0f9430 100644
+--- a/arch/arm/plat-omap/cpu-omap.c
++++ b/arch/arm/plat-omap/cpu-omap.c
+@@ -8,6 +8,10 @@
+  *
+  *  Based on cpu-sa1110.c, Copyright (C) 2001 Russell King
+  *
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Updated to support OMAP3
++ * Rajendra Nayak <rnayak@ti.com>
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+@@ -26,12 +30,19 @@
+ #include <plat/clock.h>
+ #include <asm/system.h>
+ 
++#if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
++#include <plat/omap-pm.h>
++#include <plat/opp.h>
++#endif
++
+ #define VERY_HI_RATE	900000000
+ 
+ static struct cpufreq_frequency_table *freq_table;
+ 
+ #ifdef CONFIG_ARCH_OMAP1
+ #define MPU_CLK		"mpu"
++#elif CONFIG_ARCH_OMAP3
++#define MPU_CLK		"arm_fck"
+ #else
+ #define MPU_CLK		"virt_prcm_set"
+ #endif
+@@ -73,7 +84,13 @@ static int omap_target(struct cpufreq_policy *policy,
+ 		       unsigned int target_freq,
+ 		       unsigned int relation)
+ {
++#ifdef CONFIG_ARCH_OMAP1
+ 	struct cpufreq_freqs freqs;
++#endif
++#if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
++	unsigned long freq;
++	struct device *mpu_dev = omap2_get_mpuss_device();
++#endif
+ 	int ret = 0;
+ 
+ 	/* Ensure desired rate is within allowed range.  Some govenors
+@@ -83,13 +100,13 @@ static int omap_target(struct cpufreq_policy *policy,
+ 	if (target_freq > policy->max)
+ 		target_freq = policy->max;
+ 
++#ifdef CONFIG_ARCH_OMAP1
+ 	freqs.old = omap_getspeed(0);
+ 	freqs.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
+ 	freqs.cpu = 0;
+ 
+ 	if (freqs.old == freqs.new)
+ 		return ret;
+-
+ 	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
+ #ifdef CONFIG_CPU_FREQ_DEBUG
+ 	printk(KERN_DEBUG "cpufreq-omap: transition: %u --> %u\n",
+@@ -97,7 +114,11 @@ static int omap_target(struct cpufreq_policy *policy,
+ #endif
+ 	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
+ 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+-
++#elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
++	freq = target_freq * 1000;
++	if (opp_find_freq_ceil(mpu_dev, &freq))
++		omap_pm_cpu_set_freq(freq);
++#endif
+ 	return ret;
+ }
+ 
+@@ -114,7 +135,14 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+ 
+ 	policy->cur = policy->min = policy->max = omap_getspeed(0);
+ 
+-	clk_init_cpufreq_table(&freq_table);
++	if (!cpu_is_omap34xx()) {
++		clk_init_cpufreq_table(&freq_table);
++	} else {
++		struct device *mpu_dev = omap2_get_mpuss_device();
++
++		opp_init_cpufreq_table(mpu_dev, &freq_table);
++	}
++
+ 	if (freq_table) {
+ 		result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
+ 		if (!result)
+-- 
+1.7.2.5
+

@@ -1,0 +1,26 @@
+From a7e1724833070f01b82381f40b084fd33e46836d Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Thu, 21 Jul 2011 12:59:20 +0200
+Subject: [PATCH 03/10] HACK: OMAP3: beagle: switch to GPTIMER1
+
+Breaks with B3 and older due to clock noise
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index f26a9a8..a04f5a0 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -832,5 +832,5 @@ MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
+ 	.init_early	= omap3_beagle_init_early,
+ 	.init_irq	= omap3_beagle_init_irq,
+ 	.init_machine	= omap3_beagle_init,
+-	.timer		= &omap3_secure_timer,
++	.timer		= &omap3_timer,
+ MACHINE_END
+-- 
+1.7.2.5
+

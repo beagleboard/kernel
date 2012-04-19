@@ -1,0 +1,242 @@
+From e707458df28487c2fb0bf620cb3eff22466e2c6c Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Thu, 20 Oct 2011 16:13:16 +0200
+Subject: [PATCH 4/4] LEDS: add initial support for WS2801 controller
+
+This adds initial support for the WS2801 RGB LED controller.
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |   11 ++
+ drivers/leds/Kconfig                    |    6 +
+ drivers/leds/Makefile                   |    1 +
+ drivers/leds/leds-ws2801.c              |  159 +++++++++++++++++++++++++++++++
+ 4 files changed, 177 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/leds/leds-ws2801.c
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 47bc79b..016d0985 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -796,6 +796,11 @@ static struct platform_device leds_gpio = {
+ 	},
+ };
+ 
++static struct platform_device ws2801_leds = {
++	.name	= "ws2801-leds",
++	.id	= -1,
++};
++
+ static struct gpio_keys_button gpio_buttons[] = {
+ 	{
+ 		.code			= BTN_EXTRA,
+@@ -1014,6 +1019,12 @@ static void __init omap3_beagle_init(void)
+ 							ARRAY_SIZE(beagle_i2c2_bbtoys_ulcd));
+ 	}
+ 
++	if(!strcmp(expansionboard_name, "beacon"))
++	{
++		printk(KERN_INFO "Beagle expansionboard: registering TinCanTools Beacon LED driver\n");
++		platform_device_register(&ws2801_leds);
++	}
++
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3beagle_nand_partitions,
+diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
+index 713d43b..fd2c4b3 100644
+--- a/drivers/leds/Kconfig
++++ b/drivers/leds/Kconfig
+@@ -323,6 +323,12 @@ config LEDS_BD2802
+ 	  This option enables support for BD2802GU RGB LED driver chips
+ 	  accessed via the I2C bus.
+ 
++config LEDS_WS2801
++	tristate "LED driver for WS2801 RGB LED"
++	depends on LEDS_CLASS
++	help
++	  This option enables support for WS2801 RGB LED driver chips.
++
+ config LEDS_INTEL_SS4200
+ 	tristate "LED driver for Intel NAS SS4200 series"
+ 	depends on LEDS_CLASS
+diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
+index bbfd2e3..14f849e 100644
+--- a/drivers/leds/Makefile
++++ b/drivers/leds/Makefile
+@@ -43,6 +43,7 @@ obj-$(CONFIG_LEDS_MC13783)		+= leds-mc13783.o
+ obj-$(CONFIG_LEDS_NS2)			+= leds-ns2.o
+ obj-$(CONFIG_LEDS_NETXBIG)		+= leds-netxbig.o
+ obj-$(CONFIG_LEDS_ASIC3)		+= leds-asic3.o
++obj-$(CONFIG_LEDS_WS2801)		+= leds-ws2801.o
+ 
+ # LED SPI Drivers
+ obj-$(CONFIG_LEDS_DAC124S085)		+= leds-dac124s085.o
+diff --git a/drivers/leds/leds-ws2801.c b/drivers/leds/leds-ws2801.c
+new file mode 100644
+index 0000000..9526a84
+--- /dev/null
++++ b/drivers/leds/leds-ws2801.c
+@@ -0,0 +1,159 @@
++/*
++ * LEDs driver for WS2801 RGB Controller
++ *
++ * Copyright (C) 2006 Kristian Kielhofner <kris@krisk.org>
++ *
++ * Based on leds-net48xx.c
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/leds.h>
++#include <linux/err.h>
++#include <linux/gpio.h>
++#include <linux/io.h>
++
++#define DRVNAME "ws2801-leds"
++#define WS2801_LED_CLOCK_GPIO	159
++#define WS2801_LED_DATA_GPIO	158
++
++static unsigned long rgb_color;
++
++static struct platform_device *pdev;
++
++static void ws2801_set_rgb(void)
++{
++	int count;
++	int color_bit;
++
++	for (count = 23; count >= 0 ; count--) {
++		color_bit = (rgb_color>>count) & (1<<0);
++		gpio_set_value(WS2801_LED_DATA_GPIO, color_bit);
++		gpio_set_value(WS2801_LED_CLOCK_GPIO, 1);
++		gpio_set_value(WS2801_LED_CLOCK_GPIO, 0);
++	}
++
++}
++
++static void ws2801_red_led_set(struct led_classdev *led_cdev,
++		enum led_brightness value)
++{
++	rgb_color &= ((0x00<<16)|(0xff<<8)|(0xff<<0));
++	rgb_color |= (value<<16);
++	ws2801_set_rgb();
++}
++
++static void ws2801_green_led_set(struct led_classdev *led_cdev,
++		enum led_brightness value)
++{
++	rgb_color &= ((0xff<<16)|(0x00<<8)|(0xff<<0));
++	rgb_color |= (value<<8);
++	ws2801_set_rgb();
++}
++
++static void ws2801_blue_led_set(struct led_classdev *led_cdev,
++		enum led_brightness value)
++{
++	rgb_color &= ((0xff<<16)|(0xff<<8)|(0x00<<0));
++	rgb_color |= (value<<0);
++	ws2801_set_rgb();
++}
++
++static struct led_classdev ws2801_red_led = {
++	.name			= "ws2801-red",
++	.brightness_set		= ws2801_red_led_set,
++	.flags			= LED_CORE_SUSPENDRESUME,
++};
++
++static struct led_classdev ws2801_green_led = {
++	.name		= "ws2801-green",
++	.brightness_set	= ws2801_green_led_set,
++	.flags			= LED_CORE_SUSPENDRESUME,
++};
++
++static struct led_classdev ws2801_blue_led = {
++	.name           = "ws2801-blue",
++	.brightness_set = ws2801_blue_led_set,
++	.flags			= LED_CORE_SUSPENDRESUME,
++};
++
++static int ws2801_led_probe(struct platform_device *pdev)
++{
++	int ret;
++
++	ret = led_classdev_register(&pdev->dev, &ws2801_red_led);
++	if (ret < 0)
++		return ret;
++
++	ret = led_classdev_register(&pdev->dev, &ws2801_green_led);
++	if (ret < 0)
++		goto err1;
++
++	ret = led_classdev_register(&pdev->dev, &ws2801_blue_led);
++	if (ret < 0)
++		goto err2;
++
++	gpio_request_one(WS2801_LED_DATA_GPIO,
++		GPIOF_OUT_INIT_LOW, "ws2801_data");
++
++	gpio_request_one(WS2801_LED_CLOCK_GPIO,
++		GPIOF_OUT_INIT_LOW, "ws2801_clock");
++
++	ws2801_set_rgb();
++	return ret;
++
++err2:
++	led_classdev_unregister(&ws2801_green_led);
++err1:
++	led_classdev_unregister(&ws2801_red_led);
++
++	return ret;
++}
++
++static int ws2801_led_remove(struct platform_device *pdev)
++{
++	led_classdev_unregister(&ws2801_red_led);
++	led_classdev_unregister(&ws2801_green_led);
++	led_classdev_unregister(&ws2801_blue_led);
++	return 0;
++}
++
++static struct platform_driver ws2801_led_driver = {
++	.probe		= ws2801_led_probe,
++	.remove		= ws2801_led_remove,
++	.driver		= {
++		.name		= DRVNAME,
++		.owner		= THIS_MODULE,
++	},
++};
++
++static int __init ws2801_led_init(void)
++{
++	int ret;
++
++	ret = platform_driver_register(&ws2801_led_driver);
++	if (ret < 0)
++		goto out;
++
++out:
++	return ret;
++}
++
++static void __exit ws2801_led_exit(void)
++{
++	platform_device_unregister(pdev);
++	platform_driver_unregister(&ws2801_led_driver);
++}
++
++module_init(ws2801_led_init);
++module_exit(ws2801_led_exit);
++
++MODULE_AUTHOR("David Anders <danders@tincantools.com>");
++MODULE_DESCRIPTION("WS2801 RGB LED driver");
++MODULE_LICENSE("GPL");
++
+-- 
+1.7.2.5
+

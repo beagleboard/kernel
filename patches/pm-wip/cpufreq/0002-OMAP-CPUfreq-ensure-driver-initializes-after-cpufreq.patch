@@ -1,0 +1,28 @@
+From bc2810462308f15ff90841453961200bf90a814d Mon Sep 17 00:00:00 2001
+From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Date: Wed, 11 Aug 2010 17:02:43 -0700
+Subject: [PATCH 02/19] OMAP: CPUfreq: ensure driver initializes after cpufreq framework and governors
+
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/plat-omap/cpu-omap.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+index da4f68d..cd09d4b 100644
+--- a/arch/arm/plat-omap/cpu-omap.c
++++ b/arch/arm/plat-omap/cpu-omap.c
+@@ -160,7 +160,7 @@ static int __init omap_cpufreq_init(void)
+ 	return cpufreq_register_driver(&omap_driver);
+ }
+ 
+-arch_initcall(omap_cpufreq_init);
++late_initcall(omap_cpufreq_init);
+ 
+ /*
+  * if ever we want to remove this, upon cleanup call:
+-- 
+1.7.2.5
+

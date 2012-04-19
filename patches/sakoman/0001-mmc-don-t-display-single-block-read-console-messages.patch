@@ -1,0 +1,28 @@
+From cc8c276d530520ce822a1d0e8d748f7b9e54a2d5 Mon Sep 17 00:00:00 2001
+From: Steve Sakoman <steve@sakoman.com>
+Date: Mon, 4 Jan 2010 19:20:25 -0800
+Subject: [PATCH 01/14] mmc: don't display single block read console messages
+
+mmc: don't display single block read console messages
+---
+ drivers/mmc/card/block.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/mmc/card/block.c b/drivers/mmc/card/block.c
+index f85e422..0025735 100644
+--- a/drivers/mmc/card/block.c
++++ b/drivers/mmc/card/block.c
+@@ -812,8 +812,8 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *req)
+ 		    brq.data.error || brq.stop.error) {
+ 			if (brq.data.blocks > 1 && rq_data_dir(req) == READ) {
+ 				/* Redo read one sector at a time */
+-				printk(KERN_WARNING "%s: retrying using single "
+-				       "block read\n", req->rq_disk->disk_name);
++				/* printk(KERN_WARNING "%s: retrying using single "
++				       "block read\n", req->rq_disk->disk_name); */
+ 				disable_multi = 1;
+ 				continue;
+ 			}
+-- 
+1.7.2.5
+

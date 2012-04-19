@@ -1,0 +1,153 @@
+From 52d08db173e39f2af6923dc803593d62fa05e43b Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date: Sat, 9 Jul 2011 20:39:44 -0600
+Subject: [PATCH 062/149] OMAP4: hwmod data: Modify DSS opt clocks
+
+Add missing DSS optional clocks to HWMOD data for OMAP4xxx.
+
+Add HWMOD_CONTROL_OPT_CLKS_IN_RESET flag for dispc to fix dispc reset.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+[b-cousson@ti.com: Remove a comment and update the subject]
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+[paul@pwsan.com: removed DSS "fck" role and some clkdev aliases at Tomi's
+ request]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clock44xx_data.c       |    8 +++---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   33 ++++++++++++++++++++++++++++
+ 2 files changed, 37 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 044df38..7a0b112 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -3032,10 +3032,10 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,	CK_443X),
+ 	CLK(NULL,	"dmic_fck",			&dmic_fck,	CK_443X),
+ 	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
+-	CLK("omapdss_dss",	"sys_clk",			&dss_sys_clk,	CK_443X),
+-	CLK("omapdss_dss",	"tv_clk",			&dss_tv_clk,	CK_443X),
+-	CLK("omapdss_dss",	"video_clk",			&dss_48mhz_clk,	CK_443X),
+-	CLK("omapdss_dss",	"fck",				&dss_dss_clk,	CK_443X),
++	CLK(NULL,	"dss_sys_clk",			&dss_sys_clk,	CK_443X),
++	CLK(NULL,	"dss_tv_clk",			&dss_tv_clk,	CK_443X),
++	CLK(NULL,	"dss_48mhz_clk",		&dss_48mhz_clk,	CK_443X),
++	CLK(NULL,	"dss_dss_clk",			&dss_dss_clk,	CK_443X),
+ 	CLK("omapdss_dss",	"ick",				&dss_fck,	CK_443X),
+ 	CLK(NULL,	"efuse_ctrl_cust_fck",		&efuse_ctrl_cust_fck,	CK_443X),
+ 	CLK(NULL,	"emif1_fck",			&emif1_fck,	CK_443X),
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index e011437..a7fbe5c 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -1267,9 +1267,16 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_dispc_slaves[] = {
+ 	&omap44xx_l4_per__dss_dispc,
+ };
+ 
++static struct omap_hwmod_opt_clk dss_dispc_opt_clks[] = {
++	{ .role = "sys_clk", .clk = "dss_sys_clk" },
++	{ .role = "tv_clk", .clk = "dss_tv_clk" },
++	{ .role = "hdmi_clk", .clk = "dss_48mhz_clk" },
++};
++
+ static struct omap_hwmod omap44xx_dss_dispc_hwmod = {
+ 	.name		= "dss_dispc",
+ 	.class		= &omap44xx_dispc_hwmod_class,
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap44xx_dss_dispc_irqs,
+ 	.sdma_reqs	= omap44xx_dss_dispc_sdma_reqs,
+ 	.main_clk	= "dss_fck",
+@@ -1278,6 +1285,8 @@ static struct omap_hwmod omap44xx_dss_dispc_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		},
+ 	},
++	.opt_clks	= dss_dispc_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(dss_dispc_opt_clks),
+ 	.slaves		= omap44xx_dss_dispc_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_dispc_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -1358,6 +1367,10 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_dsi1_slaves[] = {
+ 	&omap44xx_l4_per__dss_dsi1,
+ };
+ 
++static struct omap_hwmod_opt_clk dss_dsi1_opt_clks[] = {
++	{ .role = "sys_clk", .clk = "dss_sys_clk" },
++};
++
+ static struct omap_hwmod omap44xx_dss_dsi1_hwmod = {
+ 	.name		= "dss_dsi1",
+ 	.class		= &omap44xx_dsi_hwmod_class,
+@@ -1369,6 +1382,8 @@ static struct omap_hwmod omap44xx_dss_dsi1_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		},
+ 	},
++	.opt_clks	= dss_dsi1_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(dss_dsi1_opt_clks),
+ 	.slaves		= omap44xx_dss_dsi1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_dsi1_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -1428,6 +1443,10 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_dsi2_slaves[] = {
+ 	&omap44xx_l4_per__dss_dsi2,
+ };
+ 
++static struct omap_hwmod_opt_clk dss_dsi2_opt_clks[] = {
++	{ .role = "sys_clk", .clk = "dss_sys_clk" },
++};
++
+ static struct omap_hwmod omap44xx_dss_dsi2_hwmod = {
+ 	.name		= "dss_dsi2",
+ 	.class		= &omap44xx_dsi_hwmod_class,
+@@ -1439,6 +1458,8 @@ static struct omap_hwmod omap44xx_dss_dsi2_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		},
+ 	},
++	.opt_clks	= dss_dsi2_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(dss_dsi2_opt_clks),
+ 	.slaves		= omap44xx_dss_dsi2_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_dsi2_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -1518,6 +1539,10 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_hdmi_slaves[] = {
+ 	&omap44xx_l4_per__dss_hdmi,
+ };
+ 
++static struct omap_hwmod_opt_clk dss_hdmi_opt_clks[] = {
++	{ .role = "sys_clk", .clk = "dss_sys_clk" },
++};
++
+ static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
+ 	.name		= "dss_hdmi",
+ 	.class		= &omap44xx_hdmi_hwmod_class,
+@@ -1529,6 +1554,8 @@ static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		},
+ 	},
++	.opt_clks	= dss_hdmi_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(dss_hdmi_opt_clks),
+ 	.slaves		= omap44xx_dss_hdmi_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_hdmi_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -1603,6 +1630,10 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_rfbi_slaves[] = {
+ 	&omap44xx_l4_per__dss_rfbi,
+ };
+ 
++static struct omap_hwmod_opt_clk dss_rfbi_opt_clks[] = {
++	{ .role = "ick", .clk = "dss_fck" },
++};
++
+ static struct omap_hwmod omap44xx_dss_rfbi_hwmod = {
+ 	.name		= "dss_rfbi",
+ 	.class		= &omap44xx_rfbi_hwmod_class,
+@@ -1613,6 +1644,8 @@ static struct omap_hwmod omap44xx_dss_rfbi_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		},
+ 	},
++	.opt_clks	= dss_rfbi_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(dss_rfbi_opt_clks),
+ 	.slaves		= omap44xx_dss_rfbi_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_rfbi_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-- 
+1.7.2.5
+

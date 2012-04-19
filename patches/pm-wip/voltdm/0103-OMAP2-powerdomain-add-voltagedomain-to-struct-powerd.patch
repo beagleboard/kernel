@@ -1,0 +1,51 @@
+From 4380f30498f0096856479011df85f956081ce26c Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@ti.com>
+Date: Wed, 23 Mar 2011 07:22:23 -0700
+Subject: [PATCH 103/149] OMAP2+: powerdomain: add voltagedomain to struct powerdomain
+
+Each powerdomain is associated with a voltage domain.  Add an entry to
+struct powerdomain where the enclosing voltagedomain can be
+referenced.
+
+Modeled after similar relationship between clockdomains and powerdomains.
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/powerdomain.h |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index d23d979..9ce920d 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -24,6 +24,8 @@
+ 
+ #include <plat/cpu.h>
+ 
++#include "voltage.h"
++
+ /* Powerdomain basic power states */
+ #define PWRDM_POWER_OFF		0x0
+ #define PWRDM_POWER_RET		0x1
+@@ -78,6 +80,7 @@ struct powerdomain;
+ /**
+  * struct powerdomain - OMAP powerdomain
+  * @name: Powerdomain name
++ * @voltdm: voltagedomain containing this powerdomain
+  * @omap_chip: represents the OMAP chip types containing this pwrdm
+  * @prcm_offs: the address offset from CM_BASE/PRM_BASE
+  * @prcm_partition: (OMAP4 only) the PRCM partition ID containing @prcm_offs
+@@ -98,6 +101,10 @@ struct powerdomain;
+  */
+ struct powerdomain {
+ 	const char *name;
++	union {
++		const char *name;
++		struct voltagedomain *ptr;
++	} voltdm;
+ 	const struct omap_chip_id omap_chip;
+ 	const s16 prcm_offs;
+ 	const u8 pwrsts;
+-- 
+1.7.2.5
+

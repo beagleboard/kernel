@@ -1,0 +1,86 @@
+From 57d2323014444c5d7f8c8d7e2da0a9737c3d8c28 Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Sun, 10 Jul 2011 05:56:30 -0600
+Subject: [PATCH 078/149] OMAP2+: hwmod: Init clkdm field at boot time
+
+At boot time, lookup the clkdm_name to get the clkdm
+structure pointer for further usage.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c             |   34 +++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ 2 files changed, 34 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 02b6016..1f6f47f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -990,9 +990,40 @@ static struct omap_hwmod *_lookup(const char *name)
+ 
+ 	return oh;
+ }
++/**
++ * _init_clkdm - look up a clockdomain name, store pointer in omap_hwmod
++ * @oh: struct omap_hwmod *
++ *
++ * Convert a clockdomain name stored in a struct omap_hwmod into a
++ * clockdomain pointer, and save it into the struct omap_hwmod.
++ * return -EINVAL if clkdm_name does not exist or if the lookup failed.
++ */
++static int _init_clkdm(struct omap_hwmod *oh)
++{
++	if (cpu_is_omap24xx() || cpu_is_omap34xx())
++		return 0;
++
++	if (!oh->clkdm_name) {
++		pr_warning("omap_hwmod: %s: no clkdm_name\n", oh->name);
++		return -EINVAL;
++	}
++
++	oh->clkdm = clkdm_lookup(oh->clkdm_name);
++	if (!oh->clkdm) {
++		pr_warning("omap_hwmod: %s: could not associate to clkdm %s\n",
++			oh->name, oh->clkdm_name);
++		return -EINVAL;
++	}
++
++	pr_debug("omap_hwmod: %s: associated to clkdm %s\n",
++		oh->name, oh->clkdm_name);
++
++	return 0;
++}
+ 
+ /**
+- * _init_clocks - clk_get() all clocks associated with this hwmod
++ * _init_clocks - clk_get() all clocks associated with this hwmod. Retrieve as
++ * well the clockdomain.
+  * @oh: struct omap_hwmod *
+  * @data: not used; pass NULL
+  *
+@@ -1012,6 +1043,7 @@ static int _init_clocks(struct omap_hwmod *oh, void *data)
+ 	ret |= _init_main_clk(oh);
+ 	ret |= _init_interface_clks(oh);
+ 	ret |= _init_opt_clks(oh);
++	ret |= _init_clkdm(oh);
+ 
+ 	if (!ret)
+ 		oh->_state = _HWMOD_STATE_CLKS_INITED;
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 21d3922..3306bdf 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -516,6 +516,7 @@ struct omap_hwmod {
+ 	struct clk			*_clk;
+ 	struct omap_hwmod_opt_clk	*opt_clks;
+ 	char				*clkdm_name;
++	struct clockdomain		*clkdm;
+ 	char				*vdd_name;
+ 	struct voltagedomain		*voltdm;
+ 	struct omap_hwmod_ocp_if	**masters; /* connect to *_IA */
+-- 
+1.7.2.5
+

@@ -1,0 +1,173 @@
+From 2a443d7ec48bdaa17f80fbffd82cd11d858d3655 Mon Sep 17 00:00:00 2001
+From: Rajendra Nayak <rnayak@ti.com>
+Date: Sun, 10 Jul 2011 05:57:07 -0600
+Subject: [PATCH 094/149] OMAP2+: hwmod: Follow the recommended PRCM module enable sequence
+
+On OMAP4, the PRCM recommended sequence for enabling
+a module after power-on-reset is:
+-1- Force clkdm to SW_WKUP
+-2- Enabling the clocks
+-3- Configure desired module mode to "enable" or "auto"
+-4- Wait for the desired module idle status to be FUNC
+-5- Program clkdm in HW_AUTO(if supported)
+
+This sequence applies to all older OMAPs' as well,
+however since they use autodeps, it makes sure that
+no clkdm is in IDLE, and hence not requiring a force
+SW_WKUP when a module is being enabled.
+
+OMAP4 does not need to support autodeps, because
+of the dyanamic dependency feature, wherein
+the HW takes care of waking up a clockdomain from
+idle and hence the module, whenever an interconnect
+access happens to the given module.
+
+Implementing the sequence for OMAP4 requires
+the clockdomain handling that is currently done in
+clock framework to be done as part of hwmod framework
+since the step -4- above to "Wait for the desired
+module idle status to be FUNC" is done as part of
+hwmod framework.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+[b-cousson@ti.com: Adapt it to the new clkdm hwmod attribute and API]
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+[paul@pwsan.com: dropped mach-omap2/clock.c changes; modified to only
+ call the clockdomain code if oh->clkdm is set; disable clock->clockdomain
+ interaction on OMAP4]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clock44xx_data.c |    1 +
+ arch/arm/mach-omap2/omap_hwmod.c     |   70 ++++++++++++++++++++++++----------
+ 2 files changed, 51 insertions(+), 20 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 07bf0de..0d13def 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -3340,6 +3340,7 @@ int __init omap4xxx_clk_init(void)
+ 	}
+ 
+ 	clk_init(&omap2_clk_functions);
++	omap2_clk_disable_clkdm_control();
+ 
+ 	for (c = omap44xx_clks; c < omap44xx_clks + ARRAY_SIZE(omap44xx_clks);
+ 									  c++)
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 4424fee..84cc0bd 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1437,6 +1437,7 @@ static int _reset(struct omap_hwmod *oh)
+ static int _enable(struct omap_hwmod *oh)
+ {
+ 	int r;
++	int hwsup = 0;
+ 
+ 	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
+ 
+@@ -1448,14 +1449,6 @@ static int _enable(struct omap_hwmod *oh)
+ 		return -EINVAL;
+ 	}
+ 
+-	/* Mux pins for device runtime if populated */
+-	if (oh->mux && (!oh->mux->enabled ||
+-			((oh->_state == _HWMOD_STATE_IDLE) &&
+-			 oh->mux->pads_dynamic)))
+-		omap_hwmod_mux(oh->mux, _HWMOD_STATE_ENABLED);
+-
+-	_add_initiator_dep(oh, mpu_oh);
+-	_enable_clocks(oh);
+ 
+ 	/*
+ 	 * If an IP contains only one HW reset line, then de-assert it in order
+@@ -1466,23 +1459,56 @@ static int _enable(struct omap_hwmod *oh)
+ 	     oh->_state == _HWMOD_STATE_DISABLED) && oh->rst_lines_cnt == 1)
+ 		_deassert_hardreset(oh, oh->rst_lines[0].name);
+ 
+-	r = _wait_target_ready(oh);
+-	if (r) {
+-		pr_debug("omap_hwmod: %s: _wait_target_ready: %d\n",
+-			 oh->name, r);
+-		_disable_clocks(oh);
++	/* Mux pins for device runtime if populated */
++	if (oh->mux && (!oh->mux->enabled ||
++			((oh->_state == _HWMOD_STATE_IDLE) &&
++			 oh->mux->pads_dynamic)))
++		omap_hwmod_mux(oh->mux, _HWMOD_STATE_ENABLED);
++
++	_add_initiator_dep(oh, mpu_oh);
+ 
+-		return r;
++	if (oh->clkdm) {
++		/*
++		 * A clockdomain must be in SW_SUP before enabling
++		 * completely the module. The clockdomain can be set
++		 * in HW_AUTO only when the module become ready.
++		 */
++		hwsup = clkdm_in_hwsup(oh->clkdm);
++		r = clkdm_hwmod_enable(oh->clkdm, oh);
++		if (r) {
++			WARN(1, "omap_hwmod: %s: could not enable clockdomain %s: %d\n",
++			     oh->name, oh->clkdm->name, r);
++			return r;
++		}
+ 	}
++
++	_enable_clocks(oh);
+ 	_enable_module(oh);
+ 
+-	oh->_state = _HWMOD_STATE_ENABLED;
++	r = _wait_target_ready(oh);
++	if (!r) {
++		/*
++		 * Set the clockdomain to HW_AUTO only if the target is ready,
++		 * assuming that the previous state was HW_AUTO
++		 */
++		if (oh->clkdm && hwsup)
++			clkdm_allow_idle(oh->clkdm);
+ 
+-	/* Access the sysconfig only if the target is ready */
+-	if (oh->class->sysc) {
+-		if (!(oh->_int_flags & _HWMOD_SYSCONFIG_LOADED))
+-			_update_sysc_cache(oh);
+-		_enable_sysc(oh);
++		oh->_state = _HWMOD_STATE_ENABLED;
++
++		/* Access the sysconfig only if the target is ready */
++		if (oh->class->sysc) {
++			if (!(oh->_int_flags & _HWMOD_SYSCONFIG_LOADED))
++				_update_sysc_cache(oh);
++			_enable_sysc(oh);
++		}
++	} else {
++		_disable_clocks(oh);
++		pr_debug("omap_hwmod: %s: _wait_target_ready: %d\n",
++			 oh->name, r);
++
++		if (oh->clkdm)
++			clkdm_hwmod_disable(oh->clkdm, oh);
+ 	}
+ 
+ 	return r;
+@@ -1523,6 +1549,8 @@ static int _idle(struct omap_hwmod *oh)
+ 	 * transition to complete properly.
+ 	 */
+ 	_disable_clocks(oh);
++	if (oh->clkdm)
++		clkdm_hwmod_disable(oh->clkdm, oh);
+ 
+ 	/* Mux pins for device idle if populated */
+ 	if (oh->mux && oh->mux->pads_dynamic)
+@@ -1620,6 +1648,8 @@ static int _shutdown(struct omap_hwmod *oh)
+ 			pr_warn("omap_hwmod: %s: _wait_target_disable failed\n",
+ 				oh->name);
+ 		_disable_clocks(oh);
++		if (oh->clkdm)
++			clkdm_hwmod_disable(oh->clkdm, oh);
+ 	}
+ 	/* XXX Should this code also force-disable the optional clocks? */
+ 
+-- 
+1.7.2.5
+

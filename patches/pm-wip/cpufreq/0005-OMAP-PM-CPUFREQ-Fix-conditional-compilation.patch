@@ -1,0 +1,33 @@
+From 62275cbaac608a17fe5ff0437e0950667927e5e8 Mon Sep 17 00:00:00 2001
+From: Silesh C V <silesh@ti.com>
+Date: Wed, 29 Sep 2010 14:52:54 +0530
+Subject: [PATCH 05/19] OMAP: PM: CPUFREQ: Fix conditional compilation
+
+Fix conditional compilation. A conditional expresiion
+should follow "#elif", in this case #elif clause should
+check whether CONFIG_ARCH_OMAP3 is defined or not
+(ie. defined(CONFIG_ARCH_OMAP3)) rather than checking for
+the value of the macro.
+
+Signed-off-by: Silesh C V <silesh@ti.com>
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/plat-omap/cpu-omap.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+index f0f9430..c3ac065 100644
+--- a/arch/arm/plat-omap/cpu-omap.c
++++ b/arch/arm/plat-omap/cpu-omap.c
+@@ -41,7 +41,7 @@ static struct cpufreq_frequency_table *freq_table;
+ 
+ #ifdef CONFIG_ARCH_OMAP1
+ #define MPU_CLK		"mpu"
+-#elif CONFIG_ARCH_OMAP3
++#elif defined(CONFIG_ARCH_OMAP3)
+ #define MPU_CLK		"arm_fck"
+ #else
+ #define MPU_CLK		"virt_prcm_set"
+-- 
+1.7.2.5
+

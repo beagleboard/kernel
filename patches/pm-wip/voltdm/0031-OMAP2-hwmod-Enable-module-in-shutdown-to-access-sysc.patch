@@ -1,0 +1,37 @@
+From 3097e6265e79329635b528dd97b7fa3ed7dbb805 Mon Sep 17 00:00:00 2001
+From: Miguel Vadillo <vadillo@ti.com>
+Date: Fri, 1 Jul 2011 22:54:02 +0200
+Subject: [PATCH 031/149] OMAP2+: hwmod: Enable module in shutdown to access sysconfig
+
+When calling the shutdown, the module may be already in idle.
+Accessing the sysconfig register will then lead to a crash.
+In that case, re-enable the module in order to allow the access
+to the sysconfig register.
+
+Signed-off-by: Miguel Vadillo <vadillo@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 384d3c3..cbc2a8a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1396,8 +1396,11 @@ static int _shutdown(struct omap_hwmod *oh)
+ 		}
+ 	}
+ 
+-	if (oh->class->sysc)
++	if (oh->class->sysc) {
++		if (oh->_state == _HWMOD_STATE_IDLE)
++			_enable(oh);
+ 		_shutdown_sysc(oh);
++	}
+ 
+ 	/*
+ 	 * If an IP contains only one HW reset line, then assert it
+-- 
+1.7.2.5
+

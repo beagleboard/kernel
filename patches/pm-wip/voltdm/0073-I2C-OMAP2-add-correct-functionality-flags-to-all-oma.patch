@@ -1,0 +1,146 @@
+From 61ee913ca983d9ff9bc3d98564417d9054db3e45 Mon Sep 17 00:00:00 2001
+From: Andy Green <andy@warmcat.com>
+Date: Sun, 10 Jul 2011 05:27:16 -0600
+Subject: [PATCH 073/149] I2C: OMAP2+: add correct functionality flags to all omap2plus i2c dev_attr
+
+This adds the new functionality flags for omap i2c unit to all OMAP2
+hwmod definitions
+
+Cc: patches@linaro.org
+Cc: Ben Dooks <ben-linux@fluff.org>
+Reported-by: Peter Maydell <peter.maydell@linaro.org>
+Signed-off-by: Andy Green <andy.green@linaro.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |    7 ++++++-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    3 +++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    9 +++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    9 +++++++++
+ 4 files changed, 27 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index 95f547c..7af2514 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -1032,7 +1032,12 @@ static struct omap_hwmod_class i2c_class = {
+ 	.rev		= OMAP_I2C_IP_VERSION_1,
+ };
+ 
+-static struct omap_i2c_dev_attr i2c_dev_attr;
++static struct omap_i2c_dev_attr i2c_dev_attr = {
++	.flags		= OMAP_I2C_FLAG_NO_FIFO |
++			  OMAP_I2C_FLAG_SIMPLE_CLOCK |
++			  OMAP_I2C_FLAG_16BIT_DATA_REG |
++			  OMAP_I2C_FLAG_BUS_SHIFT_2,
++};
+ 
+ /* I2C1 */
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index d7ed51b..405688a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -1083,6 +1083,9 @@ static struct omap_hwmod_class i2c_class = {
+ 
+ static struct omap_i2c_dev_attr i2c_dev_attr = {
+ 	.fifo_depth	= 8, /* bytes */
++	.flags		= OMAP_I2C_FLAG_APPLY_ERRATA_I207 |
++			  OMAP_I2C_FLAG_BUS_SHIFT_2 |
++			  OMAP_I2C_FLAG_FORCE_19200_INT_CLK,
+ };
+ 
+ /* I2C1 */
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 58ec1e2..c704ac8 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -1608,6 +1608,9 @@ static struct omap_hwmod omap3xxx_dss_venc_hwmod = {
+ 
+ static struct omap_i2c_dev_attr i2c1_dev_attr = {
+ 	.fifo_depth	= 8, /* bytes */
++	.flags		= OMAP_I2C_FLAG_APPLY_ERRATA_I207 |
++			  OMAP_I2C_FLAG_RESET_REGS_POSTIDLE |
++			  OMAP_I2C_FLAG_BUS_SHIFT_2,
+ };
+ 
+ static struct omap_hwmod_ocp_if *omap3xxx_i2c1_slaves[] = {
+@@ -1640,6 +1643,9 @@ static struct omap_hwmod omap3xxx_i2c1_hwmod = {
+ 
+ static struct omap_i2c_dev_attr i2c2_dev_attr = {
+ 	.fifo_depth	= 8, /* bytes */
++	.flags = OMAP_I2C_FLAG_APPLY_ERRATA_I207 |
++		 OMAP_I2C_FLAG_RESET_REGS_POSTIDLE |
++		 OMAP_I2C_FLAG_BUS_SHIFT_2,
+ };
+ 
+ static struct omap_hwmod_ocp_if *omap3xxx_i2c2_slaves[] = {
+@@ -1672,6 +1678,9 @@ static struct omap_hwmod omap3xxx_i2c2_hwmod = {
+ 
+ static struct omap_i2c_dev_attr i2c3_dev_attr = {
+ 	.fifo_depth	= 64, /* bytes */
++	.flags = OMAP_I2C_FLAG_APPLY_ERRATA_I207 |
++		 OMAP_I2C_FLAG_RESET_REGS_POSTIDLE |
++		 OMAP_I2C_FLAG_BUS_SHIFT_2,
+ };
+ 
+ static struct omap_hwmod_irq_info i2c3_mpu_irqs[] = {
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 1bed3b8..55331df 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -27,6 +27,7 @@
+ #include <plat/mcspi.h>
+ #include <plat/mcbsp.h>
+ #include <plat/mmc.h>
++#include <plat/i2c.h>
+ 
+ #include "omap_hwmod_common_data.h"
+ 
+@@ -2163,6 +2164,10 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
+ 	.rev	= OMAP_I2C_IP_VERSION_2,
+ };
+ 
++static struct omap_i2c_dev_attr i2c_dev_attr = {
++	.flags	= OMAP_I2C_FLAG_BUS_SHIFT_NONE,
++};
++
+ /* i2c1 */
+ static struct omap_hwmod omap44xx_i2c1_hwmod;
+ static struct omap_hwmod_irq_info omap44xx_i2c1_irqs[] = {
+@@ -2213,6 +2218,7 @@ static struct omap_hwmod omap44xx_i2c1_hwmod = {
+ 	},
+ 	.slaves		= omap44xx_i2c1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c1_slaves),
++	.dev_attr	= &i2c_dev_attr,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+ 
+@@ -2266,6 +2272,7 @@ static struct omap_hwmod omap44xx_i2c2_hwmod = {
+ 	},
+ 	.slaves		= omap44xx_i2c2_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c2_slaves),
++	.dev_attr	= &i2c_dev_attr,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+ 
+@@ -2319,6 +2326,7 @@ static struct omap_hwmod omap44xx_i2c3_hwmod = {
+ 	},
+ 	.slaves		= omap44xx_i2c3_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c3_slaves),
++	.dev_attr	= &i2c_dev_attr,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+ 
+@@ -2372,6 +2380,7 @@ static struct omap_hwmod omap44xx_i2c4_hwmod = {
+ 	},
+ 	.slaves		= omap44xx_i2c4_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c4_slaves),
++	.dev_attr	= &i2c_dev_attr,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+ 
+-- 
+1.7.2.5
+

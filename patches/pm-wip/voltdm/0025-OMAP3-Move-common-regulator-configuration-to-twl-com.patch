@@ -1,0 +1,924 @@
+From df02a0c8e1d42d1f861d138d1283172872c602ed Mon Sep 17 00:00:00 2001
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Date: Tue, 7 Jun 2011 11:38:24 +0300
+Subject: [PATCH 025/149] OMAP3: Move common regulator configuration to twl-common
+
+Some regulator config can be moved out from board files,
+since they are close to identical.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/board-3430sdp.c          |   51 ++++----------------------
+ arch/arm/mach-omap2/board-cm-t35.c           |   44 ++++------------------
+ arch/arm/mach-omap2/board-devkit8000.c       |   22 +----------
+ arch/arm/mach-omap2/board-igep0020.c         |   28 +++------------
+ arch/arm/mach-omap2/board-omap3beagle.c      |   46 +++---------------------
+ arch/arm/mach-omap2/board-omap3evm.c         |   50 ++++----------------------
+ arch/arm/mach-omap2/board-omap3pandora.c     |   47 +++++-------------------
+ arch/arm/mach-omap2/board-omap3stalker.c     |   50 ++++----------------------
+ arch/arm/mach-omap2/board-omap3touchbook.c   |   44 ++++++----------------
+ arch/arm/mach-omap2/board-overo.c            |   46 +++---------------------
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   27 +++-----------
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   42 ++--------------------
+ arch/arm/mach-omap2/twl-common.c             |   42 +++++++++++++++++++++
+ arch/arm/mach-omap2/twl-common.h             |    5 +++
+ 14 files changed, 124 insertions(+), 420 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 8bbd4e0..bd600cf 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -283,16 +283,6 @@ static struct regulator_consumer_supply sdp3430_vaux3_supplies[] = {
+ 	REGULATOR_SUPPLY("vcc", "spi1.0"),
+ };
+ 
+-static struct regulator_consumer_supply sdp3430_vdda_dac_supplies[] = {
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+-};
+-
+ static struct regulator_consumer_supply sdp3430_vmmc1_supplies[] = {
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
+ };
+@@ -409,36 +399,6 @@ static struct regulator_init_data sdp3430_vsim = {
+ 	.consumer_supplies	= sdp3430_vsim_supplies,
+ };
+ 
+-/* VDAC for DSS driving S-Video */
+-static struct regulator_init_data sdp3430_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(sdp3430_vdda_dac_supplies),
+-	.consumer_supplies	= sdp3430_vdda_dac_supplies,
+-};
+-
+-static struct regulator_init_data sdp3430_vpll2 = {
+-	.constraints = {
+-		.name			= "VDVI",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(sdp3430_vpll2_supplies),
+-	.consumer_supplies	= sdp3430_vpll2_supplies,
+-};
+-
+ static struct twl4030_platform_data sdp3430_twldata = {
+ 	/* platform_data for children goes here */
+ 	.gpio		= &sdp3430_gpio_data,
+@@ -451,16 +411,19 @@ static struct twl4030_platform_data sdp3430_twldata = {
+ 	.vmmc1		= &sdp3430_vmmc1,
+ 	.vmmc2		= &sdp3430_vmmc2,
+ 	.vsim		= &sdp3430_vsim,
+-	.vdac		= &sdp3430_vdac,
+-	.vpll2		= &sdp3430_vpll2,
+ };
+ 
+ static int __init omap3430_i2c_init(void)
+ {
+ 	/* i2c1 for PMIC only */
+ 	omap3_pmic_get_config(&sdp3430_twldata,
+-			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_BCI |
+-			  TWL_COMMON_PDATA_MADC | TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_BCI |
++			TWL_COMMON_PDATA_MADC | TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++	sdp3430_twldata.vdac->constraints.apply_uV = true;
++	sdp3430_twldata.vpll2->constraints.apply_uV = true;
++	sdp3430_twldata.vpll2->constraints.name = "VDVI";
++
+ 	omap3_pmic_init("twl4030", &sdp3430_twldata);
+ 
+ 	/* i2c2 on camera connector (for sensor control) and optional isp1301 */
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index cb00abc..35891d4 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -343,10 +343,6 @@ static struct regulator_consumer_supply cm_t35_vsim_supply[] = {
+ 	REGULATOR_SUPPLY("vmmc_aux", "omap_hsmmc.0"),
+ };
+ 
+-static struct regulator_consumer_supply cm_t35_vdac_supply[] = {
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
+-};
+-
+ static struct regulator_consumer_supply cm_t35_vdvi_supply[] = {
+ 	REGULATOR_SUPPLY("vdvi", "omapdss"),
+ };
+@@ -381,35 +377,6 @@ static struct regulator_init_data cm_t35_vsim = {
+ 	.consumer_supplies	= cm_t35_vsim_supply,
+ };
+ 
+-/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
+-static struct regulator_init_data cm_t35_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(cm_t35_vdac_supply),
+-	.consumer_supplies	= cm_t35_vdac_supply,
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_init_data cm_t35_vpll2 = {
+-	.constraints = {
+-		.name			= "VDVI",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(cm_t35_vdvi_supply),
+-	.consumer_supplies	= cm_t35_vdvi_supply,
+-};
+-
+ static uint32_t cm_t35_keymap[] = {
+ 	KEY(0, 0, KEY_A),	KEY(0, 1, KEY_B),	KEY(0, 2, KEY_LEFT),
+ 	KEY(1, 0, KEY_UP),	KEY(1, 1, KEY_ENTER),	KEY(1, 2, KEY_DOWN),
+@@ -493,13 +460,18 @@ static struct twl4030_platform_data cm_t35_twldata = {
+ 	.gpio		= &cm_t35_gpio_data,
+ 	.vmmc1		= &cm_t35_vmmc1,
+ 	.vsim		= &cm_t35_vsim,
+-	.vdac		= &cm_t35_vdac,
+-	.vpll2		= &cm_t35_vpll2,
+ };
+ 
+ static void __init cm_t35_init_i2c(void)
+ {
+-	omap3_pmic_get_config(&cm_t35_twldata, TWL_COMMON_PDATA_USB, 0);
++	omap3_pmic_get_config(&cm_t35_twldata, TWL_COMMON_PDATA_USB,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++
++	cm_t35_twldata.vpll2->constraints.name = "VDVI";
++	cm_t35_twldata.vpll2->num_consumer_supplies =
++						ARRAY_SIZE(cm_t35_vdvi_supply);
++	cm_t35_twldata.vpll2->consumer_supplies = cm_t35_vdvi_supply;
++
+ 	omap3_pmic_init("tps65930", &cm_t35_twldata);
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index 364942e..b6002ec 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -186,10 +186,6 @@ static struct omap_dss_board_info devkit8000_dss_data = {
+ 	.default_device = &devkit8000_lcd_device,
+ };
+ 
+-static struct regulator_consumer_supply devkit8000_vdda_dac_supply[] = {
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
+-};
+-
+ static uint32_t board_keymap[] = {
+ 	KEY(0, 0, KEY_1),
+ 	KEY(1, 0, KEY_2),
+@@ -289,20 +285,6 @@ static struct regulator_init_data devkit8000_vmmc1 = {
+ 	.consumer_supplies	= devkit8000_vmmc1_supply,
+ };
+ 
+-/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
+-static struct regulator_init_data devkit8000_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(devkit8000_vdda_dac_supply),
+-	.consumer_supplies	= devkit8000_vdda_dac_supply,
+-};
+-
+ /* VPLL1 for digital video outputs */
+ static struct regulator_init_data devkit8000_vpll1 = {
+ 	.constraints = {
+@@ -336,7 +318,6 @@ static struct twl4030_platform_data devkit8000_twldata = {
+ 	/* platform_data for children goes here */
+ 	.gpio		= &devkit8000_gpio_data,
+ 	.vmmc1		= &devkit8000_vmmc1,
+-	.vdac		= &devkit8000_vdac,
+ 	.vpll1		= &devkit8000_vpll1,
+ 	.vio		= &devkit8000_vio,
+ 	.keypad		= &devkit8000_kp_data,
+@@ -345,7 +326,8 @@ static struct twl4030_platform_data devkit8000_twldata = {
+ static int __init devkit8000_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&devkit8000_twldata,
+-			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO, 0);
++			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
++			  TWL_COMMON_REGULATOR_VDAC);
+ 	omap3_pmic_init("tps65930", &devkit8000_twldata);
+ 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
+ 	 * projector don't work reliably with 400kHz */
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index e0a6687..35be778 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -479,26 +479,6 @@ static struct omap_dss_board_info igep2_dss_data = {
+ 	.default_device	= &igep2_dvi_device,
+ };
+ 
+-static struct regulator_consumer_supply igep2_vpll2_supplies[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+-};
+-
+-static struct regulator_init_data igep2_vpll2 = {
+-	.constraints = {
+-		.name			= "VDVI",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(igep2_vpll2_supplies),
+-	.consumer_supplies	= igep2_vpll2_supplies,
+-};
+-
+ static void __init igep2_display_init(void)
+ {
+ 	int err = gpio_request_one(IGEP2_GPIO_DVI_PUP, GPIOF_OUT_INIT_HIGH,
+@@ -579,9 +559,11 @@ static void __init igep_i2c_init(void)
+ 			pr_warning("IGEP2: Could not register I2C3 bus (%d)\n", ret);
+ 
+ 		igep_twldata.keypad	= &igep2_keypad_pdata;
+-		igep_twldata.vpll2	= &igep2_vpll2;
+-		/* Use common codec data */
+-		omap3_pmic_get_config(&igep_twldata, TWL_COMMON_PDATA_AUDIO, 0);
++		/* Get common pmic data */
++		omap3_pmic_get_config(&igep_twldata, TWL_COMMON_PDATA_AUDIO,
++				      TWL_COMMON_REGULATOR_VPLL2);
++		igep_twldata.vpll2->constraints.apply_uV = true;
++		igep_twldata.vpll2->constraints.name = "VDVI";
+ 	}
+ 
+ 	omap3_pmic_init("twl4030", &igep_twldata);
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index ec61e9c..34f8411 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -209,15 +209,6 @@ static struct omap_dss_board_info beagle_dss_data = {
+ 	.default_device = &beagle_dvi_device,
+ };
+ 
+-static struct regulator_consumer_supply beagle_vdac_supply[] = {
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
+-};
+-
+-static struct regulator_consumer_supply beagle_vdvi_supplies[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+-};
+-
+ static void __init beagle_display_init(void)
+ {
+ 	int r;
+@@ -351,42 +342,11 @@ static struct regulator_init_data beagle_vsim = {
+ 	.consumer_supplies	= beagle_vsim_supply,
+ };
+ 
+-/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
+-static struct regulator_init_data beagle_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(beagle_vdac_supply),
+-	.consumer_supplies	= beagle_vdac_supply,
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_init_data beagle_vpll2 = {
+-	.constraints = {
+-		.name			= "VDVI",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(beagle_vdvi_supplies),
+-	.consumer_supplies	= beagle_vdvi_supplies,
+-};
+-
+ static struct twl4030_platform_data beagle_twldata = {
+ 	/* platform_data for children goes here */
+ 	.gpio		= &beagle_gpio_data,
+ 	.vmmc1		= &beagle_vmmc1,
+ 	.vsim		= &beagle_vsim,
+-	.vdac		= &beagle_vdac,
+-	.vpll2		= &beagle_vpll2,
+ };
+ 
+ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
+@@ -398,7 +358,11 @@ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
+ static int __init omap3_beagle_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&beagle_twldata,
+-			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++
++	beagle_twldata.vpll2->constraints.name = "VDVI";
++
+ 	omap3_pmic_init("twl4030", &beagle_twldata);
+ 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
+ 	 * projector don't work reliably with 400kHz */
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 1ca298a..c452b3f 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -430,45 +430,6 @@ static struct twl4030_keypad_data omap3evm_kp_data = {
+ 	.rep		= 1,
+ };
+ 
+-static struct regulator_consumer_supply omap3_evm_vdda_dac_supply[] = {
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
+-};
+-
+-/* VDAC for DSS driving S-Video */
+-static struct regulator_init_data omap3_evm_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(omap3_evm_vdda_dac_supply),
+-	.consumer_supplies	= omap3_evm_vdda_dac_supply,
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_consumer_supply omap3_evm_vpll2_supplies[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+-};
+-
+-static struct regulator_init_data omap3_evm_vpll2 = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(omap3_evm_vpll2_supplies),
+-	.consumer_supplies	= omap3_evm_vpll2_supplies,
+-};
+-
+ /* ads7846 on SPI */
+ static struct regulator_consumer_supply omap3evm_vio_supply[] = {
+ 	REGULATOR_SUPPLY("vcc", "spi1.0"),
+@@ -535,8 +496,6 @@ static struct twl4030_platform_data omap3evm_twldata = {
+ 	/* platform_data for children goes here */
+ 	.keypad		= &omap3evm_kp_data,
+ 	.gpio		= &omap3evm_gpio_data,
+-	.vdac		= &omap3_evm_vdac,
+-	.vpll2		= &omap3_evm_vpll2,
+ 	.vio		= &omap3evm_vio,
+ 	.vmmc1		= &omap3evm_vmmc1,
+ 	.vsim		= &omap3evm_vsim,
+@@ -545,8 +504,13 @@ static struct twl4030_platform_data omap3evm_twldata = {
+ static int __init omap3_evm_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&omap3evm_twldata,
+-			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC |
+-			  TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC |
++			TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++
++	omap3evm_twldata.vdac->constraints.apply_uV = true;
++	omap3evm_twldata.vpll2->constraints.apply_uV = true;
++
+ 	omap3_pmic_init("twl4030", &omap3evm_twldata);
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index f5abf76..080d7bd 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -332,10 +332,6 @@ static struct regulator_consumer_supply pandora_vmmc3_supply[] = {
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.2"),
+ };
+ 
+-static struct regulator_consumer_supply pandora_vdda_dac_supply[] = {
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
+-};
+-
+ static struct regulator_consumer_supply pandora_vdds_supplies[] = {
+ 	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
+ 	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+@@ -391,36 +387,6 @@ static struct regulator_init_data pandora_vmmc2 = {
+ 	.consumer_supplies	= pandora_vmmc2_supply,
+ };
+ 
+-/* VDAC for DSS driving S-Video */
+-static struct regulator_init_data pandora_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(pandora_vdda_dac_supply),
+-	.consumer_supplies	= pandora_vdda_dac_supply,
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_init_data pandora_vpll2 = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(pandora_vdds_supplies),
+-	.consumer_supplies	= pandora_vdds_supplies,
+-};
+-
+ /* VAUX1 for LCD */
+ static struct regulator_init_data pandora_vaux1 = {
+ 	.constraints = {
+@@ -514,8 +480,6 @@ static struct twl4030_platform_data omap3pandora_twldata = {
+ 	.gpio		= &omap3pandora_gpio_data,
+ 	.vmmc1		= &pandora_vmmc1,
+ 	.vmmc2		= &pandora_vmmc2,
+-	.vdac		= &pandora_vdac,
+-	.vpll2		= &pandora_vpll2,
+ 	.vaux1		= &pandora_vaux1,
+ 	.vaux2		= &pandora_vaux2,
+ 	.vaux4		= &pandora_vaux4,
+@@ -534,7 +498,16 @@ static struct i2c_board_info __initdata omap3pandora_i2c3_boardinfo[] = {
+ static int __init omap3pandora_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&omap3pandora_twldata,
+-			      TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++
++	omap3pandora_twldata.vdac->constraints.apply_uV = true;
++
++	omap3pandora_twldata.vpll2->constraints.apply_uV = true;
++	omap3pandora_twldata.vpll2->num_consumer_supplies =
++					ARRAY_SIZE(pandora_vdds_supplies);
++	omap3pandora_twldata.vpll2->consumer_supplies = pandora_vdds_supplies;
++
+ 	omap3_pmic_init("tps65950", &omap3pandora_twldata);
+ 	/* i2c2 pins are not connected */
+ 	omap_register_i2c_bus(3, 100, omap3pandora_i2c3_boardinfo,
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index 6e59e59..8e10498 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -383,52 +383,10 @@ static struct twl4030_keypad_data omap3stalker_kp_data = {
+ 	.rep		= 1,
+ };
+ 
+-static struct regulator_consumer_supply omap3_stalker_vdda_dac_supply[] = {
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
+-};
+-
+-/* VDAC for DSS driving S-Video */
+-static struct regulator_init_data omap3_stalker_vdac = {
+-	.constraints		= {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-		| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-		| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(omap3_stalker_vdda_dac_supply),
+-	.consumer_supplies	= omap3_stalker_vdda_dac_supply,
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_consumer_supply omap3_stalker_vpll2_supplies[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+-};
+-
+-static struct regulator_init_data omap3_stalker_vpll2 = {
+-	.constraints		= {
+-		.name			= "VDVI",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV = true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-		| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-		| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(omap3_stalker_vpll2_supplies),
+-	.consumer_supplies	= omap3_stalker_vpll2_supplies,
+-};
+-
+ static struct twl4030_platform_data omap3stalker_twldata = {
+ 	/* platform_data for children goes here */
+ 	.keypad		= &omap3stalker_kp_data,
+ 	.gpio		= &omap3stalker_gpio_data,
+-	.vdac		= &omap3_stalker_vdac,
+-	.vpll2		= &omap3_stalker_vpll2,
+ 	.vmmc1		= &omap3stalker_vmmc1,
+ 	.vsim		= &omap3stalker_vsim,
+ };
+@@ -451,7 +409,13 @@ static int __init omap3_stalker_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&omap3stalker_twldata,
+ 			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC |
+-			TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++
++	omap3stalker_twldata.vdac->constraints.apply_uV = true;
++	omap3stalker_twldata.vpll2->constraints.apply_uV = true;
++	omap3stalker_twldata.vpll2->constraints.name = "VDVI";
++
+ 	omap3_pmic_init("twl4030", &omap3stalker_twldata);
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, omap3stalker_i2c_boardinfo3,
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 717972c..852ea04 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -206,42 +206,11 @@ static struct regulator_init_data touchbook_vsim = {
+ 	.consumer_supplies	= touchbook_vsim_supply,
+ };
+ 
+-/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
+-static struct regulator_init_data touchbook_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(touchbook_vdac_supply),
+-	.consumer_supplies	= touchbook_vdac_supply,
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_init_data touchbook_vpll2 = {
+-	.constraints = {
+-		.name			= "VDVI",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(touchbook_vdvi_supply),
+-	.consumer_supplies	= touchbook_vdvi_supply,
+-};
+-
+ static struct twl4030_platform_data touchbook_twldata = {
+ 	/* platform_data for children goes here */
+ 	.gpio		= &touchbook_gpio_data,
+ 	.vmmc1		= &touchbook_vmmc1,
+ 	.vsim		= &touchbook_vsim,
+-	.vdac		= &touchbook_vdac,
+-	.vpll2		= &touchbook_vpll2,
+ };
+ 
+ static struct i2c_board_info __initdata touchBook_i2c_boardinfo[] = {
+@@ -254,7 +223,18 @@ static int __init omap3_touchbook_i2c_init(void)
+ {
+ 	/* Standard TouchBook bus */
+ 	omap3_pmic_get_config(&touchbook_twldata,
+-			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++
++	touchbook_twldata.vdac->num_consumer_supplies =
++					ARRAY_SIZE(touchbook_vdac_supply);
++	touchbook_twldata.vdac->consumer_supplies = touchbook_vdac_supply;
++
++	touchbook_twldata.vpll2->constraints.name = "VDVI";
++	touchbook_twldata.vpll2->num_consumer_supplies =
++					ARRAY_SIZE(touchbook_vdvi_supply);
++	touchbook_twldata.vpll2->consumer_supplies = touchbook_vdvi_supply;
++
+ 	omap3_pmic_init("twl4030", &touchbook_twldata);
+ 	/* Additional TouchBook bus */
+ 	omap_register_i2c_bus(3, 100, touchBook_i2c_boardinfo,
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 776b444..f1f18d0 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -265,15 +265,6 @@ static struct omap_dss_board_info overo_dss_data = {
+ 	.default_device	= &overo_dvi_device,
+ };
+ 
+-static struct regulator_consumer_supply overo_vdda_dac_supply[] = {
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
+-};
+-
+-static struct regulator_consumer_supply overo_vdds_dsi_supply[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+-};
+-
+ static struct mtd_partition overo_nand_partitions[] = {
+ 	{
+ 		.name           = "xloader",
+@@ -447,46 +438,19 @@ static struct regulator_init_data overo_vmmc1 = {
+ 	.consumer_supplies	= overo_vmmc1_supply,
+ };
+ 
+-/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
+-static struct regulator_init_data overo_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(overo_vdda_dac_supply),
+-	.consumer_supplies	= overo_vdda_dac_supply,
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_init_data overo_vpll2 = {
+-	.constraints = {
+-		.name			= "VDVI",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(overo_vdds_dsi_supply),
+-	.consumer_supplies	= overo_vdds_dsi_supply,
+-};
+-
+ static struct twl4030_platform_data overo_twldata = {
+ 	.gpio		= &overo_gpio_data,
+ 	.vmmc1		= &overo_vmmc1,
+-	.vdac		= &overo_vdac,
+-	.vpll2		= &overo_vpll2,
+ };
+ 
+ static int __init overo_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&overo_twldata,
+-			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++
++	overo_twldata.vpll2->constraints.name = "VDVI";
++
+ 	omap3_pmic_init("tps65950", &overo_twldata);
+ 	/* i2c2 pins are used for gpio */
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 3cdea39..d99e462 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -394,10 +394,6 @@ static struct regulator_consumer_supply rx51_vaux1_consumers[] = {
+ 	REGULATOR_SUPPLY("vdd", "2-0063"),
+ };
+ 
+-static struct regulator_consumer_supply rx51_vdac_supply[] = {
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
+-};
+-
+ static struct regulator_init_data rx51_vaux1 = {
+ 	.constraints = {
+ 		.name			= "V28",
+@@ -514,21 +510,6 @@ static struct regulator_init_data rx51_vsim = {
+ 	.consumer_supplies	= rx51_vsim_supply,
+ };
+ 
+-static struct regulator_init_data rx51_vdac = {
+-	.constraints = {
+-		.name			= "VDAC",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(rx51_vdac_supply),
+-	.consumer_supplies	= rx51_vdac_supply,
+-};
+-
+ static struct regulator_init_data rx51_vio = {
+ 	.constraints = {
+ 		.min_uV			= 1800000,
+@@ -781,7 +762,6 @@ static struct twl4030_platform_data rx51_twldata __initdata = {
+ 	.vaux4			= &rx51_vaux4,
+ 	.vmmc1			= &rx51_vmmc1,
+ 	.vsim			= &rx51_vsim,
+-	.vdac			= &rx51_vdac,
+ 	.vio			= &rx51_vio,
+ };
+ 
+@@ -838,7 +818,12 @@ static int __init rx51_i2c_init(void)
+ 	}
+ 	rx51_twldata.vmmc2 = &rx51_vmmc2;
+ 	omap3_pmic_get_config(&rx51_twldata,
+-			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC,
++			TWL_COMMON_REGULATOR_VDAC);
++
++	rx51_twldata.vdac->constraints.apply_uV = true;
++	rx51_twldata.vdac->constraints.name = "VDAC";
++
+ 	omap_pmic_init(1, 2200, "twl5030", INT_34XX_SYS_NIRQ, &rx51_twldata);
+ 	omap_register_i2c_bus(2, 100, rx51_peripherals_i2c_board_info_2,
+ 			      ARRAY_SIZE(rx51_peripherals_i2c_board_info_2));
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 6d8df1b..13a6442 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -226,41 +226,6 @@ static struct omap2_hsmmc_info mmc[] = {
+ 	{}      /* Terminator */
+ };
+ 
+-static struct regulator_consumer_supply zoom_vpll2_supplies[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+-};
+-
+-static struct regulator_consumer_supply zoom_vdda_dac_supply[] = {
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
+-};
+-
+-static struct regulator_init_data zoom_vpll2 = {
+-	.constraints = {
+-		.min_uV                 = 1800000,
+-		.max_uV                 = 1800000,
+-		.valid_modes_mask       = REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask         = REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies		= ARRAY_SIZE(zoom_vpll2_supplies),
+-	.consumer_supplies		= zoom_vpll2_supplies,
+-};
+-
+-static struct regulator_init_data zoom_vdac = {
+-	.constraints = {
+-		.min_uV                 = 1800000,
+-		.max_uV                 = 1800000,
+-		.valid_modes_mask       = REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask         = REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies		= ARRAY_SIZE(zoom_vdda_dac_supply),
+-	.consumer_supplies		= zoom_vdda_dac_supply,
+-};
+-
+ static int zoom_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
+ {
+@@ -299,15 +264,14 @@ static struct twl4030_platform_data zoom_twldata = {
+ 	.vmmc1          = &zoom_vmmc1,
+ 	.vmmc2          = &zoom_vmmc2,
+ 	.vsim           = &zoom_vsim,
+-	.vpll2		= &zoom_vpll2,
+-	.vdac		= &zoom_vdac,
+ };
+ 
+ static int __init omap_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&zoom_twldata,
+-			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_BCI |
+-			  TWL_COMMON_PDATA_MADC | TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_BCI |
++			TWL_COMMON_PDATA_MADC | TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
+ 
+ 	if (machine_is_omap_zoom2()) {
+ 		struct twl4030_codec_audio_data *audio_data;
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+index 9e8decf..3aaa46f 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -87,6 +87,41 @@ static struct twl4030_codec_data omap3_codec_pdata = {
+ 	.audio = &omap3_audio,
+ };
+ 
++static struct regulator_consumer_supply omap3_vdda_dac_supplies[] = {
++	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
++};
++
++static struct regulator_init_data omap3_vdac_idata = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= ARRAY_SIZE(omap3_vdda_dac_supplies),
++	.consumer_supplies	= omap3_vdda_dac_supplies,
++};
++
++static struct regulator_consumer_supply omap3_vpll2_supplies[] = {
++	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
++	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
++};
++
++static struct regulator_init_data omap3_vpll2_idata = {
++	.constraints = {
++		.min_uV                 = 1800000,
++		.max_uV                 = 1800000,
++		.valid_modes_mask       = REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask         = REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies		= ARRAY_SIZE(omap3_vpll2_supplies),
++	.consumer_supplies		= omap3_vpll2_supplies,
++};
++
+ static struct regulator_init_data omap4_vdac_idata = {
+ 	.constraints = {
+ 		.min_uV			= 1800000,
+@@ -259,4 +294,11 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
+ 
+ 	if (pdata_flags & TWL_COMMON_PDATA_AUDIO && !pmic_data->codec)
+ 		pmic_data->codec = &omap3_codec_pdata;
++
++	/* Common regulator configurations */
++	if (regulators_flags & TWL_COMMON_REGULATOR_VDAC && !pmic_data->vdac)
++		pmic_data->vdac = &omap3_vdac_idata;
++
++	if (regulators_flags & TWL_COMMON_REGULATOR_VPLL2 && !pmic_data->vpll2)
++		pmic_data->vpll2 = &omap3_vpll2_idata;
+ }
+diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
+index 3b4b05d..5e83a5b 100644
+--- a/arch/arm/mach-omap2/twl-common.h
++++ b/arch/arm/mach-omap2/twl-common.h
+@@ -21,6 +21,11 @@
+ #define TWL_COMMON_REGULATOR_VUSB	(1 << 9)
+ #define TWL_COMMON_REGULATOR_CLK32KG	(1 << 10)
+ 
++/* TWL4030 LDO regulators */
++#define TWL_COMMON_REGULATOR_VPLL1	(1 << 4)
++#define TWL_COMMON_REGULATOR_VPLL2	(1 << 5)
++
++
+ struct twl4030_platform_data;
+ 
+ void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
+-- 
+1.7.2.5
+

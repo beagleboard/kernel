@@ -1,0 +1,49 @@
+From a2e59d4041e8c42e21d90c0696ea8437a0cfc866 Mon Sep 17 00:00:00 2001
+From: Steve Sakoman <steve@sakoman.com>
+Date: Mon, 23 May 2011 12:16:50 -0700
+Subject: [PATCH 02/14] omap: Change omap_device activate/dectivate latency messages from pr_warning to pr_debug
+
+Messages can be safely ignored, so reduce console noise
+
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
+ arch/arm/plat-omap/omap_device.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index be45147..e3d9520 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -146,12 +146,12 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
+ 			odpl->activate_lat_worst = act_lat;
+ 			if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJUST) {
+ 				odpl->activate_lat = act_lat;
+-				pr_warning("omap_device: %s.%d: new worst case "
++				pr_debug("omap_device: %s.%d: new worst case "
+ 					   "activate latency %d: %llu\n",
+ 					   od->pdev.name, od->pdev.id,
+ 					   od->pm_lat_level, act_lat);
+ 			} else
+-				pr_warning("omap_device: %s.%d: activate "
++				pr_debug("omap_device: %s.%d: activate "
+ 					   "latency %d higher than exptected. "
+ 					   "(%llu > %d)\n",
+ 					   od->pdev.name, od->pdev.id,
+@@ -214,12 +214,12 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
+ 			odpl->deactivate_lat_worst = deact_lat;
+ 			if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJUST) {
+ 				odpl->deactivate_lat = deact_lat;
+-				pr_warning("omap_device: %s.%d: new worst case "
++				pr_debug("omap_device: %s.%d: new worst case "
+ 					   "deactivate latency %d: %llu\n",
+ 					   od->pdev.name, od->pdev.id,
+ 					   od->pm_lat_level, deact_lat);
+ 			} else
+-				pr_warning("omap_device: %s.%d: deactivate "
++				pr_debug("omap_device: %s.%d: deactivate "
+ 					   "latency %d higher than exptected. "
+ 					   "(%llu > %d)\n",
+ 					   od->pdev.name, od->pdev.id,
+-- 
+1.7.2.5
+

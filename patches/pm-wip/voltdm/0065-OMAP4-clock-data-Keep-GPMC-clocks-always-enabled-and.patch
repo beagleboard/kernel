@@ -1,0 +1,45 @@
+From f54325009439b13e234374856057227edc00373c Mon Sep 17 00:00:00 2001
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Sat, 9 Jul 2011 20:42:59 -0600
+Subject: [PATCH 065/149] OMAP4: clock data: Keep GPMC clocks always enabled and hardware managed
+
+On OMAP4, CPU accesses on unmapped addresses are redirected to GPMC by
+L3 interconnect. Because of CPU speculative nature, such accesses are
+possible which can lead to indirect access to GPMC and if it's clock is
+not running, it can result in hang/abort on the platform.
+
+Above makes access to GPMC unpredictable during the execution, so it's
+module mode needs to be kept under hardware control instead of software
+control.
+Since the auto gating is supported for GPMC, there isn't any power impact
+because of this change.
+
+The issue was un-covered with security middleware running along with HLOS.
+In this case GPMC had a valid MMU descriptor on secure side where as HLOS
+didn't map the GMPC because it isn't being used.
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+[b-cousson@ti.com: Update subject and fix typos in the changelog]
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clock44xx_data.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 7a0b112..2578820 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -1605,6 +1605,7 @@ static struct clk gpmc_ick = {
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_L3_2_GPMC_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
++	.flags		= ENABLE_ON_INIT,
+ 	.clkdm_name	= "l3_2_clkdm",
+ 	.parent		= &l3_div_ck,
+ 	.recalc		= &followparent_recalc,
+-- 
+1.7.2.5
+

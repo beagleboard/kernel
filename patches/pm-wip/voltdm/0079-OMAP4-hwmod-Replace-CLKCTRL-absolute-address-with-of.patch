@@ -1,0 +1,976 @@
+From d112244b9ada88d33ac8e856587a4645c8f11e80 Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Sun, 10 Jul 2011 05:56:30 -0600
+Subject: [PATCH 079/149] OMAP4: hwmod: Replace CLKCTRL absolute address with offset macros
+
+The CLKCTRL register was accessed using an absolute address.
+The usage of hardcoded macros to calculate virtual address from physical
+one should be avoided as much as possible.
+The usage of a offset will allow future improvement like migration from
+the current architecture code toward a module driver.
+
+Update cm_xxx accessor, move definition to the proper header file and
+update copyrights.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Todd Poynor <toddpoynor@google.com>
+[paul@pwsan.com: renamed 'omap4_cm_' fns to 'omap4_cminst_'; removed empty
+ fn prototype section from cm44xx.h; incorporated comments from Todd;
+ documented some functions]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/cm44xx.h                 |    8 +-
+ arch/arm/mach-omap2/cminst44xx.c             |   87 ++++++++++---
+ arch/arm/mach-omap2/cminst44xx.h             |    4 +-
+ arch/arm/mach-omap2/omap_hwmod.c             |   12 ++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |  182 ++++++++++++++++---------
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +-
+ 6 files changed, 198 insertions(+), 97 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cm44xx.h b/arch/arm/mach-omap2/cm44xx.h
+index 0b87ec8..3380bee 100644
+--- a/arch/arm/mach-omap2/cm44xx.h
++++ b/arch/arm/mach-omap2/cm44xx.h
+@@ -1,7 +1,7 @@
+ /*
+  * OMAP4 Clock Management (CM) definitions
+  *
+- * Copyright (C) 2007-2009 Texas Instruments, Inc.
++ * Copyright (C) 2007-2011 Texas Instruments, Inc.
+  * Copyright (C) 2007-2009 Nokia Corporation
+  *
+  * Written by Paul Walmsley
+@@ -23,10 +23,4 @@
+ #define OMAP4_CM_CLKSTCTRL				0x0000
+ #define OMAP4_CM_STATICDEP				0x0004
+ 
+-/* Function prototypes */
+-# ifndef __ASSEMBLER__
+-
+-extern int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg);
+-
+-# endif
+ #endif
+diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
+index a482bfa..9033dd4 100644
+--- a/arch/arm/mach-omap2/cminst44xx.c
++++ b/arch/arm/mach-omap2/cminst44xx.c
+@@ -2,6 +2,7 @@
+  * OMAP4 CM instance functions
+  *
+  * Copyright (C) 2009 Nokia Corporation
++ * Copyright (C) 2011 Texas Instruments, Inc.
+  * Paul Walmsley
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -32,6 +33,22 @@
+ #include "prm44xx.h"
+ #include "prcm_mpu44xx.h"
+ 
++/*
++ * CLKCTRL_IDLEST_*: possible values for the CM_*_CLKCTRL.IDLEST bitfield:
++ *
++ *   0x0 func:     Module is fully functional, including OCP
++ *   0x1 trans:    Module is performing transition: wakeup, or sleep, or sleep
++ *                 abortion
++ *   0x2 idle:     Module is in Idle mode (only OCP part). It is functional if
++ *                 using separate functional clock
++ *   0x3 disabled: Module is disabled and cannot be accessed
++ *
++ */
++#define CLKCTRL_IDLEST_FUNCTIONAL		0x0
++#define CLKCTRL_IDLEST_INTRANSITION		0x1
++#define CLKCTRL_IDLEST_INTERFACE_IDLE		0x2
++#define CLKCTRL_IDLEST_DISABLED			0x3
++
+ static u32 _cm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
+ 	[OMAP4430_INVALID_PRCM_PARTITION]	= 0,
+ 	[OMAP4430_PRM_PARTITION]		= OMAP4430_PRM_BASE,
+@@ -41,6 +58,48 @@ static u32 _cm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
+ 	[OMAP4430_PRCM_MPU_PARTITION]		= OMAP4430_PRCM_MPU_BASE,
+ };
+ 
++/* Private functions */
++
++/**
++ * _clkctrl_idlest - read a CM_*_CLKCTRL register; mask & shift IDLEST bitfield
++ * @part: PRCM partition ID that the CM_CLKCTRL register exists in
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * Return the IDLEST bitfield of a CM_*_CLKCTRL register, shifted down to
++ * bit 0.
++ */
++static u32 _clkctrl_idlest(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs)
++{
++	u32 v = omap4_cminst_read_inst_reg(part, inst, clkctrl_offs);
++	v &= OMAP4430_IDLEST_MASK;
++	v >>= OMAP4430_IDLEST_SHIFT;
++	return v;
++}
++
++/**
++ * _is_module_ready - can module registers be accessed without causing an abort?
++ * @part: PRCM partition ID that the CM_CLKCTRL register exists in
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * Returns true if the module's CM_*_CLKCTRL.IDLEST bitfield is either
++ * *FUNCTIONAL or *INTERFACE_IDLE; false otherwise.
++ */
++static bool _is_module_ready(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs)
++{
++	u32 v;
++
++	v = _clkctrl_idlest(part, inst, cdoffs, clkctrl_offs);
++
++	return (v == CLKCTRL_IDLEST_FUNCTIONAL ||
++		v == CLKCTRL_IDLEST_INTERFACE_IDLE) ? true : false;
++}
++
++/* Public functions */
++
+ /* Read a register in a CM instance */
+ u32 omap4_cminst_read_inst_reg(u8 part, s16 inst, u16 idx)
+ {
+@@ -200,35 +259,27 @@ void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs)
+  */
+ 
+ /**
+- * omap4_cm_wait_module_ready - wait for a module to be in 'func' state
+- * @clkctrl_reg: CLKCTRL module address
++ * omap4_cminst_wait_module_ready - wait for a module to be in 'func' state
++ * @part: PRCM partition ID that the CM_CLKCTRL register exists in
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
+  *
+  * Wait for the module IDLEST to be functional. If the idle state is in any
+  * the non functional state (trans, idle or disabled), module and thus the
+  * sysconfig cannot be accessed and will probably lead to an "imprecise
+  * external abort"
+- *
+- * Module idle state:
+- *   0x0 func:     Module is fully functional, including OCP
+- *   0x1 trans:    Module is performing transition: wakeup, or sleep, or sleep
+- *                 abortion
+- *   0x2 idle:     Module is in Idle mode (only OCP part). It is functional if
+- *                 using separate functional clock
+- *   0x3 disabled: Module is disabled and cannot be accessed
+- *
+  */
+-int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg)
++int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs,
++				   u16 clkctrl_offs)
+ {
+ 	int i = 0;
+ 
+-	if (!clkctrl_reg)
++	if (!clkctrl_offs)
+ 		return 0;
+ 
+-	omap_test_timeout((
+-		((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) == 0) ||
+-		 (((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) >>
+-		  OMAP4430_IDLEST_SHIFT) == 0x2)),
+-		MAX_MODULE_READY_TIME, i);
++	omap_test_timeout(_is_module_ready(part, inst, cdoffs, clkctrl_offs),
++			  MAX_MODULE_READY_TIME, i);
+ 
+ 	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
+ }
+diff --git a/arch/arm/mach-omap2/cminst44xx.h b/arch/arm/mach-omap2/cminst44xx.h
+index 2b32c18..8eba2ae 100644
+--- a/arch/arm/mach-omap2/cminst44xx.h
++++ b/arch/arm/mach-omap2/cminst44xx.h
+@@ -17,6 +17,8 @@ extern void omap4_cminst_clkdm_disable_hwsup(u8 part, s16 inst, u16 cdoffs);
+ extern void omap4_cminst_clkdm_force_sleep(u8 part, s16 inst, u16 cdoffs);
+ extern void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs);
+ 
++extern int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
++
+ /*
+  * In an ideal world, we would not export these low-level functions,
+  * but this will probably take some time to fix properly
+@@ -32,6 +34,4 @@ extern u32 omap4_cminst_clear_inst_reg_bits(u32 bits, u8 part, s16 inst,
+ extern u32 omap4_cminst_read_inst_reg_bits(u8 part, u16 inst, s16 idx,
+ 					   u32 mask);
+ 
+-extern int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg);
+-
+ #endif
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 1f6f47f..00241ea 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -146,7 +146,7 @@
+ #include <plat/prcm.h>
+ 
+ #include "cm2xxx_3xxx.h"
+-#include "cm44xx.h"
++#include "cminst44xx.h"
+ #include "prm2xxx_3xxx.h"
+ #include "prm44xx.h"
+ #include "mux.h"
+@@ -1060,7 +1060,7 @@ static int _init_clocks(struct omap_hwmod *oh, void *data)
+  * Wait for a module @oh to leave slave idle.  Returns 0 if the module
+  * does not have an IDLEST bit or if the module successfully leaves
+  * slave idle; otherwise, pass along the return value of the
+- * appropriate *_cm_wait_module_ready() function.
++ * appropriate *_cm*_wait_module_ready() function.
+  */
+ static int _wait_target_ready(struct omap_hwmod *oh)
+ {
+@@ -1087,7 +1087,13 @@ static int _wait_target_ready(struct omap_hwmod *oh)
+ 						 oh->prcm.omap2.idlest_reg_id,
+ 						 oh->prcm.omap2.idlest_idle_bit);
+ 	} else if (cpu_is_omap44xx()) {
+-		ret = omap4_cm_wait_module_ready(oh->prcm.omap4.clkctrl_reg);
++		if (!oh->clkdm)
++			return -EINVAL;
++
++		ret = omap4_cminst_wait_module_ready(oh->clkdm->prcm_partition,
++						     oh->clkdm->cm_inst,
++						     oh->clkdm->clkdm_offs,
++						     oh->prcm.omap4.clkctrl_offs);
+ 	} else {
+ 		BUG();
+ 	};
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index becae45..00d7130 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -124,6 +124,11 @@ static struct omap_hwmod omap44xx_dmm_hwmod = {
+ 	.name		= "dmm",
+ 	.class		= &omap44xx_dmm_hwmod_class,
+ 	.clkdm_name	= "l3_emif_clkdm",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = OMAP4_CM_MEMIF_DMM_CLKCTRL_OFFSET,
++		},
++	},
+ 	.slaves		= omap44xx_dmm_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dmm_slaves),
+ 	.mpu_irqs	= omap44xx_dmm_irqs,
+@@ -175,6 +180,11 @@ static struct omap_hwmod omap44xx_emif_fw_hwmod = {
+ 	.name		= "emif_fw",
+ 	.class		= &omap44xx_emif_fw_hwmod_class,
+ 	.clkdm_name	= "l3_emif_clkdm",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = OMAP4_CM_MEMIF_EMIF_FW_CLKCTRL_OFFSET,
++		},
++	},
+ 	.slaves		= omap44xx_emif_fw_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_emif_fw_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -215,6 +225,11 @@ static struct omap_hwmod omap44xx_l3_instr_hwmod = {
+ 	.name		= "l3_instr",
+ 	.class		= &omap44xx_l3_hwmod_class,
+ 	.clkdm_name	= "l3_instr_clkdm",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = OMAP4_CM_L3INSTR_L3_INSTR_CLKCTRL_OFFSET,
++		},
++	},
+ 	.slaves		= omap44xx_l3_instr_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l3_instr_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -309,6 +324,11 @@ static struct omap_hwmod omap44xx_l3_main_1_hwmod = {
+ 	.class		= &omap44xx_l3_hwmod_class,
+ 	.clkdm_name	= "l3_1_clkdm",
+ 	.mpu_irqs	= omap44xx_l3_main_1_irqs,
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = OMAP4_CM_L3_1_L3_1_CLKCTRL_OFFSET,
++		},
++	},
+ 	.slaves		= omap44xx_l3_main_1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l3_main_1_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -405,6 +425,11 @@ static struct omap_hwmod omap44xx_l3_main_2_hwmod = {
+ 	.name		= "l3_main_2",
+ 	.class		= &omap44xx_l3_hwmod_class,
+ 	.clkdm_name	= "l3_2_clkdm",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = OMAP4_CM_L3_2_L3_2_CLKCTRL_OFFSET,
++		},
++	},
+ 	.slaves		= omap44xx_l3_main_2_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l3_main_2_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -456,6 +481,11 @@ static struct omap_hwmod omap44xx_l3_main_3_hwmod = {
+ 	.name		= "l3_main_3",
+ 	.class		= &omap44xx_l3_hwmod_class,
+ 	.clkdm_name	= "l3_instr_clkdm",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = OMAP4_CM_L3INSTR_L3_3_CLKCTRL_OFFSET,
++		},
++	},
+ 	.slaves		= omap44xx_l3_main_3_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l3_main_3_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -514,6 +544,11 @@ static struct omap_hwmod omap44xx_l4_abe_hwmod = {
+ 	.name		= "l4_abe",
+ 	.class		= &omap44xx_l4_hwmod_class,
+ 	.clkdm_name	= "abe_clkdm",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = OMAP4_CM1_ABE_L4ABE_CLKCTRL_OFFSET,
++		},
++	},
+ 	.slaves		= omap44xx_l4_abe_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l4_abe_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -537,6 +572,11 @@ static struct omap_hwmod omap44xx_l4_cfg_hwmod = {
+ 	.name		= "l4_cfg",
+ 	.class		= &omap44xx_l4_hwmod_class,
+ 	.clkdm_name	= "l4_cfg_clkdm",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = OMAP4_CM_L4CFG_L4_CFG_CLKCTRL_OFFSET,
++		},
++	},
+ 	.slaves		= omap44xx_l4_cfg_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l4_cfg_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -560,6 +600,11 @@ static struct omap_hwmod omap44xx_l4_per_hwmod = {
+ 	.name		= "l4_per",
+ 	.class		= &omap44xx_l4_hwmod_class,
+ 	.clkdm_name	= "l4_per_clkdm",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = OMAP4_CM_L4PER_L4PER_CLKCTRL_OFFSET,
++		},
++	},
+ 	.slaves		= omap44xx_l4_per_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l4_per_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -583,6 +628,11 @@ static struct omap_hwmod omap44xx_l4_wkup_hwmod = {
+ 	.name		= "l4_wkup",
+ 	.class		= &omap44xx_l4_hwmod_class,
+ 	.clkdm_name	= "l4_wkup_clkdm",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = OMAP4_CM_WKUP_L4WKUP_CLKCTRL_OFFSET,
++		},
++	},
+ 	.slaves		= omap44xx_l4_wkup_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l4_wkup_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -758,7 +808,7 @@ static struct omap_hwmod omap44xx_aess_hwmod = {
+ 	.main_clk	= "aess_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM1_ABE_AESS_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM1_ABE_AESS_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_aess_slaves,
+@@ -788,7 +838,7 @@ static struct omap_hwmod omap44xx_bandgap_hwmod = {
+ 	.clkdm_name	= "l4_wkup_clkdm",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_WKUP_BANDGAP_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_WKUP_BANDGAP_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.opt_clks	= bandgap_opt_clks,
+@@ -848,7 +898,7 @@ static struct omap_hwmod omap44xx_counter_32k_hwmod = {
+ 	.main_clk	= "sys_32k_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_WKUP_SYNCTIMER_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_WKUP_SYNCTIMER_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_counter_32k_slaves,
+@@ -932,7 +982,7 @@ static struct omap_hwmod omap44xx_dma_system_hwmod = {
+ 	.main_clk	= "l3_div_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_SDMA_SDMA_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_SDMA_SDMA_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.dev_attr	= &dma_dev_attr,
+@@ -1026,7 +1076,7 @@ static struct omap_hwmod omap44xx_dmic_hwmod = {
+ 	.main_clk	= "dmic_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM1_ABE_DMIC_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM1_ABE_DMIC_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_dmic_slaves,
+@@ -1110,7 +1160,7 @@ static struct omap_hwmod omap44xx_dsp_hwmod = {
+ 	.main_clk	= "dsp_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_TESLA_TESLA_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_TESLA_TESLA_CLKCTRL_OFFSET,
+ 			.rstctrl_reg = OMAP4430_RM_TESLA_RSTCTRL,
+ 		},
+ 	},
+@@ -1199,7 +1249,7 @@ static struct omap_hwmod omap44xx_dss_hwmod = {
+ 	.main_clk	= "dss_dss_clk",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.opt_clks	= dss_opt_clks,
+@@ -1303,7 +1353,7 @@ static struct omap_hwmod omap44xx_dss_dispc_hwmod = {
+ 	.main_clk	= "dss_dss_clk",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.opt_clks	= dss_dispc_opt_clks,
+@@ -1401,7 +1451,7 @@ static struct omap_hwmod omap44xx_dss_dsi1_hwmod = {
+ 	.main_clk	= "dss_dss_clk",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.opt_clks	= dss_dsi1_opt_clks,
+@@ -1478,7 +1528,7 @@ static struct omap_hwmod omap44xx_dss_dsi2_hwmod = {
+ 	.main_clk	= "dss_dss_clk",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.opt_clks	= dss_dsi2_opt_clks,
+@@ -1575,7 +1625,7 @@ static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
+ 	.main_clk	= "dss_dss_clk",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.opt_clks	= dss_hdmi_opt_clks,
+@@ -1666,7 +1716,7 @@ static struct omap_hwmod omap44xx_dss_rfbi_hwmod = {
+ 	.main_clk	= "dss_dss_clk",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.opt_clks	= dss_rfbi_opt_clks,
+@@ -1736,7 +1786,7 @@ static struct omap_hwmod omap44xx_dss_venc_hwmod = {
+ 	.main_clk	= "dss_dss_clk",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_dss_venc_slaves,
+@@ -1815,7 +1865,7 @@ static struct omap_hwmod omap44xx_gpio1_hwmod = {
+ 	.main_clk	= "gpio1_ick",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_WKUP_GPIO1_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_WKUP_GPIO1_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.opt_clks	= gpio1_opt_clks,
+@@ -1869,7 +1919,7 @@ static struct omap_hwmod omap44xx_gpio2_hwmod = {
+ 	.main_clk	= "gpio2_ick",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_GPIO2_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_GPIO2_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.opt_clks	= gpio2_opt_clks,
+@@ -1923,7 +1973,7 @@ static struct omap_hwmod omap44xx_gpio3_hwmod = {
+ 	.main_clk	= "gpio3_ick",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_GPIO3_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_GPIO3_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.opt_clks	= gpio3_opt_clks,
+@@ -1977,7 +2027,7 @@ static struct omap_hwmod omap44xx_gpio4_hwmod = {
+ 	.main_clk	= "gpio4_ick",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_GPIO4_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_GPIO4_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.opt_clks	= gpio4_opt_clks,
+@@ -2031,7 +2081,7 @@ static struct omap_hwmod omap44xx_gpio5_hwmod = {
+ 	.main_clk	= "gpio5_ick",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_GPIO5_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_GPIO5_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.opt_clks	= gpio5_opt_clks,
+@@ -2085,7 +2135,7 @@ static struct omap_hwmod omap44xx_gpio6_hwmod = {
+ 	.main_clk	= "gpio6_ick",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_GPIO6_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_GPIO6_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.opt_clks	= gpio6_opt_clks,
+@@ -2164,7 +2214,7 @@ static struct omap_hwmod omap44xx_hsi_hwmod = {
+ 	.main_clk	= "hsi_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L3INIT_HSI_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L3INIT_HSI_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_hsi_slaves,
+@@ -2247,7 +2297,7 @@ static struct omap_hwmod omap44xx_i2c1_hwmod = {
+ 	.main_clk	= "i2c1_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_I2C1_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_I2C1_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_i2c1_slaves,
+@@ -2302,7 +2352,7 @@ static struct omap_hwmod omap44xx_i2c2_hwmod = {
+ 	.main_clk	= "i2c2_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_I2C2_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_I2C2_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_i2c2_slaves,
+@@ -2357,7 +2407,7 @@ static struct omap_hwmod omap44xx_i2c3_hwmod = {
+ 	.main_clk	= "i2c3_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_I2C3_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_I2C3_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_i2c3_slaves,
+@@ -2412,7 +2462,7 @@ static struct omap_hwmod omap44xx_i2c4_hwmod = {
+ 	.main_clk	= "i2c4_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_I2C4_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_I2C4_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_i2c4_slaves,
+@@ -2508,7 +2558,7 @@ static struct omap_hwmod omap44xx_ipu_hwmod = {
+ 	.main_clk	= "ipu_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_DUCATI_DUCATI_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_DUCATI_DUCATI_CLKCTRL_OFFSET,
+ 			.rstctrl_reg = OMAP4430_RM_DUCATI_RSTCTRL,
+ 		},
+ 	},
+@@ -2595,7 +2645,7 @@ static struct omap_hwmod omap44xx_iss_hwmod = {
+ 	.main_clk	= "iss_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_CAM_ISS_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_CAM_ISS_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.opt_clks	= iss_opt_clks,
+@@ -2708,7 +2758,7 @@ static struct omap_hwmod omap44xx_iva_hwmod = {
+ 	.main_clk	= "iva_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_IVAHD_IVAHD_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_IVAHD_IVAHD_CLKCTRL_OFFSET,
+ 			.rstctrl_reg = OMAP4430_RM_IVAHD_RSTCTRL,
+ 		},
+ 	},
+@@ -2779,7 +2829,7 @@ static struct omap_hwmod omap44xx_kbd_hwmod = {
+ 	.main_clk	= "kbd_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_WKUP_KEYBOARD_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_WKUP_KEYBOARD_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_kbd_slaves,
+@@ -2844,7 +2894,7 @@ static struct omap_hwmod omap44xx_mailbox_hwmod = {
+ 	.mpu_irqs	= omap44xx_mailbox_irqs,
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4CFG_MAILBOX_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4CFG_MAILBOX_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_mailbox_slaves,
+@@ -2937,7 +2987,7 @@ static struct omap_hwmod omap44xx_mcbsp1_hwmod = {
+ 	.main_clk	= "mcbsp1_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM1_ABE_MCBSP1_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM1_ABE_MCBSP1_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_mcbsp1_slaves,
+@@ -3011,7 +3061,7 @@ static struct omap_hwmod omap44xx_mcbsp2_hwmod = {
+ 	.main_clk	= "mcbsp2_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM1_ABE_MCBSP2_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM1_ABE_MCBSP2_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_mcbsp2_slaves,
+@@ -3085,7 +3135,7 @@ static struct omap_hwmod omap44xx_mcbsp3_hwmod = {
+ 	.main_clk	= "mcbsp3_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM1_ABE_MCBSP3_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM1_ABE_MCBSP3_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_mcbsp3_slaves,
+@@ -3138,7 +3188,7 @@ static struct omap_hwmod omap44xx_mcbsp4_hwmod = {
+ 	.main_clk	= "mcbsp4_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_MCBSP4_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_MCBSP4_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_mcbsp4_slaves,
+@@ -3231,7 +3281,7 @@ static struct omap_hwmod omap44xx_mcpdm_hwmod = {
+ 	.main_clk	= "mcpdm_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM1_ABE_PDM_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM1_ABE_PDM_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_mcpdm_slaves,
+@@ -3317,7 +3367,7 @@ static struct omap_hwmod omap44xx_mcspi1_hwmod = {
+ 	.main_clk	= "mcspi1_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI1_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_MCSPI1_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.dev_attr	= &mcspi1_dev_attr,
+@@ -3378,7 +3428,7 @@ static struct omap_hwmod omap44xx_mcspi2_hwmod = {
+ 	.main_clk	= "mcspi2_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI2_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_MCSPI2_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.dev_attr	= &mcspi2_dev_attr,
+@@ -3439,7 +3489,7 @@ static struct omap_hwmod omap44xx_mcspi3_hwmod = {
+ 	.main_clk	= "mcspi3_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI3_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_MCSPI3_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.dev_attr	= &mcspi3_dev_attr,
+@@ -3498,7 +3548,7 @@ static struct omap_hwmod omap44xx_mcspi4_hwmod = {
+ 	.main_clk	= "mcspi4_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI4_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_MCSPI4_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.dev_attr	= &mcspi4_dev_attr,
+@@ -3583,7 +3633,7 @@ static struct omap_hwmod omap44xx_mmc1_hwmod = {
+ 	.main_clk	= "mmc1_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L3INIT_MMC1_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L3INIT_MMC1_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.dev_attr	= &mmc1_dev_attr,
+@@ -3643,7 +3693,7 @@ static struct omap_hwmod omap44xx_mmc2_hwmod = {
+ 	.main_clk	= "mmc2_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L3INIT_MMC2_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L3INIT_MMC2_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_mmc2_slaves,
+@@ -3698,7 +3748,7 @@ static struct omap_hwmod omap44xx_mmc3_hwmod = {
+ 	.main_clk	= "mmc3_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_MMCSD3_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_MMCSD3_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_mmc3_slaves,
+@@ -3752,7 +3802,7 @@ static struct omap_hwmod omap44xx_mmc4_hwmod = {
+ 	.main_clk	= "mmc4_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_MMCSD4_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_MMCSD4_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_mmc4_slaves,
+@@ -3805,7 +3855,7 @@ static struct omap_hwmod omap44xx_mmc5_hwmod = {
+ 	.main_clk	= "mmc5_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_MMCSD5_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_MMCSD5_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_mmc5_slaves,
+@@ -3846,7 +3896,7 @@ static struct omap_hwmod omap44xx_mpu_hwmod = {
+ 	.main_clk	= "dpll_mpu_m2_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_MPU_MPU_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_MPU_MPU_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.masters	= omap44xx_mpu_masters,
+@@ -3920,7 +3970,7 @@ static struct omap_hwmod omap44xx_smartreflex_core_hwmod = {
+ 	.vdd_name	= "core",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_ALWON_SR_CORE_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_ALWON_SR_CORE_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_smartreflex_core_slaves,
+@@ -3967,7 +4017,7 @@ static struct omap_hwmod omap44xx_smartreflex_iva_hwmod = {
+ 	.vdd_name	= "iva",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_ALWON_SR_IVA_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_ALWON_SR_IVA_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_smartreflex_iva_slaves,
+@@ -4014,7 +4064,7 @@ static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod = {
+ 	.vdd_name	= "mpu",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_ALWON_SR_MPU_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_ALWON_SR_MPU_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_smartreflex_mpu_slaves,
+@@ -4076,7 +4126,7 @@ static struct omap_hwmod omap44xx_spinlock_hwmod = {
+ 	.clkdm_name	= "l4_cfg_clkdm",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4CFG_HW_SEM_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4CFG_HW_SEM_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_spinlock_slaves,
+@@ -4160,7 +4210,7 @@ static struct omap_hwmod omap44xx_timer1_hwmod = {
+ 	.main_clk	= "timer1_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_WKUP_TIMER1_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_WKUP_TIMER1_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_timer1_slaves,
+@@ -4206,7 +4256,7 @@ static struct omap_hwmod omap44xx_timer2_hwmod = {
+ 	.main_clk	= "timer2_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_DMTIMER2_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER2_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_timer2_slaves,
+@@ -4252,7 +4302,7 @@ static struct omap_hwmod omap44xx_timer3_hwmod = {
+ 	.main_clk	= "timer3_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_DMTIMER3_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER3_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_timer3_slaves,
+@@ -4298,7 +4348,7 @@ static struct omap_hwmod omap44xx_timer4_hwmod = {
+ 	.main_clk	= "timer4_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_DMTIMER4_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER4_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_timer4_slaves,
+@@ -4363,7 +4413,7 @@ static struct omap_hwmod omap44xx_timer5_hwmod = {
+ 	.main_clk	= "timer5_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM1_ABE_TIMER5_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM1_ABE_TIMER5_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_timer5_slaves,
+@@ -4429,7 +4479,7 @@ static struct omap_hwmod omap44xx_timer6_hwmod = {
+ 	.main_clk	= "timer6_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM1_ABE_TIMER6_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM1_ABE_TIMER6_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_timer6_slaves,
+@@ -4494,7 +4544,7 @@ static struct omap_hwmod omap44xx_timer7_hwmod = {
+ 	.main_clk	= "timer7_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM1_ABE_TIMER7_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM1_ABE_TIMER7_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_timer7_slaves,
+@@ -4559,7 +4609,7 @@ static struct omap_hwmod omap44xx_timer8_hwmod = {
+ 	.main_clk	= "timer8_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM1_ABE_TIMER8_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM1_ABE_TIMER8_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_timer8_slaves,
+@@ -4605,7 +4655,7 @@ static struct omap_hwmod omap44xx_timer9_hwmod = {
+ 	.main_clk	= "timer9_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_DMTIMER9_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER9_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_timer9_slaves,
+@@ -4651,7 +4701,7 @@ static struct omap_hwmod omap44xx_timer10_hwmod = {
+ 	.main_clk	= "timer10_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_DMTIMER10_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER10_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_timer10_slaves,
+@@ -4697,7 +4747,7 @@ static struct omap_hwmod omap44xx_timer11_hwmod = {
+ 	.main_clk	= "timer11_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_DMTIMER11_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_DMTIMER11_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_timer11_slaves,
+@@ -4772,7 +4822,7 @@ static struct omap_hwmod omap44xx_uart1_hwmod = {
+ 	.main_clk	= "uart1_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_UART1_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_UART1_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_uart1_slaves,
+@@ -4825,7 +4875,7 @@ static struct omap_hwmod omap44xx_uart2_hwmod = {
+ 	.main_clk	= "uart2_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_UART2_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_UART2_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_uart2_slaves,
+@@ -4879,7 +4929,7 @@ static struct omap_hwmod omap44xx_uart3_hwmod = {
+ 	.main_clk	= "uart3_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_UART3_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_UART3_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_uart3_slaves,
+@@ -4932,7 +4982,7 @@ static struct omap_hwmod omap44xx_uart4_hwmod = {
+ 	.main_clk	= "uart4_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L4PER_UART4_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L4PER_UART4_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_uart4_slaves,
+@@ -5011,7 +5061,7 @@ static struct omap_hwmod omap44xx_usb_otg_hs_hwmod = {
+ 	.main_clk	= "usb_otg_hs_ick",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_L3INIT_USB_OTG_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.opt_clks	= usb_otg_hs_opt_clks,
+@@ -5084,7 +5134,7 @@ static struct omap_hwmod omap44xx_wd_timer2_hwmod = {
+ 	.main_clk	= "wd_timer2_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM_WKUP_WDT2_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM_WKUP_WDT2_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_wd_timer2_slaves,
+@@ -5149,7 +5199,7 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
+ 	.main_clk	= "wd_timer3_fck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_reg = OMAP4430_CM1_ABE_WDT3_CLKCTRL,
++			.clkctrl_offs = OMAP4_CM1_ABE_WDT3_CLKCTRL_OFFSET,
+ 		},
+ 	},
+ 	.slaves		= omap44xx_wd_timer3_slaves,
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 3306bdf..fc54355 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -360,7 +360,7 @@ struct omap_hwmod_omap2_prcm {
+  * @submodule_wkdep_bit: bit shift of the WKDEP range
+  */
+ struct omap_hwmod_omap4_prcm {
+-	void __iomem	*clkctrl_reg;
++	u16		clkctrl_offs;
+ 	void __iomem	*rstctrl_reg;
+ 	u8		submodule_wkdep_bit;
+ };
+-- 
+1.7.2.5
+

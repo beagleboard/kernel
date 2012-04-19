@@ -1,0 +1,57 @@
+From 3532a9ceb9eb81147eab751b8c124b59acc87374 Mon Sep 17 00:00:00 2001
+From: Todd Poynor <toddpoynor@google.com>
+Date: Wed, 27 Jul 2011 07:07:20 +0000
+Subject: [PATCH 09/14] rtc: twl: Use threaded IRQ, remove IRQ enable in interrupt handler
+
+IRQs disabled on entry to twl_rtc_interrupt is not a consequence
+of LOCKDEP; both twl6030 and twl4030 explicitly disable IRQs
+before calling the module IRQ handlers.
+
+The ISR should not be enabling IRQs; use a threaded IRQ handler
+instead.
+
+Also fixes warnings:
+
+  WARNING: at kernel/irq/handle.c:130 handle_irq_event_percpu+nnn
+  irq nnn handler twl_rtc_interrupt+nnn enabled interrupts
+
+Signed-off-by: Todd Poynor <toddpoynor@google.com>
+---
+ drivers/rtc/rtc-twl.c |   14 +++-----------
+ 1 files changed, 3 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
+index f9a2799..3fee95e 100644
+--- a/drivers/rtc/rtc-twl.c
++++ b/drivers/rtc/rtc-twl.c
+@@ -362,14 +362,6 @@ static irqreturn_t twl_rtc_interrupt(int irq, void *rtc)
+ 	int res;
+ 	u8 rd_reg;
+ 
+-#ifdef CONFIG_LOCKDEP
+-	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
+-	 * we don't want and can't tolerate.  Although it might be
+-	 * friendlier not to borrow this thread context...
+-	 */
+-	local_irq_enable();
+-#endif
+-
+ 	res = twl_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
+ 	if (res)
+ 		goto out;
+@@ -462,9 +454,9 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto out1;
+ 
+-	ret = request_irq(irq, twl_rtc_interrupt,
+-				IRQF_TRIGGER_RISING,
+-				dev_name(&rtc->dev), rtc);
++	ret = request_threaded_irq(irq, NULL, twl_rtc_interrupt,
++				   IRQF_TRIGGER_RISING,
++				   dev_name(&rtc->dev), rtc);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "IRQ is not free.\n");
+ 		goto out1;
+-- 
+1.7.2.5
+

@@ -13,14 +13,14 @@ PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.2"
+TAG="v3.0.28"
 EXTRATAG=""
 
 #EXTERNAL_TREE="git://arago-project.org/git/projects/linux-am33x.git"
 #EXTERNAL_BRANCH="v3.2-staging"
 #EXTERNAL_SHA="e8004dad869568692ca2a45c04e8464ce48cc4d7"
 
-PATCHSET="dirs"
+PATCHSET="pm-wip/voltdm pm-wip/cpufreq beagle madc sakoman sgx ulcd omap4 misc usb"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true

@@ -1,0 +1,200 @@
+From 552daa4d00a2c1835e5114af852efc65175e1cc0 Mon Sep 17 00:00:00 2001
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Date: Sat, 4 Jun 2011 08:16:41 +0300
+Subject: [PATCH 022/149] OMAP: New twl-common for common TWL configuration
+
+Introduce a new file, which will be used to configure
+common pmic (TWL) devices, regulators, and TWL audio.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/Makefile               |    2 +-
+ arch/arm/mach-omap2/common-board-devices.c |   21 -------------
+ arch/arm/mach-omap2/common-board-devices.h |   26 +--------------
+ arch/arm/mach-omap2/twl-common.c           |   46 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/twl-common.h           |   28 +++++++++++++++++
+ 5 files changed, 77 insertions(+), 46 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/twl-common.c
+ create mode 100644 arch/arm/mach-omap2/twl-common.h
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index adbe82d..ff1466f 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -269,4 +269,4 @@ obj-$(CONFIG_ARCH_OMAP4)		+= hwspinlock.o
+ disp-$(CONFIG_OMAP2_DSS)		:= display.o
+ obj-y					+= $(disp-m) $(disp-y)
+ 
+-obj-y					+= common-board-devices.o
++obj-y					+= common-board-devices.o twl-common.o
+diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
+index 0043fa8..bcb0c58 100644
+--- a/arch/arm/mach-omap2/common-board-devices.c
++++ b/arch/arm/mach-omap2/common-board-devices.c
+@@ -20,36 +20,15 @@
+  *
+  */
+ 
+-#include <linux/i2c.h>
+-#include <linux/i2c/twl.h>
+-
+ #include <linux/gpio.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
+ 
+-#include <plat/i2c.h>
+ #include <plat/mcspi.h>
+ #include <plat/nand.h>
+ 
+ #include "common-board-devices.h"
+ 
+-static struct i2c_board_info __initdata pmic_i2c_board_info = {
+-	.addr		= 0x48,
+-	.flags		= I2C_CLIENT_WAKE,
+-};
+-
+-void __init omap_pmic_init(int bus, u32 clkrate,
+-			   const char *pmic_type, int pmic_irq,
+-			   struct twl4030_platform_data *pmic_data)
+-{
+-	strncpy(pmic_i2c_board_info.type, pmic_type,
+-		sizeof(pmic_i2c_board_info.type));
+-	pmic_i2c_board_info.irq = pmic_irq;
+-	pmic_i2c_board_info.platform_data = pmic_data;
+-
+-	omap_register_i2c_bus(bus, clkrate, &pmic_i2c_board_info, 1);
+-}
+-
+ #if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
+ 	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
+ static struct omap2_mcspi_device_config ads7846_mcspi_config = {
+diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
+index 6797190..a0b4a428 100644
+--- a/arch/arm/mach-omap2/common-board-devices.h
++++ b/arch/arm/mach-omap2/common-board-devices.h
+@@ -1,33 +1,11 @@
+ #ifndef __OMAP_COMMON_BOARD_DEVICES__
+ #define __OMAP_COMMON_BOARD_DEVICES__
+ 
++#include "twl-common.h"
++
+ #define NAND_BLOCK_SIZE	SZ_128K
+ 
+-struct twl4030_platform_data;
+ struct mtd_partition;
+-
+-void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
+-		    struct twl4030_platform_data *pmic_data);
+-
+-static inline void omap2_pmic_init(const char *pmic_type,
+-				   struct twl4030_platform_data *pmic_data)
+-{
+-	omap_pmic_init(2, 2600, pmic_type, INT_24XX_SYS_NIRQ, pmic_data);
+-}
+-
+-static inline void omap3_pmic_init(const char *pmic_type,
+-				   struct twl4030_platform_data *pmic_data)
+-{
+-	omap_pmic_init(1, 2600, pmic_type, INT_34XX_SYS_NIRQ, pmic_data);
+-}
+-
+-static inline void omap4_pmic_init(const char *pmic_type,
+-				   struct twl4030_platform_data *pmic_data)
+-{
+-	/* Phoenix Audio IC needs I2C1 to start with 400 KHz or less */
+-	omap_pmic_init(1, 400, pmic_type, OMAP44XX_IRQ_SYS_1N, pmic_data);
+-}
+-
+ struct ads7846_platform_data;
+ 
+ void omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+new file mode 100644
+index 0000000..4f7b24c
+--- /dev/null
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -0,0 +1,46 @@
++/*
++ * twl-common.c
++ *
++ * Copyright (C) 2011 Texas Instruments, Inc..
++ * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#include <linux/i2c.h>
++#include <linux/i2c/twl.h>
++#include <linux/gpio.h>
++
++#include <plat/i2c.h>
++
++#include "twl-common.h"
++
++static struct i2c_board_info __initdata pmic_i2c_board_info = {
++	.addr		= 0x48,
++	.flags		= I2C_CLIENT_WAKE,
++};
++
++void __init omap_pmic_init(int bus, u32 clkrate,
++			   const char *pmic_type, int pmic_irq,
++			   struct twl4030_platform_data *pmic_data)
++{
++	strncpy(pmic_i2c_board_info.type, pmic_type,
++		sizeof(pmic_i2c_board_info.type));
++	pmic_i2c_board_info.irq = pmic_irq;
++	pmic_i2c_board_info.platform_data = pmic_data;
++
++	omap_register_i2c_bus(bus, clkrate, &pmic_i2c_board_info, 1);
++}
+diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
+new file mode 100644
+index 0000000..e9fe2ab
+--- /dev/null
++++ b/arch/arm/mach-omap2/twl-common.h
+@@ -0,0 +1,28 @@
++#ifndef __OMAP_PMIC_COMMON__
++#define __OMAP_PMIC_COMMON__
++
++struct twl4030_platform_data;
++
++void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
++		    struct twl4030_platform_data *pmic_data);
++
++static inline void omap2_pmic_init(const char *pmic_type,
++				   struct twl4030_platform_data *pmic_data)
++{
++	omap_pmic_init(2, 2600, pmic_type, INT_24XX_SYS_NIRQ, pmic_data);
++}
++
++static inline void omap3_pmic_init(const char *pmic_type,
++				   struct twl4030_platform_data *pmic_data)
++{
++	omap_pmic_init(1, 2600, pmic_type, INT_34XX_SYS_NIRQ, pmic_data);
++}
++
++static inline void omap4_pmic_init(const char *pmic_type,
++				   struct twl4030_platform_data *pmic_data)
++{
++	/* Phoenix Audio IC needs I2C1 to start with 400 KHz or less */
++	omap_pmic_init(1, 400, pmic_type, OMAP44XX_IRQ_SYS_1N, pmic_data);
++}
++
++#endif /* __OMAP_PMIC_COMMON__ */
+-- 
+1.7.2.5
+

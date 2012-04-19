@@ -1,0 +1,202 @@
+From f0a23fe6d3c8fc9bbb60a962114b64b923ca4515 Mon Sep 17 00:00:00 2001
+From: Sanjeev Premi <premi@ti.com>
+Date: Tue, 18 Jan 2011 13:19:55 +0530
+Subject: [PATCH 05/10] omap3: Add basic support for 720MHz part
+
+This patch adds support for new speed enhanced parts with ARM
+and IVA running at 720MHz and 520MHz respectively. These parts
+can be probed at run-time by reading PRODID.SKUID[3:0] at
+0x4830A20C [1].
+
+This patch specifically does following:
+ * Detect devices capable of 720MHz.
+ * Add new OPP
+ * Ensure that OPP is conditionally enabled.
+ * Check for presence of IVA before attempting to enable
+   the corresponding OPP.
+
+  [1] http://focus.ti.com/lit/ug/spruff1d/spruff1d.pdf
+
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/mach-omap2/control.h         |    7 ++++
+ arch/arm/mach-omap2/id.c              |   10 +++++
+ arch/arm/mach-omap2/opp3xxx_data.c    |   63 ++++++++++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/cpu.h |    2 +
+ 4 files changed, 81 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index a016c8b..69d0b9c 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -371,6 +371,13 @@
+ #define		FEAT_NEON		0
+ #define		FEAT_NEON_NONE		1
+ 
++/*
++ * Product ID register
++ */
++#define OMAP3_PRODID			0x020C
++
++#define OMAP3_SKUID_MASK		0x0f
++#define		OMAP3_SKUID_720MHZ	0x08
+ 
+ #ifndef __ASSEMBLY__
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 2537090..b6ed78a 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -210,6 +210,15 @@ static void __init omap3_check_features(void)
+ 	 * TODO: Get additional info (where applicable)
+ 	 *       e.g. Size of L2 cache.
+ 	 */
++
++	/*
++	 * Does it support 720MHz?
++	 */
++	status = (OMAP3_SKUID_MASK & read_tap_reg(OMAP3_PRODID));
++
++	if (status & OMAP3_SKUID_720MHZ) {
++		omap3_features |= OMAP3_HAS_720MHZ;
++	}
+ }
+ 
+ static void __init ti816x_check_features(void)
+@@ -490,6 +499,7 @@ static void __init omap3_cpuinfo(void)
+ 	OMAP3_SHOW_FEATURE(neon);
+ 	OMAP3_SHOW_FEATURE(isp);
+ 	OMAP3_SHOW_FEATURE(192mhz_clk);
++	OMAP3_SHOW_FEATURE(720mhz);
+ 
+ 	printk(")\n");
+ }
+diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
+index d95f3f9..44fbc84 100644
+--- a/arch/arm/mach-omap2/opp3xxx_data.c
++++ b/arch/arm/mach-omap2/opp3xxx_data.c
+@@ -18,8 +18,10 @@
+  * GNU General Public License for more details.
+  */
+ #include <linux/module.h>
++#include <linux/opp.h>
+ 
+ #include <plat/cpu.h>
++#include <plat/omap_device.h>
+ 
+ #include "control.h"
+ #include "omap_opp_data.h"
+@@ -98,6 +100,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+ 	OPP_INITIALIZER("mpu", true, 550000000, OMAP3430_VDD_MPU_OPP4_UV),
+ 	/* MPU OPP5 */
+ 	OPP_INITIALIZER("mpu", true, 600000000, OMAP3430_VDD_MPU_OPP5_UV),
++	/* MPU OPP6 */
++	OPP_INITIALIZER("mpu", false, 720000000, 1350000),
+ 
+ 	/*
+ 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
+@@ -123,6 +127,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+ 	OPP_INITIALIZER("iva", true, 400000000, OMAP3430_VDD_MPU_OPP4_UV),
+ 	/* DSP OPP5 */
+ 	OPP_INITIALIZER("iva", true, 430000000, OMAP3430_VDD_MPU_OPP5_UV),
++	/* DSP OPP6 */
++	OPP_INITIALIZER("iva", false, 520000000, 1350000),
+ };
+ 
+ static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
+@@ -150,6 +156,57 @@ static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
+ 	OPP_INITIALIZER("iva", false, 800000000, OMAP3630_VDD_MPU_OPP1G_UV),
+ };
+ 
++
++/**
++ * omap3_opp_enable_720Mhz() - Enable the OPP corresponding to 720MHz
++ *
++ * This function would be executed only if the silicon is capable of
++ * running at the 720MHz.
++ */
++static int __init omap3_opp_enable_720Mhz(void)
++{
++	int r = -ENODEV;
++	struct omap_hwmod *oh_mpu = omap_hwmod_lookup("mpu");
++	struct omap_hwmod *oh_iva;
++	struct platform_device *pdev;
++
++	if (!oh_mpu || !oh_mpu->od) {
++		goto err;
++	} else {
++		pdev = &oh_mpu->od->pdev;
++
++		r = opp_enable(&pdev->dev, 720000000);
++		if (r < 0) {
++			dev_err(&pdev->dev,
++				"opp_enable() failed for mpu@720MHz");
++			goto err;
++		}
++	}
++
++	if (omap3_has_iva()) {
++		oh_iva = omap_hwmod_lookup("iva");
++
++		if (!oh_iva || !oh_iva->od) {
++			r = -ENODEV;
++			goto err;
++		} else {
++			pdev = &oh_iva->od->pdev;
++
++			r = opp_enable(&pdev->dev, 520000000);
++			if (r < 0) {
++				dev_err(&pdev->dev,
++					"opp_enable() failed for iva@520MHz");
++				goto err;
++			}
++		}
++	}
++
++	dev_info(&pdev->dev, "Enabled OPP corresponding to 720MHz\n");
++
++err:
++	return r;
++}
++
+ /**
+  * omap3_opp_init() - initialize omap3 opp table
+  */
+@@ -163,10 +220,14 @@ int __init omap3_opp_init(void)
+ 	if (cpu_is_omap3630())
+ 		r = omap_init_opp_table(omap36xx_opp_def_list,
+ 			ARRAY_SIZE(omap36xx_opp_def_list));
+-	else
++	else {
+ 		r = omap_init_opp_table(omap34xx_opp_def_list,
+ 			ARRAY_SIZE(omap34xx_opp_def_list));
+ 
++		if (omap3_has_720mhz())
++			r = omap3_opp_enable_720Mhz();
++	}
++
+ 	return r;
+ }
+ device_initcall(omap3_opp_init);
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 8198bb6..5204c1e 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -478,6 +478,7 @@ extern u32 omap3_features;
+ #define OMAP3_HAS_192MHZ_CLK		BIT(5)
+ #define OMAP3_HAS_IO_WAKEUP		BIT(6)
+ #define OMAP3_HAS_SDRC			BIT(7)
++#define OMAP3_HAS_720MHZ		BIT(8)
+ 
+ #define OMAP3_HAS_FEATURE(feat,flag)			\
+ static inline unsigned int omap3_has_ ##feat(void)	\
+@@ -493,5 +494,6 @@ OMAP3_HAS_FEATURE(isp, ISP)
+ OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
+ OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
+ OMAP3_HAS_FEATURE(sdrc, SDRC)
++OMAP3_HAS_FEATURE(720mhz, 720MHZ)
+ 
+ #endif
+-- 
+1.7.2.5
+

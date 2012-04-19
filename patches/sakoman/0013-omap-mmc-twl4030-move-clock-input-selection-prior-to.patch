@@ -1,0 +1,39 @@
+From 23d7e04b5d71feafdd920f4bf4b735cc452fef59 Mon Sep 17 00:00:00 2001
+From: Steve Sakoman <steve@sakoman.com>
+Date: Sun, 24 Jan 2010 09:33:56 -0800
+Subject: [PATCH 13/14] omap: mmc-twl4030: move clock input selection prior to vcc test
+
+otherwise it is not executed on systems that use non-twl regulators
+---
+ arch/arm/mach-omap2/hsmmc.c |   14 ++++++--------
+ 1 files changed, 6 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index 66868c5..48a6cfb 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -192,15 +192,13 @@ static void hsmmc23_before_set_reg(struct device *dev, int slot,
+ 	if (mmc->slots[0].remux)
+ 		mmc->slots[0].remux(dev, slot, power_on);
+ 
+-	if (power_on) {
+-		/* Only MMC2 supports a CLKIN */
+-		if (mmc->slots[0].internal_clock) {
+-			u32 reg;
++	/* Only MMC2 supports a CLKIN */
++	if (mmc->slots[0].internal_clock) {
++		u32 reg;
+ 
+-			reg = omap_ctrl_readl(control_devconf1_offset);
+-			reg |= OMAP2_MMCSDIO2ADPCLKISEL;
+-			omap_ctrl_writel(reg, control_devconf1_offset);
+-		}
++		reg = omap_ctrl_readl(control_devconf1_offset);
++		reg |= OMAP2_MMCSDIO2ADPCLKISEL;
++		omap_ctrl_writel(reg, control_devconf1_offset);
+ 	}
+ }
+ 
+-- 
+1.7.2.5
+

@@ -1,0 +1,88 @@
+From 3ef45618e396f3d9abb12fb4ef1c4462ccca6fd3 Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Sun, 10 Jul 2011 05:56:32 -0600
+Subject: [PATCH 086/149] OMAP4: cm: Add two new APIs for modulemode control
+
+In OMAP4, a new programming model based on module control instead
+of clock control was introduced.
+Expose two APIs to allow the upper layer (omap_hwmod) to control
+the module mode independently of the parent clocks management.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+[paul@pwsan.com: renamed 'omap4_cm_' fns to 'omap4_cminst_'; cleaned up
+ kerneldoc]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/cminst44xx.c |   40 ++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cminst44xx.h |    5 ++++
+ 2 files changed, 45 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
+index 0fe3f14..eb2a472 100644
+--- a/arch/arm/mach-omap2/cminst44xx.c
++++ b/arch/arm/mach-omap2/cminst44xx.c
+@@ -309,3 +309,43 @@ int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_off
+ 
+ 	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
+ }
++
++/**
++ * omap4_cminst_module_enable - Enable the modulemode inside CLKCTRL
++ * @mode: Module mode (SW or HW)
++ * @part: PRCM partition ID that the CM_CLKCTRL register exists in
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * No return value.
++ */
++void omap4_cminst_module_enable(u8 mode, u8 part, u16 inst, s16 cdoffs,
++			    u16 clkctrl_offs)
++{
++	u32 v;
++
++	v = omap4_cminst_read_inst_reg(part, inst, clkctrl_offs);
++	v &= ~OMAP4430_MODULEMODE_MASK;
++	v |= mode << OMAP4430_MODULEMODE_SHIFT;
++	omap4_cminst_write_inst_reg(v, part, inst, clkctrl_offs);
++}
++
++/**
++ * omap4_cminst_module_disable - Disable the module inside CLKCTRL
++ * @part: PRCM partition ID that the CM_CLKCTRL register exists in
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * No return value.
++ */
++void omap4_cminst_module_disable(u8 part, u16 inst, s16 cdoffs,
++			     u16 clkctrl_offs)
++{
++	u32 v;
++
++	v = omap4_cminst_read_inst_reg(part, inst, clkctrl_offs);
++	v &= ~OMAP4430_MODULEMODE_MASK;
++	omap4_cminst_write_inst_reg(v, part, inst, clkctrl_offs);
++}
+diff --git a/arch/arm/mach-omap2/cminst44xx.h b/arch/arm/mach-omap2/cminst44xx.h
+index a985400..f2ea645 100644
+--- a/arch/arm/mach-omap2/cminst44xx.h
++++ b/arch/arm/mach-omap2/cminst44xx.h
+@@ -20,6 +20,11 @@ extern void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs);
+ extern int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
+ extern int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
+ 
++extern void omap4_cminst_module_enable(u8 mode, u8 part, u16 inst, s16 cdoffs,
++				       u16 clkctrl_offs);
++extern void omap4_cminst_module_disable(u8 part, u16 inst, s16 cdoffs,
++					u16 clkctrl_offs);
++
+ /*
+  * In an ideal world, we would not export these low-level functions,
+  * but this will probably take some time to fix properly
+-- 
+1.7.2.5
+

@@ -1,0 +1,32 @@
+From d9242a243b61059cacde8ce1241b84fc787c57d1 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Thu, 20 Oct 2011 11:14:08 +0200
+Subject: [PATCH 06/10] ARM: OMAP2+: beagleboard: make wilink init look more like pandaboard
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |    8 +-------
+ 1 files changed, 1 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 5e1d9f9..13fffb0 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -203,13 +203,7 @@ static struct regulator_consumer_supply beagle_vmmc2_supply =
+ 
+ static struct regulator_init_data beagle_vmmc2 = {
+ 	.constraints = {
+-		.min_uV			= 1850000,
+-		.max_uV			= 1850000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
++		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
+ 	},
+ 	.num_consumer_supplies = 1,
+ 	.consumer_supplies = &beagle_vmmc2_supply,
+-- 
+1.7.2.5
+

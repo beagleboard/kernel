@@ -1,0 +1,85 @@
+From 8ec7a1410e7ad5a4027deabc8025b5c7291c7579 Mon Sep 17 00:00:00 2001
+From: Patrick Titiano <p-titiano@ti.com>
+Date: Wed, 18 May 2011 00:17:30 -0500
+Subject: [PATCH 145/149] OMAP4: PM: TWL6030: fix voltage conversion formula
+
+omap_twl_vsel_to_uv() and omap_twl_uv_to_vsel() functions used to convert
+voltages to TWL6030 SMPS commands (a.k.a "vsel") implement incorrect conversion
+formula.
+It uses legacy OMAP3 formula, but OMAP4 Power IC has different offset and
+voltage step:
+ - Voltage Step is now 12.66mV (instead of 12.5mV)
+ - Offset is either 607.7mV or 709mV depending on TWL6030 chip revision
+   (instead of 600mV)
+This leads to setting voltages potentially higher than expected, and so
+potentially some (limited) power overconsumption.
+
+For reference, see formula and tables in section 8.5.2.3
+"Output Voltage Selection (Standard Mode / Extended Mode with or without offset)"
+ in TWL6030 functional specifications document.
+
+[nm@ti.com: ported to voltdm_c]
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Patrick Titiano <p-titiano@ti.com>
+---
+ arch/arm/mach-omap2/omap_twl.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+index 6b247d1..a66bf6b 100644
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ b/arch/arm/mach-omap2/omap_twl.c
+@@ -106,9 +106,9 @@ static unsigned long twl6030_vsel_to_uv(const u8 vsel)
+ 		return 1350000;
+ 
+ 	if (smps_offset & 0x8)
+-		return ((((vsel - 1) * 125) + 7000)) * 100;
++		return ((((vsel - 1) * 1266) + 70900)) * 10;
+ 	else
+-		return ((((vsel - 1) * 125) + 6000)) * 100;
++		return ((((vsel - 1) * 1266) + 60770)) * 10;
+ }
+ 
+ static u8 twl6030_uv_to_vsel(unsigned long uv)
+@@ -138,9 +138,9 @@ static u8 twl6030_uv_to_vsel(unsigned long uv)
+ 		return 0x3A;
+ 
+ 	if (smps_offset & 0x8)
+-		return DIV_ROUND_UP(uv - 700000, 12500) + 1;
++		return DIV_ROUND_UP(uv - 709000, 12660) + 1;
+ 	else
+-		return DIV_ROUND_UP(uv - 600000, 12500) + 1;
++		return DIV_ROUND_UP(uv - 607700, 12660) + 1;
+ }
+ 
+ static struct omap_voltdm_pmic omap3_mpu_pmic = {
+@@ -187,7 +187,7 @@ static struct omap_voltdm_pmic omap3_core_pmic = {
+ 
+ static struct omap_voltdm_pmic omap4_mpu_pmic = {
+ 	.slew_rate		= 4000,
+-	.step_size		= 12500,
++	.step_size		= 12660,
+ 	.on_volt		= 1350000,
+ 	.onlp_volt		= 1350000,
+ 	.ret_volt		= 837500,
+@@ -208,7 +208,7 @@ static struct omap_voltdm_pmic omap4_mpu_pmic = {
+ 
+ static struct omap_voltdm_pmic omap4_iva_pmic = {
+ 	.slew_rate		= 4000,
+-	.step_size		= 12500,
++	.step_size		= 12660,
+ 	.on_volt		= 1100000,
+ 	.onlp_volt		= 1100000,
+ 	.ret_volt		= 837500,
+@@ -229,7 +229,7 @@ static struct omap_voltdm_pmic omap4_iva_pmic = {
+ 
+ static struct omap_voltdm_pmic omap4_core_pmic = {
+ 	.slew_rate		= 4000,
+-	.step_size		= 12500,
++	.step_size		= 12660,
+ 	.on_volt		= 1100000,
+ 	.onlp_volt		= 1100000,
+ 	.ret_volt		= 837500,
+-- 
+1.7.2.5
+

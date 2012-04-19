@@ -1,0 +1,48 @@
+From 669ad0bf5d48d8675365a212f561f57bec4d9158 Mon Sep 17 00:00:00 2001
+From: Colin Cross <ccross@google.com>
+Date: Mon, 6 Jun 2011 21:05:29 -0500
+Subject: [PATCH 17/19] OMAP2+: cpufreq: notify even with bad boot frequency
+
+Sometimes, bootloaders starts up with a frequency which is not
+in the OPP table. At cpu_init, policy->cur contains the frequency
+we pick at boot.  It is possible that system might have fixed
+it's boot frequency later on as part of power initialization.
+After this condition, the first call to omap_target results in the
+following:
+
+omap_getspeed(actual device frequency) != policy->cur(frequency that
+cpufreq thinks that the system is at), and it is possible that
+freqs.old == freqs.new (because the governor requested a scale down).
+
+We exit without triggering the notifiers in the current code, which
+does'nt let code which depends on cpufreq_notify_transition to have
+accurate information as to what the system frequency is.
+
+Instead, we do a normal transition if policy->cur is wrong, then,
+freqs.old will be the actual cpu frequency, freqs.new will be the
+actual new cpu frequency and all required notifiers have the accurate
+information.
+
+Acked-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Colin Cross <ccross@google.com>
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/omap2plus-cpufreq.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+index eaefa49..8598928 100644
+--- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
++++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+@@ -93,7 +93,7 @@ static int omap_target(struct cpufreq_policy *policy,
+ 	freqs.old = omap_getspeed(policy->cpu);
+ 	freqs.cpu = policy->cpu;
+ 
+-	if (freqs.old == freqs.new)
++	if (freqs.old == freqs.new && policy->cur == freqs.new)
+ 		return ret;
+ 
+ 	if (!is_smp()) {
+-- 
+1.7.2.5
+

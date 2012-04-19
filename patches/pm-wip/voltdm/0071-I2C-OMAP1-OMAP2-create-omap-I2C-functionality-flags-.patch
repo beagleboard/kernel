@@ -1,0 +1,51 @@
+From 46e0d0dce7d030781e2c67cce0438384ee8dd707 Mon Sep 17 00:00:00 2001
+From: Andy Green <andy@warmcat.com>
+Date: Sun, 10 Jul 2011 05:27:15 -0600
+Subject: [PATCH 071/149] I2C: OMAP1/OMAP2+: create omap I2C functionality flags for each cpu_... test
+
+These represent the 8 kinds of implementation functionality
+that up until now were inferred by the 16 remaining cpu_...()
+tests in the omap i2c driver.
+
+Changed to use BIT() as suggested by Balaji T Krishnamoorthy.
+
+Cc: patches@linaro.org
+Cc: Ben Dooks <ben-linux@fluff.org>
+Reported-by: Peter Maydell <peter.maydell@linaro.org>
+Signed-off-by: Andy Green <andy.green@linaro.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ include/linux/i2c-omap.h |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
+
+diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+index 701886d..0aa0cbd 100644
+--- a/include/linux/i2c-omap.h
++++ b/include/linux/i2c-omap.h
+@@ -15,6 +15,21 @@
+ #define OMAP_I2C_IP_VERSION_1 1
+ #define OMAP_I2C_IP_VERSION_2 2
+ 
++/* struct omap_i2c_bus_platform_data .flags meanings */
++
++#define OMAP_I2C_FLAG_NO_FIFO			BIT(0)
++#define OMAP_I2C_FLAG_SIMPLE_CLOCK		BIT(1)
++#define OMAP_I2C_FLAG_16BIT_DATA_REG		BIT(2)
++#define OMAP_I2C_FLAG_RESET_REGS_POSTIDLE	BIT(3)
++#define OMAP_I2C_FLAG_APPLY_ERRATA_I207	BIT(4)
++#define OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK	BIT(5)
++#define OMAP_I2C_FLAG_FORCE_19200_INT_CLK	BIT(6)
++/* how the CPU address bus must be translated for I2C unit access */
++#define OMAP_I2C_FLAG_BUS_SHIFT_NONE 0
++#define OMAP_I2C_FLAG_BUS_SHIFT_1		BIT(7)
++#define OMAP_I2C_FLAG_BUS_SHIFT_2		BIT(8)
++#define OMAP_I2C_FLAG_BUS_SHIFT__SHIFT 7
++
+ struct omap_i2c_bus_platform_data {
+ 	u32		clkrate;
+ 	void		(*set_mpu_wkup_lat)(struct device *dev, long set);
+-- 
+1.7.2.5
+

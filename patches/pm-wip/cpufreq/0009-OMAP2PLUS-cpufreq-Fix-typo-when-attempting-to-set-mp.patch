@@ -1,0 +1,30 @@
+From d046bd12930aa5daf951d9af8614c60677c8ff15 Mon Sep 17 00:00:00 2001
+From: Jarkko Nikula <jhnikula@gmail.com>
+Date: Thu, 14 Apr 2011 16:21:58 +0300
+Subject: [PATCH 09/19] OMAP2PLUS: cpufreq: Fix typo when attempting to set mpu_clk for OMAP4
+
+Fix this typo as there is no dpll_mpu_ck for OMAP3 and code flow is clearly
+trying to set mpu_clk for OMAP4 for which this dpll_mpu_ck is available.
+
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/omap2plus-cpufreq.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+index 3730f96..a725d90 100644
+--- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
++++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+@@ -161,7 +161,7 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+ 		mpu_clk = clk_get(NULL, "virt_prcm_set");
+ 	else if (cpu_is_omap34xx())
+ 		mpu_clk = clk_get(NULL, "dpll1_ck");
+-	else if (cpu_is_omap34xx())
++	else if (cpu_is_omap44xx())
+ 		mpu_clk = clk_get(NULL, "dpll_mpu_ck");
+ 
+ 	if (IS_ERR(mpu_clk))
+-- 
+1.7.2.5
+

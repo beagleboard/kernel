@@ -1,0 +1,42 @@
+From 27107815284e473d39b81df2ee65c1141f60a6cc Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Sat, 9 Jul 2011 19:14:28 -0600
+Subject: [PATCH 045/149] OMAP4: hwmod data: Remove un-needed parens
+
+A couple of parens were added around some flags.
+
+Remove them, since they are not needed and not used
+for any other hwmods.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 94c0b60..7eed6a2 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -3736,7 +3736,7 @@ static struct omap_hwmod_ocp_if *omap44xx_mpu_masters[] = {
+ static struct omap_hwmod omap44xx_mpu_hwmod = {
+ 	.name		= "mpu",
+ 	.class		= &omap44xx_mpu_hwmod_class,
+-	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
++	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
+ 	.mpu_irqs	= omap44xx_mpu_irqs,
+ 	.main_clk	= "dpll_mpu_m2_ck",
+ 	.prcm = {
+@@ -4750,7 +4750,7 @@ static struct omap_hwmod_ocp_if *omap44xx_uart3_slaves[] = {
+ static struct omap_hwmod omap44xx_uart3_hwmod = {
+ 	.name		= "uart3",
+ 	.class		= &omap44xx_uart_hwmod_class,
+-	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
++	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
+ 	.mpu_irqs	= omap44xx_uart3_irqs,
+ 	.sdma_reqs	= omap44xx_uart3_sdma_reqs,
+ 	.main_clk	= "uart3_fck",
+-- 
+1.7.2.5
+

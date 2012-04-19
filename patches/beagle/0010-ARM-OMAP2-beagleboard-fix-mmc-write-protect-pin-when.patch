@@ -1,0 +1,26 @@
+From 713c5b4ce910dacdd75e9616b0f989d643008536 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Wed, 19 Oct 2011 12:44:14 +0200
+Subject: [PATCH 10/10] ARM: OMAP2+: beagleboard: fix mmc write protect pin when using the wilink expansion board
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 5ffe185..0124060 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -274,7 +274,7 @@ static struct omap2_hsmmc_info mmcbbt[] = {
+  	{
+  		.mmc		= 1,
+  		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+- 		.gpio_wp	= 29,
++ 		.gpio_wp	= -EINVAL,
+  	},
+ 	{
+ 		.name		= "wl1271",
+-- 
+1.7.2.5
+

@@ -1,0 +1,65 @@
+From 0b7a00a668b460c5a541d2d9d77a96cd0de3f57d Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Fri, 1 Jul 2011 22:54:03 +0200
+Subject: [PATCH 032/149] OMAP2+: hwmod: Do not write the enawakeup bit if SYSC_HAS_ENAWAKEUP is not set
+
+The Type 2 type of IPs will not have any enawakeup bit in their sysconfig.
+Writing to that bit will instead trigger a softreset.
+Check the flag to write this bit only if the module supports it.
+
+Reported-by: Miguel Vadillo <vadillo@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |   14 ++++----------
+ 1 files changed, 4 insertions(+), 10 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index cbc2a8a..3800084 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -387,8 +387,6 @@ static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
+  */
+ static int _enable_wakeup(struct omap_hwmod *oh, u32 *v)
+ {
+-	u32 wakeup_mask;
+-
+ 	if (!oh->class->sysc ||
+ 	    !((oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP) ||
+ 	      (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP) ||
+@@ -400,9 +398,8 @@ static int _enable_wakeup(struct omap_hwmod *oh, u32 *v)
+ 		return -EINVAL;
+ 	}
+ 
+-	wakeup_mask = (0x1 << oh->class->sysc->sysc_fields->enwkup_shift);
+-
+-	*v |= wakeup_mask;
++	if (oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP)
++		*v |= 0x1 << oh->class->sysc->sysc_fields->enwkup_shift;
+ 
+ 	if (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP)
+ 		_set_slave_idlemode(oh, HWMOD_IDLEMODE_SMART_WKUP, v);
+@@ -425,8 +422,6 @@ static int _enable_wakeup(struct omap_hwmod *oh, u32 *v)
+  */
+ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
+ {
+-	u32 wakeup_mask;
+-
+ 	if (!oh->class->sysc ||
+ 	    !((oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP) ||
+ 	      (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP) ||
+@@ -438,9 +433,8 @@ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
+ 		return -EINVAL;
+ 	}
+ 
+-	wakeup_mask = (0x1 << oh->class->sysc->sysc_fields->enwkup_shift);
+-
+-	*v &= ~wakeup_mask;
++	if (oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP)
++		*v &= ~(0x1 << oh->class->sysc->sysc_fields->enwkup_shift);
+ 
+ 	if (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP)
+ 		_set_slave_idlemode(oh, HWMOD_IDLEMODE_SMART, v);
+-- 
+1.7.2.5
+

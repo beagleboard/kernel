@@ -1,0 +1,29 @@
+From abe6084b3aea9f55bb9b9127a0a4c58f915e635e Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@ti.com>
+Date: Mon, 18 Jul 2011 15:31:43 -0700
+Subject: [PATCH 137/149] OMAP3+: VP: update_errorgain(): return error if VP
+
+Add check for valid VP in omap_vp_update_errorgain()
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/vp.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+index 3807620..29698ac 100644
+--- a/arch/arm/mach-omap2/vp.c
++++ b/arch/arm/mach-omap2/vp.c
+@@ -103,6 +103,9 @@ int omap_vp_update_errorgain(struct voltagedomain *voltdm,
+ {
+ 	struct omap_volt_data *volt_data;
+ 
++	if (!voltdm->vp)
++		return -EINVAL;
++
+ 	/* Get volt_data corresponding to target_volt */
+ 	volt_data = omap_voltage_get_voltdata(voltdm, target_volt);
+ 	if (IS_ERR(volt_data))
+-- 
+1.7.2.5
+

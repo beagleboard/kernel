@@ -1,0 +1,29 @@
+From 742b21718c968c17ac951b73b4ba79f4a489d35b Mon Sep 17 00:00:00 2001
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 30 Jun 2011 12:58:01 +0000
+Subject: [PATCH 021/149] omap2+: fix build regression
+
+board-generic.c now contains a reference to omap3_timer, but depends
+only on ARCH_OMAP2, not on ARCH_OMAP3, which controls that symbol.
+omap2_timer seems to be more appropriate anyway, so use that instead.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/board-generic.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index c6ecf60..54db41a 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -72,5 +72,5 @@ MACHINE_START(OMAP_GENERIC, "Generic OMAP24xx")
+ 	.init_early	= omap_generic_init_early,
+ 	.init_irq	= omap2_init_irq,
+ 	.init_machine	= omap_generic_init,
+-	.timer		= &omap3_timer,
++	.timer		= &omap2_timer,
+ MACHINE_END
+-- 
+1.7.2.5
+

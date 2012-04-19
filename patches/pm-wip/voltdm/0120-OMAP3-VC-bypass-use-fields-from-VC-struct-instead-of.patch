@@ -1,0 +1,42 @@
+From ebe24c52d0431437103277f4e378c3dad0bde3e9 Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@ti.com>
+Date: Tue, 29 Mar 2011 14:24:47 -0700
+Subject: [PATCH 120/149] OMAP3+: VC bypass: use fields from VC struct instead of PMIC info
+
+The PMIC configurable variables should be isolated to VC initialization.
+The rest of the VC functions (like VC bypass) should use the i2c slave address
+and voltage register address fields from struct omap_vc_channel.
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/vc.c |    7 ++-----
+ 1 files changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index 50b1f7c..9e0dc8d 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -91,7 +91,6 @@ int omap_vc_bypass_scale(struct voltagedomain *voltdm,
+ 			 unsigned long target_volt)
+ {
+ 	struct omap_vc_channel *vc = voltdm->vc;
+-	struct omap_vdd_info *vdd = voltdm->vdd;
+ 	u32 loop_cnt = 0, retries_cnt = 0;
+ 	u32 vc_valid, vc_bypass_val_reg, vc_bypass_value;
+ 	u8 target_vsel, current_vsel;
+@@ -104,10 +103,8 @@ int omap_vc_bypass_scale(struct voltagedomain *voltdm,
+ 	vc_valid = vc->common->valid;
+ 	vc_bypass_val_reg = vc->common->bypass_val_reg;
+ 	vc_bypass_value = (target_vsel << vc->common->data_shift) |
+-			(vdd->pmic_info->volt_reg_addr <<
+-			vc->common->regaddr_shift) |
+-			(vdd->pmic_info->i2c_slave_addr <<
+-			vc->common->slaveaddr_shift);
++		(vc->volt_reg_addr << vc->common->regaddr_shift) |
++		(vc->i2c_slave_addr << vc->common->slaveaddr_shift);
+ 
+ 	voltdm->write(vc_bypass_value, vc_bypass_val_reg);
+ 	voltdm->write(vc_bypass_value | vc_valid, vc_bypass_val_reg);
+-- 
+1.7.2.5
+

@@ -1,0 +1,50 @@
+From 6066c8802de9f6a1006a8e31aa833615060a2a5b Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Sat, 9 Jul 2011 19:15:04 -0600
+Subject: [PATCH 053/149] OMAP4: prm: Remove wrong clockdomain offsets
+
+The following commit introduced new macros to define an offset
+per clock domain in an instance.
+
+commit e4156ee52fe617c2c2d80b5db993ff4bf07d7c3c
+
+    OMAP4: CM instances: add clockdomain register offsets
+
+The PRM contains only two clock controls management entities:
+EMU and WKUP.
+Remove the other ones.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/prm44xx.h |   12 ------------
+ 1 files changed, 0 insertions(+), 12 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
+index 2aec8c8..6e53120 100644
+--- a/arch/arm/mach-omap2/prm44xx.h
++++ b/arch/arm/mach-omap2/prm44xx.h
+@@ -57,19 +57,7 @@
+ #define OMAP4430_PRM_INSTR_INST		0x1f00
+ 
+ /* PRM clockdomain register offsets (from instance start) */
+-#define OMAP4430_PRM_MPU_MPU_CDOFFS		0x0000
+-#define OMAP4430_PRM_TESLA_TESLA_CDOFFS		0x0000
+-#define OMAP4430_PRM_ABE_ABE_CDOFFS		0x0000
+-#define OMAP4430_PRM_CORE_CORE_CDOFFS		0x0000
+-#define OMAP4430_PRM_IVAHD_IVAHD_CDOFFS		0x0000
+-#define OMAP4430_PRM_CAM_CAM_CDOFFS		0x0000
+-#define OMAP4430_PRM_DSS_DSS_CDOFFS		0x0000
+-#define OMAP4430_PRM_GFX_GFX_CDOFFS		0x0000
+-#define OMAP4430_PRM_L3INIT_L3INIT_CDOFFS	0x0000
+-#define OMAP4430_PRM_L4PER_L4PER_CDOFFS		0x0000
+-#define OMAP4430_PRM_CEFUSE_CEFUSE_CDOFFS	0x0000
+ #define OMAP4430_PRM_WKUP_CM_WKUP_CDOFFS	0x0000
+-#define OMAP4430_PRM_EMU_EMU_CDOFFS		0x0000
+ #define OMAP4430_PRM_EMU_CM_EMU_CDOFFS		0x0000
+ 
+ /* OMAP4 specific register offsets */
+-- 
+1.7.2.5
+

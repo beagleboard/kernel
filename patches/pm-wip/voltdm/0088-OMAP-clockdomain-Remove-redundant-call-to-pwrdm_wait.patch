@@ -1,0 +1,30 @@
+From 376dd007bae9fdcad06c5231c05ab2ca92639579 Mon Sep 17 00:00:00 2001
+From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Date: Sun, 10 Jul 2011 05:56:53 -0600
+Subject: [PATCH 088/149] OMAP: clockdomain: Remove redundant call to pwrdm_wait_transition()
+
+The call to pwrdm_wait_transition() in clkdm_clk_enable()
+is redundant since the function pwrdm_clkdm_state_switch()
+which is called next also does the same thing.
+
+Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clockdomain.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 6cb6c03..4fbbbfc 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -834,7 +834,6 @@ int clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+ 		 clk->name);
+ 
+ 	arch_clkdm->clkdm_clk_enable(clkdm);
+-	pwrdm_wait_transition(clkdm->pwrdm.ptr);
+ 	pwrdm_clkdm_state_switch(clkdm);
+ 
+ 	return 0;
+-- 
+1.7.2.5
+

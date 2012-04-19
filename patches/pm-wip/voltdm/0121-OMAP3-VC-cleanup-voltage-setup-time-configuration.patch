@@ -1,0 +1,227 @@
+From 50a49ce5dfe92764b167510f4edb9dcde880f9d5 Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@ti.com>
+Date: Tue, 29 Mar 2011 14:36:04 -0700
+Subject: [PATCH 121/149] OMAP3+: VC: cleanup voltage setup time configuration
+
+- add setup_time field to struct omap_vc_channel (init'd from PMIC data)
+- use VC/VP register access helper for read/modify/write
+- move VFSM structure from omap_vdd_info into struct voltagedomain
+- remove redunant _data suffix from VFSM structures and variables
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/vc.c                      |   10 ++++------
+ arch/arm/mach-omap2/vc.h                      |    1 +
+ arch/arm/mach-omap2/voltage.h                 |    7 +++----
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |    8 ++++----
+ arch/arm/mach-omap2/voltagedomains44xx_data.c |   12 ++++++------
+ 5 files changed, 18 insertions(+), 20 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index 9e0dc8d..d7415ea 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -214,7 +214,6 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
+ {
+ 	struct omap_vc_channel *vc = voltdm->vc;
+ 	struct omap_vdd_info *vdd = voltdm->vdd;
+-	u32 vc_val;
+ 
+ 	if (!vdd->pmic_info || !vdd->pmic_info->uv_to_vsel) {
+ 		pr_err("%s: PMIC info requried to configure vc for"
+@@ -233,6 +232,7 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
+ 	vc->i2c_slave_addr = vdd->pmic_info->i2c_slave_addr;
+ 	vc->volt_reg_addr = vdd->pmic_info->volt_reg_addr;
+ 	vc->cmd_reg_addr = vdd->pmic_info->cmd_reg_addr;
++	vc->setup_time = vdd->pmic_info->volt_setup_time;
+ 
+ 	/* Configure the i2c slave address for this VC */
+ 	voltdm->rmw(vc->smps_sa_mask,
+@@ -251,11 +251,9 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
+ 			    vc->common->smps_cmdra_reg);
+ 
+ 	/* Configure the setup times */
+-	vc_val = voltdm->read(vdd->vfsm->voltsetup_reg);
+-	vc_val &= ~vdd->vfsm->voltsetup_mask;
+-	vc_val |= vdd->pmic_info->volt_setup_time <<
+-			vdd->vfsm->voltsetup_shift;
+-	voltdm->write(vc_val, vdd->vfsm->voltsetup_reg);
++	voltdm->rmw(voltdm->vfsm->voltsetup_mask,
++		    vc->setup_time << __ffs(voltdm->vfsm->voltsetup_mask),
++		    voltdm->vfsm->voltsetup_reg);
+ 
+ 	if (cpu_is_omap34xx())
+ 		omap3_vc_init_channel(voltdm);
+diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
+index f3b0551..45e63cf 100644
+--- a/arch/arm/mach-omap2/vc.h
++++ b/arch/arm/mach-omap2/vc.h
+@@ -66,6 +66,7 @@ struct omap_vc_channel {
+ 	u16 i2c_slave_addr;
+ 	u16 volt_reg_addr;
+ 	u16 cmd_reg_addr;
++	u16 setup_time;
+ 
+ 	/* register access data */
+ 	const struct omap_vc_common *common;
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index 3129d64..2b2ab56 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -36,7 +36,7 @@ struct powerdomain;
+ struct omap_vdd_info;
+ 
+ /**
+- * struct omap_vfsm_instance_data - per-voltage manager FSM register/bitfield
++ * struct omap_vfsm_instance - per-voltage manager FSM register/bitfield
+  * data
+  * @voltsetup_mask: SETUP_TIME* bitmask in the PRM_VOLTSETUP* register
+  * @voltsetup_reg: register offset of PRM_VOLTSETUP from PRM base
+@@ -46,7 +46,7 @@ struct omap_vdd_info;
+  * XXX It is not necessary to have both a _mask and a _shift for the same
+  *     bitfield - remove one!
+  */
+-struct omap_vfsm_instance_data {
++struct omap_vfsm_instance {
+ 	u32 voltsetup_mask;
+ 	u8 voltsetup_reg;
+ 	u8 voltsetup_shift;
+@@ -67,6 +67,7 @@ struct voltagedomain {
+ 	struct list_head node;
+ 	struct list_head pwrdm_list;
+ 	struct omap_vc_channel *vc;
++	const struct omap_vfsm_instance *vfsm;
+ 
+ 	/* VC/VP register access functions: SoC specific */
+ 	u32 (*read) (u8 offset);
+@@ -133,7 +134,6 @@ struct omap_volt_pmic_info {
+  * @vp_data		: the register values, shifts, masks for various
+  *			  vp registers
+  * @vp_rt_data          : VP data derived at runtime, not predefined
+- * @vfsm                : voltage manager FSM data
+  * @debug_dir		: debug directory for this voltage domain.
+  * @curr_volt		: current voltage for this vdd.
+  * @vp_enabled		: flag to keep track of whether vp is enabled or not
+@@ -144,7 +144,6 @@ struct omap_vdd_info {
+ 	struct omap_volt_pmic_info *pmic_info;
+ 	struct omap_vp_instance_data *vp_data;
+ 	struct omap_vp_runtime_data vp_rt_data;
+-	const struct omap_vfsm_instance_data *vfsm;
+ 	struct dentry *debug_dir;
+ 	u32 curr_volt;
+ 	bool vp_enabled;
+diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+index 1d66749..4ea9a7b 100644
+--- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+@@ -31,7 +31,7 @@
+  * VDD data
+  */
+ 
+-static const struct omap_vfsm_instance_data omap3_vdd1_vfsm_data = {
++static const struct omap_vfsm_instance omap3_vdd1_vfsm = {
+ 	.voltsetup_reg = OMAP3_PRM_VOLTSETUP1_OFFSET,
+ 	.voltsetup_shift = OMAP3430_SETUP_TIME1_SHIFT,
+ 	.voltsetup_mask = OMAP3430_SETUP_TIME1_MASK,
+@@ -39,10 +39,9 @@ static const struct omap_vfsm_instance_data omap3_vdd1_vfsm_data = {
+ 
+ static struct omap_vdd_info omap3_vdd1_info = {
+ 	.vp_data = &omap3_vp1_data,
+-	.vfsm = &omap3_vdd1_vfsm_data,
+ };
+ 
+-static const struct omap_vfsm_instance_data omap3_vdd2_vfsm_data = {
++static const struct omap_vfsm_instance omap3_vdd2_vfsm = {
+ 	.voltsetup_reg = OMAP3_PRM_VOLTSETUP1_OFFSET,
+ 	.voltsetup_shift = OMAP3430_SETUP_TIME2_SHIFT,
+ 	.voltsetup_mask = OMAP3430_SETUP_TIME2_MASK,
+@@ -50,7 +49,6 @@ static const struct omap_vfsm_instance_data omap3_vdd2_vfsm_data = {
+ 
+ static struct omap_vdd_info omap3_vdd2_info = {
+ 	.vp_data = &omap3_vp2_data,
+-	.vfsm = &omap3_vdd2_vfsm_data,
+ };
+ 
+ static struct voltagedomain omap3_voltdm_mpu = {
+@@ -60,6 +58,7 @@ static struct voltagedomain omap3_voltdm_mpu = {
+ 	.write = omap3_prm_vcvp_write,
+ 	.rmw = omap3_prm_vcvp_rmw,
+ 	.vc = &omap3_vc_mpu,
++	.vfsm = &omap3_vdd1_vfsm,
+ 	.vdd = &omap3_vdd1_info,
+ };
+ 
+@@ -70,6 +69,7 @@ static struct voltagedomain omap3_voltdm_core = {
+ 	.write = omap3_prm_vcvp_write,
+ 	.rmw = omap3_prm_vcvp_rmw,
+ 	.vc = &omap3_vc_core,
++	.vfsm = &omap3_vdd2_vfsm,
+ 	.vdd = &omap3_vdd2_info,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+index e435795..dd4bd22 100644
+--- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+@@ -32,31 +32,28 @@
+ #include "vc.h"
+ #include "vp.h"
+ 
+-static const struct omap_vfsm_instance_data omap4_vdd_mpu_vfsm_data = {
++static const struct omap_vfsm_instance omap4_vdd_mpu_vfsm = {
+ 	.voltsetup_reg = OMAP4_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET,
+ };
+ 
+ static struct omap_vdd_info omap4_vdd_mpu_info = {
+ 	.vp_data = &omap4_vp_mpu_data,
+-	.vfsm = &omap4_vdd_mpu_vfsm_data,
+ };
+ 
+-static const struct omap_vfsm_instance_data omap4_vdd_iva_vfsm_data = {
++static const struct omap_vfsm_instance omap4_vdd_iva_vfsm = {
+ 	.voltsetup_reg = OMAP4_PRM_VOLTSETUP_IVA_RET_SLEEP_OFFSET,
+ };
+ 
+ static struct omap_vdd_info omap4_vdd_iva_info = {
+ 	.vp_data = &omap4_vp_iva_data,
+-	.vfsm = &omap4_vdd_iva_vfsm_data,
+ };
+ 
+-static const struct omap_vfsm_instance_data omap4_vdd_core_vfsm_data = {
++static const struct omap_vfsm_instance omap4_vdd_core_vfsm = {
+ 	.voltsetup_reg = OMAP4_PRM_VOLTSETUP_CORE_RET_SLEEP_OFFSET,
+ };
+ 
+ static struct omap_vdd_info omap4_vdd_core_info = {
+ 	.vp_data = &omap4_vp_core_data,
+-	.vfsm = &omap4_vdd_core_vfsm_data,
+ };
+ 
+ static struct voltagedomain omap4_voltdm_mpu = {
+@@ -66,6 +63,7 @@ static struct voltagedomain omap4_voltdm_mpu = {
+ 	.write = omap4_prm_vcvp_write,
+ 	.rmw = omap4_prm_vcvp_rmw,
+ 	.vc = &omap4_vc_mpu,
++	.vfsm = &omap4_vdd_mpu_vfsm,
+ 	.vdd = &omap4_vdd_mpu_info,
+ };
+ 
+@@ -76,6 +74,7 @@ static struct voltagedomain omap4_voltdm_iva = {
+ 	.write = omap4_prm_vcvp_write,
+ 	.rmw = omap4_prm_vcvp_rmw,
+ 	.vc = &omap4_vc_iva,
++	.vfsm = &omap4_vdd_iva_vfsm,
+ 	.vdd = &omap4_vdd_iva_info,
+ };
+ 
+@@ -86,6 +85,7 @@ static struct voltagedomain omap4_voltdm_core = {
+ 	.write = omap4_prm_vcvp_write,
+ 	.rmw = omap4_prm_vcvp_rmw,
+ 	.vc = &omap4_vc_core,
++	.vfsm = &omap4_vdd_core_vfsm,
+ 	.vdd = &omap4_vdd_core_info,
+ };
+ 
+-- 
+1.7.2.5
+

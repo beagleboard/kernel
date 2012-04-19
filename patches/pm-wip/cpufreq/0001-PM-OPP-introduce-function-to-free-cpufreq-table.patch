@@ -1,0 +1,84 @@
+From 3dfeff8f9ad8fa7e6e434eb4b450a11ab79131da Mon Sep 17 00:00:00 2001
+From: Nishanth Menon <nm@ti.com>
+Date: Wed, 25 May 2011 00:43:26 -0700
+Subject: [PATCH 01/19] PM: OPP: introduce function to free cpufreq table
+
+cpufreq table allocated by opp_init_cpufreq_table is better
+freed by OPP layer itself. This allows future modifications to
+the table handling to be transparent to the users.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Acked-by: Kevin Hilman <khilman@ti.com>
+---
+ Documentation/power/opp.txt |    2 ++
+ drivers/base/power/opp.c    |   17 +++++++++++++++++
+ include/linux/opp.h         |    8 ++++++++
+ 3 files changed, 27 insertions(+), 0 deletions(-)
+
+diff --git a/Documentation/power/opp.txt b/Documentation/power/opp.txt
+index 5ae70a12..3035d00 100644
+--- a/Documentation/power/opp.txt
++++ b/Documentation/power/opp.txt
+@@ -321,6 +321,8 @@ opp_init_cpufreq_table - cpufreq framework typically is initialized with
+ 	addition to CONFIG_PM as power management feature is required to
+ 	dynamically scale voltage and frequency in a system.
+ 
++opp_free_cpufreq_table - Free up the table allocated by opp_init_cpufreq_table
++
+ 7. Data Structures
+ ==================
+ Typically an SoC contains multiple voltage domains which are variable. Each
+diff --git a/drivers/base/power/opp.c b/drivers/base/power/opp.c
+index 56a6899..5cc1232 100644
+--- a/drivers/base/power/opp.c
++++ b/drivers/base/power/opp.c
+@@ -625,4 +625,21 @@ int opp_init_cpufreq_table(struct device *dev,
+ 
+ 	return 0;
+ }
++
++/**
++ * opp_free_cpufreq_table() - free the cpufreq table
++ * @dev:	device for which we do this operation
++ * @table:	table to free
++ *
++ * Free up the table allocated by opp_init_cpufreq_table
++ */
++void opp_free_cpufreq_table(struct device *dev,
++				struct cpufreq_frequency_table **table)
++{
++	if (!table)
++		return;
++
++	kfree(*table);
++	*table = NULL;
++}
+ #endif		/* CONFIG_CPU_FREQ */
+diff --git a/include/linux/opp.h b/include/linux/opp.h
+index 5449945..7020e97 100644
+--- a/include/linux/opp.h
++++ b/include/linux/opp.h
+@@ -94,12 +94,20 @@ static inline int opp_disable(struct device *dev, unsigned long freq)
+ #if defined(CONFIG_CPU_FREQ) && defined(CONFIG_PM_OPP)
+ int opp_init_cpufreq_table(struct device *dev,
+ 			    struct cpufreq_frequency_table **table);
++void opp_free_cpufreq_table(struct device *dev,
++				struct cpufreq_frequency_table **table);
+ #else
+ static inline int opp_init_cpufreq_table(struct device *dev,
+ 			    struct cpufreq_frequency_table **table)
+ {
+ 	return -EINVAL;
+ }
++
++static inline
++void opp_free_cpufreq_table(struct device *dev,
++				struct cpufreq_frequency_table **table)
++{
++}
+ #endif		/* CONFIG_CPU_FREQ */
+ 
+ #endif		/* __LINUX_OPP_H__ */
+-- 
+1.7.2.5
+

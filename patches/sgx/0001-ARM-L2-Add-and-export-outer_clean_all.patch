@@ -1,0 +1,67 @@
+From 867025d0468dedea5303d1088b292ace4d01c047 Mon Sep 17 00:00:00 2001
+From: Vikram Pandita <vikram.pandita@ti.com>
+Date: Tue, 31 May 2011 09:24:58 +0100
+Subject: [PATCH] ARM: L2: Add and export outer_clean_all
+
+The Errata 588369 and 539766 demands that clean all operation be done
+as clean each way at a time
+
+This patch also raps the implementation under the CONFIG errata
+macro so that for non-errata version silicon it can be disabled
+
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Woodruff, Richard <r-woodruff2@ti.com>
+---
+ arch/arm/include/asm/outercache.h |    8 ++++++++
+ arch/arm/mm/cache-l2x0.c          |    1 +
+ 2 files changed, 9 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/include/asm/outercache.h b/arch/arm/include/asm/outercache.h
+index d838743..fa8cbd8 100644
+--- a/arch/arm/include/asm/outercache.h
++++ b/arch/arm/include/asm/outercache.h
+@@ -28,6 +28,7 @@ struct outer_cache_fns {
+ 	void (*clean_range)(unsigned long, unsigned long);
+ 	void (*flush_range)(unsigned long, unsigned long);
+ 	void (*flush_all)(void);
++	void (*clean_all)(void);
+ 	void (*inv_all)(void);
+ 	void (*disable)(void);
+ #ifdef CONFIG_OUTER_CACHE_SYNC
+@@ -61,6 +62,11 @@ static inline void outer_flush_all(void)
+ 	if (outer_cache.flush_all)
+ 		outer_cache.flush_all();
+ }
++static inline void outer_clean_all(void)
++{
++	if (outer_cache.clean_all)
++		outer_cache.clean_all();
++}
+ 
+ static inline void outer_inv_all(void)
+ {
+@@ -97,6 +103,8 @@ static inline void outer_sync(void)
+ #else
+ static inline void outer_sync(void)
+ { }
++static inline void outer_clean_all(void)
++{ }
+ #endif
+ 
+ #endif	/* __ASM_OUTERCACHE_H */
+diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+index 44c0867..10b79d6 100644
+--- a/arch/arm/mm/cache-l2x0.c
++++ b/arch/arm/mm/cache-l2x0.c
+@@ -346,6 +346,7 @@ void __init l2x0_init(void __iomem *base, __u32 aux_val, __u32 aux_mask)
+ 	outer_cache.inv_all = l2x0_inv_all;
+ 	outer_cache.disable = l2x0_disable;
+ 	outer_cache.set_debug = l2x0_set_debug;
++	outer_cache.clean_all = l2x0_clean_all;
+ 
+ 	printk(KERN_INFO "%s cache controller enabled\n", type);
+ 	printk(KERN_INFO "l2x0: %d ways, CACHE_ID 0x%08x, AUX_CTRL 0x%08x, Cache size: %d B\n",
+-- 
+1.7.2.5
+

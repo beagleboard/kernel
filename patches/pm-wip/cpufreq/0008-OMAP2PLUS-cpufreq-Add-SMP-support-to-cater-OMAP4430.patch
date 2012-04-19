@@ -1,0 +1,171 @@
+From fed2c5a3d929204d4fc18c6f4a3edbf920e7ee36 Mon Sep 17 00:00:00 2001
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Mon, 14 Mar 2011 17:08:49 +0530
+Subject: [PATCH 08/19] OMAP2PLUS: cpufreq: Add SMP support to cater OMAP4430
+
+On OMAP SMP configuartion, both processors share the voltage
+and clock. So both CPUs needs to be scaled together and hence
+needs software co-ordination.
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+cc: Vishwanath BS <vishwanath.bs@ti.com>
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/omap2plus-cpufreq.c |   73 ++++++++++++++++++++++++++-----
+ 1 files changed, 62 insertions(+), 11 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+index 27f641b..3730f96 100644
+--- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
++++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+@@ -26,9 +26,11 @@
+ #include <linux/clk.h>
+ #include <linux/io.h>
+ #include <linux/opp.h>
++#include <linux/cpu.h>
+ 
+ #include <asm/system.h>
+ #include <asm/smp_plat.h>
++#include <asm/cpu.h>
+ 
+ #include <plat/clock.h>
+ #include <plat/omap-pm.h>
+@@ -63,7 +65,7 @@ static unsigned int omap_getspeed(unsigned int cpu)
+ {
+ 	unsigned long rate;
+ 
+-	if (cpu)
++	if (cpu >= NR_CPUS)
+ 		return 0;
+ 
+ 	rate = clk_get_rate(mpu_clk) / 1000;
+@@ -74,9 +76,13 @@ static int omap_target(struct cpufreq_policy *policy,
+ 		       unsigned int target_freq,
+ 		       unsigned int relation)
+ {
+-	int ret = 0;
++	int i, ret = 0;
+ 	struct cpufreq_freqs freqs;
+ 
++	/* Changes not allowed until all CPUs are online */
++	if (is_smp() && (num_online_cpus() < NR_CPUS))
++		return ret;
++
+ 	/* Ensure desired rate is within allowed range.  Some govenors
+ 	 * (ondemand) will just pass target_freq=0 to get the minimum. */
+ 	if (target_freq < policy->min)
+@@ -84,15 +90,25 @@ static int omap_target(struct cpufreq_policy *policy,
+ 	if (target_freq > policy->max)
+ 		target_freq = policy->max;
+ 
+-	freqs.old = omap_getspeed(0);
++	freqs.old = omap_getspeed(policy->cpu);
+ 	freqs.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
+-	freqs.cpu = 0;
++	freqs.cpu = policy->cpu;
+ 
+ 	if (freqs.old == freqs.new)
+ 		return ret;
+ 
+-	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
++	if (!is_smp()) {
++		cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
++		goto set_freq;
++	}
++
++	/* notifiers */
++	for_each_cpu(i, policy->cpus) {
++		freqs.cpu = i;
++		cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
++	}
+ 
++set_freq:
+ #ifdef CONFIG_CPU_FREQ_DEBUG
+ 	pr_info("cpufreq-omap: transition: %u --> %u\n", freqs.old, freqs.new);
+ #endif
+@@ -105,12 +121,33 @@ static int omap_target(struct cpufreq_policy *policy,
+ 	 * CONFIG_SMP enabled. Below code is added only to manage that
+ 	 * scenario
+ 	 */
+-	if (!is_smp())
++	freqs.new = omap_getspeed(policy->cpu);
++	if (!is_smp()) {
+ 		loops_per_jiffy =
+ 			 cpufreq_scale(loops_per_jiffy, freqs.old, freqs.new);
++		cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
++		goto skip_lpj;
++	}
+ 
+-	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
++#ifdef CONFIG_SMP
++	/*
++	 * Note that loops_per_jiffy is not updated on SMP systems in
++	 * cpufreq driver. So, update the per-CPU loops_per_jiffy value
++	 * on frequency transition. We need to update all dependent CPUs.
++	 */
++	for_each_cpu(i, policy->cpus)
++		per_cpu(cpu_data, i).loops_per_jiffy =
++			cpufreq_scale(per_cpu(cpu_data, i).loops_per_jiffy,
++					freqs.old, freqs.new);
++#endif
+ 
++	/* notifiers */
++	for_each_cpu(i, policy->cpus) {
++		freqs.cpu = i;
++		cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
++	}
++
++skip_lpj:
+ 	return ret;
+ }
+ 
+@@ -118,6 +155,7 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+ {
+ 	int result = 0;
+ 	struct device *mpu_dev;
++	static cpumask_var_t cpumask;
+ 
+ 	if (cpu_is_omap24xx())
+ 		mpu_clk = clk_get(NULL, "virt_prcm_set");
+@@ -129,12 +167,12 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+ 	if (IS_ERR(mpu_clk))
+ 		return PTR_ERR(mpu_clk);
+ 
+-	if (policy->cpu != 0)
++	if (policy->cpu >= NR_CPUS)
+ 		return -EINVAL;
+ 
+-	policy->cur = policy->min = policy->max = omap_getspeed(0);
+-
++	policy->cur = policy->min = policy->max = omap_getspeed(policy->cpu);
+ 	mpu_dev = omap2_get_mpuss_device();
++
+ 	if (!mpu_dev) {
+ 		pr_warning("%s: unable to get the mpu device\n", __func__);
+ 		return -EINVAL;
+@@ -154,7 +192,20 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+ 
+ 	policy->min = policy->cpuinfo.min_freq;
+ 	policy->max = policy->cpuinfo.max_freq;
+-	policy->cur = omap_getspeed(0);
++	policy->cur = omap_getspeed(policy->cpu);
++
++	/*
++	 * On OMAP SMP configuartion, both processors share the voltage
++	 * and clock. So both CPUs needs to be scaled together and hence
++	 * needs software co-ordination. Use cpufreq affected_cpus
++	 * interface to handle this scenario. Additional is_smp() check
++	 * is to keep SMP_ON_UP build working.
++	 */
++	if (is_smp()) {
++		policy->shared_type = CPUFREQ_SHARED_TYPE_ANY;
++		cpumask_or(cpumask, cpumask_of(policy->cpu), cpumask);
++		cpumask_copy(policy->cpus, cpumask);
++	}
+ 
+ 	/* FIXME: what's the actual transition time? */
+ 	policy->cpuinfo.transition_latency = 300 * 1000;
+-- 
+1.7.2.5
+

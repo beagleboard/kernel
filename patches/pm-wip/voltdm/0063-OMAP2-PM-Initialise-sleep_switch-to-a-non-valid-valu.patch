@@ -1,0 +1,39 @@
+From 1588fef412d710916847c3f383489af1559aa4b0 Mon Sep 17 00:00:00 2001
+From: Rajendra Nayak <rnayak@ti.com>
+Date: Sat, 9 Jul 2011 20:42:11 -0600
+Subject: [PATCH 063/149] OMAP2+: PM: Initialise sleep_switch to a non-valid value
+
+sleep_switch which is initialised to 0 in omap_set_pwrdm_state
+happens to be a valid sleep_switch type (FORCEWAKEUP_SWITCH)
+which are defined as:
+
+ #define FORCEWAKEUP_SWITCH      0
+ #define LOWPOWERSTATE_SWITCH    1
+
+This causes the function to wrongly program some clock domains
+even when the Powerdomain is in ON state.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Acked-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/pm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 49486f5..d48813f 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -106,7 +106,7 @@ static void omap2_init_processor_devices(void)
+ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ {
+ 	u32 cur_state;
+-	int sleep_switch = 0;
++	int sleep_switch = -1;
+ 	int ret = 0;
+ 
+ 	if (pwrdm == NULL || IS_ERR(pwrdm))
+-- 
+1.7.2.5
+

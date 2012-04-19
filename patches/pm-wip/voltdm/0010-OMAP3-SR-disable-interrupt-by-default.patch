@@ -1,0 +1,36 @@
+From 252ef25d54768a725289253c494e1f37a5eec526 Mon Sep 17 00:00:00 2001
+From: Nishanth Menon <nm@ti.com>
+Date: Mon, 14 Feb 2011 12:41:10 +0530
+Subject: [PATCH 010/149] OMAP3+: SR: disable interrupt by default
+
+We will enable and disable interrupt on a need basis in the class
+driver. We need to keep the IRQ disabled by default else the
+forceupdate or vcbypass events could trigger events that we don't
+need/expect to handle.
+
+This is a preparation for SmartReflex AVS class drivers such as
+class 2 and class 1.5 which would need to use interrupts. Existing
+SmartReflex AVS class 3 driver does not require to use interrupts
+and is not impacted by this change.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/smartreflex.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 785ed4c..6b69ada 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -268,6 +268,7 @@ static int sr_late_init(struct omap_sr *sr_info)
+ 				0, name, (void *)sr_info);
+ 		if (ret)
+ 			goto error;
++		disable_irq(sr_info->irq);
+ 	}
+ 
+ 	if (pdata && pdata->enable_on_init)
+-- 
+1.7.2.5
+

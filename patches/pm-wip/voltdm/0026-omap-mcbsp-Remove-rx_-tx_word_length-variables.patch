@@ -1,0 +1,45 @@
+From 7a7bf2e165760ed106b0f4c8beb7191e3abe944f Mon Sep 17 00:00:00 2001
+From: Jarkko Nikula <jhnikula@gmail.com>
+Date: Fri, 1 Jul 2011 08:52:26 +0000
+Subject: [PATCH 026/149] omap: mcbsp: Remove rx_/tx_word_length variables
+
+These variables got unused after ("omap: mcbsp: Drop in-driver transfer
+support") but was noticed only afterwards.
+
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/plat-omap/include/plat/mcbsp.h |    2 --
+ arch/arm/plat-omap/mcbsp.c              |    3 ---
+ 2 files changed, 0 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
+index 6c53508..63464ad 100644
+--- a/arch/arm/plat-omap/include/plat/mcbsp.h
++++ b/arch/arm/plat-omap/include/plat/mcbsp.h
+@@ -385,8 +385,6 @@ struct omap_mcbsp {
+ 	void __iomem *io_base;
+ 	u8 id;
+ 	u8 free;
+-	omap_mcbsp_word_length rx_word_length;
+-	omap_mcbsp_word_length tx_word_length;
+ 
+ 	int rx_irq;
+ 	int tx_irq;
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 455eadc..3c1fbdc 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -869,9 +869,6 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
+ 	if (cpu_is_omap34xx())
+ 		omap_st_start(mcbsp);
+ 
+-	mcbsp->rx_word_length = (MCBSP_READ_CACHE(mcbsp, RCR1) >> 5) & 0x7;
+-	mcbsp->tx_word_length = (MCBSP_READ_CACHE(mcbsp, XCR1) >> 5) & 0x7;
+-
+ 	/* Only enable SRG, if McBSP is master */
+ 	w = MCBSP_READ_CACHE(mcbsp, PCR0);
+ 	if (w & (FSXM | FSRM | CLKXM | CLKRM))
+-- 
+1.7.2.5
+

@@ -1,0 +1,61 @@
+From eea23f28cacdb525471ecf4dc8a2366ccef5a28b Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Tue, 11 Oct 2011 13:13:35 +0200
+Subject: [PATCH 3/4] ARM: OMAP2: beagleboard: add support for loopthrough expansionboard, make uLCD use it
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |   15 +++++++++++++--
+ 1 files changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 8b30b4c..47bc79b 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -253,6 +253,7 @@ static void __init omap3_beagle_init_rev(void)
+ }
+ 
+ char expansionboard_name[16];
++char expansionboard2_name[16];
+ 
+ #if defined(CONFIG_WL12XX) || defined(CONFIG_WL12XX_MODULE)
+ #include <linux/regulator/fixed.h>
+@@ -862,6 +863,15 @@ static int __init expansionboard_setup(char *str)
+ 	return 0;
+ }
+ 
++static int __init expansionboard2_setup(char *str)
++{
++	if (!str)
++		return -EINVAL;
++	strncpy(expansionboard2_name, str, 16);
++	printk(KERN_INFO "Beagle second expansionboard: %s\n", expansionboard2_name);
++	return 0;
++}
++
+ static void __init beagle_opp_init(void)
+ {
+ 	int r = 0;
+@@ -997,9 +1007,9 @@ static void __init omap3_beagle_init(void)
+ 		platform_device_register(&omap_vwlan_device);
+ 	}
+ 
+-	if(!strcmp(expansionboard_name, "bbtoys-ulcd"))
++	if(!strcmp(expansionboard2_name, "bbtoys-ulcd"))
+ 	{
+-		printk(KERN_INFO "Beagle expansionboard: registering bbtoys-ulcd\n");
++		printk(KERN_INFO "Beagle second expansionboard: registering bbtoys-ulcd\n");
+ 		omap_register_i2c_bus(2, 400,  beagle_i2c2_bbtoys_ulcd,
+ 							ARRAY_SIZE(beagle_i2c2_bbtoys_ulcd));
+ 	}
+@@ -1021,6 +1031,7 @@ static void __init omap3_beagle_init(void)
+ }
+ 
+ early_param("buddy", expansionboard_setup);
++early_param("buddy2", expansionboard2_setup);
+ 
+ MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
+ 	/* Maintainer: Syed Mohammed Khasim - http://beagleboard.org */
+-- 
+1.7.2.5
+
