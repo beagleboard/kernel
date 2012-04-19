@@ -93,8 +93,7 @@ fi
 
 # export patches and output SRC_URI for them
 for patchset in ${PATCHSET} ; do
-	mkdir -p ${EXPORTPATH}
-	for patch in $(ls -1 ${PATCHPATH}/$patchset/*.patch | sort -n) ; do
+	for patch in $(ls -1 ${EXPORTPATH}/$patchset/*.patch | sort -n) ; do
 		patch=${patch##*/}
 		echo "            file://${patchset}/$patch \\" >> ${DIR}/src-uri.txt
 		echo "	git am \"\${DIR}/patches/${patchset}/$patch\"" >> ${DIR}/patch_script.sh
