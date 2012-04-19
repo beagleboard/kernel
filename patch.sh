@@ -16,11 +16,11 @@ EXPORTPATH="${DIR}/export"
 TAG="v3.2"
 EXTRATAG=""
 
-#EXTERNAL_TREE="git://arago-project.org/git/projects/linux-am33x.git"
-#EXTERNAL_BRANCH="v3.2-staging"
-#EXTERNAL_SHA="e8004dad869568692ca2a45c04e8464ce48cc4d7"
+EXTERNAL_TREE="git://arago-project.org/git/projects/linux-am33x.git"
+EXTERNAL_BRANCH="v3.2-staging"
+EXTERNAL_SHA="e8004dad869568692ca2a45c04e8464ce48cc4d7"
 
-PATCHSET="dirs"
+PATCHSET="3.2.1 3.2.2 3.2.3 3.2.4 3.2.5 3.2.6 3.2.7 3.2.8 3.2.9 3.2.10 3.2.11 3.2.12 3.2.13 3.2.14 beaglebone"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
