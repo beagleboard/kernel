@@ -55,7 +55,7 @@ git branch -D tmp-patching-branch-sha &>/dev/null || true
 
 #Do we have the tag?
 git tag | grep ${TAG} | grep -v rc >/dev/null || git_pull_torvalds
-git checkout ${TAG} -b tmp-patching-branch
+git checkout -f ${TAG} -b tmp-patching-branch
 
 if [ "${EXTERNAL_TREE}" ] ; then
 	#we are pulling the  external tree into 1st branch, and checkout the SHA into a 2nd, 
