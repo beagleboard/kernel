@@ -20,7 +20,7 @@ EXTRATAG=""
 #EXTERNAL_BRANCH="v3.2-staging"
 #EXTERNAL_SHA="e8004dad869568692ca2a45c04e8464ce48cc4d7"
 
-PATCHSET="distro omap_cpufreq micrel_zippy2 sakoman beagle devkit8000 touchbook panda omap_fixes"
+PATCHSET="distro omap_cpufreq micrel_zippy2 sakoman beagle devkit8000 touchbook panda omap_fixes sgx"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
