@@ -54,16 +54,16 @@ index 4f4ea34..de2d2ee 100755
  	struct tlc59108_bl *data = dev_get_drvdata(&dev->dev);
 -	int brightness = props->brightness;
 +
-+        int brightness = props->brightness;
++	int brightness = props->brightness;
 +
-+        if (dev->props.state & BL_CORE_FBBLANK) {
-+                brightness = 0;
-+        	/* Set LEDOUT0 Register */
-+	        i2c_smbus_write_byte_data(data->client, TLC59108_LEDOUT0, 0x10);
-+	} else {	
-+        	/* Set LEDOUT0 Register */
-+        	i2c_smbus_write_byte_data(data->client, TLC59108_LEDOUT0, 0x30);
-+	}		
++	if (dev->props.state & BL_CORE_FBBLANK) {
++		brightness = 0;
++		/* Set LEDOUT0 Register */
++		i2c_smbus_write_byte_data(data->client, TLC59108_LEDOUT0, 0x10);
++	} else {
++		/* Set LEDOUT0 Register */
++		i2c_smbus_write_byte_data(data->client, TLC59108_LEDOUT0, 0x30);
++	}
  
  	tlc59108_bl_set_backlight(data, brightness);
  
