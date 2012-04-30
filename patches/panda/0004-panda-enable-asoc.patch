@@ -1,0 +1,1309 @@
+From e7960e4112a475bba49b544a7cef278a4cb86650 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Sat, 21 Apr 2012 18:23:26 -0500
+Subject: [PATCH 4/4] panda enable asoc
+
+I applied the ASoC patch v4 (provided by Peter Ujfalusi) with some modification
+to fit your 3.2.15 kernel. Now with your kernel and the ASoC patch, I have a
+Pandaboard ES with both working DVI and audio under Ubuntu 12.04.
+
+Signed-off-by: Rashwan A <rashwan.a@gmail.com>
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c            |   35 ++
+ arch/arm/mach-omap2/board-omap4panda.c         |   59 ++-
+ include/linux/platform_data/omap-abe-twl6040.h |   49 +++
+ sound/soc/codecs/twl6040.c                     |   16 +-
+ sound/soc/omap/Kconfig                         |   21 +-
+ sound/soc/omap/Makefile                        |    4 +-
+ sound/soc/omap/omap-abe-twl6040.c              |  349 +++++++++++++++
+ sound/soc/omap/omap-dmic.c                     |  545 ++++++++++++++++++++++++
+ sound/soc/omap/omap-dmic.h                     |   69 +++
+ 9 files changed, 1128 insertions(+), 19 deletions(-)
+ create mode 100644 include/linux/platform_data/omap-abe-twl6040.h
+ create mode 100644 sound/soc/omap/omap-abe-twl6040.c
+ create mode 100644 sound/soc/omap/omap-dmic.c
+ create mode 100644 sound/soc/omap/omap-dmic.h
+
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 02cd29a..dfec938 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -41,6 +41,7 @@
+ #include <video/omap-panel-nokia-dsi.h>
+ #include <video/omap-panel-picodlp.h>
+ #include <linux/wl12xx.h>
++#include <linux/platform_data/omap-abe-twl6040.h>
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
+@@ -373,11 +374,45 @@ static struct platform_device sdp4430_vbat = {
+ 	},
+ };
+ 
++static struct platform_device sdp4430_dmic_codec = {
++        .name   = "dmic-codec",
++        .id     = -1,
++};
++
++static struct omap_abe_twl6040_data sdp4430_abe_audio_data = {
++	.card_name = "SDP4430",
++	.has_hs		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	.has_hf		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	.has_ep		= 1,
++	.has_aux	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	.has_vibra	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++
++	.has_dmic	= 1,
++	.has_hsmic	= 1,
++	.has_mainmic	= 1,
++	.has_submic	= 1,
++	.has_afm	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++
++	.jack_detection = 1,
++	/* MCLK input is 38.4MHz */
++	.mclk_freq	= 38400000,
++};
++
++static struct platform_device sdp4430_abe_audio = {
++	.name		= "omap-abe-twl6040",
++	.id		= -1,
++	.dev = {
++		.platform_data = &sdp4430_abe_audio_data,
++	},
++};
++
+ static struct platform_device *sdp4430_devices[] __initdata = {
+ 	&sdp4430_gpio_keys_device,
+ 	&sdp4430_leds_gpio,
+ 	&sdp4430_leds_pwm,
+ 	&sdp4430_vbat,
++	&sdp4430_dmic_codec,
++	&sdp4430_abe_audio,
+ };
+ 
+ static struct omap_musb_board_data musb_board_data = {
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 9f133ce..f38772d 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -29,6 +29,7 @@
+ #include <linux/regulator/fixed.h>
+ #include <linux/ti_wilink_st.h>
+ #include <linux/wl12xx.h>
++#include <linux/platform_data/omap-abe-twl6040.h>
+ 
+ #include <mach/hardware.h>
+ #include <mach/omap4-common.h>
+@@ -106,11 +107,35 @@ static struct platform_device leds_gpio = {
+ 	},
+ };
+ 
++static struct omap_abe_twl6040_data panda_abe_audio_data = {
++	/* Audio out */
++	.has_hs		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	/* HandsFree through expasion connector */
++	.has_hf		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	/* PandaBoard: FM TX, PandaBoardES: can be connected to audio out */
++	.has_aux	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	/* PandaBoard: FM RX, PandaBoardES: audio in */
++	.has_afm	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	/* No jack detection. */
++	.jack_detection	= 0,
++	/* MCLK input is 38.4MHz */
++	.mclk_freq	= 38400000,
++
++};
++
++static struct platform_device panda_abe_audio = {
++	.name		= "omap-abe-twl6040",
++	.id		= -1,
++	.dev = {
++		.platform_data = &panda_abe_audio_data,
++	},
++};
+ 
+ static struct platform_device *panda_devices[] __initdata = {
+ 	&leds_gpio,
+ 	&wl1271_device,
+ 	&btwilink_device,
++	&panda_abe_audio,
+ };
+ 
+ static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
+@@ -269,8 +294,25 @@ static int __init omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers)
+ 	return 0;
+ }
+ 
++static struct twl4030_codec_data twl6040_codec = {
++	/* single-step ramp for headset and handsfree */
++	.hs_left_step	= 0x0f,
++	.hs_right_step	= 0x0f,
++	.hf_left_step	= 0x1d,
++	.hf_right_step	= 0x1d,
++};
++
++static struct twl4030_audio_data twl6040_audio = {
++	.codec		= &twl6040_codec,
++	.audpwron_gpio	= 127,
++	.naudint_irq	= OMAP44XX_IRQ_SYS_2N,
++	.irq_base	= TWL6040_CODEC_IRQ_BASE,
++};
++
+ /* Panda board uses the common PMIC configuration */
+-static struct twl4030_platform_data omap4_panda_twldata;
++static struct twl4030_platform_data omap4_panda_twldata = {
++	.audio		= &twl6040_audio,
++};
+ 
+ /*
+  * Display monitor features are burnt in their EEPROM as EDID data. The EEPROM
+@@ -571,6 +613,20 @@ void omap4_panda_display_init(void)
+ 	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
+ }
+ 
++static void omap4_panda_init_rev(void)
++{
++	if (cpu_is_omap4430()) {
++		/* PandaBoard 4430 */
++		/* ASoC audio configuration */
++		panda_abe_audio_data.card_name = "PandaBoard";
++		panda_abe_audio_data.has_hsmic = 1;
++	} else {
++		/* PandaBoard ES */
++		/* ASoC audio configuration */
++		panda_abe_audio_data.card_name = "PandaBoardES";
++	}
++}
++
+ static void __init omap4_panda_init(void)
+ {
+ 	int package = OMAP_PACKAGE_CBS;
+@@ -582,6 +638,7 @@ static void __init omap4_panda_init(void)
+ 	if (wl12xx_set_platform_data(&omap_panda_wlan_data))
+ 		pr_err("error setting wl12xx data\n");
+ 
++	omap4_panda_init_rev();
+ 	omap4_panda_i2c_init();
+ 	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
+ 	platform_device_register(&omap_vwlan_device);
+diff --git a/include/linux/platform_data/omap-abe-twl6040.h b/include/linux/platform_data/omap-abe-twl6040.h
+new file mode 100644
+index 0000000..5d298ac
+--- /dev/null
++++ b/include/linux/platform_data/omap-abe-twl6040.h
+@@ -0,0 +1,49 @@
++/**
++ * omap-abe-twl6040.h - ASoC machine driver OMAP4+ devices, header.
++ *
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com
++ * All rights reserved.
++ *
++ * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#ifndef _OMAP_ABE_TWL6040_H_
++#define _OMAP_ABE_TWL6040_H_
++
++/* To select if only one channel is connected in a stereo port */
++#define ABE_TWL6040_LEFT	(1 << 0)
++#define ABE_TWL6040_RIGHT	(1 << 1)
++
++struct omap_abe_twl6040_data {
++	char *card_name;
++	/* Feature flags for connected audio pins */
++	u8	has_hs;
++	u8	has_hf;
++	bool	has_ep;
++	u8	has_aux;
++	u8	has_vibra;
++	bool	has_dmic;
++	bool	has_hsmic;
++	bool	has_mainmic;
++	bool	has_submic;
++	u8	has_afm;
++	/* Other features */
++	bool	jack_detection;	/* board can detect jack events */
++	int	mclk_freq;	/* MCLK frequency speed for twl6040 */
++};
++
++#endif /* _OMAP_ABE_TWL6040_H_ */
+diff --git a/sound/soc/codecs/twl6040.c b/sound/soc/codecs/twl6040.c
+index 73e11f0..2f34663 100644
+--- a/sound/soc/codecs/twl6040.c
++++ b/sound/soc/codecs/twl6040.c
+@@ -1102,14 +1102,14 @@ static const struct snd_soc_dapm_widget twl6040_dapm_widgets[] = {
+ 			TWL6040_REG_MICRCTL, 2, 0),
+ 
+ 	/* Microphone bias */
+-	SND_SOC_DAPM_MICBIAS("Headset Mic Bias",
+-			TWL6040_REG_AMICBCTL, 0, 0),
+-	SND_SOC_DAPM_MICBIAS("Main Mic Bias",
+-			TWL6040_REG_AMICBCTL, 4, 0),
+-	SND_SOC_DAPM_MICBIAS("Digital Mic1 Bias",
+-			TWL6040_REG_DMICBCTL, 0, 0),
+-	SND_SOC_DAPM_MICBIAS("Digital Mic2 Bias",
+-			TWL6040_REG_DMICBCTL, 4, 0),
++	SND_SOC_DAPM_SUPPLY("Headset Mic Bias",
++			    TWL6040_REG_AMICBCTL, 0, 0, NULL, 0),
++	SND_SOC_DAPM_SUPPLY("Main Mic Bias",
++			    TWL6040_REG_AMICBCTL, 4, 0, NULL, 0),
++	SND_SOC_DAPM_SUPPLY("Digital Mic1 Bias",
++			    TWL6040_REG_DMICBCTL, 0, 0, NULL, 0),
++	SND_SOC_DAPM_SUPPLY("Digital Mic2 Bias",
++			    TWL6040_REG_DMICBCTL, 4, 0, NULL, 0),
+ 
+ 	/* DACs */
+ 	SND_SOC_DAPM_DAC("HSDAC Left", "Headset Playback", SND_SOC_NOPM, 0, 0),
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index fe83d0d..a9b0954 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -94,14 +94,19 @@ config SND_OMAP_SOC_SDP3430
+ 	  Say Y if you want to add support for SoC audio on Texas Instruments
+ 	  SDP3430.
+ 
+-config SND_OMAP_SOC_SDP4430
+-	tristate "SoC Audio support for Texas Instruments SDP4430"
+-	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_4430SDP
+-	select SND_OMAP_SOC_MCPDM
+-	select SND_SOC_TWL6040
+-	help
+-	  Say Y if you want to add support for SoC audio on Texas Instruments
+-	  SDP4430.
++config SND_OMAP_SOC_OMAP_ABE_TWL6040
++        tristate "SoC Audio support for OMAP boards using ABE and twl6040 codec"
++        depends on TWL4030_CORE && SND_OMAP_SOC && ARCH_OMAP4
++        select SND_OMAP_SOC_DMIC
++        select SND_OMAP_SOC_MCPDM
++        select SND_SOC_TWL6040
++        select SND_SOC_DMIC
++        help
++          Say Y if you want to add support for SoC audio on OMAP boards using
++          ABE and twl6040 codec. This driver currently supports:
++          - SDP4430/Blaze boards
++          - PandaBoard (4430)
++          - PandaBoardES (4460)
+ 
+ config SND_OMAP_SOC_OMAP4_HDMI
+ 	tristate "SoC Audio support for Texas Instruments OMAP4 HDMI"
+diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+index 052fd75..d0934dd 100644
+--- a/sound/soc/omap/Makefile
++++ b/sound/soc/omap/Makefile
+@@ -18,7 +18,7 @@ snd-soc-overo-objs := overo.o
+ snd-soc-omap3evm-objs := omap3evm.o
+ snd-soc-am3517evm-objs := am3517evm.o
+ snd-soc-sdp3430-objs := sdp3430.o
+-snd-soc-sdp4430-objs := sdp4430.o
++snd-soc-omap-abe-twl6040-objs := omap-abe-twl6040.o
+ snd-soc-omap3pandora-objs := omap3pandora.o
+ snd-soc-omap3beagle-objs := omap3beagle.o
+ snd-soc-zoom2-objs := zoom2.o
+@@ -34,7 +34,7 @@ obj-$(CONFIG_SND_OMAP_SOC_OMAP2EVM) += snd-soc-omap2evm.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3EVM) += snd-soc-omap3evm.o
+ obj-$(CONFIG_SND_OMAP_SOC_AM3517EVM) += snd-soc-am3517evm.o
+ obj-$(CONFIG_SND_OMAP_SOC_SDP3430) += snd-soc-sdp3430.o
+-obj-$(CONFIG_SND_OMAP_SOC_SDP4430) += snd-soc-sdp4430.o
++obj-$(CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040) += snd-soc-omap-abe-twl6040.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
+ obj-$(CONFIG_SND_OMAP_SOC_ZOOM2) += snd-soc-zoom2.o
+diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/omap/omap-abe-twl6040.c
+new file mode 100644
+index 0000000..9c2f090
+--- /dev/null
++++ b/sound/soc/omap/omap-abe-twl6040.c
+@@ -0,0 +1,349 @@
++/*
++ * omap-abe-twl6040.c  --  SoC audio for TI OMAP based boards with ABE and
++ *			   twl6040 codec
++ *
++ * Author: Misael Lopez Cruz <misael.lopez@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#include <linux/clk.h>
++#include <linux/platform_device.h>
++#include <linux/mfd/twl6040.h>
++#include <linux/platform_data/omap-abe-twl6040.h>
++#include <linux/module.h>
++
++#include <sound/core.h>
++#include <sound/pcm.h>
++#include <sound/soc.h>
++#include <sound/jack.h>
++
++#include <asm/mach-types.h>
++#include <plat/hardware.h>
++#include <plat/mux.h>
++
++#include "omap-dmic.h"
++#include "omap-mcpdm.h"
++#include "omap-pcm.h"
++#include "../codecs/twl6040.h"
++
++static int omap_abe_hw_params(struct snd_pcm_substream *substream,
++	struct snd_pcm_hw_params *params)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_dai *codec_dai = rtd->codec_dai;
++	struct snd_soc_codec *codec = rtd->codec;
++	struct snd_soc_card *card = codec->card;
++	struct omap_abe_twl6040_data *pdata = dev_get_platdata(card->dev);
++	int clk_id, freq;
++	int ret;
++
++	clk_id = twl6040_get_clk_id(rtd->codec);
++	if (clk_id == TWL6040_SYSCLK_SEL_HPPLL)
++		freq = pdata->mclk_freq;
++	else if (clk_id == TWL6040_SYSCLK_SEL_LPPLL)
++		freq = 32768;
++	else
++		return -EINVAL;
++
++	/* set the codec mclk */
++	ret = snd_soc_dai_set_sysclk(codec_dai, clk_id, freq,
++				SND_SOC_CLOCK_IN);
++	if (ret) {
++		printk(KERN_ERR "can't set codec system clock\n");
++		return ret;
++	}
++	return ret;
++}
++
++static struct snd_soc_ops omap_abe_ops = {
++	.hw_params = omap_abe_hw_params,
++};
++
++static int omap_abe_dmic_hw_params(struct snd_pcm_substream *substream,
++	struct snd_pcm_hw_params *params)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
++	int ret = 0;
++
++	ret = snd_soc_dai_set_sysclk(cpu_dai, OMAP_DMIC_SYSCLK_PAD_CLKS,
++				     19200000, SND_SOC_CLOCK_IN);
++	if (ret < 0) {
++		printk(KERN_ERR "can't set DMIC cpu system clock\n");
++		return ret;
++	}
++	ret = snd_soc_dai_set_sysclk(cpu_dai, OMAP_DMIC_ABE_DMIC_CLK, 2400000,
++				     SND_SOC_CLOCK_OUT);
++	if (ret < 0) {
++		printk(KERN_ERR "can't set DMIC output clock\n");
++		return ret;
++	}
++	return 0;
++}
++
++static struct snd_soc_ops omap_abe_dmic_ops = {
++	.hw_params = omap_abe_dmic_hw_params,
++};
++
++/* Headset jack */
++static struct snd_soc_jack hs_jack;
++
++/*Headset jack detection DAPM pins */
++static struct snd_soc_jack_pin hs_jack_pins[] = {
++	{
++		.pin = "Headset Mic",
++		.mask = SND_JACK_MICROPHONE,
++	},
++	{
++		.pin = "Headset Stereophone",
++		.mask = SND_JACK_HEADPHONE,
++	},
++};
++
++/* SDP4430 machine DAPM */
++static const struct snd_soc_dapm_widget twl6040_dapm_widgets[] = {
++	/* Outputs */
++	SND_SOC_DAPM_HP("Headset Stereophone", NULL),
++	SND_SOC_DAPM_SPK("Earphone Spk", NULL),
++	SND_SOC_DAPM_SPK("Ext Spk", NULL),
++	SND_SOC_DAPM_LINE("Line Out", NULL),
++	SND_SOC_DAPM_SPK("Vibrator", NULL),
++
++	/* Inputs */
++	SND_SOC_DAPM_MIC("Headset Mic", NULL),
++	SND_SOC_DAPM_MIC("Main Handset Mic", NULL),
++	SND_SOC_DAPM_MIC("Sub Handset Mic", NULL),
++	SND_SOC_DAPM_LINE("Line In", NULL),
++};
++
++static const struct snd_soc_dapm_route audio_map[] = {
++	/* Routings for outputs */
++	{"Headset Stereophone", NULL, "HSOL"},
++	{"Headset Stereophone", NULL, "HSOR"},
++
++	{"Earphone Spk", NULL, "EP"},
++
++	{"Ext Spk", NULL, "HFL"},
++	{"Ext Spk", NULL, "HFR"},
++
++	{"Line Out", NULL, "AUXL"},
++	{"Line Out", NULL, "AUXR"},
++
++	{"Vibrator", NULL, "VIBRAL"},
++	{"Vibrator", NULL, "VIBRAR"},
++
++	/* Routings for inputs */
++	{"HSMIC", NULL, "Headset Mic"},
++	{"Headset Mic", NULL, "Headset Mic Bias"},
++
++	{"MAINMIC", NULL, "Main Handset Mic"},
++	{"Main Handset Mic", NULL, "Main Mic Bias"},
++
++	{"SUBMIC", NULL, "Sub Handset Mic"},
++	{"Sub Handset Mic", NULL, "Main Mic Bias"},
++
++	{"AFML", NULL, "Line In"},
++	{"AFMR", NULL, "Line In"},
++};
++
++static inline void twl6040_disconnect_pin(struct snd_soc_dapm_context *dapm,
++					  int connected, char *pin)
++{
++	if (!connected)
++		snd_soc_dapm_disable_pin(dapm, pin);
++}
++
++static int omap_abe_twl6040_init(struct snd_soc_pcm_runtime *rtd)
++{
++	struct snd_soc_codec *codec = rtd->codec;
++	struct snd_soc_card *card = codec->card;
++	struct snd_soc_dapm_context *dapm = &codec->dapm;
++	struct omap_abe_twl6040_data *pdata = dev_get_platdata(card->dev);
++	int hs_trim;
++	int ret = 0;
++
++	/* Disable not connected paths if not used */
++	twl6040_disconnect_pin(dapm, pdata->has_hs, "Headset Stereophone");
++	twl6040_disconnect_pin(dapm, pdata->has_hf, "Ext Spk");
++	twl6040_disconnect_pin(dapm, pdata->has_ep, "Earphone Spk");
++	twl6040_disconnect_pin(dapm, pdata->has_aux, "Line Out");
++	twl6040_disconnect_pin(dapm, pdata->has_vibra, "Vibrator");
++	twl6040_disconnect_pin(dapm, pdata->has_hsmic, "Headset Mic");
++	twl6040_disconnect_pin(dapm, pdata->has_mainmic, "Main Handset Mic");
++	twl6040_disconnect_pin(dapm, pdata->has_submic, "Sub Handset Mic");
++	twl6040_disconnect_pin(dapm, pdata->has_afm, "Line In");
++
++	/*
++	 * Configure McPDM offset cancellation based on the HSOTRIM value from
++	 * twl6040.
++	 */
++	hs_trim = twl6040_get_trim_value(codec, TWL6040_TRIM_HSOTRIM);
++	omap_mcpdm_configure_dn_offsets(rtd, TWL6040_HSF_TRIM_LEFT(hs_trim),
++					TWL6040_HSF_TRIM_RIGHT(hs_trim));
++
++	/* Headset jack detection only if it is supported */
++	if (pdata->jack_detection) {
++		ret = snd_soc_jack_new(codec, "Headset Jack",
++					SND_JACK_HEADSET, &hs_jack);
++		if (ret)
++			return ret;
++
++		ret = snd_soc_jack_add_pins(&hs_jack, ARRAY_SIZE(hs_jack_pins),
++					hs_jack_pins);
++		twl6040_hs_jack_detect(codec, &hs_jack, SND_JACK_HEADSET);
++	}
++
++	return ret;
++}
++
++static const struct snd_soc_dapm_widget dmic_dapm_widgets[] = {
++	SND_SOC_DAPM_MIC("Digital Mic", NULL),
++};
++
++static const struct snd_soc_dapm_route dmic_audio_map[] = {
++	{"DMic", NULL, "Digital Mic"},
++	{"Digital Mic", NULL, "Digital Mic1 Bias"},
++};
++
++static int omap_abe_dmic_init(struct snd_soc_pcm_runtime *rtd)
++{
++	struct snd_soc_codec *codec = rtd->codec;
++	struct snd_soc_dapm_context *dapm = &codec->dapm;
++	int ret;
++
++	ret = snd_soc_dapm_new_controls(dapm, dmic_dapm_widgets,
++				ARRAY_SIZE(dmic_dapm_widgets));
++	if (ret)
++		return ret;
++
++	return snd_soc_dapm_add_routes(dapm, dmic_audio_map,
++				ARRAY_SIZE(dmic_audio_map));
++}
++
++/* Digital audio interface glue - connects codec <--> CPU */
++static struct snd_soc_dai_link twl6040_dmic_dai[] = {
++	{
++		.name = "TWL6040",
++		.stream_name = "TWL6040",
++		.cpu_dai_name = "omap-mcpdm",
++		.codec_dai_name = "twl6040-legacy",
++		.platform_name = "omap-pcm-audio",
++		.codec_name = "twl6040-codec",
++		.init = omap_abe_twl6040_init,
++		.ops = &omap_abe_ops,
++	},
++	{
++		.name = "DMIC",
++		.stream_name = "DMIC Capture",
++		.cpu_dai_name = "omap-dmic",
++		.codec_dai_name = "dmic-hifi",
++		.platform_name = "omap-pcm-audio",
++		.codec_name = "dmic-codec",
++		.init = omap_abe_dmic_init,
++		.ops = &omap_abe_dmic_ops,
++	},
++};
++
++static struct snd_soc_dai_link twl6040_only_dai[] = {
++	{
++		.name = "TWL6040",
++		.stream_name = "TWL6040",
++		.cpu_dai_name = "omap-mcpdm",
++		.codec_dai_name = "twl6040-legacy",
++		.platform_name = "omap-pcm-audio",
++		.codec_name = "twl6040-codec",
++		.init = omap_abe_twl6040_init,
++		.ops = &omap_abe_ops,
++	},
++};
++
++/* Audio machine driver */
++static struct snd_soc_card omap_abe_card = {
++	.owner = THIS_MODULE,
++
++	.dapm_widgets = twl6040_dapm_widgets,
++	.num_dapm_widgets = ARRAY_SIZE(twl6040_dapm_widgets),
++	.dapm_routes = audio_map,
++	.num_dapm_routes = ARRAY_SIZE(audio_map),
++};
++
++static __devinit int omap_abe_probe(struct platform_device *pdev)
++{
++	struct omap_abe_twl6040_data *pdata = dev_get_platdata(&pdev->dev);
++	struct snd_soc_card *card = &omap_abe_card;
++	int ret;
++
++	card->dev = &pdev->dev;
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "Missing pdata\n");
++		return -ENODEV;
++	}
++
++	if (pdata->card_name) {
++		card->name = pdata->card_name;
++	} else {
++		dev_err(&pdev->dev, "Card name is not provided\n");
++		return -ENODEV;
++	}
++
++	if (!pdata->mclk_freq) {
++		dev_err(&pdev->dev, "MCLK frequency missing\n");
++		return -ENODEV;
++	}
++
++	if (pdata->has_dmic) {
++		card->dai_link = twl6040_dmic_dai;
++		card->num_links = ARRAY_SIZE(twl6040_dmic_dai);
++	} else {
++		card->dai_link = twl6040_only_dai;
++		card->num_links = ARRAY_SIZE(twl6040_only_dai);
++	}
++
++	ret = snd_soc_register_card(card);
++	if (ret)
++		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
++			ret);
++
++	return ret;
++}
++
++static int __devexit omap_abe_remove(struct platform_device *pdev)
++{
++	struct snd_soc_card *card = platform_get_drvdata(pdev);
++
++	snd_soc_unregister_card(card);
++
++	return 0;
++}
++
++static struct platform_driver omap_abe_driver = {
++	.driver = {
++		.name = "omap-abe-twl6040",
++		.owner = THIS_MODULE,
++		.pm = &snd_soc_pm_ops,
++	},
++	.probe = omap_abe_probe,
++	.remove = __devexit_p(omap_abe_remove),
++};
++
++module_platform_driver(omap_abe_driver);
++
++MODULE_AUTHOR("Misael Lopez Cruz <misael.lopez@ti.com>");
++MODULE_DESCRIPTION("ALSA SoC for OMAP boards with ABE and twl6040 codec");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:omap-abe-twl6040");
+diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
+new file mode 100644
+index 0000000..4dcb5a7
+--- /dev/null
++++ b/sound/soc/omap/omap-dmic.c
+@@ -0,0 +1,545 @@
++/*
++ * omap-dmic.c  --  OMAP ASoC DMIC DAI driver
++ *
++ * Copyright (C) 2010 - 2011 Texas Instruments
++ *
++ * Author: David Lambert <dlambert@ti.com>
++ *	   Misael Lopez Cruz <misael.lopez@ti.com>
++ *	   Liam Girdwood <lrg@ti.com>
++ *	   Peter Ujfalusi <peter.ujfalusi@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/err.h>
++#include <linux/clk.h>
++#include <linux/io.h>
++#include <linux/slab.h>
++#include <linux/pm_runtime.h>
++#include <plat/dma.h>
++
++#include <sound/core.h>
++#include <sound/pcm.h>
++#include <sound/pcm_params.h>
++#include <sound/initval.h>
++#include <sound/soc.h>
++
++#include "omap-pcm.h"
++#include "omap-dmic.h"
++
++struct omap_dmic {
++	struct device *dev;
++	void __iomem *io_base;
++	struct clk *fclk;
++	int fclk_freq;
++	int out_freq;
++	int clk_div;
++	int sysclk;
++	int threshold;
++	u32 ch_enabled;
++	bool active;
++	struct mutex mutex;
++};
++
++/*
++ * Stream DMA parameters
++ */
++static struct omap_pcm_dma_data omap_dmic_dai_dma_params = {
++	.name		= "DMIC capture",
++	.data_type	= OMAP_DMA_DATA_TYPE_S32,
++	.sync_mode	= OMAP_DMA_SYNC_PACKET,
++};
++
++static inline void omap_dmic_write(struct omap_dmic *dmic, u16 reg, u32 val)
++{
++	__raw_writel(val, dmic->io_base + reg);
++}
++
++static inline int omap_dmic_read(struct omap_dmic *dmic, u16 reg)
++{
++	return __raw_readl(dmic->io_base + reg);
++}
++
++static inline void omap_dmic_start(struct omap_dmic *dmic)
++{
++	u32 ctrl = omap_dmic_read(dmic, OMAP_DMIC_CTRL_REG);
++
++	/* Configure DMA controller */
++	omap_dmic_write(dmic, OMAP_DMIC_DMAENABLE_SET_REG,
++			OMAP_DMIC_DMA_ENABLE);
++
++	omap_dmic_write(dmic, OMAP_DMIC_CTRL_REG, ctrl | dmic->ch_enabled);
++}
++
++static inline void omap_dmic_stop(struct omap_dmic *dmic)
++{
++	u32 ctrl = omap_dmic_read(dmic, OMAP_DMIC_CTRL_REG);
++	omap_dmic_write(dmic, OMAP_DMIC_CTRL_REG,
++			ctrl & ~OMAP_DMIC_UP_ENABLE_MASK);
++
++	/* Disable DMA request generation */
++	omap_dmic_write(dmic, OMAP_DMIC_DMAENABLE_CLR_REG,
++			OMAP_DMIC_DMA_ENABLE);
++
++}
++
++static inline int dmic_is_enabled(struct omap_dmic *dmic)
++{
++	return omap_dmic_read(dmic, OMAP_DMIC_CTRL_REG) &
++						OMAP_DMIC_UP_ENABLE_MASK;
++}
++
++static int omap_dmic_dai_startup(struct snd_pcm_substream *substream,
++				  struct snd_soc_dai *dai)
++{
++	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
++	int ret = 0;
++
++	mutex_lock(&dmic->mutex);
++
++	if (!dai->active)
++		dmic->active = 1;
++	else
++		ret = -EBUSY;
++
++	mutex_unlock(&dmic->mutex);
++
++	return ret;
++}
++
++static void omap_dmic_dai_shutdown(struct snd_pcm_substream *substream,
++				    struct snd_soc_dai *dai)
++{
++	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
++
++	mutex_lock(&dmic->mutex);
++
++	if (!dai->active)
++		dmic->active = 0;
++
++	mutex_unlock(&dmic->mutex);
++}
++
++static int omap_dmic_select_divider(struct omap_dmic *dmic, int sample_rate)
++{
++	int divider = -EINVAL;
++
++	/*
++	 * 192KHz rate is only supported with 19.2MHz/3.84MHz clock
++	 * configuration.
++	 */
++	if (sample_rate == 192000) {
++		if (dmic->fclk_freq == 19200000 && dmic->out_freq == 3840000)
++			divider = 0x6; /* Divider: 5 (192KHz sampling rate) */
++		else
++			dev_err(dmic->dev,
++				"invalid clock configuration for 192KHz\n");
++
++		return divider;
++	}
++
++	switch (dmic->out_freq) {
++	case 1536000:
++		if (dmic->fclk_freq != 24576000)
++			goto div_err;
++		divider = 0x4; /* Divider: 16 */
++		break;
++	case 2400000:
++		switch (dmic->fclk_freq) {
++		case 12000000:
++			divider = 0x5; /* Divider: 5 */
++			break;
++		case 19200000:
++			divider = 0x0; /* Divider: 8 */
++			break;
++		case 24000000:
++			divider = 0x2; /* Divider: 10 */
++			break;
++		default:
++			goto div_err;
++		}
++		break;
++	case 3072000:
++		if (dmic->fclk_freq != 24576000)
++			goto div_err;
++		divider = 0x3; /* Divider: 8 */
++		break;
++	case 3840000:
++		if (dmic->fclk_freq != 19200000)
++			goto div_err;
++		divider = 0x1; /* Divider: 5 (96KHz sampling rate) */
++		break;
++	default:
++		dev_err(dmic->dev, "invalid out frequency: %dHz\n",
++			dmic->out_freq);
++		break;
++	}
++
++	return divider;
++
++div_err:
++	dev_err(dmic->dev, "invalid out frequency %dHz for %dHz input\n",
++		dmic->out_freq, dmic->fclk_freq);
++	return -EINVAL;
++}
++
++static int omap_dmic_dai_hw_params(struct snd_pcm_substream *substream,
++				    struct snd_pcm_hw_params *params,
++				    struct snd_soc_dai *dai)
++{
++	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
++	int channels;
++
++	dmic->clk_div = omap_dmic_select_divider(dmic, params_rate(params));
++	if (dmic->clk_div < 0) {
++		dev_err(dmic->dev, "no valid divider for %dHz from %dHz\n",
++			dmic->out_freq, dmic->fclk_freq);
++		return -EINVAL;
++	}
++
++	dmic->ch_enabled = 0;
++	channels = params_channels(params);
++	switch (channels) {
++	case 6:
++		dmic->ch_enabled |= OMAP_DMIC_UP3_ENABLE;
++	case 4:
++		dmic->ch_enabled |= OMAP_DMIC_UP2_ENABLE;
++	case 2:
++		dmic->ch_enabled |= OMAP_DMIC_UP1_ENABLE;
++		break;
++	default:
++		dev_err(dmic->dev, "invalid number of legacy channels\n");
++		return -EINVAL;
++	}
++
++	/* packet size is threshold * channels */
++	omap_dmic_dai_dma_params.packet_size = dmic->threshold * channels;
++	snd_soc_dai_set_dma_data(dai, substream, &omap_dmic_dai_dma_params);
++
++	return 0;
++}
++
++static int omap_dmic_dai_prepare(struct snd_pcm_substream *substream,
++				  struct snd_soc_dai *dai)
++{
++	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
++	u32 ctrl;
++
++	/* Configure uplink threshold */
++	omap_dmic_write(dmic, OMAP_DMIC_FIFO_CTRL_REG, dmic->threshold);
++
++	ctrl = omap_dmic_read(dmic, OMAP_DMIC_CTRL_REG);
++
++	/* Set dmic out format */
++	ctrl &= ~(OMAP_DMIC_FORMAT | OMAP_DMIC_POLAR_MASK);
++	ctrl |= (OMAP_DMICOUTFORMAT_LJUST | OMAP_DMIC_POLAR1 |
++		 OMAP_DMIC_POLAR2 | OMAP_DMIC_POLAR3);
++
++	/* Configure dmic clock divider */
++	ctrl &= ~OMAP_DMIC_CLK_DIV_MASK;
++	ctrl |= OMAP_DMIC_CLK_DIV(dmic->clk_div);
++
++	omap_dmic_write(dmic, OMAP_DMIC_CTRL_REG, ctrl);
++
++	omap_dmic_write(dmic, OMAP_DMIC_CTRL_REG,
++			ctrl | OMAP_DMICOUTFORMAT_LJUST | OMAP_DMIC_POLAR1 |
++			OMAP_DMIC_POLAR2 | OMAP_DMIC_POLAR3);
++
++	return 0;
++}
++
++static int omap_dmic_dai_trigger(struct snd_pcm_substream *substream,
++				  int cmd, struct snd_soc_dai *dai)
++{
++	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
++
++	switch (cmd) {
++	case SNDRV_PCM_TRIGGER_START:
++		omap_dmic_start(dmic);
++		break;
++	case SNDRV_PCM_TRIGGER_STOP:
++		omap_dmic_stop(dmic);
++		break;
++	default:
++		break;
++	}
++
++	return 0;
++}
++
++static int omap_dmic_select_fclk(struct omap_dmic *dmic, int clk_id,
++				 unsigned int freq)
++{
++	struct clk *parent_clk;
++	char *parent_clk_name;
++	int ret = 0;
++
++	switch (freq) {
++	case 12000000:
++	case 19200000:
++	case 24000000:
++	case 24576000:
++		break;
++	default:
++		dev_err(dmic->dev, "invalid input frequency: %dHz\n", freq);
++		dmic->fclk_freq = 0;
++		return -EINVAL;
++	}
++
++	if (dmic->sysclk == clk_id) {
++		dmic->fclk_freq = freq;
++		return 0;
++	}
++
++	/* re-parent not allowed if a stream is ongoing */
++	if (dmic->active && dmic_is_enabled(dmic)) {
++		dev_err(dmic->dev, "can't re-parent when DMIC active\n");
++		return -EBUSY;
++	}
++
++	switch (clk_id) {
++	case OMAP_DMIC_SYSCLK_PAD_CLKS:
++		parent_clk_name = "pad_clks_ck";
++		break;
++	case OMAP_DMIC_SYSCLK_SLIMBLUS_CLKS:
++		parent_clk_name = "slimbus_clk";
++		break;
++	case OMAP_DMIC_SYSCLK_SYNC_MUX_CLKS:
++		parent_clk_name = "dmic_sync_mux_ck";
++		break;
++	default:
++		dev_err(dmic->dev, "fclk clk_id (%d) not supported\n", clk_id);
++		return -EINVAL;
++	}
++
++	parent_clk = clk_get(dmic->dev, parent_clk_name);
++	if (IS_ERR(parent_clk)) {
++		dev_err(dmic->dev, "can't get %s\n", parent_clk_name);
++		return -ENODEV;
++	}
++
++	mutex_lock(&dmic->mutex);
++	if (dmic->active) {
++		/* disable clock while reparenting */
++		pm_runtime_put_sync(dmic->dev);
++		ret = clk_set_parent(dmic->fclk, parent_clk);
++		pm_runtime_get_sync(dmic->dev);
++	} else {
++		ret = clk_set_parent(dmic->fclk, parent_clk);
++	}
++	mutex_unlock(&dmic->mutex);
++
++	if (ret < 0) {
++		dev_err(dmic->dev, "re-parent failed\n");
++		goto err_busy;
++	}
++
++	dmic->sysclk = clk_id;
++	dmic->fclk_freq = freq;
++
++err_busy:
++	clk_put(parent_clk);
++
++	return ret;
++}
++
++static int omap_dmic_select_outclk(struct omap_dmic *dmic, int clk_id,
++				    unsigned int freq)
++{
++	int ret = 0;
++
++	if (clk_id != OMAP_DMIC_ABE_DMIC_CLK) {
++		dev_err(dmic->dev, "output clk_id (%d) not supported\n",
++			clk_id);
++		return -EINVAL;
++	}
++
++	switch (freq) {
++	case 1536000:
++	case 2400000:
++	case 3072000:
++	case 3840000:
++		dmic->out_freq = freq;
++		break;
++	default:
++		dev_err(dmic->dev, "invalid out frequency: %dHz\n", freq);
++		dmic->out_freq = 0;
++		ret = -EINVAL;
++	}
++
++	return ret;
++}
++
++static int omap_dmic_set_dai_sysclk(struct snd_soc_dai *dai, int clk_id,
++				    unsigned int freq, int dir)
++{
++	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
++
++	if (dir == SND_SOC_CLOCK_IN)
++		return omap_dmic_select_fclk(dmic, clk_id, freq);
++	else if (dir == SND_SOC_CLOCK_OUT)
++		return omap_dmic_select_outclk(dmic, clk_id, freq);
++
++	dev_err(dmic->dev, "invalid clock direction (%d)\n", dir);
++	return -EINVAL;
++}
++
++static const struct snd_soc_dai_ops omap_dmic_dai_ops = {
++	.startup	= omap_dmic_dai_startup,
++	.shutdown	= omap_dmic_dai_shutdown,
++	.hw_params	= omap_dmic_dai_hw_params,
++	.prepare	= omap_dmic_dai_prepare,
++	.trigger	= omap_dmic_dai_trigger,
++	.set_sysclk	= omap_dmic_set_dai_sysclk,
++};
++
++static int omap_dmic_probe(struct snd_soc_dai *dai)
++{
++	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
++
++	pm_runtime_enable(dmic->dev);
++
++	/* Disable lines while request is ongoing */
++	pm_runtime_get_sync(dmic->dev);
++	omap_dmic_write(dmic, OMAP_DMIC_CTRL_REG, 0x00);
++	pm_runtime_put_sync(dmic->dev);
++
++	/* Configure DMIC threshold value */
++	dmic->threshold = OMAP_DMIC_THRES_MAX - 3;
++	return 0;
++}
++
++static int omap_dmic_remove(struct snd_soc_dai *dai)
++{
++	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
++
++	pm_runtime_disable(dmic->dev);
++
++	return 0;
++}
++
++static struct snd_soc_dai_driver omap_dmic_dai = {
++	.name = "omap-dmic",
++	.probe = omap_dmic_probe,
++	.remove = omap_dmic_remove,
++	.capture = {
++		.channels_min = 2,
++		.channels_max = 6,
++		.rates = SNDRV_PCM_RATE_96000 | SNDRV_PCM_RATE_192000,
++		.formats = SNDRV_PCM_FMTBIT_S32_LE,
++		.sig_bits = 24,
++	},
++	.ops = &omap_dmic_dai_ops,
++};
++
++static __devinit int asoc_dmic_probe(struct platform_device *pdev)
++{
++	struct omap_dmic *dmic;
++	struct resource *res;
++	int ret;
++
++	dmic = devm_kzalloc(&pdev->dev, sizeof(struct omap_dmic), GFP_KERNEL);
++	if (!dmic)
++		return -ENOMEM;
++
++	platform_set_drvdata(pdev, dmic);
++	dmic->dev = &pdev->dev;
++	dmic->sysclk = OMAP_DMIC_SYSCLK_SYNC_MUX_CLKS;
++
++	mutex_init(&dmic->mutex);
++
++	dmic->fclk = clk_get(dmic->dev, "dmic_fck");
++	if (IS_ERR(dmic->fclk)) {
++		dev_err(dmic->dev, "cant get dmic_fck\n");
++		return -ENODEV;
++	}
++
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dma");
++	if (!res) {
++		dev_err(dmic->dev, "invalid dma memory resource\n");
++		ret = -ENODEV;
++		goto err_put_clk;
++	}
++	omap_dmic_dai_dma_params.port_addr = res->start + OMAP_DMIC_DATA_REG;
++
++	res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
++	if (!res) {
++		dev_err(dmic->dev, "invalid dma resource\n");
++		ret = -ENODEV;
++		goto err_put_clk;
++	}
++	omap_dmic_dai_dma_params.dma_req = res->start;
++
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mpu");
++	if (!res) {
++		dev_err(dmic->dev, "invalid memory resource\n");
++		ret = -ENODEV;
++		goto err_put_clk;
++	}
++
++	if (!devm_request_mem_region(&pdev->dev, res->start,
++				     resource_size(res), pdev->name)) {
++		dev_err(dmic->dev, "memory region already claimed\n");
++		ret = -ENODEV;
++		goto err_put_clk;
++	}
++
++	dmic->io_base = devm_ioremap(&pdev->dev, res->start,
++				     resource_size(res));
++	if (!dmic->io_base) {
++		ret = -ENOMEM;
++		goto err_put_clk;
++	}
++
++	ret = snd_soc_register_dai(&pdev->dev, &omap_dmic_dai);
++	if (ret)
++		goto err_put_clk;
++
++	return 0;
++
++err_put_clk:
++	clk_put(dmic->fclk);
++	return ret;
++}
++
++static int __devexit asoc_dmic_remove(struct platform_device *pdev)
++{
++	struct omap_dmic *dmic = platform_get_drvdata(pdev);
++
++	snd_soc_unregister_dai(&pdev->dev);
++	clk_put(dmic->fclk);
++
++	return 0;
++}
++
++static struct platform_driver asoc_dmic_driver = {
++	.driver = {
++		.name = "omap-dmic",
++		.owner = THIS_MODULE,
++	},
++	.probe = asoc_dmic_probe,
++	.remove = __devexit_p(asoc_dmic_remove),
++};
++
++module_platform_driver(asoc_dmic_driver);
++
++MODULE_ALIAS("platform:omap-dmic");
++MODULE_AUTHOR("Peter Ujfalusi <peter.ujfalusi@ti.com>");
++MODULE_DESCRIPTION("OMAP DMIC ASoC Interface");
++MODULE_LICENSE("GPL");
+diff --git a/sound/soc/omap/omap-dmic.h b/sound/soc/omap/omap-dmic.h
+new file mode 100644
+index 0000000..231e728
+--- /dev/null
++++ b/sound/soc/omap/omap-dmic.h
+@@ -0,0 +1,69 @@
++/*
++ * omap-dmic.h  --  OMAP Digital Microphone Controller
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _OMAP_DMIC_H
++#define _OMAP_DMIC_H
++
++#define OMAP_DMIC_REVISION_REG		0x00
++#define OMAP_DMIC_SYSCONFIG_REG		0x10
++#define OMAP_DMIC_IRQSTATUS_RAW_REG	0x24
++#define OMAP_DMIC_IRQSTATUS_REG		0x28
++#define OMAP_DMIC_IRQENABLE_SET_REG	0x2C
++#define OMAP_DMIC_IRQENABLE_CLR_REG	0x30
++#define OMAP_DMIC_IRQWAKE_EN_REG	0x34
++#define OMAP_DMIC_DMAENABLE_SET_REG	0x38
++#define OMAP_DMIC_DMAENABLE_CLR_REG	0x3C
++#define OMAP_DMIC_DMAWAKEEN_REG		0x40
++#define OMAP_DMIC_CTRL_REG		0x44
++#define OMAP_DMIC_DATA_REG		0x48
++#define OMAP_DMIC_FIFO_CTRL_REG		0x4C
++#define OMAP_DMIC_FIFO_DMIC1R_DATA_REG	0x50
++#define OMAP_DMIC_FIFO_DMIC1L_DATA_REG	0x54
++#define OMAP_DMIC_FIFO_DMIC2R_DATA_REG	0x58
++#define OMAP_DMIC_FIFO_DMIC2L_DATA_REG	0x5C
++#define OMAP_DMIC_FIFO_DMIC3R_DATA_REG	0x60
++#define OMAP_DMIC_FIFO_DMIC3L_DATA_REG	0x64
++
++/* IRQSTATUS_RAW, IRQSTATUS, IRQENABLE_SET, IRQENABLE_CLR bit fields */
++#define OMAP_DMIC_IRQ			(1 << 0)
++#define OMAP_DMIC_IRQ_FULL		(1 << 1)
++#define OMAP_DMIC_IRQ_ALMST_EMPTY	(1 << 2)
++#define OMAP_DMIC_IRQ_EMPTY		(1 << 3)
++#define OMAP_DMIC_IRQ_MASK		0x07
++
++/* DMIC_DMAENABLE bit fields */
++#define OMAP_DMIC_DMA_ENABLE		0x1
++
++/* DMIC_CTRL bit fields */
++#define OMAP_DMIC_UP1_ENABLE		(1 << 0)
++#define OMAP_DMIC_UP2_ENABLE		(1 << 1)
++#define OMAP_DMIC_UP3_ENABLE		(1 << 2)
++#define OMAP_DMIC_UP_ENABLE_MASK	0x7
++#define OMAP_DMIC_FORMAT		(1 << 3)
++#define OMAP_DMIC_POLAR1		(1 << 4)
++#define OMAP_DMIC_POLAR2		(1 << 5)
++#define OMAP_DMIC_POLAR3		(1 << 6)
++#define OMAP_DMIC_POLAR_MASK		(0x7 << 4)
++#define OMAP_DMIC_CLK_DIV(x)		(((x) & 0x7) << 7)
++#define OMAP_DMIC_CLK_DIV_MASK		(0x7 << 7)
++#define	OMAP_DMIC_RESET			(1 << 10)
++
++#define OMAP_DMICOUTFORMAT_LJUST	(0 << 3)
++#define OMAP_DMICOUTFORMAT_RJUST	(1 << 3)
++
++/* DMIC_FIFO_CTRL bit fields */
++#define OMAP_DMIC_THRES_MAX		0xF
++
++enum omap_dmic_clk {
++	OMAP_DMIC_SYSCLK_PAD_CLKS,		/* PAD_CLKS */
++	OMAP_DMIC_SYSCLK_SLIMBLUS_CLKS,		/* SLIMBUS_CLK */
++	OMAP_DMIC_SYSCLK_SYNC_MUX_CLKS,		/* DMIC_SYNC_MUX_CLK */
++	OMAP_DMIC_ABE_DMIC_CLK,			/* abe_dmic_clk */
++};
++
++#endif
+-- 
+1.7.10
+
