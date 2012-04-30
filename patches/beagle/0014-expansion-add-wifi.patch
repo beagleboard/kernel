@@ -1,0 +1,142 @@
+From 511ddf817ef878f132e191daf8f14c359bc4323b Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Mon, 16 Apr 2012 10:56:17 -0500
+Subject: [PATCH 14/14] expansion: add wifi
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |  103 +++++++++++++++++++++++++++++++
+ 1 file changed, 103 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 0299d47..a7d81fc 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -166,6 +166,90 @@ static void __init omap3_beagle_init_rev(void)
+ char expansionboard_name[16];
+ char expansionboard2_name[16];
+ 
++#if defined(CONFIG_WL12XX) || defined(CONFIG_WL12XX_MODULE)
++#include <linux/regulator/fixed.h>
++#include <linux/ti_wilink_st.h>
++#include <linux/wl12xx.h>
++
++#define OMAP_BEAGLE_WLAN_EN_GPIO    (139)
++#define OMAP_BEAGLE_BT_EN_GPIO      (138)
++#define OMAP_BEAGLE_WLAN_IRQ_GPIO   (137)
++#define OMAP_BEAGLE_FM_EN_BT_WU     (136)
++
++struct wl12xx_platform_data omap_beagle_wlan_data __initdata = {
++	.irq = OMAP_GPIO_IRQ(OMAP_BEAGLE_WLAN_IRQ_GPIO),
++	.board_ref_clock = 2, /* 38.4 MHz */
++};
++
++static struct ti_st_plat_data wilink_platform_data = {
++	.nshutdown_gpio	= OMAP_BEAGLE_BT_EN_GPIO,
++	.dev_name		= "/dev/ttyO1",
++	.flow_cntrl		= 1,
++	.baud_rate		= 3000000,
++	.chip_enable		= NULL,
++	.suspend		= NULL,
++	.resume		= NULL,
++};
++
++static struct platform_device wl12xx_device = {
++		.name		= "kim",
++		.id			= -1,
++		.dev.platform_data = &wilink_platform_data,
++};
++
++static struct platform_device btwilink_device = {
++	.name	= "btwilink",
++	.id	= -1,
++};
++
++static struct omap2_hsmmc_info mmcbbt[] = {
++	{
++		.mmc		= 1,
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
++		.gpio_wp	= -EINVAL,
++	},
++	{
++		.name		= "wl1271",
++		.mmc		= 2,
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_POWER_OFF_CARD,
++		.gpio_wp	= -EINVAL,
++		.gpio_cd	= -EINVAL,
++		.ocr_mask	= MMC_VDD_165_195,
++		.nonremovable	= true,
++	},
++	{}	/* Terminator */
++};
++
++static struct regulator_consumer_supply beagle_vmmc2_supply =
++	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
++
++static struct regulator_init_data beagle_vmmc2 = {
++	.constraints = {
++		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies = 1,
++	.consumer_supplies = &beagle_vmmc2_supply,
++};
++
++static struct fixed_voltage_config beagle_vwlan = {
++	.supply_name = "vwl1271",
++	.microvolts = 1800000,  /* 1.8V */
++	.gpio = OMAP_BEAGLE_WLAN_EN_GPIO,
++	.startup_delay = 70000, /* 70ms */
++	.enable_high = 1,
++	.enabled_at_boot = 0,
++	.init_data = &beagle_vmmc2,
++};
++
++static struct platform_device omap_vwlan_device = {
++	.name		= "reg-fixed-voltage",
++	.id		= 1,
++	.dev = {
++		.platform_data = &beagle_vwlan,
++	},
++};
++#endif
++
+ #if defined(CONFIG_ENC28J60) || defined(CONFIG_ENC28J60_MODULE)
+ 
+ #include <plat/mcspi.h>
+@@ -449,7 +533,15 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ 	mmc[0].gpio_wp = beagle_config.mmc1_gpio_wp;
+ 	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+ 	mmc[0].gpio_cd = gpio + 0;
++#if defined(CONFIG_WL12XX) || defined(CONFIG_WL12XX_MODULE)
++	if(!strcmp(expansionboard_name, "bbtoys-wifi")) {
++		omap2_hsmmc_init(mmcbbt);
++	} else {
++		omap2_hsmmc_init(mmc);
++	}
++#else
+ 	omap2_hsmmc_init(mmc);
++#endif
+ 
+ 	/*
+ 	 * TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
+@@ -849,6 +941,17 @@ static void __init omap3_beagle_init(void)
+ 		gpio_export(162, 1);
+ 	}
+ 
++	if(!strcmp(expansionboard_name, "bbtoys-wifi"))
++	{
++		if (wl12xx_set_platform_data(&omap_beagle_wlan_data))
++			pr_err("error setting wl12xx data\n");
++		printk(KERN_INFO "Beagle expansionboard: registering wl12xx bt platform device\n");
++		platform_device_register(&wl12xx_device);
++		platform_device_register(&btwilink_device);
++		printk(KERN_INFO "Beagle expansionboard: registering wl12xx wifi platform device\n");
++		platform_device_register(&omap_vwlan_device);
++	}
++
+ 	if(!strcmp(expansionboard2_name, "bbtoys-ulcd"))
+ 	{
+ 		printk(KERN_INFO "Beagle second expansionboard: initializing touchscreen: tsc2007\n");
+-- 
+1.7.10
+
