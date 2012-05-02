@@ -1,0 +1,101 @@
+From e04338adc8953c82903008903b4fa95a0cb30e62 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Thu, 29 Sep 2011 11:50:09 -0500
+Subject: [PATCH 5/7] ksz8851 add is_level_irq
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ drivers/net/ethernet/micrel/ks8851.c |   28 ++++++++++++++++++++++++----
+ 1 file changed, 24 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/ethernet/micrel/ks8851.c b/drivers/net/ethernet/micrel/ks8851.c
+index fe67224..57be574 100644
+--- a/drivers/net/ethernet/micrel/ks8851.c
++++ b/drivers/net/ethernet/micrel/ks8851.c
+@@ -23,6 +23,7 @@
+ #include <linux/crc32.h>
+ #include <linux/mii.h>
+ #include <linux/eeprom_93cx6.h>
++#include <linux/ks8851.h>
+ 
+ #include <linux/spi/spi.h>
+ 
+@@ -71,6 +72,7 @@ struct ks8851_rxctrl {
+  * @rc_rxqcr: Cached copy of KS_RXQCR.
+  * @eeprom_size: Companion eeprom size in Bytes, 0 if no eeprom
+  * @eeprom: 93CX6 EEPROM state for accessing on-board EEPROM.
++ * @irq_flags: The IRQ flags passed to request_irq().
+  *
+  * The @lock ensures that the chip is protected when certain operations are
+  * in progress. When the read or write packet transfer is in progress, most
+@@ -119,6 +121,7 @@ struct ks8851_net {
+ 	struct spi_transfer	spi_xfer2[2];
+ 
+ 	struct eeprom_93cx6	eeprom;
++	unsigned		irq_flags;
+ };
+ 
+ static int msg_enable;
+@@ -431,6 +434,15 @@ static void ks8851_init_mac(struct ks8851_net *ks)
+ }
+ 
+ /**
++ * is_level_irq() - return if the given IRQ flags are level triggered
++ * @flags: The flags passed to request_irq().
++*/
++static bool is_level_irq(unsigned flags)
++{
++	return flags & (IRQF_TRIGGER_LOW | IRQF_TRIGGER_HIGH);
++}
++
++/**
+  * ks8851_irq - device interrupt handler
+  * @irq: Interrupt number passed from the IRQ handler.
+  * @pw: The private word passed to register_irq(), our struct ks8851_net.
+@@ -442,7 +454,9 @@ static irqreturn_t ks8851_irq(int irq, void *pw)
+ {
+ 	struct ks8851_net *ks = pw;
+ 
+-	disable_irq_nosync(irq);
++	if (is_level_irq(ks->irq_flags))
++		disable_irq_nosync(irq);
++
+ 	schedule_work(&ks->irq_work);
+ 	return IRQ_HANDLED;
+ }
+@@ -674,7 +688,8 @@ static void ks8851_irq_work(struct work_struct *work)
+ 	if (status & IRQ_TXI)
+ 		netif_wake_queue(ks->netdev);
+ 
+-	enable_irq(ks->netdev->irq);
++	if (is_level_irq(ks->irq_flags))
++		enable_irq(ks->netdev->irq);
+ }
+ 
+ /**
+@@ -1403,6 +1418,7 @@ static int ks8851_resume(struct spi_device *spi)
+ 
+ static int __devinit ks8851_probe(struct spi_device *spi)
+ {
++	struct ks8851_pdata *pd = spi->dev.platform_data;
+ 	struct net_device *ndev;
+ 	struct ks8851_net *ks;
+ 	int ret;
+@@ -1491,8 +1507,12 @@ static int __devinit ks8851_probe(struct spi_device *spi)
+ 	ks8851_read_selftest(ks);
+ 	ks8851_init_mac(ks);
+ 
+-	ret = request_irq(spi->irq, ks8851_irq, IRQF_TRIGGER_LOW,
+-			  ndev->name, ks);
++	if (pd && pd->irq_flags)
++		ks->irq_flags = pd->irq_flags;
++	else
++		ks->irq_flags = IRQF_TRIGGER_LOW;
++
++	ret = request_irq(spi->irq, ks8851_irq, ks->irq_flags, ndev->name, ks);
+ 	if (ret < 0) {
+ 		dev_err(&spi->dev, "failed to get irq\n");
+ 		goto err_irq;
+-- 
+1.7.10
+

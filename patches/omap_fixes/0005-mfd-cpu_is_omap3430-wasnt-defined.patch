@@ -1,0 +1,25 @@
+From 8d52176da3a662e82995b947655bd5e057a3b58c Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Tue, 27 Mar 2012 20:56:03 -0500
+Subject: [PATCH 5/5] mfd: cpu_is_omap3430 wasnt defined
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ drivers/mfd/omap-usb-host.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index c8aae66..7da9496 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -26,6 +26,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/spinlock.h>
+ #include <plat/usb.h>
++#include <plat/cpu.h>
+ #include <linux/pm_runtime.h>
+ 
+ #define USBHS_DRIVER_NAME	"usbhs_omap"
+-- 
+1.7.10
+

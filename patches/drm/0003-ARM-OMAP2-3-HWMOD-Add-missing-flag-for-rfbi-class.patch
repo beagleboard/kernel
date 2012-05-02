@@ -1,0 +1,29 @@
+From 984b9f711643964ad22bc528d04de759f2f5113c Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date: Tue, 24 Jan 2012 12:45:19 +0200
+Subject: [PATCH 3/4] ARM: OMAP2/3: HWMOD: Add missing flag for rfbi class
+
+hwmod class for rfbi is missing SYSS_HAS_RESET_STATUS, which this patch
+adds.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
+index f08e442..bae4afd 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
+@@ -65,7 +65,7 @@ static struct omap_hwmod_class_sysconfig omap2_rfbi_sysc = {
+ 	.sysc_offs	= 0x0010,
+ 	.syss_offs	= 0x0014,
+ 	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
+-			   SYSC_HAS_AUTOIDLE),
++			   SYSC_HAS_AUTOIDLE | SYSS_HAS_RESET_STATUS),
+ 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+ 	.sysc_fields	= &omap_hwmod_sysc_type1,
+ };
+-- 
+1.7.10
+
