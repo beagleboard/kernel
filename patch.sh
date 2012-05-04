@@ -20,7 +20,7 @@ EXTRATAG=""
 #EXTERNAL_BRANCH="v3.2-staging"
 #EXTERNAL_SHA="e8004dad869568692ca2a45c04e8464ce48cc4d7"
 
-PATCHSET="distro micrel_zippy2 sakoman beagle/expansion beagle devkit8000 panda omap_fixes drm/cma drm dsp"
+PATCHSET="distro micrel_zippy2 sakoman beagle/expansion beagle devkit8000 panda omap_fixes drm/cma drm dsp sgx"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
