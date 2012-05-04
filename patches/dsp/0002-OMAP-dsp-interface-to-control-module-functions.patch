@@ -1,0 +1,53 @@
+From ec8c0a4ae5fc2783dd30e31f587200f4471b4f25 Mon Sep 17 00:00:00 2001
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Date: Wed, 2 May 2012 21:11:52 -0500
+Subject: [PATCH 2/3] OMAP: dsp: interface to control module functions
+
+Provide an interface for a driver to call SCM functions to
+set a boot address and boot mode.
+
+Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
+---
+ arch/arm/mach-omap2/dsp.c             |    4 ++++
+ arch/arm/plat-omap/include/plat/dsp.h |    3 +++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/dsp.c b/arch/arm/mach-omap2/dsp.c
+index 74f18f2..6d37d3c 100644
+--- a/arch/arm/mach-omap2/dsp.c
++++ b/arch/arm/mach-omap2/dsp.c
+@@ -20,6 +20,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
++#include "control.h"
+ #include "cm2xxx_3xxx.h"
+ #include "prm2xxx_3xxx.h"
+ #ifdef CONFIG_BRIDGE_DVFS
+@@ -45,6 +46,9 @@ static struct omap_dsp_platform_data omap_dsp_pdata __initdata = {
+ 	.dsp_cm_read = omap2_cm_read_mod_reg,
+ 	.dsp_cm_write = omap2_cm_write_mod_reg,
+ 	.dsp_cm_rmw_bits = omap2_cm_rmw_mod_reg_bits,
++
++	.set_bootaddr = omap_ctrl_write_dsp_boot_addr,
++	.set_bootmode = omap_ctrl_write_dsp_boot_mode,
+ };
+ 
+ static int __init omap_dsp_init(void)
+diff --git a/arch/arm/plat-omap/include/plat/dsp.h b/arch/arm/plat-omap/include/plat/dsp.h
+index 9c604b3..5927709 100644
+--- a/arch/arm/plat-omap/include/plat/dsp.h
++++ b/arch/arm/plat-omap/include/plat/dsp.h
+@@ -18,6 +18,9 @@ struct omap_dsp_platform_data {
+ 	u32 (*dsp_cm_read)(s16 , u16);
+ 	u32 (*dsp_cm_rmw_bits)(u32, u32, s16, s16);
+ 
++	void (*set_bootaddr)(u32);
++	void (*set_bootmode)(u8);
++
+ 	phys_addr_t phys_mempool_base;
+ 	phys_addr_t phys_mempool_size;
+ };
+-- 
+1.7.10
+

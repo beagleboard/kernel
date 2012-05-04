@@ -1,0 +1,74 @@
+From d6ce9d0faee7ea7b49dcbdd2e5965d59311d0671 Mon Sep 17 00:00:00 2001
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Date: Wed, 2 May 2012 21:11:53 -0500
+Subject: [PATCH 3/3] staging: tidspbridge: use scm functions to set boot
+ address and mode
+
+Instead of ioremapping SCM registers, use the correspondent layer
+to write into them.
+
+This allows us to get rid of a layer violation, since the registers
+are no longer touched by driver code.
+
+Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
+---
+ drivers/staging/tidspbridge/core/tiomap3430.c |   32 ++++++-------------------
+ 1 file changed, 7 insertions(+), 25 deletions(-)
+
+diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
+index 9cf29fc..40b35ca 100644
+--- a/drivers/staging/tidspbridge/core/tiomap3430.c
++++ b/drivers/staging/tidspbridge/core/tiomap3430.c
+@@ -70,14 +70,9 @@
+ #define PAGES_II_LVL_TABLE   512
+ #define PHYS_TO_PAGE(phys)      pfn_to_page((phys) >> PAGE_SHIFT)
+ 
+-/*
+- * This is a totally ugly layer violation, but needed until
+- * omap_ctrl_set_dsp_boot*() are provided.
+- */
+-#define OMAP3_IVA2_BOOTMOD_IDLE 1
+-#define OMAP2_CONTROL_GENERAL 0x270
+-#define OMAP343X_CONTROL_IVA2_BOOTADDR (OMAP2_CONTROL_GENERAL + 0x0190)
+-#define OMAP343X_CONTROL_IVA2_BOOTMOD (OMAP2_CONTROL_GENERAL + 0x0194)
++/* IVA Boot modes */
++#define DIRECT		0
++#define IDLE		1
+ 
+ /* Forward Declarations: */
+ static int bridge_brd_monitor(struct bridge_dev_context *dev_ctxt);
+@@ -414,27 +409,14 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
+ 
+ 		/* Assert RST1 i.e only the RST only for DSP megacell */
+ 		if (!status) {
+-			/*
+-			 * XXX: ioremapping  MUST be removed once ctrl
+-			 * function is made available.
+-			 */
+-			void __iomem *ctrl = ioremap(OMAP343X_CTRL_BASE, SZ_4K);
+-			if (!ctrl)
+-				return -ENOMEM;
+-
+ 			(*pdata->dsp_prm_rmw_bits)(OMAP3430_RST1_IVA2_MASK,
+ 					OMAP3430_RST1_IVA2_MASK, OMAP3430_IVA2_MOD,
+ 					OMAP2_RM_RSTCTRL);
+-			/* Mask address with 1K for compatibility */
+-			__raw_writel(dsp_addr & OMAP3_IVA2_BOOTADDR_MASK,
+-					ctrl + OMAP343X_CONTROL_IVA2_BOOTADDR);
+-			/*
+-			 * Set bootmode to self loop if dsp_debug flag is true
+-			 */
+-			__raw_writel((dsp_debug) ? OMAP3_IVA2_BOOTMOD_IDLE : 0,
+-					ctrl + OMAP343X_CONTROL_IVA2_BOOTMOD);
+ 
+-			iounmap(ctrl);
++			/* Mask address with 1K for compatibility */
++			pdata->set_bootaddr(dsp_addr &
++						OMAP3_IVA2_BOOTADDR_MASK);
++			pdata->set_bootmode(dsp_debug ? IDLE : DIRECT);
+ 		}
+ 	}
+ 	if (!status) {
+-- 
+1.7.10
+
