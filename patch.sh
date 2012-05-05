@@ -18,7 +18,7 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://arago-project.org/git/projects/linux-am33x.git"
 EXTERNAL_BRANCH="v3.2-staging"
-EXTERNAL_SHA="0d0567b6c1a61a374120b985559768077c511a6d"
+EXTERNAL_SHA="31944a82681a0e7ab6cc3e069c30eddc5042e3e8"
 
 PATCHSET="3.2.1 3.2.2 3.2.3 3.2.4 3.2.5 3.2.6 3.2.7 3.2.8 3.2.9 3.2.10 3.2.11 3.2.12 3.2.13 3.2.14 3.2.15 3.2.16 beaglebone"
 
