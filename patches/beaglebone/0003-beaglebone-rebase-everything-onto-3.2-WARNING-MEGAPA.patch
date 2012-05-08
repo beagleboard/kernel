@@ -1,7 +1,7 @@
-From 5b5413023290ed7f79ef3018eeee046c7736d7d0 Mon Sep 17 00:00:00 2001
+From b40b46b2997048949c719c961bd156e1f05e4c11 Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Mon, 30 Jan 2012 21:30:09 +0100
-Subject: [PATCH 03/26] beaglebone: rebase everything onto 3.2 - WARNING
+Subject: [PATCH 03/33] beaglebone: rebase everything onto 3.2 - WARNING
  MEGAPATCH
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
@@ -10,7 +10,7 @@ Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
  1 file changed, 415 insertions(+), 11 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
-index 70aa3a9..12a269f 100644
+index 563bdf1..2741431 100644
 --- a/arch/arm/mach-omap2/board-am335xevm.c
 +++ b/arch/arm/mach-omap2/board-am335xevm.c
 @@ -19,6 +19,7 @@
@@ -28,8 +28,8 @@ index 70aa3a9..12a269f 100644
 -#include <linux/input/ti_tscadc.h>
  #include <linux/reboot.h>
  #include <linux/pwm/pwm.h>
- 
-@@ -172,6 +172,68 @@ struct da8xx_lcdc_platform_data TFC_S9700RTWV35TR_01B_pdata = {
+ #include <linux/opp.h>
+@@ -174,6 +174,68 @@ struct da8xx_lcdc_platform_data TFC_S9700RTWV35TR_01B_pdata = {
  
  #include "common.h"
  
@@ -98,7 +98,7 @@ index 70aa3a9..12a269f 100644
  #include <linux/lis3lv02d.h>
  
  /* TSc controller */
-@@ -340,9 +402,34 @@ static struct am335x_evm_eeprom_config config;
+@@ -342,9 +404,34 @@ static struct am335x_evm_eeprom_config config;
  static struct am335x_eeprom_config1 config1;
  static bool daughter_brd_detected;
  
@@ -133,7 +133,7 @@ index 70aa3a9..12a269f 100644
  static unsigned int gp_evm_revision = GP_EVM_REV_IS_UNKNOWN;
  
  unsigned int gigabit_enable = 1;
-@@ -425,11 +512,102 @@ static struct pinmux_config lcdc_pin_mux[] = {
+@@ -427,11 +514,102 @@ static struct pinmux_config lcdc_pin_mux[] = {
  	{NULL, 0},
  };
  
@@ -236,7 +236,7 @@ index 70aa3a9..12a269f 100644
  	{"vrefp.vrefp",         OMAP_MUX_MODE0 | AM33XX_INPUT_EN},
  	{"vrefn.vrefn",         OMAP_MUX_MODE0 | AM33XX_INPUT_EN},
  	{NULL, 0},
-@@ -564,9 +742,9 @@ static struct pinmux_config i2c1_pin_mux[] = {
+@@ -566,9 +744,9 @@ static struct pinmux_config i2c1_pin_mux[] = {
  
  static struct pinmux_config i2c2_pin_mux[] = {
  	{"uart1_ctsn.i2c2_sda",    OMAP_MUX_MODE3 | AM33XX_SLEWCTRL_SLOW |
@@ -248,7 +248,7 @@ index 70aa3a9..12a269f 100644
  	{NULL, 0},
  };
  
-@@ -844,6 +1022,64 @@ static struct pinmux_config profibus_pin_mux[] = {
+@@ -846,6 +1024,64 @@ static struct pinmux_config profibus_pin_mux[] = {
  	{NULL, 0},
  };
  
@@ -313,7 +313,7 @@ index 70aa3a9..12a269f 100644
  /* Module pin mux for eCAP0 */
  static struct pinmux_config ecap0_pin_mux[] = {
  	{"ecap0_in_pwm0_out.ecap0_in_pwm0_out",
-@@ -966,6 +1202,51 @@ static void lcdc_init(int evm_id, int profile)
+@@ -968,6 +1204,51 @@ static void lcdc_init(int evm_id, int profile)
  	return;
  }
  
@@ -365,7 +365,7 @@ index 70aa3a9..12a269f 100644
  static void tsc_init(int evm_id, int profile)
  {
  	int err;
-@@ -973,10 +1254,15 @@ static void tsc_init(int evm_id, int profile)
+@@ -975,10 +1256,15 @@ static void tsc_init(int evm_id, int profile)
  	if (gp_evm_revision == GP_EVM_REV_IS_1_1A) {
  		am335x_touchscreen_data.analog_input = 1;
  		pr_info("TSC connected to beta GP EVM\n");
@@ -382,7 +382,7 @@ index 70aa3a9..12a269f 100644
  	setup_pin_mux(tsc_pin_mux);
  
  	err = am33xx_register_tsc(&am335x_touchscreen_data);
-@@ -984,6 +1270,33 @@ static void tsc_init(int evm_id, int profile)
+@@ -986,6 +1272,33 @@ static void tsc_init(int evm_id, int profile)
  		pr_err("failed to register touchscreen device\n");
  }
  
@@ -416,7 +416,7 @@ index 70aa3a9..12a269f 100644
  static void rgmii1_init(int evm_id, int profile)
  {
  	setup_pin_mux(rgmii1_pin_mux);
-@@ -1429,18 +1742,106 @@ static void i2c1_init(int evm_id, int profile)
+@@ -1431,18 +1744,106 @@ static void i2c1_init(int evm_id, int profile)
  	return;
  }
  
@@ -528,7 +528,7 @@ index 70aa3a9..12a269f 100644
  /* Setup McASP 1 */
  static void mcasp1_init(int evm_id, int profile)
  {
-@@ -1794,8 +2195,9 @@ static struct evm_dev_cfg beaglebone_old_dev_cfg[] = {
+@@ -1826,8 +2227,9 @@ static struct evm_dev_cfg beaglebone_old_dev_cfg[] = {
  	{rmii1_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
  	{usb0_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
  	{usb1_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
@@ -539,7 +539,7 @@ index 70aa3a9..12a269f 100644
  	{NULL, 0, 0},
  };
  
-@@ -1805,8 +2207,9 @@ static struct evm_dev_cfg beaglebone_dev_cfg[] = {
+@@ -1837,8 +2239,9 @@ static struct evm_dev_cfg beaglebone_dev_cfg[] = {
  	{mii1_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
  	{usb0_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
  	{usb1_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
@@ -550,7 +550,7 @@ index 70aa3a9..12a269f 100644
  	{NULL, 0, 0},
  };
  
-@@ -1893,6 +2296,7 @@ static void setup_beaglebone_old(void)
+@@ -1925,6 +2328,7 @@ static void setup_beaglebone_old(void)
  static void setup_beaglebone(void)
  {
  	pr_info("The board is a AM335x Beaglebone.\n");
@@ -559,5 +559,5 @@ index 70aa3a9..12a269f 100644
  	/* Beagle Bone has Micro-SD slot which doesn't have Write Protect pin */
  	am335x_mmc[0].gpio_wp = -EINVAL;
 -- 
-1.7.9.5
+1.7.10
 

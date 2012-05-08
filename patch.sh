@@ -18,7 +18,7 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://arago-project.org/git/projects/linux-am33x.git"
 EXTERNAL_BRANCH="v3.2-staging"
-EXTERNAL_SHA="31944a82681a0e7ab6cc3e069c30eddc5042e3e8"
+EXTERNAL_SHA="720e07b4c1f687b61b147b31c698cb6816d72f01"
 
 PATCHSET="3.2.1 3.2.2 3.2.3 3.2.4 3.2.5 3.2.6 3.2.7 3.2.8 3.2.9 3.2.10 3.2.11 3.2.12 3.2.13 3.2.14 3.2.15 3.2.16 led beaglebone"
 
@@ -76,7 +76,7 @@ for patchset in ${PATCHSET} ; do
 	patchcount=0
 	for patch in $(ls -1 ${PATCHPATH}/$patchset/*.patch | sort -n) ; do
 		$ECHO -n "$patch: "
-		git am -q $patch && echo applied || exit 1
+		git am -3 -q $patch && echo applied || exit 1
 		let patchcount=$patchcount+1
 	done
 	git format-patch -${patchcount} --quiet -o ${EXPORTPATH}/$patchset
@@ -95,7 +95,7 @@ fi
 for patchset in ${PATCHSET} ; do
 	for patch in $(ls -1 ${EXPORTPATH}/$patchset/*.patch | sort -n) ; do
 		patch=${patch##*/}
-		echo "            file://${patchset}/$patch \\" >> ${DIR}/src-uri.txt
+		echo -e "\tfile://${patchset}/$patch \\" >> ${DIR}/src-uri.txt
 		echo "	git am \"\${DIR}/patches/${patchset}/$patch\"" >> ${DIR}/patch_script.sh
 	done
 done
