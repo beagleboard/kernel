@@ -76,7 +76,7 @@ for patchset in ${PATCHSET} ; do
 	patchcount=0
 	for patch in $(ls -1 ${PATCHPATH}/$patchset/*.patch | sort -n) ; do
 		$ECHO -n "$patch: "
-		git am -3 -q $patch && echo applied || exit 1
+		git am -q $patch && echo applied || exit 1
 		let patchcount=$patchcount+1
 	done
 	git format-patch -${patchcount} --quiet -o ${EXPORTPATH}/$patchset

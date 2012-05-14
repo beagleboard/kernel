@@ -1,7 +1,7 @@
-From 89028c4350be00850cb58b9dcb82d93dcb6373c4 Mon Sep 17 00:00:00 2001
+From 3554b72659f168b6b699a02a57e9d91471ad7c32 Mon Sep 17 00:00:00 2001
 From: Alessandro Zummo <a.zummo@towertech.it>
 Date: Thu, 9 Feb 2012 12:46:52 +0100
-Subject: [PATCH 20/26] beaglebone: add support for Towertech TT3201 CAN cape
+Subject: [PATCH 20/33] beaglebone: add support for Towertech TT3201 CAN cape
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
@@ -12,18 +12,18 @@ Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
  4 files changed, 98 insertions(+), 19 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
-index 88f07e3..a30689f 100644
+index 3ba4bbc..a8dfcdf 100644
 --- a/arch/arm/mach-omap2/board-am335xevm.c
 +++ b/arch/arm/mach-omap2/board-am335xevm.c
-@@ -39,6 +39,7 @@
- #include <linux/reboot.h>
+@@ -40,6 +40,7 @@
  #include <linux/pwm/pwm.h>
+ #include <linux/opp.h>
  #include <linux/w1-gpio.h>
 +#include <linux/can/platform/mcp251x.h>
  
  /* LCD controller is similar to DA850 */
  #include <video/da8xx-fb.h>
-@@ -841,6 +842,15 @@ static struct pinmux_config d_can_ia_pin_mux[] = {
+@@ -843,6 +844,15 @@ static struct pinmux_config d_can_ia_pin_mux[] = {
  	{NULL, 0},
  };
  
@@ -39,7 +39,7 @@ index 88f07e3..a30689f 100644
  /* Module pin mux for uart2 */
  static struct pinmux_config uart2_pin_mux[] = {
  	{"spi0_sclk.uart2_rxd", OMAP_MUX_MODE1 | AM33XX_SLEWCTRL_SLOW |
-@@ -1850,6 +1860,44 @@ static void i2c1_init(int evm_id, int profile)
+@@ -1852,6 +1862,44 @@ static void i2c1_init(int evm_id, int profile)
  	return;
  }
  
@@ -84,7 +84,7 @@ index 88f07e3..a30689f 100644
  static void beaglebone_cape_setup(struct memory_accessor *mem_acc, void *context)
  {
  	capecount++;
-@@ -1897,7 +1945,11 @@ static void beaglebone_cape_setup(struct memory_accessor *mem_acc, void *context
+@@ -1899,7 +1947,11 @@ static void beaglebone_cape_setup(struct memory_accessor *mem_acc, void *context
  		beaglebone_tsadcpins_free = 0;
  	}
  	
@@ -316,5 +316,5 @@ index 330140e..b3e231c 100644
  	}
  error_probe:
 -- 
-1.7.9.5
+1.7.10
 
