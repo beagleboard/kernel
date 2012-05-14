@@ -13,7 +13,7 @@ PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.2.16"
+TAG="v3.2.17"
 EXTRATAG=""
 
 #EXTERNAL_TREE="git://arago-project.org/git/projects/linux-am33x.git"
