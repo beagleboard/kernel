@@ -1,0 +1,210 @@
+From da295e1d6c7d6c6142516158ea1170c227d488e9 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Tue, 22 May 2012 15:04:46 -0500
+Subject: [PATCH 2/7] Beagle: expansion: add zippy
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |  142 +++++++++++++++++++++++++++++--
+ 1 file changed, 137 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index ec30ef4..38d2e9c 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -159,6 +159,68 @@ static void __init omap3_beagle_init_rev(void)
+ 
+ char expansionboard_name[16];
+ 
++enum {
++	EXPANSION_MMC_NONE = 0,
++	EXPANSION_MMC_ZIPPY,
++	EXPANSION_MMC_WIFI,
++};
++
++enum {
++	EXPANSION_I2C_NONE = 0,
++	EXPANSION_I2C_ZIPPY,
++};
++
++static struct {
++	int mmc_settings;
++	int i2c_settings;
++} expansion_config = {
++	.mmc_settings = EXPANSION_MMC_NONE,
++	.i2c_settings = EXPANSION_I2C_NONE,
++};
++
++#define OMAP3BEAGLE_GPIO_ZIPPY_MMC_WP 141
++#define OMAP3BEAGLE_GPIO_ZIPPY_MMC_CD 162
++
++#if defined(CONFIG_ENC28J60) || defined(CONFIG_ENC28J60_MODULE)
++#include <plat/mcspi.h>
++#include <linux/spi/spi.h>
++
++#define OMAP3BEAGLE_GPIO_ENC28J60_IRQ 157
++
++static struct omap2_mcspi_device_config enc28j60_spi_chip_info = {
++	.turbo_mode	= 0,
++};
++
++static struct spi_board_info omap3beagle_zippy_spi_board_info[] __initdata = {
++	{
++		.modalias		= "enc28j60",
++		.bus_num		= 4,
++		.chip_select		= 0,
++		.max_speed_hz		= 20000000,
++		.controller_data	= &enc28j60_spi_chip_info,
++	},
++};
++
++static void __init omap3beagle_enc28j60_init(void)
++{
++	if ((gpio_request(OMAP3BEAGLE_GPIO_ENC28J60_IRQ, "ENC28J60_IRQ") == 0) &&
++	    (gpio_direction_input(OMAP3BEAGLE_GPIO_ENC28J60_IRQ) == 0)) {
++		gpio_export(OMAP3BEAGLE_GPIO_ENC28J60_IRQ, 0);
++		omap3beagle_zippy_spi_board_info[0].irq = gpio_to_irq(OMAP3BEAGLE_GPIO_ENC28J60_IRQ);
++		irq_set_irq_type(omap3beagle_zippy_spi_board_info[0].irq, IRQ_TYPE_EDGE_FALLING);
++	} else {
++		printk(KERN_ERR "could not obtain gpio for ENC28J60_IRQ\n");
++		return;
++	}
++
++	spi_register_board_info(omap3beagle_zippy_spi_board_info,
++			ARRAY_SIZE(omap3beagle_zippy_spi_board_info));
++}
++
++#else
++static inline void __init omap3beagle_enc28j60_init(void) { return; }
++#endif
++
+ static struct mtd_partition omap3beagle_nand_partitions[] = {
+ 	/* All the partition sizes are listed in terms of NAND block size */
+ 	{
+@@ -261,6 +323,26 @@ static struct omap2_hsmmc_info mmc[] = {
+ 	{}	/* Terminator */
+ };
+ 
++
++//FIXME: Need to setup the regulators for 2nd mmc device, leaving disabled for now...
++static struct omap2_hsmmc_info mmc_zippy[] = {
++	{
++		.mmc		= 1,
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
++		.gpio_wp	= -EINVAL,
++		.deferred	= true,
++	},
++	{
++		.mmc		= 2,
++		.caps		= MMC_CAP_4_BIT_DATA,
++		.gpio_cd	= OMAP3BEAGLE_GPIO_ZIPPY_MMC_CD,
++		.gpio_wp	= OMAP3BEAGLE_GPIO_ZIPPY_MMC_WP,
++		.deferred	= true,
++		.transceiver	= true,
++		.ocr_mask	= MMC_VDD_32_33,	/* 3.3V */
++	},
++	{}	/* Terminator */
++};
+ static struct regulator_consumer_supply beagle_vmmc1_supply[] = {
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
+ };
+@@ -276,10 +358,21 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ {
+ 	int r;
+ 
+-	mmc[0].gpio_wp = beagle_config.mmc1_gpio_wp;
+-	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+-	mmc[0].gpio_cd = gpio + 0;
+-	omap_hsmmc_late_init(mmc);
++	switch (expansion_config.mmc_settings) {
++	case 1:
++		mmc_zippy[0].gpio_wp = beagle_config.mmc1_gpio_wp;
++		/* gpio + 0 is "mmc0_cd" (input/IRQ) */
++		mmc_zippy[0].gpio_cd = gpio + 0;
++
++		omap_hsmmc_late_init(mmc_zippy);
++		break;
++	default:
++		mmc[0].gpio_wp = beagle_config.mmc1_gpio_wp;
++		/* gpio + 0 is "mmc0_cd" (input/IRQ) */
++		mmc[0].gpio_cd = gpio + 0;
++
++		omap_hsmmc_late_init(mmc);
++	}
+ 
+ 	/*
+ 	 * TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
+@@ -377,6 +470,12 @@ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
+        },
+ };
+ 
++static struct i2c_board_info __initdata zippy_i2c2_rtc[] = {
++	{
++		I2C_BOARD_INFO("ds1307", 0x68),
++	},
++};
++
+ static int __init omap3_beagle_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&beagle_twldata,
+@@ -387,6 +486,15 @@ static int __init omap3_beagle_i2c_init(void)
+ 	beagle_twldata.vpll2->constraints.name = "VDVI";
+ 
+ 	omap3_pmic_init("twl4030", &beagle_twldata);
++
++	switch (expansion_config.i2c_settings) {
++	case 1:
++		omap_register_i2c_bus(2, 400, zippy_i2c2_rtc, ARRAY_SIZE(zippy_i2c2_rtc));
++		break;
++	default:
++		omap_register_i2c_bus(2, 400, NULL, 0);
++	}
++
+ 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
+ 	 * projector don't work reliably with 400kHz */
+ 	omap_register_i2c_bus(3, 100, beagle_i2c_eeprom, ARRAY_SIZE(beagle_i2c_eeprom));
+@@ -533,9 +641,27 @@ static void __init omap3_beagle_init(void)
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap3_beagle_init_rev();
+ 
++	if (!strcmp(expansionboard_name, "zippy"))
++	{
++		expansion_config.i2c_settings = EXPANSION_I2C_ZIPPY;
++
++		//FIXME: rcn-ee: wait for regulators..
++		//expansion_config.mmc_settings = EXPANSION_MMC_ZIPPY;
++		//omap_mux_init_gpio(OMAP3BEAGLE_GPIO_ZIPPY_MMC_WP, OMAP_PIN_INPUT);
++		//FIXME: needs to be an irq..
++		//omap_mux_init_gpio(OMAP3BEAGLE_GPIO_ZIPPY_MMC_CD, OMAP_PIN_INPUT);
++	}
++
+ 	if (beagle_config.mmc1_gpio_wp != -EINVAL)
+ 		omap_mux_init_gpio(beagle_config.mmc1_gpio_wp, OMAP_PIN_INPUT);
+-	omap_hsmmc_init(mmc);
++
++	switch (expansion_config.mmc_settings) {
++	case 1:
++		omap_hsmmc_init(mmc_zippy);
++		break;
++	default:
++		omap_hsmmc_init(mmc);
++	}
+ 
+ 	omap3_beagle_i2c_init();
+ 
+@@ -552,6 +678,12 @@ static void __init omap3_beagle_init(void)
+ 	/* REVISIT leave DVI powered down until it's needed ... */
+ 	gpio_request_one(170, GPIOF_OUT_INIT_HIGH, "DVI_nPD");
+ 
++	if (!strcmp(expansionboard_name, "zippy"))
++	{
++		printk(KERN_INFO "Beagle expansionboard: initializing enc28j60\n");
++		omap3beagle_enc28j60_init();
++	}
++
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3beagle_nand_partitions,
+-- 
+1.7.10
+
