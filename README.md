@@ -12,3 +12,9 @@ git checkout origin/beaglebone-3.2 -b beaglebone-3.2
 
 ./patch.sh
 
+Board Maintainers List
+---------------------
+
+### BeagleBoard/PandaBoard
+* defconfig: patches/beagleboard/defconfig
+* Robert Nelson <robertcnelson@gmail.com>
