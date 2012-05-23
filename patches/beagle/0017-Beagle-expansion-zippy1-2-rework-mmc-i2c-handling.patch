@@ -1,0 +1,271 @@
+From 342cd4b5e9d0cab384e8a4aef75d69e49852e2a1 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Wed, 23 May 2012 16:10:14 -0500
+Subject: [PATCH 17/18] Beagle: expansion: zippy1/2 rework mmc/i2c handling
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |  173 ++++++++++++++++++++++---------
+ 1 file changed, 124 insertions(+), 49 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index a7d81fc..95b4ad8 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -166,6 +166,29 @@ static void __init omap3_beagle_init_rev(void)
+ char expansionboard_name[16];
+ char expansionboard2_name[16];
+ 
++enum {
++	EXPANSION_MMC_NONE = 0,
++	EXPANSION_MMC_ZIPPY,
++	EXPANSION_MMC_WIFI,
++};
++
++enum {
++	EXPANSION_I2C_NONE = 0,
++	EXPANSION_I2C_ZIPPY,
++	EXPANSION_I2C_7ULCD,
++};
++
++static struct {
++	int mmc_settings;
++	int i2c_settings;
++} expansion_config = {
++	.mmc_settings = EXPANSION_MMC_NONE,
++	.i2c_settings = EXPANSION_I2C_NONE,
++};
++
++#define OMAP3BEAGLE_GPIO_ZIPPY_MMC_WP 141
++#define OMAP3BEAGLE_GPIO_ZIPPY_MMC_CD 162
++
+ #if defined(CONFIG_WL12XX) || defined(CONFIG_WL12XX_MODULE)
+ #include <linux/regulator/fixed.h>
+ #include <linux/ti_wilink_st.h>
+@@ -202,24 +225,6 @@ static struct platform_device btwilink_device = {
+ 	.id	= -1,
+ };
+ 
+-static struct omap2_hsmmc_info mmcbbt[] = {
+-	{
+-		.mmc		= 1,
+-		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+-		.gpio_wp	= -EINVAL,
+-	},
+-	{
+-		.name		= "wl1271",
+-		.mmc		= 2,
+-		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_POWER_OFF_CARD,
+-		.gpio_wp	= -EINVAL,
+-		.gpio_cd	= -EINVAL,
+-		.ocr_mask	= MMC_VDD_165_195,
+-		.nonremovable	= true,
+-	},
+-	{}	/* Terminator */
+-};
+-
+ static struct regulator_consumer_supply beagle_vmmc2_supply =
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
+ 
+@@ -250,6 +255,24 @@ static struct platform_device omap_vwlan_device = {
+ };
+ #endif
+ 
++//rcn-ee: this is just a fake regulator, the zippy hardware provides 3.3/1.8 with jumper..
++static struct fixed_voltage_config beagle_vzippy = {
++	.supply_name = "vzippy",
++	.microvolts = 3300000,  /* 3.3V */
++	.startup_delay = 70000, /* 70ms */
++	.enable_high = 1,
++	.enabled_at_boot = 0,
++	.init_data = &beagle_vmmc2,
++};
++
++static struct platform_device omap_zippy_device = {
++	.name		= "reg-fixed-voltage",
++	.id		= 1,
++	.dev = {
++		.platform_data = &beagle_vzippy,
++	},
++};
++
+ #if defined(CONFIG_ENC28J60) || defined(CONFIG_ENC28J60_MODULE)
+ 
+ #include <plat/mcspi.h>
+@@ -486,11 +509,39 @@ static struct omap2_hsmmc_info mmc[] = {
+ 		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+ 		.gpio_wp	= -EINVAL,
+ 	},
++	{}	/* Terminator */
++};
++
++static struct omap2_hsmmc_info mmc_zippy[] = {
++	{
++		.mmc		= 1,
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
++		.gpio_wp	= -EINVAL,
++	},
+ 	{
+ 		.mmc		= 2,
+-		.caps       = MMC_CAP_4_BIT_DATA,
++		.caps		= MMC_CAP_4_BIT_DATA,
++		.gpio_wp	= OMAP3BEAGLE_GPIO_ZIPPY_MMC_WP,
++		.gpio_cd	= OMAP3BEAGLE_GPIO_ZIPPY_MMC_CD,
+ 		.transceiver	= true,
+-		.ocr_mask	= 0x00100000,	/* 3.3V */
++	},
++	{}	/* Terminator */
++};
++
++static struct omap2_hsmmc_info mmcbbt[] = {
++	{
++		.mmc		= 1,
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
++		.gpio_wp	= -EINVAL,
++	},
++	{
++		.name		= "wl1271",
++		.mmc		= 2,
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_POWER_OFF_CARD,
++		.gpio_wp	= -EINVAL,
++		.gpio_cd	= -EINVAL,
++		.ocr_mask	= MMC_VDD_165_195,
++		.nonremovable	= true,
+ 	},
+ 	{}	/* Terminator */
+ };
+@@ -530,18 +581,29 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ 
+ 	if (beagle_config.mmc1_gpio_wp != -EINVAL)
+ 		omap_mux_init_gpio(beagle_config.mmc1_gpio_wp, OMAP_PIN_INPUT);
+-	mmc[0].gpio_wp = beagle_config.mmc1_gpio_wp;
+-	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+-	mmc[0].gpio_cd = gpio + 0;
+-#if defined(CONFIG_WL12XX) || defined(CONFIG_WL12XX_MODULE)
+-	if(!strcmp(expansionboard_name, "bbtoys-wifi")) {
++
++	switch (expansion_config.mmc_settings) {
++	case 2:
++		mmcbbt[0].gpio_wp = beagle_config.mmc1_gpio_wp;
++		/* gpio + 0 is "mmc0_cd" (input/IRQ) */
++		mmcbbt[0].gpio_cd = gpio + 0;
++
+ 		omap2_hsmmc_init(mmcbbt);
+-	} else {
++		break;
++	case 1:
++		mmc_zippy[0].gpio_wp = beagle_config.mmc1_gpio_wp;
++		/* gpio + 0 is "mmc0_cd" (input/IRQ) */
++		mmc_zippy[0].gpio_cd = gpio + 0;
++
++		omap2_hsmmc_init(mmc_zippy);
++		break;
++	default:
++		mmc[0].gpio_wp = beagle_config.mmc1_gpio_wp;
++		/* gpio + 0 is "mmc0_cd" (input/IRQ) */
++		mmc[0].gpio_cd = gpio + 0;
++
+ 		omap2_hsmmc_init(mmc);
+ 	}
+-#else
+-	omap2_hsmmc_init(mmc);
+-#endif
+ 
+ 	/*
+ 	 * TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
+@@ -640,17 +702,11 @@ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
+        },
+ };
+ 
+-#if defined(CONFIG_RTC_DRV_DS1307) || \
+-	defined(CONFIG_RTC_DRV_DS1307_MODULE)
+-
+-static struct i2c_board_info __initdata beagle_i2c2_boardinfo[] = {
++static struct i2c_board_info __initdata zippy_i2c2_rtc[] = {
+ 	{
+ 		I2C_BOARD_INFO("ds1307", 0x68),
+ 	},
+ };
+-#else
+-static struct i2c_board_info __initdata beagle_i2c2_boardinfo[] = {};
+-#endif
+ 
+ #if defined(CONFIG_INPUT_TOUCHSCREEN) && \
+ 	( defined(CONFIG_TOUCHSCREEN_TSC2007) || defined(CONFIG_TOUCHSCREEN_TSC2007_MODULE))
+@@ -708,15 +764,17 @@ static int __init omap3_beagle_i2c_init(void)
+ 	beagle_twldata.vpll2->constraints.name = "VDVI";
+ 
+ 	omap3_pmic_init("twl4030", &beagle_twldata);
+-	if(!strcmp(expansionboard2_name, "bbtoys-ulcd"))
+-	{
+-		printk(KERN_INFO "Beagle second expansionboard: registering bbtoys-ulcd i2c bus\n");
++
++	switch (expansion_config.i2c_settings) {
++	case 2:
+ 		omap_register_i2c_bus(2, 400,  beagle_i2c2_bbtoys_ulcd,
+ 							ARRAY_SIZE(beagle_i2c2_bbtoys_ulcd));
+-	}
+-	else
+-	{
+-	omap_register_i2c_bus(2, 400, beagle_i2c2_boardinfo, ARRAY_SIZE(beagle_i2c2_boardinfo));
++		break;
++	case 1:
++		omap_register_i2c_bus(2, 400, zippy_i2c2_rtc, ARRAY_SIZE(zippy_i2c2_rtc));
++		break;
++	default:
++		omap_register_i2c_bus(2, 400, NULL, 0);
+ 	}
+ 
+ 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
+@@ -873,6 +931,29 @@ static void __init omap3_beagle_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap3_beagle_init_rev();
++
++	if ((!strcmp(expansionboard_name, "zippy")) || (!strcmp(expansionboard_name, "zippy2")))
++	{
++		printk(KERN_INFO "Beagle expansionboard: initializing zippy mmc\n");
++		platform_device_register(&omap_zippy_device);
++
++		expansion_config.i2c_settings = EXPANSION_I2C_ZIPPY;
++		expansion_config.mmc_settings = EXPANSION_MMC_ZIPPY;
++
++		omap_mux_init_gpio(OMAP3BEAGLE_GPIO_ZIPPY_MMC_WP, OMAP_PIN_INPUT);
++		omap_mux_init_gpio(OMAP3BEAGLE_GPIO_ZIPPY_MMC_CD, OMAP_PIN_INPUT);
++	}
++
++	if (!strcmp(expansionboard_name, "bbtoys-wifi"))
++	{
++		expansion_config.mmc_settings = EXPANSION_MMC_WIFI;
++	}
++
++	if (!strcmp(expansionboard2_name, "bbtoys-ulcd"))
++	{
++		expansion_config.i2c_settings = EXPANSION_I2C_7ULCD;
++	}
++
+ 	omap3_beagle_i2c_init();
+ 
+ 	gpio_buttons[0].gpio = beagle_config.usr_button_gpio;
+@@ -896,18 +977,12 @@ static void __init omap3_beagle_init(void)
+ 	{
+ 		printk(KERN_INFO "Beagle expansionboard: initializing enc28j60\n");
+ 		omap3beagle_enc28j60_init();
+-		printk(KERN_INFO "Beagle expansionboard: assigning GPIO 141 and 162 to MMC1\n");
+-		mmc[1].gpio_wp = 141;
+-		mmc[1].gpio_cd = 162;
+ 	}
+ 
+ 	if(!strcmp(expansionboard_name, "zippy2"))
+ 	{
+ 		printk(KERN_INFO "Beagle expansionboard: initializing ks_8851\n");
+ 		omap3beagle_ks8851_init();
+-		printk(KERN_INFO "Beagle expansionboard: assigning GPIO 141 and 162 to MMC1\n");
+-		mmc[1].gpio_wp = 141;
+-		mmc[1].gpio_cd = 162;
+ 	}
+ 
+ 	if(!strcmp(expansionboard_name, "trainer"))
+-- 
+1.7.10
+
