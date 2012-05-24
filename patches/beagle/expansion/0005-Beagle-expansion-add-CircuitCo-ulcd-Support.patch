@@ -1,4 +1,4 @@
-From 5eb447c8cf304ac5e3996479cd31e35f924b0fab Mon Sep 17 00:00:00 2001
+From 1dafe5228eab72de252b8b51775d2736cd0b06ab Mon Sep 17 00:00:00 2001
 From: Robert Nelson <robertcnelson@gmail.com>
 Date: Tue, 22 May 2012 15:18:27 -0500
 Subject: [PATCH 5/7] Beagle: expansion: add CircuitCo ulcd Support
@@ -19,12 +19,12 @@ Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c          |  135 ++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3beagle.c          |  134 ++++++++++++++++++++++
  drivers/video/omap2/displays/panel-generic-dpi.c |   25 ++++
- 2 files changed, 160 insertions(+)
+ 2 files changed, 159 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index bc6549a..38b8c20 100644
+index 67ebeff..6584eec 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
 @@ -43,6 +43,7 @@
@@ -67,7 +67,7 @@ index bc6549a..38b8c20 100644
  };
  
  static struct {
-@@ -331,9 +338,53 @@ static struct omap_dss_device beagle_tv_device = {
+@@ -348,9 +355,53 @@ static struct omap_dss_device beagle_tv_device = {
  	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
  };
  
@@ -121,7 +121,7 @@ index bc6549a..38b8c20 100644
  };
  
  static struct omap_dss_board_info beagle_dss_data = {
-@@ -350,6 +401,11 @@ static void __init beagle_display_init(void)
+@@ -367,6 +418,11 @@ static void __init beagle_display_init(void)
  			     "DVI reset");
  	if (r < 0)
  		printk(KERN_ERR "Unable to get DVI reset GPIO\n");
@@ -133,14 +133,13 @@ index bc6549a..38b8c20 100644
  }
  
  #include "sdram-micron-mt46h32m32lf-6.h"
-@@ -517,6 +573,56 @@ static struct i2c_board_info __initdata zippy_i2c2_rtc[] = {
+@@ -531,6 +587,55 @@ static struct i2c_board_info __initdata zippy_i2c2_rtc[] = {
  	},
  };
  
 +#if defined(CONFIG_INPUT_TOUCHSCREEN) && \
 +	( defined(CONFIG_TOUCHSCREEN_TSC2007) || defined(CONFIG_TOUCHSCREEN_TSC2007_MODULE))
 +/* Touchscreen */
-+
 +#include <linux/i2c/tsc2007.h>
 +
 +#define OMAP3BEAGLE_TSC2007_GPIO 157
@@ -190,7 +189,7 @@ index bc6549a..38b8c20 100644
  static int __init omap3_beagle_i2c_init(void)
  {
  	omap3_pmic_get_config(&beagle_twldata,
-@@ -529,6 +635,10 @@ static int __init omap3_beagle_i2c_init(void)
+@@ -543,6 +648,10 @@ static int __init omap3_beagle_i2c_init(void)
  	omap3_pmic_init("twl4030", &beagle_twldata);
  
  	switch (expansion_config.i2c_settings) {
@@ -201,7 +200,7 @@ index bc6549a..38b8c20 100644
  	case 1:
  		omap_register_i2c_bus(2, 400, zippy_i2c2_rtc, ARRAY_SIZE(zippy_i2c2_rtc));
  		break;
-@@ -634,6 +744,15 @@ static int __init expansionboard_setup(char *str)
+@@ -648,6 +757,15 @@ static int __init expansionboard_setup(char *str)
  	return 0;
  }
  
@@ -217,8 +216,8 @@ index bc6549a..38b8c20 100644
  static void __init beagle_opp_init(void)
  {
  	int r = 0;
-@@ -693,6 +812,11 @@ static void __init omap3_beagle_init(void)
- 		//omap_mux_init_gpio(OMAP3BEAGLE_GPIO_ZIPPY_MMC_CD, OMAP_PIN_INPUT);
+@@ -708,6 +826,11 @@ static void __init omap3_beagle_init(void)
+ 		omap_mux_init_gpio(OMAP3BEAGLE_GPIO_ZIPPY_MMC_CD, OMAP_PIN_INPUT);
  	}
  
 +	if (!strcmp(expansionboard2_name, "bbtoys-ulcd"))
@@ -229,7 +228,7 @@ index bc6549a..38b8c20 100644
  	if (beagle_config.mmc1_gpio_wp != -EINVAL)
  		omap_mux_init_gpio(beagle_config.mmc1_gpio_wp, OMAP_PIN_INPUT);
  
-@@ -708,6 +832,10 @@ static void __init omap3_beagle_init(void)
+@@ -723,6 +846,10 @@ static void __init omap3_beagle_init(void)
  
  	gpio_buttons[0].gpio = beagle_config.usr_button_gpio;
  
@@ -240,7 +239,7 @@ index bc6549a..38b8c20 100644
  	platform_add_devices(omap3_beagle_devices,
  			ARRAY_SIZE(omap3_beagle_devices));
  	omap_display_init(&beagle_dss_data);
-@@ -762,6 +890,12 @@ static void __init omap3_beagle_init(void)
+@@ -777,6 +904,12 @@ static void __init omap3_beagle_init(void)
  		gpio_export(162, 1);
  	}
  
@@ -253,7 +252,7 @@ index bc6549a..38b8c20 100644
  	usb_musb_init(NULL);
  	usbhs_init(&usbhs_bdata);
  	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3beagle_nand_partitions,
-@@ -779,6 +913,7 @@ static void __init omap3_beagle_init(void)
+@@ -794,6 +927,7 @@ static void __init omap3_beagle_init(void)
  }
  
  early_param("buddy", expansionboard_setup);

@@ -1,18 +1,18 @@
-From da295e1d6c7d6c6142516158ea1170c227d488e9 Mon Sep 17 00:00:00 2001
+From 47a3735ad2b1c62dd924f958ad9f7574599582e3 Mon Sep 17 00:00:00 2001
 From: Robert Nelson <robertcnelson@gmail.com>
 Date: Tue, 22 May 2012 15:04:46 -0500
 Subject: [PATCH 2/7] Beagle: expansion: add zippy
 
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |  142 +++++++++++++++++++++++++++++--
- 1 file changed, 137 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/board-omap3beagle.c |  158 ++++++++++++++++++++++++++++++-
+ 1 file changed, 153 insertions(+), 5 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index ec30ef4..38d2e9c 100644
+index ec30ef4..d780e83 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -159,6 +159,68 @@ static void __init omap3_beagle_init_rev(void)
+@@ -159,6 +159,86 @@ static void __init omap3_beagle_init_rev(void)
  
  char expansionboard_name[16];
  
@@ -33,6 +33,24 @@ index ec30ef4..38d2e9c 100644
 +} expansion_config = {
 +	.mmc_settings = EXPANSION_MMC_NONE,
 +	.i2c_settings = EXPANSION_I2C_NONE,
++};
++
++//rcn-ee: this is just a fake regulator, the zippy hardware provides 3.3/1.8 with jumper..
++static struct fixed_voltage_config beagle_vzippy = {
++	.supply_name = "vzippy",
++	.microvolts = 3300000,  /* 3.3V */
++	.startup_delay = 70000, /* 70ms */
++	.enable_high = 1,
++	.enabled_at_boot = 0,
++	.init_data = &beagle_vmmc2,
++};
++
++static struct platform_device omap_zippy_device = {
++	.name		= "reg-fixed-voltage",
++	.id		= 1,
++	.dev = {
++		.platform_data = &beagle_vzippy,
++	},
 +};
 +
 +#define OMAP3BEAGLE_GPIO_ZIPPY_MMC_WP 141
@@ -81,12 +99,10 @@ index ec30ef4..38d2e9c 100644
  static struct mtd_partition omap3beagle_nand_partitions[] = {
  	/* All the partition sizes are listed in terms of NAND block size */
  	{
-@@ -261,6 +323,26 @@ static struct omap2_hsmmc_info mmc[] = {
+@@ -261,6 +341,23 @@ static struct omap2_hsmmc_info mmc[] = {
  	{}	/* Terminator */
  };
  
-+
-+//FIXME: Need to setup the regulators for 2nd mmc device, leaving disabled for now...
 +static struct omap2_hsmmc_info mmc_zippy[] = {
 +	{
 +		.mmc		= 1,
@@ -97,18 +113,17 @@ index ec30ef4..38d2e9c 100644
 +	{
 +		.mmc		= 2,
 +		.caps		= MMC_CAP_4_BIT_DATA,
-+		.gpio_cd	= OMAP3BEAGLE_GPIO_ZIPPY_MMC_CD,
 +		.gpio_wp	= OMAP3BEAGLE_GPIO_ZIPPY_MMC_WP,
-+		.deferred	= true,
++		.gpio_cd	= OMAP3BEAGLE_GPIO_ZIPPY_MMC_CD,
 +		.transceiver	= true,
-+		.ocr_mask	= MMC_VDD_32_33,	/* 3.3V */
++		.deferred	= true,
 +	},
 +	{}	/* Terminator */
 +};
  static struct regulator_consumer_supply beagle_vmmc1_supply[] = {
  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
  };
-@@ -276,10 +358,21 @@ static int beagle_twl_gpio_setup(struct device *dev,
+@@ -276,10 +373,21 @@ static int beagle_twl_gpio_setup(struct device *dev,
  {
  	int r;
  
@@ -134,7 +149,7 @@ index ec30ef4..38d2e9c 100644
  
  	/*
  	 * TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
-@@ -377,6 +470,12 @@ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
+@@ -377,6 +485,12 @@ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
         },
  };
  
@@ -147,7 +162,7 @@ index ec30ef4..38d2e9c 100644
  static int __init omap3_beagle_i2c_init(void)
  {
  	omap3_pmic_get_config(&beagle_twldata,
-@@ -387,6 +486,15 @@ static int __init omap3_beagle_i2c_init(void)
+@@ -387,6 +501,15 @@ static int __init omap3_beagle_i2c_init(void)
  	beagle_twldata.vpll2->constraints.name = "VDVI";
  
  	omap3_pmic_init("twl4030", &beagle_twldata);
@@ -163,19 +178,20 @@ index ec30ef4..38d2e9c 100644
  	/* Bus 3 is attached to the DVI port where devices like the pico DLP
  	 * projector don't work reliably with 400kHz */
  	omap_register_i2c_bus(3, 100, beagle_i2c_eeprom, ARRAY_SIZE(beagle_i2c_eeprom));
-@@ -533,9 +641,27 @@ static void __init omap3_beagle_init(void)
+@@ -533,9 +656,28 @@ static void __init omap3_beagle_init(void)
  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
  	omap3_beagle_init_rev();
  
 +	if (!strcmp(expansionboard_name, "zippy"))
 +	{
-+		expansion_config.i2c_settings = EXPANSION_I2C_ZIPPY;
++		printk(KERN_INFO "Beagle expansionboard: initializing zippy mmc\n");
++		platform_device_register(&omap_zippy_device);
 +
-+		//FIXME: rcn-ee: wait for regulators..
-+		//expansion_config.mmc_settings = EXPANSION_MMC_ZIPPY;
-+		//omap_mux_init_gpio(OMAP3BEAGLE_GPIO_ZIPPY_MMC_WP, OMAP_PIN_INPUT);
-+		//FIXME: needs to be an irq..
-+		//omap_mux_init_gpio(OMAP3BEAGLE_GPIO_ZIPPY_MMC_CD, OMAP_PIN_INPUT);
++		expansion_config.i2c_settings = EXPANSION_I2C_ZIPPY;
++		expansion_config.mmc_settings = EXPANSION_MMC_ZIPPY;
++
++		omap_mux_init_gpio(OMAP3BEAGLE_GPIO_ZIPPY_MMC_WP, OMAP_PIN_INPUT);
++		omap_mux_init_gpio(OMAP3BEAGLE_GPIO_ZIPPY_MMC_CD, OMAP_PIN_INPUT);
 +	}
 +
  	if (beagle_config.mmc1_gpio_wp != -EINVAL)
@@ -192,7 +208,7 @@ index ec30ef4..38d2e9c 100644
  
  	omap3_beagle_i2c_init();
  
-@@ -552,6 +678,12 @@ static void __init omap3_beagle_init(void)
+@@ -552,6 +694,12 @@ static void __init omap3_beagle_init(void)
  	/* REVISIT leave DVI powered down until it's needed ... */
  	gpio_request_one(170, GPIOF_OUT_INIT_HIGH, "DVI_nPD");
  
