@@ -20,7 +20,7 @@ EXTERNAL_TREE="git://arago-project.org/git/projects/linux-am33x.git"
 EXTERNAL_BRANCH="v3.2-staging"
 EXTERNAL_SHA="720e07b4c1f687b61b147b31c698cb6816d72f01"
 
-PATCHSET="usb 3.2.1 3.2.2 3.2.3 3.2.4 3.2.5 3.2.6 3.2.7 3.2.8 3.2.9 3.2.10 3.2.11 3.2.12 3.2.13 3.2.14 3.2.15 3.2.16 3.2.17 3.2.18 led beaglebone"
+PATCHSET="usb psp 3.2.1 3.2.2 3.2.3 3.2.4 3.2.5 3.2.6 3.2.7 3.2.8 3.2.9 3.2.10 3.2.11 3.2.12 3.2.13 3.2.14 3.2.15 3.2.16 3.2.17 3.2.18 led libertas beaglebone"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
