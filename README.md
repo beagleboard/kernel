@@ -16,7 +16,9 @@ Board Maintainers List
 ---------------------
 
 ### BeagleBoard/PandaBoard
-* defconfig: patches/beagleboard/defconfig
+
+* omapfb: defconfig: patches/beagleboard/defconfig
+* omapdrm: defconfig: patches/beagleboard/kms_defconfig (see omapdrm section below)
 * Robert Nelson <robertcnelson@gmail.com>
 
 omapdrm (with new bootargs)
