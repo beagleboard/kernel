@@ -1,0 +1,58 @@
+From 82924899606375244205396d89c7714fc427af89 Mon Sep 17 00:00:00 2001
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Date: Fri, 29 Jun 2012 14:21:39 +0530
+Subject: [PATCH 23/38] usb: musb: reorder runtime pm for modular support
+
+The clock need to be enabled before the musb_core platform device is
+created and registered else we see kernel panic due to musb_core
+driver getting loaded and trying to access register space.
+
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ drivers/usb/musb/musb_dsps.c |   17 +++++++++--------
+ 1 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index dabe7b6..494772f 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -566,27 +566,28 @@ static int __devinit dsps_probe(struct platform_device *pdev)
+ 	}
+ 	platform_set_drvdata(pdev, glue);
+ 
+-	/* create the child platform device for first instances of musb */
+-	ret = dsps_create_musb_pdev(glue, 0);
+-	if (ret != 0) {
+-		dev_err(&pdev->dev, "failed to create child pdev\n");
+-		goto err2;
+-	}
+-
+ 	/* enable the usbss clocks */
+ 	pm_runtime_enable(&pdev->dev);
+ 
+ 	ret = pm_runtime_get_sync(&pdev->dev);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "pm_runtime_get_sync FAILED");
++		goto err2;
++	}
++
++	/* create the child platform device for first instances of musb */
++	ret = dsps_create_musb_pdev(glue, 0);
++	if (ret != 0) {
++		dev_err(&pdev->dev, "failed to create child pdev\n");
+ 		goto err3;
+ 	}
+ 
+ 	return 0;
+ 
+ err3:
+-	pm_runtime_disable(&pdev->dev);
++	pm_runtime_put(&pdev->dev);
+ err2:
++	pm_runtime_disable(&pdev->dev);
+ 	kfree(glue->wrp);
+ err1:
+ 	kfree(glue);
+-- 
+1.7.7.6
+

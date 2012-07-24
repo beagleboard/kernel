@@ -1,0 +1,27 @@
+From d8a84bdf5c1213ca0126a0832126843c3054cf5d Mon Sep 17 00:00:00 2001
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Date: Thu, 28 Jun 2012 19:24:58 +0530
+Subject: [PATCH 7/8] CUSTOM: Enable APPENDED_DTB & ATAG_DTB_COMPAT option in
+ defconfig
+
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/configs/omap2plus_defconfig |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index b152de7..19c8217 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -32,6 +32,8 @@ CONFIG_NR_CPUS=2
+ CONFIG_LEDS=y
+ CONFIG_ZBOOT_ROM_TEXT=0x0
+ CONFIG_ZBOOT_ROM_BSS=0x0
++CONFIG_ARM_APPENDED_DTB=y
++CONFIG_ARM_ATAG_DTB_COMPAT=y
+ CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200"
+ CONFIG_KEXEC=y
+ CONFIG_FPE_NWFPE=y
+-- 
+1.7.7.6
+

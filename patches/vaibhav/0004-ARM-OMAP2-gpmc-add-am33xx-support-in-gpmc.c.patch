@@ -1,0 +1,28 @@
+From aab5dec58f883562480cce43f3205a8d0e475fb4 Mon Sep 17 00:00:00 2001
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Date: Tue, 15 May 2012 14:32:07 +0530
+Subject: [PATCH 4/8] ARM: OMAP2+: gpmc: add am33xx support in gpmc.c
+
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/mach-omap2/gpmc.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index b2b5759..cba99ab 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -723,6 +723,10 @@ static int __init gpmc_init(void)
+ 		else
+ 			l = OMAP34XX_GPMC_BASE;
+ 		gpmc_irq = INT_34XX_GPMC_IRQ;
++	} else if (soc_is_am33xx()) {
++		ck = "l3s_gclk";
++		l = OMAP44XX_GPMC_BASE;
++		gpmc_irq = INT_34XX_GPMC_IRQ;
+ 	} else if (cpu_is_omap34xx()) {
+ 		ck = "gpmc_fck";
+ 		l = OMAP34XX_GPMC_BASE;
+-- 
+1.7.7.6
+

@@ -1,0 +1,142 @@
+From 231dd1566e7ef6acee8504efd44524971c8d2770 Mon Sep 17 00:00:00 2001
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Date: Mon, 25 Jun 2012 15:59:47 +0530
+Subject: [PATCH 28/38] usb: musb: kill global and static for multi instance
+
+Moved global variable "musb_debugfs_root" and static variable
+"old_state" to 'struct musb' to help support multi instance of
+musb controller as present on AM335x platform.
+
+Also removed the global variable "orig_dma_mask" and filled the
+dev->dma_mask with parent device's dma_mask.
+
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ drivers/usb/musb/musb_core.c    |   16 +++-------------
+ drivers/usb/musb/musb_core.h    |    4 ++++
+ drivers/usb/musb/musb_debugfs.c |   14 ++++++++------
+ 3 files changed, 15 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 3e09984..a5db4dd 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1802,10 +1802,9 @@ static const struct attribute_group musb_attr_group = {
+ static void musb_irq_work(struct work_struct *data)
+ {
+ 	struct musb *musb = container_of(data, struct musb, irq_work);
+-	static int old_state;
+ 
+-	if (musb->xceiv->state != old_state) {
+-		old_state = musb->xceiv->state;
++	if (musb->xceiv->state != musb->xceiv_old_state) {
++		musb->xceiv_old_state = musb->xceiv->state;
+ 		sysfs_notify(&musb->controller->kobj, NULL, "mode");
+ 	}
+ }
+@@ -2115,11 +2114,6 @@ fail0:
+ /* all implementations (PCI bridge to FPGA, VLYNQ, etc) should just
+  * bridge to a platform device; this driver then suffices.
+  */
+-
+-#ifndef CONFIG_MUSB_PIO_ONLY
+-static u64	*orig_dma_mask;
+-#endif
+-
+ static int __devinit musb_probe(struct platform_device *pdev)
+ {
+ 	struct device	*dev = &pdev->dev;
+@@ -2138,10 +2132,6 @@ static int __devinit musb_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 
+-#ifndef CONFIG_MUSB_PIO_ONLY
+-	/* clobbered by use_dma=n */
+-	orig_dma_mask = dev->dma_mask;
+-#endif
+ 	status = musb_init_controller(dev, irq, base);
+ 	if (status < 0)
+ 		iounmap(base);
+@@ -2166,7 +2156,7 @@ static int __devexit musb_remove(struct platform_device *pdev)
+ 	iounmap(ctrl_base);
+ 	device_init_wakeup(&pdev->dev, 0);
+ #ifndef CONFIG_MUSB_PIO_ONLY
+-	pdev->dev.dma_mask = orig_dma_mask;
++	pdev->dev.dma_mask = (&dev->dev.parent)->dma_mask;
+ #endif
+ 	return 0;
+ }
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 69ed141..6b6cee9 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -452,6 +452,10 @@ struct musb {
+ #endif
+ 	/* id for multiple musb instances */
+ 	u8			id;
++	int                     xceiv_old_state;
++#ifdef CONFIG_DEBUG_FS
++	struct dentry           *debugfs_root;
++#endif
+ };
+ 
+ static inline struct musb *gadget_to_musb(struct usb_gadget *g)
+diff --git a/drivers/usb/musb/musb_debugfs.c b/drivers/usb/musb/musb_debugfs.c
+index 40a37c9..b1e8f21 100644
+--- a/drivers/usb/musb/musb_debugfs.c
++++ b/drivers/usb/musb/musb_debugfs.c
+@@ -103,8 +103,6 @@ static const struct musb_register_map musb_regmap[] = {
+ 	{  }	/* Terminating Entry */
+ };
+ 
+-static struct dentry *musb_debugfs_root;
+-
+ static int musb_regdump_show(struct seq_file *s, void *unused)
+ {
+ 	struct musb		*musb = s->private;
+@@ -240,20 +238,24 @@ int __devinit musb_init_debugfs(struct musb *musb)
+ 	struct dentry		*root;
+ 	struct dentry		*file;
+ 	int			ret;
++	char			name[10];
+ 
+-	root = debugfs_create_dir("musb", NULL);
++	sprintf(name, "musb%d", musb->id);
++	root = debugfs_create_dir(name, NULL);
+ 	if (!root) {
+ 		ret = -ENOMEM;
+ 		goto err0;
+ 	}
+ 
+-	file = debugfs_create_file("regdump", S_IRUGO, root, musb,
++	sprintf(name, "regdump%d", musb->id);
++	file = debugfs_create_file(name, S_IRUGO, root, musb,
+ 			&musb_regdump_fops);
+ 	if (!file) {
+ 		ret = -ENOMEM;
+ 		goto err1;
+ 	}
+ 
++	sprintf(name, "testmode%d", musb->id);
+ 	file = debugfs_create_file("testmode", S_IRUGO | S_IWUSR,
+ 			root, musb, &musb_test_mode_fops);
+ 	if (!file) {
+@@ -261,7 +263,7 @@ int __devinit musb_init_debugfs(struct musb *musb)
+ 		goto err1;
+ 	}
+ 
+-	musb_debugfs_root = root;
++	musb->debugfs_root = root;
+ 
+ 	return 0;
+ 
+@@ -274,5 +276,5 @@ err0:
+ 
+ void /* __init_or_exit */ musb_exit_debugfs(struct musb *musb)
+ {
+-	debugfs_remove_recursive(musb_debugfs_root);
++	debugfs_remove_recursive(musb->debugfs_root);
+ }
+-- 
+1.7.7.6
+

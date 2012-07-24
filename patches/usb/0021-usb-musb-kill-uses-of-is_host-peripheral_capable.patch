@@ -1,0 +1,128 @@
+From c9ad1d87ede9d525f867b75661d9af353d4619e6 Mon Sep 17 00:00:00 2001
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Date: Mon, 25 Jun 2012 17:43:47 +0530
+Subject: [PATCH 21/38] usb: musb: kill uses of is_host/peripheral_capable()
+
+is_host_capable() and is_peripheral_capable() is hardcoded to be
+always '1' and so kill the uses of the same.
+
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ drivers/usb/musb/musb_core.c |   48 +++++++++++++++--------------------------
+ drivers/usb/musb/musb_core.h |    4 ---
+ 2 files changed, 18 insertions(+), 34 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 26f1bef..89d1871 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -787,7 +787,7 @@ b_host:
+ 	 */
+ 	if (int_usb & MUSB_INTR_RESET) {
+ 		handled = IRQ_HANDLED;
+-		if (is_host_capable() && (devctl & MUSB_DEVCTL_HM) != 0) {
++		if ((devctl & MUSB_DEVCTL_HM) != 0) {
+ 			/*
+ 			 * Looks like non-HS BABBLE can be ignored, but
+ 			 * HS BABBLE is an error condition. For HS the solution
+@@ -801,7 +801,7 @@ b_host:
+ 				ERR("Stopping host session -- babble\n");
+ 				musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
+ 			}
+-		} else if (is_peripheral_capable()) {
++		} else {
+ 			dev_dbg(musb->controller, "BUS RESET as %s\n",
+ 				otg_state_string(musb->xceiv->state));
+ 			switch (musb->xceiv->state) {
+@@ -1571,13 +1571,10 @@ irqreturn_t musb_interrupt(struct musb *musb)
+ 			/* musb_ep_select(musb->mregs, ep_num); */
+ 			/* REVISIT just retval = ep->rx_irq(...) */
+ 			retval = IRQ_HANDLED;
+-			if (devctl & MUSB_DEVCTL_HM) {
+-				if (is_host_capable())
+-					musb_host_rx(musb, ep_num);
+-			} else {
+-				if (is_peripheral_capable())
+-					musb_g_rx(musb, ep_num);
+-			}
++			if (devctl & MUSB_DEVCTL_HM)
++				musb_host_rx(musb, ep_num);
++			else
++				musb_g_rx(musb, ep_num);
+ 		}
+ 
+ 		reg >>= 1;
+@@ -1592,13 +1589,10 @@ irqreturn_t musb_interrupt(struct musb *musb)
+ 			/* musb_ep_select(musb->mregs, ep_num); */
+ 			/* REVISIT just retval |= ep->tx_irq(...) */
+ 			retval = IRQ_HANDLED;
+-			if (devctl & MUSB_DEVCTL_HM) {
+-				if (is_host_capable())
+-					musb_host_tx(musb, ep_num);
+-			} else {
+-				if (is_peripheral_capable())
+-					musb_g_tx(musb, ep_num);
+-			}
++			if (devctl & MUSB_DEVCTL_HM)
++				musb_host_tx(musb, ep_num);
++			else
++				musb_g_tx(musb, ep_num);
+ 		}
+ 		reg >>= 1;
+ 		ep_num++;
+@@ -1634,22 +1628,16 @@ void musb_dma_completion(struct musb *musb, u8 epnum, u8 transmit)
+ 	} else {
+ 		/* endpoints 1..15 */
+ 		if (transmit) {
+-			if (devctl & MUSB_DEVCTL_HM) {
+-				if (is_host_capable())
+-					musb_host_tx(musb, epnum);
+-			} else {
+-				if (is_peripheral_capable())
+-					musb_g_tx(musb, epnum);
+-			}
++			if (devctl & MUSB_DEVCTL_HM)
++				musb_host_tx(musb, epnum);
++			else
++				musb_g_tx(musb, epnum);
+ 		} else {
+ 			/* receive */
+-			if (devctl & MUSB_DEVCTL_HM) {
+-				if (is_host_capable())
+-					musb_host_rx(musb, epnum);
+-			} else {
+-				if (is_peripheral_capable())
+-					musb_g_rx(musb, epnum);
+-			}
++			if (devctl & MUSB_DEVCTL_HM)
++				musb_host_rx(musb, epnum);
++			else
++				musb_g_rx(musb, epnum);
+ 		}
+ 	}
+ }
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index dbcdeea..51bd7b2 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -96,8 +96,6 @@ struct musb_ep;
+ 
+ /****************************** PERIPHERAL ROLE *****************************/
+ 
+-#define	is_peripheral_capable()	(1)
+-
+ extern irqreturn_t musb_g_ep0_irq(struct musb *);
+ extern void musb_g_tx(struct musb *, u8);
+ extern void musb_g_rx(struct musb *, u8);
+@@ -109,8 +107,6 @@ extern void musb_g_disconnect(struct musb *);
+ 
+ /****************************** HOST ROLE ***********************************/
+ 
+-#define	is_host_capable()	(1)
+-
+ extern irqreturn_t musb_h_ep0_irq(struct musb *);
+ extern void musb_host_tx(struct musb *, u8);
+ extern void musb_host_rx(struct musb *, u8);
+-- 
+1.7.7.6
+

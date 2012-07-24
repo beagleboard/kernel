@@ -1,0 +1,52 @@
+From 1b52c249c4319460887be10b74b777d0dc142921 Mon Sep 17 00:00:00 2001
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Date: Wed, 11 Jul 2012 14:47:24 +0530
+Subject: [PATCH 36/38] usb: musb: dsps: get the PHY using phandle api
+
+AM33xx has two PHY of same type used by each musb controller so
+use phandle of phy nodes to get the phy pointer.
+
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ .../devicetree/bindings/usb/am33xx-usb.txt         |    2 ++
+ drivers/usb/musb/musb_dsps.c                       |    4 +++-
+ 2 files changed, 5 insertions(+), 1 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+index a314720..4ed0091 100644
+--- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
++++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+@@ -12,6 +12,8 @@ AM33XX MUSB GLUE
+    represents PERIPHERAL.
+  - power : Should be "250". This signifies the controller can supply upto
+    500mA when operating in host mode.
++ - usb0-phy : phandle for usb0 NOP PHY
++ - usb1-phy : phandle for usb1 NOP PHY
+ 
+ NOP USB PHY
+  - compatible : Should be "ti,nop-xceiv-usb"
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 4c59809..e2b0729 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -419,6 +419,7 @@ static int dsps_musb_init(struct musb *musb)
+ 	struct dsps_glue *glue = platform_get_drvdata(pdev);
+ 	const struct dsps_musb_wrapper *wrp = glue->wrp;
+ 	void __iomem *reg_base = musb->ctrl_base;
++	char name[10];
+ 	u32 rev, val;
+ 	int status;
+ 
+@@ -426,7 +427,8 @@ static int dsps_musb_init(struct musb *musb)
+ 	musb->mregs += wrp->musb_core_offset;
+ 
+ 	/* Get the NOP PHY */
+-	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
++	sprintf(name, "usb%d-phy", musb->id);
++	musb->xceiv = devm_usb_get_phy_by_phandle(&pdev->dev, name);
+ 	if (IS_ERR_OR_NULL(musb->xceiv))
+ 		return -ENODEV;
+ 
+-- 
+1.7.7.6
+
