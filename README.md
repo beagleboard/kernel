@@ -13,7 +13,9 @@ git checkout origin/beaglebone-3.6 -b beaglebone-3.6
 
 To build it:
 
-cd kernel && make uImage-dtb.am335x-bone
+cd kernel
+make uImage
+make uImage-dtb.am335x-bone
 
 Status
 ======
