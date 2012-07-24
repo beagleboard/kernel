@@ -185,3 +185,21 @@ Starting kernel ...
 
 	<hang>
 
+Booting from USB:
+
+root@beaglebone:~# uname -a
+Linux beaglebone 3.5.0-rc6-12271-g776fa63 #22 SMP Tue Jul 24 17:41:33 CEST 2012 armv7l GNU/Linux
+root@beaglebone:~# lsusb 
+Bus 001 Device 002: ID 13fe:1d00 Kingston Technology Company Inc. DataTraveler 2.0 1GB/4GB Flash Drive / Patriot Xporter 4GB Flash Drive
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+root@beaglebone:~# cat /proc/cmdline 
+console=ttyO0,115200n8 root=/dev/sda1 ro rootfstype=ext4 rootwait
+root@beaglebone:~# df -h
+Filesystem                Size      Used Available Use% Mounted on
+/dev/root                 1.9G    100.1M      1.7G   5% /
+devtmpfs                119.9M         0    119.9M   0% /dev
+tmpfs                   120.0M         0    120.0M   0% /dev/shm
+tmpfs                   120.0M    432.0K    119.6M   0% /run
+tmpfs                   120.0M     92.0K    120.0M   0% /sys/fs/cgroup
+tmpfs                   120.0M         0    120.0M   0% /tmp
+root@beaglebone:~# 
