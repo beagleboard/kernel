@@ -25,6 +25,7 @@ This is based on the info mentioned here: http://marc.info/?l=linux-omap&m=13426
 Bootlog
 ======
 
+```
 ## Booting kernel from Legacy Image at 80007fc0 ...
    Image Name:   Linux-3.5.0-rc6-12265-g4361219
    Image Type:   ARM Linux Kernel Image (uncompressed)
@@ -184,7 +185,9 @@ Starting kernel ...
 [    1.905677] Waiting for root device /dev/mmcblk0p2...
 
 	<hang>
+```
 
+```
 Booting from USB:
 
 root@beaglebone:~# uname -a
@@ -202,4 +205,5 @@ tmpfs                   120.0M         0    120.0M   0% /dev/shm
 tmpfs                   120.0M    432.0K    119.6M   0% /run
 tmpfs                   120.0M     92.0K    120.0M   0% /sys/fs/cgroup
 tmpfs                   120.0M         0    120.0M   0% /tmp
-root@beaglebone:~# 
+root@beaglebone:~#
+```
