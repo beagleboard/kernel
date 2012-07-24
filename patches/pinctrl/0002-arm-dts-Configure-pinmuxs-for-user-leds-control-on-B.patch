@@ -1,0 +1,42 @@
+From f985047e8edc2499fb2f1ade1df6f9f403c6360c Mon Sep 17 00:00:00 2001
+From: AnilKumar Ch <anilkumar@ti.com>
+Date: Fri, 20 Jul 2012 13:01:48 +0530
+Subject: [PATCH 2/2] arm/dts: Configure pinmuxs for user leds control on Bone
+
+Adds GPIO pinctrl nodes to am3358_pinmux master node to control
+user leds (USR0, USR1, USR2 and USR3) present on BeagleBone.
+
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+ arch/arm/boot/dts/am335x-bone.dts |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 8fdf43a..199930e 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -29,6 +29,21 @@
+ 
+ /include/ "tps65217.dtsi"
+ 
++&am3358_pinmux {
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&userled_pins>;
++
++	userled_pins: pinmux_userled_pins {
++		pinctrl-single,pins = <
++			0x54 0x7	/* gpmc_a5.gpio1_21, OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
++			0x58 0x17	/* gpmc_a6.gpio1_22, OMAP_PIN_OUTPUT_PULLUP | OMAP_MUX_MODE7 */
++			0x5C 0x7	/* gpmc_a7.gpio1_23, OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
++			0x60 0x17	/* gpmc_a8.gpio1_24, OMAP_PIN_OUTPUT_PULLUP | OMAP_MUX_MODE7 */
++		>;
++	};
++};
++
+ &dcdc2_reg {
+ 	/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
+ 	regulator-name = "vdd_mpu";
+-- 
+1.7.7.6
+

@@ -20,7 +20,7 @@ EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.g
 EXTERNAL_BRANCH="master"
 EXTERNAL_SHA="55936cdfaaf11ac352b56bc58e42d6661e65ee13"
 
-PATCHSET="vaibhav usb"
+PATCHSET="vaibhav usb regulator pinctrl"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
