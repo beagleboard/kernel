@@ -1,7 +1,7 @@
-From 7eb5754eb51d91a73972a312600068c59e95d865 Mon Sep 17 00:00:00 2001
+From 7ccaa43cb777ef402abbeb37afb7be9038f84074 Mon Sep 17 00:00:00 2001
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Date: Fri, 20 Jul 2012 17:39:16 +0530
-Subject: [PATCH 09/10] rtc: omap: Add runtime pm support
+Date: Wed, 25 Jul 2012 06:12:32 +0000
+Subject: [PATCH 5/6] rtc: omap: Add runtime pm support
 
 OMAP1 RTC driver is used in multiple devices like,
 OMAPL138 and AM33XX. Driver currently doesn't handle any clocks,
@@ -10,33 +10,27 @@ the clock/module needs to be enabled in order to access the registers.
 
 So covert this driver to runtime pm, which internally handles rest.
 
+Afzal: handle error path
+
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-
-This patch has been tested on OMAPL138, BeagleBone platform,
-help is required to validate it on OMAP1 platform.
-
-Also note that, suspend/resume execution patch has not been validated,
-but theoretically should work, since the driver is tested with building
-as a module; where it has been made sure that, on insmode clock/module
-is enabled and on rmmod clock/module is disabled, without impacting
-rtc functionality.
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/rtc/rtc-omap.c |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
+ drivers/rtc/rtc-omap.c |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index 0b614e3..366fa30 100644
+index dc1a4da..3ee3401 100644
 --- a/drivers/rtc/rtc-omap.c
 +++ b/drivers/rtc/rtc-omap.c
-@@ -20,6 +20,7 @@
- #include <linux/rtc.h>
- #include <linux/bcd.h>
+@@ -22,6 +22,7 @@
  #include <linux/platform_device.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
 +#include <linux/pm_runtime.h>
  
  #include <asm/io.h>
  
-@@ -322,6 +323,10 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+@@ -363,6 +364,10 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
  		goto fail;
  	}
  
@@ -44,13 +38,22 @@ index 0b614e3..366fa30 100644
 +	pm_runtime_enable(&pdev->dev);
 +	pm_runtime_get_sync(&pdev->dev);
 +
- 	rtc = rtc_device_register(pdev->name, &pdev->dev,
- 			&omap_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc)) {
-@@ -420,6 +425,11 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
- 		free_irq(omap_rtc_alarm, rtc);
- 
+ 	id_entry = platform_get_device_id(pdev);
+ 	if (id_entry && (id_entry->driver_data & OMAP_RTC_HAS_KICKER)) {
+ 		rtc_writel(KICK0_VALUE, OMAP_RTC_KICK0_REG);
+@@ -447,6 +452,8 @@ fail1:
+ fail0:
+ 	if (id_entry && (id_entry->driver_data & OMAP_RTC_HAS_KICKER))
+ 		rtc_writel(0, OMAP_RTC_KICK0_REG);
++	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_disable(&pdev->dev);
+ 	iounmap(rtc_base);
+ fail:
+ 	release_mem_region(mem->start, resource_size(mem));
+@@ -473,6 +480,11 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
  	rtc_device_unregister(rtc);
+ 	if (id_entry && (id_entry->driver_data & OMAP_RTC_HAS_KICKER))
+ 		rtc_writel(0, OMAP_RTC_KICK0_REG);
 +
 +	/* Disable the clock/module */
 +	pm_runtime_put_sync(&pdev->dev);
@@ -59,7 +62,7 @@ index 0b614e3..366fa30 100644
  	iounmap(rtc_base);
  	release_mem_region(mem->start, resource_size(mem));
  	return 0;
-@@ -442,11 +452,17 @@ static int omap_rtc_suspend(struct platform_device *pdev, pm_message_t state)
+@@ -495,11 +507,17 @@ static int omap_rtc_suspend(struct platform_device *pdev, pm_message_t state)
  	else
  		rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
  
