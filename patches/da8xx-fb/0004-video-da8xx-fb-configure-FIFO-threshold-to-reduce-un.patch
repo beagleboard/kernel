@@ -1,0 +1,91 @@
+From 245a1f75a159c53ae3ab9db3b91ae896be495d88 Mon Sep 17 00:00:00 2001
+From: "Manjunathappa, Prakash" <prakash.pm@ti.com>
+Date: Wed, 18 Jul 2012 15:33:36 +0000
+Subject: [PATCH 4/6] video: da8xx-fb: configure FIFO threshold to reduce
+ underflow errors
+
+Patch works around the below silicon errata:
+During LCDC initialization, there is the potential for a FIFO
+underflow condition to occur. A FIFO underflow condition
+occurs when the input FIFO is completely empty and the LCDC
+raster controller logic that drives data to the output pins
+attempts to fetch data from the FIFO. When a FIFO underflow
+condition occurs, incorrect data will be driven out on the
+LCDC data pins.
+
+Software should poll the FUF bit field in the LCD_STAT register
+to check if an error condition has occurred or service the
+interrupt if FUF_EN is enabled when FUF occurs. If the FUF bit
+field has been set to 1, this will indicate an underflow
+condition has occurred and then the software should execute a
+reset of the LCDC via the LPSC.
+
+This problem may occur if the LCDC FIFO threshold size
+(LCDDMA_CTRL[TH_FIFO_READY]) is left at its default value after
+reset. Increasing the FIFO threshold size will reduce or
+eliminate underflows. Setting the threshold size to 256 double
+words or larger is recommended.
+
+Above issue is described in section 2.1.3 of silicon errata
+http://www.ti.com/lit/er/sprz313e/sprz313e.pdf
+
+Signed-off-by: Rajashekhara, Sudhakar <sudhakar.raj@ti.com>
+Signed-off-by: Manjunathappa, Prakash <prakash.pm@ti.com>
+---
+ drivers/video/da8xx-fb.c |   11 +++++++----
+ include/video/da8xx-fb.h |    3 +++
+ 2 files changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+index dbe31bf..3c5838b 100644
+--- a/drivers/video/da8xx-fb.c
++++ b/drivers/video/da8xx-fb.c
+@@ -355,8 +355,8 @@ static void lcd_blit(int load_mode, struct da8xx_fb_par *par)
+ 	lcd_enable_raster();
+ }
+ 
+-/* Configure the Burst Size of DMA */
+-static int lcd_cfg_dma(int burst_size)
++/* Configure the Burst Size and fifo threhold of DMA */
++static int lcd_cfg_dma(int burst_size, int fifo_th)
+ {
+ 	u32 reg;
+ 
+@@ -380,6 +380,9 @@ static int lcd_cfg_dma(int burst_size)
+ 	default:
+ 		return -EINVAL;
+ 	}
++
++	reg |= (fifo_th << 8);
++
+ 	lcdc_write(reg, LCD_DMA_CTRL_REG);
+ 
+ 	return 0;
+@@ -717,8 +720,8 @@ static int lcd_init(struct da8xx_fb_par *par, const struct lcd_ctrl_config *cfg,
+ 		lcdc_write((lcdc_read(LCD_RASTER_TIMING_2_REG) &
+ 			~LCD_INVERT_PIXEL_CLOCK), LCD_RASTER_TIMING_2_REG);
+ 
+-	/* Configure the DMA burst size. */
+-	ret = lcd_cfg_dma(cfg->dma_burst_sz);
++	/* Configure the DMA burst size and fifo threshold. */
++	ret = lcd_cfg_dma(cfg->dma_burst_sz, cfg->fifo_th);
+ 	if (ret < 0)
+ 		return ret;
+ 
+diff --git a/include/video/da8xx-fb.h b/include/video/da8xx-fb.h
+index 89d43b3..5a0e4f9 100644
+--- a/include/video/da8xx-fb.h
++++ b/include/video/da8xx-fb.h
+@@ -82,6 +82,9 @@ struct lcd_ctrl_config {
+ 
+ 	/* Raster Data Order Select: 1=Most-to-least 0=Least-to-most */
+ 	unsigned char raster_order;
++
++	/* DMA FIFO threshold */
++	int fifo_th;
+ };
+ 
+ struct lcd_sync_arg {
+-- 
+1.7.7.6
+
