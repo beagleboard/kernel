@@ -16,9 +16,9 @@ EXPORTPATH="${DIR}/export"
 TAG="v3.5"
 EXTRATAG=""
 
-EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git"
+EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="55936cdfaaf11ac352b56bc58e42d6661e65ee13"
+EXTERNAL_SHA="bdc0077af574800d24318b6945cf2344e8dbb050"
 
 PATCHSET="vaibhav usb regulator pinctrl rtc beaglebone da8xx-fb"
 
