@@ -1,0 +1,35 @@
+From 70088644c1b0726c62d290bcb8f3614b208b0d1c Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Fri, 22 Jun 2012 13:17:57 +0200
+Subject: [PATCH 3/3] beagleboard: fix i2c2 init
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/board-omap3beagle-camera.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle-camera.c b/arch/arm/mach-omap2/board-omap3beagle-camera.c
+index b8e88fa..ba2ac21 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle-camera.c
++++ b/arch/arm/mach-omap2/board-omap3beagle-camera.c
+@@ -74,6 +74,8 @@ static int __init beagle_camera_init(void)
+ 	if (!machine_is_omap3_beagle() || !cpu_is_omap3630())
+ 		return 0;
+ 
++	pr_info("Beagle expansionboard: MT9P031 init");
++
+ 	reg_1v8 = regulator_get(NULL, "cam_1v8");
+ 	if (IS_ERR(reg_1v8))
+ 		pr_err("%s: cannot get cam_1v8 regulator\n", __func__);
+@@ -86,7 +88,7 @@ static int __init beagle_camera_init(void)
+ 	else
+ 		regulator_enable(reg_2v8);
+ 
+-	omap_register_i2c_bus(2, 100, NULL, 0);
++	//omap_register_i2c_bus(2, 100, NULL, 0);
+ 	gpio_request_one(MT9P031_RESET_GPIO, GPIOF_OUT_INIT_LOW, "cam_rst");
+ 	omap3_init_camera(&beagle_isp_platform_data);
+ 
+-- 
+1.7.10
+
