@@ -1,0 +1,73 @@
+From e01aab762f401e5f38d7e97616245b12d23d93c0 Mon Sep 17 00:00:00 2001
+From: Daniel Mack <zonque@gmail.com>
+Date: Thu, 2 Aug 2012 21:51:37 +0200
+Subject: [PATCH 6/6] ARM: omap2/am33xx: add hwmod for davinci_mdio
+
+Add a hwmod entry for the davinci_mdio hardware block. This aliases the
+cpsw_125mhz_clkdm and re-uses am33xx_cpgmac0_hwmod_class.
+
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   31 ++++++++++++++++++++++++++++
+ 1 files changed, 31 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index aa46500..00039f2 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -684,6 +684,19 @@ static struct omap_hwmod am33xx_cpgmac0_hwmod = {
+ 	},
+ };
+ 
++static struct omap_hwmod am33xx_cpsw_mdio_hwmod = {
++	.name		= "davinci_mdio",
++	.class		= &am33xx_cpgmac0_hwmod_class,
++	.clkdm_name	= "cpsw_125mhz_clkdm",
++	.main_clk	= "cpsw_125mhz_gclk",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs	= AM33XX_CM_PER_CPGMAC0_CLKCTRL_OFFSET,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++};
++
+ /*
+  * dcan class
+  */
+@@ -2501,6 +2514,23 @@ static struct omap_hwmod_ocp_if am33xx_l4_hs__cpgmac0 = {
+ 	.user		= OCP_USER_MPU,
+ };
+ 
++static struct omap_hwmod_addr_space am33xx_cpsw_mdio_addr_space[] = {
++	{
++		.pa_start	= 0x4a101000,
++		.pa_end		= 0x4a101000 + SZ_256 - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++	{ }
++};
++
++static struct omap_hwmod_ocp_if am33xx_l4_hs__cpsw_mdio = {
++	.master		= &am33xx_l4_hs_hwmod,
++	.slave		= &am33xx_cpsw_mdio_hwmod,
++	.clk		= "cpsw_125mhz_gclk",
++	.addr		= am33xx_cpsw_mdio_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
+ static struct omap_hwmod_addr_space am33xx_elm_addr_space[] = {
+ 	{
+ 		.pa_start	= 0x48080000,
+@@ -3383,6 +3413,7 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l3_main__tptc2,
+ 	&am33xx_l3_s__usbss,
+ 	&am33xx_l4_hs__cpgmac0,
++	&am33xx_l4_hs__cpsw_mdio,
+ 	NULL,
+ };
+ 
+-- 
+1.7.7.6
+

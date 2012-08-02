@@ -1,0 +1,63 @@
+From a3a44f5b99633b4a79bc357693188b3ebaca231f Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Wed, 1 Aug 2012 14:13:23 +0200
+Subject: [PATCH 3/6] beaglebone: add broken cpsw DT
+
+The DT in the cpsw doc is so wrong it's not even funny anymore:
+
+1) it's missing cpdma_sram_ofs = <0xa00>;
+2) it's not valid DT, values need <> around them
+3) the slave1 addresses are wrong
+
+End result: no working cpsw on beaglebone, but you do get an 'eth0' device. Which doesn't do anything due to the above, but still, you get one.
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am335x-bone.dts |   31 +++++++++++++++++++++++++++++++
+ 1 files changed, 31 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index aba0018f..ac7fab5 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -32,6 +32,37 @@
+ 			linux,default-trigger = "mmc0";
+ 		};
+ 	};
++
++	mac: ethernet@4A100000 {
++		compatible = "ti,cpsw";
++		ti,hwmods = "cpgmac0";
++		cpdma_channels = <8>;
++		host_port_no = <0>;
++		cpdma_reg_ofs = <0x800>;
++		cpdma_sram_ofs = <0xa00>;
++		ale_reg_ofs = <0xd00>;
++		ale_entries = <1024>;
++		host_port_reg_ofs = <0x108>;
++		hw_stats_reg_ofs = <0x900>;
++		bd_ram_ofs = <0x2000>;
++		bd_ram_size = <0x2000>;
++		no_bd_ram = <0>;
++		rx_descs = <64>;
++		mac_control = <0x20>;
++		slaves = <2>;
++		slave@0 {
++			slave_reg_ofs = <0x208>;
++			sliver_reg_ofs = <0xd80>;
++			phy_id = "davinci_mdio-0:00";
++			mac-address = [00 04 9F 01 1B B8];
++		};
++		slave@1 {
++			slave_reg_ofs = <0x308>;
++			sliver_reg_ofs = <0xdc0>;
++			phy_id = "davinci_mdio-0:01";
++			mac-address = [00 04 9F 01 1B B9];
++		};
++	};
+ };
+ 
+ 
+-- 
+1.7.7.6
+

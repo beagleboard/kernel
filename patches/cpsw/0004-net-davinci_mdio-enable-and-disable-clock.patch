@@ -1,0 +1,75 @@
+From 3856d70c42ec7acbdd6b2acf35b40b198a2175ca Mon Sep 17 00:00:00 2001
+From: Daniel Mack <zonque@gmail.com>
+Date: Thu, 2 Aug 2012 21:43:35 +0200
+Subject: [PATCH 4/6] net: davinci_mdio: enable and disable clock
+
+Make the driver control the device clocks. Appearantly, the Davinci
+platform probes this driver with the clock all powered up, but on OMAP,
+this isn't the case.
+
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ drivers/net/ethernet/ti/davinci_mdio.c |   16 ++++++++++++++--
+ 1 files changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
+index cd7ee20..b4b6015 100644
+--- a/drivers/net/ethernet/ti/davinci_mdio.c
++++ b/drivers/net/ethernet/ti/davinci_mdio.c
+@@ -332,6 +332,8 @@ static int __devinit davinci_mdio_probe(struct platform_device *pdev)
+ 		goto bail_out;
+ 	}
+ 
++	clk_enable(data->clk);
++
+ 	dev_set_drvdata(dev, data);
+ 	data->dev = dev;
+ 	spin_lock_init(&data->lock);
+@@ -379,8 +381,11 @@ bail_out:
+ 	if (data->bus)
+ 		mdiobus_free(data->bus);
+ 
+-	if (data->clk)
++	if (data->clk) {
++		clk_disable(data->clk);
+ 		clk_put(data->clk);
++	}
++
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+ 
+@@ -397,8 +402,11 @@ static int __devexit davinci_mdio_remove(struct platform_device *pdev)
+ 	if (data->bus)
+ 		mdiobus_free(data->bus);
+ 
+-	if (data->clk)
++	if (data->clk) {
++		clk_disable(data->clk);
+ 		clk_put(data->clk);
++	}
++
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+ 
+@@ -427,6 +435,8 @@ static int davinci_mdio_suspend(struct device *dev)
+ 	data->suspended = true;
+ 	spin_unlock(&data->lock);
+ 
++	clk_disable(data->clk);
++
+ 	return 0;
+ }
+ 
+@@ -435,6 +445,8 @@ static int davinci_mdio_resume(struct device *dev)
+ 	struct davinci_mdio_data *data = dev_get_drvdata(dev);
+ 	u32 ctrl;
+ 
++	clk_enable(data->clk);
++
+ 	spin_lock(&data->lock);
+ 	pm_runtime_put_sync(data->dev);
+ 
+-- 
+1.7.7.6
+
