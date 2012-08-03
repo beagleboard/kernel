@@ -13,12 +13,12 @@ PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.5"
+TAG="v3.6-rc1"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="1a9b4993b70fb1884716902774dc9025b457760d"
+EXTERNAL_SHA="0d7614f09c1ebdbaa1599a5aba7593f147bf96ee"
 
 PATCHSET="vaibhav usb regulator pinctrl rtc beaglebone cpsw"
 
