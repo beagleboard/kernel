@@ -1,16 +1,17 @@
-From 9f86dfad967e6113c28a634de52cfc0387c48893 Mon Sep 17 00:00:00 2001
+From be7e05e656569c553d97ccc56086c5b233ab23d4 Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Fri, 29 Jun 2012 14:18:32 +0530
-Subject: [PATCH 31/38] usb: musb: dsps: add dt support
+Subject: [PATCH 23/30] usb: musb: dsps: add dt support
 
 Added device tree support for dsps musb glue driver and updated the
 Documentation with device tree binding information.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Ravi Babu <ravibabu@ti.com>
 ---
  .../devicetree/bindings/usb/am33xx-usb.txt         |   14 +++++
- drivers/usb/musb/musb_dsps.c                       |   62 +++++++++++++++++---
- 2 files changed, 67 insertions(+), 9 deletions(-)
+ drivers/usb/musb/musb_dsps.c                       |   60 +++++++++++++++++---
+ 2 files changed, 65 insertions(+), 9 deletions(-)
  create mode 100644 Documentation/devicetree/bindings/usb/am33xx-usb.txt
 
 diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
@@ -34,7 +35,7 @@ index 0000000..ca8fa56
 + - power : Should be "250". This signifies the controller can supply upto
 +   500mA when operating in host mode.
 diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 9fcacff..18a16dd 100644
+index c529ccb..13c9341 100644
 --- a/drivers/usb/musb/musb_dsps.c
 +++ b/drivers/usb/musb/musb_dsps.c
 @@ -31,6 +31,7 @@
@@ -134,7 +135,7 @@ index 9fcacff..18a16dd 100644
  	/* allocate glue */
  	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
  	if (!glue) {
-@@ -768,13 +809,16 @@ static const struct platform_device_id musb_dsps_id_table[] __devinitconst = {
+@@ -768,13 +809,14 @@ static const struct platform_device_id musb_dsps_id_table[] __devinitconst = {
  };
  MODULE_DEVICE_TABLE(platform, musb_dsps_id_table);
  
@@ -148,13 +149,11 @@ index 9fcacff..18a16dd 100644
  	{  },
  };
  MODULE_DEVICE_TABLE(of, musb_dsps_of_match);
-+#else
-+#define musb_dsps_of_match NULL
 +#endif
  
  static struct platform_driver dsps_usbss_driver = {
  	.probe		= dsps_probe,
-@@ -782,7 +826,7 @@ static struct platform_driver dsps_usbss_driver = {
+@@ -782,7 +824,7 @@ static struct platform_driver dsps_usbss_driver = {
  	.driver         = {
  		.name   = "musb-dsps",
  		.pm	= &dsps_pm_ops,

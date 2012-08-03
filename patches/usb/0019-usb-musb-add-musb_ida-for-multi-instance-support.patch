@@ -1,26 +1,24 @@
-From 7d1dcaf8eeb70d591644ad4db136c594f4c8274d Mon Sep 17 00:00:00 2001
+From 7578a299d3a2a51101ea23ec80b6ca6649e6ca5b Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Mon, 2 Jul 2012 14:53:32 +0530
-Subject: [PATCH 27/38] usb: musb: add musb->id to identify core instance
+Subject: [PATCH 19/30] usb: musb: add musb_ida for multi instance support
 
-Added 'id' field within 'struct musb' which can be used to determine
-the current instance of musb controller.
-
-Also defined musb_ida in musb_core.c to manage the core ids.
+Added musb_ida in musb_core.c to manage the multi core ids.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Ravi Babu <ravibabu@ti.com>
 ---
  drivers/usb/musb/am35x.c     |   42 ++++++++++++++++++++++++++++--------------
  drivers/usb/musb/blackfin.c  |   26 ++++++++++++++++++++------
  drivers/usb/musb/da8xx.c     |   34 ++++++++++++++++++++++++----------
  drivers/usb/musb/davinci.c   |   34 ++++++++++++++++++++++++----------
  drivers/usb/musb/musb_core.c |   31 +++++++++++++++++++++++++++++++
- drivers/usb/musb/musb_core.h |    4 ++++
+ drivers/usb/musb/musb_core.h |    2 ++
  drivers/usb/musb/musb_dsps.c |   25 ++++++++++++++++++-------
  drivers/usb/musb/omap2430.c  |   26 ++++++++++++++++++++------
  drivers/usb/musb/tusb6010.c  |   26 ++++++++++++++++++++------
  drivers/usb/musb/ux500.c     |   33 +++++++++++++++++++++++----------
- 10 files changed, 212 insertions(+), 69 deletions(-)
+ 10 files changed, 210 insertions(+), 69 deletions(-)
 
 diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
 index 7a95ab8..01203eb 100644
@@ -427,7 +425,7 @@ index 472c8b4..3f094f2 100644
  	platform_device_put(glue->musb);
  	clk_disable(glue->clk);
 diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 89d1871..3e09984 100644
+index 89d1871..a565fc2 100644
 --- a/drivers/usb/musb/musb_core.c
 +++ b/drivers/usb/musb/musb_core.c
 @@ -99,6 +99,7 @@
@@ -446,7 +444,7 @@ index 89d1871..3e09984 100644
  
  MODULE_DESCRIPTION(DRIVER_INFO);
  MODULE_AUTHOR(DRIVER_AUTHOR);
-@@ -130,6 +132,33 @@ static inline struct musb *dev_to_musb(struct device *dev)
+@@ -130,6 +132,35 @@ static inline struct musb *dev_to_musb(struct device *dev)
  
  /*-------------------------------------------------------------------------*/
  
@@ -469,6 +467,7 @@ index 89d1871..3e09984 100644
 +
 +	return id;
 +}
++EXPORT_SYMBOL_GPL(musb_get_id);
 +
 +void musb_put_id(struct device *dev, int id)
 +{
@@ -476,40 +475,16 @@ index 89d1871..3e09984 100644
 +	dev_dbg(dev, "removing id %d\n", id);
 +	ida_remove(&musb_ida, id);
 +}
++EXPORT_SYMBOL_GPL(musb_put_id);
 +
  #ifndef CONFIG_BLACKFIN
  static int musb_ulpi_read(struct usb_phy *phy, u32 offset)
  {
-@@ -1867,6 +1896,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
- 	int			status;
- 	struct musb		*musb;
- 	struct musb_hdrc_platform_data *plat = dev->platform_data;
-+	struct platform_device *pdev = to_platform_device(dev);
- 
- 	/* The driver might handle more features than the board; OK.
- 	 * Fail when the board needs a feature that's not enabled.
-@@ -1889,6 +1919,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
- 	pm_runtime_enable(musb->controller);
- 
- 	spin_lock_init(&musb->lock);
-+	musb->id = pdev->id;
- 	musb->board_mode = plat->mode;
- 	musb->board_set_power = plat->set_power;
- 	musb->min_power = plat->min_power;
 diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index 51bd7b2..69ed141 100644
+index 51bd7b2..84436f7 100644
 --- a/drivers/usb/musb/musb_core.h
 +++ b/drivers/usb/musb/musb_core.h
-@@ -450,6 +450,8 @@ struct musb {
- #ifdef MUSB_CONFIG_PROC_FS
- 	struct proc_dir_entry *proc_entry;
- #endif
-+	/* id for multiple musb instances */
-+	u8			id;
- };
- 
- static inline struct musb *gadget_to_musb(struct usb_gadget *g)
-@@ -530,6 +532,8 @@ extern const char musb_driver_name[];
+@@ -530,6 +530,8 @@ extern const char musb_driver_name[];
  
  extern void musb_start(struct musb *musb);
  extern void musb_stop(struct musb *musb);

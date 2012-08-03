@@ -1,18 +1,19 @@
-From 80e73c1c4ffa3dcd70cfc1fd5c2ef326a8178ef2 Mon Sep 17 00:00:00 2001
+From 27636681508f39f7bdf13722d22dca06a470a6b5 Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Wed, 11 Jul 2012 14:45:02 +0530
-Subject: [PATCH 35/38] usb: musb: dsps: remove explicit NOP device creation
+Subject: [PATCH 27/30] usb: musb: dsps: remove explicit NOP device creation
 
 As NOP device node is now added in am33xx tree so remove the call
 which creates the NOP platform_device.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Ravi Babu <ravibabu@ti.com>
 ---
  drivers/usb/musb/musb_dsps.c |    3 +--
  1 files changed, 1 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 18a16dd..4c59809 100644
+index 13c9341..891c2be 100644
 --- a/drivers/usb/musb/musb_dsps.c
 +++ b/drivers/usb/musb/musb_dsps.c
 @@ -425,8 +425,7 @@ static int dsps_musb_init(struct musb *musb)
@@ -20,7 +21,7 @@ index 18a16dd..4c59809 100644
  	musb->mregs += wrp->musb_core_offset;
  
 -	/* Register NOP driver */
--	usb_nop_xceiv_register(musb->id);
+-	usb_nop_xceiv_register();
 +	/* Get the NOP PHY */
  	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
  	if (IS_ERR_OR_NULL(musb->xceiv))

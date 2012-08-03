@@ -1,33 +1,34 @@
-From dfdd02ff030f6dd0ab0af8ec7bea499897fe86d4 Mon Sep 17 00:00:00 2001
+From 02d09c44d14133108efc58cc00c590c0b3f42b9b Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Wed, 11 Jul 2012 14:22:28 +0530
-Subject: [PATCH 34/38] arm/dts: am33xx: add dt data for usb nop phy
+Subject: [PATCH 26/30] arm/dts: am33xx: add dt data for usb nop phy
 
 AM33xx has two musb controller and they have one NOP PHY each.
 Added the device tree data for NOP PHY.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Ravi Babu <ravibabu@ti.com>
 ---
  arch/arm/boot/dts/am33xx.dtsi |    8 ++++++++
  1 files changed, 8 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index b572803..3bd9911 100644
+index 08e9a40..b03a9b5 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
 @@ -155,6 +155,14 @@
  			ti,hwmods = "i2c3";
  		};
  
-+		usb0_phy: phy@1 {
-+			compatible = "ti,nop-xceiv-usb";
++		usb0_phy: phy0 {
++			compatible = "nop-xceiv-usb";
 +		};
 +
-+		usb1_phy: phy@2 {
-+			compatible = "ti,nop-xceiv-usb";
++		usb1_phy: phy1 {
++			compatible = "nop-xceiv-usb";
 +		};
 +
- 		usb_otg_hs: usb_otg_hs@47400000 {
+ 		usb_otg_hs: usb_otg_hs {
  			compatible = "ti,musb-am33xx";
  			ti,hwmods = "usb_otg_hs";
 -- 
