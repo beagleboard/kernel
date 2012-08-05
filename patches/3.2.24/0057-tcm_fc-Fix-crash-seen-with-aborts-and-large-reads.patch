@@ -1,0 +1,39 @@
+From 60d448613a4cf0b8e70c0d16abc6a6baf31ab9b5 Mon Sep 17 00:00:00 2001
+From: Mark Rustad <mark.d.rustad@intel.com>
+Date: Fri, 13 Jul 2012 18:18:04 -0700
+Subject: [PATCH 057/109] tcm_fc: Fix crash seen with aborts and large reads
+
+commit 3cc5d2a6b9a2fd1bf024aa5e52dd22961eecaf13 upstream.
+
+This patch fixes a crash seen when large reads have their exchange
+aborted by either timing out or being reset. Because the exchange
+abort results in the seq pointer being set to NULL, because the
+sequence is no longer valid, it must not be dereferenced. This
+patch changes the function ft_get_task_tag to return ~0 if it is
+unable to get the tag for this reason. Because the get_task_tag
+interface provides no means of returning an error, this seems
+like the best way to fix this issue at the moment.
+
+Signed-off-by: Mark Rustad <mark.d.rustad@intel.com>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/target/tcm_fc/tfc_cmd.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/target/tcm_fc/tfc_cmd.c b/drivers/target/tcm_fc/tfc_cmd.c
+index d95cfe2..278819c 100644
+--- a/drivers/target/tcm_fc/tfc_cmd.c
++++ b/drivers/target/tcm_fc/tfc_cmd.c
+@@ -249,6 +249,8 @@ u32 ft_get_task_tag(struct se_cmd *se_cmd)
+ {
+ 	struct ft_cmd *cmd = container_of(se_cmd, struct ft_cmd, se_cmd);
+ 
++	if (cmd->aborted)
++		return ~0;
+ 	return fc_seq_exch(cmd->seq)->rxid;
+ }
+ 
+-- 
+1.7.7.6
+

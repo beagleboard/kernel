@@ -1,0 +1,436 @@
+From 46aadfff5c7660f3736c7330952c380d58aacec5 Mon Sep 17 00:00:00 2001
+From: Mel Gorman <mgorman@suse.de>
+Date: Thu, 12 Jan 2012 17:19:22 -0800
+Subject: [PATCH 02/73] mm: compaction: allow compaction to isolate dirty
+ pages
+
+commit a77ebd333cd810d7b680d544be88c875131c2bd3 upstream.
+
+Stable note: Not tracked in Bugzilla. A fix aimed at preserving page aging
+	information by reducing LRU list churning had the side-effect of
+	reducing THP allocation success rates. This was part of a series
+	to restore the success rates while preserving the reclaim fix.
+
+Short summary: There are severe stalls when a USB stick using VFAT is
+used with THP enabled that are reduced by this series.  If you are
+experiencing this problem, please test and report back and considering I
+have seen complaints from openSUSE and Fedora users on this as well as a
+few private mails, I'm guessing it's a widespread issue.  This is a new
+type of USB-related stall because it is due to synchronous compaction
+writing where as in the past the big problem was dirty pages reaching
+the end of the LRU and being written by reclaim.
+
+Am cc'ing Andrew this time and this series would replace
+mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch.
+I'm also cc'ing Dave Jones as he might have merged that patch to Fedora
+for wider testing and ideally it would be reverted and replaced by this
+series.
+
+That said, the later patches could really do with some review.  If this
+series is not the answer then a new direction needs to be discussed
+because as it is, the stalls are unacceptable as the results in this
+leader show.
+
+For testers that try backporting this to 3.1, it won't work because
+there is a non-obvious dependency on not writing back pages in direct
+reclaim so you need those patches too.
+
+Changelog since V5
+o Rebase to 3.2-rc5
+o Tidy up the changelogs a bit
+
+Changelog since V4
+o Added reviewed-bys, credited Andrea properly for sync-light
+o Allow dirty pages without mappings to be considered for migration
+o Bound the number of pages freed for compaction
+o Isolate PageReclaim pages on their own LRU list
+
+This is against 3.2-rc5 and follows on from discussions on "mm: Do
+not stall in synchronous compaction for THP allocations" and "[RFC
+PATCH 0/5] Reduce compaction-related stalls". Initially, the proposed
+patch eliminated stalls due to compaction which sometimes resulted in
+user-visible interactivity problems on browsers by simply never using
+sync compaction. The downside was that THP success allocation rates
+were lower because dirty pages were not being migrated as reported by
+Andrea. His approach at fixing this was nacked on the grounds that
+it reverted fixes from Rik merged that reduced the amount of pages
+reclaimed as it severely impacted his workloads performance.
+
+This series attempts to reconcile the requirements of maximising THP
+usage, without stalling in a user-visible fashion due to compaction
+or cheating by reclaiming an excessive number of pages.
+
+Patch 1 partially reverts commit 39deaf85 to allow migration to isolate
+	dirty pages. This is because migration can move some dirty
+	pages without blocking.
+
+Patch 2 notes that the /proc/sys/vm/compact_memory handler is not using
+	synchronous compaction when it should be. This is unrelated
+	to the reported stalls but is worth fixing.
+
+Patch 3 checks if we isolated a compound page during lumpy scan and
+	account for it properly. For the most part, this affects
+	tracing so it's unrelated to the stalls but worth fixing.
+
+Patch 4 notes that it is possible to abort reclaim early for compaction
+	and return 0 to the page allocator potentially entering the
+	"may oom" path. This has not been observed in practice but
+	the rest of the series potentially makes it easier to happen.
+
+Patch 5 adds a sync parameter to the migratepage callback and gives
+	the callback responsibility for migrating the page without
+	blocking if sync==false. For example, fallback_migrate_page
+	will not call writepage if sync==false. This increases the
+	number of pages that can be handled by asynchronous compaction
+	thereby reducing stalls.
+
+Patch 6 restores filter-awareness to isolate_lru_page for migration.
+	In practice, it means that pages under writeback and pages
+	without a ->migratepage callback will not be isolated
+	for migration.
+
+Patch 7 avoids calling direct reclaim if compaction is deferred but
+	makes sure that compaction is only deferred if sync
+	compaction was used.
+
+Patch 8 introduces a sync-light migration mechanism that sync compaction
+	uses. The objective is to allow some stalls but to not call
+	->writepage which can lead to significant user-visible stalls.
+
+Patch 9 notes that while we want to abort reclaim ASAP to allow
+	compation to go ahead that we leave a very small window of
+	opportunity for compaction to run. This patch allows more pages
+	to be freed by reclaim but bounds the number to a reasonable
+	level based on the high watermark on each zone.
+
+Patch 10 allows slabs to be shrunk even after compaction_ready() is
+	true for one zone. This is to avoid a problem whereby a single
+	small zone can abort reclaim even though no pages have been
+	reclaimed and no suitably large zone is in a usable state.
+
+Patch 11 fixes a problem with the rate of page scanning. As reclaim is
+	rarely stalling on pages under writeback it means that scan
+	rates are very high. This is particularly true for direct
+	reclaim which is not calling writepage. The vmstat figures
+	implied that much of this was busy work with PageReclaim pages
+	marked for immediate reclaim. This patch is a prototype that
+	moves these pages to their own LRU list.
+
+This has been tested and other than 2 USB keys getting trashed,
+nothing horrible fell out. That said, I am a bit unhappy with the
+rescue logic in patch 11 but did not find a better way around it. It
+does significantly reduce scan rates and System CPU time indicating
+it is the right direction to take.
+
+What is of critical importance is that stalls due to compaction
+are massively reduced even though sync compaction was still
+allowed. Testing from people complaining about stalls copying to USBs
+with THP enabled are particularly welcome.
+
+The following tests all involve THP usage and USB keys in some
+way. Each test follows this type of pattern
+
+1. Read from some fast fast storage, be it raw device or file. Each time
+   the copy finishes, start again until the test ends
+2. Write a large file to a filesystem on a USB stick. Each time the copy
+   finishes, start again until the test ends
+3. When memory is low, start an alloc process that creates a mapping
+   the size of physical memory to stress THP allocation. This is the
+   "real" part of the test and the part that is meant to trigger
+   stalls when THP is enabled. Copying continues in the background.
+4. Record the CPU usage and time to execute of the alloc process
+5. Record the number of THP allocs and fallbacks as well as the number of THP
+   pages in use a the end of the test just before alloc exited
+6. Run the test 5 times to get an idea of variability
+7. Between each run, sync is run and caches dropped and the test
+   waits until nr_dirty is a small number to avoid interference
+   or caching between iterations that would skew the figures.
+
+The individual tests were then
+
+writebackCPDeviceBasevfat
+	Disable THP, read from a raw device (sda), vfat on USB stick
+writebackCPDeviceBaseext4
+	Disable THP, read from a raw device (sda), ext4 on USB stick
+writebackCPDevicevfat
+	THP enabled, read from a raw device (sda), vfat on USB stick
+writebackCPDeviceext4
+	THP enabled, read from a raw device (sda), ext4 on USB stick
+writebackCPFilevfat
+	THP enabled, read from a file on fast storage and USB, both vfat
+writebackCPFileext4
+	THP enabled, read from a file on fast storage and USB, both ext4
+
+The kernels tested were
+
+3.1		3.1
+vanilla		3.2-rc5
+freemore	Patches 1-10
+immediate	Patches 1-11
+andrea		The 8 patches Andrea posted as a basis of comparison
+
+The results are very long unfortunately. I'll start with the case
+where we are not using THP at all
+
+writebackCPDeviceBasevfat
+                   3.1.0-vanilla         rc5-vanilla       freemore-v6r1        isolate-v6r1         andrea-v2r1
+System Time         1.28 (    0.00%)   54.49 (-4143.46%)   48.63 (-3687.69%)    4.69 ( -265.11%)   51.88 (-3940.81%)
++/-                 0.06 (    0.00%)    2.45 (-4305.55%)    4.75 (-8430.57%)    7.46 (-13282.76%)    4.76 (-8440.70%)
+User Time           0.09 (    0.00%)    0.05 (   40.91%)    0.06 (   29.55%)    0.07 (   15.91%)    0.06 (   27.27%)
++/-                 0.02 (    0.00%)    0.01 (   45.39%)    0.02 (   25.07%)    0.00 (   77.06%)    0.01 (   52.24%)
+Elapsed Time      110.27 (    0.00%)   56.38 (   48.87%)   49.95 (   54.70%)   11.77 (   89.33%)   53.43 (   51.54%)
++/-                 7.33 (    0.00%)    3.77 (   48.61%)    4.94 (   32.63%)    6.71 (    8.50%)    4.76 (   35.03%)
+THP Active          0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)
++/-                 0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)
+Fault Alloc         0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)
++/-                 0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)
+Fault Fallback      0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)
++/-                 0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)    0.00 (    0.00%)
+
+The THP figures are obviously all 0 because THP was enabled. The
+main thing to watch is the elapsed times and how they compare to
+times when THP is enabled later. It's also important to note that
+elapsed time is improved by this series as System CPu time is much
+reduced.
+
+writebackCPDevicevfat
+
+                   3.1.0-vanilla         rc5-vanilla       freemore-v6r1        isolate-v6r1         andrea-v2r1
+System Time         1.22 (    0.00%)   13.89 (-1040.72%)   46.40 (-3709.20%)    4.44 ( -264.37%)   47.37 (-3789.33%)
++/-                 0.06 (    0.00%)   22.82 (-37635.56%)    3.84 (-6249.44%)    6.48 (-10618.92%)    6.60
+(-10818.53%)
+User Time           0.06 (    0.00%)    0.06 (   -6.90%)    0.05 (   17.24%)    0.05 (   13.79%)    0.04 (   31.03%)
++/-                 0.01 (    0.00%)    0.01 (   33.33%)    0.01 (   33.33%)    0.01 (   39.14%)    0.01 (   25.46%)
+Elapsed Time     10445.54 (    0.00%) 2249.92 (   78.46%)   70.06 (   99.33%)   16.59 (   99.84%)  472.43 (
+95.48%)
++/-               643.98 (    0.00%)  811.62 (  -26.03%)   10.02 (   98.44%)    7.03 (   98.91%)   59.99 (   90.68%)
+THP Active         15.60 (    0.00%)   35.20 (  225.64%)   65.00 (  416.67%)   70.80 (  453.85%)   62.20 (  398.72%)
++/-                18.48 (    0.00%)   51.29 (  277.59%)   15.99 (   86.52%)   37.91 (  205.18%)   22.02 (  119.18%)
+Fault Alloc       121.80 (    0.00%)   76.60 (   62.89%)  155.40 (  127.59%)  181.20 (  148.77%)  286.60 (  235.30%)
++/-                73.51 (    0.00%)   61.11 (   83.12%)   34.89 (   47.46%)   31.88 (   43.36%)   68.13 (   92.68%)
+Fault Fallback    881.20 (    0.00%)  926.60 (   -5.15%)  847.60 (    3.81%)  822.00 (    6.72%)  716.60 (   18.68%)
++/-                73.51 (    0.00%)   61.26 (   16.67%)   34.89 (   52.54%)   31.65 (   56.94%)   67.75 (    7.84%)
+MMTests Statistics: duration
+User/Sys Time Running Test (seconds)       3540.88   1945.37    716.04     64.97   1937.03
+Total Elapsed Time (seconds)              52417.33  11425.90    501.02    230.95   2520.28
+
+The first thing to note is the "Elapsed Time" for the vanilla kernels
+of 2249 seconds versus 56 with THP disabled which might explain the
+reports of USB stalls with THP enabled. Applying the patches brings
+performance in line with THP-disabled performance while isolating
+pages for immediate reclaim from the LRU cuts down System CPU time.
+
+The "Fault Alloc" success rate figures are also improved. The vanilla
+kernel only managed to allocate 76.6 pages on average over the course
+of 5 iterations where as applying the series allocated 181.20 on
+average albeit it is well within variance. It's worth noting that
+applies the series at least descreases the amount of variance which
+implies an improvement.
+
+Andrea's series had a higher success rate for THP allocations but
+at a severe cost to elapsed time which is still better than vanilla
+but still much worse than disabling THP altogether. One can bring my
+series close to Andrea's by removing this check
+
+        /*
+         * If compaction is deferred for high-order allocations, it is because
+         * sync compaction recently failed. In this is the case and the caller
+         * has requested the system not be heavily disrupted, fail the
+         * allocation now instead of entering direct reclaim
+         */
+        if (deferred_compaction && (gfp_mask & __GFP_NO_KSWAPD))
+                goto nopage;
+
+I didn't include a patch that removed the above check because hurting
+overall performance to improve the THP figure is not what the average
+user wants. It's something to consider though if someone really wants
+to maximise THP usage no matter what it does to the workload initially.
+
+This is summary of vmstat figures from the same test.
+
+                                       3.1.0-vanilla rc5-vanilla freemore-v6r1 isolate-v6r1 andrea-v2r1
+Page Ins                                  3257266139  1111844061    17263623    10901575   161423219
+Page Outs                                   81054922    30364312     3626530     3657687     8753730
+Swap Ins                                        3294        2851        6560        4964        4592
+Swap Outs                                     390073      528094      620197      790912      698285
+Direct pages scanned                      1077581700  3024951463  1764930052   115140570  5901188831
+Kswapd pages scanned                        34826043     7112868     2131265     1686942     1893966
+Kswapd pages reclaimed                      28950067     4911036     1246044      966475     1497726
+Direct pages reclaimed                     805148398   280167837     3623473     2215044    40809360
+Kswapd efficiency                                83%         69%         58%         57%         79%
+Kswapd velocity                              664.399     622.521    4253.852    7304.360     751.490
+Direct efficiency                                74%          9%          0%          1%          0%
+Direct velocity                            20557.737  264745.137 3522673.849  498551.938 2341481.435
+Percentage direct scans                          96%         99%         99%         98%         99%
+Page writes by reclaim                        722646      529174      620319      791018      699198
+Page writes file                              332573        1080         122         106         913
+Page writes anon                              390073      528094      620197      790912      698285
+Page reclaim immediate                             0  2552514720  1635858848   111281140  5478375032
+Page rescued immediate                             0           0           0       87848           0
+Slabs scanned                                  23552       23552        9216        8192        9216
+Direct inode steals                              231           0           0           0           0
+Kswapd inode steals                                0           0           0           0           0
+Kswapd skipped wait                            28076         786           0          61           6
+THP fault alloc                                  609         383         753         906        1433
+THP collapse alloc                                12           6           0           0           6
+THP splits                                       536         211         456         593        1136
+THP fault fallback                              4406        4633        4263        4110        3583
+THP collapse fail                                120         127           0           0           4
+Compaction stalls                               1810         728         623         779        3200
+Compaction success                               196          53          60          80         123
+Compaction failures                             1614         675         563         699        3077
+Compaction pages moved                        193158       53545      243185      333457      226688
+Compaction move failure                         9952        9396       16424       23676       45070
+
+The main things to look at are
+
+1. Page In/out figures are much reduced by the series.
+
+2. Direct page scanning is incredibly high (264745.137 pages scanned
+   per second on the vanilla kernel) but isolating PageReclaim pages
+   on their own list reduces the number of pages scanned significantly.
+
+3. The fact that "Page rescued immediate" is a positive number implies
+   that we sometimes race removing pages from the LRU_IMMEDIATE list
+   that need to be put back on a normal LRU but it happens only for
+   0.07% of the pages marked for immediate reclaim.
+
+writebackCPDeviceext4
+                   3.1.0-vanilla         rc5-vanilla       freemore-v6r1        isolate-v6r1         andrea-v2r1
+System Time         1.51 (    0.00%)    1.77 (  -17.66%)    1.46 (    2.92%)    1.15 (   23.77%)    1.89 (  -25.63%)
++/-                 0.27 (    0.00%)    0.67 ( -148.52%)    0.33 (  -22.76%)    0.30 (  -11.15%)    0.19 (   30.16%)
+User Time           0.03 (    0.00%)    0.04 (  -37.50%)    0.05 (  -62.50%)    0.07 ( -112.50%)    0.04 (  -18.75%)
++/-                 0.01 (    0.00%)    0.02 ( -146.64%)    0.02 (  -97.91%)    0.02 (  -75.59%)    0.02 (  -63.30%)
+Elapsed Time      124.93 (    0.00%)  114.49 (    8.36%)   96.77 (   22.55%)   27.48 (   78.00%)  205.70 (  -64.65%)
++/-                20.20 (    0.00%)   74.39 ( -268.34%)   59.88 ( -196.48%)    7.72 (   61.79%)   25.03 (  -23.95%)
+THP Active        161.80 (    0.00%)   83.60 (   51.67%)  141.20 (   87.27%)   84.60 (   52.29%)   82.60 (   51.05%)
++/-                71.95 (    0.00%)   43.80 (   60.88%)   26.91 (   37.40%)   59.02 (   82.03%)   52.13 (   72.45%)
+Fault Alloc       471.40 (    0.00%)  228.60 (   48.49%)  282.20 (   59.86%)  225.20 (   47.77%)  388.40 (   82.39%)
++/-                88.07 (    0.00%)   87.42 (   99.26%)   73.79 (   83.78%)  109.62 (  124.47%)   82.62 (   93.81%)
+Fault Fallback    531.60 (    0.00%)  774.60 (  -45.71%)  720.80 (  -35.59%)  777.80 (  -46.31%)  614.80 (  -15.65%)
++/-                88.07 (    0.00%)   87.26 (    0.92%)   73.79 (   16.22%)  109.62 (  -24.47%)   82.29 (    6.56%)
+MMTests Statistics: duration
+User/Sys Time Running Test (seconds)         50.22     33.76     30.65     24.14    128.45
+Total Elapsed Time (seconds)               1113.73   1132.19   1029.45    759.49   1707.26
+
+Similar test but the USB stick is using ext4 instead of vfat. As
+ext4 does not use writepage for migration, the large stalls due to
+compaction when THP is enabled are not observed. Still, isolating
+PageReclaim pages on their own list helped completion time largely
+by reducing the number of pages scanned by direct reclaim although
+time spend in congestion_wait could also be a factor.
+
+Again, Andrea's series had far higher success rates for THP allocation
+at the cost of elapsed time. I didn't look too closely but a quick
+look at the vmstat figures tells me kswapd reclaimed 8 times more pages
+than the patch series and direct reclaim reclaimed roughly three times
+as many pages. It follows that if memory is aggressively reclaimed,
+there will be more available for THP.
+
+writebackCPFilevfat
+                   3.1.0-vanilla         rc5-vanilla       freemore-v6r1        isolate-v6r1         andrea-v2r1
+System Time         1.76 (    0.00%)   29.10 (-1555.52%)   46.01 (-2517.18%)    4.79 ( -172.35%)   54.89 (-3022.53%)
++/-                 0.14 (    0.00%)   25.61 (-18185.17%)    2.15 (-1434.83%)    6.60 (-4610.03%)    9.75
+(-6863.76%)
+User Time           0.05 (    0.00%)    0.07 (  -45.83%)    0.05 (   -4.17%)    0.06 (  -29.17%)    0.06 (  -16.67%)
++/-                 0.02 (    0.00%)    0.02 (   20.11%)    0.02 (   -3.14%)    0.01 (   31.58%)    0.01 (   47.41%)
+Elapsed Time     22520.79 (    0.00%) 1082.85 (   95.19%)   73.30 (   99.67%)   32.43 (   99.86%)  291.84 (  98.70%)
++/-              7277.23 (    0.00%)  706.29 (   90.29%)   19.05 (   99.74%)   17.05 (   99.77%)  125.55 (   98.27%)
+THP Active         83.80 (    0.00%)   12.80 (   15.27%)   15.60 (   18.62%)   13.00 (   15.51%)    0.80 (    0.95%)
++/-                66.81 (    0.00%)   20.19 (   30.22%)    5.92 (    8.86%)   15.06 (   22.54%)    1.17 (    1.75%)
+Fault Alloc       171.00 (    0.00%)   67.80 (   39.65%)   97.40 (   56.96%)  125.60 (   73.45%)  133.00 (   77.78%)
++/-                82.91 (    0.00%)   30.69 (   37.02%)   53.91 (   65.02%)   55.05 (   66.40%)   21.19 (   25.56%)
+Fault Fallback    832.00 (    0.00%)  935.20 (  -12.40%)  906.00 (   -8.89%)  877.40 (   -5.46%)  870.20 (   -4.59%)
++/-                82.91 (    0.00%)   30.69 (   62.98%)   54.01 (   34.86%)   55.05 (   33.60%)   20.91 (   74.78%)
+MMTests Statistics: duration
+User/Sys Time Running Test (seconds)       7229.81    928.42    704.52     80.68   1330.76
+Total Elapsed Time (seconds)             112849.04   5618.69    571.11    360.54   1664.28
+
+In this case, the test is reading/writing only from filesystems but as
+it's vfat, it's slow due to calling writepage during compaction. Little
+to observe really - the time to complete the test goes way down
+with the series applied and THP allocation success rates go up in
+comparison to 3.2-rc5.  The success rates are lower than 3.1.0 but
+the elapsed time for that kernel is abysmal so it is not really a
+sensible comparison.
+
+As before, Andrea's series allocates more THPs at the cost of overall
+performance.
+
+writebackCPFileext4
+                   3.1.0-vanilla         rc5-vanilla       freemore-v6r1        isolate-v6r1         andrea-v2r1
+System Time         1.51 (    0.00%)    1.77 (  -17.66%)    1.46 (    2.92%)    1.15 (   23.77%)    1.89 (  -25.63%)
++/-                 0.27 (    0.00%)    0.67 ( -148.52%)    0.33 (  -22.76%)    0.30 (  -11.15%)    0.19 (   30.16%)
+User Time           0.03 (    0.00%)    0.04 (  -37.50%)    0.05 (  -62.50%)    0.07 ( -112.50%)    0.04 (  -18.75%)
++/-                 0.01 (    0.00%)    0.02 ( -146.64%)    0.02 (  -97.91%)    0.02 (  -75.59%)    0.02 (  -63.30%)
+Elapsed Time      124.93 (    0.00%)  114.49 (    8.36%)   96.77 (   22.55%)   27.48 (   78.00%)  205.70 (  -64.65%)
++/-                20.20 (    0.00%)   74.39 ( -268.34%)   59.88 ( -196.48%)    7.72 (   61.79%)   25.03 (  -23.95%)
+THP Active        161.80 (    0.00%)   83.60 (   51.67%)  141.20 (   87.27%)   84.60 (   52.29%)   82.60 (   51.05%)
++/-                71.95 (    0.00%)   43.80 (   60.88%)   26.91 (   37.40%)   59.02 (   82.03%)   52.13 (   72.45%)
+Fault Alloc       471.40 (    0.00%)  228.60 (   48.49%)  282.20 (   59.86%)  225.20 (   47.77%)  388.40 (   82.39%)
++/-                88.07 (    0.00%)   87.42 (   99.26%)   73.79 (   83.78%)  109.62 (  124.47%)   82.62 (   93.81%)
+Fault Fallback    531.60 (    0.00%)  774.60 (  -45.71%)  720.80 (  -35.59%)  777.80 (  -46.31%)  614.80 (  -15.65%)
++/-                88.07 (    0.00%)   87.26 (    0.92%)   73.79 (   16.22%)  109.62 (  -24.47%)   82.29 (    6.56%)
+MMTests Statistics: duration
+User/Sys Time Running Test (seconds)         50.22     33.76     30.65     24.14    128.45
+Total Elapsed Time (seconds)               1113.73   1132.19   1029.45    759.49   1707.26
+
+Same type of story - elapsed times go down. In this case, allocation
+success rates are roughtly the same. As before, Andrea's has higher
+success rates but takes a lot longer.
+
+Overall the series does reduce latencies and while the tests are
+inherency racy as alloc competes with the cp processes, the variability
+was included. The THP allocation rates are not as high as they could
+be but that is because we would have to be more aggressive about
+reclaim and compaction impacting overall performance.
+
+This patch:
+
+Commit 39deaf85 ("mm: compaction: make isolate_lru_page() filter-aware")
+noted that compaction does not migrate dirty or writeback pages and that
+is was meaningless to pick the page and re-add it to the LRU list.
+
+What was missed during review is that asynchronous migration moves dirty
+pages if their ->migratepage callback is migrate_page() because these can
+be moved without blocking.  This potentially impacted hugepage allocation
+success rates by a factor depending on how many dirty pages are in the
+system.
+
+This patch partially reverts 39deaf85 to allow migration to isolate dirty
+pages again.  This increases how much compaction disrupts the LRU but that
+is addressed later in the series.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Andy Isaacson <adi@hexapodia.org>
+Cc: Nai Xia <nai.xia@gmail.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/compaction.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
+
+diff --git a/mm/compaction.c b/mm/compaction.c
+index 50f1c60..b81625d 100644
+--- a/mm/compaction.c
++++ b/mm/compaction.c
+@@ -371,9 +371,6 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
+ 			continue;
+ 		}
+ 
+-		if (!cc->sync)
+-			mode |= ISOLATE_CLEAN;
+-
+ 		/* Try isolate the page */
+ 		if (__isolate_lru_page(page, mode, 0) != 0)
+ 			continue;
+-- 
+1.7.7.6
+

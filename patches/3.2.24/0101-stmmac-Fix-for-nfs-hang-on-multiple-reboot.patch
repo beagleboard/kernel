@@ -1,0 +1,56 @@
+From b5ff5ad1b9299fccc11c801764fa23ca696161cf Mon Sep 17 00:00:00 2001
+From: Deepak Sikri <deepak.sikri@st.com>
+Date: Sun, 8 Jul 2012 21:14:45 +0000
+Subject: [PATCH 101/109] stmmac: Fix for nfs hang on multiple reboot
+
+commit 8e83989106562326bfd6aaf92174fe138efd026b upstream.
+
+It was observed that during multiple reboots nfs hangs. The status of
+receive descriptors shows that all the descriptors were in control of
+CPU, and none were assigned to DMA.
+Also the DMA status register confirmed that the Rx buffer is
+unavailable.
+
+This patch adds the fix for the same by adding the memory barriers to
+ascertain that the all instructions before enabling the Rx or Tx DMA are
+completed which involves the proper setting of the ownership bit in DMA
+descriptors.
+
+Signed-off-by: Deepak Sikri <deepak.sikri@st.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/stmicro/stmmac/stmmac_main.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c b/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
+index 72cd190..d4d2bc1 100644
+--- a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
++++ b/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
+@@ -1174,6 +1174,7 @@ static netdev_tx_t stmmac_xmit(struct sk_buff *skb, struct net_device *dev)
+ 		priv->hw->desc->prepare_tx_desc(desc, 0, len, csum_insertion);
+ 		wmb();
+ 		priv->hw->desc->set_tx_owner(desc);
++		wmb();
+ 	}
+ 
+ 	/* Interrupt on completition only for the latest segment */
+@@ -1189,6 +1190,7 @@ static netdev_tx_t stmmac_xmit(struct sk_buff *skb, struct net_device *dev)
+ 
+ 	/* To avoid raise condition */
+ 	priv->hw->desc->set_tx_owner(first);
++	wmb();
+ 
+ 	priv->cur_tx++;
+ 
+@@ -1252,6 +1254,7 @@ static inline void stmmac_rx_refill(struct stmmac_priv *priv)
+ 		}
+ 		wmb();
+ 		priv->hw->desc->set_rx_owner(p + entry);
++		wmb();
+ 	}
+ }
+ 
+-- 
+1.7.7.6
+

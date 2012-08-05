@@ -1,0 +1,58 @@
+From 901cf39b0b51c3c31ad0f0e3104742e4d1c831ef Mon Sep 17 00:00:00 2001
+From: Joonsoo Kim <js1304@gmail.com>
+Date: Mon, 30 Jul 2012 14:39:04 -0700
+Subject: [PATCH 72/73] mm: fix wrong argument of migrate_huge_pages() in
+ soft_offline_huge_page()
+
+commit dc32f63453f56d07a1073a697dcd843dd3098c09 upstream.
+
+Commit a6bc32b89922 ("mm: compaction: introduce sync-light migration for
+use by compaction") changed the declaration of migrate_pages() and
+migrate_huge_pages().
+
+But it missed changing the argument of migrate_huge_pages() in
+soft_offline_huge_page().  In this case, we should call
+migrate_huge_pages() with MIGRATE_SYNC.
+
+Additionally, there is a mismatch between type the of argument and the
+function declaration for migrate_pages().
+
+Signed-off-by: Joonsoo Kim <js1304@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/memory-failure.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 56080ea..5bd5bb1 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -1427,8 +1427,8 @@ static int soft_offline_huge_page(struct page *page, int flags)
+ 	/* Keep page count to indicate a given hugepage is isolated. */
+ 
+ 	list_add(&hpage->lru, &pagelist);
+-	ret = migrate_huge_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, 0,
+-				true);
++	ret = migrate_huge_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, false,
++				MIGRATE_SYNC);
+ 	if (ret) {
+ 		struct page *page1, *page2;
+ 		list_for_each_entry_safe(page1, page2, &pagelist, lru)
+@@ -1557,7 +1557,7 @@ int soft_offline_page(struct page *page, int flags)
+ 					    page_is_file_cache(page));
+ 		list_add(&page->lru, &pagelist);
+ 		ret = migrate_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL,
+-							0, MIGRATE_SYNC);
++							false, MIGRATE_SYNC);
+ 		if (ret) {
+ 			putback_lru_pages(&pagelist);
+ 			pr_info("soft offline: %#lx: migration failed %d, type %lx\n",
+-- 
+1.7.7.6
+

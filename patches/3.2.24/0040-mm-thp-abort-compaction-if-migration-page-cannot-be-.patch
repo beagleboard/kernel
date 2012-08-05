@@ -1,0 +1,53 @@
+From e13d6560aa9799d9720afea1480093166f6e767a Mon Sep 17 00:00:00 2001
+From: David Rientjes <rientjes@google.com>
+Date: Wed, 11 Jul 2012 14:02:13 -0700
+Subject: [PATCH 040/109] mm, thp: abort compaction if migration page cannot
+ be charged to memcg
+
+commit 4bf2bba3750f10aa9e62e6949bc7e8329990f01b upstream.
+
+If page migration cannot charge the temporary page to the memcg,
+migrate_pages() will return -ENOMEM.  This isn't considered in memory
+compaction however, and the loop continues to iterate over all
+pageblocks trying to isolate and migrate pages.  If a small number of
+very large memcgs happen to be oom, however, these attempts will mostly
+be futile leading to an enormous amout of cpu consumption due to the
+page migration failures.
+
+This patch will short circuit and fail memory compaction if
+migrate_pages() returns -ENOMEM.  COMPACT_PARTIAL is returned in case
+some migrations were successful so that the page allocator will retry.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/compaction.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/mm/compaction.c b/mm/compaction.c
+index 8fb8a40..50f1c60 100644
+--- a/mm/compaction.c
++++ b/mm/compaction.c
+@@ -592,8 +592,11 @@ static int compact_zone(struct zone *zone, struct compact_control *cc)
+ 		if (err) {
+ 			putback_lru_pages(&cc->migratepages);
+ 			cc->nr_migratepages = 0;
++			if (err == -ENOMEM) {
++				ret = COMPACT_PARTIAL;
++				goto out;
++			}
+ 		}
+-
+ 	}
+ 
+ out:
+-- 
+1.7.7.6
+

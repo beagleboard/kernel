@@ -1,0 +1,166 @@
+From 88153b5ca6da2602bac3f4185d9732f1547b8480 Mon Sep 17 00:00:00 2001
+From: Alan Stern <stern@rowland.harvard.edu>
+Date: Mon, 9 Jul 2012 11:09:21 -0400
+Subject: [PATCH 037/109] PCI: EHCI: fix crash during suspend on ASUS
+ computers
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit dbf0e4c7257f8d684ec1a3c919853464293de66e upstream.
+
+Quite a few ASUS computers experience a nasty problem, related to the
+EHCI controllers, when going into system suspend.  It was observed
+that the problem didn't occur if the controllers were not put into the
+D3 power state before starting the suspend, and commit
+151b61284776be2d6f02d48c23c3625678960b97 (USB: EHCI: fix crash during
+suspend on ASUS computers) was created to do this.
+
+It turned out this approach messed up other computers that didn't have
+the problem -- it prevented USB wakeup from working.  Consequently
+commit c2fb8a3fa25513de8fedb38509b1f15a5bbee47b (USB: add
+NO_D3_DURING_SLEEP flag and revert 151b61284776be2) was merged; it
+reverted the earlier commit and added a whitelist of known good board
+names.
+
+Now we know the actual cause of the problem.  Thanks to AceLan Kao for
+tracking it down.
+
+According to him, an engineer at ASUS explained that some of their
+BIOSes contain a bug that was added in an attempt to work around a
+problem in early versions of Windows.  When the computer goes into S3
+suspend, the BIOS tries to verify that the EHCI controllers were first
+quiesced by the OS.  Nothing's wrong with this, but the BIOS does it
+by checking that the PCI COMMAND registers contain 0 without checking
+the controllers' power state.  If the register isn't 0, the BIOS
+assumes the controller needs to be quiesced and tries to do so.  This
+involves making various MMIO accesses to the controller, which don't
+work very well if the controller is already in D3.  The end result is
+a system hang or memory corruption.
+
+Since the value in the PCI COMMAND register doesn't matter once the
+controller has been suspended, and since the value will be restored
+anyway when the controller is resumed, we can work around the BIOS bug
+simply by setting the register to 0 during system suspend.  This patch
+(as1590) does so and also reverts the second commit mentioned above,
+which is now unnecessary.
+
+In theory we could do this for every PCI device.  However to avoid
+introducing new problems, the patch restricts itself to EHCI host
+controllers.
+
+Finally the affected systems can suspend with USB wakeup working
+properly.
+
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=37632
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=42728
+Based-on-patch-by: AceLan Kao <acelan.kao@canonical.com>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Tested-by: Dâniel Fraga <fragabr@gmail.com>
+Tested-by: Javier Marcet <jmarcet@gmail.com>
+Tested-by: Andrey Rahmatullin <wrar@wrar.name>
+Tested-by: Oleksij Rempel <bug-track@fisher-privat.net>
+Tested-by: Pavel Pisa <pisa@cmp.felk.cvut.cz>
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/pci/pci-driver.c |   12 ++++++++++++
+ drivers/pci/pci.c        |    5 -----
+ drivers/pci/quirks.c     |   26 --------------------------
+ include/linux/pci.h      |    2 --
+ 4 files changed, 12 insertions(+), 33 deletions(-)
+
+diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
+index 12d1e81..d024f83 100644
+--- a/drivers/pci/pci-driver.c
++++ b/drivers/pci/pci-driver.c
+@@ -742,6 +742,18 @@ static int pci_pm_suspend_noirq(struct device *dev)
+ 
+ 	pci_pm_set_unknown_state(pci_dev);
+ 
++	/*
++	 * Some BIOSes from ASUS have a bug: If a USB EHCI host controller's
++	 * PCI COMMAND register isn't 0, the BIOS assumes that the controller
++	 * hasn't been quiesced and tries to turn it off.  If the controller
++	 * is already in D3, this can hang or cause memory corruption.
++	 *
++	 * Since the value of the COMMAND register doesn't matter once the
++	 * device has been suspended, we can safely set it to 0 here.
++	 */
++	if (pci_dev->class == PCI_CLASS_SERIAL_USB_EHCI)
++		pci_write_config_word(pci_dev, PCI_COMMAND, 0);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index e5b75eb..6d4a531 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -1689,11 +1689,6 @@ int pci_prepare_to_sleep(struct pci_dev *dev)
+ 	if (target_state == PCI_POWER_ERROR)
+ 		return -EIO;
+ 
+-	/* Some devices mustn't be in D3 during system sleep */
+-	if (target_state == PCI_D3hot &&
+-			(dev->dev_flags & PCI_DEV_FLAGS_NO_D3_DURING_SLEEP))
+-		return 0;
+-
+ 	pci_enable_wake(dev, target_state, device_may_wakeup(&dev->dev));
+ 
+ 	error = pci_set_power_state(dev, target_state);
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index 3c56fec..78fda9c 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -2940,32 +2940,6 @@ static void __devinit disable_igfx_irq(struct pci_dev *dev)
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x0102, disable_igfx_irq);
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x010a, disable_igfx_irq);
+ 
+-/*
+- * The Intel 6 Series/C200 Series chipset's EHCI controllers on many
+- * ASUS motherboards will cause memory corruption or a system crash
+- * if they are in D3 while the system is put into S3 sleep.
+- */
+-static void __devinit asus_ehci_no_d3(struct pci_dev *dev)
+-{
+-	const char *sys_info;
+-	static const char good_Asus_board[] = "P8Z68-V";
+-
+-	if (dev->dev_flags & PCI_DEV_FLAGS_NO_D3_DURING_SLEEP)
+-		return;
+-	if (dev->subsystem_vendor != PCI_VENDOR_ID_ASUSTEK)
+-		return;
+-	sys_info = dmi_get_system_info(DMI_BOARD_NAME);
+-	if (sys_info && memcmp(sys_info, good_Asus_board,
+-			sizeof(good_Asus_board) - 1) == 0)
+-		return;
+-
+-	dev_info(&dev->dev, "broken D3 during system sleep on ASUS\n");
+-	dev->dev_flags |= PCI_DEV_FLAGS_NO_D3_DURING_SLEEP;
+-	device_set_wakeup_capable(&dev->dev, false);
+-}
+-DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x1c26, asus_ehci_no_d3);
+-DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x1c2d, asus_ehci_no_d3);
+-
+ static void pci_do_fixups(struct pci_dev *dev, struct pci_fixup *f,
+ 			  struct pci_fixup *end)
+ {
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index c0cfa0d..7cda65b 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -176,8 +176,6 @@ enum pci_dev_flags {
+ 	PCI_DEV_FLAGS_NO_D3 = (__force pci_dev_flags_t) 2,
+ 	/* Provide indication device is assigned by a Virtual Machine Manager */
+ 	PCI_DEV_FLAGS_ASSIGNED = (__force pci_dev_flags_t) 4,
+-	/* Device causes system crash if in D3 during S3 sleep */
+-	PCI_DEV_FLAGS_NO_D3_DURING_SLEEP = (__force pci_dev_flags_t) 8,
+ };
+ 
+ enum pci_irq_reroute_variant {
+-- 
+1.7.7.6
+

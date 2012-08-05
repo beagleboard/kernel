@@ -1,0 +1,99 @@
+From b19f4db486601885ee4c40665f4e8509ec65b4d5 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sun, 13 Nov 2011 23:19:49 +0000
+Subject: [PATCH 077/109] time: Move common updates to a function
+
+This is a backport of cc06268c6a87db156af2daed6e96a936b955cc82
+
+[John Stultz: While not a bugfix itself, it allows following fixes
+ to backport in a more straightforward manner.]
+
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: Eric Dumazet <eric.dumazet@gmail.com>
+CC: Richard Cochran <richardcochran@gmail.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/time/timekeeping.c |   34 +++++++++++++++++-----------------
+ 1 files changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
+index 5c9b67e..5d55185 100644
+--- a/kernel/time/timekeeping.c
++++ b/kernel/time/timekeeping.c
+@@ -166,6 +166,19 @@ static struct timespec total_sleep_time;
+  */
+ static struct timespec raw_time;
+ 
++/* must hold write on xtime_lock */
++static void timekeeping_update(bool clearntp)
++{
++	if (clearntp) {
++		timekeeper.ntp_error = 0;
++		ntp_clear();
++	}
++	update_vsyscall(&xtime, &wall_to_monotonic,
++			 timekeeper.clock, timekeeper.mult);
++}
++
++
++
+ /* flag for if timekeeping is suspended */
+ int __read_mostly timekeeping_suspended;
+ 
+@@ -366,11 +379,7 @@ int do_settimeofday(const struct timespec *tv)
+ 
+ 	xtime = *tv;
+ 
+-	timekeeper.ntp_error = 0;
+-	ntp_clear();
+-
+-	update_vsyscall(&xtime, &wall_to_monotonic, timekeeper.clock,
+-				timekeeper.mult);
++	timekeeping_update(true);
+ 
+ 	write_sequnlock_irqrestore(&xtime_lock, flags);
+ 
+@@ -403,11 +412,7 @@ int timekeeping_inject_offset(struct timespec *ts)
+ 	xtime = timespec_add(xtime, *ts);
+ 	wall_to_monotonic = timespec_sub(wall_to_monotonic, *ts);
+ 
+-	timekeeper.ntp_error = 0;
+-	ntp_clear();
+-
+-	update_vsyscall(&xtime, &wall_to_monotonic, timekeeper.clock,
+-				timekeeper.mult);
++	timekeeping_update(true);
+ 
+ 	write_sequnlock_irqrestore(&xtime_lock, flags);
+ 
+@@ -636,10 +641,7 @@ void timekeeping_inject_sleeptime(struct timespec *delta)
+ 
+ 	__timekeeping_inject_sleeptime(delta);
+ 
+-	timekeeper.ntp_error = 0;
+-	ntp_clear();
+-	update_vsyscall(&xtime, &wall_to_monotonic, timekeeper.clock,
+-				timekeeper.mult);
++	timekeeping_update(true);
+ 
+ 	write_sequnlock_irqrestore(&xtime_lock, flags);
+ 
+@@ -1052,9 +1054,7 @@ static void update_wall_time(void)
+ 		wall_to_monotonic.tv_sec -= leap;
+ 	}
+ 
+-	/* check to see if there is a new clocksource to use */
+-	update_vsyscall(&xtime, &wall_to_monotonic, timekeeper.clock,
+-				timekeeper.mult);
++	timekeeping_update(false);
+ }
+ 
+ /**
+-- 
+1.7.7.6
+

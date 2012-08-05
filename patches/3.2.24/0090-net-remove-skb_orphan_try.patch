@@ -1,0 +1,135 @@
+From 73a3346556281fd56f39f0a9475249e5039d8807 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Thu, 14 Jun 2012 06:42:44 +0000
+Subject: [PATCH 090/109] net: remove skb_orphan_try()
+
+commit 62b1a8ab9b3660bb820d8dfe23148ed6cda38574 upstream.
+
+Orphaning skb in dev_hard_start_xmit() makes bonding behavior
+unfriendly for applications sending big UDP bursts : Once packets
+pass the bonding device and come to real device, they might hit a full
+qdisc and be dropped. Without orphaning, the sender is automatically
+throttled because sk->sk_wmemalloc reaches sk->sk_sndbuf (assuming
+sk_sndbuf is not too big)
+
+We could try to defer the orphaning adding another test in
+dev_hard_start_xmit(), but all this seems of little gain,
+now that BQL tends to make packets more likely to be parked
+in Qdisc queues instead of NIC TX ring, in cases where performance
+matters.
+
+Reverts commits :
+fc6055a5ba31 net: Introduce skb_orphan_try()
+87fd308cfc6b net: skb_tx_hash() fix relative to skb_orphan_try()
+and removes SKBTX_DRV_NEEDS_SK_REF flag
+
+Reported-and-bisected-by: Jean-Michel Hautbois <jhautbois@gmail.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Tested-by: Oliver Hartkopp <socketcan@hartkopp.net>
+Acked-by: Oliver Hartkopp <socketcan@hartkopp.net>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+[bwh: Backported to 3.2:
+ - Adjust context
+ - SKBTX_WIFI_STATUS is not defined]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ include/linux/skbuff.h |    5 +----
+ net/can/raw.c          |    3 ---
+ net/core/dev.c         |   23 +----------------------
+ net/iucv/af_iucv.c     |    1 -
+ 4 files changed, 2 insertions(+), 30 deletions(-)
+
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index bdb4590..53dc7e7 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -213,11 +213,8 @@ enum {
+ 	/* device driver is going to provide hardware time stamp */
+ 	SKBTX_IN_PROGRESS = 1 << 2,
+ 
+-	/* ensure the originating sk reference is available on driver level */
+-	SKBTX_DRV_NEEDS_SK_REF = 1 << 3,
+-
+ 	/* device driver supports TX zero-copy buffers */
+-	SKBTX_DEV_ZEROCOPY = 1 << 4,
++	SKBTX_DEV_ZEROCOPY = 1 << 3,
+ };
+ 
+ /*
+diff --git a/net/can/raw.c b/net/can/raw.c
+index cde1b4a..46cca3a 100644
+--- a/net/can/raw.c
++++ b/net/can/raw.c
+@@ -681,9 +681,6 @@ static int raw_sendmsg(struct kiocb *iocb, struct socket *sock,
+ 	if (err < 0)
+ 		goto free_skb;
+ 
+-	/* to be able to check the received tx sock reference in raw_rcv() */
+-	skb_shinfo(skb)->tx_flags |= SKBTX_DRV_NEEDS_SK_REF;
+-
+ 	skb->dev = dev;
+ 	skb->sk  = sk;
+ 
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 1cbddc9..5738654 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -2079,25 +2079,6 @@ static int dev_gso_segment(struct sk_buff *skb, int features)
+ 	return 0;
+ }
+ 
+-/*
+- * Try to orphan skb early, right before transmission by the device.
+- * We cannot orphan skb if tx timestamp is requested or the sk-reference
+- * is needed on driver level for other reasons, e.g. see net/can/raw.c
+- */
+-static inline void skb_orphan_try(struct sk_buff *skb)
+-{
+-	struct sock *sk = skb->sk;
+-
+-	if (sk && !skb_shinfo(skb)->tx_flags) {
+-		/* skb_tx_hash() wont be able to get sk.
+-		 * We copy sk_hash into skb->rxhash
+-		 */
+-		if (!skb->rxhash)
+-			skb->rxhash = sk->sk_hash;
+-		skb_orphan(skb);
+-	}
+-}
+-
+ static bool can_checksum_protocol(unsigned long features, __be16 protocol)
+ {
+ 	return ((features & NETIF_F_GEN_CSUM) ||
+@@ -2182,8 +2163,6 @@ int dev_hard_start_xmit(struct sk_buff *skb, struct net_device *dev,
+ 		if (!list_empty(&ptype_all))
+ 			dev_queue_xmit_nit(skb, dev);
+ 
+-		skb_orphan_try(skb);
+-
+ 		features = netif_skb_features(skb);
+ 
+ 		if (vlan_tx_tag_present(skb) &&
+@@ -2293,7 +2272,7 @@ u16 __skb_tx_hash(const struct net_device *dev, const struct sk_buff *skb,
+ 	if (skb->sk && skb->sk->sk_hash)
+ 		hash = skb->sk->sk_hash;
+ 	else
+-		hash = (__force u16) skb->protocol ^ skb->rxhash;
++		hash = (__force u16) skb->protocol;
+ 	hash = jhash_1word(hash, hashrnd);
+ 
+ 	return (u16) (((u64) hash * qcount) >> 32) + qoffset;
+diff --git a/net/iucv/af_iucv.c b/net/iucv/af_iucv.c
+index 274d150..cf98d62 100644
+--- a/net/iucv/af_iucv.c
++++ b/net/iucv/af_iucv.c
+@@ -380,7 +380,6 @@ static int afiucv_hs_send(struct iucv_message *imsg, struct sock *sock,
+ 			skb_trim(skb, skb->dev->mtu);
+ 	}
+ 	skb->protocol = ETH_P_AF_IUCV;
+-	skb_shinfo(skb)->tx_flags |= SKBTX_DRV_NEEDS_SK_REF;
+ 	nskb = skb_clone(skb, GFP_ATOMIC);
+ 	if (!nskb)
+ 		return -ENOMEM;
+-- 
+1.7.7.6
+

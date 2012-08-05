@@ -1,0 +1,43 @@
+From c0159c780e8d42309d04e83271986274d3880826 Mon Sep 17 00:00:00 2001
+From: Shaohua Li <shli@kernel.org>
+Date: Tue, 3 Jul 2012 15:57:19 +1000
+Subject: [PATCH 002/109] raid5: delayed stripe fix
+
+commit fab363b5ff502d1b39ddcfec04271f5858d9f26e upstream.
+
+There isn't locking setting STRIPE_DELAYED and STRIPE_PREREAD_ACTIVE bits, but
+the two bits have relationship. A delayed stripe can be moved to hold list only
+when preread active stripe count is below IO_THRESHOLD. If a stripe has both
+the bits set, such stripe will be in delayed list and preread count not 0,
+which will make such stripe never leave delayed list.
+
+Signed-off-by: Shaohua Li <shli@fusionio.com>
+Signed-off-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/md/raid5.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/md/raid5.c b/drivers/md/raid5.c
+index 6ba4954..26ef63a 100644
+--- a/drivers/md/raid5.c
++++ b/drivers/md/raid5.c
+@@ -196,12 +196,14 @@ static void __release_stripe(struct r5conf *conf, struct stripe_head *sh)
+ 		BUG_ON(!list_empty(&sh->lru));
+ 		BUG_ON(atomic_read(&conf->active_stripes)==0);
+ 		if (test_bit(STRIPE_HANDLE, &sh->state)) {
+-			if (test_bit(STRIPE_DELAYED, &sh->state))
++			if (test_bit(STRIPE_DELAYED, &sh->state) &&
++			    !test_bit(STRIPE_PREREAD_ACTIVE, &sh->state))
+ 				list_add_tail(&sh->lru, &conf->delayed_list);
+ 			else if (test_bit(STRIPE_BIT_DELAY, &sh->state) &&
+ 				   sh->bm_seq - conf->seq_write > 0)
+ 				list_add_tail(&sh->lru, &conf->bitmap_list);
+ 			else {
++				clear_bit(STRIPE_DELAYED, &sh->state);
+ 				clear_bit(STRIPE_BIT_DELAY, &sh->state);
+ 				list_add_tail(&sh->lru, &conf->handle_list);
+ 			}
+-- 
+1.7.7.6
+

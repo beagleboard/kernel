@@ -1,0 +1,118 @@
+From 3c910e7e46810c73e21196867b7ec63d58a0a45c Mon Sep 17 00:00:00 2001
+From: John Stultz <johnstul@us.ibm.com>
+Date: Tue, 10 Jul 2012 18:43:19 -0400
+Subject: [PATCH 078/109] hrtimer: Provide clock_was_set_delayed()
+
+commit f55a6faa384304c89cfef162768e88374d3312cb upstream.
+
+clock_was_set() cannot be called from hard interrupt context because
+it calls on_each_cpu().
+
+For fixing the widely reported leap seconds issue it is necessary to
+call it from hard interrupt context, i.e. the timer tick code, which
+does the timekeeping updates.
+
+Provide a new function which denotes it in the hrtimer cpu base
+structure of the cpu on which it is called and raise the hrtimer
+softirq. We then execute the clock_was_set() notificiation from
+softirq context in run_hrtimer_softirq(). The hrtimer softirq is
+rarely used, so polling the flag there is not a performance issue.
+
+[ tglx: Made it depend on CONFIG_HIGH_RES_TIMERS. We really should get
+  rid of all this ifdeffery ASAP ]
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Reported-by: Jan Engelhardt <jengelh@inai.de>
+Reviewed-by: Ingo Molnar <mingo@kernel.org>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Prarit Bhargava <prarit@redhat.com>
+Link: http://lkml.kernel.org/r/1341960205-56738-2-git-send-email-johnstul@us.ibm.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ include/linux/hrtimer.h |    9 ++++++++-
+ kernel/hrtimer.c        |   20 ++++++++++++++++++++
+ 2 files changed, 28 insertions(+), 1 deletions(-)
+
+diff --git a/include/linux/hrtimer.h b/include/linux/hrtimer.h
+index fd0dc30..c9ec940 100644
+--- a/include/linux/hrtimer.h
++++ b/include/linux/hrtimer.h
+@@ -165,6 +165,7 @@ enum  hrtimer_base_type {
+  * @lock:		lock protecting the base and associated clock bases
+  *			and timers
+  * @active_bases:	Bitfield to mark bases with active timers
++ * @clock_was_set:	Indicates that clock was set from irq context.
+  * @expires_next:	absolute time of the next event which was scheduled
+  *			via clock_set_next_event()
+  * @hres_active:	State of high resolution mode
+@@ -177,7 +178,8 @@ enum  hrtimer_base_type {
+  */
+ struct hrtimer_cpu_base {
+ 	raw_spinlock_t			lock;
+-	unsigned long			active_bases;
++	unsigned int			active_bases;
++	unsigned int			clock_was_set;
+ #ifdef CONFIG_HIGH_RES_TIMERS
+ 	ktime_t				expires_next;
+ 	int				hres_active;
+@@ -286,6 +288,8 @@ extern void hrtimer_peek_ahead_timers(void);
+ # define MONOTONIC_RES_NSEC	HIGH_RES_NSEC
+ # define KTIME_MONOTONIC_RES	KTIME_HIGH_RES
+ 
++extern void clock_was_set_delayed(void);
++
+ #else
+ 
+ # define MONOTONIC_RES_NSEC	LOW_RES_NSEC
+@@ -306,6 +310,9 @@ static inline int hrtimer_is_hres_active(struct hrtimer *timer)
+ {
+ 	return 0;
+ }
++
++static inline void clock_was_set_delayed(void) { }
++
+ #endif
+ 
+ extern void clock_was_set(void);
+diff --git a/kernel/hrtimer.c b/kernel/hrtimer.c
+index ae34bf5..3c24fb2 100644
+--- a/kernel/hrtimer.c
++++ b/kernel/hrtimer.c
+@@ -717,6 +717,19 @@ static int hrtimer_switch_to_hres(void)
+ 	return 1;
+ }
+ 
++/*
++ * Called from timekeeping code to reprogramm the hrtimer interrupt
++ * device. If called from the timer interrupt context we defer it to
++ * softirq context.
++ */
++void clock_was_set_delayed(void)
++{
++	struct hrtimer_cpu_base *cpu_base = &__get_cpu_var(hrtimer_bases);
++
++	cpu_base->clock_was_set = 1;
++	__raise_softirq_irqoff(HRTIMER_SOFTIRQ);
++}
++
+ #else
+ 
+ static inline int hrtimer_hres_active(void) { return 0; }
+@@ -1395,6 +1408,13 @@ void hrtimer_peek_ahead_timers(void)
+ 
+ static void run_hrtimer_softirq(struct softirq_action *h)
+ {
++	struct hrtimer_cpu_base *cpu_base = &__get_cpu_var(hrtimer_bases);
++
++	if (cpu_base->clock_was_set) {
++		cpu_base->clock_was_set = 0;
++		clock_was_set();
++	}
++
+ 	hrtimer_peek_ahead_timers();
+ }
+ 
+-- 
+1.7.7.6
+

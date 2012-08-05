@@ -1,0 +1,117 @@
+From 34c8ed43743851d7b1ad9e92f5ef7ca0b7ec606f Mon Sep 17 00:00:00 2001
+From: Mel Gorman <mgorman@suse.de>
+Date: Thu, 12 Jan 2012 17:19:38 -0800
+Subject: [PATCH 05/73] mm: compaction: make isolate_lru_page() filter-aware
+ again
+
+commit c82449352854ff09e43062246af86bdeb628f0c3 upstream.
+
+Stable note: Not tracked in Bugzilla. A fix aimed at preserving page aging
+	information by reducing LRU list churning had the side-effect of
+	reducing THP allocation success rates. This was part of a series
+	to restore the success rates while preserving the reclaim fix.
+
+Commit 39deaf85 ("mm: compaction: make isolate_lru_page() filter-aware")
+noted that compaction does not migrate dirty or writeback pages and that
+is was meaningless to pick the page and re-add it to the LRU list.  This
+had to be partially reverted because some dirty pages can be migrated by
+compaction without blocking.
+
+This patch updates "mm: compaction: make isolate_lru_page" by skipping
+over pages that migration has no possibility of migrating to minimise LRU
+disruption.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Rik van Riel<riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Andy Isaacson <adi@hexapodia.org>
+Cc: Nai Xia <nai.xia@gmail.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ include/linux/mmzone.h |    2 ++
+ mm/compaction.c        |    3 +++
+ mm/vmscan.c            |   35 +++++++++++++++++++++++++++++++++--
+ 3 files changed, 38 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 905b1e1..25842b6 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -173,6 +173,8 @@ static inline int is_unevictable_lru(enum lru_list l)
+ #define ISOLATE_CLEAN		((__force isolate_mode_t)0x4)
+ /* Isolate unmapped file */
+ #define ISOLATE_UNMAPPED	((__force isolate_mode_t)0x8)
++/* Isolate for asynchronous migration */
++#define ISOLATE_ASYNC_MIGRATE	((__force isolate_mode_t)0x10)
+ 
+ /* LRU Isolation modes. */
+ typedef unsigned __bitwise__ isolate_mode_t;
+diff --git a/mm/compaction.c b/mm/compaction.c
+index b81625d..979a919 100644
+--- a/mm/compaction.c
++++ b/mm/compaction.c
+@@ -371,6 +371,9 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
+ 			continue;
+ 		}
+ 
++		if (!cc->sync)
++			mode |= ISOLATE_ASYNC_MIGRATE;
++
+ 		/* Try isolate the page */
+ 		if (__isolate_lru_page(page, mode, 0) != 0)
+ 			continue;
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 8342119..1b95e4c 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -1061,8 +1061,39 @@ int __isolate_lru_page(struct page *page, isolate_mode_t mode, int file)
+ 
+ 	ret = -EBUSY;
+ 
+-	if ((mode & ISOLATE_CLEAN) && (PageDirty(page) || PageWriteback(page)))
+-		return ret;
++	/*
++	 * To minimise LRU disruption, the caller can indicate that it only
++	 * wants to isolate pages it will be able to operate on without
++	 * blocking - clean pages for the most part.
++	 *
++	 * ISOLATE_CLEAN means that only clean pages should be isolated. This
++	 * is used by reclaim when it is cannot write to backing storage
++	 *
++	 * ISOLATE_ASYNC_MIGRATE is used to indicate that it only wants to pages
++	 * that it is possible to migrate without blocking
++	 */
++	if (mode & (ISOLATE_CLEAN|ISOLATE_ASYNC_MIGRATE)) {
++		/* All the caller can do on PageWriteback is block */
++		if (PageWriteback(page))
++			return ret;
++
++		if (PageDirty(page)) {
++			struct address_space *mapping;
++
++			/* ISOLATE_CLEAN means only clean pages */
++			if (mode & ISOLATE_CLEAN)
++				return ret;
++
++			/*
++			 * Only pages without mappings or that have a
++			 * ->migratepage callback are possible to migrate
++			 * without blocking
++			 */
++			mapping = page_mapping(page);
++			if (mapping && !mapping->a_ops->migratepage)
++				return ret;
++		}
++	}
+ 
+ 	if ((mode & ISOLATE_UNMAPPED) && page_mapped(page))
+ 		return ret;
+-- 
+1.7.7.6
+

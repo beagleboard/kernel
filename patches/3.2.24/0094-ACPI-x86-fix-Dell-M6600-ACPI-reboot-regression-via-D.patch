@@ -1,0 +1,43 @@
+From 8e65352dd2b452e53eb5821af449b4750ac8e35d Mon Sep 17 00:00:00 2001
+From: Zhang Rui <rui.zhang@intel.com>
+Date: Mon, 20 Feb 2012 14:20:06 +0800
+Subject: [PATCH 094/109] ACPI, x86: fix Dell M6600 ACPI reboot regression via
+ DMI
+
+commit 76eb9a30db4bc8fd172f9155247264b5f2686d7b upstream.
+
+Dell Precision M6600 is known to require PCI reboot, so add it to
+the reboot blacklist in pci_reboot_dmi_table[].
+
+https://bugzilla.kernel.org/show_bug.cgi?id=42749
+
+cc: x86@kernel.org
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kernel/reboot.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/arch/x86/kernel/reboot.c b/arch/x86/kernel/reboot.c
+index 37a458b..e61f79c 100644
+--- a/arch/x86/kernel/reboot.c
++++ b/arch/x86/kernel/reboot.c
+@@ -460,6 +460,14 @@ static struct dmi_system_id __initdata pci_reboot_dmi_table[] = {
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 990"),
+ 		},
+ 	},
++	{	/* Handle problems with rebooting on the Precision M6600. */
++		.callback = set_pci_reboot,
++		.ident = "Dell OptiPlex 990",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "Precision M6600"),
++		},
++	},
+ 	{ }
+ };
+ 
+-- 
+1.7.7.6
+

@@ -1,0 +1,40 @@
+From 43fc6bce37ff39ab5010afadf1ea86e7cc9c2b37 Mon Sep 17 00:00:00 2001
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date: Sat, 9 Jun 2012 11:07:56 +0800
+Subject: [PATCH 027/109] gpiolib: wm8994: Pay attention to the value set when
+ enabling as output
+
+commit 8cd578b6e28693f357867a77598a88ef3deb6b39 upstream.
+
+Not paying attention to the value being set is a bad thing because it
+means that we'll not set the hardware up to reflect what was requested.
+Not setting the hardware up to reflect what was requested means that the
+caller won't get the results they wanted.
+
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpio/gpio-wm8994.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/gpio/gpio-wm8994.c b/drivers/gpio/gpio-wm8994.c
+index 96198f3..a2da8f2 100644
+--- a/drivers/gpio/gpio-wm8994.c
++++ b/drivers/gpio/gpio-wm8994.c
+@@ -89,8 +89,11 @@ static int wm8994_gpio_direction_out(struct gpio_chip *chip,
+ 	struct wm8994_gpio *wm8994_gpio = to_wm8994_gpio(chip);
+ 	struct wm8994 *wm8994 = wm8994_gpio->wm8994;
+ 
++	if (value)
++		value = WM8994_GPN_LVL;
++
+ 	return wm8994_set_bits(wm8994, WM8994_GPIO_1 + offset,
+-			       WM8994_GPN_DIR, 0);
++			       WM8994_GPN_DIR | WM8994_GPN_LVL, value);
+ }
+ 
+ static void wm8994_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
+-- 
+1.7.7.6
+

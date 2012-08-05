@@ -1,0 +1,46 @@
+From 8681d6103dc63879b6b679b2bfa9f59121277b41 Mon Sep 17 00:00:00 2001
+From: Roland Dreier <roland@purestorage.com>
+Date: Mon, 16 Jul 2012 15:34:22 -0700
+Subject: [PATCH 41/73] target: Add range checking to UNMAP emulation
+
+commit 2594e29865c291db162313187612cd9f14538f33 upstream.
+
+When processing an UNMAP command, we need to make sure that the number
+of blocks we're asked to UNMAP does not exceed our reported maximum
+number of blocks per UNMAP, and that the range of blocks we're
+unmapping doesn't go past the end of the device.
+
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+[bwh: Backported to 3.2: adjust filename, context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/target/target_core_cdb.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/target/target_core_cdb.c b/drivers/target/target_core_cdb.c
+index 93b9406..45a3ed4 100644
+--- a/drivers/target/target_core_cdb.c
++++ b/drivers/target/target_core_cdb.c
+@@ -1145,6 +1145,18 @@ int target_emulate_unmap(struct se_task *task)
+ 		pr_debug("UNMAP: Using lba: %llu and range: %u\n",
+ 				 (unsigned long long)lba, range);
+ 
++		if (range > dev->se_sub_dev->se_dev_attrib.max_unmap_lba_count) {
++			cmd->scsi_sense_reason = TCM_INVALID_PARAMETER_LIST;
++			ret = -EINVAL;
++			goto err;
++		}
++
++		if (lba + range > dev->transport->get_blocks(dev) + 1) {
++			cmd->scsi_sense_reason = TCM_ADDRESS_OUT_OF_RANGE;
++			ret = -EINVAL;
++			goto err;
++		}
++
+ 		ret = dev->transport->do_discard(dev, lba, range);
+ 		if (ret < 0) {
+ 			pr_err("blkdev_issue_discard() failed: %d\n",
+-- 
+1.7.7.6
+

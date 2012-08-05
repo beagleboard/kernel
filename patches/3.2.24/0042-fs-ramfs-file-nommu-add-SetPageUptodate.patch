@@ -1,0 +1,49 @@
+From 3501ec357a73226d2b3c1bd204d97926f61b3eae Mon Sep 17 00:00:00 2001
+From: Bob Liu <lliubbo@gmail.com>
+Date: Wed, 11 Jul 2012 14:02:35 -0700
+Subject: [PATCH 042/109] fs: ramfs: file-nommu: add SetPageUptodate()
+
+commit fea9f718b3d68147f162ed2d870183ce5e0ad8d8 upstream.
+
+There is a bug in the below scenario for !CONFIG_MMU:
+
+ 1. create a new file
+ 2. mmap the file and write to it
+ 3. read the file can't get the correct value
+
+Because
+
+  sys_read() -> generic_file_aio_read() -> simple_readpage() -> clear_page()
+
+which causes the page to be zeroed.
+
+Add SetPageUptodate() to ramfs_nommu_expand_for_mapping() so that
+generic_file_aio_read() do not call simple_readpage().
+
+Signed-off-by: Bob Liu <lliubbo@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@uclinux.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ramfs/file-nommu.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/fs/ramfs/file-nommu.c b/fs/ramfs/file-nommu.c
+index fbb0b47..d5378d0 100644
+--- a/fs/ramfs/file-nommu.c
++++ b/fs/ramfs/file-nommu.c
+@@ -110,6 +110,7 @@ int ramfs_nommu_expand_for_mapping(struct inode *inode, size_t newsize)
+ 
+ 		/* prevent the page from being discarded on memory pressure */
+ 		SetPageDirty(page);
++		SetPageUptodate(page);
+ 
+ 		unlock_page(page);
+ 		put_page(page);
+-- 
+1.7.7.6
+

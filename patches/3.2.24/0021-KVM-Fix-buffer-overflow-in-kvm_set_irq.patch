@@ -1,0 +1,35 @@
+From 0f3cbc35d2097d2c655789dd4996e7b87bdb5d34 Mon Sep 17 00:00:00 2001
+From: Avi Kivity <avi@redhat.com>
+Date: Sun, 22 Apr 2012 17:02:11 +0300
+Subject: [PATCH 021/109] KVM: Fix buffer overflow in kvm_set_irq()
+
+commit f2ebd422f71cda9c791f76f85d2ca102ae34a1ed upstream.
+
+kvm_set_irq() has an internal buffer of three irq routing entries, allowing
+connecting a GSI to three IRQ chips or on MSI.  However setup_routing_entry()
+does not properly enforce this, allowing three irqchip routes followed by
+an MSI route to overflow the buffer.
+
+Fix by ensuring that an MSI entry is added to an empty list.
+
+Signed-off-by: Avi Kivity <avi@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ virt/kvm/irq_comm.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/virt/kvm/irq_comm.c b/virt/kvm/irq_comm.c
+index 9f614b4..272407c 100644
+--- a/virt/kvm/irq_comm.c
++++ b/virt/kvm/irq_comm.c
+@@ -318,6 +318,7 @@ static int setup_routing_entry(struct kvm_irq_routing_table *rt,
+ 	 */
+ 	hlist_for_each_entry(ei, n, &rt->map[ue->gsi], link)
+ 		if (ei->type == KVM_IRQ_ROUTING_MSI ||
++		    ue->type == KVM_IRQ_ROUTING_MSI ||
+ 		    ue->u.irqchip.irqchip == ei->irqchip.irqchip)
+ 			return r;
+ 
+-- 
+1.7.7.6
+

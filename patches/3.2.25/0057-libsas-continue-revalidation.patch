@@ -1,0 +1,49 @@
+From 705c1a5ba71fc1fad9ed0f2fd15e31db2c623dfd Mon Sep 17 00:00:00 2001
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 21 Jun 2012 23:36:15 -0700
+Subject: [PATCH 57/73] libsas: continue revalidation
+
+commit 26f2f199ff150d8876b2641c41e60d1c92d2fb81 upstream.
+
+Continue running revalidation until no more broadcast devices are
+discovered.  Fixes cases where re-discovery completes too early in a
+domain with multiple expanders with pending re-discovery events.
+Servicing BCNs can get backed up behind error recovery.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: James Bottomley <JBottomley@Parallels.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/scsi/libsas/sas_expander.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/scsi/libsas/sas_expander.c b/drivers/scsi/libsas/sas_expander.c
+index e48ba4b..6330110 100644
+--- a/drivers/scsi/libsas/sas_expander.c
++++ b/drivers/scsi/libsas/sas_expander.c
+@@ -1983,9 +1983,7 @@ int sas_ex_revalidate_domain(struct domain_device *port_dev)
+ 	struct domain_device *dev = NULL;
+ 
+ 	res = sas_find_bcast_dev(port_dev, &dev);
+-	if (res)
+-		goto out;
+-	if (dev) {
++	while (res == 0 && dev) {
+ 		struct expander_device *ex = &dev->ex_dev;
+ 		int i = 0, phy_id;
+ 
+@@ -1997,8 +1995,10 @@ int sas_ex_revalidate_domain(struct domain_device *port_dev)
+ 			res = sas_rediscover(dev, phy_id);
+ 			i = phy_id + 1;
+ 		} while (i < ex->num_phys);
++
++		dev = NULL;
++		res = sas_find_bcast_dev(port_dev, &dev);
+ 	}
+-out:
+ 	return res;
+ }
+ 
+-- 
+1.7.7.6
+

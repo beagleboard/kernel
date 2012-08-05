@@ -1,0 +1,34 @@
+From 216fce53c4a85d012a5dc28eff803b9a28874ba8 Mon Sep 17 00:00:00 2001
+From: Tiejun Chen <tiejun.chen@windriver.com>
+Date: Wed, 11 Jul 2012 14:22:46 +1000
+Subject: [PATCH 36/73] powerpc: Add "memory" attribute for mfmsr()
+
+commit b416c9a10baae6a177b4f9ee858b8d309542fbef upstream.
+
+Add "memory" attribute in inline assembly language as a compiler
+barrier to make sure 4.6.x GCC don't reorder mfmsr().
+
+Signed-off-by: Tiejun Chen <tiejun.chen@windriver.com>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/powerpc/include/asm/reg.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/arch/powerpc/include/asm/reg.h b/arch/powerpc/include/asm/reg.h
+index 559da19..578e5a0 100644
+--- a/arch/powerpc/include/asm/reg.h
++++ b/arch/powerpc/include/asm/reg.h
+@@ -1016,7 +1016,8 @@
+ /* Macros for setting and retrieving special purpose registers */
+ #ifndef __ASSEMBLY__
+ #define mfmsr()		({unsigned long rval; \
+-			asm volatile("mfmsr %0" : "=r" (rval)); rval;})
++			asm volatile("mfmsr %0" : "=r" (rval) : \
++						: "memory"); rval;})
+ #ifdef CONFIG_PPC_BOOK3S_64
+ #define __mtmsrd(v, l)	asm volatile("mtmsrd %0," __stringify(l) \
+ 				     : : "r" (v) : "memory")
+-- 
+1.7.7.6
+

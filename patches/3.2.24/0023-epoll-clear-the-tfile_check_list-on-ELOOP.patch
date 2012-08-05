@@ -1,0 +1,43 @@
+From 11a5b0b59b9b38e71fa45bd9739a6f4ffa8ce61a Mon Sep 17 00:00:00 2001
+From: Jason Baron <jbaron@redhat.com>
+Date: Wed, 25 Apr 2012 16:01:47 -0700
+Subject: [PATCH 023/109] epoll: clear the tfile_check_list on -ELOOP
+
+commit 13d518074a952d33d47c428419693f63389547e9 upstream.
+
+An epoll_ctl(,EPOLL_CTL_ADD,,) operation can return '-ELOOP' to prevent
+circular epoll dependencies from being created.  However, in that case we
+do not properly clear the 'tfile_check_list'.  Thus, add a call to
+clear_tfile_check_list() for the -ELOOP case.
+
+Signed-off-by: Jason Baron <jbaron@redhat.com>
+Reported-by: Yurij M. Plotnikov <Yurij.Plotnikov@oktetlabs.ru>
+Cc: Nelson Elhage <nelhage@nelhage.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Tested-by: Alexandra N. Kossovsky <Alexandra.Kossovsky@oktetlabs.ru>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/eventpoll.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/fs/eventpoll.c b/fs/eventpoll.c
+index 4d9d3a4..a6f3763 100644
+--- a/fs/eventpoll.c
++++ b/fs/eventpoll.c
+@@ -1629,8 +1629,10 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, int, op, int, fd,
+ 	if (op == EPOLL_CTL_ADD) {
+ 		if (is_file_epoll(tfile)) {
+ 			error = -ELOOP;
+-			if (ep_loop_check(ep, tfile) != 0)
++			if (ep_loop_check(ep, tfile) != 0) {
++				clear_tfile_check_list();
+ 				goto error_tgt_fput;
++			}
+ 		} else
+ 			list_add(&tfile->f_tfile_llink, &tfile_check_list);
+ 	}
+-- 
+1.7.7.6
+

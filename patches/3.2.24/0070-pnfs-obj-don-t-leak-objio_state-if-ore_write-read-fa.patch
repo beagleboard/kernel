@@ -1,0 +1,46 @@
+From 0ab51e8bbf2466f4426142773be0095ad0137848 Mon Sep 17 00:00:00 2001
+From: Boaz Harrosh <bharrosh@panasas.com>
+Date: Fri, 8 Jun 2012 05:29:40 +0300
+Subject: [PATCH 070/109] pnfs-obj: don't leak objio_state if ore_write/read
+ fails
+
+commit 9909d45a8557455ca5f8ee7af0f253debc851f1a upstream.
+
+[Bug since 3.2 Kernel]
+Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/objlayout/objio_osd.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/fs/nfs/objlayout/objio_osd.c b/fs/nfs/objlayout/objio_osd.c
+index 55d0128..0e7b3fc 100644
+--- a/fs/nfs/objlayout/objio_osd.c
++++ b/fs/nfs/objlayout/objio_osd.c
+@@ -433,7 +433,10 @@ int objio_read_pagelist(struct nfs_read_data *rdata)
+ 	objios->ios->done = _read_done;
+ 	dprintk("%s: offset=0x%llx length=0x%x\n", __func__,
+ 		rdata->args.offset, rdata->args.count);
+-	return ore_read(objios->ios);
++	ret = ore_read(objios->ios);
++	if (unlikely(ret))
++		objio_free_result(&objios->oir);
++	return ret;
+ }
+ 
+ /*
+@@ -517,8 +520,10 @@ int objio_write_pagelist(struct nfs_write_data *wdata, int how)
+ 	dprintk("%s: offset=0x%llx length=0x%x\n", __func__,
+ 		wdata->args.offset, wdata->args.count);
+ 	ret = ore_write(objios->ios);
+-	if (unlikely(ret))
++	if (unlikely(ret)) {
++		objio_free_result(&objios->oir);
+ 		return ret;
++	}
+ 
+ 	if (objios->sync)
+ 		_write_done(objios->ios, objios);
+-- 
+1.7.7.6
+

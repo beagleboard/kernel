@@ -1,0 +1,42 @@
+From 99a779227aef0e93a77f7b962b266416f0ead9a6 Mon Sep 17 00:00:00 2001
+From: Daniel Drake <dsd@laptop.org>
+Date: Tue, 3 Jul 2012 23:13:39 +0100
+Subject: [PATCH 60/73] mmc: sdhci-pci: CaFe has broken card detection
+
+commit 55fc05b7414274f17795cd0e8a3b1546f3649d5e upstream.
+
+At http://dev.laptop.org/ticket/11980 we have determined that the
+Marvell CaFe SDHCI controller reports bad card presence during
+resume. It reports that no card is present even when it is.
+This is a regression -- resume worked back around 2.6.37.
+
+Around 400ms after resuming, a "card inserted" interrupt is
+generated, at which point it starts reporting presence.
+
+Work around this hardware oddity by setting the
+SDHCI_QUIRK_BROKEN_CARD_DETECTION flag.
+Thanks to Chris Ball for helping with diagnosis.
+
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+[stable@: please apply to 3.0+]
+Signed-off-by: Chris Ball <cjb@laptop.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/mmc/host/sdhci-pci.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/mmc/host/sdhci-pci.c b/drivers/mmc/host/sdhci-pci.c
+index 6878a94..83b51b5 100644
+--- a/drivers/mmc/host/sdhci-pci.c
++++ b/drivers/mmc/host/sdhci-pci.c
+@@ -148,6 +148,7 @@ static const struct sdhci_pci_fixes sdhci_ene_714 = {
+ static const struct sdhci_pci_fixes sdhci_cafe = {
+ 	.quirks		= SDHCI_QUIRK_NO_SIMULT_VDD_AND_POWER |
+ 			  SDHCI_QUIRK_NO_BUSY_IRQ |
++			  SDHCI_QUIRK_BROKEN_CARD_DETECTION |
+ 			  SDHCI_QUIRK_BROKEN_TIMEOUT_VAL,
+ };
+ 
+-- 
+1.7.7.6
+

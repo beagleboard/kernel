@@ -1,0 +1,48 @@
+From a6624e8b990f77bd4ee64f77c2b95c7df005f002 Mon Sep 17 00:00:00 2001
+From: Joerg Roedel <joerg.roedel@amd.com>
+Date: Thu, 19 Jul 2012 13:42:54 +0200
+Subject: [PATCH 49/73] iommu/amd: Fix hotplug with iommu=pt
+
+commit 2c9195e990297068d0f1f1bd8e2f1d09538009da upstream.
+
+This did not work because devices are not put into the
+pt_domain. Fix this.
+
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+[bwh: Backported to 3.2: do not use iommu_dev_data::passthrough]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/iommu/amd_iommu.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
+index a1b8caa..0f074e0 100644
+--- a/drivers/iommu/amd_iommu.c
++++ b/drivers/iommu/amd_iommu.c
+@@ -1865,6 +1865,11 @@ static int device_change_notifier(struct notifier_block *nb,
+ 
+ 		iommu_init_device(dev);
+ 
++		if (iommu_pass_through) {
++			attach_device(dev, pt_domain);
++			break;
++		}
++
+ 		domain = domain_for_device(dev);
+ 
+ 		/* allocate a protection domain if a device is added */
+@@ -1880,10 +1885,7 @@ static int device_change_notifier(struct notifier_block *nb,
+ 		list_add_tail(&dma_domain->list, &iommu_pd_list);
+ 		spin_unlock_irqrestore(&iommu_pd_list_lock, flags);
+ 
+-		if (!iommu_pass_through)
+-			dev->archdata.dma_ops = &amd_iommu_dma_ops;
+-		else
+-			dev->archdata.dma_ops = &nommu_dma_ops;
++		dev->archdata.dma_ops = &amd_iommu_dma_ops;
+ 
+ 		break;
+ 	case BUS_NOTIFY_DEL_DEVICE:
+-- 
+1.7.7.6
+

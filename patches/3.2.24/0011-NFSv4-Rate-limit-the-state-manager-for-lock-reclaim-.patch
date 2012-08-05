@@ -1,0 +1,37 @@
+From 3116aea632aa83185953d9ca52d216dd524cb845 Mon Sep 17 00:00:00 2001
+From: William Dauchy <wdauchy@gmail.com>
+Date: Wed, 14 Mar 2012 12:32:04 +0100
+Subject: [PATCH 011/109] NFSv4: Rate limit the state manager for lock reclaim
+ warning messages
+
+commit 96dcadc2fdd111dca90d559f189a30c65394451a upstream.
+
+Adding rate limit on `Lock reclaim failed` messages since it could fill
+up system logs
+Signed-off-by: William Dauchy <wdauchy@gmail.com>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+[bwh: Backported to 3.2: add the 'NFS:' prefix at the same time]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/nfs4state.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/fs/nfs/nfs4state.c b/fs/nfs/nfs4state.c
+index 66020ac..07354b7 100644
+--- a/fs/nfs/nfs4state.c
++++ b/fs/nfs/nfs4state.c
+@@ -1186,8 +1186,9 @@ restart:
+ 				spin_lock(&state->state_lock);
+ 				list_for_each_entry(lock, &state->lock_states, ls_locks) {
+ 					if (!(lock->ls_flags & NFS_LOCK_INITIALIZED))
+-						printk("%s: Lock reclaim failed!\n",
+-							__func__);
++						pr_warn_ratelimited("NFS: "
++							"%s: Lock reclaim "
++							"failed!\n", __func__);
+ 				}
+ 				spin_unlock(&state->state_lock);
+ 				nfs4_put_open_state(state);
+-- 
+1.7.7.6
+

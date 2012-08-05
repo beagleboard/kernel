@@ -1,0 +1,39 @@
+From df4372866de83261b79bf7af24c058649ed0f2eb Mon Sep 17 00:00:00 2001
+From: Tushar Dave <tushar.n.dave@intel.com>
+Date: Thu, 12 Jul 2012 08:56:56 +0000
+Subject: [PATCH 056/109] e1000e: Correct link check logic for 82571 serdes
+
+commit d0efa8f23a644f7cb7d1f8e78dd9a223efa412a3 upstream.
+
+SYNCH bit and IV bit of RXCW register are sticky. Before examining these bits,
+RXCW should be read twice to filter out one-time false events and have correct
+values for these bits. Incorrect values of these bits in link check logic can
+cause weird link stability issues if auto-negotiation fails.
+
+Reported-by: Dean Nelson <dnelson@redhat.com>
+Signed-off-by: Tushar Dave <tushar.n.dave@intel.com>
+Reviewed-by: Bruce Allan <bruce.w.allan@intel.com>
+Tested-by: Jeff Pieper <jeffrey.e.pieper@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/intel/e1000e/82571.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/net/ethernet/intel/e1000e/82571.c b/drivers/net/ethernet/intel/e1000e/82571.c
+index e556fc3..3072d35 100644
+--- a/drivers/net/ethernet/intel/e1000e/82571.c
++++ b/drivers/net/ethernet/intel/e1000e/82571.c
+@@ -1571,6 +1571,9 @@ static s32 e1000_check_for_serdes_link_82571(struct e1000_hw *hw)
+ 	ctrl = er32(CTRL);
+ 	status = er32(STATUS);
+ 	rxcw = er32(RXCW);
++	/* SYNCH bit and IV bit are sticky */
++	udelay(10);
++	rxcw = er32(RXCW);
+ 
+ 	if ((rxcw & E1000_RXCW_SYNCH) && !(rxcw & E1000_RXCW_IV)) {
+ 
+-- 
+1.7.7.6
+

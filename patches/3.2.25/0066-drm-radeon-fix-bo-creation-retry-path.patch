@@ -1,0 +1,47 @@
+From 12342624d45832c39cd6fc4ad2cc00c17d9d3854 Mon Sep 17 00:00:00 2001
+From: Jerome Glisse <jglisse@redhat.com>
+Date: Thu, 12 Jul 2012 18:23:05 -0400
+Subject: [PATCH 66/73] drm/radeon: fix bo creation retry path
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit d1c7871ddb1f588b8eb35affd9ee1a3d5e11cd0c upstream.
+
+Retry label was at wrong place in function leading to memory
+leak.
+
+Signed-off-by: Jerome Glisse <jglisse@redhat.com>
+Reviewed-by: Michel Dänzer <michel.daenzer@amd.com>
+Reviewed-by: Christian König <christian.koenig@amd.com>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_object.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_object.c b/drivers/gpu/drm/radeon/radeon_object.c
+index f3ae607..39497c7 100644
+--- a/drivers/gpu/drm/radeon/radeon_object.c
++++ b/drivers/gpu/drm/radeon/radeon_object.c
+@@ -117,7 +117,6 @@ int radeon_bo_create(struct radeon_device *rdev,
+ 		return -ENOMEM;
+ 	}
+ 
+-retry:
+ 	bo = kzalloc(sizeof(struct radeon_bo), GFP_KERNEL);
+ 	if (bo == NULL)
+ 		return -ENOMEM;
+@@ -130,6 +129,8 @@ retry:
+ 	bo->gem_base.driver_private = NULL;
+ 	bo->surface_reg = -1;
+ 	INIT_LIST_HEAD(&bo->list);
++
++retry:
+ 	radeon_ttm_placement_from_domain(bo, domain);
+ 	/* Kernel allocation are uninterruptible */
+ 	mutex_lock(&rdev->vram_mutex);
+-- 
+1.7.7.6
+

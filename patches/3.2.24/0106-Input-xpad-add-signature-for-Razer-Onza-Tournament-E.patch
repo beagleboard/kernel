@@ -1,0 +1,40 @@
+From e30e7f7dfdaff81816662f074920afedc9b9bed9 Mon Sep 17 00:00:00 2001
+From: Ilia Katsnelson <k0009000@gmail.com>
+Date: Wed, 11 Jul 2012 00:54:20 -0700
+Subject: [PATCH 106/109] Input: xpad - add signature for Razer Onza
+ Tournament Edition
+
+commit cc71a7e899cc6b2ff41e1be48756782ed004d802 upstream.
+
+Signed-off-by: Ilia Katsnelson <k0009000@gmail.com>
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/input/joystick/xpad.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/input/joystick/xpad.c b/drivers/input/joystick/xpad.c
+index a2daf38..ddfabc4 100644
+--- a/drivers/input/joystick/xpad.c
++++ b/drivers/input/joystick/xpad.c
+@@ -164,6 +164,7 @@ static const struct xpad_device {
+ 	{ 0x1bad, 0x0003, "Harmonix Rock Band Drumkit", MAP_DPAD_TO_BUTTONS, XTYPE_XBOX360 },
+ 	{ 0x0f0d, 0x0016, "Hori Real Arcade Pro.EX", MAP_TRIGGERS_TO_BUTTONS, XTYPE_XBOX360 },
+ 	{ 0x0f0d, 0x000d, "Hori Fighting Stick EX2", MAP_TRIGGERS_TO_BUTTONS, XTYPE_XBOX360 },
++	{ 0x1689, 0xfd00, "Razer Onza Tournament Edition", MAP_DPAD_TO_BUTTONS, XTYPE_XBOX360 },
+ 	{ 0xffff, 0xffff, "Chinese-made Xbox Controller", 0, XTYPE_XBOX },
+ 	{ 0x0000, 0x0000, "Generic X-Box pad", 0, XTYPE_UNKNOWN }
+ };
+@@ -244,7 +245,8 @@ static struct usb_device_id xpad_table [] = {
+ 	XPAD_XBOX360_VENDOR(0x1430),		/* RedOctane X-Box 360 controllers */
+ 	XPAD_XBOX360_VENDOR(0x146b),		/* BigBen Interactive Controllers */
+ 	XPAD_XBOX360_VENDOR(0x1bad),		/* Harminix Rock Band Guitar and Drums */
+-	XPAD_XBOX360_VENDOR(0x0f0d),            /* Hori Controllers */
++	XPAD_XBOX360_VENDOR(0x0f0d),		/* Hori Controllers */
++	XPAD_XBOX360_VENDOR(0x1689),		/* Razer Onza */
+ 	{ }
+ };
+ 
+-- 
+1.7.7.6
+

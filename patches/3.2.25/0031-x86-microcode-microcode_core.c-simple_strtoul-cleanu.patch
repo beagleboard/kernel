@@ -1,0 +1,44 @@
+From f7b867b55f47fb4330ea7b8a19dac2ce196258f0 Mon Sep 17 00:00:00 2001
+From: Shuah Khan <shuahkhan@gmail.com>
+Date: Sun, 6 May 2012 11:11:04 -0600
+Subject: [PATCH 31/73] x86, microcode: microcode_core.c simple_strtoul
+ cleanup
+
+commit e826abd523913f63eb03b59746ffb16153c53dc4 upstream.
+
+Change reload_for_cpu() in kernel/microcode_core.c to call kstrtoul()
+instead of calling obsoleted simple_strtoul().
+
+Signed-off-by: Shuah Khan <shuahkhan@gmail.com>
+Reviewed-by: Borislav Petkov <bp@alien8.de>
+Link: http://lkml.kernel.org/r/1336324264.2897.9.camel@lorien2
+Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kernel/microcode_core.c |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/arch/x86/kernel/microcode_core.c b/arch/x86/kernel/microcode_core.c
+index 563a09d..19c7af1 100644
+--- a/arch/x86/kernel/microcode_core.c
++++ b/arch/x86/kernel/microcode_core.c
+@@ -298,12 +298,11 @@ static ssize_t reload_store(struct sys_device *dev,
+ {
+ 	unsigned long val;
+ 	int cpu = dev->id;
+-	int ret = 0;
+-	char *end;
++	ssize_t ret = 0;
+ 
+-	val = simple_strtoul(buf, &end, 0);
+-	if (end == buf)
+-		return -EINVAL;
++	ret = kstrtoul(buf, 0, &val);
++	if (ret)
++		return ret;
+ 
+ 	if (val == 1) {
+ 		get_online_cpus();
+-- 
+1.7.7.6
+

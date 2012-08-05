@@ -1,0 +1,70 @@
+From dc9391958a838458732358a7f29d78dda7774c65 Mon Sep 17 00:00:00 2001
+From: David Daney <david.daney@cavium.com>
+Date: Thu, 19 Jul 2012 09:11:14 +0200
+Subject: [PATCH 066/109] MIPS: Properly align the .data..init_task section.
+
+commit 7b1c0d26a8e272787f0f9fcc5f3e8531df3b3409 upstream.
+
+Improper alignment can lead to unbootable systems and/or random
+crashes.
+
+[ralf@linux-mips.org: This is a lond standing bug since
+6eb10bc9e2deab06630261cd05c4cb1e9a60e980 (kernel.org) rsp.
+c422a10917f75fd19fa7fe070aaaa23e384dae6f (lmo) [MIPS: Clean up linker script
+using new linker script macros.] so dates back to 2.6.32.]
+
+Signed-off-by: David Daney <david.daney@cavium.com>
+Cc: linux-mips@linux-mips.org
+Patchwork: https://patchwork.linux-mips.org/patch/3881/
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/mips/include/asm/thread_info.h |    4 ++--
+ arch/mips/kernel/vmlinux.lds.S      |    3 ++-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/arch/mips/include/asm/thread_info.h b/arch/mips/include/asm/thread_info.h
+index 97f8bf6..adda036 100644
+--- a/arch/mips/include/asm/thread_info.h
++++ b/arch/mips/include/asm/thread_info.h
+@@ -60,6 +60,8 @@ struct thread_info {
+ register struct thread_info *__current_thread_info __asm__("$28");
+ #define current_thread_info()  __current_thread_info
+ 
++#endif /* !__ASSEMBLY__ */
++
+ /* thread information allocation */
+ #if defined(CONFIG_PAGE_SIZE_4KB) && defined(CONFIG_32BIT)
+ #define THREAD_SIZE_ORDER (1)
+@@ -97,8 +99,6 @@ register struct thread_info *__current_thread_info __asm__("$28");
+ 
+ #define free_thread_info(info) kfree(info)
+ 
+-#endif /* !__ASSEMBLY__ */
+-
+ #define PREEMPT_ACTIVE		0x10000000
+ 
+ /*
+diff --git a/arch/mips/kernel/vmlinux.lds.S b/arch/mips/kernel/vmlinux.lds.S
+index a81176f..be281c6 100644
+--- a/arch/mips/kernel/vmlinux.lds.S
++++ b/arch/mips/kernel/vmlinux.lds.S
+@@ -1,5 +1,6 @@
+ #include <asm/asm-offsets.h>
+ #include <asm/page.h>
++#include <asm/thread_info.h>
+ #include <asm-generic/vmlinux.lds.h>
+ 
+ #undef mips
+@@ -73,7 +74,7 @@ SECTIONS
+ 	.data : {	/* Data */
+ 		. = . + DATAOFFSET;		/* for CONFIG_MAPPED_KERNEL */
+ 
+-		INIT_TASK_DATA(PAGE_SIZE)
++		INIT_TASK_DATA(THREAD_SIZE)
+ 		NOSAVE_DATA
+ 		CACHELINE_ALIGNED_DATA(1 << CONFIG_MIPS_L1_CACHE_SHIFT)
+ 		READ_MOSTLY_DATA(1 << CONFIG_MIPS_L1_CACHE_SHIFT)
+-- 
+1.7.7.6
+

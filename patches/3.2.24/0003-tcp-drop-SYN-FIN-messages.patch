@@ -1,0 +1,36 @@
+From e6364fb003c0bc98c5fcde51aac6fd3b6a1337c3 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Date: Fri, 2 Dec 2011 23:41:42 +0000
+Subject: [PATCH 003/109] tcp: drop SYN+FIN messages
+
+commit fdf5af0daf8019cec2396cdef8fb042d80fe71fa upstream.
+
+Denys Fedoryshchenko reported that SYN+FIN attacks were bringing his
+linux machines to their limits.
+
+Dont call conn_request() if the TCP flags includes SYN flag
+
+Reported-by: Denys Fedoryshchenko <denys@visp.net.lb>
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv4/tcp_input.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
+index 9726927..32e6ca2 100644
+--- a/net/ipv4/tcp_input.c
++++ b/net/ipv4/tcp_input.c
+@@ -5836,6 +5836,8 @@ int tcp_rcv_state_process(struct sock *sk, struct sk_buff *skb,
+ 			goto discard;
+ 
+ 		if (th->syn) {
++			if (th->fin)
++				goto discard;
+ 			if (icsk->icsk_af_ops->conn_request(sk, skb) < 0)
+ 				return 1;
+ 
+-- 
+1.7.7.6
+

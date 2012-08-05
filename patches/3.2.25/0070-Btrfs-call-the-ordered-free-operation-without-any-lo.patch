@@ -1,0 +1,48 @@
+From 704c3d1f64a8f1200cafbcee732b89fe341fc18f Mon Sep 17 00:00:00 2001
+From: Chris Mason <chris.mason@fusionio.com>
+Date: Wed, 25 Jul 2012 15:57:13 -0400
+Subject: [PATCH 70/73] Btrfs: call the ordered free operation without any
+ locks held
+
+commit e9fbcb42201c862fd6ab45c48ead4f47bb2dea9d upstream.
+
+Each ordered operation has a free callback, and this was called with the
+worker spinlock held.  Josef made the free callback also call iput,
+which we can't do with the spinlock.
+
+This drops the spinlock for the free operation and grabs it again before
+moving through the rest of the list.  We'll circle back around to this
+and find a cleaner way that doesn't bounce the lock around so much.
+
+Signed-off-by: Chris Mason <chris.mason@fusionio.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/btrfs/async-thread.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
+
+diff --git a/fs/btrfs/async-thread.c b/fs/btrfs/async-thread.c
+index 0b39458..03321e5 100644
+--- a/fs/btrfs/async-thread.c
++++ b/fs/btrfs/async-thread.c
+@@ -206,10 +206,17 @@ static noinline int run_ordered_completions(struct btrfs_workers *workers,
+ 
+ 		work->ordered_func(work);
+ 
+-		/* now take the lock again and call the freeing code */
++		/* now take the lock again and drop our item from the list */
+ 		spin_lock(&workers->order_lock);
+ 		list_del(&work->order_list);
++		spin_unlock(&workers->order_lock);
++
++		/*
++		 * we don't want to call the ordered free functions
++		 * with the lock held though
++		 */
+ 		work->ordered_free(work);
++		spin_lock(&workers->order_lock);
+ 	}
+ 
+ 	spin_unlock(&workers->order_lock);
+-- 
+1.7.7.6
+

@@ -1,0 +1,51 @@
+From 154f4399c91b93519cd4a0ba0eceb21ced26c241 Mon Sep 17 00:00:00 2001
+From: Emmanuel Grumbach <emmanuel.grumbach@intel.com>
+Date: Wed, 4 Jul 2012 13:59:08 +0200
+Subject: [PATCH 055/109] iwlegacy: don't mess up the SCD when removing a key
+
+commit b48d96652626b315229b1b82c6270eead6a77a6d upstream.
+
+When we remove a key, we put a key index which was supposed
+to tell the fw that we are actually removing the key. But
+instead the fw took that index as a valid index and messed
+up the SRAM of the device.
+
+This memory corruption on the device mangled the data of
+the SCD. The impact on the user is that SCD queue 2 got
+stuck after having removed keys.
+
+Reported-by: Paul Bolle <pebolle@tiscali.nl>
+Signed-off-by: Emmanuel Grumbach <emmanuel.grumbach@intel.com>
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+[bwh: Backported to 3.2: adjust filename, context and variable name]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/iwlegacy/iwl-4965-sta.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/wireless/iwlegacy/iwl-4965-sta.c b/drivers/net/wireless/iwlegacy/iwl-4965-sta.c
+index a262c23..0116ca8 100644
+--- a/drivers/net/wireless/iwlegacy/iwl-4965-sta.c
++++ b/drivers/net/wireless/iwlegacy/iwl-4965-sta.c
+@@ -466,7 +466,7 @@ int iwl4965_remove_dynamic_key(struct iwl_priv *priv,
+ 		return 0;
+ 	}
+ 
+-	if (priv->stations[sta_id].sta.key.key_offset == WEP_INVALID_OFFSET) {
++	if (priv->stations[sta_id].sta.key.key_flags & STA_KEY_FLG_INVALID) {
+ 		IWL_WARN(priv, "Removing wrong key %d 0x%x\n",
+ 			    keyconf->keyidx, key_flags);
+ 		spin_unlock_irqrestore(&priv->sta_lock, flags);
+@@ -483,7 +483,7 @@ int iwl4965_remove_dynamic_key(struct iwl_priv *priv,
+ 					sizeof(struct iwl4965_keyinfo));
+ 	priv->stations[sta_id].sta.key.key_flags =
+ 			STA_KEY_FLG_NO_ENC | STA_KEY_FLG_INVALID;
+-	priv->stations[sta_id].sta.key.key_offset = WEP_INVALID_OFFSET;
++	priv->stations[sta_id].sta.key.key_offset = keyconf->hw_key_idx;
+ 	priv->stations[sta_id].sta.sta.modify_mask = STA_MODIFY_KEY_MASK;
+ 	priv->stations[sta_id].sta.mode = STA_CONTROL_MODIFY_MSK;
+ 
+-- 
+1.7.7.6
+

@@ -1,0 +1,66 @@
+From a7c5635a91e082f0ac07df5fed58014d70296ef6 Mon Sep 17 00:00:00 2001
+From: Dylan Reid <dgreid@chromium.org>
+Date: Thu, 19 Jul 2012 17:52:58 -0700
+Subject: [PATCH 51/73] ALSA: hda - Turn on PIN_OUT from hdmi playback
+ prepare.
+
+commit 9e76e6d031482194a5b24d8e9ab88063fbd6b4b5 upstream.
+
+Turn on the pin widget's PIN_OUT bit from playback prepare. The pin is
+enabled in open, but is disabled in hdmi_init_pin which is called during
+system resume.  This causes a system suspend/resume during playback to
+mute HDMI/DP. Enabling the pin in prepare instead of open allows calling
+snd_pcm_prepare after a system resume to restore audio.
+
+Signed-off-by: Dylan Reid <dgreid@chromium.org>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/pci/hda/patch_hdmi.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/sound/pci/hda/patch_hdmi.c b/sound/pci/hda/patch_hdmi.c
+index c505fd5..c119f33 100644
+--- a/sound/pci/hda/patch_hdmi.c
++++ b/sound/pci/hda/patch_hdmi.c
+@@ -868,7 +868,6 @@ static int hdmi_pcm_open(struct hda_pcm_stream *hinfo,
+ 	struct hdmi_spec_per_pin *per_pin;
+ 	struct hdmi_eld *eld;
+ 	struct hdmi_spec_per_cvt *per_cvt = NULL;
+-	int pinctl;
+ 
+ 	/* Validate hinfo */
+ 	pin_idx = hinfo_to_pin_index(spec, hinfo);
+@@ -904,11 +903,6 @@ static int hdmi_pcm_open(struct hda_pcm_stream *hinfo,
+ 	snd_hda_codec_write(codec, per_pin->pin_nid, 0,
+ 			    AC_VERB_SET_CONNECT_SEL,
+ 			    mux_idx);
+-	pinctl = snd_hda_codec_read(codec, per_pin->pin_nid, 0,
+-				    AC_VERB_GET_PIN_WIDGET_CONTROL, 0);
+-	snd_hda_codec_write(codec, per_pin->pin_nid, 0,
+-			    AC_VERB_SET_PIN_WIDGET_CONTROL,
+-			    pinctl | PIN_OUT);
+ 	snd_hda_spdif_ctls_assign(codec, pin_idx, per_cvt->cvt_nid);
+ 
+ 	/* Initially set the converter's capabilities */
+@@ -1147,11 +1141,17 @@ static int generic_hdmi_playback_pcm_prepare(struct hda_pcm_stream *hinfo,
+ 	struct hdmi_spec *spec = codec->spec;
+ 	int pin_idx = hinfo_to_pin_index(spec, hinfo);
+ 	hda_nid_t pin_nid = spec->pins[pin_idx].pin_nid;
++	int pinctl;
+ 
+ 	hdmi_set_channel_count(codec, cvt_nid, substream->runtime->channels);
+ 
+ 	hdmi_setup_audio_infoframe(codec, pin_idx, substream);
+ 
++	pinctl = snd_hda_codec_read(codec, pin_nid, 0,
++				    AC_VERB_GET_PIN_WIDGET_CONTROL, 0);
++	snd_hda_codec_write(codec, pin_nid, 0,
++			    AC_VERB_SET_PIN_WIDGET_CONTROL, pinctl | PIN_OUT);
++
+ 	return hdmi_setup_stream(codec, cvt_nid, pin_nid, stream_tag, format);
+ }
+ 
+-- 
+1.7.7.6
+

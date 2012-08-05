@@ -1,0 +1,32 @@
+From 42bc7c990b1a040fbfc94b8cad7fd8f626040b51 Mon Sep 17 00:00:00 2001
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Wed, 4 Jan 2012 21:22:51 -0500
+Subject: [PATCH 012/109] ext4: Report max_batch_time option correctly
+
+commit 1d526fc91bea04ee35b7599bf8b82f86c0aaf46c upstream.
+
+Currently the value reported for max_batch_time is really the
+value of min_batch_time.
+
+Reported-by: Russell Coker <russell@coker.com.au>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ext4/super.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+index ab7aa3f..a93486e 100644
+--- a/fs/ext4/super.c
++++ b/fs/ext4/super.c
+@@ -1097,7 +1097,7 @@ static int ext4_show_options(struct seq_file *seq, struct vfsmount *vfs)
+ 	}
+ 	if (sbi->s_max_batch_time != EXT4_DEF_MAX_BATCH_TIME) {
+ 		seq_printf(seq, ",max_batch_time=%u",
+-			   (unsigned) sbi->s_min_batch_time);
++			   (unsigned) sbi->s_max_batch_time);
+ 	}
+ 
+ 	/*
+-- 
+1.7.7.6
+

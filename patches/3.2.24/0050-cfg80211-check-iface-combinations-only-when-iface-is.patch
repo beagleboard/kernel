@@ -1,0 +1,40 @@
+From 1885f653e200137b46671a61ca321ab2356821b7 Mon Sep 17 00:00:00 2001
+From: Michal Kazior <michal.kazior@tieto.com>
+Date: Fri, 8 Jun 2012 10:55:44 +0200
+Subject: [PATCH 050/109] cfg80211: check iface combinations only when iface
+ is running
+
+commit f8cdddb8d61d16a156229f0910f7ecfc7a82c003 upstream.
+
+Don't validate interface combinations on a stopped
+interface. Otherwise we might end up being able to
+create a new interface with a certain type, but
+won't be able to change an existing interface
+into that type.
+
+This also skips some other functions when
+interface is stopped and changing interface type.
+
+Signed-off-by: Michal Kazior <michal.kazior@tieto.com>
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/wireless/util.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/wireless/util.c b/net/wireless/util.c
+index d38815d..74d5292 100644
+--- a/net/wireless/util.c
++++ b/net/wireless/util.c
+@@ -813,7 +813,7 @@ int cfg80211_change_iface(struct cfg80211_registered_device *rdev,
+ 	     ntype == NL80211_IFTYPE_P2P_CLIENT))
+ 		return -EBUSY;
+ 
+-	if (ntype != otype) {
++	if (ntype != otype && netif_running(dev)) {
+ 		err = cfg80211_can_change_interface(rdev, dev->ieee80211_ptr,
+ 						    ntype);
+ 		if (err)
+-- 
+1.7.7.6
+

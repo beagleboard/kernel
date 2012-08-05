@@ -1,0 +1,65 @@
+From c9d907ded47a70b9cd66a39aa09dbce24c363ffa Mon Sep 17 00:00:00 2001
+From: Stanislaw Gruszka <sgruszka@redhat.com>
+Date: Wed, 4 Jul 2012 13:20:20 +0200
+Subject: [PATCH 054/109] iwlegacy: always monitor for stuck queues
+
+commit c2ca7d92ed4bbd779516beb6eb226e19f7f7ab0f upstream.
+
+This is iwlegacy version of:
+
+commit 342bbf3fee2fa9a18147e74b2e3c4229a4564912
+Author: Johannes Berg <johannes.berg@intel.com>
+Date:   Sun Mar 4 08:50:46 2012 -0800
+
+    iwlwifi: always monitor for stuck queues
+
+    If we only monitor while associated, the following
+    can happen:
+     - we're associated, and the queue stuck check
+       runs, setting the queue "touch" time to X
+     - we disassociate, stopping the monitoring,
+       which leaves the time set to X
+     - almost 2s later, we associate, and enqueue
+       a frame
+     - before the frame is transmitted, we monitor
+       for stuck queues, and find the time set to
+       X, although it is now later than X + 2000ms,
+       so we decide that the queue is stuck and
+       erroneously restart the device
+
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+[bwh: Backported to 3.2: adjust filename, function and variable names]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/iwlegacy/iwl-core.c |   14 ++++++--------
+ 1 files changed, 6 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/net/wireless/iwlegacy/iwl-core.c b/drivers/net/wireless/iwlegacy/iwl-core.c
+index 2bd5659..1bb64c9 100644
+--- a/drivers/net/wireless/iwlegacy/iwl-core.c
++++ b/drivers/net/wireless/iwlegacy/iwl-core.c
+@@ -1884,14 +1884,12 @@ void iwl_legacy_bg_watchdog(unsigned long data)
+ 		return;
+ 
+ 	/* monitor and check for other stuck queues */
+-	if (iwl_legacy_is_any_associated(priv)) {
+-		for (cnt = 0; cnt < priv->hw_params.max_txq_num; cnt++) {
+-			/* skip as we already checked the command queue */
+-			if (cnt == priv->cmd_queue)
+-				continue;
+-			if (iwl_legacy_check_stuck_queue(priv, cnt))
+-				return;
+-		}
++	for (cnt = 0; cnt < priv->hw_params.max_txq_num; cnt++) {
++		/* skip as we already checked the command queue */
++		if (cnt == priv->cmd_queue)
++			continue;
++		if (iwl_legacy_check_stuck_queue(priv, cnt))
++			return;
+ 	}
+ 
+ 	mod_timer(&priv->watchdog, jiffies +
+-- 
+1.7.7.6
+

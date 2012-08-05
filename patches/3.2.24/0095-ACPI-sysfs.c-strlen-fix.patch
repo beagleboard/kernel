@@ -1,0 +1,43 @@
+From 391493aea95c02174396051e5ed3296325c131ee Mon Sep 17 00:00:00 2001
+From: Pavel Vasilyev <pavel@pavlinux.ru>
+Date: Tue, 5 Jun 2012 00:02:05 -0400
+Subject: [PATCH 095/109] ACPI sysfs.c strlen fix
+
+commit 9f132652d94c96476b0b0a8caf0c10e96ab10fa8 upstream.
+
+Current code is ignoring the last character of "enable" and "disable"
+in comparisons.
+
+https://bugzilla.kernel.org/show_bug.cgi?id=33732
+
+Signed-off-by: Len Brown <len.brown@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/acpi/sysfs.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index 9f66181..240a244 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -173,7 +173,7 @@ static int param_set_trace_state(const char *val, struct kernel_param *kp)
+ {
+ 	int result = 0;
+ 
+-	if (!strncmp(val, "enable", strlen("enable") - 1)) {
++	if (!strncmp(val, "enable", strlen("enable"))) {
+ 		result = acpi_debug_trace(trace_method_name, trace_debug_level,
+ 					  trace_debug_layer, 0);
+ 		if (result)
+@@ -181,7 +181,7 @@ static int param_set_trace_state(const char *val, struct kernel_param *kp)
+ 		goto exit;
+ 	}
+ 
+-	if (!strncmp(val, "disable", strlen("disable") - 1)) {
++	if (!strncmp(val, "disable", strlen("disable"))) {
+ 		int name = 0;
+ 		result = acpi_debug_trace((char *)&name, trace_debug_level,
+ 					  trace_debug_layer, 0);
+-- 
+1.7.7.6
+

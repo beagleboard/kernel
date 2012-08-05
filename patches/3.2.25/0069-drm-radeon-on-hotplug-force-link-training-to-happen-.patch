@@ -1,0 +1,51 @@
+From 86949428b4319a44d0c8ba776974143f938b6758 Mon Sep 17 00:00:00 2001
+From: Jerome Glisse <jglisse@redhat.com>
+Date: Thu, 19 Jul 2012 17:25:55 -0400
+Subject: [PATCH 69/73] drm/radeon: on hotplug force link training to happen
+ (v2)
+
+commit ca2ccde5e2f24a792caa4cca919fc5c6f65d1887 upstream.
+
+To have DP behave like VGA/DVI we need to retrain the link
+on hotplug. For this to happen we need to force link
+training to happen by setting connector dpms to off
+before asking it turning it on again.
+
+v2: agd5f
+- drop the dp_get_link_status() change in atombios_dp.c
+  for now.  We still need the dpms OFF change.
+
+Signed-off-by: Jerome Glisse <jglisse@redhat.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_connectors.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_connectors.c b/drivers/gpu/drm/radeon/radeon_connectors.c
+index fb8db7a..87d494d 100644
+--- a/drivers/gpu/drm/radeon/radeon_connectors.c
++++ b/drivers/gpu/drm/radeon/radeon_connectors.c
+@@ -79,10 +79,16 @@ void radeon_connector_hotplug(struct drm_connector *connector)
+ 		if (dig_connector->dp_sink_type == CONNECTOR_OBJECT_ID_DISPLAYPORT) {
+ 			int saved_dpms = connector->dpms;
+ 			/* Only turn off the display if it's physically disconnected */
+-			if (!radeon_hpd_sense(rdev, radeon_connector->hpd.hpd))
++			if (!radeon_hpd_sense(rdev, radeon_connector->hpd.hpd)) {
+ 				drm_helper_connector_dpms(connector, DRM_MODE_DPMS_OFF);
+-			else if (radeon_dp_needs_link_train(radeon_connector))
++			} else if (radeon_dp_needs_link_train(radeon_connector)) {
++				/* set it to OFF so that drm_helper_connector_dpms()
++				 * won't return immediately since the current state
++				 * is ON at this point.
++				 */
++				connector->dpms = DRM_MODE_DPMS_OFF;
+ 				drm_helper_connector_dpms(connector, DRM_MODE_DPMS_ON);
++			}
+ 			connector->dpms = saved_dpms;
+ 		}
+ 	}
+-- 
+1.7.7.6
+

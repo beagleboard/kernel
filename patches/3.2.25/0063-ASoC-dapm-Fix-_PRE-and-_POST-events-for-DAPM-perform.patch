@@ -1,0 +1,46 @@
+From ad15432068b43135d7af36e555c9d48b0d37c3c3 Mon Sep 17 00:00:00 2001
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date: Fri, 20 Jul 2012 17:29:34 +0100
+Subject: [PATCH 63/73] ASoC: dapm: Fix _PRE and _POST events for DAPM
+ performance improvements
+
+commit 0ff97ebf0804d2e519d578fcb4db03f104d2ca8c upstream.
+
+Ever since the DAPM performance improvements we've been marking all widgets
+as not dirty after each DAPM run. Since _PRE and _POST events aren't part
+of the DAPM graph this has rendered them non-functional, they will never be
+marked dirty again and thus will never be run again.
+
+Fix this by skipping them when marking widgets as not dirty.
+
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Acked-by: Liam Girdwood <lrg@ti.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/soc/soc-dapm.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
+
+diff --git a/sound/soc/soc-dapm.c b/sound/soc/soc-dapm.c
+index 90e93bf..0dc441c 100644
+--- a/sound/soc/soc-dapm.c
++++ b/sound/soc/soc-dapm.c
+@@ -1381,7 +1381,15 @@ static int dapm_power_widgets(struct snd_soc_dapm_context *dapm, int event)
+ 	}
+ 
+ 	list_for_each_entry(w, &card->widgets, list) {
+-		list_del_init(&w->dirty);
++		switch (w->id) {
++		case snd_soc_dapm_pre:
++		case snd_soc_dapm_post:
++			/* These widgets always need to be powered */
++			break;
++		default:
++			list_del_init(&w->dirty);
++			break;
++		}
+ 
+ 		if (w->power) {
+ 			d = w->dapm;
+-- 
+1.7.7.6
+

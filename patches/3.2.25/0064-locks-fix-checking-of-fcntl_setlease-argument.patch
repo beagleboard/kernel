@@ -1,0 +1,57 @@
+From 295cc2b91b078eb04f42db40ee04788c685dd351 Mon Sep 17 00:00:00 2001
+From: "J. Bruce Fields" <bfields@fieldses.org>
+Date: Mon, 23 Jul 2012 15:17:17 -0400
+Subject: [PATCH 64/73] locks: fix checking of fcntl_setlease argument
+
+commit 0ec4f431eb56d633da3a55da67d5c4b88886ccc7 upstream.
+
+The only checks of the long argument passed to fcntl(fd,F_SETLEASE,.)
+are done after converting the long to an int.  Thus some illegal values
+may be let through and cause problems in later code.
+
+[ They actually *don't* cause problems in mainline, as of Dave Jones's
+  commit 8d657eb3b438 "Remove easily user-triggerable BUG from
+  generic_setlease", but we should fix this anyway.  And this patch will
+  be necessary to fix real bugs on earlier kernels. ]
+
+Signed-off-by: J. Bruce Fields <bfields@redhat.com>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/locks.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/fs/locks.c b/fs/locks.c
+index 6a64f15..fcc50ab 100644
+--- a/fs/locks.c
++++ b/fs/locks.c
+@@ -308,7 +308,7 @@ static int flock_make_lock(struct file *filp, struct file_lock **lock,
+ 	return 0;
+ }
+ 
+-static int assign_type(struct file_lock *fl, int type)
++static int assign_type(struct file_lock *fl, long type)
+ {
+ 	switch (type) {
+ 	case F_RDLCK:
+@@ -445,7 +445,7 @@ static const struct lock_manager_operations lease_manager_ops = {
+ /*
+  * Initialize a lease, use the default lock manager operations
+  */
+-static int lease_init(struct file *filp, int type, struct file_lock *fl)
++static int lease_init(struct file *filp, long type, struct file_lock *fl)
+  {
+ 	if (assign_type(fl, type) != 0)
+ 		return -EINVAL;
+@@ -463,7 +463,7 @@ static int lease_init(struct file *filp, int type, struct file_lock *fl)
+ }
+ 
+ /* Allocate a file_lock initialised to this type of lease */
+-static struct file_lock *lease_alloc(struct file *filp, int type)
++static struct file_lock *lease_alloc(struct file *filp, long type)
+ {
+ 	struct file_lock *fl = locks_alloc_lock();
+ 	int error = -ENOMEM;
+-- 
+1.7.7.6
+

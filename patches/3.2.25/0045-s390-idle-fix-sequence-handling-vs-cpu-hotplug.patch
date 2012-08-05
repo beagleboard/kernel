@@ -1,0 +1,80 @@
+From 88981d86ee7c3d3bcfe75f359363658478667fa5 Mon Sep 17 00:00:00 2001
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Date: Fri, 13 Jul 2012 15:45:33 +0200
+Subject: [PATCH 45/73] s390/idle: fix sequence handling vs cpu hotplug
+
+commit 0008204ffe85d23382d6fd0f971f3f0fbe70bae2 upstream.
+
+The s390 idle accounting code uses a sequence counter which gets used
+when the per cpu idle statistics get updated and read.
+
+One assumption on read access is that only when the sequence counter is
+even and did not change while reading all values the result is valid.
+On cpu hotplug however the per cpu data structure gets initialized via
+a cpu hotplug notifier on CPU_ONLINE.
+CPU_ONLINE however is too late, since the onlined cpu is already running
+and might access the per cpu data. Worst case is that the data structure
+gets initialized while an idle thread is updating its idle statistics.
+This will result in an uneven sequence counter after an update.
+
+As a result user space tools like top, which access /proc/stat in order
+to get idle stats, will busy loop waiting for the sequence counter to
+become even again, which will never happen until the queried cpu will
+update its idle statistics again. And even then the sequence counter
+will only have an even value for a couple of cpu cycles.
+
+Fix this by moving the initialization of the per cpu idle statistics
+to cpu_init(). I prefer that solution in favor of changing the
+notifier to CPU_UP_PREPARE, which would be a different solution to
+the problem.
+
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/s390/kernel/processor.c |    2 ++
+ arch/s390/kernel/smp.c       |    3 ---
+ 2 files changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/arch/s390/kernel/processor.c b/arch/s390/kernel/processor.c
+index 6e0073e..07c7bf4 100644
+--- a/arch/s390/kernel/processor.c
++++ b/arch/s390/kernel/processor.c
+@@ -26,12 +26,14 @@ static DEFINE_PER_CPU(struct cpuid, cpu_id);
+ void __cpuinit cpu_init(void)
+ {
+ 	struct cpuid *id = &per_cpu(cpu_id, smp_processor_id());
++	struct s390_idle_data *idle = &__get_cpu_var(s390_idle);
+ 
+ 	get_cpu_id(id);
+ 	atomic_inc(&init_mm.mm_count);
+ 	current->active_mm = &init_mm;
+ 	BUG_ON(current->mm);
+ 	enter_lazy_tlb(&init_mm, current);
++	memset(idle, 0, sizeof(*idle));
+ }
+ 
+ /*
+diff --git a/arch/s390/kernel/smp.c b/arch/s390/kernel/smp.c
+index 3ea8728..1df64a8 100644
+--- a/arch/s390/kernel/smp.c
++++ b/arch/s390/kernel/smp.c
+@@ -1020,14 +1020,11 @@ static int __cpuinit smp_cpu_notify(struct notifier_block *self,
+ 	unsigned int cpu = (unsigned int)(long)hcpu;
+ 	struct cpu *c = &per_cpu(cpu_devices, cpu);
+ 	struct sys_device *s = &c->sysdev;
+-	struct s390_idle_data *idle;
+ 	int err = 0;
+ 
+ 	switch (action) {
+ 	case CPU_ONLINE:
+ 	case CPU_ONLINE_FROZEN:
+-		idle = &per_cpu(s390_idle, cpu);
+-		memset(idle, 0, sizeof(struct s390_idle_data));
+ 		err = sysfs_create_group(&s->kobj, &cpu_online_attr_group);
+ 		break;
+ 	case CPU_DEAD:
+-- 
+1.7.7.6
+

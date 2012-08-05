@@ -1,0 +1,47 @@
+From 3838461c8d7479c84129c2744a3fab53e269e340 Mon Sep 17 00:00:00 2001
+From: Lucas De Marchi <lucas.demarchi@profusion.mobi>
+Date: Tue, 17 Jan 2012 14:50:51 -0200
+Subject: [PATCH 009/109] kbuild: do not check for ancient modutils tools
+
+commit 620c231c7a7f48745094727bb612f6321cfc8844 upstream.
+
+scripts/depmod.sh checks for the output of '-V' expecting that it has
+module-init-tools in it. It's a hack to prevent users from using
+modutils instead of module-init-tools, that only works with 2.4.x
+kernels. This however prints an annoying warning for kmod tool, that is
+currently replacing module-init-tools.
+
+Rather than putting another check for kmod's version, just remove it
+since users of 2.4.x kernel are unlikely to upgrade to 3.x, and if they
+do, let depmod fail in that case because they should know what they are
+doing.
+
+Signed-off-by: Lucas De Marchi <lucas.demarchi@profusion.mobi>
+Acked-by: WANG Cong <amwang@redhat.com>
+Acked-By: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ scripts/depmod.sh |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
+
+diff --git a/scripts/depmod.sh b/scripts/depmod.sh
+index a272356..2ae4817 100755
+--- a/scripts/depmod.sh
++++ b/scripts/depmod.sh
+@@ -9,12 +9,6 @@ fi
+ DEPMOD=$1
+ KERNELRELEASE=$2
+ 
+-if ! "$DEPMOD" -V 2>/dev/null | grep -q module-init-tools; then
+-	echo "Warning: you may need to install module-init-tools" >&2
+-	echo "See http://www.codemonkey.org.uk/docs/post-halloween-2.6.txt" >&2
+-	sleep 1
+-fi
+-
+ if ! test -r System.map -a -x "$DEPMOD"; then
+ 	exit 0
+ fi
+-- 
+1.7.7.6
+

@@ -1,0 +1,53 @@
+From 09e66e8d71833a897a82ec18484b388e729b6548 Mon Sep 17 00:00:00 2001
+From: John Stultz <john.stultz@linaro.org>
+Date: Wed, 30 May 2012 10:54:57 -0700
+Subject: [PATCH 076/109] timekeeping: Fix CLOCK_MONOTONIC inconsistency
+ during leapsecond
+
+This is a backport of fad0c66c4bb836d57a5f125ecd38bed653ca863a
+which resolves a bug the previous commit.
+
+Commit 6b43ae8a61 (ntp: Fix leap-second hrtimer livelock) broke the
+leapsecond update of CLOCK_MONOTONIC. The missing leapsecond update to
+wall_to_monotonic causes discontinuities in CLOCK_MONOTONIC.
+
+Adjust wall_to_monotonic when NTP inserted a leapsecond.
+
+Reported-by: Richard Cochran <richardcochran@gmail.com>
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Tested-by: Richard Cochran <richardcochran@gmail.com>
+Link: http://lkml.kernel.org/r/1338400497-12420-1-git-send-email-john.stultz@linaro.org
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/time/timekeeping.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
+index 4780a7d..5c9b67e 100644
+--- a/kernel/time/timekeeping.c
++++ b/kernel/time/timekeeping.c
+@@ -938,6 +938,7 @@ static cycle_t logarithmic_accumulation(cycle_t offset, int shift)
+ 		xtime.tv_sec++;
+ 		leap = second_overflow(xtime.tv_sec);
+ 		xtime.tv_sec += leap;
++		wall_to_monotonic.tv_sec -= leap;
+ 	}
+ 
+ 	/* Accumulate raw time */
+@@ -1048,7 +1049,7 @@ static void update_wall_time(void)
+ 		xtime.tv_sec++;
+ 		leap = second_overflow(xtime.tv_sec);
+ 		xtime.tv_sec += leap;
+-
++		wall_to_monotonic.tv_sec -= leap;
+ 	}
+ 
+ 	/* check to see if there is a new clocksource to use */
+-- 
+1.7.7.6
+

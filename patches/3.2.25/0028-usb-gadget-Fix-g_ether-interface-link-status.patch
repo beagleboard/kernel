@@ -1,0 +1,61 @@
+From 0331c3a64bd80c9fd4cb453a19d0e7c888ca50ce Mon Sep 17 00:00:00 2001
+From: Kevin Cernekee <cernekee@gmail.com>
+Date: Sun, 24 Jun 2012 21:11:22 -0700
+Subject: [PATCH 28/73] usb: gadget: Fix g_ether interface link status
+
+commit 31bde1ceaa873bcaecd49e829bfabceacc4c512d upstream.
+
+A "usb0" interface that has never been connected to a host has an unknown
+operstate, and therefore the IFF_RUNNING flag is (incorrectly) asserted
+when queried by ifconfig, ifplugd, etc.  This is a result of calling
+netif_carrier_off() too early in the probe function; it should be called
+after register_netdev().
+
+Similar problems have been fixed in many other drivers, e.g.:
+
+    e826eafa6 (bonding: Call netif_carrier_off after register_netdevice)
+    0d672e9f8 (drivers/net: Call netif_carrier_off at the end of the probe)
+    6a3c869a6 (cxgb4: fix reported state of interfaces without link)
+
+Fix is to move netif_carrier_off() to the end of the function.
+
+Signed-off-by: Kevin Cernekee <cernekee@gmail.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/gadget/u_ether.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/usb/gadget/u_ether.c b/drivers/usb/gadget/u_ether.c
+index 29c854b..4e1f0aa 100644
+--- a/drivers/usb/gadget/u_ether.c
++++ b/drivers/usb/gadget/u_ether.c
+@@ -796,12 +796,6 @@ int gether_setup(struct usb_gadget *g, u8 ethaddr[ETH_ALEN])
+ 
+ 	SET_ETHTOOL_OPS(net, &ops);
+ 
+-	/* two kinds of host-initiated state changes:
+-	 *  - iff DATA transfer is active, carrier is "on"
+-	 *  - tx queueing enabled if open *and* carrier is "on"
+-	 */
+-	netif_carrier_off(net);
+-
+ 	dev->gadget = g;
+ 	SET_NETDEV_DEV(net, &g->dev);
+ 	SET_NETDEV_DEVTYPE(net, &gadget_type);
+@@ -815,6 +809,12 @@ int gether_setup(struct usb_gadget *g, u8 ethaddr[ETH_ALEN])
+ 		INFO(dev, "HOST MAC %pM\n", dev->host_mac);
+ 
+ 		the_dev = dev;
++
++		/* two kinds of host-initiated state changes:
++		 *  - iff DATA transfer is active, carrier is "on"
++		 *  - tx queueing enabled if open *and* carrier is "on"
++		 */
++		netif_carrier_off(net);
+ 	}
+ 
+ 	return status;
+-- 
+1.7.7.6
+

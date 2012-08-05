@@ -1,0 +1,61 @@
+From d6a2a0400e36bcd2892272995a65b4bca029220f Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Tue, 10 Jul 2012 18:43:23 -0400
+Subject: [PATCH 081/109] hrtimers: Move lock held region in
+ hrtimer_interrupt()
+
+commit 196951e91262fccda81147d2bcf7fdab08668b40 upstream.
+
+We need to update the base offsets from this code and we need to do
+that under base->lock. Move the lock held region around the
+ktime_get() calls. The ktime_get() calls are going to be replaced with
+a function which gets the time and the offsets atomically.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Reviewed-by: Ingo Molnar <mingo@kernel.org>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Prarit Bhargava <prarit@redhat.com>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Link: http://lkml.kernel.org/r/1341960205-56738-6-git-send-email-johnstul@us.ibm.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/hrtimer.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/kernel/hrtimer.c b/kernel/hrtimer.c
+index 3c24fb2..8f320af 100644
+--- a/kernel/hrtimer.c
++++ b/kernel/hrtimer.c
+@@ -1263,11 +1263,10 @@ void hrtimer_interrupt(struct clock_event_device *dev)
+ 	cpu_base->nr_events++;
+ 	dev->next_event.tv64 = KTIME_MAX;
+ 
++	raw_spin_lock(&cpu_base->lock);
+ 	entry_time = now = ktime_get();
+ retry:
+ 	expires_next.tv64 = KTIME_MAX;
+-
+-	raw_spin_lock(&cpu_base->lock);
+ 	/*
+ 	 * We set expires_next to KTIME_MAX here with cpu_base->lock
+ 	 * held to prevent that a timer is enqueued in our queue via
+@@ -1344,6 +1343,7 @@ retry:
+ 	 * interrupt routine. We give it 3 attempts to avoid
+ 	 * overreacting on some spurious event.
+ 	 */
++	raw_spin_lock(&cpu_base->lock);
+ 	now = ktime_get();
+ 	cpu_base->nr_retries++;
+ 	if (++retries < 3)
+@@ -1356,6 +1356,7 @@ retry:
+ 	 */
+ 	cpu_base->nr_hangs++;
+ 	cpu_base->hang_detected = 1;
++	raw_spin_unlock(&cpu_base->lock);
+ 	delta = ktime_sub(now, entry_time);
+ 	if (delta.tv64 > cpu_base->max_hang_time.tv64)
+ 		cpu_base->max_hang_time = delta;
+-- 
+1.7.7.6
+

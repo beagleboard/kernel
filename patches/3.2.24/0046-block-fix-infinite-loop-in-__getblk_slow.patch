@@ -1,0 +1,116 @@
+From 631a86fc5ceb30586f87e5fb9cb7827c8c10f570 Mon Sep 17 00:00:00 2001
+From: Jeff Moyer <jmoyer@redhat.com>
+Date: Thu, 12 Jul 2012 09:43:14 -0400
+Subject: [PATCH 046/109] block: fix infinite loop in __getblk_slow
+
+commit 91f68c89d8f35fe98ea04159b9a3b42d0149478f upstream.
+
+Commit 080399aaaf35 ("block: don't mark buffers beyond end of disk as
+mapped") exposed a bug in __getblk_slow that causes mount to hang as it
+loops infinitely waiting for a buffer that lies beyond the end of the
+disk to become uptodate.
+
+The problem was initially reported by Torsten Hilbrich here:
+
+    https://lkml.org/lkml/2012/6/18/54
+
+and also reported independently here:
+
+    http://www.sysresccd.org/forums/viewtopic.php?f=13&t=4511
+
+and then Richard W.M.  Jones and Marcos Mello noted a few separate
+bugzillas also associated with the same issue.  This patch has been
+confirmed to fix:
+
+    https://bugzilla.redhat.com/show_bug.cgi?id=835019
+
+The main problem is here, in __getblk_slow:
+
+        for (;;) {
+                struct buffer_head * bh;
+                int ret;
+
+                bh = __find_get_block(bdev, block, size);
+                if (bh)
+                        return bh;
+
+                ret = grow_buffers(bdev, block, size);
+                if (ret < 0)
+                        return NULL;
+                if (ret == 0)
+                        free_more_memory();
+        }
+
+__find_get_block does not find the block, since it will not be marked as
+mapped, and so grow_buffers is called to fill in the buffers for the
+associated page.  I believe the for (;;) loop is there primarily to
+retry in the case of memory pressure keeping grow_buffers from
+succeeding.  However, we also continue to loop for other cases, like the
+block lying beond the end of the disk.  So, the fix I came up with is to
+only loop when grow_buffers fails due to memory allocation issues
+(return value of 0).
+
+The attached patch was tested by myself, Torsten, and Rich, and was
+found to resolve the problem in call cases.
+
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+Reported-and-Tested-by: Torsten Hilbrich <torsten.hilbrich@secunet.com>
+Tested-by: Richard W.M. Jones <rjones@redhat.com>
+Reviewed-by: Josh Boyer <jwboyer@redhat.com>
+[ Jens is on vacation, taking this directly  - Linus ]
+--
+Stable Notes: this patch requires backport to 3.0, 3.2 and 3.3.
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/buffer.c |   22 +++++++++++++---------
+ 1 files changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/fs/buffer.c b/fs/buffer.c
+index c807931..4115eca 100644
+--- a/fs/buffer.c
++++ b/fs/buffer.c
+@@ -1087,6 +1087,9 @@ grow_buffers(struct block_device *bdev, sector_t block, int size)
+ static struct buffer_head *
+ __getblk_slow(struct block_device *bdev, sector_t block, int size)
+ {
++	int ret;
++	struct buffer_head *bh;
++
+ 	/* Size must be multiple of hard sectorsize */
+ 	if (unlikely(size & (bdev_logical_block_size(bdev)-1) ||
+ 			(size < 512 || size > PAGE_SIZE))) {
+@@ -1099,20 +1102,21 @@ __getblk_slow(struct block_device *bdev, sector_t block, int size)
+ 		return NULL;
+ 	}
+ 
+-	for (;;) {
+-		struct buffer_head * bh;
+-		int ret;
++retry:
++	bh = __find_get_block(bdev, block, size);
++	if (bh)
++		return bh;
+ 
++	ret = grow_buffers(bdev, block, size);
++	if (ret == 0) {
++		free_more_memory();
++		goto retry;
++	} else if (ret > 0) {
+ 		bh = __find_get_block(bdev, block, size);
+ 		if (bh)
+ 			return bh;
+-
+-		ret = grow_buffers(bdev, block, size);
+-		if (ret < 0)
+-			return NULL;
+-		if (ret == 0)
+-			free_more_memory();
+ 	}
++	return NULL;
+ }
+ 
+ /*
+-- 
+1.7.7.6
+

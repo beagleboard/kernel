@@ -1,0 +1,41 @@
+From 1edae5d5207b5c11e734a465fd0d8618952f74b4 Mon Sep 17 00:00:00 2001
+From: Roland Dreier <roland@purestorage.com>
+Date: Mon, 16 Jul 2012 17:10:17 -0700
+Subject: [PATCH 060/109] target: Fix range calculation in WRITE SAME
+ emulation when num blocks == 0
+
+commit 1765fe5edcb83f53fc67edeb559fcf4bc82c6460 upstream.
+
+When NUMBER OF LOGICAL BLOCKS is 0, WRITE SAME is supposed to write
+all the blocks from the specified LBA through the end of the device.
+However, dev->transport->get_blocks(dev) (perhaps confusingly) returns
+the last valid LBA rather than the number of blocks, so the correct
+number of blocks to write starting with lba is
+
+dev->transport->get_blocks(dev) - lba + 1
+
+(nab: Backport roland's for-3.6 patch to for-3.5)
+
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/target/target_core_cdb.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/target/target_core_cdb.c b/drivers/target/target_core_cdb.c
+index 65ea65a..93b9406 100644
+--- a/drivers/target/target_core_cdb.c
++++ b/drivers/target/target_core_cdb.c
+@@ -1199,7 +1199,7 @@ int target_emulate_write_same(struct se_task *task)
+ 	if (num_blocks != 0)
+ 		range = num_blocks;
+ 	else
+-		range = (dev->transport->get_blocks(dev) - lba);
++		range = (dev->transport->get_blocks(dev) - lba) + 1;
+ 
+ 	pr_debug("WRITE_SAME UNMAP: LBA: %llu Range: %llu\n",
+ 		 (unsigned long long)lba, (unsigned long long)range);
+-- 
+1.7.7.6
+

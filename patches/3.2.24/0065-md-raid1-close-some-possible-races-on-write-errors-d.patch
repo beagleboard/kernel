@@ -1,0 +1,58 @@
+From 987e84543bedce6d0e7ae8d986bb2f6e2cc31e53 Mon Sep 17 00:00:00 2001
+From: NeilBrown <neilb@suse.de>
+Date: Thu, 19 Jul 2012 15:59:18 +1000
+Subject: [PATCH 065/109] md/raid1: close some possible races on write errors
+ during resync
+
+commit 58e94ae18478c08229626daece2fc108a4a23261 upstream.
+
+commit 4367af556133723d0f443e14ca8170d9447317cb
+   md/raid1: clear bad-block record when write succeeds.
+
+Added a 'reschedule_retry' call possibility at the end of
+end_sync_write, but didn't add matching code at the end of
+sync_request_write.  So if the writes complete very quickly, or
+scheduling makes it seem that way, then we can miss rescheduling
+the request and the resync could hang.
+
+Also commit 73d5c38a9536142e062c35997b044e89166e063b
+    md: avoid races when stopping resync.
+
+Fix a race condition in this same code in end_sync_write but didn't
+make the change in sync_request_write.
+
+This patch updates sync_request_write to fix both of those.
+Patch is suitable for 3.1 and later kernels.
+
+Reported-by: Alexander Lyakas <alex.bolshoy@gmail.com>
+Original-version-by: Alexander Lyakas <alex.bolshoy@gmail.com>
+Signed-off-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/md/raid1.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/md/raid1.c b/drivers/md/raid1.c
+index 58f0055..2d97bf0 100644
+--- a/drivers/md/raid1.c
++++ b/drivers/md/raid1.c
+@@ -1713,8 +1713,14 @@ static void sync_request_write(struct mddev *mddev, struct r1bio *r1_bio)
+ 
+ 	if (atomic_dec_and_test(&r1_bio->remaining)) {
+ 		/* if we're here, all write(s) have completed, so clean up */
+-		md_done_sync(mddev, r1_bio->sectors, 1);
+-		put_buf(r1_bio);
++		int s = r1_bio->sectors;
++		if (test_bit(R1BIO_MadeGood, &r1_bio->state) ||
++		    test_bit(R1BIO_WriteError, &r1_bio->state))
++			reschedule_retry(r1_bio);
++		else {
++			put_buf(r1_bio);
++			md_done_sync(mddev, s, 1);
++		}
+ 	}
+ }
+ 
+-- 
+1.7.7.6
+

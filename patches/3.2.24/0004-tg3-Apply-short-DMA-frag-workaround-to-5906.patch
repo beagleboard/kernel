@@ -1,0 +1,35 @@
+From 3aa9b60af8f3bc95ad279ebfac202abf97ade173 Mon Sep 17 00:00:00 2001
+From: Matt Carlson <mcarlson@broadcom.com>
+Date: Thu, 7 Jun 2012 12:56:54 +0000
+Subject: [PATCH 004/109] tg3: Apply short DMA frag workaround to 5906
+
+commit b7abee6ef888117f92db370620ebf116a38e3f4d upstream.
+
+5906 devices also need the short DMA fragment workaround.  This patch
+makes the necessary change.
+
+Signed-off-by: Matt Carlson <mcarlson@broadcom.com>
+Tested-by: Christian Kujau <lists@nerdbynature.de>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/broadcom/tg3.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/net/ethernet/broadcom/tg3.c b/drivers/net/ethernet/broadcom/tg3.c
+index 2dcac28..6b258d9 100644
+--- a/drivers/net/ethernet/broadcom/tg3.c
++++ b/drivers/net/ethernet/broadcom/tg3.c
+@@ -14046,7 +14046,8 @@ static int __devinit tg3_get_invariants(struct tg3 *tp)
+ 		}
+ 	}
+ 
+-	if (tg3_flag(tp, 5755_PLUS))
++	if (tg3_flag(tp, 5755_PLUS) ||
++	    GET_ASIC_REV(tp->pci_chip_rev_id) == ASIC_REV_5906)
+ 		tg3_flag_set(tp, SHORT_DMA_BUG);
+ 
+ 	if (GET_ASIC_REV(tp->pci_chip_rev_id) == ASIC_REV_5719)
+-- 
+1.7.7.6
+

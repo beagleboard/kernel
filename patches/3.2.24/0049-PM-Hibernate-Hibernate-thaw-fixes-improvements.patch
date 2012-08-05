@@ -1,0 +1,178 @@
+From 6ed6791a1697afcb1615b4252d0c304a743b5f4d Mon Sep 17 00:00:00 2001
+From: Bojan Smojver <bojan@rexursive.com>
+Date: Sun, 29 Apr 2012 22:42:06 +0200
+Subject: [PATCH 049/109] PM / Hibernate: Hibernate/thaw fixes/improvements
+
+commit 5a21d489fd9541a4a66b9a500659abaca1b19a51 upstream.
+
+ 1. Do not allocate memory for buffers from emergency pools, unless
+    absolutely required. Do not warn about and do not retry non-essential
+    failed allocations.
+
+ 2. Do not check the amount of free pages left on every single page
+    write, but wait until one map is completely populated and then check.
+
+ 3. Set maximum number of pages for read buffering consistently, instead
+    of inadvertently depending on the size of the sector type.
+
+ 4. Fix copyright line, which I missed when I submitted the hibernation
+    threading patch.
+
+ 5. Dispense with bit shifting arithmetic to improve readability.
+
+ 6. Really recalculate the number of pages required to be free after all
+    allocations have been done.
+
+ 7. Fix calculation of pages required for read buffering. Only count in
+    pages that do not belong to high memory.
+
+Signed-off-by: Bojan Smojver <bojan@rexursive.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/power/swap.c |   62 ++++++++++++++++++++++++++++++++-------------------
+ 1 files changed, 39 insertions(+), 23 deletions(-)
+
+diff --git a/kernel/power/swap.c b/kernel/power/swap.c
+index b313086..64f8f97 100644
+--- a/kernel/power/swap.c
++++ b/kernel/power/swap.c
+@@ -6,7 +6,7 @@
+  *
+  * Copyright (C) 1998,2001-2005 Pavel Machek <pavel@ucw.cz>
+  * Copyright (C) 2006 Rafael J. Wysocki <rjw@sisk.pl>
+- * Copyright (C) 2010 Bojan Smojver <bojan@rexursive.com>
++ * Copyright (C) 2010-2012 Bojan Smojver <bojan@rexursive.com>
+  *
+  * This file is released under the GPLv2.
+  *
+@@ -283,14 +283,17 @@ static int write_page(void *buf, sector_t offset, struct bio **bio_chain)
+ 		return -ENOSPC;
+ 
+ 	if (bio_chain) {
+-		src = (void *)__get_free_page(__GFP_WAIT | __GFP_HIGH);
++		src = (void *)__get_free_page(__GFP_WAIT | __GFP_NOWARN |
++		                              __GFP_NORETRY);
+ 		if (src) {
+ 			copy_page(src, buf);
+ 		} else {
+ 			ret = hib_wait_on_bio_chain(bio_chain); /* Free pages */
+ 			if (ret)
+ 				return ret;
+-			src = (void *)__get_free_page(__GFP_WAIT | __GFP_HIGH);
++			src = (void *)__get_free_page(__GFP_WAIT |
++			                              __GFP_NOWARN |
++			                              __GFP_NORETRY);
+ 			if (src) {
+ 				copy_page(src, buf);
+ 			} else {
+@@ -368,12 +371,17 @@ static int swap_write_page(struct swap_map_handle *handle, void *buf,
+ 		clear_page(handle->cur);
+ 		handle->cur_swap = offset;
+ 		handle->k = 0;
+-	}
+-	if (bio_chain && low_free_pages() <= handle->reqd_free_pages) {
+-		error = hib_wait_on_bio_chain(bio_chain);
+-		if (error)
+-			goto out;
+-		handle->reqd_free_pages = reqd_free_pages();
++
++		if (bio_chain && low_free_pages() <= handle->reqd_free_pages) {
++			error = hib_wait_on_bio_chain(bio_chain);
++			if (error)
++				goto out;
++			/*
++			 * Recalculate the number of required free pages, to
++			 * make sure we never take more than half.
++			 */
++			handle->reqd_free_pages = reqd_free_pages();
++		}
+ 	}
+  out:
+ 	return error;
+@@ -420,8 +428,9 @@ static int swap_writer_finish(struct swap_map_handle *handle,
+ /* Maximum number of threads for compression/decompression. */
+ #define LZO_THREADS	3
+ 
+-/* Maximum number of pages for read buffering. */
+-#define LZO_READ_PAGES	(MAP_PAGE_ENTRIES * 8)
++/* Minimum/maximum number of pages for read buffering. */
++#define LZO_MIN_RD_PAGES	1024
++#define LZO_MAX_RD_PAGES	8192
+ 
+ 
+ /**
+@@ -632,12 +641,6 @@ static int save_image_lzo(struct swap_map_handle *handle,
+ 	}
+ 
+ 	/*
+-	 * Adjust number of free pages after all allocations have been done.
+-	 * We don't want to run out of pages when writing.
+-	 */
+-	handle->reqd_free_pages = reqd_free_pages();
+-
+-	/*
+ 	 * Start the CRC32 thread.
+ 	 */
+ 	init_waitqueue_head(&crc->go);
+@@ -658,6 +661,12 @@ static int save_image_lzo(struct swap_map_handle *handle,
+ 		goto out_clean;
+ 	}
+ 
++	/*
++	 * Adjust the number of required free pages after all allocations have
++	 * been done. We don't want to run out of pages when writing.
++	 */
++	handle->reqd_free_pages = reqd_free_pages();
++
+ 	printk(KERN_INFO
+ 		"PM: Using %u thread(s) for compression.\n"
+ 		"PM: Compressing and saving image data (%u pages) ...     ",
+@@ -1067,7 +1076,7 @@ static int load_image_lzo(struct swap_map_handle *handle,
+ 	unsigned i, thr, run_threads, nr_threads;
+ 	unsigned ring = 0, pg = 0, ring_size = 0,
+ 	         have = 0, want, need, asked = 0;
+-	unsigned long read_pages;
++	unsigned long read_pages = 0;
+ 	unsigned char **page = NULL;
+ 	struct dec_data *data = NULL;
+ 	struct crc_data *crc = NULL;
+@@ -1079,7 +1088,7 @@ static int load_image_lzo(struct swap_map_handle *handle,
+ 	nr_threads = num_online_cpus() - 1;
+ 	nr_threads = clamp_val(nr_threads, 1, LZO_THREADS);
+ 
+-	page = vmalloc(sizeof(*page) * LZO_READ_PAGES);
++	page = vmalloc(sizeof(*page) * LZO_MAX_RD_PAGES);
+ 	if (!page) {
+ 		printk(KERN_ERR "PM: Failed to allocate LZO page\n");
+ 		ret = -ENOMEM;
+@@ -1144,15 +1153,22 @@ static int load_image_lzo(struct swap_map_handle *handle,
+ 	}
+ 
+ 	/*
+-	 * Adjust number of pages for read buffering, in case we are short.
++	 * Set the number of pages for read buffering.
++	 * This is complete guesswork, because we'll only know the real
++	 * picture once prepare_image() is called, which is much later on
++	 * during the image load phase. We'll assume the worst case and
++	 * say that none of the image pages are from high memory.
+ 	 */
+-	read_pages = (nr_free_pages() - snapshot_get_image_size()) >> 1;
+-	read_pages = clamp_val(read_pages, LZO_CMP_PAGES, LZO_READ_PAGES);
++	if (low_free_pages() > snapshot_get_image_size())
++		read_pages = (low_free_pages() - snapshot_get_image_size()) / 2;
++	read_pages = clamp_val(read_pages, LZO_MIN_RD_PAGES, LZO_MAX_RD_PAGES);
+ 
+ 	for (i = 0; i < read_pages; i++) {
+ 		page[i] = (void *)__get_free_page(i < LZO_CMP_PAGES ?
+ 		                                  __GFP_WAIT | __GFP_HIGH :
+-		                                  __GFP_WAIT);
++		                                  __GFP_WAIT | __GFP_NOWARN |
++		                                  __GFP_NORETRY);
++
+ 		if (!page[i]) {
+ 			if (i < LZO_CMP_PAGES) {
+ 				ring_size = i;
+-- 
+1.7.7.6
+

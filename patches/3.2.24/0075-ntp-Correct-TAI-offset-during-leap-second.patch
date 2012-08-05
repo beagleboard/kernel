@@ -1,0 +1,42 @@
+From 76117661ce2f9ecf7f969a4aeafd1c74802deae7 Mon Sep 17 00:00:00 2001
+From: Richard Cochran <richardcochran@gmail.com>
+Date: Thu, 26 Apr 2012 14:11:32 +0200
+Subject: [PATCH 075/109] ntp: Correct TAI offset during leap second
+
+commit dd48d708ff3e917f6d6b6c2b696c3f18c019feed upstream.
+
+When repeating a UTC time value during a leap second (when the UTC
+time should be 23:59:60), the TAI timescale should not stop. The kernel
+NTP code increments the TAI offset one second too late. This patch fixes
+the issue by incrementing the offset during the leap second itself.
+
+Signed-off-by: Richard Cochran <richardcochran@gmail.com>
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/time/ntp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/kernel/time/ntp.c b/kernel/time/ntp.c
+index 4508f7f..f1eb182 100644
+--- a/kernel/time/ntp.c
++++ b/kernel/time/ntp.c
+@@ -378,6 +378,7 @@ int second_overflow(unsigned long secs)
+ 		if (secs % 86400 == 0) {
+ 			leap = -1;
+ 			time_state = TIME_OOP;
++			time_tai++;
+ 			printk(KERN_NOTICE
+ 				"Clock: inserting leap second 23:59:60 UTC\n");
+ 		}
+@@ -392,7 +393,6 @@ int second_overflow(unsigned long secs)
+ 		}
+ 		break;
+ 	case TIME_OOP:
+-		time_tai++;
+ 		time_state = TIME_WAIT;
+ 		break;
+ 
+-- 
+1.7.7.6
+

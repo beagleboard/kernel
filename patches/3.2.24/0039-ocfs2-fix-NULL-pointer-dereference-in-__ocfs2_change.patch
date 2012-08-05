@@ -1,0 +1,43 @@
+From 5eb695db655214b28a44040db35c43178541bcc8 Mon Sep 17 00:00:00 2001
+From: Luis Henriques <luis.henriques@canonical.com>
+Date: Wed, 11 Jul 2012 14:02:10 -0700
+Subject: [PATCH 039/109] ocfs2: fix NULL pointer dereference in
+ __ocfs2_change_file_space()
+
+commit a4e08d001f2e50bb8b3c4eebadcf08e5535f02ee upstream.
+
+As ocfs2_fallocate() will invoke __ocfs2_change_file_space() with a NULL
+as the first parameter (file), it may trigger a NULL pointer dereferrence
+due to a missing check.
+
+Addresses http://bugs.launchpad.net/bugs/1006012
+
+Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
+Reported-by: Bret Towe <magnade@gmail.com>
+Tested-by: Bret Towe <magnade@gmail.com>
+Cc: Sunil Mushran <sunil.mushran@oracle.com>
+Acked-by: Joel Becker <jlbec@evilplan.org>
+Acked-by: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ocfs2/file.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
+index 07ee5b4..1c7d45e 100644
+--- a/fs/ocfs2/file.c
++++ b/fs/ocfs2/file.c
+@@ -1950,7 +1950,7 @@ static int __ocfs2_change_file_space(struct file *file, struct inode *inode,
+ 	if (ret < 0)
+ 		mlog_errno(ret);
+ 
+-	if (file->f_flags & O_SYNC)
++	if (file && (file->f_flags & O_SYNC))
+ 		handle->h_sync = 1;
+ 
+ 	ocfs2_commit_trans(osb, handle);
+-- 
+1.7.7.6
+

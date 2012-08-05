@@ -1,0 +1,64 @@
+From 0c2305d15f446ea286545b12587a7c836a1fb08c Mon Sep 17 00:00:00 2001
+From: Roland Dreier <roland@purestorage.com>
+Date: Mon, 16 Jul 2012 15:34:21 -0700
+Subject: [PATCH 40/73] target: Add generation of LOGICAL BLOCK ADDRESS OUT OF
+ RANGE
+
+commit e2397c704429025bc6b331a970f699e52f34283e upstream.
+
+Many SCSI commands are defined to return a CHECK CONDITION / ILLEGAL
+REQUEST with ASC set to LOGICAL BLOCK ADDRESS OUT OF RANGE if the
+initiator sends a command that accesses a too-big LBA.  Add an enum
+value and case entries so that target code can return this status.
+
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/target/target_core_transport.c |   10 ++++++++++
+ include/target/target_core_base.h      |    1 +
+ 2 files changed, 11 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/target/target_core_transport.c b/drivers/target/target_core_transport.c
+index 5660916..94c03d2 100644
+--- a/drivers/target/target_core_transport.c
++++ b/drivers/target/target_core_transport.c
+@@ -1820,6 +1820,7 @@ static void transport_generic_request_failure(struct se_cmd *cmd)
+ 	case TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE:
+ 	case TCM_UNKNOWN_MODE_PAGE:
+ 	case TCM_WRITE_PROTECTED:
++	case TCM_ADDRESS_OUT_OF_RANGE:
+ 	case TCM_CHECK_CONDITION_ABORT_CMD:
+ 	case TCM_CHECK_CONDITION_UNIT_ATTENTION:
+ 	case TCM_CHECK_CONDITION_NOT_READY:
+@@ -4496,6 +4497,15 @@ int transport_send_check_condition_and_sense(
+ 		/* WRITE PROTECTED */
+ 		buffer[offset+SPC_ASC_KEY_OFFSET] = 0x27;
+ 		break;
++	case TCM_ADDRESS_OUT_OF_RANGE:
++		/* CURRENT ERROR */
++		buffer[offset] = 0x70;
++		buffer[offset+SPC_ADD_SENSE_LEN_OFFSET] = 10;
++		/* ILLEGAL REQUEST */
++		buffer[offset+SPC_SENSE_KEY_OFFSET] = ILLEGAL_REQUEST;
++		/* LOGICAL BLOCK ADDRESS OUT OF RANGE */
++		buffer[offset+SPC_ASC_KEY_OFFSET] = 0x21;
++		break;
+ 	case TCM_CHECK_CONDITION_UNIT_ATTENTION:
+ 		/* CURRENT ERROR */
+ 		buffer[offset] = 0x70;
+diff --git a/include/target/target_core_base.h b/include/target/target_core_base.h
+index 94bbec3..6ee550e 100644
+--- a/include/target/target_core_base.h
++++ b/include/target/target_core_base.h
+@@ -157,6 +157,7 @@ enum tcm_sense_reason_table {
+ 	TCM_CHECK_CONDITION_UNIT_ATTENTION	= 0x0e,
+ 	TCM_CHECK_CONDITION_NOT_READY		= 0x0f,
+ 	TCM_RESERVATION_CONFLICT		= 0x10,
++	TCM_ADDRESS_OUT_OF_RANGE		= 0x11,
+ };
+ 
+ struct se_obj {
+-- 
+1.7.7.6
+

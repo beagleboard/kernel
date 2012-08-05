@@ -1,0 +1,40 @@
+From e9214638ead441c15b48f40c3b459aede77c2662 Mon Sep 17 00:00:00 2001
+From: Jason Wang <jasowang@redhat.com>
+Date: Wed, 2 May 2012 11:41:58 +0800
+Subject: [PATCH 018/109] macvtap: zerocopy: put page when fail to get all
+ requested user pages
+
+commit 02ce04bb3d28c3333231f43bca677228dbc686fe upstream.
+
+When get_user_pages_fast() fails to get all requested pages, we could not use
+kfree_skb() to free it as it has not been put in the skb fragments. So we need
+to call put_page() instead.
+
+Signed-off-by: Jason Wang <jasowang@redhat.com>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/macvtap.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/macvtap.c b/drivers/net/macvtap.c
+index c7a84eb..f217247 100644
+--- a/drivers/net/macvtap.c
++++ b/drivers/net/macvtap.c
+@@ -530,9 +530,11 @@ static int zerocopy_sg_from_iovec(struct sk_buff *skb, const struct iovec *from,
+ 		size = ((base & ~PAGE_MASK) + len + ~PAGE_MASK) >> PAGE_SHIFT;
+ 		num_pages = get_user_pages_fast(base, size, 0, &page[i]);
+ 		if ((num_pages != size) ||
+-		    (num_pages > MAX_SKB_FRAGS - skb_shinfo(skb)->nr_frags))
+-			/* put_page is in skb free */
++		    (num_pages > MAX_SKB_FRAGS - skb_shinfo(skb)->nr_frags)) {
++			for (i = 0; i < num_pages; i++)
++				put_page(page[i]);
+ 			return -EFAULT;
++		}
+ 		truesize = size * PAGE_SIZE;
+ 		skb->data_len += len;
+ 		skb->len += len;
+-- 
+1.7.7.6
+

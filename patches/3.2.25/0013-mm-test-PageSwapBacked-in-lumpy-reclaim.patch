@@ -1,0 +1,42 @@
+From 33e037b9f75061e882e81106be10a2a4de42850d Mon Sep 17 00:00:00 2001
+From: Hugh Dickins <hughd@google.com>
+Date: Tue, 10 Jan 2012 15:08:33 -0800
+Subject: [PATCH 13/73] mm: test PageSwapBacked in lumpy reclaim
+
+commit 043bcbe5ec51e0478ef2b44acef17193e01d7f70 upstream.
+
+Stable note: Not tracked in Bugzilla. There were reports of shared
+	mapped pages being unfairly reclaimed in comparison to older kernels.
+	This is being addressed over time. Even though the subject
+	refers to lumpy reclaim, it impacts compaction as well.
+
+Lumpy reclaim does well to stop at a PageAnon when there's no swap, but
+better is to stop at any PageSwapBacked, which includes shmem/tmpfs too.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/vmscan.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index ba763be..b9eaa06 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -1215,7 +1215,7 @@ static unsigned long isolate_lru_pages(unsigned long nr_to_scan,
+ 			 * anon page which don't already have a swap slot is
+ 			 * pointless.
+ 			 */
+-			if (nr_swap_pages <= 0 && PageAnon(cursor_page) &&
++			if (nr_swap_pages <= 0 && PageSwapBacked(cursor_page) &&
+ 			    !PageSwapCache(cursor_page))
+ 				break;
+ 
+-- 
+1.7.7.6
+

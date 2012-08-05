@@ -1,0 +1,71 @@
+From 4060625241ce9236e16174b45fbb452bb5d846d1 Mon Sep 17 00:00:00 2001
+From: Boaz Harrosh <bharrosh@panasas.com>
+Date: Fri, 8 Jun 2012 02:02:30 +0300
+Subject: [PATCH 071/109] pnfs-obj: Fix __r4w_get_page when offset is beyond
+ i_size
+
+commit c999ff68029ebd0f56ccae75444f640f6d5a27d2 upstream.
+
+It is very common for the end of the file to be unaligned on
+stripe size. But since we know it's beyond file's end then
+the XOR should be preformed with all zeros.
+
+Old code used to just read zeros out of the OSD devices, which is a great
+waist. But what scares me more about this situation is that, we now have
+pages attached to the file's mapping that are beyond i_size. I don't
+like the kind of bugs this calls for.
+
+Fix both birds, by returning a global zero_page, if offset is beyond
+i_size.
+
+TODO:
+	Change the API to ->__r4w_get_page() so a NULL can be
+	returned without being considered as error, since XOR API
+	treats NULL entries as zero_pages.
+
+[Bug since 3.2. Should apply the same way to all Kernels since]
+Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
+[bwh: Backported to 3.2: adjust for lack of wdata->header]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/objlayout/objio_osd.c |   16 +++++++++++++---
+ 1 files changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/fs/nfs/objlayout/objio_osd.c b/fs/nfs/objlayout/objio_osd.c
+index 0e7b3fc..a03ee52 100644
+--- a/fs/nfs/objlayout/objio_osd.c
++++ b/fs/nfs/objlayout/objio_osd.c
+@@ -467,8 +467,16 @@ static struct page *__r4w_get_page(void *priv, u64 offset, bool *uptodate)
+ 	struct objio_state *objios = priv;
+ 	struct nfs_write_data *wdata = objios->oir.rpcdata;
+ 	pgoff_t index = offset / PAGE_SIZE;
+-	struct page *page = find_get_page(wdata->inode->i_mapping, index);
++	struct page *page;
++	loff_t i_size = i_size_read(wdata->inode);
+ 
++	if (offset >= i_size) {
++		*uptodate = true;
++		dprintk("%s: g_zero_page index=0x%lx\n", __func__, index);
++		return ZERO_PAGE(0);
++	}
++
++	page = find_get_page(wdata->inode->i_mapping, index);
+ 	if (!page) {
+ 		page = find_or_create_page(wdata->inode->i_mapping,
+ 						index, GFP_NOFS);
+@@ -489,8 +497,10 @@ static struct page *__r4w_get_page(void *priv, u64 offset, bool *uptodate)
+ 
+ static void __r4w_put_page(void *priv, struct page *page)
+ {
+-	dprintk("%s: index=0x%lx\n", __func__, page->index);
+-	page_cache_release(page);
++	dprintk("%s: index=0x%lx\n", __func__,
++		(page == ZERO_PAGE(0)) ? -1UL : page->index);
++	if (ZERO_PAGE(0) != page)
++		page_cache_release(page);
+ 	return;
+ }
+ 
+-- 
+1.7.7.6
+

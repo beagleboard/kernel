@@ -1,0 +1,70 @@
+From 7b38f3bc17d4f8b259d41d2a9646a1a3ad772fd5 Mon Sep 17 00:00:00 2001
+From: Jerome Glisse <jglisse@redhat.com>
+Date: Tue, 17 Jul 2012 17:17:16 -0400
+Subject: [PATCH 67/73] drm/radeon: fix non revealent error message
+
+commit 8d1c702aa0b2c4b22b0742b72a1149d91690674b upstream.
+
+We want to print link status query failed only if it's
+an unexepected fail. If we query to see if we need
+link training it might be because there is nothing
+connected and thus link status query have the right
+to fail in that case.
+
+To avoid printing failure when it's expected, move the
+failure message to proper place.
+
+Signed-off-by: Jerome Glisse <jglisse@redhat.com>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/atombios_dp.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/atombios_dp.c b/drivers/gpu/drm/radeon/atombios_dp.c
+index 552b436..3254d51 100644
+--- a/drivers/gpu/drm/radeon/atombios_dp.c
++++ b/drivers/gpu/drm/radeon/atombios_dp.c
+@@ -22,6 +22,7 @@
+  *
+  * Authors: Dave Airlie
+  *          Alex Deucher
++ *          Jerome Glisse
+  */
+ #include "drmP.h"
+ #include "radeon_drm.h"
+@@ -634,7 +635,6 @@ static bool radeon_dp_get_link_status(struct radeon_connector *radeon_connector,
+ 	ret = radeon_dp_aux_native_read(radeon_connector, DP_LANE0_1_STATUS,
+ 					link_status, DP_LINK_STATUS_SIZE, 100);
+ 	if (ret <= 0) {
+-		DRM_ERROR("displayport link status failed\n");
+ 		return false;
+ 	}
+ 
+@@ -812,8 +812,10 @@ static int radeon_dp_link_train_cr(struct radeon_dp_link_train_info *dp_info)
+ 		else
+ 			mdelay(dp_info->rd_interval * 4);
+ 
+-		if (!radeon_dp_get_link_status(dp_info->radeon_connector, dp_info->link_status))
++		if (!radeon_dp_get_link_status(dp_info->radeon_connector, dp_info->link_status)) {
++			DRM_ERROR("displayport link status failed\n");
+ 			break;
++		}
+ 
+ 		if (dp_clock_recovery_ok(dp_info->link_status, dp_info->dp_lane_count)) {
+ 			clock_recovery = true;
+@@ -875,8 +877,10 @@ static int radeon_dp_link_train_ce(struct radeon_dp_link_train_info *dp_info)
+ 		else
+ 			mdelay(dp_info->rd_interval * 4);
+ 
+-		if (!radeon_dp_get_link_status(dp_info->radeon_connector, dp_info->link_status))
++		if (!radeon_dp_get_link_status(dp_info->radeon_connector, dp_info->link_status)) {
++			DRM_ERROR("displayport link status failed\n");
+ 			break;
++		}
+ 
+ 		if (dp_channel_eq_ok(dp_info->link_status, dp_info->dp_lane_count)) {
+ 			channel_eq = true;
+-- 
+1.7.7.6
+

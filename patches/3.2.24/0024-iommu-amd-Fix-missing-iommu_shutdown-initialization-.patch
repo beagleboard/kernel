@@ -1,0 +1,45 @@
+From f17963661759dfde573f9d7993cf5aa5a97057c3 Mon Sep 17 00:00:00 2001
+From: Shuah Khan <shuah.khan@hp.com>
+Date: Wed, 6 Jun 2012 10:50:06 -0600
+Subject: [PATCH 024/109] iommu/amd: Fix missing iommu_shutdown initialization
+ in passthrough mode
+
+commit f2f12b6fc032c7b1419fd6db84e2868b5f05a878 upstream.
+
+The iommu_shutdown callback is not initialized when the AMD
+IOMMU driver runs in passthrough mode. Fix that by moving
+the callback initialization before the check for
+passthrough mode.
+
+Signed-off-by: Shuah Khan <shuah.khan@hp.com>
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/iommu/amd_iommu_init.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/iommu/amd_iommu_init.c b/drivers/iommu/amd_iommu_init.c
+index 6269eb0..ef2d493 100644
+--- a/drivers/iommu/amd_iommu_init.c
++++ b/drivers/iommu/amd_iommu_init.c
+@@ -1468,6 +1468,8 @@ static int __init amd_iommu_init(void)
+ 
+ 	register_syscore_ops(&amd_iommu_syscore_ops);
+ 
++	x86_platform.iommu_shutdown = disable_iommus;
++
+ 	if (iommu_pass_through)
+ 		goto out;
+ 
+@@ -1476,7 +1478,6 @@ static int __init amd_iommu_init(void)
+ 	else
+ 		printk(KERN_INFO "AMD-Vi: Lazy IO/TLB flushing enabled\n");
+ 
+-	x86_platform.iommu_shutdown = disable_iommus;
+ out:
+ 	return ret;
+ 
+-- 
+1.7.7.6
+

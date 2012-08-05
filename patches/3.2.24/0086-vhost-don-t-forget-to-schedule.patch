@@ -1,0 +1,60 @@
+From 1803c9c9746dd5cd524d6499ca24cbb4eacffa37 Mon Sep 17 00:00:00 2001
+From: Nadav Har'El <nyh@math.technion.ac.il>
+Date: Mon, 27 Feb 2012 15:07:29 +0200
+Subject: [PATCH 086/109] vhost: don't forget to schedule()
+
+commit d550dda192c1bd039afb774b99485e88b70d7cb8 upstream.
+
+This is a tiny, but important, patch to vhost.
+
+Vhost's worker thread only called schedule() when it had no work to do, and
+it wanted to go to sleep. But if there's always work to do, e.g., the guest
+is running a network-intensive program like netperf with small message sizes,
+schedule() was *never* called. This had several negative implications (on
+non-preemptive kernels):
+
+ 1. Passing time was not properly accounted to the "vhost" process (ps and
+    top would wrongly show it using zero CPU time).
+
+ 2. Sometimes error messages about RCU timeouts would be printed, if the
+    core running the vhost thread didn't schedule() for a very long time.
+
+ 3. Worst of all, a vhost thread would "hog" the core. If several vhost
+    threads need to share the same core, typically one would get most of the
+    CPU time (and its associated guest most of the performance), while the
+    others hardly get any work done.
+
+The trivial solution is to add
+
+	if (need_resched())
+		schedule();
+
+After doing every piece of work. This will not do the heavy schedule() all
+the time, just when the timer interrupt decided a reschedule is warranted
+(so need_resched returns true).
+
+Thanks to Abel Gordon for this patch.
+
+Signed-off-by: Nadav Har'El <nyh@il.ibm.com>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/vhost/vhost.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/vhost/vhost.c b/drivers/vhost/vhost.c
+index c14c42b..ae66278 100644
+--- a/drivers/vhost/vhost.c
++++ b/drivers/vhost/vhost.c
+@@ -222,6 +222,8 @@ static int vhost_worker(void *data)
+ 		if (work) {
+ 			__set_current_state(TASK_RUNNING);
+ 			work->fn(work);
++			if (need_resched())
++				schedule();
+ 		} else
+ 			schedule();
+ 
+-- 
+1.7.7.6
+

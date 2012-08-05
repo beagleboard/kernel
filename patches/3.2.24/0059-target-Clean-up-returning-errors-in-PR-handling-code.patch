@@ -1,0 +1,55 @@
+From 6154c5bc1f1c0e02dd41bd96300c63e137bdee51 Mon Sep 17 00:00:00 2001
+From: Roland Dreier <roland@purestorage.com>
+Date: Mon, 16 Jul 2012 15:17:10 -0700
+Subject: [PATCH 059/109] target: Clean up returning errors in PR handling
+ code
+
+commit d35212f3ca3bf4fb49d15e37f530c9931e2d2183 upstream.
+
+ - instead of (PTR_ERR(file) < 0) just use IS_ERR(file)
+ - return -EINVAL instead of EINVAL
+ - all other error returns in target_scsi3_emulate_pr_out() use
+   "goto out" -- get rid of the one remaining straight "return."
+
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/target/target_core_pr.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/target/target_core_pr.c b/drivers/target/target_core_pr.c
+index b75bc92..9145141 100644
+--- a/drivers/target/target_core_pr.c
++++ b/drivers/target/target_core_pr.c
+@@ -2042,7 +2042,7 @@ static int __core_scsi3_write_aptpl_to_file(
+ 	if (IS_ERR(file) || !file || !file->f_dentry) {
+ 		pr_err("filp_open(%s) for APTPL metadata"
+ 			" failed\n", path);
+-		return (PTR_ERR(file) < 0 ? PTR_ERR(file) : -ENOENT);
++		return IS_ERR(file) ? PTR_ERR(file) : -ENOENT;
+ 	}
+ 
+ 	iov[0].iov_base = &buf[0];
+@@ -3853,7 +3853,7 @@ int target_scsi3_emulate_pr_out(struct se_task *task)
+ 			" SPC-2 reservation is held, returning"
+ 			" RESERVATION_CONFLICT\n");
+ 		cmd->scsi_sense_reason = TCM_RESERVATION_CONFLICT;
+-		ret = EINVAL;
++		ret = -EINVAL;
+ 		goto out;
+ 	}
+ 
+@@ -3863,7 +3863,8 @@ int target_scsi3_emulate_pr_out(struct se_task *task)
+ 	 */
+ 	if (!cmd->se_sess) {
+ 		cmd->scsi_sense_reason = TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto out;
+ 	}
+ 
+ 	if (cmd->data_length < 24) {
+-- 
+1.7.7.6
+

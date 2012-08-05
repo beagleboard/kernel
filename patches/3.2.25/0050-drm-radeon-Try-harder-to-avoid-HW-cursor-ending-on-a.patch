@@ -1,0 +1,50 @@
+From 0bc80e0aca34d785bf3b4476a11e4aba668a6979 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Michel=20D=C3=A4nzer?= <michel.daenzer@amd.com>
+Date: Tue, 17 Jul 2012 19:02:09 +0200
+Subject: [PATCH 50/73] drm/radeon: Try harder to avoid HW cursor ending on a
+ multiple of 128 columns.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit f60ec4c7df043df81e62891ac45383d012afe0da upstream.
+
+This could previously fail if either of the enabled displays was using a
+horizontal resolution that is a multiple of 128, and only the leftmost column
+of the cursor was (supposed to be) visible at the right edge of that display.
+
+The solution is to move the cursor one pixel to the left in that case.
+
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=33183
+
+Signed-off-by: Michel Dänzer <michel.daenzer@amd.com>
+Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_cursor.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_cursor.c b/drivers/gpu/drm/radeon/radeon_cursor.c
+index 986d608..2132109 100644
+--- a/drivers/gpu/drm/radeon/radeon_cursor.c
++++ b/drivers/gpu/drm/radeon/radeon_cursor.c
+@@ -257,8 +257,14 @@ int radeon_crtc_cursor_move(struct drm_crtc *crtc,
+ 				if (!(cursor_end & 0x7f))
+ 					w--;
+ 			}
+-			if (w <= 0)
++			if (w <= 0) {
+ 				w = 1;
++				cursor_end = x - xorigin + w;
++				if (!(cursor_end & 0x7f)) {
++					x--;
++					WARN_ON_ONCE(x < 0);
++				}
++			}
+ 		}
+ 	}
+ 
+-- 
+1.7.7.6
+

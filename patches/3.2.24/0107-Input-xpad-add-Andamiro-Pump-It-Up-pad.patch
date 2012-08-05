@@ -1,0 +1,33 @@
+From a090e29a85d5d654848c5d564a7445fdf0e04bf2 Mon Sep 17 00:00:00 2001
+From: Yuri Khan <yurivkhan@gmail.com>
+Date: Wed, 11 Jul 2012 22:12:31 -0700
+Subject: [PATCH 107/109] Input: xpad - add Andamiro Pump It Up pad
+
+commit e76b8ee25e034ab601b525abb95cea14aa167ed3 upstream.
+
+I couldn't find the vendor ID in any of the online databases, but this
+mat has a Pump It Up logo on the top side of the controller compartment,
+and a disclaimer stating that Andamiro will not be liable on the bottom.
+
+Signed-off-by: Yuri Khan <yurivkhan@gmail.com>
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/input/joystick/xpad.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/input/joystick/xpad.c b/drivers/input/joystick/xpad.c
+index ddfabc4..2189cbf 100644
+--- a/drivers/input/joystick/xpad.c
++++ b/drivers/input/joystick/xpad.c
+@@ -142,6 +142,7 @@ static const struct xpad_device {
+ 	{ 0x0c12, 0x880a, "Pelican Eclipse PL-2023", 0, XTYPE_XBOX },
+ 	{ 0x0c12, 0x8810, "Zeroplus Xbox Controller", 0, XTYPE_XBOX },
+ 	{ 0x0c12, 0x9902, "HAMA VibraX - *FAULTY HARDWARE*", 0, XTYPE_XBOX },
++	{ 0x0d2f, 0x0002, "Andamiro Pump It Up pad", MAP_DPAD_TO_BUTTONS, XTYPE_XBOX },
+ 	{ 0x0e4c, 0x1097, "Radica Gamester Controller", 0, XTYPE_XBOX },
+ 	{ 0x0e4c, 0x2390, "Radica Games Jtech Controller", 0, XTYPE_XBOX },
+ 	{ 0x0e6f, 0x0003, "Logic3 Freebird wireless Controller", 0, XTYPE_XBOX },
+-- 
+1.7.7.6
+

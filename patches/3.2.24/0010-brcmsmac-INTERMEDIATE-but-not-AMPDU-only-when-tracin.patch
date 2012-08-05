@@ -1,0 +1,45 @@
+From 1c095fd3e95b6edf46016ac77ad78a61522ce8ed Mon Sep 17 00:00:00 2001
+From: Eldad Zack <eldad@fogrefinery.com>
+Date: Sun, 22 Apr 2012 00:48:04 +0200
+Subject: [PATCH 010/109] brcmsmac: "INTERMEDIATE but not AMPDU" only when
+ tracing
+
+commit 6ead629b27269c553c9092c47cd8f5ab0309ee3b upstream.
+
+I keep getting the following messages on the log buffer:
+[ 2167.097507] ieee80211 phy0: brcms_c_dotxstatus: INTERMEDIATE but not AMPDU
+[ 2281.331305] ieee80211 phy0: brcms_c_dotxstatus: INTERMEDIATE but not AMPDU
+[ 2281.332539] ieee80211 phy0: brcms_c_dotxstatus: INTERMEDIATE but not AMPDU
+[ 2329.876605] ieee80211 phy0: brcms_c_dotxstatus: INTERMEDIATE but not AMPDU
+[ 2329.877354] ieee80211 phy0: brcms_c_dotxstatus: INTERMEDIATE but not AMPDU
+[ 2462.280756] ieee80211 phy0: brcms_c_dotxstatus: INTERMEDIATE but not AMPDU
+[ 2615.651689] ieee80211 phy0: brcms_c_dotxstatus: INTERMEDIATE but not AMPDU
+
+From the code comment I understand that this something that can -
+and does, quite frequently - happen.
+
+Signed-off-by: Eldad Zack <eldad@fogrefinery.com>
+Acked-by: Franky Lin<frankyl@broadcom.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/brcm80211/brcmsmac/main.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/wireless/brcm80211/brcmsmac/main.c b/drivers/net/wireless/brcm80211/brcmsmac/main.c
+index 833cbef..8a40ff9 100644
+--- a/drivers/net/wireless/brcm80211/brcmsmac/main.c
++++ b/drivers/net/wireless/brcm80211/brcmsmac/main.c
+@@ -900,8 +900,7 @@ brcms_c_dotxstatus(struct brcms_c_info *wlc, struct tx_status *txs)
+ 	 */
+ 	if (!(txs->status & TX_STATUS_AMPDU)
+ 	    && (txs->status & TX_STATUS_INTERMEDIATE)) {
+-		wiphy_err(wlc->wiphy, "%s: INTERMEDIATE but not AMPDU\n",
+-			  __func__);
++		BCMMSG(wlc->wiphy, "INTERMEDIATE but not AMPDU\n");
+ 		return false;
+ 	}
+ 
+-- 
+1.7.7.6
+

@@ -1,0 +1,49 @@
+From db4fd57ab669f33ca6ef67e9f0c8074906073726 Mon Sep 17 00:00:00 2001
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Date: Tue, 29 May 2012 21:21:07 +0200
+Subject: [PATCH 099/109] ACPI / PM: Make acpi_pm_device_sleep_state() follow
+ the specification
+
+commit dbe9a2edd17d843d80faf2b99f20a691c1853418 upstream.
+
+The comparison between the system sleep state being entered
+and the lowest system sleep state the given device may wake up
+from in acpi_pm_device_sleep_state() is reversed, because the
+specification (ACPI 5.0) says that for wakeup to work:
+
+"The sleeping state being entered must be less than or equal to the
+ power state declared in element 1 of the _PRW object."
+
+In other words, the state returned by _PRW is the deepest
+(lowest-power) system sleep state the device is capable of waking up
+the system from.
+
+Moreover, acpi_pm_device_sleep_state() also should check if the
+wakeup capability is supported through ACPI, because in principle it
+may be done via native PCIe PME, for example, in which case _SxW
+should not be evaluated.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/acpi/sleep.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index ca191ff..ed6bc52 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -702,8 +702,8 @@ int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
+ 	 * can wake the system.  _S0W may be valid, too.
+ 	 */
+ 	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
+-	    (device_may_wakeup(dev) &&
+-	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
++	    (device_may_wakeup(dev) && adev->wakeup.flags.valid &&
++	     adev->wakeup.sleep_state >= acpi_target_sleep_state)) {
+ 		acpi_status status;
+ 
+ 		acpi_method[3] = 'W';
+-- 
+1.7.7.6
+

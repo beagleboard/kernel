@@ -1,0 +1,56 @@
+From 2addaa3c03214d7c5d256dd8a96cf3db83d7f737 Mon Sep 17 00:00:00 2001
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Date: Tue, 10 Jan 2012 15:07:03 -0800
+Subject: [PATCH 11/73] vmscan: activate executable pages after first usage
+
+commit c909e99364c8b6ca07864d752950b6b4ecf6bef4 upstream.
+
+Stable note: Not tracked in Bugzilla. There were reports of shared
+	mapped pages being unfairly reclaimed in comparison to older kernels.
+	This is being addressed over time.
+
+Logic added in commit 8cab4754d24a0 ("vmscan: make mapped executable pages
+the first class citizen") was noticeably weakened in commit
+645747462435d84 ("vmscan: detect mapped file pages used only once").
+
+Currently these pages can become "first class citizens" only after second
+usage.  After this patch page_check_references() will activate they after
+first usage, and executable code gets yet better chance to stay in memory.
+
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/vmscan.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index cd27455..87de9c6 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -718,6 +718,12 @@ static enum page_references page_check_references(struct page *page,
+ 		if (referenced_page || referenced_ptes > 1)
+ 			return PAGEREF_ACTIVATE;
+ 
++		/*
++		 * Activate file-backed executable pages after first usage.
++		 */
++		if (vm_flags & VM_EXEC)
++			return PAGEREF_ACTIVATE;
++
+ 		return PAGEREF_KEEP;
+ 	}
+ 
+-- 
+1.7.7.6
+

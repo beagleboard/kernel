@@ -1,0 +1,47 @@
+From 61c0f23450473cda9d2d784ea778361095d50bc3 Mon Sep 17 00:00:00 2001
+From: Jeff Layton <jlayton@redhat.com>
+Date: Fri, 6 Jul 2012 07:09:42 -0400
+Subject: [PATCH 062/109] cifs: always update the inode cache with the results
+ from a FIND_*
+
+commit cd60042cc1392e79410dc8de9e9c1abb38a29e57 upstream.
+
+When we get back a FIND_FIRST/NEXT result, we have some info about the
+dentry that we use to instantiate a new inode. We were ignoring and
+discarding that info when we had an existing dentry in the cache.
+
+Fix this by updating the inode in place when we find an existing dentry
+and the uniqueid is the same.
+
+Reported-and-Tested-by: Andrew Bartlett <abartlet@samba.org>
+Reported-by: Bill Robertson <bill_robertson@debortoli.com.au>
+Reported-by: Dion Edwards <dion_edwards@debortoli.com.au>
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Signed-off-by: Steve French <smfrench@gmail.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/cifs/readdir.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/fs/cifs/readdir.c b/fs/cifs/readdir.c
+index db4a138..4c37ed4 100644
+--- a/fs/cifs/readdir.c
++++ b/fs/cifs/readdir.c
+@@ -86,9 +86,12 @@ cifs_readdir_lookup(struct dentry *parent, struct qstr *name,
+ 
+ 	dentry = d_lookup(parent, name);
+ 	if (dentry) {
+-		/* FIXME: check for inode number changes? */
+-		if (dentry->d_inode != NULL)
++		inode = dentry->d_inode;
++		/* update inode in place if i_ino didn't change */
++		if (inode && CIFS_I(inode)->uniqueid == fattr->cf_uniqueid) {
++			cifs_fattr_to_inode(inode, fattr);
+ 			return dentry;
++		}
+ 		d_drop(dentry);
+ 		dput(dentry);
+ 	}
+-- 
+1.7.7.6
+

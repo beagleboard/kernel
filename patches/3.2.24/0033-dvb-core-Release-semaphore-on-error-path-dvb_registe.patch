@@ -1,0 +1,33 @@
+From c4c5d62cb86eedb8aa4b87b2b8ae9f2b909b0b5b Mon Sep 17 00:00:00 2001
+From: Santosh Nayak <santoshprasadnayak@gmail.com>
+Date: Sat, 23 Jun 2012 07:59:54 -0300
+Subject: [PATCH 033/109] dvb-core: Release semaphore on error path
+ dvb_register_device()
+
+commit 82163edcdfa4eb3d74516cc8e9f38dd3d039b67d upstream.
+
+There is a missing "up_write()" here. Semaphore should be released
+before returning error value.
+
+Signed-off-by: Santosh Nayak <santoshprasadnayak@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/media/dvb/dvb-core/dvbdev.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-core/dvbdev.c b/drivers/media/dvb/dvb-core/dvbdev.c
+index f732877..d5cda35 100644
+--- a/drivers/media/dvb/dvb-core/dvbdev.c
++++ b/drivers/media/dvb/dvb-core/dvbdev.c
+@@ -243,6 +243,7 @@ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
+ 	if (minor == MAX_DVB_MINORS) {
+ 		kfree(dvbdevfops);
+ 		kfree(dvbdev);
++		up_write(&minor_rwsem);
+ 		mutex_unlock(&dvbdev_register_lock);
+ 		return -EINVAL;
+ 	}
+-- 
+1.7.7.6
+

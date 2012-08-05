@@ -1,0 +1,50 @@
+From 3e17c16b921d72d121393b618bfe92992c8f3d1c Mon Sep 17 00:00:00 2001
+From: Boaz Harrosh <bharrosh@panasas.com>
+Date: Fri, 8 Jun 2012 04:30:40 +0300
+Subject: [PATCH 069/109] ore: Remove support of partial IO request (NFS
+ crash)
+
+commit 62b62ad873f2accad9222a4d7ffbe1e93f6714c1 upstream.
+
+Do to OOM situations the ore might fail to allocate all resources
+needed for IO of the full request. If some progress was possible
+it would proceed with a partial/short request, for the sake of
+forward progress.
+
+Since this crashes NFS-core and exofs is just fine without it just
+remove this contraption, and fail.
+
+TODO:
+	Support real forward progress with some reserved allocations
+	of resources, such as mem pools and/or bio_sets
+
+[Bug since 3.2 Kernel]
+CC: Benny Halevy <bhalevy@tonian.com>
+Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/exofs/ore.c |    8 +-------
+ 1 files changed, 1 insertions(+), 7 deletions(-)
+
+diff --git a/fs/exofs/ore.c b/fs/exofs/ore.c
+index 49cf230..24a49d4 100644
+--- a/fs/exofs/ore.c
++++ b/fs/exofs/ore.c
+@@ -735,13 +735,7 @@ static int _prepare_for_striping(struct ore_io_state *ios)
+ out:
+ 	ios->numdevs = devs_in_group;
+ 	ios->pages_consumed = cur_pg;
+-	if (unlikely(ret)) {
+-		if (length == ios->length)
+-			return ret;
+-		else
+-			ios->length -= length;
+-	}
+-	return 0;
++	return ret;
+ }
+ 
+ int ore_create(struct ore_io_state *ios)
+-- 
+1.7.7.6
+

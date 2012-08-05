@@ -1,0 +1,71 @@
+From b37d0e5983457f81ee31370edbd5af5a7667312d Mon Sep 17 00:00:00 2001
+From: Mel Gorman <mgorman@suse.de>
+Date: Thu, 12 Jan 2012 17:19:33 -0800
+Subject: [PATCH 08/73] mm: vmscan: do not OOM if aborting reclaim to start
+ compaction
+
+commit 7335084d446b83cbcb15da80497d03f0c1dc9e21 upstream.
+
+Stable note: Not tracked in Bugzilla. This patch makes later patches
+	easier to apply but otherwise has little to justify it. The
+	problem it fixes was never observed but the source of the
+	theoretical problem did not exist for very long.
+
+During direct reclaim it is possible that reclaim will be aborted so that
+compaction can be attempted to satisfy a high-order allocation.  If this
+decision is made before any pages are reclaimed, it is possible that 0 is
+returned to the page allocator potentially triggering an OOM.  This has
+not been observed but it is a possibility so this patch addresses it.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Andy Isaacson <adi@hexapodia.org>
+Cc: Nai Xia <nai.xia@gmail.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/vmscan.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
+
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index fd47744..662a5ea 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -2284,6 +2284,7 @@ static unsigned long do_try_to_free_pages(struct zonelist *zonelist,
+ 	struct zoneref *z;
+ 	struct zone *zone;
+ 	unsigned long writeback_threshold;
++	bool should_abort_reclaim;
+ 
+ 	get_mems_allowed();
+ 	delayacct_freepages_start();
+@@ -2295,7 +2296,8 @@ static unsigned long do_try_to_free_pages(struct zonelist *zonelist,
+ 		sc->nr_scanned = 0;
+ 		if (!priority)
+ 			disable_swap_token(sc->mem_cgroup);
+-		if (shrink_zones(priority, zonelist, sc))
++		should_abort_reclaim = shrink_zones(priority, zonelist, sc);
++		if (should_abort_reclaim)
+ 			break;
+ 
+ 		/*
+@@ -2363,6 +2365,10 @@ out:
+ 	if (oom_killer_disabled)
+ 		return 0;
+ 
++	/* Aborting reclaim to try compaction? don't OOM, then */
++	if (should_abort_reclaim)
++		return 1;
++
+ 	/* top priority shrink_zones still had more to do? don't OOM, then */
+ 	if (scanning_global_lru(sc) && !all_unreclaimable(zonelist, sc))
+ 		return 1;
+-- 
+1.7.7.6
+

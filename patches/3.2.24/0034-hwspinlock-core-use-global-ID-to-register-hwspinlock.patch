@@ -1,0 +1,52 @@
+From 1e1cdddbadc5f3044882127f3931a19f48b1a69b Mon Sep 17 00:00:00 2001
+From: Shinya Kuribayashi <shinya.kuribayashi.px@renesas.com>
+Date: Sat, 7 Jul 2012 13:37:42 +0300
+Subject: [PATCH 034/109] hwspinlock/core: use global ID to register
+ hwspinlocks on multiple devices
+
+commit 476a7eeb60e70ddab138e7cb4bc44ef5ac20782e upstream.
+
+Commit 300bab9770 (hwspinlock/core: register a bank of hwspinlocks in a
+single API call, 2011-09-06) introduced 'hwspin_lock_register_single()'
+to register numerous (a bank of) hwspinlock instances in a single API,
+'hwspin_lock_register()'.
+
+At which time, 'hwspin_lock_register()' accidentally passes 'local IDs'
+to 'hwspin_lock_register_single()', despite that ..._single() requires
+'global IDs' to register hwspinlocks.
+
+We have to convert into global IDs by supplying the missing 'base_id'.
+
+Signed-off-by: Shinya Kuribayashi <shinya.kuribayashi.px@renesas.com>
+[ohad: fix error path of hwspin_lock_register, too]
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/hwspinlock/hwspinlock_core.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/hwspinlock/hwspinlock_core.c b/drivers/hwspinlock/hwspinlock_core.c
+index 61c9cf1..1201a15 100644
+--- a/drivers/hwspinlock/hwspinlock_core.c
++++ b/drivers/hwspinlock/hwspinlock_core.c
+@@ -345,7 +345,7 @@ int hwspin_lock_register(struct hwspinlock_device *bank, struct device *dev,
+ 		spin_lock_init(&hwlock->lock);
+ 		hwlock->bank = bank;
+ 
+-		ret = hwspin_lock_register_single(hwlock, i);
++		ret = hwspin_lock_register_single(hwlock, base_id + i);
+ 		if (ret)
+ 			goto reg_failed;
+ 	}
+@@ -354,7 +354,7 @@ int hwspin_lock_register(struct hwspinlock_device *bank, struct device *dev,
+ 
+ reg_failed:
+ 	while (--i >= 0)
+-		hwspin_lock_unregister_single(i);
++		hwspin_lock_unregister_single(base_id + i);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(hwspin_lock_register);
+-- 
+1.7.7.6
+

@@ -1,0 +1,42 @@
+From e0dc11cd5466e1a433dde19ed0222dc08d9b8338 Mon Sep 17 00:00:00 2001
+From: Cloud Ren <cjren@qca.qualcomm.com>
+Date: Tue, 3 Jul 2012 16:51:48 +0000
+Subject: [PATCH 052/109] atl1c: fix issue of transmit queue 0 timed out
+
+commit b94e52f62683dc0b00c6d1b58b80929a078c0fd5 upstream.
+
+some people report atl1c could cause system hang with following
+kernel trace info:
+---------------------------------------
+WARNING: at.../net/sched/sch_generic.c:258 dev_watchdog+0x1db/0x1d0()
+...
+NETDEV WATCHDOG: eth0 (atl1c): transmit queue 0 timed out
+...
+---------------------------------------
+This is caused by netif_stop_queue calling when cable Link is down.
+So remove netif_stop_queue, because link_watch will take it over.
+
+Signed-off-by: xiong <xiong@qca.qualcomm.com>
+Signed-off-by: Cloud Ren <cjren@qca.qualcomm.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/atheros/atl1c/atl1c_main.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/net/ethernet/atheros/atl1c/atl1c_main.c b/drivers/net/ethernet/atheros/atl1c/atl1c_main.c
+index eccdcff..5ae7df7 100644
+--- a/drivers/net/ethernet/atheros/atl1c/atl1c_main.c
++++ b/drivers/net/ethernet/atheros/atl1c/atl1c_main.c
+@@ -267,7 +267,6 @@ static void atl1c_check_link_status(struct atl1c_adapter *adapter)
+ 				dev_warn(&pdev->dev, "stop mac failed\n");
+ 		atl1c_set_aspm(hw, false);
+ 		netif_carrier_off(netdev);
+-		netif_stop_queue(netdev);
+ 		atl1c_phy_reset(hw);
+ 		atl1c_phy_init(&adapter->hw);
+ 	} else {
+-- 
+1.7.7.6
+

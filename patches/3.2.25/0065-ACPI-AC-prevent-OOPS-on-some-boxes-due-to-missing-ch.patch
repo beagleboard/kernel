@@ -1,0 +1,45 @@
+From 3a928a5ea792e05f7acc8852babfce2273c3c185 Mon Sep 17 00:00:00 2001
+From: Lan Tianyu <tianyu.lan@intel.com>
+Date: Fri, 20 Jul 2012 13:29:16 +0800
+Subject: [PATCH 65/73] ACPI/AC: prevent OOPS on some boxes due to missing
+ check power_supply_register() return value check
+
+commit f197ac13f6eeb351b31250b9ab7d0da17434ea36 upstream.
+
+In the ac.c, power_supply_register()'s return value is not checked.
+
+As a result, the driver's add() ops may return success
+even though the device failed to initialize.
+
+For example, some BIOS may describe two ACADs in the same DSDT.
+The second ACAD device will fail to register,
+but ACPI driver's add() ops returns sucessfully.
+The ACPI device will receive ACPI notification and cause OOPS.
+
+https://bugzilla.redhat.com/show_bug.cgi?id=772730
+
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/acpi/ac.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 6512b20..d1fcbc0 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -292,7 +292,9 @@ static int acpi_ac_add(struct acpi_device *device)
+ 	ac->charger.properties = ac_props;
+ 	ac->charger.num_properties = ARRAY_SIZE(ac_props);
+ 	ac->charger.get_property = get_ac_property;
+-	power_supply_register(&ac->device->dev, &ac->charger);
++	result = power_supply_register(&ac->device->dev, &ac->charger);
++	if (result)
++		goto end;
+ 
+ 	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
+ 	       acpi_device_name(device), acpi_device_bid(device),
+-- 
+1.7.7.6
+

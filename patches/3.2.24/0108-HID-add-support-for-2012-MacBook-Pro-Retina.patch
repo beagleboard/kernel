@@ -1,0 +1,85 @@
+From 5a270d169895de9529e2a9a2e610d6aa7e217cef Mon Sep 17 00:00:00 2001
+From: Ryan Bourgeois <bluedragonx@gmail.com>
+Date: Tue, 10 Jul 2012 09:43:33 -0700
+Subject: [PATCH 108/109] HID: add support for 2012 MacBook Pro Retina
+
+commit b2e6ad7dfe26aac5bf136962d0b11d180b820d44 upstream.
+
+Add support for the 15'' MacBook Pro Retina. The keyboard is
+the same as recent models.
+
+The patch needs to be synchronized with the bcm5974 patch for
+the trackpad - as usual.
+
+Patch originally written by clipcarl (forums.opensuse.org).
+
+[rydberg@euromail.se: Amended mouse ignore lines]
+Signed-off-by: Ryan Bourgeois <bluedragonx@gmail.com>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Acked-by: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/hid/hid-apple.c |    6 ++++++
+ drivers/hid/hid-core.c  |    6 ++++++
+ drivers/hid/hid-ids.h   |    3 +++
+ 3 files changed, 15 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/hid/hid-apple.c b/drivers/hid/hid-apple.c
+index 299d238..899c712 100644
+--- a/drivers/hid/hid-apple.c
++++ b/drivers/hid/hid-apple.c
+@@ -514,6 +514,12 @@ static const struct hid_device_id apple_devices[] = {
+ 		.driver_data = APPLE_HAS_FN | APPLE_ISO_KEYBOARD },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING5A_JIS),
+ 		.driver_data = APPLE_HAS_FN | APPLE_RDESC_JIS },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING7_ANSI),
++		.driver_data = APPLE_HAS_FN },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING7_ISO),
++		.driver_data = APPLE_HAS_FN | APPLE_ISO_KEYBOARD },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING7_JIS),
++		.driver_data = APPLE_HAS_FN | APPLE_RDESC_JIS },
+ 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_WIRELESS_2009_ANSI),
+ 		.driver_data = APPLE_NUMLOCK_EMULATION | APPLE_HAS_FN },
+ 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_WIRELESS_2009_ISO),
+diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
+index cfa053e..95430a0 100644
+--- a/drivers/hid/hid-core.c
++++ b/drivers/hid/hid-core.c
+@@ -1374,6 +1374,9 @@ static const struct hid_device_id hid_have_special_driver[] = {
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING6A_ANSI) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING6A_ISO) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING6A_JIS) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING7_ANSI) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING7_ISO) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING7_JIS) },
+ 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_WIRELESS_2009_ANSI) },
+ 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_WIRELESS_2009_ISO) },
+ 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_WIRELESS_2009_JIS) },
+@@ -1969,6 +1972,9 @@ static const struct hid_device_id hid_mouse_ignore_list[] = {
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING6A_ANSI) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING6A_ISO) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING6A_JIS) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING7_ANSI) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING7_ISO) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING7_JIS) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_TP_ONLY) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER1_TP_ONLY) },
+ 	{ }
+diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
+index 07a91a0..7db934d 100644
+--- a/drivers/hid/hid-ids.h
++++ b/drivers/hid/hid-ids.h
+@@ -125,6 +125,9 @@
+ #define USB_DEVICE_ID_APPLE_WELLSPRING6_ANSI	0x024c
+ #define USB_DEVICE_ID_APPLE_WELLSPRING6_ISO	0x024d
+ #define USB_DEVICE_ID_APPLE_WELLSPRING6_JIS	0x024e
++#define USB_DEVICE_ID_APPLE_WELLSPRING7_ANSI	0x0262
++#define USB_DEVICE_ID_APPLE_WELLSPRING7_ISO	0x0263
++#define USB_DEVICE_ID_APPLE_WELLSPRING7_JIS	0x0264
+ #define USB_DEVICE_ID_APPLE_ALU_WIRELESS_2009_ANSI  0x0239
+ #define USB_DEVICE_ID_APPLE_ALU_WIRELESS_2009_ISO   0x023a
+ #define USB_DEVICE_ID_APPLE_ALU_WIRELESS_2009_JIS   0x023b
+-- 
+1.7.7.6
+

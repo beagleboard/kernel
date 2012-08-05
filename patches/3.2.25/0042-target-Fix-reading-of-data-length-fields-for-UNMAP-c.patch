@@ -1,0 +1,51 @@
+From b67183922769604a26c7a5ed1560fb71fd805635 Mon Sep 17 00:00:00 2001
+From: Roland Dreier <roland@purestorage.com>
+Date: Mon, 16 Jul 2012 15:34:23 -0700
+Subject: [PATCH 42/73] target: Fix reading of data length fields for UNMAP
+ commands
+
+commit 1a5fa4576ec8a462313c7516b31d7453481ddbe8 upstream.
+
+The UNMAP DATA LENGTH and UNMAP BLOCK DESCRIPTOR DATA LENGTH fields
+are in the unmap descriptor (the payload transferred to our data out
+buffer), not in the CDB itself.  Read them from the correct place in
+target_emulated_unmap.
+
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+[bwh: Backported to 3.2: adjust filename, context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/target/target_core_cdb.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/target/target_core_cdb.c b/drivers/target/target_core_cdb.c
+index 45a3ed4..b1f5cf0 100644
+--- a/drivers/target/target_core_cdb.c
++++ b/drivers/target/target_core_cdb.c
+@@ -1114,7 +1114,6 @@ int target_emulate_unmap(struct se_task *task)
+ 	struct se_cmd *cmd = task->task_se_cmd;
+ 	struct se_device *dev = cmd->se_dev;
+ 	unsigned char *buf, *ptr = NULL;
+-	unsigned char *cdb = &cmd->t_task_cdb[0];
+ 	sector_t lba;
+ 	unsigned int size = cmd->data_length, range;
+ 	int ret = 0, offset;
+@@ -1130,11 +1129,12 @@ int target_emulate_unmap(struct se_task *task)
+ 	/* First UNMAP block descriptor starts at 8 byte offset */
+ 	offset = 8;
+ 	size -= 8;
+-	dl = get_unaligned_be16(&cdb[0]);
+-	bd_dl = get_unaligned_be16(&cdb[2]);
+ 
+ 	buf = transport_kmap_data_sg(cmd);
+ 
++	dl = get_unaligned_be16(&buf[0]);
++	bd_dl = get_unaligned_be16(&buf[2]);
++
+ 	ptr = &buf[offset];
+ 	pr_debug("UNMAP: Sub: %s Using dl: %hu bd_dl: %hu size: %hu"
+ 		" ptr: %p\n", dev->transport->name, dl, bd_dl, size, ptr);
+-- 
+1.7.7.6
+

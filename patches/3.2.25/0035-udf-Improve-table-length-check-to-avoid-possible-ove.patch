@@ -1,0 +1,36 @@
+From c17fcfb52422d098dde1ccdc4a3d24a7ceeb33e2 Mon Sep 17 00:00:00 2001
+From: Jan Kara <jack@suse.cz>
+Date: Tue, 10 Jul 2012 17:58:04 +0200
+Subject: [PATCH 35/73] udf: Improve table length check to avoid possible
+ overflow
+
+commit 57b9655d01ef057a523e810d29c37ac09b80eead upstream.
+
+When a partition table length is corrupted to be close to 1 << 32, the
+check for its length may overflow on 32-bit systems and we will think
+the length is valid. Later on the kernel can crash trying to read beyond
+end of buffer. Fix the check to avoid possible overflow.
+
+Reported-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/udf/super.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/fs/udf/super.c b/fs/udf/super.c
+index 270e135..516b7f0 100644
+--- a/fs/udf/super.c
++++ b/fs/udf/super.c
+@@ -1285,7 +1285,7 @@ static int udf_load_logicalvol(struct super_block *sb, sector_t block,
+ 	BUG_ON(ident != TAG_IDENT_LVD);
+ 	lvd = (struct logicalVolDesc *)bh->b_data;
+ 	table_len = le32_to_cpu(lvd->mapTableLength);
+-	if (sizeof(*lvd) + table_len > sb->s_blocksize) {
++	if (table_len > sb->s_blocksize - sizeof(*lvd)) {
+ 		udf_err(sb, "error loading logical volume descriptor: "
+ 			"Partition table too long (%u > %lu)\n", table_len,
+ 			sb->s_blocksize - sizeof(*lvd));
+-- 
+1.7.7.6
+

@@ -1,0 +1,43 @@
+From fc6fc50e4d74eb0f4f4c8a07b33d2a797a29082f Mon Sep 17 00:00:00 2001
+From: Devendra Naga <devendra.aaru@gmail.com>
+Date: Thu, 31 May 2012 01:51:20 +0000
+Subject: [PATCH 087/109] r8169: call netif_napi_del at errpaths and at driver
+ unload
+
+commit ad1be8d345416a794dea39761a374032aa471a76 upstream.
+
+when register_netdev fails, the init'ed NAPIs by netif_napi_add must be
+deleted with netif_napi_del, and also when driver unloads, it should
+delete the NAPI before unregistering netdevice using unregister_netdev.
+
+Signed-off-by: Devendra Naga <devendra.aaru@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/realtek/r8169.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/net/ethernet/realtek/r8169.c b/drivers/net/ethernet/realtek/r8169.c
+index cc2565c..9e61d6b 100644
+--- a/drivers/net/ethernet/realtek/r8169.c
++++ b/drivers/net/ethernet/realtek/r8169.c
+@@ -4185,6 +4185,7 @@ out:
+ 	return rc;
+ 
+ err_out_msi_4:
++	netif_napi_del(&tp->napi);
+ 	rtl_disable_msi(pdev, tp);
+ 	iounmap(ioaddr);
+ err_out_free_res_3:
+@@ -4210,6 +4211,8 @@ static void __devexit rtl8169_remove_one(struct pci_dev *pdev)
+ 
+ 	cancel_delayed_work_sync(&tp->task);
+ 
++	netif_napi_del(&tp->napi);
++
+ 	unregister_netdev(dev);
+ 
+ 	rtl_release_firmware(tp);
+-- 
+1.7.7.6
+

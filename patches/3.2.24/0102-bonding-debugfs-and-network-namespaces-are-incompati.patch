@@ -1,0 +1,39 @@
+From 78d40a34b2e35e675b11185e2ff6bd8e9e5145b2 Mon Sep 17 00:00:00 2001
+From: "Eric W. Biederman" <ebiederm@xmission.com>
+Date: Mon, 9 Jul 2012 10:52:43 +0000
+Subject: [PATCH 102/109] bonding: debugfs and network namespaces are
+ incompatible
+
+commit 96ca7ffe748bf91f851e6aa4479aa11c8b1122ba upstream.
+
+The bonding debugfs support has been broken in the presence of network
+namespaces since it has been added.  The debugfs support does not handle
+multiple bonding devices with the same name in different network
+namespaces.
+
+I haven't had any bug reports, and I'm not interested in getting any.
+Disable the debugfs support when network namespaces are enabled.
+
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/bonding/bond_debugfs.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/net/bonding/bond_debugfs.c b/drivers/net/bonding/bond_debugfs.c
+index 3680aa2..2cf084e 100644
+--- a/drivers/net/bonding/bond_debugfs.c
++++ b/drivers/net/bonding/bond_debugfs.c
+@@ -6,7 +6,7 @@
+ #include "bonding.h"
+ #include "bond_alb.h"
+ 
+-#ifdef CONFIG_DEBUG_FS
++#if defined(CONFIG_DEBUG_FS) && !defined(CONFIG_NET_NS)
+ 
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
+-- 
+1.7.7.6
+

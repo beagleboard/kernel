@@ -1,0 +1,61 @@
+From cbcdb622dcf9254668a18a31c4df97c170f86a7a Mon Sep 17 00:00:00 2001
+From: "Eric W. Biederman" <ebiederm@xmission.com>
+Date: Mon, 9 Jul 2012 10:51:45 +0000
+Subject: [PATCH 103/109] bonding: Manage /proc/net/bonding/ entries from the
+ netdev events
+
+commit a64d49c3dd504b685f9742a2f3dcb11fb8e4345f upstream.
+
+It was recently reported that moving a bonding device between network
+namespaces causes warnings from /proc.  It turns out after the move we
+were trying to add and to remove the /proc/net/bonding entries from the
+wrong network namespace.
+
+Move the bonding /proc registration code into the NETDEV_REGISTER and
+NETDEV_UNREGISTER events where the proc registration and unregistration
+will always happen at the right time.
+
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/bonding/bond_main.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
+index 1a88e38..6c284d1 100644
+--- a/drivers/net/bonding/bond_main.c
++++ b/drivers/net/bonding/bond_main.c
+@@ -3184,6 +3184,12 @@ static int bond_master_netdev_event(unsigned long event,
+ 	switch (event) {
+ 	case NETDEV_CHANGENAME:
+ 		return bond_event_changename(event_bond);
++	case NETDEV_UNREGISTER:
++		bond_remove_proc_entry(event_bond);
++		break;
++	case NETDEV_REGISTER:
++		bond_create_proc_entry(event_bond);
++		break;
+ 	default:
+ 		break;
+ 	}
+@@ -4391,8 +4397,6 @@ static void bond_uninit(struct net_device *bond_dev)
+ 
+ 	bond_work_cancel_all(bond);
+ 
+-	bond_remove_proc_entry(bond);
+-
+ 	bond_debug_unregister(bond);
+ 
+ 	__hw_addr_flush(&bond->mc_list);
+@@ -4794,7 +4798,6 @@ static int bond_init(struct net_device *bond_dev)
+ 
+ 	bond_set_lockdep_class(bond_dev);
+ 
+-	bond_create_proc_entry(bond);
+ 	list_add_tail(&bond->bond_list, &bn->dev_list);
+ 
+ 	bond_prepare_sysfs_group(bond);
+-- 
+1.7.7.6
+

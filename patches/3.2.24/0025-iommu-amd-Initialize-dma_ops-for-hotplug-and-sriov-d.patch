@@ -1,0 +1,53 @@
+From f2d391c109ecc377d55f7865ac8ea26ac8921ab7 Mon Sep 17 00:00:00 2001
+From: Joerg Roedel <joerg.roedel@amd.com>
+Date: Thu, 21 Jun 2012 14:52:40 +0200
+Subject: [PATCH 025/109] iommu/amd: Initialize dma_ops for hotplug and sriov
+ devices
+
+commit ac1534a55d1e87d59a21c09c570605933b551480 upstream.
+
+When a device is added to the system at runtime the AMD
+IOMMU driver initializes the necessary data structures to
+handle translation for it. But it forgets to change the
+per-device dma_ops to point to the AMD IOMMU driver. So
+mapping actually never happens and all DMA accesses end in
+an IO_PAGE_FAULT. Fix this.
+
+Reported-by: Stefan Assmann <sassmann@redhat.com>
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+[bwh: Backported to 3.2:
+ - Adjust context
+ - Use global iommu_pass_through; there is no per-device pass_through]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/iommu/amd_iommu.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
+index f1d5408..a1b8caa 100644
+--- a/drivers/iommu/amd_iommu.c
++++ b/drivers/iommu/amd_iommu.c
+@@ -59,6 +59,8 @@ static struct protection_domain *pt_domain;
+ 
+ static struct iommu_ops amd_iommu_ops;
+ 
++static struct dma_map_ops amd_iommu_dma_ops;
++
+ /*
+  * general struct to manage commands send to an IOMMU
+  */
+@@ -1878,6 +1880,11 @@ static int device_change_notifier(struct notifier_block *nb,
+ 		list_add_tail(&dma_domain->list, &iommu_pd_list);
+ 		spin_unlock_irqrestore(&iommu_pd_list_lock, flags);
+ 
++		if (!iommu_pass_through)
++			dev->archdata.dma_ops = &amd_iommu_dma_ops;
++		else
++			dev->archdata.dma_ops = &nommu_dma_ops;
++
+ 		break;
+ 	case BUS_NOTIFY_DEL_DEVICE:
+ 
+-- 
+1.7.7.6
+

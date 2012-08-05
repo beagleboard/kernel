@@ -1,0 +1,41 @@
+From 3bbc9e1917b93542c0da222e06496f37d1e82182 Mon Sep 17 00:00:00 2001
+From: Todd Poynor <toddpoynor@google.com>
+Date: Fri, 13 Jul 2012 15:30:48 +0900
+Subject: [PATCH 045/109] ARM: SAMSUNG: fix race in s3c_adc_start for ADC
+
+commit 8265981bb439f3ecc5356fb877a6c2a6636ac88a upstream.
+
+Checking for adc->ts_pend already claimed should be done with the
+lock held.
+
+Signed-off-by: Todd Poynor <toddpoynor@google.com>
+Acked-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: Kukjin Kim <kgene.kim@samsung.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/arm/plat-samsung/adc.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/plat-samsung/adc.c b/arch/arm/plat-samsung/adc.c
+index 33ecd0c..b1e05cc 100644
+--- a/arch/arm/plat-samsung/adc.c
++++ b/arch/arm/plat-samsung/adc.c
+@@ -157,10 +157,12 @@ int s3c_adc_start(struct s3c_adc_client *client,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (client->is_ts && adc->ts_pend)
++	spin_lock_irqsave(&adc->lock, flags);
++
++	if (client->is_ts && adc->ts_pend) {
++		spin_unlock_irqrestore(&adc->lock, flags);
+ 		return -EAGAIN;
+-
+-	spin_lock_irqsave(&adc->lock, flags);
++	}
+ 
+ 	client->channel = channel;
+ 	client->nr_samples = nr_samples;
+-- 
+1.7.7.6
+

@@ -1,0 +1,84 @@
+From e23f455279bab00dcd73e8dd26c5f262dd1e3cc2 Mon Sep 17 00:00:00 2001
+From: Aaditya Kumar <aaditya.kumar.30@gmail.com>
+Date: Tue, 17 Jul 2012 15:48:07 -0700
+Subject: [PATCH 063/109] mm: fix lost kswapd wakeup in kswapd_stop()
+
+commit 1c7e7f6c0703d03af6bcd5ccc11fc15d23e5ecbe upstream.
+
+Offlining memory may block forever, waiting for kswapd() to wake up
+because kswapd() does not check the event kthread->should_stop before
+sleeping.
+
+The proper pattern, from Documentation/memory-barriers.txt, is:
+
+   ---  waker  ---
+   event_indicated = 1;
+   wake_up_process(event_daemon);
+
+   ---  sleeper  ---
+   for (;;) {
+      set_current_state(TASK_UNINTERRUPTIBLE);
+      if (event_indicated)
+         break;
+      schedule();
+   }
+
+   set_current_state() may be wrapped by:
+      prepare_to_wait();
+
+In the kswapd() case, event_indicated is kthread->should_stop.
+
+  === offlining memory (waker) ===
+   kswapd_stop()
+      kthread_stop()
+         kthread->should_stop = 1
+         wake_up_process()
+         wait_for_completion()
+
+  ===  kswapd_try_to_sleep (sleeper) ===
+   kswapd_try_to_sleep()
+      prepare_to_wait()
+           .
+           .
+      schedule()
+           .
+           .
+      finish_wait()
+
+The schedule() needs to be protected by a test of kthread->should_stop,
+which is wrapped by kthread_should_stop().
+
+Reproducer:
+   Do heavy file I/O in background.
+   Do a memory offline/online in a tight loop
+
+Signed-off-by: Aaditya Kumar <aaditya.kumar@ap.sony.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/vmscan.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 72cf498..8342119 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -2824,7 +2824,10 @@ static void kswapd_try_to_sleep(pg_data_t *pgdat, int order, int classzone_idx)
+ 		 * them before going back to sleep.
+ 		 */
+ 		set_pgdat_percpu_threshold(pgdat, calculate_normal_threshold);
+-		schedule();
++
++		if (!kthread_should_stop())
++			schedule();
++
+ 		set_pgdat_percpu_threshold(pgdat, calculate_pressure_threshold);
+ 	} else {
+ 		if (remaining)
+-- 
+1.7.7.6
+

@@ -1,0 +1,38 @@
+From 3e51f8abdd9f7c7a70f1f77295c46a88a46766a6 Mon Sep 17 00:00:00 2001
+From: Roland Dreier <roland@purestorage.com>
+Date: Mon, 16 Jul 2012 15:34:25 -0700
+Subject: [PATCH 44/73] target: Check number of unmap descriptors against our
+ limit
+
+commit 7409a6657aebf8be74c21d0eded80709b27275cb upstream.
+
+Fail UNMAP commands that have more than our reported limit on unmap
+descriptors.
+
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+[bwh: Backported to 3.2: adjust filename]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/target/target_core_cdb.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/target/target_core_cdb.c b/drivers/target/target_core_cdb.c
+index 00f0f7d..717a8d4 100644
+--- a/drivers/target/target_core_cdb.c
++++ b/drivers/target/target_core_cdb.c
+@@ -1133,6 +1133,11 @@ int target_emulate_unmap(struct se_task *task)
+ 	bd_dl = get_unaligned_be16(&buf[2]);
+ 
+ 	size = min(size - 8, bd_dl);
++	if (size / 16 > dev->se_sub_dev->se_dev_attrib.max_unmap_block_desc_count) {
++		cmd->scsi_sense_reason = TCM_INVALID_PARAMETER_LIST;
++		ret = -EINVAL;
++		goto err;
++	}
+ 
+ 	/* First UNMAP block descriptor starts at 8 byte offset */
+ 	ptr = &buf[8];
+-- 
+1.7.7.6
+

@@ -1,0 +1,50 @@
+From e07e835a265976a8c13c7990a7e03627040372c2 Mon Sep 17 00:00:00 2001
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Date: Wed, 25 Apr 2012 16:01:46 -0700
+Subject: [PATCH 16/73] mm/hugetlb: fix warning in
+ alloc_huge_page/dequeue_huge_page_vma
+
+commit b1c12cbcd0a02527c180a862e8971e249d3b347d upstream.
+
+Stable note: Not tracked in Bugzilla. [get|put]_mems_allowed() is extremely
+	expensive and severely impacted page allocator performance. This
+	is part of a series of patches that reduce page allocator overhead.
+
+Fix a gcc warning (and bug?) introduced in cc9a6c877 ("cpuset: mm: reduce
+large amounts of memory barrier related damage v3")
+
+Local variable "page" can be uninitialized if the nodemask from vma policy
+does not intersects with nodemask from cpuset.  Even if it doesn't happens
+it is better to initialize this variable explicitly than to introduce
+a kernel oops in a weird corner case.
+
+mm/hugetlb.c: In function `alloc_huge_page':
+mm/hugetlb.c:1135:5: warning: `page' may be used uninitialized in this function
+
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/hugetlb.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index 1e747e4..b1e1bad 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -532,7 +532,7 @@ static struct page *dequeue_huge_page_vma(struct hstate *h,
+ 				struct vm_area_struct *vma,
+ 				unsigned long address, int avoid_reserve)
+ {
+-	struct page *page;
++	struct page *page = NULL;
+ 	struct mempolicy *mpol;
+ 	nodemask_t *nodemask;
+ 	struct zonelist *zonelist;
+-- 
+1.7.7.6
+

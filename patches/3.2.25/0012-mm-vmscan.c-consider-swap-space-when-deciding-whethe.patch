@@ -1,0 +1,50 @@
+From cef8678eb9832de6ac3f32810509393e28416d7e Mon Sep 17 00:00:00 2001
+From: Minchan Kim <minchan@kernel.org>
+Date: Tue, 10 Jan 2012 15:08:18 -0800
+Subject: [PATCH 12/73] mm/vmscan.c: consider swap space when deciding whether
+ to continue reclaim
+
+commit 86cfd3a45042ab242d47f3935a02811a402beab6 upstream.
+
+Stable note: Not tracked in Bugzilla. This patch reduces kswapd CPU
+	usage on swapless systems with high anonymous memory usage.
+
+It's pointless to continue reclaiming when we have no swap space and lots
+of anon pages in the inactive list.
+
+Without this patch, it is possible when swap is disabled to continue
+trying to reclaim when there are only anonymous pages in the system even
+though that will not make any progress.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/vmscan.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 87de9c6..ba763be 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -2049,8 +2049,9 @@ static inline bool should_continue_reclaim(struct zone *zone,
+ 	 * inactive lists are large enough, continue reclaiming
+ 	 */
+ 	pages_for_compaction = (2UL << sc->order);
+-	inactive_lru_pages = zone_nr_lru_pages(zone, sc, LRU_INACTIVE_ANON) +
+-				zone_nr_lru_pages(zone, sc, LRU_INACTIVE_FILE);
++	inactive_lru_pages = zone_nr_lru_pages(zone, sc, LRU_INACTIVE_FILE);
++	if (nr_swap_pages > 0)
++		inactive_lru_pages += zone_nr_lru_pages(zone, sc, LRU_INACTIVE_ANON);
+ 	if (sc->nr_reclaimed < pages_for_compaction &&
+ 			inactive_lru_pages > pages_for_compaction)
+ 		return true;
+-- 
+1.7.7.6
+

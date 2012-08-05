@@ -1,0 +1,93 @@
+From d9af29329519c623a5a9c8b39439ed2886c9f30b Mon Sep 17 00:00:00 2001
+From: Theodore Ts'o <tytso@mit.edu>
+Date: Mon, 23 Jul 2012 00:00:20 -0400
+Subject: [PATCH 62/73] ext4: undo ext4_calc_metadata_amount if we fail to
+ claim space
+
+commit 03179fe92318e7934c180d96f12eff2cb36ef7b6 upstream.
+
+The function ext4_calc_metadata_amount() has side effects, although
+it's not obvious from its function name.  So if we fail to claim
+space, regardless of whether we retry to claim the space again, or
+return an error, we need to undo these side effects.
+
+Otherwise we can end up incorrectly calculating the number of metadata
+blocks needed for the operation, which was responsible for an xfstests
+failure for test #271 when using an ext2 file system with delalloc
+enabled.
+
+Reported-by: Brian Foster <bfoster@redhat.com>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ext4/inode.c |   32 +++++++++++++++++++++-----------
+ 1 files changed, 21 insertions(+), 11 deletions(-)
+
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 0d5e18f..8b01f9f 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -1111,6 +1111,17 @@ static int ext4_da_reserve_space(struct inode *inode, ext4_lblk_t lblock)
+ 	struct ext4_inode_info *ei = EXT4_I(inode);
+ 	unsigned int md_needed;
+ 	int ret;
++	ext4_lblk_t save_last_lblock;
++	int save_len;
++
++	/*
++	 * We will charge metadata quota at writeout time; this saves
++	 * us from metadata over-estimation, though we may go over by
++	 * a small amount in the end.  Here we just reserve for data.
++	 */
++	ret = dquot_reserve_block(inode, EXT4_C2B(sbi, 1));
++	if (ret)
++		return ret;
+ 
+ 	/*
+ 	 * recalculate the amount of metadata blocks to reserve
+@@ -1119,32 +1130,31 @@ static int ext4_da_reserve_space(struct inode *inode, ext4_lblk_t lblock)
+ 	 */
+ repeat:
+ 	spin_lock(&ei->i_block_reservation_lock);
++	/*
++	 * ext4_calc_metadata_amount() has side effects, which we have
++	 * to be prepared undo if we fail to claim space.
++	 */
++	save_len = ei->i_da_metadata_calc_len;
++	save_last_lblock = ei->i_da_metadata_calc_last_lblock;
+ 	md_needed = EXT4_NUM_B2C(sbi,
+ 				 ext4_calc_metadata_amount(inode, lblock));
+ 	trace_ext4_da_reserve_space(inode, md_needed);
+-	spin_unlock(&ei->i_block_reservation_lock);
+ 
+ 	/*
+-	 * We will charge metadata quota at writeout time; this saves
+-	 * us from metadata over-estimation, though we may go over by
+-	 * a small amount in the end.  Here we just reserve for data.
+-	 */
+-	ret = dquot_reserve_block(inode, EXT4_C2B(sbi, 1));
+-	if (ret)
+-		return ret;
+-	/*
+ 	 * We do still charge estimated metadata to the sb though;
+ 	 * we cannot afford to run out of free blocks.
+ 	 */
+ 	if (ext4_claim_free_clusters(sbi, md_needed + 1, 0)) {
+-		dquot_release_reservation_block(inode, EXT4_C2B(sbi, 1));
++		ei->i_da_metadata_calc_len = save_len;
++		ei->i_da_metadata_calc_last_lblock = save_last_lblock;
++		spin_unlock(&ei->i_block_reservation_lock);
+ 		if (ext4_should_retry_alloc(inode->i_sb, &retries)) {
+ 			yield();
+ 			goto repeat;
+ 		}
++		dquot_release_reservation_block(inode, EXT4_C2B(sbi, 1));
+ 		return -ENOSPC;
+ 	}
+-	spin_lock(&ei->i_block_reservation_lock);
+ 	ei->i_reserved_data_blocks++;
+ 	ei->i_reserved_meta_blocks += md_needed;
+ 	spin_unlock(&ei->i_block_reservation_lock);
+-- 
+1.7.7.6
+

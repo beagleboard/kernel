@@ -1,0 +1,42 @@
+From d6f34925144b450a5a962ca8c3cbde1a38d60fc0 Mon Sep 17 00:00:00 2001
+From: Feng Tang <feng.tang@intel.com>
+Date: Mon, 4 Jun 2012 15:00:05 +0800
+Subject: [PATCH 092/109] ACPI: Remove one board specific WARN when ignoring
+ timer overriding
+
+commit 5752cdb805ff89942d99d12118e2844e7db34df8 upstream.
+
+commit 7f68b4c2e158019c2ec494b5cfbd9c83b4e5b253 upstream.
+
+Current WARN msg is only for the ati_ixp4x0 board, while this function
+is used by mulitple platforms. So this one board specific warning
+is not appropriate any more.
+
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kernel/acpi/boot.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
+
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index a94dc95..882960e 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -1333,12 +1333,7 @@ static int __init dmi_disable_acpi(const struct dmi_system_id *d)
+  */
+ static int __init dmi_ignore_irq0_timer_override(const struct dmi_system_id *d)
+ {
+-	/*
+-	 * The ati_ixp4x0_rev() early PCI quirk should have set
+-	 * the acpi_skip_timer_override flag already:
+-	 */
+ 	if (!acpi_skip_timer_override) {
+-		WARN(1, KERN_ERR "ati_ixp4x0 quirk not complete.\n");
+ 		pr_notice("%s detected: Ignoring BIOS IRQ0 override\n",
+ 			d->ident);
+ 		acpi_skip_timer_override = 1;
+-- 
+1.7.7.6
+

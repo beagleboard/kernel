@@ -1,0 +1,69 @@
+From 805292ea678d4855d1f12db5f1c1d1444b92d9d7 Mon Sep 17 00:00:00 2001
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
+Date: Tue, 7 Feb 2012 14:59:05 -0500
+Subject: [PATCH 014/109] NFSv4: Reduce the footprint of the idmapper
+
+commit d073e9b541e1ac3f52d72c3a153855d9a9ee3278 upstream.
+
+Instead of pre-allocating the storage for all the strings, we can
+significantly reduce the size of that table by doing the allocation
+when we do the downcall.
+
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Reviewed-by: Jeff Layton <jlayton@redhat.com>
+[bwh: Backported to 3.2: adjust context in nfs_idmap_delete()]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/idmap.c |   16 +++++++++++++---
+ 1 files changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/fs/nfs/idmap.c b/fs/nfs/idmap.c
+index 47d1c6f..b8c41c3 100644
+--- a/fs/nfs/idmap.c
++++ b/fs/nfs/idmap.c
+@@ -318,7 +318,7 @@ struct idmap_hashent {
+ 	unsigned long		ih_expires;
+ 	__u32			ih_id;
+ 	size_t			ih_namelen;
+-	char			ih_name[IDMAP_NAMESZ];
++	const char		*ih_name;
+ };
+ 
+ struct idmap_hashtable {
+@@ -382,11 +382,16 @@ void
+ nfs_idmap_delete(struct nfs_client *clp)
+ {
+ 	struct idmap *idmap = clp->cl_idmap;
++	int i;
+ 
+ 	if (!idmap)
+ 		return;
+ 	rpc_unlink(idmap->idmap_dentry);
+ 	clp->cl_idmap = NULL;
++	for (i = 0; i < ARRAY_SIZE(idmap->idmap_user_hash.h_entries); i++)
++		kfree(idmap->idmap_user_hash.h_entries[i].ih_name);
++	for (i = 0; i < ARRAY_SIZE(idmap->idmap_group_hash.h_entries); i++)
++		kfree(idmap->idmap_group_hash.h_entries[i].ih_name);
+ 	kfree(idmap);
+ }
+ 
+@@ -449,9 +454,14 @@ static void
+ idmap_update_entry(struct idmap_hashent *he, const char *name,
+ 		size_t namelen, __u32 id)
+ {
++	char *str = kmalloc(namelen + 1, GFP_KERNEL);
++	if (str == NULL)
++		return;
++	kfree(he->ih_name);
+ 	he->ih_id = id;
+-	memcpy(he->ih_name, name, namelen);
+-	he->ih_name[namelen] = '\0';
++	memcpy(str, name, namelen);
++	str[namelen] = '\0';
++	he->ih_name = str;
+ 	he->ih_namelen = namelen;
+ 	he->ih_expires = jiffies + nfs_idmap_cache_timeout;
+ }
+-- 
+1.7.7.6
+

@@ -1,0 +1,51 @@
+From 042083036e9d93fe1984e93b5e852c176e7fa0b5 Mon Sep 17 00:00:00 2001
+From: Stanislaw Gruszka <sgruszka@redhat.com>
+Date: Wed, 4 Jul 2012 13:10:02 +0200
+Subject: [PATCH 053/109] rt2x00usb: fix indexes ordering on RX queue kick
+
+commit efd821182cec8c92babef6e00a95066d3252fda4 upstream.
+
+On rt2x00_dmastart() we increase index specified by Q_INDEX and on
+rt2x00_dmadone() we increase index specified by Q_INDEX_DONE. So entries
+between Q_INDEX_DONE and Q_INDEX are those we currently process in the
+hardware. Entries between Q_INDEX and Q_INDEX_DONE are those we can
+submit to the hardware.
+
+According to that fix rt2x00usb_kick_queue(), as we need to submit RX
+entries that are not processed by the hardware. It worked before only
+for empty queue, otherwise was broken.
+
+Note that for TX queues indexes ordering are ok. We need to kick entries
+that have filled skb, but was not submitted to the hardware, i.e.
+started from Q_INDEX_DONE and have ENTRY_DATA_PENDING bit set.
+
+From practical standpoint this fixes RX queue stall, usually reproducible
+in AP mode, like for example reported here:
+https://bugzilla.redhat.com/show_bug.cgi?id=828824
+
+Reported-and-tested-by: Franco Miceli <fmiceli@plan.ceibal.edu.uy>
+Reported-and-tested-by: Tom Horsley <horsley1953@gmail.com>
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/rt2x00/rt2x00usb.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/net/wireless/rt2x00/rt2x00usb.c b/drivers/net/wireless/rt2x00/rt2x00usb.c
+index 1e31050..ba28807 100644
+--- a/drivers/net/wireless/rt2x00/rt2x00usb.c
++++ b/drivers/net/wireless/rt2x00/rt2x00usb.c
+@@ -426,8 +426,8 @@ void rt2x00usb_kick_queue(struct data_queue *queue)
+ 	case QID_RX:
+ 		if (!rt2x00queue_full(queue))
+ 			rt2x00queue_for_each_entry(queue,
+-						   Q_INDEX_DONE,
+ 						   Q_INDEX,
++						   Q_INDEX_DONE,
+ 						   NULL,
+ 						   rt2x00usb_kick_rx_entry);
+ 		break;
+-- 
+1.7.7.6
+

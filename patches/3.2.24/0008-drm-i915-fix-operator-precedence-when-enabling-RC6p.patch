@@ -1,0 +1,34 @@
+From 1e084e62f89d60c15dc4fc282a68309e793daa1b Mon Sep 17 00:00:00 2001
+From: Eugeni Dodonov <eugeni.dodonov@intel.com>
+Date: Thu, 23 Feb 2012 23:57:06 -0200
+Subject: [PATCH 008/109] drm/i915: fix operator precedence when enabling RC6p
+
+commit c0e2ee1bc0cf82eec89e26b7afe7e4db0561b7d9 upstream.
+
+As noticed by Torsten Kaiser, the operator precedence can play tricks with
+us here.
+
+CC: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Eugeni Dodonov <eugeni.dodonov@intel.com>
+Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_display.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index c63ca5f..cc75c4b 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -8044,7 +8044,7 @@ void gen6_enable_rps(struct drm_i915_private *dev_priv)
+ 
+ 	if (intel_enable_rc6(dev_priv->dev))
+ 		rc6_mask = GEN6_RC_CTL_RC6_ENABLE |
+-			(IS_GEN7(dev_priv->dev)) ? GEN6_RC_CTL_RC6p_ENABLE : 0;
++			((IS_GEN7(dev_priv->dev)) ? GEN6_RC_CTL_RC6p_ENABLE : 0);
+ 
+ 	I915_WRITE(GEN6_RC_CONTROL,
+ 		   rc6_mask |
+-- 
+1.7.7.6
+
