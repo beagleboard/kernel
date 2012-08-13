@@ -1,0 +1,32 @@
+From 65ae3c84bb2a222557cf3ce08b6a1392f9253863 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Mon, 4 Jun 2012 11:45:43 -0500
+Subject: [PATCH] dsp: add memblock include
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+arch/arm/mach-omap2/dsp.c: In function ‘omap_dsp_reserve_sdram_memblock’:
+arch/arm/mach-omap2/dsp.c:58:2: error: implicit declaration of function ‘arm_memblock_steal’ [-Werror=implicit-function-declaration]
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/dsp.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/dsp.c b/arch/arm/mach-omap2/dsp.c
+index 88ffa1e..7ebe47b 100644
+--- a/arch/arm/mach-omap2/dsp.c
++++ b/arch/arm/mach-omap2/dsp.c
+@@ -29,6 +29,8 @@
+ #include <plat/omap-pm.h>
+ #endif
+ 
++#include <asm/memblock.h>
++
+ #include <plat/dsp.h>
+ 
+ static struct platform_device *omap_dsp_pdev;
+-- 
+1.7.10.4
+

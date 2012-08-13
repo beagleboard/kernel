@@ -1,7 +1,7 @@
-From f6ddac4f453d49f628ca32c34638c1b5d000e7b9 Mon Sep 17 00:00:00 2001
+From ead8f8566c08d04454ee4c444b87f995d71c73a5 Mon Sep 17 00:00:00 2001
 From: Robert Nelson <robertcnelson@gmail.com>
 Date: Mon, 10 Oct 2011 11:12:40 -0500
-Subject: [PATCH 1/7] Beagle: expansion: add buddy param for expansionboard
+Subject: [PATCH 1/8] Beagle: expansion: add buddy param for expansionboard
  names
 
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
@@ -10,7 +10,7 @@ Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
  1 file changed, 14 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 7be8d65..ec30ef4 100644
+index 580fd17..7f790f3 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
 @@ -21,6 +21,7 @@
@@ -21,7 +21,7 @@ index 7be8d65..ec30ef4 100644
  #include <linux/input.h>
  #include <linux/gpio_keys.h>
  #include <linux/opp.h>
-@@ -156,6 +157,8 @@ static void __init omap3_beagle_init_rev(void)
+@@ -160,6 +161,8 @@ static void __init omap3_beagle_init_rev(void)
  	}
  }
  
@@ -30,7 +30,7 @@ index 7be8d65..ec30ef4 100644
  static struct mtd_partition omap3beagle_nand_partitions[] = {
  	/* All the partition sizes are listed in terms of NAND block size */
  	{
-@@ -473,6 +476,15 @@ static struct omap_board_mux board_mux[] __initdata = {
+@@ -449,6 +452,15 @@ static struct omap_board_mux board_mux[] __initdata = {
  };
  #endif
  
@@ -46,7 +46,7 @@ index 7be8d65..ec30ef4 100644
  static void __init beagle_opp_init(void)
  {
  	int r = 0;
-@@ -556,6 +568,8 @@ static void __init omap3_beagle_init(void)
+@@ -530,6 +542,8 @@ static void __init omap3_beagle_init(void)
  	beagle_opp_init();
  }
  
@@ -56,5 +56,5 @@ index 7be8d65..ec30ef4 100644
  	/* Maintainer: Syed Mohammed Khasim - http://beagleboard.org */
  	.atag_offset	= 0x100,
 -- 
-1.7.10
+1.7.10.4
 

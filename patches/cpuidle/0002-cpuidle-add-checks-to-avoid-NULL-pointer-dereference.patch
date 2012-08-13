@@ -1,0 +1,59 @@
+From a44a3a94366cedd6c0fa8db30d0972f1f16ec3a3 Mon Sep 17 00:00:00 2001
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Date: Fri, 4 May 2012 14:06:02 -0700
+Subject: [PATCH 02/10] cpuidle: add checks to avoid NULL pointer dereference
+
+The existing check for dev == NULL in __cpuidle_register_device() is
+rendered useless because dev is dereferenced before the check itself.
+Moreover, correctly speaking, it is the job of the callers of this
+function, i.e., cpuidle_register_device() & cpuidle_enable_device() (which
+also happen to be exported functions) to ensure that
+__cpuidle_register_device() is called with a non-NULL dev.
+
+So add the necessary dev == NULL checks in the two callers and remove the
+(useless) check from __cpuidle_register_device().
+
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/cpuidle/cpuidle.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index cd58d5f..ba936d3 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -274,6 +274,9 @@ int cpuidle_enable_device(struct cpuidle_device *dev)
+ 	int ret, i;
+ 	struct cpuidle_driver *drv = cpuidle_get_driver();
+ 
++	if (!dev)
++		return -EINVAL;
++
+ 	if (dev->enabled)
+ 		return 0;
+ 	if (!drv || !cpuidle_curr_governor)
+@@ -358,8 +361,6 @@ static int __cpuidle_register_device(struct cpuidle_device *dev)
+ 	struct device *cpu_dev = get_cpu_device((unsigned long)dev->cpu);
+ 	struct cpuidle_driver *cpuidle_driver = cpuidle_get_driver();
+ 
+-	if (!dev)
+-		return -EINVAL;
+ 	if (!try_module_get(cpuidle_driver->owner))
+ 		return -EINVAL;
+ 
+@@ -384,6 +385,9 @@ int cpuidle_register_device(struct cpuidle_device *dev)
+ {
+ 	int ret;
+ 
++	if (!dev)
++		return -EINVAL;
++
+ 	mutex_lock(&cpuidle_lock);
+ 
+ 	if ((ret = __cpuidle_register_device(dev))) {
+-- 
+1.7.10.4
+

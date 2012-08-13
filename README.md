@@ -6,9 +6,9 @@ Kernel for the beagleboard.org boards
 usage
 ======
 
-beagleboard-3.4 patchset:
+beagleboard-3.5 patchset:
 
-git checkout origin/beagleboard-3.4 -b beagleboard-3.4
+git checkout origin/beagleboard-3.5 -b beagleboard-3.5
 
 ./patch.sh
 
@@ -23,8 +23,6 @@ Board Maintainers List
 
 omapdrm (with new bootargs)
 ---------------------
-This uses the cma patchset (needed for omap3, mainline as of 3.5): git://git.linaro.org/people/mszyprowski/linux-dma-mapping.git 3.4-rc1-cma-v24
-
 *ddx: http://cgit.freedesktop.org/xorg/driver/xf86-video-omap/
 
 *libdrm: http://cgit.freedesktop.org/mesa/drm build with "--enable-omap-experimental-api"

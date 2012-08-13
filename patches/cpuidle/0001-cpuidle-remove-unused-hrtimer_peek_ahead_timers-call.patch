@@ -1,0 +1,52 @@
+From 505fd5506d8c64b96f317ef0c109df309d070c91 Mon Sep 17 00:00:00 2001
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Date: Fri, 4 May 2012 14:06:02 -0700
+Subject: [PATCH 01/10] cpuidle: remove unused hrtimer_peek_ahead_timers()
+ call
+
+  commit 9a6558371bcd01c2973b7638181db4ccc34eab4f
+  Author: Arjan van de Ven <arjan@linux.intel.com>
+  Date:   Sun Nov 9 12:45:10 2008 -0800
+
+     regression: disable timer peek-ahead for 2.6.28
+
+     It's showing up as regressions; disabling it very likely just papers
+     over an underlying issue, but time is running out for 2.6.28, lets get
+     back to this for 2.6.29
+
+ Many years has passed since 2008, so it seems ok to remove whole `#if 0' block.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Trinabh Gupta <g.trinabh@gmail.com>
+Cc: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/cpuidle/cpuidle.c |    9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index d90519c..cd58d5f 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -113,15 +113,6 @@ int cpuidle_idle_call(void)
+ 	if (!dev || !dev->enabled)
+ 		return -EBUSY;
+ 
+-#if 0
+-	/* shows regressions, re-enable for 2.6.29 */
+-	/*
+-	 * run any timers that can be run now, at this point
+-	 * before calculating the idle duration etc.
+-	 */
+-	hrtimer_peek_ahead_timers();
+-#endif
+-
+ 	/* ask the governor for the next state */
+ 	next_state = cpuidle_curr_governor->select(drv, dev);
+ 	if (need_resched()) {
+-- 
+1.7.10.4
+

@@ -1,0 +1,55 @@
+From b511671a544fac249c0d858e71c8c1504ab59430 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Thu, 23 Feb 2012 09:23:10 -0600
+Subject: [PATCH 1/8] Turn on the USB regulator on Beagle xM explicitly
+
+ Turn on the USB regulator on Beagle xM explicitly when the USB
+ subsystem asks for it, rather than relying on u-boot to do it.
+
+ http://www.spinics.net/lists/linux-omap/msg65102.html
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index e15798a..d9b2125 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -521,6 +521,24 @@ static struct regulator_consumer_supply beagle_vsim_supply[] = {
+ 	REGULATOR_SUPPLY("vmmc_aux", "omap_hsmmc.0"),
+ };
+ 
++static struct regulator_consumer_supply beagle_usb_supply[] = {
++	REGULATOR_SUPPLY("hsusb0", "ehci-omap.0"),
++	REGULATOR_SUPPLY("hsusb1", "ehci-omap.0")
++};
++
++static struct regulator_init_data usb_power = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL,
++		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies = ARRAY_SIZE(beagle_usb_supply),
++	.consumer_supplies = beagle_usb_supply
++};
++
+ static struct gpio_led gpio_leds[];
+ 
+ static int beagle_twl_gpio_setup(struct device *dev,
+@@ -637,6 +655,7 @@ static struct twl4030_platform_data beagle_twldata = {
+ 	.gpio		= &beagle_gpio_data,
+ 	.vmmc1		= &beagle_vmmc1,
+ 	.vsim		= &beagle_vsim,
++	.vaux2		= &usb_power,
+ };
+ 
+ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
+-- 
+1.7.10.4
+

@@ -1,0 +1,28 @@
+From ef57fd362aaad8689174f0699a8c9270c7dcd60f Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Tue, 2 Nov 2010 09:59:09 -0500
+Subject: [PATCH] arm: omap: devkit8000: for lcd use samsung_lte_panel
+
+This was noticed by Robert Skretkowicz
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/board-devkit8000.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index 6567c1c..e5d5871 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -136,7 +136,7 @@ static struct panel_generic_dpi_data lcd_panel = {
+ static struct omap_dss_device devkit8000_lcd_device = {
+ 	.name                   = "lcd",
+ 	.type                   = OMAP_DISPLAY_TYPE_DPI,
+-	.driver_name            = "generic_dpi_panel",
++	.driver_name            = "samsung_lte_panel",
+ 	.data			= &lcd_panel,
+ 	.phy.dpi.data_lines     = 24,
+ };
+-- 
+1.7.10.4
+

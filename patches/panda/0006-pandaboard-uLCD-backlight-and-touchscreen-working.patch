@@ -1,0 +1,144 @@
+From 3bd2bb8bb12376e2a2e33c917816560d63b4b154 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Mon, 6 Aug 2012 14:56:06 +0200
+Subject: [PATCH 6/6] pandaboard uLCD: backlight and touchscreen working
+
+v3.5.1: re-merged, untested: Robert Nelson <robertcnelson@gmail.com>
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/board-omap4panda.c |   75 +++++++++++++++++++++++++++++++-
+ 1 file changed, 74 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 982fb26..be63539 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -21,6 +21,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
++#include <linux/irq.h>
+ #include <linux/leds.h>
+ #include <linux/gpio.h>
+ #include <linux/usb/otg.h>
+@@ -43,6 +44,7 @@
+ #include "common.h"
+ #include <plat/usb.h>
+ #include <plat/mmc.h>
++#include <video/omap-panel-generic-dpi.h>
+ #include <video/omap-panel-tfp410.h>
+ 
+ #include "hsmmc.h"
+@@ -279,6 +281,56 @@ static struct i2c_board_info __initdata panda_i2c_eeprom[] = {
+ 	},
+ };
+ 
++#if defined(CONFIG_INPUT_TOUCHSCREEN) && \
++	( defined(CONFIG_TOUCHSCREEN_TSC2007) || defined(CONFIG_TOUCHSCREEN_TSC2007_MODULE))
++/* Touchscreen */
++#include <linux/i2c/tsc2007.h>
++
++/* Pin 22 on the expansion connector */
++#define OMAP3BEAGLE_TSC2007_GPIO 39
++
++static int omap4_panda_tsc2007_get_pendown_state(void)
++{
++	return !gpio_get_value(OMAP3BEAGLE_TSC2007_GPIO);
++}
++
++static struct tsc2007_platform_data tsc2007_info = {
++	.model = 2007,
++	.x_plate_ohms = 180,
++	.get_pendown_state = omap4_panda_tsc2007_get_pendown_state,
++};
++
++static struct i2c_board_info __initdata omap4_panda_i2c2_bbtoys_ulcd[] = {
++	{
++		I2C_BOARD_INFO("tsc2007", 0x48),
++		.platform_data = &tsc2007_info,
++	},
++	{
++		I2C_BOARD_INFO("tlc59108", 0x40),
++	},
++};
++
++static void __init omap4_panda_tsc2007_init(void)
++{
++	int r;
++
++	omap_mux_init_gpio(OMAP3BEAGLE_TSC2007_GPIO, OMAP_PIN_INPUT_PULLUP);
++
++	r = gpio_request_one(OMAP3BEAGLE_TSC2007_GPIO, GPIOF_IN, "tsc2007_pen_down");
++	if (r < 0) {
++		printk(KERN_ERR "failed to request GPIO#%d for "
++		"tsc2007 pen down IRQ\n", OMAP3BEAGLE_TSC2007_GPIO);
++		return;
++	}
++
++	omap4_panda_i2c2_bbtoys_ulcd[0].irq = gpio_to_irq(OMAP3BEAGLE_TSC2007_GPIO);
++	irq_set_irq_type(gpio_to_irq(OMAP3BEAGLE_TSC2007_GPIO), IRQ_TYPE_EDGE_FALLING);
++}
++#else
++static struct i2c_board_info __initdata omap4_panda_i2c2_bbtoys_ulcd[] = {};
++static void __init omap4_panda_tsc2007_init(void) { return; }
++#endif
++
+ static int __init omap4_panda_i2c_init(void)
+ {
+ 	omap4_pmic_get_config(&omap4_panda_twldata, TWL_COMMON_PDATA_USB,
+@@ -302,7 +354,8 @@ static int __init omap4_panda_i2c_init(void)
+ 	 */
+ 	omap_register_i2c_bus(3, 100, panda_i2c_eeprom,
+ 					ARRAY_SIZE(panda_i2c_eeprom));
+-	omap_register_i2c_bus(4, 400, NULL, 0);
++	omap_register_i2c_bus(4, 400,  omap4_panda_i2c2_bbtoys_ulcd,
++					ARRAY_SIZE(omap4_panda_i2c2_bbtoys_ulcd));
+ 	return 0;
+ }
+ 
+@@ -395,6 +448,20 @@ static struct tfp410_platform_data omap4_dvi_panel = {
+ 	.power_down_gpio	= PANDA_DVI_TFP410_POWER_DOWN_GPIO,
+ };
+ 
++static struct panel_generic_dpi_data lcd_panel = {
++	.name = "tfc_s9700rtwv35tr-01b",
++};
++
++static struct omap_dss_device omap4_panda_lcd_device = {
++	.type                   = OMAP_DISPLAY_TYPE_DPI,
++	.name                   = "lcd",
++	.driver_name		= "generic_dpi_panel",
++	.phy.dpi.data_lines     = 24,
++	.reset_gpio 		= -EINVAL,
++	.data			= &lcd_panel,
++	.channel 		= OMAP_DSS_CHANNEL_LCD2,
++};
++
+ static struct omap_dss_device omap4_panda_dvi_device = {
+ 	.type			= OMAP_DISPLAY_TYPE_DPI,
+ 	.name			= "dvi",
+@@ -445,6 +512,7 @@ static struct omap_dss_device  omap4_panda_hdmi_device = {
+ static struct omap_dss_device *omap4_panda_dss_devices[] = {
+ 	&omap4_panda_dvi_device,
+ 	&omap4_panda_hdmi_device,
++	&omap4_panda_lcd_device,
+ };
+ 
+ static struct omap_dss_board_info omap4_panda_dss_data = {
+@@ -501,7 +569,12 @@ static void __init omap4_panda_init(void)
+ 		pr_err("error setting wl12xx data: %d\n", ret);
+ 
+ 	omap4_panda_init_rev();
++
++        /* HACK */
++        omap4_panda_tsc2007_init();
++
+ 	omap4_panda_i2c_init();
++
+ 	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
+ 	platform_device_register(&omap_vwlan_device);
+ 	omap_serial_init();
+-- 
+1.7.10.4
+

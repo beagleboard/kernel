@@ -1,0 +1,40 @@
+From a28e2990d42d5f78c399927db9d9a8d7c47fab3e Mon Sep 17 00:00:00 2001
+From: Shawn Landden <shawnlandden@gmail.com>
+Date: Wed, 30 May 2012 13:45:08 -0700
+Subject: [PATCH] arm: add definition of strstr() to decompress.c
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+include/linux/dynamic_debug.h uses strstr from <linux/string.h>
+and is included via <linux/kernel.h> from lib/xz/xz_private.h
+when CONFIG_KERNEL_XZ=y.
+
+However arch/arm/boot/compressed/decompress.c defines _LINUX_STRING_H
+preventing the load of <linux/string.h> resulting in:
+
+include/linux/dynamic_debug.h:111:2: error: implicit declaration of function ‘strstr’
+
+Define strstr in arch/arm/boot/compressed/decompress.c, providing the needed
+subset of <linux/string.h>.
+
+Signed-off-by: Shawn Landden <shawnlandden@gmail.com>
+---
+ arch/arm/boot/compressed/decompress.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/compressed/decompress.c b/arch/arm/boot/compressed/decompress.c
+index f41b38c..cdc3cd4 100644
+--- a/arch/arm/boot/compressed/decompress.c
++++ b/arch/arm/boot/compressed/decompress.c
+@@ -47,6 +47,7 @@ extern void error(char *);
+ #ifdef CONFIG_KERNEL_XZ
+ #define memmove memmove
+ #define memcpy memcpy
++extern char * strstr(const char *, const char *);
+ #include "../../../../lib/decompress_unxz.c"
+ #endif
+ 
+-- 
+1.7.10.4
+

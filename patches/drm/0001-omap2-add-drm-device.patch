@@ -1,4 +1,4 @@
-From b953d0b39bc1885b4b1477d71698cca03995bba2 Mon Sep 17 00:00:00 2001
+From 9b004f4ef77c0e141a8c9108ae05ed8cd8e0782e Mon Sep 17 00:00:00 2001
 From: Andy Gross <andy.gross@ti.com>
 Date: Tue, 13 Mar 2012 15:34:38 -0500
 Subject: [PATCH 1/4] omap2+: add drm device
@@ -19,12 +19,12 @@ Signed-off-by: Rob Clark <rob@ti.com>
  create mode 100644 arch/arm/plat-omap/include/plat/drm.h
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 49f92bc..c301ab7 100644
+index fa742f3..a636cdc 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -187,6 +187,10 @@ ifneq ($(CONFIG_TIDSPBRIDGE),)
- obj-y					+= dsp.o
- endif
+@@ -189,6 +189,10 @@ endif
+ # OMAP2420 MSDI controller integration support ("MMC")
+ obj-$(CONFIG_SOC_OMAP2420)		+= msdi.o
  
 +ifneq ($(CONFIG_DRM_OMAP),)
 +obj-y					+= drm.o
@@ -123,13 +123,13 @@ index 0000000..779ae02
 +
 +#endif
 diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index f1e46ea..20fbf2a 100644
+index 0a9b9a9..ba693a7 100644
 --- a/arch/arm/plat-omap/common.c
 +++ b/arch/arm/plat-omap/common.c
-@@ -20,10 +20,10 @@
- #include <plat/board.h>
+@@ -21,10 +21,10 @@
  #include <plat/vram.h>
  #include <plat/dsp.h>
+ #include <plat/dma.h>
 +#include <plat/drm.h>
  
  #include <plat/omap-secure.h>
@@ -138,7 +138,7 @@ index f1e46ea..20fbf2a 100644
  #define NO_LENGTH_CHECK 0xffffffff
  
  struct omap_board_config_kernel *omap_board_config __initdata;
-@@ -64,6 +64,7 @@ const void *__init omap_get_var_config(u16 tag, size_t *len)
+@@ -65,6 +65,7 @@ const void *__init omap_get_var_config(u16 tag, size_t *len)
  
  void __init omap_reserve(void)
  {
@@ -217,5 +217,5 @@ index 0000000..df9bc41
 +
 +#endif /* __PLAT_OMAP_DRM_H__ */
 -- 
-1.7.10
+1.7.10.4
 

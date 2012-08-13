@@ -1,18 +1,18 @@
-From 10171dce2f9ec8265fb0fcf1cbb21172142d694f Mon Sep 17 00:00:00 2001
+From 790e6f00d3dbc46acab93e78783263d8af587535 Mon Sep 17 00:00:00 2001
 From: Bas van der Doorn <bas@doornvd.com>
 Date: Sat, 19 May 2012 17:09:28 +0200
-Subject: [PATCH 7/7] Beagle: expansion: add beaglefpga
+Subject: [PATCH 7/8] Beagle: expansion: add beaglefpga
 
 Added SPI dev and McBSP 3 mux when FPGA is detected
 
 Signed-off-by: Bas van der Doorn <bas@doornvd.com>
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |   73 +++++++++++++++++++++++++++++++
- 1 file changed, 73 insertions(+)
+ arch/arm/mach-omap2/board-omap3beagle.c |   72 +++++++++++++++++++++++++++++++
+ 1 file changed, 72 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index ea208d3..8eac14c 100644
+index c3f9be5..8a3de4b 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
 @@ -39,6 +39,7 @@
@@ -23,13 +23,13 @@ index ea208d3..8eac14c 100644
  
  #include <plat/board.h>
  #include "common.h"
-@@ -901,6 +902,69 @@ static void __init beagle_opp_init(void)
+@@ -872,6 +873,68 @@ static void __init beagle_opp_init(void)
  	return;
  }
  
 +static void __init omap3_beagle_config_mcspi3_mux(void)
 +{
-+        // NOTE: Clock pins need to be in input mode
++	// NOTE: Clock pins need to be in input mode
 +	omap_mux_init_signal("sdmmc2_clk.mcspi3_clk", OMAP_PIN_INPUT);
 +	omap_mux_init_signal("sdmmc2_cmd.mcspi3_simo", OMAP_PIN_OUTPUT);
 +	omap_mux_init_signal("sdmmc2_dat0.mcspi3_somi", OMAP_PIN_INPUT_PULLUP);
@@ -79,7 +79,6 @@ index ea208d3..8eac14c 100644
 +		.chip_select	= 1,
 +		.mode = SPI_MODE_1,
 +	},
-+
 +	// spi 4.0
 +	{
 +		.modalias	= "spidev",
@@ -93,7 +92,7 @@ index ea208d3..8eac14c 100644
  static void __init omap3_beagle_init(void)
  {
  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-@@ -1016,6 +1080,15 @@ static void __init omap3_beagle_init(void)
+@@ -994,6 +1057,15 @@ static void __init omap3_beagle_init(void)
  		platform_device_register(&omap_vwlan_device);
  	}
  
@@ -110,5 +109,5 @@ index ea208d3..8eac14c 100644
  	{
  		printk(KERN_INFO "Beagle second expansionboard: initializing touchscreen: tsc2007\n");
 -- 
-1.7.10
+1.7.10.4
 

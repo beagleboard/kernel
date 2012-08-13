@@ -1,0 +1,89 @@
+From e1e00203dc80fd297f1549b902aefea74cdce0f7 Mon Sep 17 00:00:00 2001
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Date: Sat, 16 Jun 2012 15:20:11 +0200
+Subject: [PATCH 08/10] PM / cpuidle: Add driver reference counter
+
+Add a reference counter for the cpuidle driver, so that it can't
+be unregistered when it is in use.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/cpuidle/driver.c |   29 ++++++++++++++++++++++++++++-
+ include/linux/cpuidle.h  |    6 +++++-
+ 2 files changed, 33 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
+index 40cd3f3..58bf3b1a 100644
+--- a/drivers/cpuidle/driver.c
++++ b/drivers/cpuidle/driver.c
+@@ -16,6 +16,7 @@
+ 
+ static struct cpuidle_driver *cpuidle_curr_driver;
+ DEFINE_SPINLOCK(cpuidle_driver_lock);
++int cpuidle_driver_refcount;
+ 
+ static void __cpuidle_register_driver(struct cpuidle_driver *drv)
+ {
+@@ -89,8 +90,34 @@ void cpuidle_unregister_driver(struct cpuidle_driver *drv)
+ 	}
+ 
+ 	spin_lock(&cpuidle_driver_lock);
+-	cpuidle_curr_driver = NULL;
++
++	if (!WARN_ON(cpuidle_driver_refcount > 0))
++		cpuidle_curr_driver = NULL;
++
+ 	spin_unlock(&cpuidle_driver_lock);
+ }
+ 
+ EXPORT_SYMBOL_GPL(cpuidle_unregister_driver);
++
++struct cpuidle_driver *cpuidle_driver_ref(void)
++{
++	struct cpuidle_driver *drv;
++
++	spin_lock(&cpuidle_driver_lock);
++
++	drv = cpuidle_curr_driver;
++	cpuidle_driver_refcount++;
++
++	spin_unlock(&cpuidle_driver_lock);
++	return drv;
++}
++
++void cpuidle_driver_unref(void)
++{
++	spin_lock(&cpuidle_driver_lock);
++
++	if (!WARN_ON(cpuidle_driver_refcount <= 0))
++		cpuidle_driver_refcount--;
++
++	spin_unlock(&cpuidle_driver_lock);
++}
+diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+index 23a79c6..e041742 100644
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -143,7 +143,9 @@ struct cpuidle_driver {
+ extern void disable_cpuidle(void);
+ extern int cpuidle_idle_call(void);
+ extern int cpuidle_register_driver(struct cpuidle_driver *drv);
+-struct cpuidle_driver *cpuidle_get_driver(void);
++extern struct cpuidle_driver *cpuidle_get_driver(void);
++extern struct cpuidle_driver *cpuidle_driver_ref(void);
++extern void cpuidle_driver_unref(void);
+ extern void cpuidle_unregister_driver(struct cpuidle_driver *drv);
+ extern int cpuidle_register_device(struct cpuidle_device *dev);
+ extern void cpuidle_unregister_device(struct cpuidle_device *dev);
+@@ -164,6 +166,8 @@ static inline int cpuidle_idle_call(void) { return -ENODEV; }
+ static inline int cpuidle_register_driver(struct cpuidle_driver *drv)
+ {return -ENODEV; }
+ static inline struct cpuidle_driver *cpuidle_get_driver(void) {return NULL; }
++static inline struct cpuidle_driver *cpuidle_driver_ref(void) {return NULL; }
++static inline void cpuidle_driver_unref(void) {}
+ static inline void cpuidle_unregister_driver(struct cpuidle_driver *drv) { }
+ static inline int cpuidle_register_device(struct cpuidle_device *dev)
+ {return -ENODEV; }
+-- 
+1.7.10.4
+
