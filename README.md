@@ -48,6 +48,6 @@ meant as an example to fill in some possible points of confusion.
  ~/kernel$ export CROSS_COMPILE=arm-linux-gnueabi-
  ~/kernel$ cd kernel
  ~/kernel/kernel$ make beaglebone_defconfig
- ~/kernel/kernel$ make
+ ~/kernel/kernel$ make -j4
  ```
 
