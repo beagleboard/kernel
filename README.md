@@ -71,7 +71,7 @@ meant as an example to fill in some possible points of confusion.
  ~/$ ssh root@beaglebone.local 'cp /boot/uImage-3.2.25+ /mnt/uImage'
  ```
 
- Wait a minute.
+ Reboot the board.
 
  ```bash
  ~/$ ssh root@beaglebone.local 'uname -a'
