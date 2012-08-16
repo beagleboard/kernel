@@ -116,7 +116,7 @@ meant as an example to fill in some possible points of confusion.
  PWD   := ${HOME}/hello
 
  default:
-  	make -C $(KDIR) SUBDIRS=$(PWD) modules
+ \t	make -C $(KDIR) SUBDIRS=$(PWD) modules
  ```
 
  ```bash
