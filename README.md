@@ -29,7 +29,7 @@ meant as an example to fill in some possible points of confusion.
 
  ```bash
  ~$ sudo apt-get install -y git vim openssh-server gcc-arm-linux-gnueabi
- ~$ git config --global user.email "jdk@ti.com"
+ ~$ git config --global user.email "jkridner@example.com"
  ~$ git config --global user.name "Jason Kridner"
  ```
 
