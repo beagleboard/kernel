@@ -23,11 +23,11 @@ detailed usage (cross compilation)
 
  First thing is to install and configure some needed utilities:
 
-```bash
-$ sudo apt-get install -y git vim
-$ git config --global user.email "jdk@ti.com"
-$ git config --global user.name "Jason Kridner"
-```
+ ```bash
+ $ sudo apt-get install -y git vim
+ $ git config --global user.email "jdk@ti.com"
+ $ git config --global user.name "Jason Kridner"
+ ```
 
 2. Setup toolchain
 
@@ -36,18 +36,18 @@ $ git config --global user.name "Jason Kridner"
  I installed the 64-bit toolchain with qte tools dated 18-Mar-2011 with an
  md5sum of b0737d1865d2f0787463de19b81ba180.
 
-```bash
-$ wget http://www.angstrom-distribution.org/toolchains/angstrom-2011.03-x86_64-linux-armv7a-linux-gnueabi-toolchain-qte-4.6.3.tar.bz2
-$ md5sum angstrom-2011.03-x86_64-linux-armv7a-linux-gnueabi-toolchain-qte-4.6.3.tar.bz2 
-b0737d1865d2f0787463de19b81ba180  angstrom-2011.03-x86_64-linux-armv7a-linux-gnueabi-toolchain-qte-4.6.3.tar.bz2
-$ sudo tar xjf angstrom-2011.03-x86_64-linux-armv7a-linux-gnueabi-toolchain-qte-4.6.3.tar.bz2 -C /
-$ source /usr/local/angstrom/arm/environment-setup 
-$ echo 'source /usr/local/angstrom/arm/environment-setup' >> ~/.bashrc
-```
+ ```bash
+ $ wget http://www.angstrom-distribution.org/toolchains/angstrom-2011.03-x86_64-linux-armv7a-linux-gnueabi-toolchain-qte-4.6.3.tar.bz2
+ $ md5sum angstrom-2011.03-x86_64-linux-armv7a-linux-gnueabi-toolchain-qte-4.6.3.tar.bz2 
+ b0737d1865d2f0787463de19b81ba180  angstrom-2011.03-x86_64-linux-armv7a-linux-gnueabi-toolchain-qte-4.6.3.tar.bz2
+ $ sudo tar xjf angstrom-2011.03-x86_64-linux-armv7a-linux-gnueabi-toolchain-qte-4.6.3.tar.bz2 -C /
+ $ source /usr/local/angstrom/arm/environment-setup 
+ $ echo 'source /usr/local/angstrom/arm/environment-setup' >> ~/.bashrc
+ ```
 
 3. Download, configure and build kernel
 
-```bash
-$ git clone git@github.com:beagleboard/kernel.git
-```
+ ```bash
+ $ git clone git@github.com:beagleboard/kernel.git
+ ```
 
