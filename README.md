@@ -84,7 +84,10 @@ meant as an example to fill in some possible points of confusion.
 
  ```bash
  ~/$ mkdir hello; cd hello
- ~/$ cat > hello.c
+ ```
+
+ hello.c
+ ```c
  #include <linux/module.h>       /* Needed by all modules */
  #include <linux/kernel.h>       /* Needed for KERN_INFO */
  #include <linux/init.h>         /* Needed for the macros */
@@ -103,8 +106,10 @@ meant as an example to fill in some possible points of confusion.
 
  module_init(hello_start);
  module_exit(hello_end);
- ^D
- ~/$ cat > Makefile
+ ```
+
+ ~/hello/Makefile
+ ```Makefile
  obj-m := hello.o
 
  KDIR  := ${HOME}/kernel/rootfs/lib/modules/3.2.25+/build
@@ -112,7 +117,9 @@ meant as an example to fill in some possible points of confusion.
 
  default:
  	make -C $(KDIR) SUBDIRS=$(PWD) modules
- ^D
+ ```
+
+ ```bash
  ~/hello$ make
  ~/hello$ scp hello.ko root@beaglebone.local:
  ~/hello$ ssh root@beaglebone.local '/sbin/insmod ./hello.ko; dmesg | tail'
