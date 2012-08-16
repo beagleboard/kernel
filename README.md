@@ -28,7 +28,7 @@ meant as an example to fill in some possible points of confusion.
  First thing is to install and configure some needed utilities:
 
  ```bash
- ~$ sudo apt-get install -y git vim openssh-server gcc-arm-linux-gnueabi
+ ~$ sudo apt-get install -y git lzop gcc-arm-linux-gnueabi
  ~$ git config --global user.email "jkridner@example.com"
  ~$ git config --global user.name "Jason Kridner"
  ```
@@ -44,6 +44,9 @@ meant as an example to fill in some possible points of confusion.
  ~/kernel$ git checkout 6a7c4284a16fed3dae87f4aef78b59c902e4da84 -b beaglebone-3.2
  ~/kernel$ ./patch.sh
  ~/kernel$ cp patches/beaglebone/defconfig kernel/arch/arm/configs/beaglebone_defconfig
+ ~/kernel$ wget http://arago-project.org/git/projects/?p=am33x-cm3.git\;a=blob_plain\;f=bin/am335x-pm-firmware.bin\;hb=HEAD -O kernel/firmware/am335x-pm-firmware.bin
+ ~/kernel$ md5sum kernel/firmware/am335x-pm-firmware.bin 
+ 17d6a4c24d3cb720aa9ed4522cb891fc  kernel/firmware/am335x-pm-firmware.bin
  ~/kernel$ export ARCH=arm
  ~/kernel$ export CROSS_COMPILE=arm-linux-gnueabi-
  ~/kernel$ cd kernel
