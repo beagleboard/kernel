@@ -44,9 +44,9 @@ meant as an example to fill in some possible points of confusion.
  ~/kernel$ git checkout 6a7c4284a16fed3dae87f4aef78b59c902e4da84 -b beaglebone-3.2
  ~/kernel$ ./patch.sh
  ~/kernel$ cp patches/beaglebone/defconfig kernel/arch/arm/configs/beaglebone_defconfig
- ~/kernel$ cd kernel
  ~/kernel$ export ARCH=arm
  ~/kernel$ export CROSS_COMPILE=arm-linux-gnueabi-
+ ~/kernel$ cd kernel
  ~/kernel/kernel$ make beaglebone_defconfig
  ~/kernel/kernel$ make
  ```
