@@ -86,7 +86,7 @@ meant as an example to fill in some possible points of confusion.
  ~/$ mkdir hello; cd hello
  ```
 
- hello.c
+ ~/hello/hello.c
  ```c
  #include <linux/module.h>       /* Needed by all modules */
  #include <linux/kernel.h>       /* Needed for KERN_INFO */
