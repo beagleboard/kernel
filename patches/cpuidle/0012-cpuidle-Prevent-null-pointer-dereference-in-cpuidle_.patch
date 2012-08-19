@@ -1,0 +1,36 @@
+From b8dff016b2876ebd08765b82c073594e7d4503f1 Mon Sep 17 00:00:00 2001
+From: "Jon Medhurst (Tixy)" <tixy@linaro.org>
+Date: Wed, 15 Aug 2012 22:11:00 +0200
+Subject: [PATCH 12/12] cpuidle: Prevent null pointer dereference in
+ cpuidle_coupled_cpu_notify
+
+When a kernel is built to support multiple hardware types it's possible
+that CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED is set but the hardware the
+kernel is run on doesn't support cpuidle and therefore doesn't load a
+driver for it. In this case, when the system is shut down,
+cpuidle_coupled_cpu_notify() gets called with cpuidle_devices set to
+NULL. There are quite possibly other circumstances where this
+situation can also occur and we should check for it.
+
+Signed-off-by: Jon Medhurst <tixy@linaro.org>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/cpuidle/coupled.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/cpuidle/coupled.c b/drivers/cpuidle/coupled.c
+index c24dda0..3265844 100644
+--- a/drivers/cpuidle/coupled.c
++++ b/drivers/cpuidle/coupled.c
+@@ -693,7 +693,7 @@ static int cpuidle_coupled_cpu_notify(struct notifier_block *nb,
+ 	mutex_lock(&cpuidle_lock);
+ 
+ 	dev = per_cpu(cpuidle_devices, cpu);
+-	if (!dev->coupled)
++	if (!dev || !dev->coupled)
+ 		goto out;
+ 
+ 	switch (action & ~CPU_TASKS_FROZEN) {
+-- 
+1.7.10.4
+

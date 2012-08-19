@@ -1,0 +1,52 @@
+From 2d252caf0def3c4e84776c8babc492483bb81053 Mon Sep 17 00:00:00 2001
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Thu, 9 Aug 2012 12:35:48 +0530
+Subject: [PATCH 5/7] ARM: OMAP4: sleep: Save the complete used register stack
+ frame
+
+OMAP4 sleep entry code even though itself don't use many CPU registers
+makes call to the v7_flush_dcache_all() which uses them. Since
+v7_flush_dcache_all() doesn't make use of stack, the caller must take
+care of the stack frame. Otherwise it will lead to corrupted stack frame.
+
+Fix it by saving used registers.
+
+Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/sleep44xx.S |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep44xx.S
+index 9f6b83d..91e71d8 100644
+--- a/arch/arm/mach-omap2/sleep44xx.S
++++ b/arch/arm/mach-omap2/sleep44xx.S
+@@ -56,9 +56,13 @@ ppa_por_params:
+  * The restore function pointer is stored at CPUx_WAKEUP_NS_PA_ADDR_OFFSET.
+  * It returns to the caller for CPU INACTIVE and ON power states or in case
+  * CPU failed to transition to targeted OFF/DORMANT state.
++ *
++ * omap4_finish_suspend() calls v7_flush_dcache_all() which doesn't save
++ * stack frame and it expects the caller to take care of it. Hence the entire
++ * stack frame is saved to avoid possible stack corruption.
+  */
+ ENTRY(omap4_finish_suspend)
+-	stmfd	sp!, {lr}
++	stmfd	sp!, {r4-r12, lr}
+ 	cmp	r0, #0x0
+ 	beq	do_WFI				@ No lowpower state, jump to WFI
+ 
+@@ -226,7 +230,7 @@ scu_gp_clear:
+ skip_scu_gp_clear:
+ 	isb
+ 	dsb
+-	ldmfd	sp!, {pc}
++	ldmfd	sp!, {r4-r12, pc}
+ ENDPROC(omap4_finish_suspend)
+ 
+ /*
+-- 
+1.7.10.4
+
