@@ -18,9 +18,9 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="ddf343f635fe4440cad528e12f96f28bd50aa099"
+EXTERNAL_SHA="6dab7ede9390d4d937cb89feca932e4fd575d2da"
 
-PATCHSET="vaibhav usb regulator pinctrl rtc beaglebone cpsw"
+PATCHSET="vaibhav usb regulator pinctrl rtc beaglebone cpsw dma"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
