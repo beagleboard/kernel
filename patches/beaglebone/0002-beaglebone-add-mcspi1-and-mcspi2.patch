@@ -1,0 +1,46 @@
+From efe9bcd6a5f2fd7bd82e18915573e1b9166459e6 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Tue, 21 Aug 2012 14:23:14 +0200
+Subject: [PATCH 2/2] beaglebone: add mcspi1 and mcspi2
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am335x-bone.dts |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 9b08413..35dc609 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -22,6 +22,28 @@
+ 		uart1: serial@44E09000 {
+ 			status = "okay";
+ 		};
++
++		mcspi1: spi@48030000 {
++			compatible = "ti,omap2-mcspi";
++			#address-cells = <1>;
++			#size-cells = <0>;   
++			ti,hwmods = "spi0";
++			ti,spi-num-cs = <4>;
++		};
++
++		mcspi2: spi@481A0000 {
++			compatible = "ti,omap2-mcspi";
++			#address-cells = <1>;
++			#size-cells = <0>;   
++			ti,hwmods = "spi1";
++			ti,spi-num-cs = <2>;
++                
++			spidev@2 {
++                        	compatible = "spidev";
++                        	spi-max-frequency = <1200000>;
++                        	reg = <0>;
++                	};
++		};
+ 	};	
+ 
+ 	leds {
+-- 
+1.7.7.6
+
