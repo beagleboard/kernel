@@ -1,15 +1,7 @@
-From patchwork Wed Jul 25 06:20:29 2012
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Subject: spi: omap2-mcspi: In case of dma errors fall back to pio
-Date: Wed, 25 Jul 2012 06:20:29 -0000
+From 9d4e8ad07925afb7aefe1a72e9b68c718f3a8f88 Mon Sep 17 00:00:00 2001
 From: Shubhrajyoti Datta <shubhrajyoti@ti.com>
-X-Patchwork-Id: 1235631
-Message-Id: <1343197229-15188-1-git-send-email-shubhrajyoti@ti.com>
-To: <spi-devel-general@lists.sourceforge.net>
-Cc: <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
- Shubhrajyoti D <shubhrajyoti@ti.com>
+Date: Wed, 25 Jul 2012 06:20:29 +0000
+Subject: [PATCH] spi: omap2-mcspi: In case of dma errors fall back to pio
 
 In case there are dma errors currently the driver exits.
 Make the spi driver fall back to pio mode in case of dma errors.
@@ -18,12 +10,11 @@ If the DMA engine is not selected the driver
 exits.This patch makes the spi fall back to pio in that case.
 
 Also adds a field dma_unusable to struct omap2_mcspi.
- 
+
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 Acked-by: Philip, Avinash <avinashphilip@ti.com>
-
 ---
-drivers/spi/spi-omap2-mcspi.c |   21 +++++++++++++--------
+ drivers/spi/spi-omap2-mcspi.c |   21 +++++++++++++--------
  1 files changed, 13 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
@@ -106,3 +97,6 @@ index bc47781..f243a39 100644
  	kfree(mcspi->dma_channels);
  free_master:
  	kfree(master);
+-- 
+1.7.7.6
+
