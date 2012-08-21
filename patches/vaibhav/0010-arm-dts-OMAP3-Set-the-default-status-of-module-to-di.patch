@@ -1,0 +1,233 @@
+From 6a62602f0a0c2083e32c2f7edc2e73703748c36a Mon Sep 17 00:00:00 2001
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Date: Fri, 3 Aug 2012 16:49:35 +0530
+Subject: [PATCH 10/13] arm/dts: OMAP3: Set the default status of module to
+ "disabled" state
+
+Ideally in common SoC dtsi file should set all modules
+to "disabled" state and it should get enabled in respective
+EVM/Board dts file as per usage.
+
+This patch sets default status of all modules to "disabled"
+state in omap3.dtsi file and enables the status in respective
+board file (beagle and EVM).
+
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/arm/boot/dts/omap3-beagle.dts |   28 ++++++++++++++++++++--------
+ arch/arm/boot/dts/omap3-evm.dts    |   19 +++++++++++++++++++
+ arch/arm/boot/dts/omap3.dtsi       |   14 ++++++++++++++
+ 3 files changed, 53 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index cdcb98c..093924b 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -19,7 +19,24 @@
+ 	};
+ };
+ 
++&uart1 {
++       status = "okay";
++};
++
++&uart2 {
++       status = "okay";
++};
++
++&uart3 {
++       status = "okay";
++};
++
++&uart4 {
++       status = "okay";
++};
++
+ &i2c1 {
++	status = "okay";
+ 	clock-frequency = <2600000>;
+ 
+ 	twl: twl@48 {
+@@ -38,10 +55,12 @@
+ /include/ "twl4030.dtsi"
+ 
+ &i2c2 {
++	status = "okay";
+ 	clock-frequency = <400000>;
+ };
+ 
+ &i2c3 {
++	status = "okay";
+ 	clock-frequency = <100000>;
+ 
+ 	/*
+@@ -58,12 +77,5 @@
+ 	vmmc-supply = <&vmmc1>;
+ 	vmmc_aux-supply = <&vsim>;
+ 	bus-width = <8>;
+-};
+-
+-&mmc2 {
+-	status = "disabled";
+-};
+-
+-&mmc3 {
+-	status = "disabled";
++	status = "okay";
+ };
+diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
+index f349ee9..80a2804 100644
+--- a/arch/arm/boot/dts/omap3-evm.dts
++++ b/arch/arm/boot/dts/omap3-evm.dts
+@@ -19,7 +19,24 @@
+ 	};
+ };
+ 
++&uart1 {
++       status = "okay";
++};
++
++&uart2 {
++       status = "okay";
++};
++
++&uart3 {
++       status = "okay";
++};
++
++&uart4 {
++       status = "okay";
++};
++
+ &i2c1 {
++	status = "okay";
+ 	clock-frequency = <2600000>;
+ 
+ 	twl: twl@48 {
+@@ -32,10 +49,12 @@
+ /include/ "twl4030.dtsi"
+ 
+ &i2c2 {
++	status = "okay";
+ 	clock-frequency = <400000>;
+ };
+ 
+ &i2c3 {
++	status = "okay";
+ 	clock-frequency = <400000>;
+ 
+ 	/*
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 8109471..93f9a30 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -127,24 +127,28 @@
+ 			compatible = "ti,omap3-uart";
+ 			ti,hwmods = "uart1";
+ 			clock-frequency = <48000000>;
++			status = "disabled";
+ 		};
+ 
+ 		uart2: serial@4806c000 {
+ 			compatible = "ti,omap3-uart";
+ 			ti,hwmods = "uart2";
+ 			clock-frequency = <48000000>;
++			status = "disabled";
+ 		};
+ 
+ 		uart3: serial@49020000 {
+ 			compatible = "ti,omap3-uart";
+ 			ti,hwmods = "uart3";
+ 			clock-frequency = <48000000>;
++			status = "disabled";
+ 		};
+ 
+ 		uart4: serial@49042000 {
+ 			compatible = "ti,omap3-uart";
+ 			ti,hwmods = "uart4";
+ 			clock-frequency = <48000000>;
++			status = "disabled";
+ 		};
+ 
+ 		i2c1: i2c@48070000 {
+@@ -152,6 +156,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c1";
++			status = "disabled";
+ 		};
+ 
+ 		i2c2: i2c@48072000 {
+@@ -159,6 +164,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c2";
++			status = "disabled";
+ 		};
+ 
+ 		i2c3: i2c@48060000 {
+@@ -166,6 +172,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c3";
++			status = "disabled";
+ 		};
+ 
+ 		mcspi1: spi@48098000 {
+@@ -174,6 +181,7 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi1";
+ 			ti,spi-num-cs = <4>;
++			status = "disabled";
+ 		};
+ 
+ 		mcspi2: spi@4809a000 {
+@@ -182,6 +190,7 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi2";
+ 			ti,spi-num-cs = <2>;
++			status = "disabled";
+ 		};
+ 
+ 		mcspi3: spi@480b8000 {
+@@ -190,6 +199,7 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi3";
+ 			ti,spi-num-cs = <2>;
++			status = "disabled";
+ 		};
+ 
+ 		mcspi4: spi@480ba000 {
+@@ -198,22 +208,26 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi4";
+ 			ti,spi-num-cs = <1>;
++			status = "disabled";
+ 		};
+ 
+ 		mmc1: mmc@4809c000 {
+ 			compatible = "ti,omap3-hsmmc";
+ 			ti,hwmods = "mmc1";
+ 			ti,dual-volt;
++			status = "disabled";
+ 		};
+ 
+ 		mmc2: mmc@480b4000 {
+ 			compatible = "ti,omap3-hsmmc";
+ 			ti,hwmods = "mmc2";
++			status = "disabled";
+ 		};
+ 
+ 		mmc3: mmc@480ad000 {
+ 			compatible = "ti,omap3-hsmmc";
+ 			ti,hwmods = "mmc3";
++			status = "disabled";
+ 		};
+ 
+ 		wdt2: wdt@48314000 {
+-- 
+1.7.7.6
+

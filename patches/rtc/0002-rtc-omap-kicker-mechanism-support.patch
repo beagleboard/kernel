@@ -1,7 +1,7 @@
-From 0972ebe0bf1f5007a51856e0acd302f8e84c1ef0 Mon Sep 17 00:00:00 2001
+From 259d46399cc5ca26c60ba6aa66c875daa53f839c Mon Sep 17 00:00:00 2001
 From: Afzal Mohammed <afzal@ti.com>
-Date: Wed, 25 Jul 2012 06:12:03 +0000
-Subject: [PATCH 1/6] rtc: omap: kicker mechanism support
+Date: Fri, 20 Jul 2012 16:47:48 +0530
+Subject: [PATCH 2/7] rtc: omap: kicker mechanism support
 
 OMAP RTC IP can have kicker feature. This prevents spurious
 writes to register. To write to registers kicker lock has to
@@ -25,13 +25,16 @@ Older IP (of OMAP1) doesn't have revision register as per
 TRM, so revision register can't be relied always to find
 features, hence id table is being used.
 
+While at it, replace __raw_writeb/__raw_readb with
+writeb/readb; this driver is used on ARMv7 (AM335X SoC)
+
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/rtc/rtc-omap.c |   39 ++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 38 insertions(+), 1 deletions(-)
+ drivers/rtc/rtc-omap.c |   43 ++++++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 40 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index 0b614e3..8afbc2e 100644
+index 0b614e3..27cc70d 100644
 --- a/drivers/rtc/rtc-omap.c
 +++ b/drivers/rtc/rtc-omap.c
 @@ -38,6 +38,8 @@
@@ -53,26 +56,27 @@ index 0b614e3..8afbc2e 100644
  /* OMAP_RTC_CTRL_REG bit fields: */
  #define OMAP_RTC_CTRL_SPLIT		(1<<7)
  #define OMAP_RTC_CTRL_DISABLE		(1<<6)
-@@ -88,11 +93,19 @@
+@@ -88,10 +93,18 @@
  #define OMAP_RTC_INTERRUPTS_IT_ALARM    (1<<3)
  #define OMAP_RTC_INTERRUPTS_IT_TIMER    (1<<2)
  
 +/* OMAP_RTC_KICKER values */
-+#define	KICK0_VALUE			(0x83e70b13)
-+#define	KICK1_VALUE			(0x95a4f1e0)
++#define	KICK0_VALUE			0x83e70b13
++#define	KICK1_VALUE			0x95a4f1e0
 +
 +#define	OMAP_RTC_HAS_KICKER		0x1
 +
  static void __iomem	*rtc_base;
  
- #define rtc_read(addr)		__raw_readb(rtc_base + (addr))
- #define rtc_write(val, addr)	__raw_writeb(val, rtc_base + (addr))
- 
-+#define rtc_writel(val, addr)	writel(val, rtc_base + (addr))
+-#define rtc_read(addr)		__raw_readb(rtc_base + (addr))
+-#define rtc_write(val, addr)	__raw_writeb(val, rtc_base + (addr))
++#define rtc_read(addr)		readb(rtc_base + (addr))
++#define rtc_write(val, addr)	writeb(val, rtc_base + (addr))
 +
++#define rtc_writel(val, addr)	writel(val, rtc_base + (addr))
+ 
  
  /* we rely on the rtc framework to handle locking (rtc->ops_lock),
-  * so the only other requirement is that register accesses which
 @@ -285,11 +298,22 @@ static struct rtc_class_ops omap_rtc_ops = {
  static int omap_rtc_alarm;
  static int omap_rtc_timer;

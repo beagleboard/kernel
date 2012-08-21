@@ -1,7 +1,7 @@
-From 5b02ed7a63c91d95416950567456448372ec12a4 Mon Sep 17 00:00:00 2001
+From 77c8655b77679f74965d1cfc505e60fbc7ab450f Mon Sep 17 00:00:00 2001
 From: Afzal Mohammed <afzal@ti.com>
-Date: Wed, 25 Jul 2012 16:57:37 +0200
-Subject: [PATCH 6/6] arm/dts: am33xx rtc node
+Date: Wed, 18 Jul 2012 17:57:18 +0530
+Subject: [PATCH 7/7] arm/dts: am33xx rtc node
 
 Add AM33xx rtc node.
 
@@ -11,15 +11,15 @@ Signed-off-by: Afzal Mohammed <afzal@ti.com>
  1 files changed, 5 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 2f38f5b..e5718e2 100644
+index cbe55b4..efcd4a8 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -184,5 +184,10 @@
- 			usb0-phy = <&usb0_phy>;
- 			usb1-phy = <&usb1_phy>;
+@@ -198,5 +198,10 @@
+ 			compatible = "ti,omap3-wdt";
+ 			ti,hwmods = "wd_timer2";
  		};
 +
-+		rtc@44e3e000 {
++		rtc {
 +			compatible = "ti,da830-rtc";
 +			ti,hwmods = "rtc";
 +		};
