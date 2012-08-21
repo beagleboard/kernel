@@ -1,7 +1,7 @@
-From 77bb7b724f9ffdfe83e5b1f6eaaa61466116d3e2 Mon Sep 17 00:00:00 2001
+From a8ec6ed5ee83b02a6fea1f73c0082c608c195755 Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Tue, 10 Jul 2012 14:10:38 +0530
-Subject: [PATCH 11/30] drivers: usb: otg: add device tree support to otg
+Subject: [PATCH 01/17] drivers: usb: otg: add device tree support to otg
  library
 
 Adds an API to get usb phy by passing a device node phandle value. Since
@@ -159,10 +159,10 @@ index 1bf60a2..ff08b34 100644
  EXPORT_SYMBOL(usb_add_phy);
  
 diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
-index 0cb2ec2..4636d39 100644
+index 45824be..b1be360 100644
 --- a/include/linux/usb/otg.h
 +++ b/include/linux/usb/otg.h
-@@ -187,6 +187,8 @@ usb_phy_shutdown(struct usb_phy *x)
+@@ -190,6 +190,8 @@ usb_phy_shutdown(struct usb_phy *x)
  extern struct usb_phy *usb_get_phy(enum usb_phy_type type);
  extern struct usb_phy *devm_usb_get_phy(struct device *dev,
  	enum usb_phy_type type);
@@ -171,7 +171,7 @@ index 0cb2ec2..4636d39 100644
  extern void usb_put_phy(struct usb_phy *);
  extern void devm_usb_put_phy(struct device *dev, struct usb_phy *x);
  extern const char *otg_state_string(enum usb_otg_state state);
-@@ -202,6 +204,12 @@ static inline struct usb_phy *devm_usb_get_phy(struct device *dev,
+@@ -205,6 +207,12 @@ static inline struct usb_phy *devm_usb_get_phy(struct device *dev,
  	return NULL;
  }
  

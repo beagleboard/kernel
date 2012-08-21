@@ -1,7 +1,7 @@
-From 77c07a4e98df74630794e2825a8bacf378949e84 Mon Sep 17 00:00:00 2001
+From c63452c3b97c590695e8f908e8f73d343978fa3c Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Mon, 25 Jun 2012 17:43:47 +0530
-Subject: [PATCH 13/30] usb: musb: kill uses of is_host/peripheral_capable()
+Subject: [PATCH 02/17] usb: musb: kill uses of is_host/peripheral_capable()
 
 is_host_capable() and is_peripheral_capable() is hardcoded to be
 always '1' and so kill the uses of the same.
@@ -102,10 +102,10 @@ index 26f1bef..89d1871 100644
  	}
  }
 diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index dbcdeea..51bd7b2 100644
+index 586105b..f60d3f0 100644
 --- a/drivers/usb/musb/musb_core.h
 +++ b/drivers/usb/musb/musb_core.h
-@@ -96,8 +96,6 @@ struct musb_ep;
+@@ -88,8 +88,6 @@ struct musb_ep;
  
  /****************************** PERIPHERAL ROLE *****************************/
  
@@ -114,7 +114,7 @@ index dbcdeea..51bd7b2 100644
  extern irqreturn_t musb_g_ep0_irq(struct musb *);
  extern void musb_g_tx(struct musb *, u8);
  extern void musb_g_rx(struct musb *, u8);
-@@ -109,8 +107,6 @@ extern void musb_g_disconnect(struct musb *);
+@@ -101,8 +99,6 @@ extern void musb_g_disconnect(struct musb *);
  
  /****************************** HOST ROLE ***********************************/
  

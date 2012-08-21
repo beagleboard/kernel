@@ -1,7 +1,7 @@
-From 293cb9ffd878b9393ad6bca63a90a0320f76332c Mon Sep 17 00:00:00 2001
+From 255e40bddedeb4a418adddbc584917589e5042be Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Wed, 4 Jul 2012 13:45:22 +0530
-Subject: [PATCH 22/30] usb: otg: nop: add support for multiple tranceiver
+Subject: [PATCH 09/17] usb: otg: nop: add support for multiple tranceiver
 
 Currently we have one single nop transceiver support as same is
 defined as a global variable in drivers/usb/otg/nop-usb-xceiv.c.
@@ -228,10 +228,10 @@ index 803f958..04ddcee 100644
  	nop->phy.dev		= nop->dev;
  	nop->phy.label		= "nop-xceiv";
 diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
-index 4636d39..2d7704e 100644
+index b1be360..ee4d547 100644
 --- a/include/linux/usb/otg.h
 +++ b/include/linux/usb/otg.h
-@@ -138,13 +138,13 @@ extern void usb_remove_phy(struct usb_phy *);
+@@ -141,13 +141,13 @@ extern void usb_remove_phy(struct usb_phy *);
  #if defined(CONFIG_NOP_USB_XCEIV) || (defined(CONFIG_NOP_USB_XCEIV_MODULE) && defined(MODULE))
  /* sometimes transceivers are accessed only through e.g. ULPI */
  extern void usb_nop_xceiv_register(void);

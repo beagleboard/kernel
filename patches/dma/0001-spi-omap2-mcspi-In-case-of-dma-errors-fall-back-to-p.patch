@@ -1,4 +1,4 @@
-From 9d4e8ad07925afb7aefe1a72e9b68c718f3a8f88 Mon Sep 17 00:00:00 2001
+From 5305281c3de93256c2a26749e454e4516c448542 Mon Sep 17 00:00:00 2001
 From: Shubhrajyoti Datta <shubhrajyoti@ti.com>
 Date: Wed, 25 Jul 2012 06:20:29 +0000
 Subject: [PATCH] spi: omap2-mcspi: In case of dma errors fall back to pio
@@ -14,11 +14,11 @@ Also adds a field dma_unusable to struct omap2_mcspi.
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 Acked-by: Philip, Avinash <avinashphilip@ti.com>
 ---
- drivers/spi/spi-omap2-mcspi.c |   21 +++++++++++++--------
- 1 files changed, 13 insertions(+), 8 deletions(-)
+ drivers/spi/spi-omap2-mcspi.c |   20 +++++++++++++-------
+ 1 files changed, 13 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index bc47781..f243a39 100644
+index b2fb141..485cb2d 100644
 --- a/drivers/spi/spi-omap2-mcspi.c
 +++ b/drivers/spi/spi-omap2-mcspi.c
 @@ -129,6 +129,7 @@ struct omap2_mcspi {
@@ -82,21 +82,14 @@ index bc47781..f243a39 100644
  	pm_runtime_use_autosuspend(&pdev->dev);
  	pm_runtime_set_autosuspend_delay(&pdev->dev, SPI_AUTOSUSPEND_TIMEOUT);
  	pm_runtime_enable(&pdev->dev);
-@@ -1229,14 +1236,12 @@ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
- 	status = spi_register_master(master);
- 	if (status < 0)
- 		goto err_spi_register;
--
- 	return status;
+@@ -1234,7 +1241,6 @@ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
  
- err_spi_register:
- 	spi_master_put(master);
  disable_pm:
  	pm_runtime_disable(&pdev->dev);
 -dma_chnl_free:
  	kfree(mcspi->dma_channels);
  free_master:
- 	kfree(master);
+ 	spi_master_put(master);
 -- 
 1.7.7.6
 

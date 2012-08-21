@@ -1,7 +1,7 @@
-From 92497b586d885cfbea4799b9bccc297bda6ff38a Mon Sep 17 00:00:00 2001
+From 28cb1534829590862c36924c651e543236838400 Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Mon, 25 Jun 2012 15:59:47 +0530
-Subject: [PATCH 20/30] usb: musb: kill global and static for multi instance
+Subject: [PATCH 07/17] usb: musb: kill global and static for multi instance
 
 Moved global variable "musb_debugfs_root" and static variable
 "old_state" to 'struct musb' to help support multi instance of
@@ -89,10 +89,10 @@ index a565fc2..e781800 100644
  	return 0;
  }
 diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index 84436f7..5ec32b9 100644
+index a88010c..2a03436 100644
 --- a/drivers/usb/musb/musb_core.h
 +++ b/drivers/usb/musb/musb_core.h
-@@ -450,6 +450,10 @@ struct musb {
+@@ -442,6 +442,10 @@ struct musb {
  #ifdef MUSB_CONFIG_PROC_FS
  	struct proc_dir_entry *proc_entry;
  #endif

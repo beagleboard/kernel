@@ -1,7 +1,7 @@
-From 7578a299d3a2a51101ea23ec80b6ca6649e6ca5b Mon Sep 17 00:00:00 2001
+From 4aab41a6168758d82298bf4af4e00af3f38033a3 Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Mon, 2 Jul 2012 14:53:32 +0530
-Subject: [PATCH 19/30] usb: musb: add musb_ida for multi instance support
+Subject: [PATCH 06/17] usb: musb: add musb_ida for multi instance support
 
 Added musb_ida in musb_core.c to manage the multi core ids.
 
@@ -481,10 +481,10 @@ index 89d1871..a565fc2 100644
  static int musb_ulpi_read(struct usb_phy *phy, u32 offset)
  {
 diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index 51bd7b2..84436f7 100644
+index f60d3f0..a88010c 100644
 --- a/drivers/usb/musb/musb_core.h
 +++ b/drivers/usb/musb/musb_core.h
-@@ -530,6 +530,8 @@ extern const char musb_driver_name[];
+@@ -522,6 +522,8 @@ extern const char musb_driver_name[];
  
  extern void musb_start(struct musb *musb);
  extern void musb_stop(struct musb *musb);
