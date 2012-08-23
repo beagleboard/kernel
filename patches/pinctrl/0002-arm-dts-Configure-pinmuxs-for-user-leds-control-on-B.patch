@@ -1,7 +1,7 @@
-From f86062185e0caecc191837fc53025d0995ad752d Mon Sep 17 00:00:00 2001
+From 484a3da9460e3cbc034da6ad9fe1b177f62e8b73 Mon Sep 17 00:00:00 2001
 From: AnilKumar Ch <anilkumar@ti.com>
 Date: Fri, 20 Jul 2012 13:01:48 +0530
-Subject: [PATCH 2/2] arm/dts: Configure pinmuxs for user leds control on Bone
+Subject: [PATCH] arm/dts: Configure pinmuxs for user leds control on Bone
 
 Adds GPIO pinctrl nodes to am3358_pinmux master node to control
 user leds (USR0, USR1, USR2 and USR3) present on BeagleBone.
@@ -12,13 +12,14 @@ Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
  1 files changed, 15 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 4475af9..12c79c7 100644
+index f746617..b7d0e18 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -35,6 +35,21 @@
+@@ -78,3 +78,18 @@
+ 	};
+ };
  
- /include/ "tps65217.dtsi"
- 
++
 +&am3358_pinmux {
 +
 +	pinctrl-names = "default";
@@ -33,10 +34,6 @@ index 4475af9..12c79c7 100644
 +		>;
 +	};
 +};
-+
- &dcdc2_reg {
- 	/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
- 	regulator-name = "vdd_mpu";
 -- 
 1.7.7.6
 

@@ -1,4 +1,4 @@
-From 856b730a922cb86e0e029a9d853fff659d5befce Mon Sep 17 00:00:00 2001
+From 460099e3962fa03153a7b6fcc65f33d36b366e39 Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Thu, 2 Aug 2012 22:20:23 +0200
 Subject: [PATCH 7/7] beaglebone: fix mdio DT
@@ -9,10 +9,10 @@ Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
  1 files changed, 7 insertions(+), 8 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index e202de8..9b08413 100644
+index 1c17e7d..bbef0ad 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -39,6 +39,11 @@
+@@ -71,6 +71,11 @@
  		};
  	};
  
@@ -24,7 +24,7 @@ index e202de8..9b08413 100644
  	mac: ethernet@4A100000 {
  		compatible = "ti,cpsw";
  		ti,hwmods = "cpgmac0";
-@@ -55,19 +60,13 @@
+@@ -87,19 +92,13 @@
  		no_bd_ram = <0>;
  		rx_descs = <64>;
  		mac_control = <0x20>;
@@ -34,7 +34,7 @@ index e202de8..9b08413 100644
  			slave_reg_ofs = <0x208>;
  			sliver_reg_ofs = <0xd80>;
 -			phy_id = "davinci_mdio-0:00";
-+			phy_id = "davinci_mdio.19-:00";
++			phy_id = "davinci_mdio.20-:00";
  			mac-address = [00 04 9F 01 1B B8];
  		};
 -		slave@1 {

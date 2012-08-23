@@ -1,20 +1,28 @@
-From 1543950701e6e26bf271913550a376a4fc0126ac Mon Sep 17 00:00:00 2001
+From b930ffec440d865753f9427cac2821f7f6802bbd Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Wed, 25 Jul 2012 09:32:10 +0200
-Subject: [PATCH] beaglebone: add usr0 and usr1 LEDS to devicetree
+Subject: [PATCH 1/2] beaglebone: add usr0 and usr1 LEDS to devicetree
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
- arch/arm/boot/dts/am335x-bone.dts |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/am335x-bone.dts |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 12c79c7..36e5d53 100644
+index 94358b2..4f897df 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -22,6 +22,21 @@
+@@ -22,6 +22,7 @@
  		uart1: serial@44E09000 {
  			status = "okay";
+ 		};
++
+ 		i2c1: i2c@44E0B000 {
+ 			status = "okay";
+ 			clock-frequency = <400000>;
+@@ -30,7 +31,20 @@
+ 				reg = <0x24>;
+ 			};
  		};
 +	};	
 +
@@ -25,15 +33,14 @@ index 12c79c7..36e5d53 100644
 +			gpios = <&gpio2 21 0>;
 +			linux,default-trigger = "heartbeat";
 +		};
-+
+ 
 +		mmc {
 +			label = "beaglebone:usr1";
 +			gpios = <&gpio2 22 0>;
 +			linux,default-trigger = "mmc0";
-+		};
+ 		};
  	};
  };
- 
 -- 
 1.7.7.6
 
