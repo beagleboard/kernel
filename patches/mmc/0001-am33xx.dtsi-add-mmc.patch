@@ -1,0 +1,39 @@
+From 5112c1bc70ff652e2ca7cdea6d975669c8162f0e Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Tue, 21 Aug 2012 14:47:00 +0200
+Subject: [PATCH] am33xx.dtsi: add mmc
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am33xx.dtsi |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index efcd4a8..4923882 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -173,6 +173,21 @@
+ 			status = "disabled";
+ 		};
+ 
++		mmc1: mmc@48060000 {
++			compatible = "ti,omap3-hsmmc";
++			ti,hwmods = "mmc1";
++		};
++
++		mmc2: mmc@481D8000 {
++			compatible = "ti,omap3-hsmmc";
++			ti,hwmods = "mmc2";
++		};
++
++		mmc3: mmc@47810000 {
++			compatible = "ti,omap3-hsmmc";
++			ti,hwmods = "mmc3";
++		};
++
+ 		usb0_phy: phy0 {
+ 			compatible = "nop-xceiv-usb";
+ 		};
+-- 
+1.7.7.6
+
