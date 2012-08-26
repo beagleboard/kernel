@@ -18,7 +18,7 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="fea7a08acb13524b47711625eebea40a0ede69a0"
+EXTERNAL_SHA="9acb172543aecb783e2e1e53e3f447d4c0f5c150"
 
 PATCHSET="vaibhav usb regulator pinctrl rtc beaglebone cpsw dma mmc"
 
