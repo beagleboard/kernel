@@ -1,0 +1,58 @@
+From 4b5ef79b85b1d29fed21b219dde53c8911d4a76d Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Tue, 4 Sep 2012 14:49:32 +0200
+Subject: [PATCH] beaglebone DT: add mdio+cpsw entries
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am335x-bone.dts |   34 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 34 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index c634f87..cb13f74 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -33,6 +33,40 @@
+ 
+ 		};
+ 	};
++
++	mdio: davinci_mdio@4A101000 {
++		compatible = "ti,cpsw";
++		reg = <0x4A101000 0x1000>;
++		bus_freq = <1000000>;
++	};
++
++	mac: ethernet@4A100000 {
++		compatible = "ti,cpsw";
++		reg = <0x4A100000 0x1000>;
++		interrupts = <55 0x4>;
++		interrupt-parent = <&intc>;
++		cpdma_channels = <8>;
++		host_port_no = <0>;
++		cpdma_reg_ofs = <0x800>;
++		cpdma_sram_ofs = <0xa00>;
++		ale_reg_ofs = <0xd00>;
++		ale_entries = <1024>;
++		host_port_reg_ofs = <0x108>;
++		hw_stats_reg_ofs = <0x900>;
++		bd_ram_ofs = <0x2000>;
++		bd_ram_size = <0x2000>;
++		no_bd_ram = <0>;
++		rx_descs = <64>;
++		mac_control = <0x20>;
++		slaves = <1>;
++		cpsw_emac0: slave@0 {
++			slave_reg_ofs = <0x208>;
++			sliver_reg_ofs = <0xd80>;
++			phy_id = "davinci_mdio.16:00";
++			/* Filled in by U-Boot */
++			mac-address = [00 04 9F 01 1B B8];
++		};
++	};
+ };
+ 
+ /include/ "tps65217.dtsi"
+-- 
+1.7.7.6
+

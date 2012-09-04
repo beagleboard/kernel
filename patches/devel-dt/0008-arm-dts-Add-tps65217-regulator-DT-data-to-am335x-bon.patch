@@ -1,7 +1,7 @@
-From 1b4cf10ecef89688c25a3c1fb7f441a178ac2df0 Mon Sep 17 00:00:00 2001
+From a06ceff6f29e34edff5d6b082885c1c4139a0362 Mon Sep 17 00:00:00 2001
 From: AnilKumar Ch <anilkumar@ti.com>
-Date: Tue, 24 Jul 2012 11:48:55 +0530
-Subject: [PATCH 4/4] arm/dts: Add tps65217 regulator DT data to
+Date: Tue, 21 Aug 2012 16:47:30 +0530
+Subject: [PATCH 8/8] arm/dts: Add tps65217 regulator DT data to
  am335x-bone.dts
 
 Add tps65217 regulator device tree data to AM335x-Bone by adding
@@ -13,18 +13,21 @@ This patch also add I2C node with I2C frequency and tps65217 PMIC
 I2C slave address.
 
 Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/am335x-bone.dts |   55 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 55 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/am335x-bone.dts |   54 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 54 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index a7906cb..26b79a9 100644
+index a7906cb..917e784 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -22,5 +22,60 @@
+@@ -22,5 +22,59 @@
  		uart1: serial@44E09000 {
  			status = "okay";
  		};
++
 +		i2c1: i2c@44E0B000 {
 +			status = "okay";
 +			clock-frequency = <400000>;
@@ -32,11 +35,10 @@ index a7906cb..26b79a9 100644
 +			tps: tps@24 {
 +				reg = <0x24>;
 +			};
-+		};
 +
 +		};
- 	};
- };
++	};
++};
 +
 +/include/ "tps65217.dtsi"
 +
@@ -79,9 +81,8 @@ index a7906cb..26b79a9 100644
 +		ldo4_reg: regulator@6 {
 +			regulator-always-on;
 +		};
-+	};
-+};
-+
+ 	};
+ };
 -- 
 1.7.7.6
 

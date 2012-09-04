@@ -1,7 +1,7 @@
-From 09eca9305705ded38fbbd6ba3fb2ebf1d8534b43 Mon Sep 17 00:00:00 2001
+From 53d91034cf29936cabf9a4d59270dc94ed7e6c1d Mon Sep 17 00:00:00 2001
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Date: Fri, 3 Aug 2012 16:59:32 +0530
-Subject: [PATCH 10/12] arm/dts: AM33XX: Set the default status of module to
+Date: Wed, 15 Aug 2012 16:53:25 +0530
+Subject: [PATCH 2/8] arm/dts: AM33XX: Set the default status of module to
  "disabled" state
 
 Ideally in common SoC dtsi file should set all modules
@@ -18,10 +18,7 @@ Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Acked-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Tony Lindgren <tony@atomide.com>
-
-Changes from V1:
-	- Fixed indentation issue caused due to extra spaces.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
  arch/arm/boot/dts/am335x-bone.dts |    6 ++++++
  arch/arm/boot/dts/am335x-evm.dts  |    6 ++++++
@@ -59,7 +56,7 @@ index d6a97d9..5dd8a6b 100644
 +	};
  };
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index bd0cff3..dde76f7 100644
+index 59509c4..5f6c8e3 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
 @@ -102,36 +102,42 @@
@@ -127,8 +124,8 @@ index bd0cff3..dde76f7 100644
  			ti,hwmods = "i2c3";
 +			status = "disabled";
  		};
- 
- 		wdt2: wdt@44e35000 {
+ 	};
+ };
 -- 
 1.7.7.6
 
