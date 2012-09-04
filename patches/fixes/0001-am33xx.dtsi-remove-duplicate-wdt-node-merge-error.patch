@@ -1,0 +1,29 @@
+From 4dd6de0a95af2c8f243bc37eebb7b89cbb8ac81e Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Tue, 28 Aug 2012 15:11:48 +0200
+Subject: [PATCH] am33xx.dtsi: remove duplicate wdt node (merge error)
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am33xx.dtsi |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index b9410c8..fa900c4 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -214,11 +214,6 @@
+ 			usb1-phy = <&usb1_phy>;
+ 		};
+ 
+-		wdt2: wdt@44e35000 {
+-			compatible = "ti,omap3-wdt";
+-			ti,hwmods = "wd_timer2";
+-		};
+-
+ 		rtc {
+ 			compatible = "ti,da830-rtc";
+ 			ti,hwmods = "rtc";
+-- 
+1.7.7.6
+
