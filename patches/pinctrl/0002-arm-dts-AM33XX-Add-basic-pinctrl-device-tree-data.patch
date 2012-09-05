@@ -1,11 +1,10 @@
-From 1d347fa8c99b3bd52ac06730607519f0e7bab573 Mon Sep 17 00:00:00 2001
-From: AnilKumar Ch <anilkumar@ti.com>
-Date: Fri, 20 Jul 2012 13:01:47 +0530
-Subject: [PATCH 1/2] arm/dts: Add AM33XX basic pinctrl support
+From da5b9dd4d8d7d04a74b4c2c05104660bfe404b3c Mon Sep 17 00:00:00 2001
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Date: Fri, 31 Aug 2012 09:29:17 +0000
+Subject: [PATCH 2/3] arm/dts: AM33XX: Add basic pinctrl device tree data
 
-Add basic pinctrl support for AM33XX family of devices by adding DT
-data to am33xx dtsi file. These patches are based on pinctrl-single
-driver and tested on am335x-evm & am335x-bone devices.
+Adds basic pinctrl device tree data for AM33XX family of devices.
+This patch is based on the pinctrl-single driver.
 
 Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
 ---
@@ -13,20 +12,20 @@ Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
  1 files changed, 9 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 7f534fe..3bc3040 100644
+index bb325a8..291833c 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
 @@ -40,6 +40,15 @@
  		};
  	};
  
-+	am3358_pinmux: pinmux@44E10800 {
++	am3358_pinmux: pinmux@44e10800 {
 +		compatible = "pinctrl-single";
-+		reg = <0x44E10800 0x0338>;
++		reg = <0x44e10800 0x0238>;
 +		#address-cells = <1>;
 +		#size-cells = <0>;
 +		pinctrl-single,register-width = <32>;
-+		pinctrl-single,function-mask = <0x7F>;
++		pinctrl-single,function-mask = <0x7f>;
 +	};
 +
  	/*

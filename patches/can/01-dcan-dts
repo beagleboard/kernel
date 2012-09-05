@@ -1,0 +1,55 @@
+From patchwork Fri Aug 31 09:29:19 2012
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: [v5,3/5] arm/dts: AM33XX: Add D_CAN device tree data
+Date: Fri, 31 Aug 2012 09:29:19 -0000
+From: AnilKumar, Chimata <anilkumar@ti.com>
+X-Patchwork-Id: 1392101
+Message-Id: <1346405361-29711-4-git-send-email-anilkumar@ti.com>
+To: <tony@atomide.com>
+Cc: <wg@grandegger.com>, <mkl@pengutronix.de>,
+ <bryan.wu@canonical.com>, <rpurdie@rpsys.net>,
+ <linux-leds@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+ <linux-arm-kernel@lists.infradead.org>,
+ <devicetree-discuss@lists.ozlabs.org>, <grant.likely@secretlab.ca>,
+ AnilKumar Ch <anilkumar@ti.com>
+
+Add Bosch D_CAN controller device tree data to AM33XX dtsi
+file by adding d_can device nodes with all the necessary
+parameters.
+
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+
+---
+arch/arm/boot/dts/am33xx.dtsi |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index bf5f713..ab744d6 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -177,5 +177,23 @@
+ 			compatible = "ti,omap3-wdt";
+ 			ti,hwmods = "wd_timer2";
+ 		};
++
++		dcan0: d_can@481cc000 {
++			compatible = "bosch,d_can";
++			ti,hwmods = "d_can0";
++			reg = <0x481cc000 0x2000>;
++			interrupts = <52>;
++			interrupt-parent = <&intc>;
++			status = "disabled";
++		};
++
++		dcan1: d_can@481d0000 {
++			compatible = "bosch,d_can";
++			ti,hwmods = "d_can1";
++			reg = <0x481d0000 0x2000>;
++			interrupts = <55>;
++			interrupt-parent = <&intc>;
++			status = "disabled";
++		};
+ 	};
+ };
