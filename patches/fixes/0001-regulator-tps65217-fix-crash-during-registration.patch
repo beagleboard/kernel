@@ -1,0 +1,32 @@
+From 474bac00aa1108cfbeab9b1a48f86624c04bf2a3 Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Wed, 5 Sep 2012 10:09:50 -0400
+Subject: [PATCH] regulator: tps65217: fix crash during registration
+
+The struct device for each platform device bound to this
+driver is a child to the parent mfd device. The parent device
+is the one that actually contains the regmap devres so fix the
+null pointer dereference during the first regmap access in
+registration by passing in the parent device.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ drivers/regulator/tps65217-regulator.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/regulator/tps65217-regulator.c b/drivers/regulator/tps65217-regulator.c
+index 6caa222..af4916c 100644
+--- a/drivers/regulator/tps65217-regulator.c
++++ b/drivers/regulator/tps65217-regulator.c
+@@ -292,7 +292,7 @@ static int __devinit tps65217_regulator_probe(struct platform_device *pdev)
+ 	tps = dev_to_tps65217(pdev->dev.parent);
+ 	tps->info[pdev->id] = info;
+ 
+-	config.dev = &pdev->dev;
++	config.dev = pdev->dev.parent;
+ 	config.of_node = pdev->dev.of_node;
+ 	config.init_data = pdev->dev.platform_data;
+ 	config.driver_data = tps;
+-- 
+1.7.7.6
+
