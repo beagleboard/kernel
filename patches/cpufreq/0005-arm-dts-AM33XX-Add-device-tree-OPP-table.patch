@@ -1,0 +1,82 @@
+From 9c4eabe4d264aa08703d9348ab97492c4c6f4c9a Mon Sep 17 00:00:00 2001
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Date: Fri, 31 Aug 2012 09:37:20 +0000
+Subject: [PATCH 5/5] arm/dts: AM33XX: Add device tree OPP table
+
+Add DT OPP table for AM33XX family of devices. This data is
+decoded by OF with of_init_opp_table() helper function.
+
+Also adds cpu0 supply name to the corresponding dts files.
+cpu0-supply name is used by cpufreq-cpu0 driver to get the
+regulator pointer for voltage modifications.
+
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+ arch/arm/boot/dts/am335x-bone.dts |    6 ++++++
+ arch/arm/boot/dts/am335x-evm.dts  |    6 ++++++
+ arch/arm/boot/dts/am33xx.dtsi     |   15 +++++++++++++++
+ 3 files changed, 27 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 5d90d38..6cdf508 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -13,6 +13,12 @@
+ 	model = "TI AM335x BeagleBone";
+ 	compatible = "ti,am335x-bone", "ti,am33xx";
+ 
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&dcdc2_reg>;
++		};
++	};
++
+ 	memory {
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x10000000>; /* 256 MB */
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index e5468f6..3d1580f 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -13,6 +13,12 @@
+ 	model = "TI AM335x EVM";
+ 	compatible = "ti,am335x-evm", "ti,am33xx";
+ 
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&vdd1_reg>;
++		};
++	};
++
+ 	memory {
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x10000000>; /* 256 MB */
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 24918b5..9596427 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -28,6 +28,21 @@
+ 	cpus {
+ 		cpu@0 {
+ 			compatible = "arm,cortex-a8";
++
++			/*
++			 * To consider voltage drop between PMIC and SoC,
++			 * tolerance value is reduced to 2% from 4% and
++			 * voltage value is increased as a precaution.
++			 */
++			operating-points = <
++				/* kHz    uV */
++				720000  1285000
++				600000  1225000
++				500000  1125000
++				275000  1125000
++			>;
++			voltage-tolerance = <2>; /* 2 percentage */
++			clock-latency = <300000>; /* From omap-cpufreq driver */
+ 		};
+ 	};
+ 
+-- 
+1.7.7.6
+

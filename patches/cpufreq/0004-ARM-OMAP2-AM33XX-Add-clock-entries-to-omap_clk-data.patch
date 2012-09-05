@@ -1,0 +1,29 @@
+From fd92d4a9dee6b0a90c824628aed16a426e4b763a Mon Sep 17 00:00:00 2001
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Date: Fri, 31 Aug 2012 09:37:19 +0000
+Subject: [PATCH 4/5] ARM: OMAP2+: AM33XX: Add clock entries to omap_clk data
+
+Add AM335x cpu0 clock entry to the corresponding clock data
+file. This is useful in getting the correct mpu clock pointer
+to change the cpu frequency in cpufreq driver.
+
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+ arch/arm/mach-omap2/clock33xx_data.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
+index a4006b2..4933993 100644
+--- a/arch/arm/mach-omap2/clock33xx_data.c
++++ b/arch/arm/mach-omap2/clock33xx_data.c
+@@ -1013,6 +1013,7 @@ static struct omap_clk am33xx_clks[] = {
+ 	CLK(NULL,	"dpll_core_m5_ck",	&dpll_core_m5_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_core_m6_ck",	&dpll_core_m6_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_mpu_ck",		&dpll_mpu_ck,	CK_AM33XX),
++	CLK("cpu0",	NULL,			&dpll_mpu_ck,		CK_AM33XX),
+ 	CLK(NULL,	"dpll_mpu_m2_ck",	&dpll_mpu_m2_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_ddr_ck",		&dpll_ddr_ck,	CK_AM33XX),
+ 	CLK(NULL,	"dpll_ddr_m2_ck",	&dpll_ddr_m2_ck,	CK_AM33XX),
+-- 
+1.7.7.6
+
