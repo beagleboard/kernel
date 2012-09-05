@@ -1,7 +1,7 @@
-From ec03e6a89e5168c92581a769681207c29ad2030f Mon Sep 17 00:00:00 2001
+From 0e9fbd4bb2e5de45cc680a8d16ca57b03864d514 Mon Sep 17 00:00:00 2001
 From: Mugunthan V N <mugunthanvnm@ti.com>
 Date: Mon, 6 Aug 2012 05:05:57 +0000
-Subject: [PATCH 125/430] drivers: net: ethernet: davince_mdio: device tree
+Subject: [PATCH 3/4] drivers: net: ethernet: davince_mdio: device tree
  implementation
 
 device tree implementation for davinci mdio driver
@@ -54,7 +54,7 @@ index 0000000..72efaaf
 +		bus_freq = <1000000>;
 +	};
 diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
-index cd7ee20..573f3be 100644
+index a9ca4a0..51a96db 100644
 --- a/drivers/net/ethernet/ti/davinci_mdio.c
 +++ b/drivers/net/ethernet/ti/davinci_mdio.c
 @@ -36,6 +36,8 @@
@@ -126,7 +126,7 @@ index cd7ee20..573f3be 100644
  
  	pm_runtime_enable(&pdev->dev);
  	pm_runtime_get_sync(&pdev->dev);
-@@ -454,11 +481,17 @@ static const struct dev_pm_ops davinci_mdio_pm_ops = {
+@@ -456,11 +483,17 @@ static const struct dev_pm_ops davinci_mdio_pm_ops = {
  	.resume		= davinci_mdio_resume,
  };
  
