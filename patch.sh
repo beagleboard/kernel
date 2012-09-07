@@ -18,9 +18,9 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="080909503664641432cc8adf2ee2084775fd992a"
+EXTERNAL_SHA="eeea3ac912207dcf759b95b2b4c36f96bce583bf"
 
-PATCHSET="devel-dt vaibhav net-next-am335x cpsw usb pinctrl rtc dma mmc da8xx-fb fixes cpufreq spi"
+PATCHSET="devel-dt vaibhav net-next-am335x cpsw usb pinctrl rtc dma mmc da8xx-fb fixes cpufreq spi adc"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
