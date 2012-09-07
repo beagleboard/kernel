@@ -1,0 +1,124 @@
+From e79cd48d937bd092240a8f2525f4f289cf6d6bf9 Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Thu, 6 Sep 2012 17:40:42 -0400
+Subject: [PATCH 04/11] ARM: edma: add support for AM335x
+
+Initialize a private EDMA API platform device from the hwmod
+data. Hack in AM335x specific platform_data to make it functional.
+
+TODO: the platform_data will need to come from hwmod/DT before
+submission.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ arch/arm/common/edma.c |   90 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 90 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index 001d268..6cf17a2 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -24,6 +24,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
+ #include <linux/slab.h>
++#include <linux/err.h>
+ 
+ #include <asm/mach/edma.h>
+ 
+@@ -1549,3 +1550,92 @@ static int __init edma_init(void)
+ }
+ arch_initcall(edma_init);
+ 
++#ifdef CONFIG_ARCH_OMAP
++
++#include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
++
++static const s16 am33xx_dma_rsv_chans[][2] = {
++	/* (offset, number) */
++	{0, 2},
++	{14, 2},
++	{26, 6},
++	{48, 4},
++	{56, 8},
++	{-1, -1}
++};
++
++static const s16 am33xx_dma_rsv_slots[][2] = {
++	/* (offset, number) */
++	{0, 2},
++	{14, 2},
++	{26, 6},
++	{48, 4},
++	{56, 8},
++	{64, 127},
++	{-1, -1}
++};
++
++static struct edma_rsv_info am33xx_dma_rsv_info[] = {
++	{
++		.rsv_chans	= am33xx_dma_rsv_chans,
++		.rsv_slots	= am33xx_dma_rsv_slots,
++	},
++};
++
++static const s8 am33xx_queue_tc_mapping[][2] = {
++	/* {event queue no, TC no} */
++	{0, 0},
++	{1, 1},
++	{2, 2},
++	{-1, -1}
++};
++
++static const s8 am33xx_queue_priority_mapping[][2] = {
++	/* {event queue no, Priority} */
++	{0, 0},
++	{1, 1},
++	{2, 2},
++	{-1, -1}
++};
++
++static struct edma_soc_info am33xx_tpcc_info = {
++	.n_channel		= 64,
++	.n_region		= 4,
++	.n_slot			= 256,
++	.n_tc			= 3,
++	.n_cc			= 1,
++	.rsv			= am33xx_dma_rsv_info,
++	.queue_tc_mapping	= am33xx_queue_tc_mapping,
++	.queue_priority_mapping	= am33xx_queue_priority_mapping,
++	.default_queue		= EVENTQ_0,
++};
++
++static struct edma_soc_info *am33xx_edma_info[] = {
++	&am33xx_tpcc_info,
++};
++
++/* One time initializations */
++static int __init omap2_edma_init_dev(struct omap_hwmod *oh, void *unused)
++{
++	struct platform_device			*pdev;
++	char					*name = "edma";
++
++	pdev = omap_device_build(name, 0, oh, am33xx_edma_info, 4, NULL, 0, 0);
++	if (IS_ERR(pdev)) {
++		pr_err("%s: Can't build omap_device for %s:%s.\n",
++			__func__, name, oh->name);
++		return PTR_ERR(pdev);
++	}
++
++	return 0;
++}
++
++static int __init omap2_edma_init(void)
++{
++	return omap_hwmod_for_each_by_class("tpcc",
++		omap2_edma_init_dev, NULL);
++}
++arch_initcall(omap2_edma_init);
++
++#endif /* CONFIG_ARCH_OMAP */
+-- 
+1.7.7.6
+

@@ -1,0 +1,235 @@
+From df25338db4545f6ac50d92b4536f5def9ed5749b Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Wed, 22 Aug 2012 09:24:24 -0400
+Subject: [PATCH 02/11] ARM: davinci: move private EDMA API to arm/common
+
+Move mach-davinci/dma.c to common/edma.c so it can be used
+by OMAP (specifically AM33xx atm) as well. This just moves
+the private EDMA API but does not support OMAP.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ arch/arm/Kconfig                                   |    1 +
+ arch/arm/common/Kconfig                            |    3 +++
+ arch/arm/common/Makefile                           |    1 +
+ arch/arm/{mach-davinci/dma.c => common/edma.c}     |    2 +-
+ .../include => include/asm}/mach/edma.h            |    0
+ arch/arm/mach-davinci/Makefile                     |    2 +-
+ arch/arm/mach-davinci/devices.c                    |    3 ++-
+ arch/arm/mach-davinci/dm355.c                      |    2 +-
+ arch/arm/mach-davinci/dm365.c                      |    2 +-
+ arch/arm/mach-davinci/dm644x.c                     |    2 +-
+ arch/arm/mach-davinci/dm646x.c                     |    2 +-
+ arch/arm/mach-davinci/include/mach/asp.h           |    2 +-
+ arch/arm/mach-davinci/include/mach/da8xx.h         |    3 ++-
+ arch/arm/mach-davinci/include/mach/spi.h           |    2 +-
+ arch/arm/plat-omap/Kconfig                         |    1 +
+ 15 files changed, 18 insertions(+), 10 deletions(-)
+ rename arch/arm/{mach-davinci/dma.c => common/edma.c} (99%)
+ rename arch/arm/{mach-davinci/include => include/asm}/mach/edma.h (100%)
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index c5f9ae5..0b458d0 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -971,6 +971,7 @@ config ARCH_DAVINCI
+ 	select GENERIC_ALLOCATOR
+ 	select GENERIC_IRQ_CHIP
+ 	select ARCH_HAS_HOLES_MEMORYMODEL
++	select TI_PRIV_EDMA
+ 	help
+ 	  Support for TI's DaVinci platform.
+ 
+diff --git a/arch/arm/common/Kconfig b/arch/arm/common/Kconfig
+index 283fa1d..bd87838 100644
+--- a/arch/arm/common/Kconfig
++++ b/arch/arm/common/Kconfig
+@@ -40,3 +40,6 @@ config SHARP_PARAM
+ 
+ config SHARP_SCOOP
+ 	bool
++
++config TI_PRIV_EDMA
++	bool
+diff --git a/arch/arm/common/Makefile b/arch/arm/common/Makefile
+index e8a4e58..d09a39b 100644
+--- a/arch/arm/common/Makefile
++++ b/arch/arm/common/Makefile
+@@ -13,3 +13,4 @@ obj-$(CONFIG_SHARP_PARAM)	+= sharpsl_param.o
+ obj-$(CONFIG_SHARP_SCOOP)	+= scoop.o
+ obj-$(CONFIG_PCI_HOST_ITE8152)  += it8152.o
+ obj-$(CONFIG_ARM_TIMER_SP804)	+= timer-sp.o
++obj-$(CONFIG_TI_PRIV_EDMA)	+= edma.o
+diff --git a/arch/arm/mach-davinci/dma.c b/arch/arm/common/edma.c
+similarity index 99%
+rename from arch/arm/mach-davinci/dma.c
+rename to arch/arm/common/edma.c
+index a685e97..cecc50e 100644
+--- a/arch/arm/mach-davinci/dma.c
++++ b/arch/arm/common/edma.c
+@@ -25,7 +25,7 @@
+ #include <linux/io.h>
+ #include <linux/slab.h>
+ 
+-#include <mach/edma.h>
++#include <asm/mach/edma.h>
+ 
+ /* Offsets matching "struct edmacc_param" */
+ #define PARM_OPT		0x00
+diff --git a/arch/arm/mach-davinci/include/mach/edma.h b/arch/arm/include/asm/mach/edma.h
+similarity index 100%
+rename from arch/arm/mach-davinci/include/mach/edma.h
+rename to arch/arm/include/asm/mach/edma.h
+diff --git a/arch/arm/mach-davinci/Makefile b/arch/arm/mach-davinci/Makefile
+index 2227eff..97c639e 100644
+--- a/arch/arm/mach-davinci/Makefile
++++ b/arch/arm/mach-davinci/Makefile
+@@ -5,7 +5,7 @@
+ 
+ # Common objects
+ obj-y 			:= time.o clock.o serial.o psc.o \
+-			   dma.o usb.o common.o sram.o aemif.o
++			   usb.o common.o sram.o aemif.o
+ 
+ obj-$(CONFIG_DAVINCI_MUX)		+= mux.o
+ 
+diff --git a/arch/arm/mach-davinci/devices.c b/arch/arm/mach-davinci/devices.c
+index d2f96662..3407c20 100644
+--- a/arch/arm/mach-davinci/devices.c
++++ b/arch/arm/mach-davinci/devices.c
+@@ -14,12 +14,13 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/io.h>
+ 
++#include <asm/mach/edma.h>
++
+ #include <mach/hardware.h>
+ #include <mach/i2c.h>
+ #include <mach/irqs.h>
+ #include <mach/cputype.h>
+ #include <mach/mux.h>
+-#include <mach/edma.h>
+ #include <mach/mmc.h>
+ #include <mach/time.h>
+ 
+diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
+index 678cd99..c7a432b 100644
+--- a/arch/arm/mach-davinci/dm355.c
++++ b/arch/arm/mach-davinci/dm355.c
+@@ -16,10 +16,10 @@
+ 
+ #include <linux/spi/spi.h>
+ 
++#include <asm/mach/edma.h>
+ #include <asm/mach/map.h>
+ 
+ #include <mach/cputype.h>
+-#include <mach/edma.h>
+ #include <mach/psc.h>
+ #include <mach/mux.h>
+ #include <mach/irqs.h>
+diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
+index a50d49de..8e22ee8 100644
+--- a/arch/arm/mach-davinci/dm365.c
++++ b/arch/arm/mach-davinci/dm365.c
+@@ -19,10 +19,10 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/spi/spi.h>
+ 
++#include <asm/mach/edma.h>
+ #include <asm/mach/map.h>
+ 
+ #include <mach/cputype.h>
+-#include <mach/edma.h>
+ #include <mach/psc.h>
+ #include <mach/mux.h>
+ #include <mach/irqs.h>
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index c8b8666..562e51f 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -13,10 +13,10 @@
+ #include <linux/serial_8250.h>
+ #include <linux/platform_device.h>
+ 
++#include <asm/mach/edma.h>
+ #include <asm/mach/map.h>
+ 
+ #include <mach/cputype.h>
+-#include <mach/edma.h>
+ #include <mach/irqs.h>
+ #include <mach/psc.h>
+ #include <mach/mux.h>
+diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
+index 9eb87c1..2fa4b5b 100644
+--- a/arch/arm/mach-davinci/dm646x.c
++++ b/arch/arm/mach-davinci/dm646x.c
+@@ -14,10 +14,10 @@
+ #include <linux/serial_8250.h>
+ #include <linux/platform_device.h>
+ 
++#include <asm/mach/edma.h>
+ #include <asm/mach/map.h>
+ 
+ #include <mach/cputype.h>
+-#include <mach/edma.h>
+ #include <mach/irqs.h>
+ #include <mach/psc.h>
+ #include <mach/mux.h>
+diff --git a/arch/arm/mach-davinci/include/mach/asp.h b/arch/arm/mach-davinci/include/mach/asp.h
+index 9aa2409..4fe8453 100644
+--- a/arch/arm/mach-davinci/include/mach/asp.h
++++ b/arch/arm/mach-davinci/include/mach/asp.h
+@@ -4,8 +4,8 @@
+ #ifndef __ASM_ARCH_DAVINCI_ASP_H
+ #define __ASM_ARCH_DAVINCI_ASP_H
+ 
++#include <asm/mach/edma.h>
+ #include <mach/irqs.h>
+-#include <mach/edma.h>
+ 
+ /* Bases of dm644x and dm355 register banks */
+ #define DAVINCI_ASP0_BASE	0x01E02000
+diff --git a/arch/arm/mach-davinci/include/mach/da8xx.h b/arch/arm/mach-davinci/include/mach/da8xx.h
+index a2f1f27..6f70587 100644
+--- a/arch/arm/mach-davinci/include/mach/da8xx.h
++++ b/arch/arm/mach-davinci/include/mach/da8xx.h
+@@ -17,8 +17,9 @@
+ #include <linux/davinci_emac.h>
+ #include <linux/spi/spi.h>
+ 
++#include <asm/mach/edma.h>
++
+ #include <mach/serial.h>
+-#include <mach/edma.h>
+ #include <mach/i2c.h>
+ #include <mach/asp.h>
+ #include <mach/mmc.h>
+diff --git a/arch/arm/mach-davinci/include/mach/spi.h b/arch/arm/mach-davinci/include/mach/spi.h
+index 7af305b..9f927da 100644
+--- a/arch/arm/mach-davinci/include/mach/spi.h
++++ b/arch/arm/mach-davinci/include/mach/spi.h
+@@ -19,7 +19,7 @@
+ #ifndef __ARCH_ARM_DAVINCI_SPI_H
+ #define __ARCH_ARM_DAVINCI_SPI_H
+ 
+-#include <mach/edma.h>
++#include <asm/mach/edma.h>
+ 
+ #define SPI_INTERN_CS	0xFF
+ 
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index dd36eba..6ee991b 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -28,6 +28,7 @@ config ARCH_OMAP2PLUS
+ 	select OMAP_DM_TIMER
+ 	select USE_OF
+ 	select PROC_DEVICETREE if PROC_FS
++	select TI_PRIV_EDMA
+ 	help
+ 	  "Systems based on OMAP2, OMAP3, OMAP4 or OMAP5"
+ 
+-- 
+1.7.7.6
+

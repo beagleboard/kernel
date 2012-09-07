@@ -1,0 +1,62 @@
+From 3306cec4fb6778eb8375102e935659471ff72221 Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Thu, 6 Sep 2012 17:44:19 -0400
+Subject: [PATCH 06/11] ARM: omap: hwmod: prevent the am33xx edma from idling
+
+Hack the TPCC and TPTC hwmods so they never enter idle.
+
+TODO: Add runtime PM support to the private EDMA API so
+this is not required.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index d981c62..8e279a4 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -1777,6 +1777,7 @@ static struct omap_hwmod am33xx_tpcc_hwmod = {
+ 	.clkdm_name	= "l3_clkdm",
+ 	.mpu_irqs	= am33xx_tpcc_irqs,
+ 	.main_clk	= "l3_gclk",
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.prcm		= {
+ 		.omap4	= {
+ 			.clkctrl_offs	= AM33XX_CM_PER_TPCC_CLKCTRL_OFFSET,
+@@ -1812,6 +1813,7 @@ static struct omap_hwmod am33xx_tptc0_hwmod = {
+ 	.clkdm_name	= "l3_clkdm",
+ 	.mpu_irqs	= am33xx_tptc0_irqs,
+ 	.main_clk	= "l3_gclk",
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.prcm		= {
+ 		.omap4	= {
+ 			.clkctrl_offs	= AM33XX_CM_PER_TPTC0_CLKCTRL_OFFSET,
+@@ -1833,6 +1835,7 @@ static struct omap_hwmod am33xx_tptc1_hwmod = {
+ 	.mpu_irqs	= am33xx_tptc1_irqs,
+ 	.flags		= (HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY),
+ 	.main_clk	= "l3_gclk",
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.prcm		= {
+ 		.omap4	= {
+ 			.clkctrl_offs	= AM33XX_CM_PER_TPTC1_CLKCTRL_OFFSET,
+@@ -1854,6 +1857,7 @@ static struct omap_hwmod am33xx_tptc2_hwmod = {
+ 	.mpu_irqs	= am33xx_tptc2_irqs,
+ 	.flags		= (HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY),
+ 	.main_clk	= "l3_gclk",
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.prcm		= {
+ 		.omap4	= {
+ 			.clkctrl_offs	= AM33XX_CM_PER_TPTC2_CLKCTRL_OFFSET,
+@@ -3100,6 +3104,7 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__timer7 = {
+ /* l3 main -> tpcc */
+ static struct omap_hwmod_addr_space am33xx_tpcc_addr_space[] = {
+ 	{
++		.name		= "edma_cc0",
+ 		.pa_start	= 0x49000000,
+ 		.pa_end		= 0x49000000 + SZ_32K - 1,
+ 		.flags		= ADDR_TYPE_RT
+-- 
+1.7.7.6
+

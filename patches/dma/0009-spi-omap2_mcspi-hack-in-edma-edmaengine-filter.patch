@@ -1,0 +1,46 @@
+From 07fe1b93c6663a44847d6f8a7b2c1a7d84692526 Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Thu, 6 Sep 2012 17:48:23 -0400
+Subject: [PATCH 09/11] spi: omap2_mcspi: hack in edma edmaengine filter
+
+Force the driver to call the edma dmaengine filter.
+
+TODO: Get the dmaengine filter from platform data / DT.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ drivers/spi/spi-omap2-mcspi.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index 485cb2d..cd970b3 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -29,6 +29,7 @@
+ #include <linux/delay.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/dmaengine.h>
++#include <linux/edma.h>
+ #include <linux/omap-dma.h>
+ #include <linux/platform_device.h>
+ #include <linux/err.h>
+@@ -797,14 +798,14 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
+ 	dma_cap_zero(mask);
+ 	dma_cap_set(DMA_SLAVE, mask);
+ 	sig = mcspi_dma->dma_rx_sync_dev;
+-	mcspi_dma->dma_rx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
++	mcspi_dma->dma_rx = dma_request_channel(mask, edma_filter_fn, &sig);
+ 	if (!mcspi_dma->dma_rx) {
+ 		dev_err(&spi->dev, "no RX DMA engine channel for McSPI\n");
+ 		return -EAGAIN;
+ 	}
+ 
+ 	sig = mcspi_dma->dma_tx_sync_dev;
+-	mcspi_dma->dma_tx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
++	mcspi_dma->dma_tx = dma_request_channel(mask, edma_filter_fn, &sig);
+ 	if (!mcspi_dma->dma_tx) {
+ 		dev_err(&spi->dev, "no TX DMA engine channel for McSPI\n");
+ 		dma_release_channel(mcspi_dma->dma_rx);
+-- 
+1.7.7.6
+
