@@ -20,7 +20,19 @@ make uImage-dtb.am335x-bone
 Status
 ======
 
-This is based on the info mentioned here: http://marc.info/?l=linux-omap&m=134267678513557&w=2
+I2C: working
+SPI: untested
+MMC: mmc1 working, mmc2 untested, mmc3 need crossbar support in the EDMA driver
+USB host: only mass storage
+USB gadget: untested
+LCDC: no DT support
+TS: no DT support
+ADC: no DT support
+PWM: untested
+PMIC: working
+PMIC PWM: working, needs DT entry
+CPUfreq: working
+Capes: none work
 
 Bootlog
 ======
