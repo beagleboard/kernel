@@ -1,0 +1,37 @@
+From 52b84dac436a681fa51dad2b9e57b6ea50309cbd Mon Sep 17 00:00:00 2001
+From: AnilKumar Ch <anilkumar@ti.com>
+Date: Fri, 7 Sep 2012 20:45:05 +0530
+Subject: [PATCH] regulator: core: Try using the parent device for the default
+ regmap
+
+If the device doesn't have a regmap specified by the driver and we can't
+find one on the device itself try its parent, providing a useful defualt
+for many MFDs.
+
+[Rewrite commit message -- broonie]
+
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+---
+ drivers/regulator/core.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+index ed376d9..03fad81 100644
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -3202,8 +3202,10 @@ regulator_register(const struct regulator_desc *regulator_desc,
+ 	rdev->desc = regulator_desc;
+ 	if (config->regmap)
+ 		rdev->regmap = config->regmap;
+-	else
++	else if (dev_get_regmap(dev, NULL))
+ 		rdev->regmap = dev_get_regmap(dev, NULL);
++	else if (dev->parent)
++		rdev->regmap = dev_get_regmap(dev->parent, NULL);
+ 	INIT_LIST_HEAD(&rdev->consumer_list);
+ 	INIT_LIST_HEAD(&rdev->list);
+ 	BLOCKING_INIT_NOTIFIER_HEAD(&rdev->notifier);
+-- 
+1.7.7.6
+
