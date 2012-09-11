@@ -1,7 +1,7 @@
-From 07fe1b93c6663a44847d6f8a7b2c1a7d84692526 Mon Sep 17 00:00:00 2001
+From 380fe7da0ee7e83edd8ef46e6c1310c16f64c8f3 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 6 Sep 2012 17:48:23 -0400
-Subject: [PATCH 09/11] spi: omap2_mcspi: hack in edma edmaengine filter
+Subject: [PATCH 09/12] spi: omap2_mcspi: hack in edma edmaengine filter
 
 Force the driver to call the edma dmaengine filter.
 
@@ -13,7 +13,7 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  1 files changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 485cb2d..cd970b3 100644
+index b2fb141..d6c5e99 100644
 --- a/drivers/spi/spi-omap2-mcspi.c
 +++ b/drivers/spi/spi-omap2-mcspi.c
 @@ -29,6 +29,7 @@
@@ -24,7 +24,7 @@ index 485cb2d..cd970b3 100644
  #include <linux/omap-dma.h>
  #include <linux/platform_device.h>
  #include <linux/err.h>
-@@ -797,14 +798,14 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
+@@ -796,14 +797,14 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
  	dma_cap_zero(mask);
  	dma_cap_set(DMA_SLAVE, mask);
  	sig = mcspi_dma->dma_rx_sync_dev;

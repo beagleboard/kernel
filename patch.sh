@@ -13,12 +13,12 @@ PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.6-rc4"
+TAG="v3.6-rc5"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="eeea3ac912207dcf759b95b2b4c36f96bce583bf"
+EXTERNAL_SHA="1a95620f45155ac523cd1419d89150fbb4eb858b"
 
 PATCHSET="devel-dt vaibhav net-next-am335x cpsw usb pinctrl rtc mmc da8xx-fb fixes cpufreq spi adc dma"
 

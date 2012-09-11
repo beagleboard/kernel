@@ -1,7 +1,7 @@
-From 9d7d257ec5c52725075f0fcf6684ddd0845d7e63 Mon Sep 17 00:00:00 2001
+From 04d2545c76a15638f0406a0f5e5d8962db43ad5c Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Fri, 7 Sep 2012 15:14:08 -0400
-Subject: [PATCH] spi: mcspi: add hack to work around a bug in the edma
+Subject: [PATCH 12/12] spi: mcspi: add hack to work around a bug in the edma
  dmaengine driver
 
 The slave config handling in the edma dmaengine driver is expecting
@@ -15,10 +15,10 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  1 files changed, 2 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index cd970b3..c8ecbba 100644
+index d6c5e99..1e8871d 100644
 --- a/drivers/spi/spi-omap2-mcspi.c
 +++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -373,6 +373,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+@@ -372,6 +372,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
  		struct dma_async_tx_descriptor *tx;
  		struct scatterlist sg;
  
@@ -26,7 +26,7 @@ index cd970b3..c8ecbba 100644
  		dmaengine_slave_config(mcspi_dma->dma_tx, &cfg);
  
  		sg_init_table(&sg, 1);
-@@ -395,6 +396,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+@@ -394,6 +395,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
  		struct scatterlist sg;
  		size_t len = xfer->len - es;
  
