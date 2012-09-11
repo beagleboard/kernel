@@ -1,7 +1,7 @@
-From 810d68ec1348905bc9c6653f13ff7779442c070f Mon Sep 17 00:00:00 2001
+From c0688b26ba3a7c5fff1a1148f9a78bf764861257 Mon Sep 17 00:00:00 2001
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 Date: Mon, 28 May 2012 16:21:52 +0530
-Subject: [PATCH 01/14] ARM: OMAP2+: hwmod: Hook-up am33xx support in
+Subject: [PATCH 04/13] ARM: OMAP2+: hwmod: Hook-up am33xx support in
  omap_hwmod framework
 
 AM33XX PRCM architecture is different that any OMAP family
@@ -25,7 +25,7 @@ http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69023.html
  1 files changed, 180 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 6ca8e51..31ec283 100644
+index 7768804..edabfb3 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
 @@ -149,8 +149,10 @@
@@ -244,7 +244,7 @@ index 6ca8e51..31ec283 100644
  /* Public functions */
  
  u32 omap_hwmod_read(struct omap_hwmod *oh, u16 reg_offs)
-@@ -3677,6 +3849,14 @@ void __init omap_hwmod_init(void)
+@@ -3704,6 +3876,14 @@ void __init omap_hwmod_init(void)
  		soc_ops.deassert_hardreset = _omap4_deassert_hardreset;
  		soc_ops.is_hardreset_asserted = _omap4_is_hardreset_asserted;
  		soc_ops.init_clkdm = _init_clkdm;

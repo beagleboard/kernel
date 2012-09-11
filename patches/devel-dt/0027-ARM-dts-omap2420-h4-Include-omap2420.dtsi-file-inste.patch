@@ -1,0 +1,31 @@
+From 06873b0880ee7e4de9e552970199d0757e88dca1 Mon Sep 17 00:00:00 2001
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Date: Wed, 8 Aug 2012 11:02:52 +0300
+Subject: [PATCH 27/43] ARM: dts: omap2420-h4: Include omap2420.dtsi file
+ instead the common omap2
+
+Since the board is based on OMAP2420 we should include the dedicated dtsi
+file (which includes the common omap2 dtsi).
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+---
+ arch/arm/boot/dts/omap2420-h4.dts |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap2420-h4.dts b/arch/arm/boot/dts/omap2420-h4.dts
+index 25b50b7..77b84e1 100644
+--- a/arch/arm/boot/dts/omap2420-h4.dts
++++ b/arch/arm/boot/dts/omap2420-h4.dts
+@@ -7,7 +7,7 @@
+  */
+ /dts-v1/;
+ 
+-/include/ "omap2.dtsi"
++/include/ "omap2420.dtsi"
+ 
+ / {
+ 	model = "TI OMAP2420 H4 board";
+-- 
+1.7.7.6
+

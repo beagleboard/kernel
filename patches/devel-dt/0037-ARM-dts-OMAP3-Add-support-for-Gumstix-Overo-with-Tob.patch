@@ -1,0 +1,135 @@
+From 26fed5bf73ff4134ff39b3684cd238a95a522001 Mon Sep 17 00:00:00 2001
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Date: Fri, 31 Aug 2012 18:06:11 +0200
+Subject: [PATCH 37/43] ARM: dts: OMAP3: Add support for Gumstix Overo with
+ Tobi expansion board
+
+The Gumstix Overo is a computer on module using an OMAP3 processor.
+This module must be plugged into an expansion board.
+
+This patch adds a first device tree support for the Overo, using the
+Tobi expansion board. The current support is able to boot and mount
+the rootfs from MMC.
+
+This patche also updates the omap3 dtb build target.
+
+Currently working:
+- mmc0 (on board microSD)
+- i2c0 and i2c2 (i2c1 not used)
+- led on GPIO
+
+Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+---
+ arch/arm/boot/dts/omap3-overo.dtsi |   42 ++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-tobi.dts   |   35 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/Makefile.boot  |    2 +-
+ 3 files changed, 78 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-overo.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-tobi.dts
+
+diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
+new file mode 100644
+index 0000000..d6cc5e2
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-overo.dtsi
+@@ -0,0 +1,42 @@
++/*
++ * Copyright (C) 2012 Florian Vaussard, EPFL Mobots group
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * The Gumstix Overo must be combined with an expansion board.
++ */
++/dts-v1/;
++
++/include/ "omap3.dtsi"
++
++&i2c1 {
++	clock-frequency = <2600000>;
++
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++	};
++};
++
++/include/ "twl4030.dtsi"
++
++/* i2c2 pins are used for gpio */
++&i2c2 {
++	status = "disabled";
++};
++
++/* on board microSD slot */
++&mmc1 {
++	vmmc-supply = <&vmmc1>;
++	bus-width = <4>;
++};
++
++/* optional on board WiFi */
++&mmc2 {
++	bus-width = <4>;
++};
+diff --git a/arch/arm/boot/dts/omap3-tobi.dts b/arch/arm/boot/dts/omap3-tobi.dts
+new file mode 100644
+index 0000000..a13d12d
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-tobi.dts
+@@ -0,0 +1,35 @@
++/*
++ * Copyright (C) 2012 Florian Vaussard, EPFL Mobots group
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * Tobi expansion board is manufactured by Gumstix Inc.
++ */
++
++/include/ "omap3-overo.dtsi"
++
++/ {
++	model = "TI OMAP3 Gumstix Overo on Tobi";
++	compatible = "ti,omap3-tobi", "ti,omap3-overo", "ti,omap3";
++
++	leds {
++		compatible = "gpio-leds";
++		heartbeat {
++			label = "overo:red:gpio21";
++			gpios = <&gpio1 21 0>;
++			linux,default-trigger = "heartbeat";
++		};
++	};
++};
++
++&i2c3 {
++	clock-frequency = <100000>;
++};
++
++&mmc3 {
++	status = "disabled";
++};
+diff --git a/arch/arm/mach-omap2/Makefile.boot b/arch/arm/mach-omap2/Makefile.boot
+index 6cf1c2d..18813ab 100644
+--- a/arch/arm/mach-omap2/Makefile.boot
++++ b/arch/arm/mach-omap2/Makefile.boot
+@@ -3,7 +3,7 @@ params_phys-y		:= 0x80000100
+ initrd_phys-y		:= 0x80800000
+ 
+ dtb-$(CONFIG_SOC_OMAP2420)	+= omap2420-h4.dtb
+-dtb-$(CONFIG_ARCH_OMAP3)	+= omap3-beagle.dtb omap3-evm.dtb
++dtb-$(CONFIG_ARCH_OMAP3)	+= omap3-beagle.dtb omap3-evm.dtb omap3-tobi.dtb
+ dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-panda.dtb omap4-pandaES.dtb
+ dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-var_som.dtb omap4-sdp.dtb
+ dtb-$(CONFIG_SOC_OMAP5)		+= omap5-evm.dtb
+-- 
+1.7.7.6
+

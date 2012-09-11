@@ -1,0 +1,66 @@
+From 0626d3d4de476a21ff7c26fd30360be5d2f7df99 Mon Sep 17 00:00:00 2001
+From: Sourav Poddar <sourav.poddar@ti.com>
+Date: Wed, 25 Jul 2012 11:03:27 +0530
+Subject: [PATCH 13/43] ARM: dts: omap5-evm: Add keypad data
+
+Add keypad data node in omap5 device tree file.
+Also fill the device tree binding parameters
+with the required value in "omap5-evm" dts file.
+
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+[b-cousson@ti.com: Fix merge issue with MMC patches,
+put node at the proper place, align entries and comments]
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+---
+ arch/arm/boot/dts/omap5-evm.dts |   13 +++++++++++++
+ arch/arm/boot/dts/omap5.dtsi    |    5 +++++
+ 2 files changed, 18 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
+index 1790f41..457d1ec 100644
+--- a/arch/arm/boot/dts/omap5-evm.dts
++++ b/arch/arm/boot/dts/omap5-evm.dts
+@@ -24,6 +24,7 @@
+ 		regulator-min-microvolt = <3000000>;
+ 		regulator-max-microvolt = <3000000>;
+ 	};
++
+ };
+ 
+ &mmc1 {
+@@ -59,3 +60,15 @@
+ 		reg = <0x48>;
+ 	};
+ };
++
++&keypad {
++	keypad,num-rows = <8>;
++	keypad,num-columns = <8>;
++	linux,keymap = <0x02020073	/* VOLUP */
++			0x02030072	/* VOLDOWM */
++			0x020400e7	/* SEND */
++			0x02050066	/* HOME */
++			0x0206006b	/* END */
++			0x020700d9>;	/* SEARCH */
++	linux,input-no-autorepeat;
++};
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 424ad16..4c11ae1 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -246,5 +246,10 @@
+ 			ti,hwmods = "mmc5";
+ 			ti,needs-special-reset;
+ 		};
++
++		keypad: keypad@4ae1c000 {
++			compatible = "ti,omap4-keypad";
++			ti,hwmods = "kbd";
++		};
+ 	};
+ };
+-- 
+1.7.7.6
+

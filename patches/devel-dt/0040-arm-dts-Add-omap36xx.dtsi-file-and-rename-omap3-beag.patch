@@ -1,0 +1,341 @@
+From f0f9e92f97f8762138c89d4080cced1dda29056d Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 10 Sep 2012 10:20:44 -0700
+Subject: [PATCH 40/43] arm/dts: Add omap36xx.dtsi file and rename
+ omap3-beagle to omap3-beagle-xm
+
+The extra serial port is not available on 34xx. And the current
+omap3-beagle.dts file is for omap3-beagle-xm.dts as it lists 512MB
+of memory.
+
+Please somebody submit a new omap3-beagle.dts for the original 34xx
+BeagleBoard after testing it properly.
+
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/omap3-beagle-xm.dts |  115 +++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-beagle.dts    |  115 ---------------------------------
+ arch/arm/boot/dts/omap3.dtsi          |    7 --
+ arch/arm/boot/dts/omap36xx.dtsi       |   25 +++++++
+ arch/arm/mach-omap2/Makefile.boot     |    2 +-
+ 5 files changed, 141 insertions(+), 123 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-beagle-xm.dts
+ delete mode 100644 arch/arm/boot/dts/omap3-beagle.dts
+ create mode 100644 arch/arm/boot/dts/omap36xx.dtsi
+
+diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+new file mode 100644
+index 0000000..c38cf76
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+@@ -0,0 +1,115 @@
++/*
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++/include/ "omap36xx.dtsi"
++
++/ {
++	model = "TI OMAP3 BeagleBoard xM";
++	compatible = "ti,omap3-beagle-xm, ti,omap3-beagle", "ti,omap3";
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x20000000>; /* 512 MB */
++	};
++
++	leds {
++		compatible = "gpio-leds";
++		pmu_stat {
++			label = "beagleboard::pmu_stat";
++			gpios = <&twl_gpio 19 0>; /* LEDB */
++		};
++
++		heartbeat {
++			label = "beagleboard::usr0";
++			gpios = <&gpio5 22 0>; /* 150 -> D6 LED */
++			linux,default-trigger = "heartbeat";
++		};
++
++		mmc {
++			label = "beagleboard::usr1";
++			gpios = <&gpio5 21 0>; /* 149 -> D7 LED */
++			linux,default-trigger = "mmc0";
++		};
++	};
++
++	sound {
++		compatible = "ti,omap-twl4030";
++		ti,model = "omap3beagle";
++
++		ti,mcbsp = <&mcbsp2>;
++		ti,codec = <&twl_audio>;
++	};
++};
++
++&i2c1 {
++	clock-frequency = <2600000>;
++
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++
++		vsim: regulator-vsim {
++			compatible = "ti,twl4030-vsim";
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <3000000>;
++		};
++
++		twl_audio: audio {
++			compatible = "ti,twl4030-audio";
++			codec {
++			};
++		};
++	};
++};
++
++/include/ "twl4030.dtsi"
++
++&i2c2 {
++	clock-frequency = <400000>;
++};
++
++&i2c3 {
++	clock-frequency = <100000>;
++
++	/*
++	 * Display monitor features are burnt in the EEPROM
++	 * as EDID data.
++	 */
++	eeprom@50 {
++		compatible = "ti,eeprom";
++		reg = <0x50>;
++	};
++};
++
++&mmc1 {
++	vmmc-supply = <&vmmc1>;
++	vmmc_aux-supply = <&vsim>;
++	bus-width = <8>;
++};
++
++&mmc2 {
++	status = "disabled";
++};
++
++&mmc3 {
++	status = "disabled";
++};
++
++&twl_gpio {
++	ti,use-leds;
++	/* pullups: BIT(1) */
++	ti,pullups = <0x000002>;
++	/*
++	 * pulldowns:
++	 * BIT(2), BIT(6), BIT(7), BIT(8), BIT(13)
++	 * BIT(15), BIT(16), BIT(17)
++	 */
++	ti,pulldowns = <0x03a1c4>;
++};
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+deleted file mode 100644
+index a9d98d5..0000000
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ /dev/null
+@@ -1,115 +0,0 @@
+-/*
+- * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-/dts-v1/;
+-
+-/include/ "omap3.dtsi"
+-
+-/ {
+-	model = "TI OMAP3 BeagleBoard";
+-	compatible = "ti,omap3-beagle", "ti,omap3";
+-
+-	memory {
+-		device_type = "memory";
+-		reg = <0x80000000 0x20000000>; /* 512 MB */
+-	};
+-
+-	leds {
+-		compatible = "gpio-leds";
+-		pmu_stat {
+-			label = "beagleboard::pmu_stat";
+-			gpios = <&twl_gpio 19 0>; /* LEDB */
+-		};
+-
+-		heartbeat {
+-			label = "beagleboard::usr0";
+-			gpios = <&gpio5 22 0>; /* 150 -> D6 LED */
+-			linux,default-trigger = "heartbeat";
+-		};
+-
+-		mmc {
+-			label = "beagleboard::usr1";
+-			gpios = <&gpio5 21 0>; /* 149 -> D7 LED */
+-			linux,default-trigger = "mmc0";
+-		};
+-	};
+-
+-	sound {
+-		compatible = "ti,omap-twl4030";
+-		ti,model = "omap3beagle";
+-
+-		ti,mcbsp = <&mcbsp2>;
+-		ti,codec = <&twl_audio>;
+-	};
+-};
+-
+-&i2c1 {
+-	clock-frequency = <2600000>;
+-
+-	twl: twl@48 {
+-		reg = <0x48>;
+-		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+-		interrupt-parent = <&intc>;
+-
+-		vsim: regulator-vsim {
+-			compatible = "ti,twl4030-vsim";
+-			regulator-min-microvolt = <1800000>;
+-			regulator-max-microvolt = <3000000>;
+-		};
+-
+-		twl_audio: audio {
+-			compatible = "ti,twl4030-audio";
+-			codec {
+-			};
+-		};
+-	};
+-};
+-
+-/include/ "twl4030.dtsi"
+-
+-&i2c2 {
+-	clock-frequency = <400000>;
+-};
+-
+-&i2c3 {
+-	clock-frequency = <100000>;
+-
+-	/*
+-	 * Display monitor features are burnt in the EEPROM
+-	 * as EDID data.
+-	 */
+-	eeprom@50 {
+-		compatible = "ti,eeprom";
+-		reg = <0x50>;
+-	};
+-};
+-
+-&mmc1 {
+-	vmmc-supply = <&vmmc1>;
+-	vmmc_aux-supply = <&vsim>;
+-	bus-width = <8>;
+-};
+-
+-&mmc2 {
+-	status = "disabled";
+-};
+-
+-&mmc3 {
+-	status = "disabled";
+-};
+-
+-&twl_gpio {
+-	ti,use-leds;
+-	/* pullups: BIT(1) */
+-	ti,pullups = <0x000002>;
+-	/*
+-	 * pulldowns:
+-	 * BIT(2), BIT(6), BIT(7), BIT(8), BIT(13)
+-	 * BIT(15), BIT(16), BIT(17)
+-	 */
+-	ti,pulldowns = <0x03a1c4>;
+-};
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index f024bb3..05c26c4 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -17,7 +17,6 @@
+ 		serial0 = &uart1;
+ 		serial1 = &uart2;
+ 		serial2 = &uart3;
+-		serial3 = &uart4;
+ 	};
+ 
+ 	cpus {
+@@ -141,12 +140,6 @@
+ 			clock-frequency = <48000000>;
+ 		};
+ 
+-		uart4: serial@49042000 {
+-			compatible = "ti,omap3-uart";
+-			ti,hwmods = "uart4";
+-			clock-frequency = <48000000>;
+-		};
+-
+ 		i2c1: i2c@48070000 {
+ 			compatible = "ti,omap3-i2c";
+ 			#address-cells = <1>;
+diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+new file mode 100644
+index 0000000..96bf028
+--- /dev/null
++++ b/arch/arm/boot/dts/omap36xx.dtsi
+@@ -0,0 +1,25 @@
++/*
++ * Device Tree Source for OMAP3 SoC
++ *
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2.  This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
++
++/include/ "omap3.dtsi"
++
++/ {
++	aliases {
++		serial3 = &uart4;
++	};
++
++	ocp {
++		uart4: serial@49042000 {
++			compatible = "ti,omap3-uart";
++			ti,hwmods = "uart4";
++			clock-frequency = <48000000>;
++		};
++	};
++};
+diff --git a/arch/arm/mach-omap2/Makefile.boot b/arch/arm/mach-omap2/Makefile.boot
+index 18813ab..be0fe92 100644
+--- a/arch/arm/mach-omap2/Makefile.boot
++++ b/arch/arm/mach-omap2/Makefile.boot
+@@ -3,7 +3,7 @@ params_phys-y		:= 0x80000100
+ initrd_phys-y		:= 0x80800000
+ 
+ dtb-$(CONFIG_SOC_OMAP2420)	+= omap2420-h4.dtb
+-dtb-$(CONFIG_ARCH_OMAP3)	+= omap3-beagle.dtb omap3-evm.dtb omap3-tobi.dtb
++dtb-$(CONFIG_ARCH_OMAP3)	+= omap3-beagle-xm.dtb omap3-evm.dtb omap3-tobi.dtb
+ dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-panda.dtb omap4-pandaES.dtb
+ dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-var_som.dtb omap4-sdp.dtb
+ dtb-$(CONFIG_SOC_OMAP5)		+= omap5-evm.dtb
+-- 
+1.7.7.6
+

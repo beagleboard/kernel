@@ -1,0 +1,49 @@
+From 049da6251b4573a961830ffeeb8942ffc863ef1c Mon Sep 17 00:00:00 2001
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Date: Wed, 29 Aug 2012 16:31:05 +0300
+Subject: [PATCH 33/43] ARM: dts: omap3-beagle: Enable audio support
+
+Add the needed sections to enable audio support on BeagleBoard when booted
+with DT blob.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+---
+ arch/arm/boot/dts/omap3-beagle.dts |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index ca46fb2..a9d98d5 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -37,6 +37,14 @@
+ 			linux,default-trigger = "mmc0";
+ 		};
+ 	};
++
++	sound {
++		compatible = "ti,omap-twl4030";
++		ti,model = "omap3beagle";
++
++		ti,mcbsp = <&mcbsp2>;
++		ti,codec = <&twl_audio>;
++	};
+ };
+ 
+ &i2c1 {
+@@ -52,6 +60,12 @@
+ 			regulator-min-microvolt = <1800000>;
+ 			regulator-max-microvolt = <3000000>;
+ 		};
++
++		twl_audio: audio {
++			compatible = "ti,twl4030-audio";
++			codec {
++			};
++		};
+ 	};
+ };
+ 
+-- 
+1.7.7.6
+

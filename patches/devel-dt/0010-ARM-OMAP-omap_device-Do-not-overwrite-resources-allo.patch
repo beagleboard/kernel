@@ -1,7 +1,7 @@
-From d854eee1f2e3f9fbcb8533754ce20979aadb263f Mon Sep 17 00:00:00 2001
+From 347eb64d72de494c4083275d3b0e44da0bb8506a Mon Sep 17 00:00:00 2001
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Date: Wed, 29 Aug 2012 14:33:56 +0530
-Subject: [PATCH 08/14] ARM: OMAP2+: omap-device: Do not overwrite resources
+Date: Wed, 29 Aug 2012 15:18:11 +0530
+Subject: [PATCH 10/43] ARM: OMAP: omap_device: Do not overwrite resources
  allocated by OF layer
 
 With the new devices (like, AM33XX and OMAP5) we now only support
@@ -24,21 +24,22 @@ The idea here is implemented considering to both boot modes -
     resources from hwmod (following existing steps)
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@ti.com>
+[b-cousson@ti.com: Fix some checkpatch CHECK issues]
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 ---
  arch/arm/mach-omap2/omap_hwmod.c             |   27 ++++++++++
  arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- arch/arm/plat-omap/omap_device.c             |   72 +++++++++++++++++++++----
- 3 files changed, 88 insertions(+), 12 deletions(-)
+ arch/arm/plat-omap/omap_device.c             |   71 +++++++++++++++++++++----
+ 3 files changed, 87 insertions(+), 12 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 31ec283..edabfb3 100644
+index 6ca8e51..7768804 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3330,6 +3330,33 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
+@@ -3158,6 +3158,33 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
  }
  
  /**
@@ -73,7 +74,7 @@ index 31ec283..edabfb3 100644
   * @oh: struct omap_hwmod * to operate on
   * @type: one of the IORESOURCE_* constants from include/linux/ioport.h
 diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 9b9646c..0533073 100644
+index 6132972..5857b9c 100644
 --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
 +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
 @@ -615,6 +615,7 @@ int omap_hwmod_softreset(struct omap_hwmod *oh);
@@ -85,14 +86,14 @@ index 9b9646c..0533073 100644
  				   const char *name, struct resource *res);
  
 diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index c490240..fd15a3a 100644
+index ff57b5a..6f5c580 100644
 --- a/arch/arm/plat-omap/omap_device.c
 +++ b/arch/arm/plat-omap/omap_device.c
-@@ -486,6 +486,33 @@ static int omap_device_fill_resources(struct omap_device *od,
+@@ -494,6 +494,33 @@ static int omap_device_fill_resources(struct omap_device *od,
  }
  
  /**
-+ * omap_device_fill_dma_resources - fill in array of struct resource with dma resources
++ * _od_fill_dma_resources - fill in array of struct resource with dma resources
 + * @od: struct omap_device *
 + * @res: pointer to an array of struct resource to be filled in
 + *
@@ -105,7 +106,7 @@ index c490240..fd15a3a 100644
 + *
 + * Returns 0.
 + */
-+static int omap_device_fill_dma_resources(struct omap_device *od,
++static int _od_fill_dma_resources(struct omap_device *od,
 +				      struct resource *res)
 +{
 +	int i, r;
@@ -122,7 +123,7 @@ index c490240..fd15a3a 100644
   * omap_device_alloc - allocate an omap_device
   * @pdev: platform_device that will be included in this omap_device
   * @oh: ptr to the single omap_hwmod that backs this omap_device
-@@ -524,24 +551,45 @@ struct omap_device *omap_device_alloc(struct platform_device *pdev,
+@@ -532,24 +559,44 @@ struct omap_device *omap_device_alloc(struct platform_device *pdev,
  	od->hwmods = hwmods;
  	od->pdev = pdev;
  
@@ -167,14 +168,13 @@ index c490240..fd15a3a 100644
 +		 */
 +		if (pdev->num_resources && pdev->resource) {
 +			dev_dbg(&pdev->dev, "%s(): resources already allocated %d\n",
-+					__func__, res_count);
++				__func__, res_count);
 +			memcpy(res, pdev->resource,
-+				sizeof(struct resource) * pdev->num_resources);
-+			omap_device_fill_dma_resources(od,
-+					&res[pdev->num_resources]);
++			       sizeof(struct resource) * pdev->num_resources);
++			_od_fill_dma_resources(od, &res[pdev->num_resources]);
 +		} else {
 +			dev_dbg(&pdev->dev, "%s(): using resources from hwmod %d\n",
-+					__func__, res_count);
++				__func__, res_count);
 +			omap_device_fill_resources(od, res);
 +		}
  

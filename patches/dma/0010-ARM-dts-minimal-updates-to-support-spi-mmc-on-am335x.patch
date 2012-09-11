@@ -1,7 +1,7 @@
-From 319d3c6bc3ce53af9507d71f831b2405a21bc168 Mon Sep 17 00:00:00 2001
+From 394e4896c9fbe25fdf989d5d79b2dd1c99ec9660 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Fri, 7 Sep 2012 09:44:05 -0400
-Subject: [PATCH 10/12] ARM: dts: minimal updates to support spi/mmc on
+Subject: [PATCH 10/11] ARM: dts: minimal updates to support spi/mmc on
  am335x-bone
 
 Signed-off-by: Matt Porter <mporter@ti.com>
@@ -47,10 +47,10 @@ index 6cdf508..0d9eb8d 100644
 +};
 +
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index bc9def8..6994a65 100644
+index 235ffb2..02e4699 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -291,16 +291,22 @@
+@@ -288,16 +288,22 @@
  		mmc1: mmc@48060000 {
  			compatible = "ti,omap3-hsmmc";
  			ti,hwmods = "mmc1";
@@ -73,7 +73,7 @@ index bc9def8..6994a65 100644
  		};
  
  		usb0_phy: phy0 {
-@@ -333,13 +339,12 @@
+@@ -330,13 +336,12 @@
  			compatible = "ti,omap4-mcspi";
  			#address-cells = <1>;
  			#size-cells = <0>;

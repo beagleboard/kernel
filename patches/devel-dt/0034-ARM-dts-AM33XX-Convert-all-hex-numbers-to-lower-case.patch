@@ -1,24 +1,26 @@
-From 27dda9ed7b3a16f09f9fda9d053418004afcfe06 Mon Sep 17 00:00:00 2001
+From 768d61bfa60242474f0c57a4f5697b5b90915a47 Mon Sep 17 00:00:00 2001
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 Date: Mon, 27 Aug 2012 16:59:08 +0530
-Subject: [PATCH 06/14] arm/dts: AM33XX: Convert all hex numbers to lower-case
+Subject: [PATCH 34/43] ARM: dts: AM33XX: Convert all hex numbers to
+ lower-case
 
 To make it consistent, convert all hex number presentation
 to lower-case from all am33xx specific nodes.
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/boot/dts/am335x-bone.dts |    2 +-
- arch/arm/boot/dts/am335x-evm.dts  |    2 +-
+ arch/arm/boot/dts/am335x-bone.dts |    4 ++--
+ arch/arm/boot/dts/am335x-evm.dts  |    8 ++++----
  arch/arm/boot/dts/am33xx.dtsi     |   20 ++++++++++----------
- 3 files changed, 12 insertions(+), 12 deletions(-)
+ 3 files changed, 16 insertions(+), 16 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 917e784..c1c3e6a 100644
+index 917e784..c634f87 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -19,7 +19,7 @@
+@@ -19,11 +19,11 @@
  	};
  
  	ocp {
@@ -26,12 +28,17 @@ index 917e784..c1c3e6a 100644
 +		uart1: serial@44e09000 {
  			status = "okay";
  		};
+ 
+-		i2c1: i2c@44E0B000 {
++		i2c1: i2c@44e0b000 {
+ 			status = "okay";
+ 			clock-frequency = <400000>;
  
 diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 9fcbacd..5c2b2b1 100644
+index 9fcbacd..185d632 100644
 --- a/arch/arm/boot/dts/am335x-evm.dts
 +++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -19,7 +19,7 @@
+@@ -19,16 +19,16 @@
  	};
  
  	ocp {
@@ -40,6 +47,18 @@ index 9fcbacd..5c2b2b1 100644
  			status = "okay";
  		};
  
+-		i2c1: i2c@44E0B000 {
++		i2c1: i2c@44e0b000 {
+ 			status = "okay";
+ 			clock-frequency = <400000>;
+ 
+-			tps: tps@2D {
+-				reg = <0x2D>;
++			tps: tps@2d {
++				reg = <0x2d>;
+ 			};
+ 		};
+ 	};
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
 index dde76f7..be43511 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi

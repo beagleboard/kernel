@@ -1,0 +1,183 @@
+From e156c5f44e95eca1cdc6bf35531f479334debd13 Mon Sep 17 00:00:00 2001
+From: Aneesh V <aneesh@ti.com>
+Date: Fri, 20 Jan 2012 20:35:26 +0530
+Subject: [PATCH 19/43] ARM: dts: EMIF and LPDDR2 device tree data for OMAP4
+ boards
+
+Device tree data for the EMIF sdram controllers in OMAP4
+and LPDDR2 memory devices attached to OMAP4 boards.
+
+Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
+Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
+Signed-off-by: Aneesh V <aneesh@ti.com>
+[santosh.shilimkar@ti.com: Rebased against 3.6-rc]
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+[b-cousson@ti.com: Use label in board to access EMIF nodes]
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+---
+ arch/arm/boot/dts/elpida_ecb240abacn.dtsi |   67 +++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap4-panda.dts         |   11 +++++
+ arch/arm/boot/dts/omap4-sdp.dts           |   11 +++++
+ arch/arm/boot/dts/omap4.dtsi              |   18 ++++++++
+ 4 files changed, 107 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/boot/dts/elpida_ecb240abacn.dtsi
+
+diff --git a/arch/arm/boot/dts/elpida_ecb240abacn.dtsi b/arch/arm/boot/dts/elpida_ecb240abacn.dtsi
+new file mode 100644
+index 0000000..f97f70f
+--- /dev/null
++++ b/arch/arm/boot/dts/elpida_ecb240abacn.dtsi
+@@ -0,0 +1,67 @@
++/*
++ * Common devices used in different OMAP boards
++ */
++
++/ {
++	elpida_ECB240ABACN: lpddr2 {
++		compatible	= "Elpida,ECB240ABACN","jedec,lpddr2-s4";
++		density		= <2048>;
++		io-width	= <32>;
++
++		tRPab-min-tck	= <3>;
++		tRCD-min-tck	= <3>;
++		tWR-min-tck	= <3>;
++		tRASmin-min-tck	= <3>;
++		tRRD-min-tck	= <2>;
++		tWTR-min-tck	= <2>;
++		tXP-min-tck	= <2>;
++		tRTP-min-tck	= <2>;
++		tCKE-min-tck	= <3>;
++		tCKESR-min-tck	= <3>;
++		tFAW-min-tck	= <8>;
++
++		timings_elpida_ECB240ABACN_400mhz: lpddr2-timings@0 {
++			compatible	= "jedec,lpddr2-timings";
++			min-freq	= <10000000>;
++			max-freq	= <400000000>;
++			tRPab		= <21000>;
++			tRCD		= <18000>;
++			tWR		= <15000>;
++			tRAS-min	= <42000>;
++			tRRD		= <10000>;
++			tWTR		= <7500>;
++			tXP		= <7500>;
++			tRTP		= <7500>;
++			tCKESR		= <15000>;
++			tDQSCK-max	= <5500>;
++			tFAW		= <50000>;
++			tZQCS		= <90000>;
++			tZQCL		= <360000>;
++			tZQinit		= <1000000>;
++			tRAS-max-ns	= <70000>;
++			tDQSCK-max-derated = <6000>;
++		};
++
++		timings_elpida_ECB240ABACN_200mhz: lpddr2-timings@1 {
++			compatible	= "jedec,lpddr2-timings";
++			min-freq	= <10000000>;
++			max-freq	= <200000000>;
++			tRPab		= <21000>;
++			tRCD		= <18000>;
++			tWR		= <15000>;
++			tRAS-min	= <42000>;
++			tRRD		= <10000>;
++			tWTR		= <10000>;
++			tXP		= <7500>;
++			tRTP		= <7500>;
++			tCKESR		= <15000>;
++			tDQSCK-max	= <5500>;
++			tFAW		= <50000>;
++			tZQCS		= <90000>;
++			tZQCL		= <360000>;
++			tZQinit		= <1000000>;
++			tRAS-max-ns	= <70000>;
++			tDQSCK-max-derated = <6000>;
++		};
++	};
++};
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+index 9880c12..20b966e 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -8,6 +8,7 @@
+ /dts-v1/;
+ 
+ /include/ "omap4.dtsi"
++/include/ "elpida_ecb240abacn.dtsi"
+ 
+ / {
+ 	model = "TI OMAP4 PandaBoard";
+@@ -126,3 +127,13 @@
+ 	ti,non-removable;
+ 	bus-width = <4>;
+ };
++
++&emif1 {
++	cs1-used;
++	device-handle = <&elpida_ECB240ABACN>;
++};
++
++&emif2 {
++	cs1-used;
++	device-handle = <&elpida_ECB240ABACN>;
++};
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index 8869c1e..7e83a61 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -8,6 +8,7 @@
+ /dts-v1/;
+ 
+ /include/ "omap4.dtsi"
++/include/ "elpida_ecb240abacn.dtsi"
+ 
+ / {
+ 	model = "TI OMAP4 SDP board";
+@@ -227,6 +228,16 @@
+ 	ti,non-removable;
+ };
+ 
++&emif1 {
++	cs1-used;
++	device-handle = <&elpida_ECB240ABACN>;
++};
++
++&emif2 {
++	cs1-used;
++	device-handle = <&elpida_ECB240ABACN>;
++};
++
+ &keypad {
+ 	keypad,num-rows = <8>;
+ 	keypad,num-columns = <8>;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 7fc45bb..c7dc11f 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -300,5 +300,23 @@
+ 			compatible = "ti,omap4-keypad";
+ 			ti,hwmods = "kbd";
+ 		};
++
++		emif1: emif@4c000000 {
++			compatible = "ti,emif-4d";
++			ti,hwmods = "emif1";
++			phy-type = <1>;
++			hw-caps-read-idle-ctrl;
++			hw-caps-ll-interface;
++			hw-caps-temp-alert;
++		};
++
++		emif2: emif@4d000000 {
++			compatible = "ti,emif-4d";
++			ti,hwmods = "emif2";
++			phy-type = <1>;
++			hw-caps-read-idle-ctrl;
++			hw-caps-ll-interface;
++			hw-caps-temp-alert;
++		};
+ 	};
+ };
+-- 
+1.7.7.6
+

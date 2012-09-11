@@ -1,0 +1,510 @@
+From b258a5b74afbb12ba1f7d4fc559e18d6a6f5771d Mon Sep 17 00:00:00 2001
+From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Date: Sun, 10 Jul 2011 14:19:39 +0200
+Subject: [PATCH 1/2] Consolidate SRAM support
+
+We have two SoCs using SRAM, both with their own allocation systems,
+and both with their own ways of copying functions into the SRAM.
+
+Let's unify this before we have additional SoCs re-implementing this
+obviously common functionality themselves.
+
+For this use the generic allocator and the newly introduce
+gen_pool_add_virt and gen_pool_virt_to_phys
+
+Uio_pruss should probably take the SRAM pool pointer via
+platform data so that it doesn't have to include Davinci specific
+includes.
+
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Acked-by: Sekhar Nori <nsekhar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Sascha Hauer <kernel@pengutronix.de>
+
+Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/Kconfig                            |    1 +
+ arch/arm/mach-davinci/da850.c               |    2 +-
+ arch/arm/mach-davinci/dm355.c               |    2 +-
+ arch/arm/mach-davinci/dm365.c               |    2 +-
+ arch/arm/mach-davinci/dm644x.c              |    2 +-
+ arch/arm/mach-davinci/dm646x.c              |    2 +-
+ arch/arm/mach-davinci/include/mach/common.h |    2 +-
+ arch/arm/mach-davinci/include/mach/sram.h   |   13 +-----
+ arch/arm/mach-davinci/pm.c                  |   21 ++++------
+ arch/arm/mach-davinci/sram.c                |   57 +++++++--------------------
+ arch/arm/plat-omap/include/plat/sram.h      |   19 ++++++---
+ arch/arm/plat-omap/sram.c                   |   45 +++++++--------------
+ drivers/uio/uio_pruss.c                     |   11 ++++-
+ sound/soc/davinci/davinci-pcm.c             |   11 +++--
+ 14 files changed, 77 insertions(+), 113 deletions(-)
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 5272f72..9978807 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -982,6 +982,7 @@ config ARCH_OMAP
+ 	select ARCH_REQUIRE_GPIOLIB
+ 	select ARCH_HAS_CPUFREQ
+ 	select CLKSRC_MMIO
++	select GENERIC_ALLOCATOR
+ 	select GENERIC_CLOCKEVENTS
+ 	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	help
+diff --git a/arch/arm/mach-davinci/da850.c b/arch/arm/mach-davinci/da850.c
+index b44dc84..a512057 100644
+--- a/arch/arm/mach-davinci/da850.c
++++ b/arch/arm/mach-davinci/da850.c
+@@ -1087,7 +1087,7 @@ static struct davinci_soc_info davinci_soc_info_da850 = {
+ 	.gpio_irq		= IRQ_DA8XX_GPIO0,
+ 	.serial_dev		= &da8xx_serial_device,
+ 	.emac_pdata		= &da8xx_emac_pdata,
+-	.sram_dma		= DA8XX_ARM_RAM_BASE,
++	.sram_phys		= DA8XX_ARM_RAM_BASE,
+ 	.sram_len		= SZ_8K,
+ };
+ 
+diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
+index c7a432b..1fddb2a 100644
+--- a/arch/arm/mach-davinci/dm355.c
++++ b/arch/arm/mach-davinci/dm355.c
+@@ -851,7 +851,7 @@ static struct davinci_soc_info davinci_soc_info_dm355 = {
+ 	.gpio_num		= 104,
+ 	.gpio_irq		= IRQ_DM355_GPIOBNK0,
+ 	.serial_dev		= &dm355_serial_device,
+-	.sram_dma		= 0x00010000,
++	.sram_phys		= 0x00010000,
+ 	.sram_len		= SZ_32K,
+ };
+ 
+diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
+index 8e22ee8..afac1a8 100644
+--- a/arch/arm/mach-davinci/dm365.c
++++ b/arch/arm/mach-davinci/dm365.c
+@@ -1097,7 +1097,7 @@ static struct davinci_soc_info davinci_soc_info_dm365 = {
+ 	.gpio_unbanked		= 8,	/* really 16 ... skip muxed GPIOs */
+ 	.serial_dev		= &dm365_serial_device,
+ 	.emac_pdata		= &dm365_emac_pdata,
+-	.sram_dma		= 0x00010000,
++	.sram_phys		= 0x00010000,
+ 	.sram_len		= SZ_32K,
+ };
+ 
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index 562e51f..bdf5584 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -896,7 +896,7 @@ static struct davinci_soc_info davinci_soc_info_dm644x = {
+ 	.gpio_irq		= IRQ_GPIOBNK0,
+ 	.serial_dev		= &dm644x_serial_device,
+ 	.emac_pdata		= &dm644x_emac_pdata,
+-	.sram_dma		= 0x00008000,
++	.sram_phys		= 0x00008000,
+ 	.sram_len		= SZ_16K,
+ };
+ 
+diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
+index 2fa4b5b..cdd4043 100644
+--- a/arch/arm/mach-davinci/dm646x.c
++++ b/arch/arm/mach-davinci/dm646x.c
+@@ -857,7 +857,7 @@ static struct davinci_soc_info davinci_soc_info_dm646x = {
+ 	.gpio_irq		= IRQ_DM646X_GPIOBNK0,
+ 	.serial_dev		= &dm646x_serial_device,
+ 	.emac_pdata		= &dm646x_emac_pdata,
+-	.sram_dma		= 0x10010000,
++	.sram_phys		= 0x10010000,
+ 	.sram_len		= SZ_32K,
+ };
+ 
+diff --git a/arch/arm/mach-davinci/include/mach/common.h b/arch/arm/mach-davinci/include/mach/common.h
+index bdc4aa8..2fb5137 100644
+--- a/arch/arm/mach-davinci/include/mach/common.h
++++ b/arch/arm/mach-davinci/include/mach/common.h
+@@ -75,7 +75,7 @@ struct davinci_soc_info {
+ 	int				gpio_ctlrs_num;
+ 	struct platform_device		*serial_dev;
+ 	struct emac_platform_data	*emac_pdata;
+-	dma_addr_t			sram_dma;
++	phys_addr_t			sram_phys;
+ 	unsigned			sram_len;
+ };
+ 
+diff --git a/arch/arm/mach-davinci/include/mach/sram.h b/arch/arm/mach-davinci/include/mach/sram.h
+index 111f7cc..aa52009 100644
+--- a/arch/arm/mach-davinci/include/mach/sram.h
++++ b/arch/arm/mach-davinci/include/mach/sram.h
+@@ -10,18 +10,11 @@
+ #ifndef __MACH_SRAM_H
+ #define __MACH_SRAM_H
+ 
++#include <linux/genalloc.h>
++
+ /* ARBITRARY:  SRAM allocations are multiples of this 2^N size */
+ #define SRAM_GRANULARITY	512
+ 
+-/*
+- * SRAM allocations return a CPU virtual address, or NULL on error.
+- * If a DMA address is requested and the SRAM supports DMA, its
+- * mapped address is also returned.
+- *
+- * Errors include SRAM memory not being available, and requesting
+- * DMA mapped SRAM on systems which don't allow that.
+- */
+-extern void *sram_alloc(size_t len, dma_addr_t *dma);
+-extern void sram_free(void *addr, size_t len);
++extern struct gen_pool *davinci_gen_pool;
+ 
+ #endif /* __MACH_SRAM_H */
+diff --git a/arch/arm/mach-davinci/pm.c b/arch/arm/mach-davinci/pm.c
+index eb8360b..bff3a19 100644
+--- a/arch/arm/mach-davinci/pm.c
++++ b/arch/arm/mach-davinci/pm.c
+@@ -18,6 +18,7 @@
+ #include <asm/cacheflush.h>
+ #include <asm/delay.h>
+ #include <asm/io.h>
++#include <asm/fncpy.h>
+ 
+ #include <mach/da8xx.h>
+ #include <mach/sram.h>
+@@ -28,14 +29,9 @@
+ #define DEEPSLEEP_SLEEPCOUNT_MASK	0xFFFF
+ 
+ static void (*davinci_sram_suspend) (struct davinci_pm_config *);
++static void *davinci_sram_suspend_mem;
+ static struct davinci_pm_config *pdata;
+ 
+-static void davinci_sram_push(void *dest, void *src, unsigned int size)
+-{
+-	memcpy(dest, src, size);
+-	flush_icache_range((unsigned long)dest, (unsigned long)(dest + size));
+-}
+-
+ static void davinci_pm_suspend(void)
+ {
+ 	unsigned val;
+@@ -124,14 +120,14 @@ static int __init davinci_pm_probe(struct platform_device *pdev)
+ 		return -ENOENT;
+ 	}
+ 
+-	davinci_sram_suspend = sram_alloc(davinci_cpu_suspend_sz, NULL);
+-	if (!davinci_sram_suspend) {
++	davinci_sram_suspend_mem = (void *)gen_pool_alloc(davinci_gen_pool,
++				davinci_cpu_suspend_sz);
++	if (!davinci_sram_suspend_mem) {
+ 		dev_err(&pdev->dev, "cannot allocate SRAM memory\n");
+ 		return -ENOMEM;
+ 	}
+-
+-	davinci_sram_push(davinci_sram_suspend, davinci_cpu_suspend,
+-						davinci_cpu_suspend_sz);
++	davinci_sram_suspend = fncpy(davinci_sram_suspend_mem,
++				&davinci_cpu_suspend, davinci_cpu_suspend_sz);
+ 
+ 	suspend_set_ops(&davinci_pm_ops);
+ 
+@@ -140,7 +136,8 @@ static int __init davinci_pm_probe(struct platform_device *pdev)
+ 
+ static int __exit davinci_pm_remove(struct platform_device *pdev)
+ {
+-	sram_free(davinci_sram_suspend, davinci_cpu_suspend_sz);
++	gen_pool_free(davinci_gen_pool, (unsigned long)davinci_sram_suspend_mem,
++		davinci_cpu_suspend_sz);
+ 	return 0;
+ }
+ 
+diff --git a/arch/arm/mach-davinci/sram.c b/arch/arm/mach-davinci/sram.c
+index db0f778..2c53db2 100644
+--- a/arch/arm/mach-davinci/sram.c
++++ b/arch/arm/mach-davinci/sram.c
+@@ -10,40 +10,12 @@
+  */
+ #include <linux/module.h>
+ #include <linux/init.h>
+-#include <linux/genalloc.h>
+ 
+ #include <mach/common.h>
+ #include <mach/sram.h>
+ 
+-static struct gen_pool *sram_pool;
+-
+-void *sram_alloc(size_t len, dma_addr_t *dma)
+-{
+-	unsigned long vaddr;
+-	dma_addr_t dma_base = davinci_soc_info.sram_dma;
+-
+-	if (dma)
+-		*dma = 0;
+-	if (!sram_pool || (dma && !dma_base))
+-		return NULL;
+-
+-	vaddr = gen_pool_alloc(sram_pool, len);
+-	if (!vaddr)
+-		return NULL;
+-
+-	if (dma)
+-		*dma = dma_base + (vaddr - SRAM_VIRT);
+-	return (void *)vaddr;
+-
+-}
+-EXPORT_SYMBOL(sram_alloc);
+-
+-void sram_free(void *addr, size_t len)
+-{
+-	gen_pool_free(sram_pool, (unsigned long) addr, len);
+-}
+-EXPORT_SYMBOL(sram_free);
+-
++struct gen_pool *davinci_gen_pool;
++EXPORT_SYMBOL_GPL(davinci_gen_pool);
+ 
+ /*
+  * REVISIT This supports CPU and DMA access to/from SRAM, but it
+@@ -54,18 +26,19 @@ EXPORT_SYMBOL(sram_free);
+ static int __init sram_init(void)
+ {
+ 	unsigned len = davinci_soc_info.sram_len;
+-	int status = 0;
+ 
+-	if (len) {
+-		len = min_t(unsigned, len, SRAM_SIZE);
+-		sram_pool = gen_pool_create(ilog2(SRAM_GRANULARITY), -1);
+-		if (!sram_pool)
+-			status = -ENOMEM;
+-	}
+-	if (sram_pool)
+-		status = gen_pool_add(sram_pool, SRAM_VIRT, len, -1);
+-	WARN_ON(status < 0);
+-	return status;
++	if (!len)
++		return 0;
++
++	len = min_t(unsigned, len, SRAM_SIZE);
++	davinci_gen_pool = gen_pool_create(ilog2(SRAM_GRANULARITY), -1);
++
++	if (!davinci_gen_pool)
++		return -ENOMEM;
++
++	WARN_ON(gen_pool_add_virt(davinci_gen_pool, SRAM_VIRT,
++				  davinci_soc_info.sram_phys, len, -1));
++
++	return 0;
+ }
+ core_initcall(sram_init);
+-
+diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-omap/include/plat/sram.h
+index 227ae26..f7d0818 100644
+--- a/arch/arm/plat-omap/include/plat/sram.h
++++ b/arch/arm/plat-omap/include/plat/sram.h
+@@ -12,16 +12,23 @@
+ #define __ARCH_ARM_OMAP_SRAM_H
+ 
+ #ifndef __ASSEMBLY__
++#include <linux/slab.h>
++#include <linux/genalloc.h>
+ #include <asm/fncpy.h>
+ 
+-extern void *omap_sram_push_address(unsigned long size);
++extern struct gen_pool *omap_gen_pool;
+ 
+-/* Macro to push a function to the internal SRAM, using the fncpy API */
++/*
++ * Note that fncpy requires the SRAM address to be aligned to an 8-byte
++ * boundary, so the min_alloc_order for the pool is set appropriately.
++ */
+ #define omap_sram_push(funcp, size) ({				\
+-	typeof(&(funcp)) _res = NULL;				\
+-	void *_sram_address = omap_sram_push_address(size);	\
+-	if (_sram_address)					\
+-		_res = fncpy(_sram_address, &(funcp), size);	\
++	typeof(&(funcp)) _res;					\
++	size_t _sz = size;					\
++	void *_sram = gen_pool_alloc(omap_gen_pool, _sz);	\
++	_res = (_sram ? fncpy(_sram, &(funcp), _sz) : NULL);	\
++	if (!_res)						\
++		pr_err("Not enough space in SRAM\n");		\
+ 	_res;							\
+ })
+ 
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index 766181c..0deea23 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -69,7 +69,6 @@
+ static unsigned long omap_sram_start;
+ static void __iomem *omap_sram_base;
+ static unsigned long omap_sram_size;
+-static void __iomem *omap_sram_ceil;
+ 
+ /*
+  * Depending on the target RAMFS firewall setup, the public usable amount of
+@@ -98,6 +97,9 @@ static int is_sram_locked(void)
+ 		return 1; /* assume locked with no PPA or security driver */
+ }
+ 
++struct gen_pool *omap_gen_pool;
++EXPORT_SYMBOL_GPL(omap_gen_pool);
++
+ /*
+  * The amount of SRAM depends on the core type.
+  * Note that we cannot try to test for SRAM here because writes
+@@ -162,6 +164,18 @@ static void __init omap_detect_sram(void)
+ 			omap_sram_size = 0x4000;
+ 		}
+ 	}
++	{
++		/* The first SRAM_BOOTLOADER_SZ of SRAM are reserved */
++		void *base = (void *)omap_sram_base + SRAM_BOOTLOADER_SZ;
++		phys_addr_t phys = omap_sram_start + SRAM_BOOTLOADER_SZ;
++		size_t len = omap_sram_size - SRAM_BOOTLOADER_SZ;
++
++		omap_gen_pool = gen_pool_create(ilog2(FNCPY_ALIGN), -1);
++		if (omap_gen_pool)
++			WARN_ON(gen_pool_add_virt(omap_gen_pool,
++					(unsigned long)base, phys, len, -1));
++		WARN_ON(!omap_gen_pool);
++	}
+ }
+ 
+ /*
+@@ -197,8 +211,6 @@ static void __init omap_map_sram(void)
+ 		return;
+ 	}
+ 
+-	omap_sram_ceil = omap_sram_base + omap_sram_size;
+-
+ 	/*
+ 	 * Looks like we need to preserve some bootloader code at the
+ 	 * beginning of SRAM for jumping to flash for reboot to work...
+@@ -207,31 +219,6 @@ static void __init omap_map_sram(void)
+ 		  omap_sram_size - SRAM_BOOTLOADER_SZ);
+ }
+ 
+-/*
+- * Memory allocator for SRAM: calculates the new ceiling address
+- * for pushing a function using the fncpy API.
+- *
+- * Note that fncpy requires the returned address to be aligned
+- * to an 8-byte boundary.
+- */
+-void *omap_sram_push_address(unsigned long size)
+-{
+-	unsigned long available, new_ceil = (unsigned long)omap_sram_ceil;
+-
+-	available = omap_sram_ceil - (omap_sram_base + SRAM_BOOTLOADER_SZ);
+-
+-	if (size > available) {
+-		pr_err("Not enough space in SRAM\n");
+-		return NULL;
+-	}
+-
+-	new_ceil -= size;
+-	new_ceil = ROUND_DOWN(new_ceil, FNCPY_ALIGN);
+-	omap_sram_ceil = IOMEM(new_ceil);
+-
+-	return (void *)omap_sram_ceil;
+-}
+-
+ #ifdef CONFIG_ARCH_OMAP1
+ 
+ static void (*_omap_sram_reprogram_clock)(u32 dpllctl, u32 ckctl);
+@@ -357,8 +344,6 @@ u32 omap3_configure_core_dpll(u32 m2, u32 unlock_dll, u32 f, u32 inc,
+ 
+ void omap3_sram_restore_context(void)
+ {
+-	omap_sram_ceil = omap_sram_base + omap_sram_size;
+-
+ 	_omap3_sram_configure_core_dpll =
+ 		omap_sram_push(omap3_sram_configure_core_dpll,
+ 			       omap3_sram_configure_core_dpll_sz);
+diff --git a/drivers/uio/uio_pruss.c b/drivers/uio/uio_pruss.c
+index 33a7a27..06750fd 100644
+--- a/drivers/uio/uio_pruss.c
++++ b/drivers/uio/uio_pruss.c
+@@ -62,7 +62,7 @@ MODULE_PARM_DESC(extram_pool_sz, "external ram pool size to allocate");
+ struct uio_pruss_dev {
+ 	struct uio_info *info;
+ 	struct clk *pruss_clk;
+-	dma_addr_t sram_paddr;
++	phys_addr_t sram_paddr;
+ 	dma_addr_t ddr_paddr;
+ 	void __iomem *prussio_vaddr;
+ 	void *sram_vaddr;
+@@ -106,7 +106,8 @@ static void pruss_cleanup(struct platform_device *dev,
+ 			gdev->ddr_paddr);
+ 	}
+ 	if (gdev->sram_vaddr)
+-		sram_free(gdev->sram_vaddr, sram_pool_sz);
++		gen_pool_free(davinci_gen_pool,
++			      (unsigned long)gdev->sram_vaddr, sram_pool_sz);
+ 	kfree(gdev->info);
+ 	clk_put(gdev->pruss_clk);
+ 	kfree(gdev);
+@@ -152,12 +153,16 @@ static int __devinit pruss_probe(struct platform_device *dev)
+ 		goto out_free;
+ 	}
+ 
+-	gdev->sram_vaddr = sram_alloc(sram_pool_sz, &(gdev->sram_paddr));
++	gdev->sram_vaddr = (void *)gen_pool_alloc(davinci_gen_pool,
++						  sram_pool_sz);
+ 	if (!gdev->sram_vaddr) {
+ 		dev_err(&dev->dev, "Could not allocate SRAM pool\n");
+ 		goto out_free;
+ 	}
+ 
++	gdev->sram_paddr = gen_pool_virt_to_phys(davinci_gen_pool,
++					(unsigned long)gdev->sram_vaddr);
++
+ 	gdev->ddr_vaddr = dma_alloc_coherent(&dev->dev, extram_pool_sz,
+ 				&(gdev->ddr_paddr), GFP_KERNEL | GFP_DMA);
+ 	if (!gdev->ddr_vaddr) {
+diff --git a/sound/soc/davinci/davinci-pcm.c b/sound/soc/davinci/davinci-pcm.c
+index 97d77b2..8c16bf2c 100644
+--- a/sound/soc/davinci/davinci-pcm.c
++++ b/sound/soc/davinci/davinci-pcm.c
+@@ -265,16 +265,18 @@ static int allocate_sram(struct snd_pcm_substream *substream, unsigned size,
+ {
+ 	struct snd_dma_buffer *buf = &substream->dma_buffer;
+ 	struct snd_dma_buffer *iram_dma = NULL;
+-	dma_addr_t iram_phys = 0;
++	phys_addr_t iram_phys;
+ 	void *iram_virt = NULL;
+ 
+ 	if (buf->private_data || !size)
+ 		return 0;
+ 
+ 	ppcm->period_bytes_max = size;
+-	iram_virt = sram_alloc(size, &iram_phys);
++	iram_virt = (void *)gen_pool_alloc(davinci_gen_pool, size);
+ 	if (!iram_virt)
+ 		goto exit1;
++	iram_phys = gen_pool_virt_to_phys(davinci_gen_pool,
++					(unsigned long)iram_virt);
+ 	iram_dma = kzalloc(sizeof(*iram_dma), GFP_KERNEL);
+ 	if (!iram_dma)
+ 		goto exit2;
+@@ -286,7 +288,7 @@ static int allocate_sram(struct snd_pcm_substream *substream, unsigned size,
+ 	return 0;
+ exit2:
+ 	if (iram_virt)
+-		sram_free(iram_virt, size);
++		gen_pool_free(davinci_gen_pool, (unsigned long)iram_virt, size);
+ exit1:
+ 	return -ENOMEM;
+ }
+@@ -820,7 +822,8 @@ static void davinci_pcm_free(struct snd_pcm *pcm)
+ 		buf->area = NULL;
+ 		iram_dma = buf->private_data;
+ 		if (iram_dma) {
+-			sram_free(iram_dma->area, iram_dma->bytes);
++			gen_pool_free(davinci_gen_pool,
++			      (unsigned long)iram_dma->area, iram_dma->bytes);
+ 			kfree(iram_dma);
+ 		}
+ 	}
+-- 
+1.7.7.6
+
