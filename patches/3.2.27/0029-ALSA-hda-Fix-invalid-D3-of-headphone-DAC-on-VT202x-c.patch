@@ -1,0 +1,60 @@
+From 2c7b0211095a9110d26fd1a0e96648336bafd028 Mon Sep 17 00:00:00 2001
+From: Takashi Iwai <tiwai@suse.de>
+Date: Wed, 25 Jul 2012 13:54:55 +0200
+Subject: [PATCH 29/71] ALSA: hda - Fix invalid D3 of headphone DAC on VT202x
+ codecs
+
+commit 6162552b0de6ba80937c3dd53e084967851cd199 upstream.
+
+We've got a bug report about the silent output from the headphone on a
+mobo with VT2021, and spotted out that this was because of the wrong
+D3 state on the DAC for the headphone output.  The bug is triggered by
+the incomplete check for this DAC in set_widgets_power_state_vt1718S().
+It checks only the connectivity of the primary output (0x27) but
+doesn't consider the path from the headphone pin (0x28).
+
+Now this patch fixes the problem by checking both pins for DAC 0x0b.
+
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+[bwh: Backported to 3.2: keep using snd_hda_codec_write() as
+ update_power_state() is missing]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/pci/hda/patch_via.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/sound/pci/hda/patch_via.c b/sound/pci/hda/patch_via.c
+index 1fe1308..7160ff2 100644
+--- a/sound/pci/hda/patch_via.c
++++ b/sound/pci/hda/patch_via.c
+@@ -3227,7 +3227,7 @@ static void set_widgets_power_state_vt1718S(struct hda_codec *codec)
+ {
+ 	struct via_spec *spec = codec->spec;
+ 	int imux_is_smixer;
+-	unsigned int parm;
++	unsigned int parm, parm2;
+ 	/* MUX6 (1eh) = stereo mixer */
+ 	imux_is_smixer =
+ 	snd_hda_codec_read(codec, 0x1e, 0, AC_VERB_GET_CONNECT_SEL, 0x00) == 5;
+@@ -3250,7 +3250,7 @@ static void set_widgets_power_state_vt1718S(struct hda_codec *codec)
+ 	parm = AC_PWRST_D3;
+ 	set_pin_power_state(codec, 0x27, &parm);
+ 	snd_hda_codec_write(codec, 0x1a, 0, AC_VERB_SET_POWER_STATE, parm);
+-	snd_hda_codec_write(codec, 0xb, 0, AC_VERB_SET_POWER_STATE, parm);
++	parm2 = parm; /* for pin 0x0b */
+ 
+ 	/* PW2 (26h), AOW2 (ah) */
+ 	parm = AC_PWRST_D3;
+@@ -3265,6 +3265,9 @@ static void set_widgets_power_state_vt1718S(struct hda_codec *codec)
+ 	if (!spec->hp_independent_mode) /* check for redirected HP */
+ 		set_pin_power_state(codec, 0x28, &parm);
+ 	snd_hda_codec_write(codec, 0x8, 0, AC_VERB_SET_POWER_STATE, parm);
++	if (!spec->hp_independent_mode && parm2 != AC_PWRST_D3)
++		parm = parm2;
++	snd_hda_codec_write(codec, 0xb, 0, AC_VERB_SET_POWER_STATE, parm);
+ 	/* MW9 (21h), Mw2 (1ah), AOW0 (8h) */
+ 	snd_hda_codec_write(codec, 0x21, 0, AC_VERB_SET_POWER_STATE,
+ 			    imux_is_smixer ? AC_PWRST_D0 : parm);
+-- 
+1.7.7.6
+

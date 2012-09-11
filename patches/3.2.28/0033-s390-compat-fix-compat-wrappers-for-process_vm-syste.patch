@@ -1,0 +1,40 @@
+From 0b3160dde9f41e7bbc125ab8d00a6e367e956854 Mon Sep 17 00:00:00 2001
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Date: Tue, 7 Aug 2012 09:48:13 +0200
+Subject: [PATCH 33/38] s390/compat: fix compat wrappers for process_vm system
+ calls
+
+commit 82aabdb6f1eb61e0034ec23901480f5dd23db7c4 upstream.
+
+The compat wrappers incorrectly called the non compat versions of
+the system process_vm system calls.
+
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/s390/kernel/compat_wrapper.S |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/s390/kernel/compat_wrapper.S b/arch/s390/kernel/compat_wrapper.S
+index 18c51df..25408d3 100644
+--- a/arch/s390/kernel/compat_wrapper.S
++++ b/arch/s390/kernel/compat_wrapper.S
+@@ -1636,7 +1636,7 @@ ENTRY(compat_sys_process_vm_readv_wrapper)
+ 	llgfr	%r6,%r6			# unsigned long
+ 	llgf	%r0,164(%r15)		# unsigned long
+ 	stg	%r0,160(%r15)
+-	jg	sys_process_vm_readv
++	jg	compat_sys_process_vm_readv
+ 
+ ENTRY(compat_sys_process_vm_writev_wrapper)
+ 	lgfr	%r2,%r2			# compat_pid_t
+@@ -1646,4 +1646,4 @@ ENTRY(compat_sys_process_vm_writev_wrapper)
+ 	llgfr	%r6,%r6			# unsigned long
+ 	llgf	%r0,164(%r15)		# unsigned long
+ 	stg	%r0,160(%r15)
+-	jg	sys_process_vm_writev
++	jg	compat_sys_process_vm_writev
+-- 
+1.7.7.6
+

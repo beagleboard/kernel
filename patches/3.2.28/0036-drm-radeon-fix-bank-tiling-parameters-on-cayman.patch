@@ -1,0 +1,45 @@
+From 48d504e2659ad6029fac8b1f7f87c744c9abb888 Mon Sep 17 00:00:00 2001
+From: Alex Deucher <alexander.deucher@amd.com>
+Date: Tue, 31 Jul 2012 11:05:11 -0400
+Subject: [PATCH 36/38] drm/radeon: fix bank tiling parameters on cayman
+
+commit 5b23c9045a8b61352986270b2d109edf5085e113 upstream.
+
+Handle the 16 bank case.
+
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+[bwh: Backported to 3.2: adjust context, indentation]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/ni.c |   14 +++++++++++---
+ 1 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/ni.c b/drivers/gpu/drm/radeon/ni.c
+index 9e50814..636255b 100644
+--- a/drivers/gpu/drm/radeon/ni.c
++++ b/drivers/gpu/drm/radeon/ni.c
+@@ -804,10 +804,18 @@ static void cayman_gpu_init(struct radeon_device *rdev)
+ 		rdev->config.cayman.tile_config |= (3 << 0);
+ 		break;
+ 	}
+-	if ((mc_arb_ramcfg & NOOFBANK_MASK) >> NOOFBANK_SHIFT)
+-		rdev->config.cayman.tile_config |= 1 << 4;
+-	else
++	switch ((mc_arb_ramcfg & NOOFBANK_MASK) >> NOOFBANK_SHIFT) {
++	case 0: /* four banks */
+ 		rdev->config.cayman.tile_config |= 0 << 4;
++		break;
++	case 1: /* eight banks */
++		rdev->config.cayman.tile_config |= 1 << 4;
++		break;
++	case 2: /* sixteen banks */
++	default:
++		rdev->config.cayman.tile_config |= 2 << 4;
++		break;
++	}
+ 	rdev->config.cayman.tile_config |=
+ 		((gb_addr_config & PIPE_INTERLEAVE_SIZE_MASK) >> PIPE_INTERLEAVE_SIZE_SHIFT) << 8;
+ 	rdev->config.cayman.tile_config |=
+-- 
+1.7.7.6
+

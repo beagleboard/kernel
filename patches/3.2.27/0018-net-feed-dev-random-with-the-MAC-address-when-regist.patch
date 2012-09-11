@@ -1,0 +1,60 @@
+From 322f326e39b1c06a24e2e927db0a46e6e054cd2b Mon Sep 17 00:00:00 2001
+From: Theodore Ts'o <tytso@mit.edu>
+Date: Wed, 4 Jul 2012 21:23:25 -0400
+Subject: [PATCH 18/71] net: feed /dev/random with the MAC address when
+ registering a device
+
+commit 7bf2357524408b97fec58344caf7397f8140c3fd upstream.
+
+Cc: David Miller <davem@davemloft.net>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/core/dev.c       |    3 +++
+ net/core/rtnetlink.c |    1 +
+ 2 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 5738654..4b18703 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -1177,6 +1177,7 @@ static int __dev_open(struct net_device *dev)
+ 		net_dmaengine_get();
+ 		dev_set_rx_mode(dev);
+ 		dev_activate(dev);
++		add_device_randomness(dev->dev_addr, dev->addr_len);
+ 	}
+ 
+ 	return ret;
+@@ -4841,6 +4842,7 @@ int dev_set_mac_address(struct net_device *dev, struct sockaddr *sa)
+ 	err = ops->ndo_set_mac_address(dev, sa);
+ 	if (!err)
+ 		call_netdevice_notifiers(NETDEV_CHANGEADDR, dev);
++	add_device_randomness(dev->dev_addr, dev->addr_len);
+ 	return err;
+ }
+ EXPORT_SYMBOL(dev_set_mac_address);
+@@ -5621,6 +5623,7 @@ int register_netdevice(struct net_device *dev)
+ 	dev_init_scheduler(dev);
+ 	dev_hold(dev);
+ 	list_netdevice(dev);
++	add_device_randomness(dev->dev_addr, dev->addr_len);
+ 
+ 	/* Notify protocols, that a new device appeared. */
+ 	ret = call_netdevice_notifiers(NETDEV_REGISTER, dev);
+diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
+index 2ef859a..05842ab 100644
+--- a/net/core/rtnetlink.c
++++ b/net/core/rtnetlink.c
+@@ -1354,6 +1354,7 @@ static int do_setlink(struct net_device *dev, struct ifinfomsg *ifm,
+ 			goto errout;
+ 		send_addr_notify = 1;
+ 		modified = 1;
++		add_device_randomness(dev->dev_addr, dev->addr_len);
+ 	}
+ 
+ 	if (tb[IFLA_MTU]) {
+-- 
+1.7.7.6
+

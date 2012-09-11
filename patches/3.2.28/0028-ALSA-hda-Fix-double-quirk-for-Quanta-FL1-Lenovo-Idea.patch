@@ -1,0 +1,43 @@
+From e766954f83d037469966fd78ba9d3eb11bb14e74 Mon Sep 17 00:00:00 2001
+From: David Henningsson <david.henningsson@canonical.com>
+Date: Wed, 8 Aug 2012 08:43:37 +0200
+Subject: [PATCH 28/38] ALSA: hda - Fix double quirk for Quanta FL1 / Lenovo
+ Ideapad
+
+commit 012e7eb1e501d0120e0383b81477f63091f5e365 upstream.
+
+The same ID is twice in the quirk table, so the second one is not used.
+
+Signed-off-by: David Henningsson <david.henningsson@canonical.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/pci/hda/patch_realtek.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
+index 2bf8cbb..32c8169 100644
+--- a/sound/pci/hda/patch_realtek.c
++++ b/sound/pci/hda/patch_realtek.c
+@@ -4981,6 +4981,8 @@ static const struct alc_fixup alc269_fixups[] = {
+ 	[ALC269_FIXUP_PCM_44K] = {
+ 		.type = ALC_FIXUP_FUNC,
+ 		.v.func = alc269_fixup_pcm_44k,
++		.chained = true,
++		.chain_id = ALC269_FIXUP_QUANTA_MUTE
+ 	},
+ 	[ALC269_FIXUP_STEREO_DMIC] = {
+ 		.type = ALC_FIXUP_FUNC,
+@@ -5080,8 +5082,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
+ 	SND_PCI_QUIRK(0x17aa, 0x21fa, "Thinkpad X230", ALC269_FIXUP_LENOVO_DOCK),
+ 	SND_PCI_QUIRK(0x17aa, 0x21fb, "Thinkpad T430s", ALC269_FIXUP_LENOVO_DOCK),
+ 	SND_PCI_QUIRK(0x17aa, 0x2203, "Thinkpad X230 Tablet", ALC269_FIXUP_LENOVO_DOCK),
+-	SND_PCI_QUIRK(0x17aa, 0x3bf8, "Quanta FL1", ALC269_FIXUP_QUANTA_MUTE),
+-	SND_PCI_QUIRK(0x17aa, 0x3bf8, "Lenovo Ideapd", ALC269_FIXUP_PCM_44K),
++	SND_PCI_QUIRK(0x17aa, 0x3bf8, "Quanta FL1", ALC269_FIXUP_PCM_44K),
+ 	SND_PCI_QUIRK(0x17aa, 0x9e54, "LENOVO NB", ALC269_FIXUP_LENOVO_EAPD),
+ 
+ #if 1
+-- 
+1.7.7.6
+

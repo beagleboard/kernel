@@ -1,0 +1,36 @@
+From 60ed9e385606f27c787710bba0dfdb7ff467bdf7 Mon Sep 17 00:00:00 2001
+From: Alan Cox <alan@linux.intel.com>
+Date: Wed, 25 Jul 2012 16:28:19 +0100
+Subject: [PATCH 31/71] x86, nops: Missing break resulting in incorrect
+ selection on Intel
+
+commit d6250a3f12edb3a86db9598ffeca3de8b4a219e9 upstream.
+
+The Intel case falls through into the generic case which then changes
+the values.  For cases like the P6 it doesn't do the right thing so
+this seems to be a screwup.
+
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Link: http://lkml.kernel.org/n/tip-lww2uirad4skzjlmrm0vru8o@git.kernel.org
+Signed-off-by: H. Peter Anvin <hpa@zytor.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kernel/alternative.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/x86/kernel/alternative.c b/arch/x86/kernel/alternative.c
+index 1f84794..73ef56c 100644
+--- a/arch/x86/kernel/alternative.c
++++ b/arch/x86/kernel/alternative.c
+@@ -219,7 +219,7 @@ void __init arch_init_ideal_nops(void)
+ 			ideal_nops = intel_nops;
+ #endif
+ 		}
+-
++		break;
+ 	default:
+ #ifdef CONFIG_X86_64
+ 		ideal_nops = k8_nops;
+-- 
+1.7.7.6
+

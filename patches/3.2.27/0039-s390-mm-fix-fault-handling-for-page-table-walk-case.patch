@@ -1,0 +1,72 @@
+From c929e9bc8cadd3dd1e914498e3905d3d4cc43f85 Mon Sep 17 00:00:00 2001
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Date: Fri, 27 Jul 2012 09:45:39 +0200
+Subject: [PATCH 39/71] s390/mm: fix fault handling for page table walk case
+
+commit 008c2e8f247f0a8db1e8e26139da12f3a3abcda0 upstream.
+
+Make sure the kernel does not incorrectly create a SIGBUS signal during
+user space accesses:
+
+For user space accesses in the switched addressing mode case the kernel
+may walk page tables and access user address space via the kernel
+mapping. If a page table entry is invalid the function __handle_fault()
+gets called in order to emulate a page fault and trigger all the usual
+actions like paging in a missing page etc. by calling handle_mm_fault().
+
+If handle_mm_fault() returns with an error fixup handling is necessary.
+For the switched addressing mode case all errors need to be mapped to
+-EFAULT, so that the calling uaccess function can return -EFAULT to
+user space.
+
+Unfortunately the __handle_fault() incorrectly calls do_sigbus() if
+VM_FAULT_SIGBUS is set. This however should only happen if a page fault
+was triggered by a user space instruction. For kernel mode uaccesses
+the correct action is to only return -EFAULT.
+So user space may incorrectly see SIGBUS signals because of this bug.
+
+For current machines this would only be possible for the switched
+addressing mode case in conjunction with futex operations.
+
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+[bwh: Backported to 3.2: do_exception() and do_sigbus() parameters differ]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/s390/mm/fault.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/arch/s390/mm/fault.c b/arch/s390/mm/fault.c
+index b28aaa4..0fc0a7e 100644
+--- a/arch/s390/mm/fault.c
++++ b/arch/s390/mm/fault.c
+@@ -453,6 +453,7 @@ int __handle_fault(unsigned long uaddr, unsigned long pgm_int_code, int write)
+ 	struct pt_regs regs;
+ 	int access, fault;
+ 
++	/* Emulate a uaccess fault from kernel mode. */
+ 	regs.psw.mask = psw_kernel_bits | PSW_MASK_DAT | PSW_MASK_MCHECK;
+ 	if (!irqs_disabled())
+ 		regs.psw.mask |= PSW_MASK_IO | PSW_MASK_EXT;
+@@ -461,12 +462,12 @@ int __handle_fault(unsigned long uaddr, unsigned long pgm_int_code, int write)
+ 	uaddr &= PAGE_MASK;
+ 	access = write ? VM_WRITE : VM_READ;
+ 	fault = do_exception(&regs, access, uaddr | 2);
+-	if (unlikely(fault)) {
+-		if (fault & VM_FAULT_OOM)
+-			return -EFAULT;
+-		else if (fault & VM_FAULT_SIGBUS)
+-			do_sigbus(&regs, pgm_int_code, uaddr);
+-	}
++	/*
++	 * Since the fault happened in kernel mode while performing a uaccess
++	 * all we need to do now is emulating a fixup in case "fault" is not
++	 * zero.
++	 * For the calling uaccess functions this results always in -EFAULT.
++	 */
+ 	return fault ? -EFAULT : 0;
+ }
+ 
+-- 
+1.7.7.6
+

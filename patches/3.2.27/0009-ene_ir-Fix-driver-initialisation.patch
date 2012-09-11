@@ -1,0 +1,47 @@
+From 492ef8589a3622b8c5d58b37d539cfa381c1b118 Mon Sep 17 00:00:00 2001
+From: Luis Henriques <luis.henriques@canonical.com>
+Date: Tue, 19 Jun 2012 11:29:49 -0300
+Subject: [PATCH 09/71] ene_ir: Fix driver initialisation
+
+commit b31b021988fed9e3741a46918f14ba9b063811db upstream.
+
+commit 9ef449c6b31bb6a8e6dedc24de475a3b8c79be20 ("[media] rc: Postpone ISR
+registration") fixed an early ISR registration on several drivers.  It did
+however also introduced a bug by moving the invocation of pnp_port_start()
+to the end of the probe function.
+
+This patch fixes this issue by moving the invocation of pnp_port_start() to
+an earlier stage in the probe function.
+
+Cc: Jarod Wilson <jarod@redhat.com>
+Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/media/rc/ene_ir.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
+index ed77c6d..5327061 100644
+--- a/drivers/media/rc/ene_ir.c
++++ b/drivers/media/rc/ene_ir.c
+@@ -1018,6 +1018,8 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+ 
+ 	spin_lock_init(&dev->hw_lock);
+ 
++	dev->hw_io = pnp_port_start(pnp_dev, 0);
++
+ 	pnp_set_drvdata(pnp_dev, dev);
+ 	dev->pnp_dev = pnp_dev;
+ 
+@@ -1072,7 +1074,6 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+ 
+ 	/* claim the resources */
+ 	error = -EBUSY;
+-	dev->hw_io = pnp_port_start(pnp_dev, 0);
+ 	if (!request_region(dev->hw_io, ENE_IO_SIZE, ENE_DRIVER_NAME)) {
+ 		dev->hw_io = -1;
+ 		dev->irq = -1;
+-- 
+1.7.7.6
+

@@ -1,0 +1,31 @@
+From f0b271a03bad9df1d0ba9777e99a6578dddea98a Mon Sep 17 00:00:00 2001
+From: Philip, Avinash <avinashphilip@ti.com>
+Date: Tue, 14 Aug 2012 13:50:37 +0530
+Subject: [PATCH 2/2] pwm: ehrpwm: Configure polarity on pwm_start
+
+Polarity of PWM device should done only from start. This helps in
+disabling polarity change even PWM device is running.
+
+Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+---
+:100644 100644 fb5e338... 9b6a1c1... M	drivers/pwm/ehrpwm.c
+ drivers/pwm/ehrpwm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/pwm/ehrpwm.c b/drivers/pwm/ehrpwm.c
+index fb5e338..9b6a1c1 100644
+--- a/drivers/pwm/ehrpwm.c
++++ b/drivers/pwm/ehrpwm.c
+@@ -1284,8 +1284,8 @@ static int ehrpwm_pwm_config(struct pwm_device *p,
+ 		break;
+ 
+ 	case BIT(PWM_CONFIG_POLARITY):
++		/* Polarity configuration done from pwm_start */
+ 		p->active_high = c->polarity;
+-		ret = ehrpwm_pwm_set_pol(p);
+ 		break;
+ 
+ 	case BIT(PWM_CONFIG_START):
+-- 
+1.7.1
+

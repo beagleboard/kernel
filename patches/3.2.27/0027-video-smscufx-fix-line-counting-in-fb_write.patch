@@ -1,0 +1,36 @@
+From efb6d7d667e9b142c7608666da2c7dd4d6bbbee3 Mon Sep 17 00:00:00 2001
+From: Alexander Holler <holler@ahsoftware.de>
+Date: Sat, 21 Apr 2012 00:11:07 +0200
+Subject: [PATCH 27/71] video/smscufx: fix line counting in fb_write
+
+commit 2fe2d9f47cfe1a3e66e7d087368b3d7155b04c15 upstream.
+
+Line 0 and 1 were both written to line 0 (on the display) and all subsequent
+lines had an offset of -1. The result was that the last line on the display
+was never overwritten by writes to /dev/fbN.
+
+The origin of this bug seems to have been udlfb.
+
+Signed-off-by: Alexander Holler <holler@ahsoftware.de>
+Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/video/smscufx.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/video/smscufx.c b/drivers/video/smscufx.c
+index aaccffa..dd9533a 100644
+--- a/drivers/video/smscufx.c
++++ b/drivers/video/smscufx.c
+@@ -904,7 +904,7 @@ static ssize_t ufx_ops_write(struct fb_info *info, const char __user *buf,
+ 	result = fb_sys_write(info, buf, count, ppos);
+ 
+ 	if (result > 0) {
+-		int start = max((int)(offset / info->fix.line_length) - 1, 0);
++		int start = max((int)(offset / info->fix.line_length), 0);
+ 		int lines = min((u32)((result / info->fix.line_length) + 1),
+ 				(u32)info->var.yres);
+ 
+-- 
+1.7.7.6
+

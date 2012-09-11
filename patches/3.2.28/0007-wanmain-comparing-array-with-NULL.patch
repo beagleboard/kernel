@@ -1,0 +1,81 @@
+From 761bfbd36cbff87f2d04502b66a363507a08ad33 Mon Sep 17 00:00:00 2001
+From: Alan Cox <alan@linux.intel.com>
+Date: Tue, 24 Jul 2012 08:16:25 +0000
+Subject: [PATCH 07/38] wanmain: comparing array with NULL
+
+[ Upstream commit 8b72ff6484fe303e01498b58621810a114f3cf09 ]
+
+gcc really should warn about these !
+
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/wanrouter/wanmain.c |   47 +++++++++++++++++++++--------------------------
+ 1 files changed, 21 insertions(+), 26 deletions(-)
+
+diff --git a/net/wanrouter/wanmain.c b/net/wanrouter/wanmain.c
+index 788a12c..2ab7850 100644
+--- a/net/wanrouter/wanmain.c
++++ b/net/wanrouter/wanmain.c
+@@ -602,36 +602,31 @@ static int wanrouter_device_new_if(struct wan_device *wandev,
+ 		 * successfully, add it to the interface list.
+ 		 */
+ 
+-		if (dev->name == NULL) {
+-			err = -EINVAL;
+-		} else {
++#ifdef WANDEBUG
++		printk(KERN_INFO "%s: registering interface %s...\n",
++		       wanrouter_modname, dev->name);
++#endif
+ 
+-			#ifdef WANDEBUG
+-			printk(KERN_INFO "%s: registering interface %s...\n",
+-				wanrouter_modname, dev->name);
+-			#endif
++		err = register_netdev(dev);
++		if (!err) {
++			struct net_device *slave = NULL;
++			unsigned long smp_flags=0;
+ 
+-			err = register_netdev(dev);
+-			if (!err) {
+-				struct net_device *slave = NULL;
+-				unsigned long smp_flags=0;
++			lock_adapter_irq(&wandev->lock, &smp_flags);
+ 
+-				lock_adapter_irq(&wandev->lock, &smp_flags);
+-
+-				if (wandev->dev == NULL) {
+-					wandev->dev = dev;
+-				} else {
+-					for (slave=wandev->dev;
+-					     DEV_TO_SLAVE(slave);
+-					     slave = DEV_TO_SLAVE(slave))
+-						DEV_TO_SLAVE(slave) = dev;
+-				}
+-				++wandev->ndev;
+-
+-				unlock_adapter_irq(&wandev->lock, &smp_flags);
+-				err = 0;	/* done !!! */
+-				goto out;
++			if (wandev->dev == NULL) {
++				wandev->dev = dev;
++			} else {
++				for (slave=wandev->dev;
++				     DEV_TO_SLAVE(slave);
++				     slave = DEV_TO_SLAVE(slave))
++					DEV_TO_SLAVE(slave) = dev;
+ 			}
++			++wandev->ndev;
++
++			unlock_adapter_irq(&wandev->lock, &smp_flags);
++			err = 0;	/* done !!! */
++			goto out;
+ 		}
+ 		if (wandev->del_if)
+ 			wandev->del_if(wandev, dev);
+-- 
+1.7.7.6
+

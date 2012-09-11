@@ -1,0 +1,42 @@
+From e7c19f96fc795b8d07a6510caa4b33232945ac41 Mon Sep 17 00:00:00 2001
+From: Philip, Avinash <avinashphilip@ti.com>
+Date: Fri, 18 May 2012 12:10:36 +0530
+Subject: [PATCH 1/4] PWM: ecap: Correct configuration of polarity
+
+1. ECAP driver configures PWM polarity wrongly. For example if polarity
+configured low and duty percentage to 20%, PWM output should be 20% low
+and 80% high. However behavior is inverted here.
+
+2. Also reading back from SYSFS interface for polarity always gives 0.
+
+This patch fixes both.
+
+Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+---
+ drivers/pwm/ecap.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/pwm/ecap.c b/drivers/pwm/ecap.c
+index 63c2405..614be36 100644
+--- a/drivers/pwm/ecap.c
++++ b/drivers/pwm/ecap.c
+@@ -121,7 +121,7 @@ static int ecap_pwm_set_polarity(struct pwm_device *p, char pol)
+ 	spin_lock_irqsave(&ep->lock, flags);
+ 	v = readw(ep->mmio_base + CAPTURE_CTRL2_REG);
+ 	v &= ~ECTRL2_PLSL_LOW;
+-	v |= (!pol << 10);
++	v |= pol << 10;
+ 	writew(v, ep->mmio_base + CAPTURE_CTRL2_REG);
+ 	spin_unlock_irqrestore(&ep->lock, flags);
+ 
+@@ -188,6 +188,7 @@ static int ecap_pwm_config(struct pwm_device *p,
+ 		break;
+ 
+ 	case BIT(PWM_CONFIG_POLARITY):
++		p->active_high = c->polarity;
+ 		ret = ecap_pwm_set_polarity(p, c->polarity);
+ 		break;
+ 
+-- 
+1.7.0.4
+

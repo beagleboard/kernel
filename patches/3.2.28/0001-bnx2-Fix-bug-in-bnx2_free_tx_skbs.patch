@@ -1,0 +1,47 @@
+From 6ccc95984ccfb8fa3cac0fee166e6290939587bf Mon Sep 17 00:00:00 2001
+From: Michael Chan <mchan@broadcom.com>
+Date: Tue, 10 Jul 2012 10:04:40 +0000
+Subject: [PATCH 01/38] bnx2: Fix bug in bnx2_free_tx_skbs().
+
+[ Upstream commit c1f5163de417dab01fa9daaf09a74bbb19303f3c ]
+
+In rare cases, bnx2x_free_tx_skbs() can unmap the wrong DMA address
+when it gets to the last entry of the tx ring.  We were not using
+the proper macro to skip the last entry when advancing the tx index.
+
+Reported-by: Zongyun Lai <zlai@vmware.com>
+Reviewed-by: Jeffrey Huang <huangjw@broadcom.com>
+Signed-off-by: Michael Chan <mchan@broadcom.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/broadcom/bnx2.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/net/ethernet/broadcom/bnx2.c b/drivers/net/ethernet/broadcom/bnx2.c
+index 965c723..721adfd 100644
+--- a/drivers/net/ethernet/broadcom/bnx2.c
++++ b/drivers/net/ethernet/broadcom/bnx2.c
+@@ -5378,7 +5378,7 @@ bnx2_free_tx_skbs(struct bnx2 *bp)
+ 			int k, last;
+ 
+ 			if (skb == NULL) {
+-				j++;
++				j = NEXT_TX_BD(j);
+ 				continue;
+ 			}
+ 
+@@ -5390,8 +5390,8 @@ bnx2_free_tx_skbs(struct bnx2 *bp)
+ 			tx_buf->skb = NULL;
+ 
+ 			last = tx_buf->nr_frags;
+-			j++;
+-			for (k = 0; k < last; k++, j++) {
++			j = NEXT_TX_BD(j);
++			for (k = 0; k < last; k++, j = NEXT_TX_BD(j)) {
+ 				tx_buf = &txr->tx_buf_ring[TX_RING_IDX(j)];
+ 				dma_unmap_page(&bp->pdev->dev,
+ 					dma_unmap_addr(tx_buf, mapping),
+-- 
+1.7.7.6
+

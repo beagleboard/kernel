@@ -1,0 +1,57 @@
+From b992ca0631a957c0d2383b6b3ee473e77d8ea4f2 Mon Sep 17 00:00:00 2001
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Sun, 5 Aug 2012 14:58:37 +0000
+Subject: [PATCH 29/38] ARM: pxa: remove irq_to_gpio from ezx-pcap driver
+
+commit 59ee93a528b94ef4e81a08db252b0326feff171f upstream.
+
+The irq_to_gpio function was removed from the pxa platform
+in linux-3.2, and this driver has been broken since.
+
+There is actually no in-tree user of this driver that adds
+this platform device, but the driver can and does get enabled
+on some platforms.
+
+Without this patch, building ezx_defconfig results in:
+
+drivers/mfd/ezx-pcap.c: In function 'pcap_isr_work':
+drivers/mfd/ezx-pcap.c:205:2: error: implicit declaration of function 'irq_to_gpio' [-Werror=implicit-function-declaration]
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Haojian Zhuang <haojian.zhuang@gmail.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Daniel Ribeiro <drwyrm@gmail.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/mfd/ezx-pcap.c       |    2 +-
+ include/linux/mfd/ezx-pcap.h |    1 +
+ 2 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/mfd/ezx-pcap.c b/drivers/mfd/ezx-pcap.c
+index 43a76c4..db662e2 100644
+--- a/drivers/mfd/ezx-pcap.c
++++ b/drivers/mfd/ezx-pcap.c
+@@ -202,7 +202,7 @@ static void pcap_isr_work(struct work_struct *work)
+ 		}
+ 		local_irq_enable();
+ 		ezx_pcap_write(pcap, PCAP_REG_MSR, pcap->msr);
+-	} while (gpio_get_value(irq_to_gpio(pcap->spi->irq)));
++	} while (gpio_get_value(pdata->gpio));
+ }
+ 
+ static void pcap_irq_handler(unsigned int irq, struct irq_desc *desc)
+diff --git a/include/linux/mfd/ezx-pcap.h b/include/linux/mfd/ezx-pcap.h
+index 40c37216..32a1b5c 100644
+--- a/include/linux/mfd/ezx-pcap.h
++++ b/include/linux/mfd/ezx-pcap.h
+@@ -16,6 +16,7 @@ struct pcap_subdev {
+ struct pcap_platform_data {
+ 	unsigned int irq_base;
+ 	unsigned int config;
++	int gpio;
+ 	void (*init) (void *);	/* board specific init */
+ 	int num_subdevs;
+ 	struct pcap_subdev *subdevs;
+-- 
+1.7.7.6
+

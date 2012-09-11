@@ -1,0 +1,53 @@
+From 9a955be695c839a23b43bba06ee824f0fbc76e1b Mon Sep 17 00:00:00 2001
+From: Johannes Berg <johannes.berg@intel.com>
+Date: Sun, 5 Aug 2012 18:31:46 +0200
+Subject: [PATCH 24/38] iwlwifi: disable greenfield transmissions as a
+ workaround
+
+commit 50e2a30cf6fcaeb2d27360ba614dd169a10041c5 upstream.
+
+There's a bug that causes the rate scaling to get stuck
+when it has to use single-stream rates with a peer that
+can do GF and SGI; the two are incompatible so we can't
+use them together, but that causes the algorithm to not
+work at all, it always rejects updates.
+
+Disable greenfield for now to prevent that problem.
+
+Reviewed-by: Emmanuel Grumbach <emmanuel.grumbach@intel.com>
+Tested-by: Cesar Eduardo Barros <cesarb@cesarb.net>
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+[bwh: Backported to 3.2: adjust filename]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/iwlwifi/iwl-agn-rs.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/net/wireless/iwlwifi/iwl-agn-rs.c b/drivers/net/wireless/iwlwifi/iwl-agn-rs.c
+index 9ba2c1b..3395025 100644
+--- a/drivers/net/wireless/iwlwifi/iwl-agn-rs.c
++++ b/drivers/net/wireless/iwlwifi/iwl-agn-rs.c
+@@ -708,11 +708,14 @@ static int rs_toggle_antenna(u32 valid_ant, u32 *rate_n_flags,
+  */
+ static bool rs_use_green(struct ieee80211_sta *sta)
+ {
+-	struct iwl_station_priv *sta_priv = (void *)sta->drv_priv;
+-	struct iwl_rxon_context *ctx = sta_priv->ctx;
+-
+-	return (sta->ht_cap.cap & IEEE80211_HT_CAP_GRN_FLD) &&
+-		!(ctx->ht.non_gf_sta_present);
++	/*
++	 * There's a bug somewhere in this code that causes the
++	 * scaling to get stuck because GF+SGI can't be combined
++	 * in SISO rates. Until we find that bug, disable GF, it
++	 * has only limited benefit and we still interoperate with
++	 * GF APs since we can always receive GF transmissions.
++	 */
++	return false;
+ }
+ 
+ /**
+-- 
+1.7.7.6
+

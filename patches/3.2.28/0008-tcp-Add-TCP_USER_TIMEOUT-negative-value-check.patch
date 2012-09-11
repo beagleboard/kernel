@@ -1,0 +1,39 @@
+From df7ba2e6620095039c0aa42af7de1ec565eca2eb Mon Sep 17 00:00:00 2001
+From: Hangbin Liu <liuhangbin@gmail.com>
+Date: Thu, 26 Jul 2012 22:52:21 +0000
+Subject: [PATCH 08/38] tcp: Add TCP_USER_TIMEOUT negative value check
+
+[ Upstream commit 42493570100b91ef663c4c6f0c0fdab238f9d3c2 ]
+
+TCP_USER_TIMEOUT is a TCP level socket option that takes an unsigned int. But
+patch "tcp: Add TCP_USER_TIMEOUT socket option"(dca43c75) didn't check the negative
+values. If a user assign -1 to it, the socket will set successfully and wait
+for 4294967295 miliseconds. This patch add a negative value check to avoid
+this issue.
+
+Signed-off-by: Hangbin Liu <liuhangbin@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv4/tcp.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
+index 11ba922..ad466a7 100644
+--- a/net/ipv4/tcp.c
++++ b/net/ipv4/tcp.c
+@@ -2391,7 +2391,10 @@ static int do_tcp_setsockopt(struct sock *sk, int level,
+ 		/* Cap the max timeout in ms TCP will retry/retrans
+ 		 * before giving up and aborting (ETIMEDOUT) a connection.
+ 		 */
+-		icsk->icsk_user_timeout = msecs_to_jiffies(val);
++		if (val < 0)
++			err = -EINVAL;
++		else
++			icsk->icsk_user_timeout = msecs_to_jiffies(val);
+ 		break;
+ 	default:
+ 		err = -ENOPROTOOPT;
+-- 
+1.7.7.6
+

@@ -1,0 +1,44 @@
+From 785781699d5534735e59edc74886fc59752dcabd Mon Sep 17 00:00:00 2001
+From: Alex Hung <alex.hung@canonical.com>
+Date: Wed, 20 Jun 2012 11:47:35 +0800
+Subject: [PATCH 37/71] asus-wmi: use ASUS_WMI_METHODID_DSTS2 as default DSTS
+ ID.
+
+commit 63a78bb1051b240417daad3a3fa9c1bb10646dca upstream.
+
+According to responses from the BIOS team, ASUS_WMI_METHODID_DSTS2
+(0x53545344) will be used as future DSTS ID. In addition, calling
+asus_wmi_evaluate_method(ASUS_WMI_METHODID_DSTS2, 0, 0, NULL) returns
+ASUS_WMI_UNSUPPORTED_METHOD in new ASUS laptop PCs. This patch fixes
+no DSTS ID will be assigned in this case.
+
+Signed-off-by: Alex Hung <alex.hung@canonical.com>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/platform/x86/asus-wmi.c |    7 +------
+ 1 files changed, 1 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
+index d1049ee..26fba2d 100644
+--- a/drivers/platform/x86/asus-wmi.c
++++ b/drivers/platform/x86/asus-wmi.c
+@@ -1431,14 +1431,9 @@ static int asus_wmi_platform_init(struct asus_wmi *asus)
+ 	 */
+ 	if (!asus_wmi_evaluate_method(ASUS_WMI_METHODID_DSTS, 0, 0, NULL))
+ 		asus->dsts_id = ASUS_WMI_METHODID_DSTS;
+-	else if (!asus_wmi_evaluate_method(ASUS_WMI_METHODID_DSTS2, 0, 0, NULL))
++	else
+ 		asus->dsts_id = ASUS_WMI_METHODID_DSTS2;
+ 
+-	if (!asus->dsts_id) {
+-		pr_err("Can't find DSTS");
+-		return -ENODEV;
+-	}
+-
+ 	/* CWAP allow to define the behavior of the Fn+F2 key,
+ 	 * this method doesn't seems to be present on Eee PCs */
+ 	if (asus->driver->wapf >= 0)
+-- 
+1.7.7.6
+

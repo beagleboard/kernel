@@ -1,0 +1,53 @@
+From 46b4d87ec53d166d2a62aae30d15a24783c3275f Mon Sep 17 00:00:00 2001
+From: Joe Thornber <ejt@redhat.com>
+Date: Fri, 27 Jul 2012 15:08:05 +0100
+Subject: [PATCH 35/71] dm thin: fix memory leak in process_prepared_mapping
+ error paths
+
+commit 905386f82d08f66726912f303f3e6605248c60a3 upstream.
+
+Fix memory leak in process_prepared_mapping by always freeing
+the dm_thin_new_mapping structs from the mapping_pool mempool on
+the error paths.
+
+Signed-off-by: Joe Thornber <ejt@redhat.com>
+Signed-off-by: Mike Snitzer <snitzer@redhat.com>
+Signed-off-by: Alasdair G Kergon <agk@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/md/dm-thin.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/md/dm-thin.c b/drivers/md/dm-thin.c
+index f68290d..d432032 100644
+--- a/drivers/md/dm-thin.c
++++ b/drivers/md/dm-thin.c
+@@ -857,7 +857,7 @@ static void process_prepared_mapping(struct new_mapping *m)
+ 
+ 	if (m->err) {
+ 		cell_error(m->cell);
+-		return;
++		goto out;
+ 	}
+ 
+ 	/*
+@@ -869,7 +869,7 @@ static void process_prepared_mapping(struct new_mapping *m)
+ 	if (r) {
+ 		DMERR("dm_thin_insert_block() failed");
+ 		cell_error(m->cell);
+-		return;
++		goto out;
+ 	}
+ 
+ 	/*
+@@ -884,6 +884,7 @@ static void process_prepared_mapping(struct new_mapping *m)
+ 	} else
+ 		cell_defer(tc, m->cell, m->data_block);
+ 
++out:
+ 	list_del(&m->list);
+ 	mempool_free(m, tc->pool->mapping_pool);
+ }
+-- 
+1.7.7.6
+

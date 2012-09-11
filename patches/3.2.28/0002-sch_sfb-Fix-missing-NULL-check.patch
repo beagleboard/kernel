@@ -1,0 +1,33 @@
+From ab12cbb527ec1afc9f71bd2331164c375e1e68f7 Mon Sep 17 00:00:00 2001
+From: Alan Cox <alan@linux.intel.com>
+Date: Thu, 12 Jul 2012 03:39:11 +0000
+Subject: [PATCH 02/38] sch_sfb: Fix missing NULL check
+
+[ Upstream commit 7ac2908e4b2edaec60e9090ddb4d9ceb76c05e7d ]
+
+Resolves-bug: https://bugzilla.kernel.org/show_bug.cgi?id=44461
+
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Acked-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/sched/sch_sfb.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/net/sched/sch_sfb.c b/net/sched/sch_sfb.c
+index 17859ea..351a69b 100644
+--- a/net/sched/sch_sfb.c
++++ b/net/sched/sch_sfb.c
+@@ -559,6 +559,8 @@ static int sfb_dump(struct Qdisc *sch, struct sk_buff *skb)
+ 
+ 	sch->qstats.backlog = q->qdisc->qstats.backlog;
+ 	opts = nla_nest_start(skb, TCA_OPTIONS);
++	if (opts == NULL)
++		goto nla_put_failure;
+ 	NLA_PUT(skb, TCA_SFB_PARMS, sizeof(opt), &opt);
+ 	return nla_nest_end(skb, opts);
+ 
+-- 
+1.7.7.6
+

@@ -1,0 +1,37 @@
+From 6929d33d596f654d9bc9fbe840112a2f687f99c3 Mon Sep 17 00:00:00 2001
+From: Stefan Bader <stefan.bader@canonical.com>
+Date: Thu, 9 Aug 2012 12:33:12 +0300
+Subject: [PATCH 17/38] KVM: VMX: Advertise CPU_BASED_RDPMC_EXITING for nested
+ guests
+
+Based on commit fee84b079d5ddee2247b5c1f53162c330c622902 upstream.
+
+  Intercept RDPMC and forward it to the PMU emulation code.
+
+Newer vmx support will only allow to load the kvm_intel module
+if RDPMC_EXITING is supported. Even without the actual support
+this part of the change is required on 3.2 hosts.
+
+BugLink: http://bugs.launchpad.net/bugs/1031090
+Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
+Signed-off-by: Avi Kivity <avi@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kvm/vmx.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/x86/kvm/vmx.c b/arch/x86/kvm/vmx.c
+index 7315488..407789b 100644
+--- a/arch/x86/kvm/vmx.c
++++ b/arch/x86/kvm/vmx.c
+@@ -1956,6 +1956,7 @@ static __init void nested_vmx_setup_ctls_msrs(void)
+ #endif
+ 		CPU_BASED_MOV_DR_EXITING | CPU_BASED_UNCOND_IO_EXITING |
+ 		CPU_BASED_USE_IO_BITMAPS | CPU_BASED_MONITOR_EXITING |
++		CPU_BASED_RDPMC_EXITING |
+ 		CPU_BASED_ACTIVATE_SECONDARY_CONTROLS;
+ 	/*
+ 	 * We can allow some features even when not supported by the
+-- 
+1.7.7.6
+

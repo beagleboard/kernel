@@ -1,0 +1,65 @@
+From fca7771ad7eefb4fc86ab2248d291f0ecabd6de7 Mon Sep 17 00:00:00 2001
+From: Mohammed Shafi Shajakhan <mohammed@qca.qualcomm.com>
+Date: Thu, 2 Aug 2012 11:58:50 +0530
+Subject: [PATCH 19/38] ath9k: Add PID/VID support for AR1111
+
+commit d4e5979c0da95791aa717c18e162540c7a596360 upstream.
+
+AR1111 is same as AR9485. The h/w
+difference between them is quite insignificant,
+Felix suggests only very few baseband features
+may not be available in AR1111. The h/w code for
+AR9485 is already present, so AR1111 should
+work fine with the addition of its PID/VID.
+
+Cc: Felix Bitterli <felixb@qca.qualcomm.com>
+Reported-by: Tim Bentley <Tim.Bentley@Gmail.com>
+Signed-off-by: Mohammed Shafi Shajakhan <mohammed@qca.qualcomm.com>
+Tested-by: Tim Bentley <Tim.Bentley@Gmail.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/ath/ath9k/hw.c  |    1 +
+ drivers/net/wireless/ath/ath9k/hw.h  |    1 +
+ drivers/net/wireless/ath/ath9k/pci.c |    1 +
+ 3 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/net/wireless/ath/ath9k/hw.c b/drivers/net/wireless/ath/ath9k/hw.c
+index 7f97164..2b8e957 100644
+--- a/drivers/net/wireless/ath/ath9k/hw.c
++++ b/drivers/net/wireless/ath/ath9k/hw.c
+@@ -674,6 +674,7 @@ int ath9k_hw_init(struct ath_hw *ah)
+ 	case AR9300_DEVID_AR9340:
+ 	case AR9300_DEVID_AR9580:
+ 	case AR9300_DEVID_AR9462:
++	case AR9485_DEVID_AR1111:
+ 		break;
+ 	default:
+ 		if (common->bus_ops->ath_bus_type == ATH_USB)
+diff --git a/drivers/net/wireless/ath/ath9k/hw.h b/drivers/net/wireless/ath/ath9k/hw.h
+index 1bd8edf..a5c4ba8 100644
+--- a/drivers/net/wireless/ath/ath9k/hw.h
++++ b/drivers/net/wireless/ath/ath9k/hw.h
+@@ -48,6 +48,7 @@
+ #define AR9300_DEVID_AR9580	0x0033
+ #define AR9300_DEVID_AR9462	0x0034
+ #define AR9300_DEVID_AR9330	0x0035
++#define AR9485_DEVID_AR1111	0x0037
+ 
+ #define AR5416_AR9100_DEVID	0x000b
+ 
+diff --git a/drivers/net/wireless/ath/ath9k/pci.c b/drivers/net/wireless/ath/ath9k/pci.c
+index 2dcdf63..1883d39 100644
+--- a/drivers/net/wireless/ath/ath9k/pci.c
++++ b/drivers/net/wireless/ath/ath9k/pci.c
+@@ -35,6 +35,7 @@ static DEFINE_PCI_DEVICE_TABLE(ath_pci_id_table) = {
+ 	{ PCI_VDEVICE(ATHEROS, 0x0032) }, /* PCI-E  AR9485 */
+ 	{ PCI_VDEVICE(ATHEROS, 0x0033) }, /* PCI-E  AR9580 */
+ 	{ PCI_VDEVICE(ATHEROS, 0x0034) }, /* PCI-E  AR9462 */
++	{ PCI_VDEVICE(ATHEROS, 0x0037) }, /* PCI-E  AR1111/AR9485 */
+ 	{ 0 }
+ };
+ 
+-- 
+1.7.7.6
+

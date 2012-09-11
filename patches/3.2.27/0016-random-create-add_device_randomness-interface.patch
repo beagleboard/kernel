@@ -1,0 +1,93 @@
+From 369e589b542f8ef0d56a95350997819d1b2222fd Mon Sep 17 00:00:00 2001
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Wed, 4 Jul 2012 11:16:01 -0400
+Subject: [PATCH 16/71] random: create add_device_randomness() interface
+
+commit a2080a67abe9e314f9e9c2cc3a4a176e8a8f8793 upstream.
+
+Add a new interface, add_device_randomness() for adding data to the
+random pool that is likely to differ between two devices (or possibly
+even per boot).  This would be things like MAC addresses or serial
+numbers, or the read-out of the RTC. This does *not* add any actual
+entropy to the pool, but it initializes the pool to different values
+for devices that might otherwise be identical and have very little
+entropy available to them (particularly common in the embedded world).
+
+[ Modified by tytso to mix in a timestamp, since there may be some
+  variability caused by the time needed to detect/configure the hardware
+  in question. ]
+
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/char/random.c  |   28 ++++++++++++++++++++++++++++
+ include/linux/random.h |    1 +
+ 2 files changed, 29 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/char/random.c b/drivers/char/random.c
+index 8ac7e05..4446a27 100644
+--- a/drivers/char/random.c
++++ b/drivers/char/random.c
+@@ -125,11 +125,20 @@
+  * The current exported interfaces for gathering environmental noise
+  * from the devices are:
+  *
++ *	void add_device_randomness(const void *buf, unsigned int size);
+  * 	void add_input_randomness(unsigned int type, unsigned int code,
+  *                                unsigned int value);
+  *	void add_interrupt_randomness(int irq, int irq_flags);
+  * 	void add_disk_randomness(struct gendisk *disk);
+  *
++ * add_device_randomness() is for adding data to the random pool that
++ * is likely to differ between two devices (or possibly even per boot).
++ * This would be things like MAC addresses or serial numbers, or the
++ * read-out of the RTC. This does *not* add any actual entropy to the
++ * pool, but it initializes the pool to different values for devices
++ * that might otherwise be identical and have very little entropy
++ * available to them (particularly common in the embedded world).
++ *
+  * add_input_randomness() uses the input layer interrupt timing, as well as
+  * the event type information from the hardware.
+  *
+@@ -646,6 +655,25 @@ static void set_timer_rand_state(unsigned int irq,
+ }
+ #endif
+ 
++/*
++ * Add device- or boot-specific data to the input and nonblocking
++ * pools to help initialize them to unique values.
++ *
++ * None of this adds any entropy, it is meant to avoid the
++ * problem of the nonblocking pool having similar initial state
++ * across largely identical devices.
++ */
++void add_device_randomness(const void *buf, unsigned int size)
++{
++	unsigned long time = get_cycles() ^ jiffies;
++
++	mix_pool_bytes(&input_pool, buf, size, NULL);
++	mix_pool_bytes(&input_pool, &time, sizeof(time), NULL);
++	mix_pool_bytes(&nonblocking_pool, buf, size, NULL);
++	mix_pool_bytes(&nonblocking_pool, &time, sizeof(time), NULL);
++}
++EXPORT_SYMBOL(add_device_randomness);
++
+ static struct timer_rand_state input_timer_state;
+ 
+ /*
+diff --git a/include/linux/random.h b/include/linux/random.h
+index 6ef39d7..e14b438 100644
+--- a/include/linux/random.h
++++ b/include/linux/random.h
+@@ -50,6 +50,7 @@ struct rnd_state {
+ 
+ extern void rand_initialize_irq(int irq);
+ 
++extern void add_device_randomness(const void *, unsigned int);
+ extern void add_input_randomness(unsigned int type, unsigned int code,
+ 				 unsigned int value);
+ extern void add_interrupt_randomness(int irq, int irq_flags);
+-- 
+1.7.7.6
+

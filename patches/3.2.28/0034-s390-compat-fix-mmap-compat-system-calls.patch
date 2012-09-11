@@ -1,0 +1,54 @@
+From b2ef34da747ee998a41e6b081987480777b7c23a Mon Sep 17 00:00:00 2001
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Date: Wed, 8 Aug 2012 09:32:20 +0200
+Subject: [PATCH 34/38] s390/compat: fix mmap compat system calls
+
+commit e85871218513c54f7dfdb6009043cb638f2fecbe upstream.
+
+The native 31 bit and the compat behaviour for the mmap system calls differ:
+
+In native 31 bit mode the passed in address for the mmap system call will be
+unmodified passed to sys_mmap_pgoff().
+In compat mode however the passed in address will be modified with
+compat_ptr() which masks out the most significant bit.
+
+The result is that in native 31 bit mode each mmap request (with MAP_FIXED)
+will fail where the most significat bit is set, while in compat mode it
+may succeed.
+
+This odd behaviour was introduced with d3815898 "[S390] mmap: add missing
+compat_ptr conversion to both mmap compat syscalls".
+
+To restore a consistent behaviour accross native and compat mode this
+patch functionally reverts the above mentioned commit.
+
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/s390/kernel/compat_linux.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
+
+diff --git a/arch/s390/kernel/compat_linux.c b/arch/s390/kernel/compat_linux.c
+index 84a9828..38c6645 100644
+--- a/arch/s390/kernel/compat_linux.c
++++ b/arch/s390/kernel/compat_linux.c
+@@ -615,7 +615,6 @@ asmlinkage unsigned long old32_mmap(struct mmap_arg_struct_emu31 __user *arg)
+ 		return -EFAULT;
+ 	if (a.offset & ~PAGE_MASK)
+ 		return -EINVAL;
+-	a.addr = (unsigned long) compat_ptr(a.addr);
+ 	return sys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd,
+ 			      a.offset >> PAGE_SHIFT);
+ }
+@@ -626,7 +625,6 @@ asmlinkage long sys32_mmap2(struct mmap_arg_struct_emu31 __user *arg)
+ 
+ 	if (copy_from_user(&a, arg, sizeof(a)))
+ 		return -EFAULT;
+-	a.addr = (unsigned long) compat_ptr(a.addr);
+ 	return sys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd, a.offset);
+ }
+ 
+-- 
+1.7.7.6
+

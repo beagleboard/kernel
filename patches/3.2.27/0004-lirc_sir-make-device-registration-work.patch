@@ -1,0 +1,131 @@
+From 76a65f00049d773d4f508bc2a6c19f7bb546f49d Mon Sep 17 00:00:00 2001
+From: Jarod Wilson <jarod@redhat.com>
+Date: Mon, 4 Jun 2012 13:05:24 -0300
+Subject: [PATCH 04/71] lirc_sir: make device registration work
+
+commit 4b71ca6bce8fab3d08c61bf330e781f957934ae1 upstream.
+
+For one, the driver device pointer needs to be filled in, or the lirc core
+will refuse to load the driver. And we really need to wire up all the
+platform_device bits. This has been tested via the lirc sourceforge tree
+and verified to work, been sitting there for months, finally getting
+around to sending it. :\
+
+CC: Josh Boyer <jwboyer@redhat.com>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/media/lirc/lirc_sir.c |   60 +++++++++++++++++++++++++++++++-
+ 1 files changed, 58 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/staging/media/lirc/lirc_sir.c b/drivers/staging/media/lirc/lirc_sir.c
+index 6903d39..90e9e32 100644
+--- a/drivers/staging/media/lirc/lirc_sir.c
++++ b/drivers/staging/media/lirc/lirc_sir.c
+@@ -53,6 +53,7 @@
+ #include <linux/io.h>
+ #include <asm/irq.h>
+ #include <linux/fcntl.h>
++#include <linux/platform_device.h>
+ #ifdef LIRC_ON_SA1100
+ #include <asm/hardware.h>
+ #ifdef CONFIG_SA1100_COLLIE
+@@ -488,9 +489,11 @@ static struct lirc_driver driver = {
+ 	.owner		= THIS_MODULE,
+ };
+ 
++static struct platform_device *lirc_sir_dev;
+ 
+ static int init_chrdev(void)
+ {
++	driver.dev = &lirc_sir_dev->dev;
+ 	driver.minor = lirc_register_driver(&driver);
+ 	if (driver.minor < 0) {
+ 		printk(KERN_ERR LIRC_DRIVER_NAME ": init_chrdev() failed.\n");
+@@ -1216,20 +1219,71 @@ static int init_lirc_sir(void)
+ 	return 0;
+ }
+ 
++static int __devinit lirc_sir_probe(struct platform_device *dev)
++{
++	return 0;
++}
++
++static int __devexit lirc_sir_remove(struct platform_device *dev)
++{
++	return 0;
++}
++
++static struct platform_driver lirc_sir_driver = {
++	.probe		= lirc_sir_probe,
++	.remove		= __devexit_p(lirc_sir_remove),
++	.driver		= {
++		.name	= "lirc_sir",
++		.owner	= THIS_MODULE,
++	},
++};
+ 
+ static int __init lirc_sir_init(void)
+ {
+ 	int retval;
+ 
++	retval = platform_driver_register(&lirc_sir_driver);
++	if (retval) {
++		printk(KERN_ERR LIRC_DRIVER_NAME ": Platform driver register "
++		       "failed!\n");
++		return -ENODEV;
++	}
++
++	lirc_sir_dev = platform_device_alloc("lirc_dev", 0);
++	if (!lirc_sir_dev) {
++		printk(KERN_ERR LIRC_DRIVER_NAME ": Platform device alloc "
++		       "failed!\n");
++		retval = -ENOMEM;
++		goto pdev_alloc_fail;
++	}
++
++	retval = platform_device_add(lirc_sir_dev);
++	if (retval) {
++		printk(KERN_ERR LIRC_DRIVER_NAME ": Platform device add "
++		       "failed!\n");
++		retval = -ENODEV;
++		goto pdev_add_fail;
++	}
++
+ 	retval = init_chrdev();
+ 	if (retval < 0)
+-		return retval;
++		goto fail;
++
+ 	retval = init_lirc_sir();
+ 	if (retval) {
+ 		drop_chrdev();
+-		return retval;
++		goto fail;
+ 	}
++
+ 	return 0;
++
++fail:
++	platform_device_del(lirc_sir_dev);
++pdev_add_fail:
++	platform_device_put(lirc_sir_dev);
++pdev_alloc_fail:
++	platform_driver_unregister(&lirc_sir_driver);
++	return retval;
+ }
+ 
+ static void __exit lirc_sir_exit(void)
+@@ -1237,6 +1291,8 @@ static void __exit lirc_sir_exit(void)
+ 	drop_hardware();
+ 	drop_chrdev();
+ 	drop_port();
++	platform_device_unregister(lirc_sir_dev);
++	platform_driver_unregister(&lirc_sir_driver);
+ 	printk(KERN_INFO LIRC_DRIVER_NAME ": Uninstalled.\n");
+ }
+ 
+-- 
+1.7.7.6
+

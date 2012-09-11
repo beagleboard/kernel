@@ -1,0 +1,28 @@
+From 356a7632f579648b496ff2f906bfce98cce5257f Mon Sep 17 00:00:00 2001
+From: Philip, Avinash <avinashphilip@ti.com>
+Date: Wed, 16 May 2012 09:43:56 +0530
+Subject: [PATCH 2/4] ARM: OMAP2+: am335x-mux: add ecap2_in_pwm2_out string entry
+
+On am335x-sk board, backlight is control through ecap 2.
+
+Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+---
+ arch/arm/mach-omap2/mux33xx.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/mux33xx.c b/arch/arm/mach-omap2/mux33xx.c
+index 43c8989..852f7f0 100644
+--- a/arch/arm/mach-omap2/mux33xx.c
++++ b/arch/arm/mach-omap2/mux33xx.c
+@@ -345,7 +345,7 @@ static struct omap_mux __initdata am33xx_muxmodes[] = {
+ 		"mmc2_sdcd", NULL, NULL, "gpio3_16"),
+ 	_AM33XX_MUXENTRY(MCASP0_AHCLKR, 0,
+ 		"mcasp0_ahclkr", NULL, "mcasp0_axr2", "spi1_cs0",
+-		NULL, NULL, NULL, "gpio3_17"),
++		"ecap2_in_pwm2_out", NULL, NULL, "gpio3_17"),
+ 	_AM33XX_MUXENTRY(MCASP0_ACLKR, 0,
+ 		"mcasp0_aclkr", NULL, "mcasp0_axr2", "mcasp1_aclkx",
+ 		"mmc0_sdwp", NULL, NULL, "gpio3_18"),
+-- 
+1.7.0.4
+

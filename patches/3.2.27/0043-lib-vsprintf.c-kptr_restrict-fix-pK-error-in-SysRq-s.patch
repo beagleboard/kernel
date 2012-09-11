@@ -1,0 +1,48 @@
+From 1b772a147a183c09462f0d23e041b077f158fa0f Mon Sep 17 00:00:00 2001
+From: Dan Rosenberg <drosenberg@vsecurity.com>
+Date: Mon, 30 Jul 2012 14:40:26 -0700
+Subject: [PATCH 43/71] lib/vsprintf.c: kptr_restrict: fix pK-error in SysRq
+ show-all-timers(Q)
+
+commit 3715c5309f6d175c3053672b73fd4f73be16fd07 upstream.
+
+When using ALT+SysRq+Q all the pointers are replaced with "pK-error" like
+this:
+
+	[23153.208033]   .base:               pK-error
+
+with echo h > /proc/sysrq-trigger it works:
+
+	[23107.776363]   .base:       ffff88023e60d540
+
+The intent behind this behavior was to return "pK-error" in cases where
+the %pK format specifier was used in interrupt context, because the
+CAP_SYSLOG check wouldn't be meaningful.  Clearly this should only apply
+when kptr_restrict is actually enabled though.
+
+Reported-by: Stevie Trujillo <stevie.trujillo@gmail.com>
+Signed-off-by: Dan Rosenberg <dan.j.rosenberg@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ lib/vsprintf.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/lib/vsprintf.c b/lib/vsprintf.c
+index 993599e..d74c317 100644
+--- a/lib/vsprintf.c
++++ b/lib/vsprintf.c
+@@ -886,7 +886,8 @@ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
+ 		 * %pK cannot be used in IRQ context because its test
+ 		 * for CAP_SYSLOG would be meaningless.
+ 		 */
+-		if (in_irq() || in_serving_softirq() || in_nmi()) {
++		if (kptr_restrict && (in_irq() || in_serving_softirq() ||
++				      in_nmi())) {
+ 			if (spec.field_width == -1)
+ 				spec.field_width = 2 * sizeof(void *);
+ 			return string(buf, end, "pK-error", spec);
+-- 
+1.7.7.6
+

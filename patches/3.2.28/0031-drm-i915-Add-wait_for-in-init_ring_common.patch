@@ -1,0 +1,41 @@
+From 9e7bbc7d2d8641d1375c29aecd6636f3d670b584 Mon Sep 17 00:00:00 2001
+From: Sean Paul <seanpaul@chromium.org>
+Date: Fri, 16 Mar 2012 12:43:22 -0400
+Subject: [PATCH 31/38] drm/i915: Add wait_for in init_ring_common
+
+commit f01db988ef6f6c70a6cc36ee71e4a98a68901229 upstream.
+
+I have seen a number of "blt ring initialization failed" messages
+where the ctl or start registers are not the correct value. Upon further
+inspection, if the code just waited a little bit, it would read the
+correct value. Adding the wait_for to these reads should eliminate the
+issue.
+
+Signed-off-by: Sean Paul <seanpaul@chromium.org>
+Reviewed-by: Ben Widawsky <ben@bwidawsk.net>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_ringbuffer.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.c b/drivers/gpu/drm/i915/intel_ringbuffer.c
+index d2cbe5d..4983e59 100644
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.c
++++ b/drivers/gpu/drm/i915/intel_ringbuffer.c
+@@ -295,9 +295,9 @@ static int init_ring_common(struct intel_ring_buffer *ring)
+ 			| RING_VALID);
+ 
+ 	/* If the head is still not zero, the ring is dead */
+-	if ((I915_READ_CTL(ring) & RING_VALID) == 0 ||
+-	    I915_READ_START(ring) != obj->gtt_offset ||
+-	    (I915_READ_HEAD(ring) & HEAD_ADDR) != 0) {
++	if (wait_for((I915_READ_CTL(ring) & RING_VALID) != 0 &&
++		     I915_READ_START(ring) == obj->gtt_offset &&
++		     (I915_READ_HEAD(ring) & HEAD_ADDR) == 0, 50)) {
+ 		DRM_ERROR("%s initialization failed "
+ 				"ctl %08x head %08x tail %08x start %08x\n",
+ 				ring->name,
+-- 
+1.7.7.6
+

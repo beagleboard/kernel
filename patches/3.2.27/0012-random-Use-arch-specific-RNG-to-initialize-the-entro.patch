@@ -1,0 +1,49 @@
+From 1d1e71f1bd606f77b5e49d9077d6ce23d3f8fc06 Mon Sep 17 00:00:00 2001
+From: Theodore Ts'o <tytso@mit.edu>
+Date: Thu, 22 Dec 2011 16:28:01 -0500
+Subject: [PATCH 12/71] random: Use arch-specific RNG to initialize the
+ entropy store
+
+commit 3e88bdff1c65145f7ba297ccec69c774afe4c785 upstream.
+
+If there is an architecture-specific random number generator (such as
+RDRAND for Intel architectures), use it to initialize /dev/random's
+entropy stores.  Even in the worst case, if RDRAND is something like
+AES(NSA_KEY, counter++), it won't hurt, and it will definitely help
+against any other adversaries.
+
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Link: http://lkml.kernel.org/r/1324589281-31931-1-git-send-email-tytso@mit.edu
+Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/char/random.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/char/random.c b/drivers/char/random.c
+index 85da874..3079477 100644
+--- a/drivers/char/random.c
++++ b/drivers/char/random.c
+@@ -965,6 +965,7 @@ EXPORT_SYMBOL(get_random_bytes);
+  */
+ static void init_std_data(struct entropy_store *r)
+ {
++	int i;
+ 	ktime_t now;
+ 	unsigned long flags;
+ 
+@@ -974,6 +975,11 @@ static void init_std_data(struct entropy_store *r)
+ 
+ 	now = ktime_get_real();
+ 	mix_pool_bytes(r, &now, sizeof(now));
++	for (i = r->poolinfo->poolwords; i; i--) {
++		if (!arch_get_random_long(&flags))
++			break;
++		mix_pool_bytes(r, &flags, sizeof(flags));
++	}
+ 	mix_pool_bytes(r, utsname(), sizeof(*(utsname())));
+ }
+ 
+-- 
+1.7.7.6
+

@@ -1,0 +1,72 @@
+From c506474fed3246e4ea1dcf86809cbd802d57e541 Mon Sep 17 00:00:00 2001
+From: Daniel Drake <dsd@laptop.org>
+Date: Thu, 2 Aug 2012 18:41:48 +0100
+Subject: [PATCH 22/38] cfg80211: process pending events when unregistering
+ net device
+
+commit 1f6fc43e621167492ed4b7f3b4269c584c3d6ccc upstream.
+
+libertas currently calls cfg80211_disconnected() when it is being
+brought down. This causes an event to be allocated, but since the
+wdev is already removed from the rdev by the time that the event
+processing work executes, the event is never processed or freed.
+http://article.gmane.org/gmane.linux.kernel.wireless.general/95666
+
+Fix this leak, and other possible situations, by processing the event
+queue when a device is being unregistered. Thanks to Johannes Berg for
+the suggestion.
+
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+Reviewed-by: Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/wireless/core.c |    5 +++++
+ net/wireless/core.h |    1 +
+ net/wireless/util.c |    2 +-
+ 3 files changed, 7 insertions(+), 1 deletions(-)
+
+diff --git a/net/wireless/core.c b/net/wireless/core.c
+index 220f3bd..8f5042d 100644
+--- a/net/wireless/core.c
++++ b/net/wireless/core.c
+@@ -971,6 +971,11 @@ static int cfg80211_netdev_notifier_call(struct notifier_block * nb,
+ 		 */
+ 		synchronize_rcu();
+ 		INIT_LIST_HEAD(&wdev->list);
++		/*
++		 * Ensure that all events have been processed and
++		 * freed.
++		 */
++		cfg80211_process_wdev_events(wdev);
+ 		break;
+ 	case NETDEV_PRE_UP:
+ 		if (!(wdev->wiphy->interface_modes & BIT(wdev->iftype)))
+diff --git a/net/wireless/core.h b/net/wireless/core.h
+index b9ec306..02c3be3 100644
+--- a/net/wireless/core.h
++++ b/net/wireless/core.h
+@@ -426,6 +426,7 @@ int cfg80211_change_iface(struct cfg80211_registered_device *rdev,
+ 			  struct net_device *dev, enum nl80211_iftype ntype,
+ 			  u32 *flags, struct vif_params *params);
+ void cfg80211_process_rdev_events(struct cfg80211_registered_device *rdev);
++void cfg80211_process_wdev_events(struct wireless_dev *wdev);
+ 
+ int cfg80211_can_change_interface(struct cfg80211_registered_device *rdev,
+ 				  struct wireless_dev *wdev,
+diff --git a/net/wireless/util.c b/net/wireless/util.c
+index b5e4c1c..22fb802 100644
+--- a/net/wireless/util.c
++++ b/net/wireless/util.c
+@@ -725,7 +725,7 @@ void cfg80211_upload_connect_keys(struct wireless_dev *wdev)
+ 	wdev->connect_keys = NULL;
+ }
+ 
+-static void cfg80211_process_wdev_events(struct wireless_dev *wdev)
++void cfg80211_process_wdev_events(struct wireless_dev *wdev)
+ {
+ 	struct cfg80211_event *ev;
+ 	unsigned long flags;
+-- 
+1.7.7.6
+

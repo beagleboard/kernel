@@ -1,0 +1,52 @@
+From 40da4b179ad3c9a217a57187b980c826bd1b9f9f Mon Sep 17 00:00:00 2001
+From: Marek Vasut <marex@denx.de>
+Date: Fri, 3 Aug 2012 20:54:48 +0200
+Subject: [PATCH 20/38] ARM: mxs: Remove MMAP_MIN_ADDR setting from
+ mxs_defconfig
+
+commit 3bed491c8d28329e34f8a31e3fe64d03f3a350f1 upstream.
+
+The CONFIG_DEFAULT_MMAP_MIN_ADDR was set to 65536 in mxs_defconfig,
+this caused severe breakage of userland applications since the upper
+limit for ARM is 32768. By default CONFIG_DEFAULT_MMAP_MIN_ADDR is
+set to 4096 and can also be changed via /proc/sys/vm/mmap_min_addr
+if needed.
+
+Quoting Russell King [1]:
+
+"4096 is also fine for ARM too. There's not much point in having
+defconfigs change it - that would just be pure noise in the config
+files."
+
+the CONFIG_DEFAULT_MMAP_MIN_ADDR can be removed from the defconfig
+altogether.
+
+This problem was introduced by commit cde7c41 (ARM: configs: add
+defconfig for mach-mxs).
+
+[1] http://marc.info/?l=linux-arm-kernel&m=134401593807820&w=2
+
+Signed-off-by: Marek Vasut <marex@denx.de>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Wolfgang Denk <wd@denx.de>
+Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/arm/configs/mxs_defconfig |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/configs/mxs_defconfig b/arch/arm/configs/mxs_defconfig
+index 6ee781b..3ee3e84 100644
+--- a/arch/arm/configs/mxs_defconfig
++++ b/arch/arm/configs/mxs_defconfig
+@@ -32,7 +32,6 @@ CONFIG_NO_HZ=y
+ CONFIG_HIGH_RES_TIMERS=y
+ CONFIG_PREEMPT_VOLUNTARY=y
+ CONFIG_AEABI=y
+-CONFIG_DEFAULT_MMAP_MIN_ADDR=65536
+ CONFIG_AUTO_ZRELADDR=y
+ CONFIG_FPE_NWFPE=y
+ CONFIG_NET=y
+-- 
+1.7.7.6
+

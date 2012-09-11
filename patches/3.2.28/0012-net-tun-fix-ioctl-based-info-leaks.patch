@@ -1,0 +1,41 @@
+From 9deaafcd3ee894ef714c44e0414e85db36e62641 Mon Sep 17 00:00:00 2001
+From: Mathias Krause <minipli@googlemail.com>
+Date: Sun, 29 Jul 2012 19:45:14 +0000
+Subject: [PATCH 12/38] net/tun: fix ioctl() based info leaks
+
+[ Upstream commits a117dacde0288f3ec60b6e5bcedae8fa37ee0dfc
+  and 8bbb181308bc348e02bfdbebdedd4e4ec9d452ce ]
+
+The tun module leaks up to 36 bytes of memory by not fully initializing
+a structure located on the stack that gets copied to user memory by the
+TUNGETIFF and SIOCGIFHWADDR ioctl()s.
+
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/tun.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/tun.c b/drivers/net/tun.c
+index 7bea9c6..a12c9bf 100644
+--- a/drivers/net/tun.c
++++ b/drivers/net/tun.c
+@@ -1243,10 +1243,12 @@ static long __tun_chr_ioctl(struct file *file, unsigned int cmd,
+ 	int vnet_hdr_sz;
+ 	int ret;
+ 
+-	if (cmd == TUNSETIFF || _IOC_TYPE(cmd) == 0x89)
++	if (cmd == TUNSETIFF || _IOC_TYPE(cmd) == 0x89) {
+ 		if (copy_from_user(&ifr, argp, ifreq_len))
+ 			return -EFAULT;
+-
++	} else {
++		memset(&ifr, 0, sizeof(ifr));
++	}
+ 	if (cmd == TUNGETFEATURES) {
+ 		/* Currently this just means: "what IFF flags are valid?".
+ 		 * This is needed because we never checked for invalid flags on
+-- 
+1.7.7.6
+

@@ -1,0 +1,73 @@
+From d0192ce751ef75b4f40f5b2d4264f2406080163b Mon Sep 17 00:00:00 2001
+From: Tony Luck <tony.luck@intel.com>
+Date: Thu, 26 Jul 2012 10:55:26 -0700
+Subject: [PATCH 33/71] Redefine ATOMIC_INIT and ATOMIC64_INIT to drop the
+ casts
+
+commit a119365586b0130dfea06457f584953e0ff6481d upstream.
+
+The following build error occured during a ia64 build with
+swap-over-NFS patches applied.
+
+net/core/sock.c:274:36: error: initializer element is not constant
+net/core/sock.c:274:36: error: (near initialization for 'memalloc_socks')
+net/core/sock.c:274:36: error: initializer element is not constant
+
+This is identical to a parisc build error. Fengguang Wu, Mel Gorman
+and James Bottomley did all the legwork to track the root cause of
+the problem. This fix and entire commit log is shamelessly copied
+from them with one extra detail to change a dubious runtime use of
+ATOMIC_INIT() to atomic_set() in drivers/char/mspec.c
+
+Dave Anglin says:
+> Here is the line in sock.i:
+>
+> struct static_key memalloc_socks = ((struct static_key) { .enabled =
+> ((atomic_t) { (0) }) });
+
+The above line contains two compound literals.  It also uses a designated
+initializer to initialize the field enabled.  A compound literal is not a
+constant expression.
+
+The location of the above statement isn't fully clear, but if a compound
+literal occurs outside the body of a function, the initializer list must
+consist of constant expressions.
+
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/ia64/include/asm/atomic.h |    4 ++--
+ drivers/char/mspec.c           |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/ia64/include/asm/atomic.h b/arch/ia64/include/asm/atomic.h
+index 3fad89e..2fc214b 100644
+--- a/arch/ia64/include/asm/atomic.h
++++ b/arch/ia64/include/asm/atomic.h
+@@ -18,8 +18,8 @@
+ #include <asm/system.h>
+ 
+ 
+-#define ATOMIC_INIT(i)		((atomic_t) { (i) })
+-#define ATOMIC64_INIT(i)	((atomic64_t) { (i) })
++#define ATOMIC_INIT(i)		{ (i) }
++#define ATOMIC64_INIT(i)	{ (i) }
+ 
+ #define atomic_read(v)		(*(volatile int *)&(v)->counter)
+ #define atomic64_read(v)	(*(volatile long *)&(v)->counter)
+diff --git a/drivers/char/mspec.c b/drivers/char/mspec.c
+index 5c0d96a..b12ffea 100644
+--- a/drivers/char/mspec.c
++++ b/drivers/char/mspec.c
+@@ -284,7 +284,7 @@ mspec_mmap(struct file *file, struct vm_area_struct *vma,
+ 	vdata->flags = flags;
+ 	vdata->type = type;
+ 	spin_lock_init(&vdata->lock);
+-	vdata->refcnt = ATOMIC_INIT(1);
++	atomic_set(&vdata->refcnt, 1);
+ 	vma->vm_private_data = vdata;
+ 
+ 	vma->vm_flags |= (VM_IO | VM_RESERVED | VM_PFNMAP | VM_DONTEXPAND);
+-- 
+1.7.7.6
+

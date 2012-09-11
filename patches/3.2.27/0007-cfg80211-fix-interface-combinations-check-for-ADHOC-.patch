@@ -1,0 +1,67 @@
+From f0618dab274183ec2b8e0d0f3c2adafd994caf02 Mon Sep 17 00:00:00 2001
+From: Liang Li <liang.li@windriver.com>
+Date: Thu, 2 Aug 2012 18:55:41 -0400
+Subject: [PATCH 07/71] cfg80211: fix interface combinations check for
+ ADHOC(IBSS)
+
+partial of commit 8e8b41f9d8c8e63fc92f899ace8da91a490ac573 upstream.
+
+As part of commit 463454b5dbd8 ("cfg80211: fix interface
+combinations check"), this extra check was introduced:
+
+       if ((all_iftypes & used_iftypes) != used_iftypes)
+               goto cont;
+
+However, most wireless NIC drivers did not advertise ADHOC in
+wiphy.iface_combinations[i].limits[] and hence we'll get -EBUSY
+when we bring up a ADHOC wlan with commands similar to:
+
+ # iwconfig wlan0 mode ad-hoc && ifconfig wlan0 up
+
+In commit 8e8b41f9d8c8e ("cfg80211: enforce lack of interface
+combinations"), the change below fixes the issue:
+
+       if (total == 1)
+               return 0;
+
+But it also introduces other dependencies for stable. For example,
+a full cherry pick of 8e8b41f9d8c8e would introduce additional
+regressions unless we also start cherry picking driver specific
+fixes like the following:
+
+  9b4760e  ath5k: add possible wiphy interface combinations
+  1ae2fc2  mac80211_hwsim: advertise interface combinations
+  20c8e8d  ath9k: add possible wiphy interface combinations
+
+And the purpose of the 'if (total == 1)' is to cover the specific
+use case (IBSS, adhoc) that was mentioned above. So we just pick
+the specific part out from 8e8b41f9d8c8e here.
+
+Doing so gives stable kernels a way to fix the change introduced
+by 463454b5dbd8, without having to make cherry picks specific to
+various NIC drivers.
+
+Signed-off-by: Liang Li <liang.li@windriver.com>
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/wireless/util.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/net/wireless/util.c b/net/wireless/util.c
+index 74d5292..b5e4c1c 100644
+--- a/net/wireless/util.c
++++ b/net/wireless/util.c
+@@ -981,6 +981,9 @@ int cfg80211_can_change_interface(struct cfg80211_registered_device *rdev,
+ 	}
+ 	mutex_unlock(&rdev->devlist_mtx);
+ 
++	if (total == 1)
++		return 0;
++
+ 	for (i = 0; i < rdev->wiphy.n_iface_combinations; i++) {
+ 		const struct ieee80211_iface_combination *c;
+ 		struct ieee80211_iface_limit *limits;
+-- 
+1.7.7.6
+

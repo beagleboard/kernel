@@ -1,0 +1,51 @@
+From e5dd68ebb5ee6c2defe90afd9ef98dca7e5a70b7 Mon Sep 17 00:00:00 2001
+From: Vivek Goyal <vgoyal@redhat.com>
+Date: Wed, 8 Feb 2012 20:03:38 +0100
+Subject: [PATCH 02/71] floppy: Cleanup disk->queue before caling put_disk()
+ if add_disk() was never called
+
+commit 3f9a5aabd0a9fe0e0cd308506f48963d79169aa7 upstream.
+
+add_disk() takes gendisk reference on request queue. If driver failed during
+initialization and never called add_disk() then that extra reference is not
+taken. That reference is put in put_disk(). floppy driver allocates the
+disk, allocates queue, sets disk->queue and then relizes that floppy
+controller is not present. It tries to tear down everything and tries to
+put a reference down in put_disk() which was never taken.
+
+In such error cases cleanup disk->queue before calling put_disk() so that
+we never try to put down a reference which was never taken in first place.
+
+Reported-and-tested-by: Suresh Jayaraman <sjayaraman@suse.com>
+Tested-by: Dirk Gouders <gouders@et.bocholt.fh-gelsenkirchen.de>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/block/floppy.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/block/floppy.c b/drivers/block/floppy.c
+index 9955a53..c864add 100644
+--- a/drivers/block/floppy.c
++++ b/drivers/block/floppy.c
+@@ -4369,8 +4369,14 @@ out_unreg_blkdev:
+ out_put_disk:
+ 	while (dr--) {
+ 		del_timer_sync(&motor_off_timer[dr]);
+-		if (disks[dr]->queue)
++		if (disks[dr]->queue) {
+ 			blk_cleanup_queue(disks[dr]->queue);
++			/*
++			 * put_disk() is not paired with add_disk() and
++			 * will put queue reference one extra time. fix it.
++			 */
++			disks[dr]->queue = NULL;
++		}
+ 		put_disk(disks[dr]);
+ 	}
+ 	return err;
+-- 
+1.7.7.6
+

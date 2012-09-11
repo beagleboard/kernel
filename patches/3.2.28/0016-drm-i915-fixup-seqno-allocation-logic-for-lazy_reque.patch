@@ -1,0 +1,182 @@
+From 840ba4a248e09231cbdc5e9ac769a1f83bee4748 Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Wed, 25 Jan 2012 16:32:49 +0100
+Subject: [PATCH 16/38] drm/i915: fixup seqno allocation logic for
+ lazy_request
+
+commit 53d227f282eb9fa4c7cdbfd691fa372b7ca8c4c3 upstream.
+
+Currently we reserve seqnos only when we emit the request to the ring
+(by bumping dev_priv->next_seqno), but start using it much earlier for
+ring->oustanding_lazy_request. When 2 threads compete for the gpu and
+run on two different rings (e.g. ddx on blitter vs. compositor)
+hilarity ensued, especially when we get constantly interrupted while
+reserving buffers.
+
+Breakage seems to have been introduced in
+
+commit 6f392d548658a17600da7faaf8a5df25ee5f01f6
+Author: Chris Wilson <chris@chris-wilson.co.uk>
+Date:   Sat Aug 7 11:01:22 2010 +0100
+
+    drm/i915: Use a common seqno for all rings.
+
+This patch fixes up the seqno reservation logic by moving it into
+i915_gem_next_request_seqno. The ring->add_request functions now
+superflously still return the new seqno through a pointer, that will
+be refactored in the next patch.
+
+Note that with this change we now unconditionally allocate a seqno,
+even when ->add_request might fail because the rings are full and the
+gpu died. But this does not open up a new can of worms because we can
+already leave behind an outstanding_request_seqno if e.g. the caller
+gets interrupted with a signal while stalling for the gpu in the
+eviciton paths. And with the bugfix we only ever have one seqno
+allocated per ring (and only that ring), so there are no ordering
+issues with multiple outstanding seqnos on the same ring.
+
+v2: Keep i915_gem_get_seqno (but move it to i915_gem.c) to make it
+clear that we only have one seqno counter for all rings. Suggested by
+Chris Wilson.
+
+v3: As suggested by Chris Wilson use i915_gem_next_request_seqno
+instead of ring->oustanding_lazy_request to make the follow-up
+refactoring more clearly correct. Also improve the commit message
+with issues discussed on irc.
+
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=45181
+Tested-by: Nicolas Kalkhof nkalkhof()at()web.de
+Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_drv.h         |    7 +------
+ drivers/gpu/drm/i915/i915_gem.c         |   23 +++++++++++++++++++++++
+ drivers/gpu/drm/i915/intel_ringbuffer.c |   24 ++++--------------------
+ 3 files changed, 28 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index d62c731..c364358 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -1170,12 +1170,7 @@ i915_seqno_passed(uint32_t seq1, uint32_t seq2)
+ 	return (int32_t)(seq1 - seq2) >= 0;
+ }
+ 
+-static inline u32
+-i915_gem_next_request_seqno(struct intel_ring_buffer *ring)
+-{
+-	drm_i915_private_t *dev_priv = ring->dev->dev_private;
+-	return ring->outstanding_lazy_request = dev_priv->next_seqno;
+-}
++u32 i915_gem_next_request_seqno(struct intel_ring_buffer *ring);
+ 
+ int __must_check i915_gem_object_get_fence(struct drm_i915_gem_object *obj,
+ 					   struct intel_ring_buffer *pipelined);
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index 3e2edc6..548a400 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -1647,6 +1647,28 @@ i915_gem_process_flushing_list(struct intel_ring_buffer *ring,
+ 	}
+ }
+ 
++static u32
++i915_gem_get_seqno(struct drm_device *dev)
++{
++	drm_i915_private_t *dev_priv = dev->dev_private;
++	u32 seqno = dev_priv->next_seqno;
++
++	/* reserve 0 for non-seqno */
++	if (++dev_priv->next_seqno == 0)
++		dev_priv->next_seqno = 1;
++
++	return seqno;
++}
++
++u32
++i915_gem_next_request_seqno(struct intel_ring_buffer *ring)
++{
++	if (ring->outstanding_lazy_request == 0)
++		ring->outstanding_lazy_request = i915_gem_get_seqno(ring->dev);
++
++	return ring->outstanding_lazy_request;
++}
++
+ int
+ i915_add_request(struct intel_ring_buffer *ring,
+ 		 struct drm_file *file,
+@@ -1658,6 +1680,7 @@ i915_add_request(struct intel_ring_buffer *ring,
+ 	int ret;
+ 
+ 	BUG_ON(request == NULL);
++	seqno = i915_gem_next_request_seqno(ring);
+ 
+ 	ret = ring->add_request(ring, &seqno);
+ 	if (ret)
+diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.c b/drivers/gpu/drm/i915/intel_ringbuffer.c
+index f6613dc..d2cbe5d 100644
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.c
++++ b/drivers/gpu/drm/i915/intel_ringbuffer.c
+@@ -52,20 +52,6 @@ static inline int ring_space(struct intel_ring_buffer *ring)
+ 	return space;
+ }
+ 
+-static u32 i915_gem_get_seqno(struct drm_device *dev)
+-{
+-	drm_i915_private_t *dev_priv = dev->dev_private;
+-	u32 seqno;
+-
+-	seqno = dev_priv->next_seqno;
+-
+-	/* reserve 0 for non-seqno */
+-	if (++dev_priv->next_seqno == 0)
+-		dev_priv->next_seqno = 1;
+-
+-	return seqno;
+-}
+-
+ static int
+ render_ring_flush(struct intel_ring_buffer *ring,
+ 		  u32	invalidate_domains,
+@@ -488,7 +474,7 @@ gen6_add_request(struct intel_ring_buffer *ring,
+ 	mbox1_reg = ring->signal_mbox[0];
+ 	mbox2_reg = ring->signal_mbox[1];
+ 
+-	*seqno = i915_gem_get_seqno(ring->dev);
++	*seqno = i915_gem_next_request_seqno(ring);
+ 
+ 	update_mboxes(ring, *seqno, mbox1_reg);
+ 	update_mboxes(ring, *seqno, mbox2_reg);
+@@ -586,8 +572,7 @@ static int
+ pc_render_add_request(struct intel_ring_buffer *ring,
+ 		      u32 *result)
+ {
+-	struct drm_device *dev = ring->dev;
+-	u32 seqno = i915_gem_get_seqno(dev);
++	u32 seqno = i915_gem_next_request_seqno(ring);
+ 	struct pipe_control *pc = ring->private;
+ 	u32 scratch_addr = pc->gtt_offset + 128;
+ 	int ret;
+@@ -638,8 +623,7 @@ static int
+ render_ring_add_request(struct intel_ring_buffer *ring,
+ 			u32 *result)
+ {
+-	struct drm_device *dev = ring->dev;
+-	u32 seqno = i915_gem_get_seqno(dev);
++	u32 seqno = i915_gem_next_request_seqno(ring);
+ 	int ret;
+ 
+ 	ret = intel_ring_begin(ring, 4);
+@@ -813,7 +797,7 @@ ring_add_request(struct intel_ring_buffer *ring,
+ 	if (ret)
+ 		return ret;
+ 
+-	seqno = i915_gem_get_seqno(ring->dev);
++	seqno = i915_gem_next_request_seqno(ring);
+ 
+ 	intel_ring_emit(ring, MI_STORE_DWORD_INDEX);
+ 	intel_ring_emit(ring, I915_GEM_HWS_INDEX << MI_STORE_DWORD_INDEX_SHIFT);
+-- 
+1.7.7.6
+

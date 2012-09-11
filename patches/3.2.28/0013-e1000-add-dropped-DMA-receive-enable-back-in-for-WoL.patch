@@ -1,0 +1,50 @@
+From 5d04d60bae47f2da14bc7a8286d802a2b3c28e4b Mon Sep 17 00:00:00 2001
+From: Dean Nelson <dnelson@redhat.com>
+Date: Thu, 19 Jan 2012 17:47:24 +0000
+Subject: [PATCH 13/38] e1000: add dropped DMA receive enable back in for WoL
+
+commit b868179c47e9e8eadcd04c1f3105998e528988a3 upstream.
+
+Commit d5bc77a223b0e9b9dfb002048d2b34a79e7d0b48 broke Wake-on-LAN by
+inadvertently dropping the enabling of DMA receives.
+
+Restore the enabling of DMA receives for WoL.
+
+This is applicable to 3.1+ stable trees.
+
+Reported-by: Tobias Klausmann <klausman@schwarzvogel.de>
+Signed-off-by: Dean Nelson <dnelson@redhat.com>
+Tested-by: Tobias Klausmann <klausman@schwarzvogel.de>
+Tested-by: Aaron Brown <aaron.f.brown@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/intel/e1000/e1000_main.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/ethernet/intel/e1000/e1000_main.c b/drivers/net/ethernet/intel/e1000/e1000_main.c
+index de00805..0549261 100644
+--- a/drivers/net/ethernet/intel/e1000/e1000_main.c
++++ b/drivers/net/ethernet/intel/e1000/e1000_main.c
+@@ -4743,12 +4743,14 @@ static int __e1000_shutdown(struct pci_dev *pdev, bool *enable_wake)
+ 		e1000_setup_rctl(adapter);
+ 		e1000_set_rx_mode(netdev);
+ 
++		rctl = er32(RCTL);
++
+ 		/* turn on all-multi mode if wake on multicast is enabled */
+-		if (wufc & E1000_WUFC_MC) {
+-			rctl = er32(RCTL);
++		if (wufc & E1000_WUFC_MC)
+ 			rctl |= E1000_RCTL_MPE;
+-			ew32(RCTL, rctl);
+-		}
++
++		/* enable receives in the hardware */
++		ew32(RCTL, rctl | E1000_RCTL_EN);
+ 
+ 		if (hw->mac_type >= e1000_82540) {
+ 			ctrl = er32(CTRL);
+-- 
+1.7.7.6
+

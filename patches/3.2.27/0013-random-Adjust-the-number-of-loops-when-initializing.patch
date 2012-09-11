@@ -1,0 +1,37 @@
+From 5046e32b00df4d28b7235af6b4e6faea975049b7 Mon Sep 17 00:00:00 2001
+From: "H. Peter Anvin" <hpa@linux.intel.com>
+Date: Mon, 16 Jan 2012 11:23:29 -0800
+Subject: [PATCH 13/71] random: Adjust the number of loops when initializing
+
+commit 2dac8e54f988ab58525505d7ef982493374433c3 upstream.
+
+When we are initializing using arch_get_random_long() we only need to
+loop enough times to touch all the bytes in the buffer; using
+poolwords for that does twice the number of operations necessary on a
+64-bit machine, since in the random number generator code "word" means
+32 bits.
+
+Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Link: http://lkml.kernel.org/r/1324589281-31931-1-git-send-email-tytso@mit.edu
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/char/random.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/char/random.c b/drivers/char/random.c
+index 3079477..9a2156d 100644
+--- a/drivers/char/random.c
++++ b/drivers/char/random.c
+@@ -975,7 +975,7 @@ static void init_std_data(struct entropy_store *r)
+ 
+ 	now = ktime_get_real();
+ 	mix_pool_bytes(r, &now, sizeof(now));
+-	for (i = r->poolinfo->poolwords; i; i--) {
++	for (i = r->poolinfo->POOLBYTES; i > 0; i -= sizeof flags) {
+ 		if (!arch_get_random_long(&flags))
+ 			break;
+ 		mix_pool_bytes(r, &flags, sizeof(flags));
+-- 
+1.7.7.6
+

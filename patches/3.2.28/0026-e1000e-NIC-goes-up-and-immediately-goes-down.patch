@@ -1,0 +1,41 @@
+From d12284de6c7785808ed76ca3d55d243e5c9e81a6 Mon Sep 17 00:00:00 2001
+From: Tushar Dave <tushar.n.dave@intel.com>
+Date: Tue, 31 Jul 2012 02:02:43 +0000
+Subject: [PATCH 26/38] e1000e: NIC goes up and immediately goes down
+
+commit b7ec70be01a87f2c85df3ae11046e74f9b67e323 upstream.
+
+Found that commit d478eb44 was a bad commit.
+If the link partner is transmitting codeword (even if NULL codeword),
+then the RXCW.C bit will be set so check for RXCW.CW is unnecessary.
+Ref: RH BZ 840642
+
+Reported-by: Fabio Futigami <ffutigam@redhat.com>
+Signed-off-by: Tushar Dave <tushar.n.dave@intel.com>
+CC: Marcelo Ricardo Leitner <mleitner@redhat.com>
+Tested-by: Aaron Brown <aaron.f.brown@intel.com>
+Signed-off-by: Peter P Waskiewicz Jr <peter.p.waskiewicz.jr@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/intel/e1000e/82571.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/net/ethernet/intel/e1000e/82571.c b/drivers/net/ethernet/intel/e1000e/82571.c
+index 3072d35..4f4d52a 100644
+--- a/drivers/net/ethernet/intel/e1000e/82571.c
++++ b/drivers/net/ethernet/intel/e1000e/82571.c
+@@ -1600,10 +1600,8 @@ static s32 e1000_check_for_serdes_link_82571(struct e1000_hw *hw)
+ 			 * auto-negotiation in the TXCW register and disable
+ 			 * forced link in the Device Control register in an
+ 			 * attempt to auto-negotiate with our link partner.
+-			 * If the partner code word is null, stop forcing
+-			 * and restart auto negotiation.
+ 			 */
+-			if ((rxcw & E1000_RXCW_C) || !(rxcw & E1000_RXCW_CW))  {
++			if (rxcw & E1000_RXCW_C) {
+ 				/* Enable autoneg, and unforce link up */
+ 				ew32(TXCW, mac->txcw);
+ 				ew32(CTRL, (ctrl & ~E1000_CTRL_SLU));
+-- 
+1.7.7.6
+

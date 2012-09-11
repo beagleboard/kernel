@@ -1,0 +1,48 @@
+From 898ece8e5e5102c627f8f2ef26d281f71b439169 Mon Sep 17 00:00:00 2001
+From: NeilBrown <neilb@suse.de>
+Date: Tue, 31 Jul 2012 10:05:34 +1000
+Subject: [PATCH 41/71] md/raid1: don't abort a resync on the first badblock.
+
+commit b7219ccb33aa0df9949a60c68b5e9f712615e56f upstream.
+
+If a resync of a RAID1 array with 2 devices finds a known bad block
+one device it will neither read from, or write to, that device for
+this block offset.
+So there will be one read_target (The other device) and zero write
+targets.
+This condition causes md/raid1 to abort the resync assuming that it
+has finished - without known bad blocks this would be true.
+
+When there are no write targets because of the presence of bad blocks
+we should only skip over the area covered by the bad block.
+RAID10 already gets this right, raid1 doesn't.  Or didn't.
+
+As this can cause a 'sync' to abort early and appear to have succeeded
+it could lead to some data corruption, so it suitable for -stable.
+
+Reported-by: Alexander Lyakas <alex.bolshoy@gmail.com>
+Signed-off-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/md/raid1.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/md/raid1.c b/drivers/md/raid1.c
+index 2d97bf0..62306e5 100644
+--- a/drivers/md/raid1.c
++++ b/drivers/md/raid1.c
+@@ -2321,7 +2321,10 @@ static sector_t sync_request(struct mddev *mddev, sector_t sector_nr, int *skipp
+ 		/* There is nowhere to write, so all non-sync
+ 		 * drives must be failed - so we are finished
+ 		 */
+-		sector_t rv = max_sector - sector_nr;
++		sector_t rv;
++		if (min_bad > 0)
++			max_sector = sector_nr + min_bad;
++		rv = max_sector - sector_nr;
+ 		*skipped = 1;
+ 		put_buf(r1_bio);
+ 		return rv;
+-- 
+1.7.7.6
+

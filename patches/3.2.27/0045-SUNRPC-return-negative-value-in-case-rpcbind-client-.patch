@@ -1,0 +1,45 @@
+From baea16318bd48dbee1e0f1a5ca05ba932b64927a Mon Sep 17 00:00:00 2001
+From: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Date: Fri, 20 Jul 2012 15:57:48 +0400
+Subject: [PATCH 45/71] SUNRPC: return negative value in case rpcbind client
+ creation error
+
+commit caea33da898e4e14f0ba58173e3b7689981d2c0b upstream.
+
+Without this patch kernel will panic on LockD start, because lockd_up() checks
+lockd_up_net() result for negative value.
+From my pow it's better to return negative value from rpcbind routines instead
+of replacing all such checks like in lockd_up().
+
+Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/sunrpc/rpcb_clnt.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/sunrpc/rpcb_clnt.c b/net/sunrpc/rpcb_clnt.c
+index 8761bf8..337c68b 100644
+--- a/net/sunrpc/rpcb_clnt.c
++++ b/net/sunrpc/rpcb_clnt.c
+@@ -246,7 +246,7 @@ static int rpcb_create_local_unix(void)
+ 	if (IS_ERR(clnt)) {
+ 		dprintk("RPC:       failed to create AF_LOCAL rpcbind "
+ 				"client (errno %ld).\n", PTR_ERR(clnt));
+-		result = -PTR_ERR(clnt);
++		result = PTR_ERR(clnt);
+ 		goto out;
+ 	}
+ 
+@@ -293,7 +293,7 @@ static int rpcb_create_local_net(void)
+ 	if (IS_ERR(clnt)) {
+ 		dprintk("RPC:       failed to create local rpcbind "
+ 				"client (errno %ld).\n", PTR_ERR(clnt));
+-		result = -PTR_ERR(clnt);
++		result = PTR_ERR(clnt);
+ 		goto out;
+ 	}
+ 
+-- 
+1.7.7.6
+

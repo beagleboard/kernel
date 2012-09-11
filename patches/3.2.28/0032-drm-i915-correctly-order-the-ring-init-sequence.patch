@@ -1,0 +1,49 @@
+From 614b6d10a01c92d19bc56bfec2ad5960b57be18c Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Tue, 7 Aug 2012 09:54:14 +0200
+Subject: [PATCH 32/38] drm/i915: correctly order the ring init sequence
+
+commit 0d8957c8a90bbb5d34fab9a304459448a5131e06 upstream.
+
+We may only start to set up the new register values after having
+confirmed that the ring is truely off. Otherwise the hw might lose the
+newly written register values. This is caught later on in the init
+sequence, when we check whether the register writes have stuck.
+
+Reviewed-by: Jani Nikula <jani.nikula@intel.com>
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=50522
+Tested-by: Yang Guang <guang.a.yang@intel.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_ringbuffer.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.c b/drivers/gpu/drm/i915/intel_ringbuffer.c
+index 4983e59..19085c0 100644
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.c
++++ b/drivers/gpu/drm/i915/intel_ringbuffer.c
+@@ -263,8 +263,6 @@ static int init_ring_common(struct intel_ring_buffer *ring)
+ 	I915_WRITE_HEAD(ring, 0);
+ 	ring->write_tail(ring, 0);
+ 
+-	/* Initialize the ring. */
+-	I915_WRITE_START(ring, obj->gtt_offset);
+ 	head = I915_READ_HEAD(ring) & HEAD_ADDR;
+ 
+ 	/* G45 ring initialization fails to reset head to zero */
+@@ -290,6 +288,11 @@ static int init_ring_common(struct intel_ring_buffer *ring)
+ 		}
+ 	}
+ 
++	/* Initialize the ring. This must happen _after_ we've cleared the ring
++	 * registers with the above sequence (the readback of the HEAD registers
++	 * also enforces ordering), otherwise the hw might lose the new ring
++	 * register values. */
++	I915_WRITE_START(ring, obj->gtt_offset);
+ 	I915_WRITE_CTL(ring,
+ 			((ring->size - PAGE_SIZE) & RING_NR_PAGES)
+ 			| RING_VALID);
+-- 
+1.7.7.6
+

@@ -1,0 +1,32 @@
+From afac82f0c92a4c53feab7db8490a1ec731b5bf0a Mon Sep 17 00:00:00 2001
+From: Johannes Berg <johannes.berg@intel.com>
+Date: Wed, 1 Aug 2012 21:03:21 +0200
+Subject: [PATCH 18/38] mac80211: cancel mesh path timer
+
+commit dd4c9260e7f23f2e951cbfb2726e468c6d30306c upstream.
+
+The mesh path timer needs to be canceled when
+leaving the mesh as otherwise it could fire
+after the interface has been removed already.
+
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/mac80211/mesh.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/net/mac80211/mesh.c b/net/mac80211/mesh.c
+index a7078fd..f85de8e 100644
+--- a/net/mac80211/mesh.c
++++ b/net/mac80211/mesh.c
+@@ -543,6 +543,7 @@ void ieee80211_stop_mesh(struct ieee80211_sub_if_data *sdata)
+ 
+ 	del_timer_sync(&sdata->u.mesh.housekeeping_timer);
+ 	del_timer_sync(&sdata->u.mesh.mesh_path_root_timer);
++	del_timer_sync(&sdata->u.mesh.mesh_path_timer);
+ 	/*
+ 	 * If the timer fired while we waited for it, it will have
+ 	 * requeued the work. Now the work will be running again
+-- 
+1.7.7.6
+

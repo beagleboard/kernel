@@ -1,0 +1,40 @@
+From 0a417591d73ccd0ad89f70300fdb4bd32a566f65 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Janne=20Kalliom=C3=A4ki?= <janne@tuxera.com>
+Date: Sun, 17 Jun 2012 17:05:24 -0400
+Subject: [PATCH 15/38] hfsplus: fix overflow in sector calculations in
+ hfsplus_submit_bio
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit a6dc8c04218eb752ff79cdc24a995cf51866caed upstream.
+
+The variable io_size was unsigned int, which caused the wrong sector number
+to be calculated after aligning it. This then caused mount to fail with big
+volumes, as backup volume header information was searched from a
+wrong sector.
+
+Signed-off-by: Janne Kalliomäki <janne@tuxera.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/hfsplus/wrapper.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/fs/hfsplus/wrapper.c b/fs/hfsplus/wrapper.c
+index 7daf4b8..90effcc 100644
+--- a/fs/hfsplus/wrapper.c
++++ b/fs/hfsplus/wrapper.c
+@@ -56,7 +56,7 @@ int hfsplus_submit_bio(struct super_block *sb, sector_t sector,
+ 	DECLARE_COMPLETION_ONSTACK(wait);
+ 	struct bio *bio;
+ 	int ret = 0;
+-	unsigned int io_size;
++	u64 io_size;
+ 	loff_t start;
+ 	int offset;
+ 
+-- 
+1.7.7.6
+

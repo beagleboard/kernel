@@ -1,0 +1,53 @@
+From 14763ceafb60cdefab9c604fcc8a456873ed3775 Mon Sep 17 00:00:00 2001
+From: Philip, Avinash <avinashphilip@ti.com>
+Date: Tue, 14 Aug 2012 13:48:55 +0530
+Subject: [PATCH 1/2] PWM: ecap: Fix for throwing PWM output before running
+
+On configuring duty cycle, APWM mode is enabled and left enabled even if
+PWM not running. Fixes the same by disabling APWM mode if PWM device not
+running. This ensures PWM output is low if PWM device not running.
+
+Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+---
+:100644 100644 5263a11... 52965a2... M	drivers/pwm/ecap.c
+ drivers/pwm/ecap.c |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/pwm/ecap.c b/drivers/pwm/ecap.c
+index 5263a11..52965a2 100644
+--- a/drivers/pwm/ecap.c
++++ b/drivers/pwm/ecap.c
+@@ -131,16 +131,13 @@ static int ecap_pwm_set_polarity(struct pwm_device *p, char pol)
+ 
+ static int ecap_pwm_config_period(struct pwm_device *p)
+ {
+-	unsigned long flags, v;
++	unsigned long flags;
+ 	struct ecap_pwm *ep = to_ecap_pwm(p);
+ 
+ 	 pm_runtime_get_sync(ep->dev);
+ 
+ 	spin_lock_irqsave(&ep->lock, flags);
+ 	writel((p->period_ticks) - 1, ep->mmio_base + CAPTURE_3_REG);
+-	v = readw(ep->mmio_base + CAPTURE_CTRL2_REG);
+-	v |= (ECTRL2_MDSL_ECAP | ECTRL2_SYNCOSEL_MASK);
+-	writew(v, ep->mmio_base + CAPTURE_CTRL2_REG);
+ 	spin_unlock_irqrestore(&ep->lock, flags);
+ 
+ 	pm_runtime_put_sync(ep->dev);
+@@ -167,6 +164,12 @@ static int ecap_pwm_config_duty(struct pwm_device *p)
+ 	}
+ 	spin_unlock_irqrestore(&ep->lock, flags);
+ 
++	if (!pwm_is_running(p)) {
++		v = readw(ep->mmio_base + CAPTURE_CTRL2_REG);
++		v &= ~ECTRL2_MDSL_ECAP;
++		writew(v, ep->mmio_base + CAPTURE_CTRL2_REG);
++	}
++
+ 	pm_runtime_put_sync(ep->dev);
+ 	return 0;
+ }
+-- 
+1.7.1
+
