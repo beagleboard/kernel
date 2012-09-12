@@ -9,18 +9,18 @@ Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
  1 files changed, 5 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
-index 7a5f6f4..129bace 100644
+index f2d4a69..158cb85 100644
 --- a/arch/arm/mach-omap2/board-am335xevm.c
 +++ b/arch/arm/mach-omap2/board-am335xevm.c
-@@ -527,6 +527,7 @@ static bool beaglebone_leds_free = 1;
+@@ -524,6 +524,7 @@ static bool beaglebone_tsadcpins_free = 1;
+ static bool beaglebone_leds_free = 1;
  static bool beaglebone_spi1_free = 1;
  static bool beaglebone_w1gpio_free = 1;
- static bool beaglebone_wl12xx = 0;
 +static bool beaglebone_skip_mmc0_init = 0;
  
  #define GP_EVM_REV_IS_1_0		0x1
  #define GP_EVM_REV_IS_1_0A		0x1
-@@ -3407,7 +3408,10 @@ out:
+@@ -3182,7 +3183,10 @@ out:
  	beaglebone_cape_detected = false;
  out2:
  	if (capecount > 3) {
