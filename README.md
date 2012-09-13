@@ -12,13 +12,18 @@ git checkout origin/beagleboard-3.4 -b beagleboard-3.4
 
 ./patch.sh
 
+Status
+======
+
+Unmaintained: use next: origin/beagleboard-3.5
+
 Board Maintainers List
 ---------------------
 
 ### BeagleBoard/PandaBoard
 
-* omapfb: defconfig: patches/beagleboard/defconfig
-* omapdrm: defconfig: patches/beagleboard/kms_defconfig (see omapdrm section below)
+* omapfb: defconfig: configs/beagleboard_defconfig
+* omapdrm: defconfig: configs/beagleboard_kms_defconfig (see omapdrm section below)
 * Robert Nelson <robertcnelson@gmail.com>
 
 omapdrm (with new bootargs)
