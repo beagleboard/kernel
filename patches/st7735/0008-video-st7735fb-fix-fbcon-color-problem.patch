@@ -1,0 +1,193 @@
+From e5a7d1565686e66e02d166fdcb11cb8bcd70be8c Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Thu, 13 Sep 2012 10:51:57 -0400
+Subject: [PATCH] video: st7735fb: fix fbcon color problem
+
+Implements pseudo_palette handling and properly sets us
+in DIRECTCOLOR visual.
+
+TODO: overhaul all error handling paths in conjunction with a
+move to devm_* allocation and dev_* messaging.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ drivers/video/st7735fb.c |   72 +++++++++++++++++++++++++++++++++++++++------
+ drivers/video/st7735fb.h |    1 +
+ 2 files changed, 63 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/video/st7735fb.c b/drivers/video/st7735fb.c
+index 688587f..db9e83b 100644
+--- a/drivers/video/st7735fb.c
++++ b/drivers/video/st7735fb.c
+@@ -129,7 +129,7 @@ static struct st7735_function st7735_cfg_script[] = {
+ static struct fb_fix_screeninfo st7735fb_fix __devinitdata = {
+ 	.id =		"ST7735", 
+ 	.type =		FB_TYPE_PACKED_PIXELS,
+-	.visual =	FB_VISUAL_PSEUDOCOLOR,
++	.visual =	FB_VISUAL_DIRECTCOLOR,
+ 	.xpanstep =	0,
+ 	.ypanstep =	0,
+ 	.ywrapstep =	0, 
+@@ -143,7 +143,7 @@ static struct fb_var_screeninfo st7735fb_var __devinitdata = {
+ 	.xres_virtual =		WIDTH,
+ 	.yres_virtual =		HEIGHT,
+ 	.bits_per_pixel =	BPP,
+-	.nonstd	=		1,
++	.nonstd	=		0,
+ };
+ 
+ static int st7735_write(struct st7735fb_par *par, u8 data)
+@@ -374,6 +374,22 @@ static ssize_t st7735fb_write(struct fb_info *info, const char __user *buf,
+ 	return (err) ? err : count;
+ }
+ 
++static int st7735fb_setcolreg(unsigned regno, unsigned red, unsigned green,
++				unsigned blue, unsigned transp,
++				struct fb_info *info)
++{
++	if (regno >= MAX_PALETTE)
++		return -EINVAL;
++
++	/* RGB565 */
++	((u32*)(info->pseudo_palette))[regno] =
++		((red & 0xf800) |
++		((green & 0xfc00) >> 5) |
++		((blue & 0xf800) >> 11));
++
++	return 0;
++}
++
+ static struct fb_ops st7735fb_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.fb_read	= fb_sys_read,
+@@ -381,6 +397,7 @@ static struct fb_ops st7735fb_ops = {
+ 	.fb_fillrect	= st7735fb_fillrect,
+ 	.fb_copyarea	= st7735fb_copyarea,
+ 	.fb_imageblit	= st7735fb_imageblit,
++	.fb_setcolreg	= st7735fb_setcolreg,
+ };
+ 
+ static struct fb_deferred_io st7735fb_defio = {
+@@ -436,6 +453,11 @@ static int __devinit st7735fb_probe (struct spi_device *spi)
+ 	if (!info)
+ 		goto fballoc_fail;
+ 
++	info->pseudo_palette = kmalloc(sizeof(u32)*MAX_PALETTE, GFP_KERNEL);
++	if (!info->pseudo_palette) {
++		goto palette_fail;
++	}
++
+ 	info->screen_base = (u8 __force __iomem *)vmem;
+ 	info->fbops = &st7735fb_ops;
+ 	info->fix = st7735fb_fix;
+@@ -455,6 +477,11 @@ static int __devinit st7735fb_probe (struct spi_device *spi)
+ 	info->fbdefio = &st7735fb_defio;
+ 	fb_deferred_io_init(info);
+ 
++	retval = fb_alloc_cmap(&info->cmap, MAX_PALETTE, 0);
++	if (retval < 0)
++		goto cmap_fail;
++	info->cmap.len = MAX_PALETTE;
++
+ 	par = info->par;
+ 	par->info = info;
+ 	par->spi = spi;
+@@ -469,6 +496,7 @@ static int __devinit st7735fb_probe (struct spi_device *spi)
+ 		par->yoff = 0;
+ 	}
+ 
++	/* TODO: fix all exit paths for cleanup */
+ 	child = of_find_node_by_name(np, "st7735-rst");
+ 	if (!child) {
+ 		printk("failed to find st7735-rst node!\n");
+@@ -483,24 +511,30 @@ static int __devinit st7735fb_probe (struct spi_device *spi)
+ 	par->dc = of_get_gpio_flags(child, 0, &flags);
+ 
+ 	par->buf = kmalloc(1, GFP_KERNEL);
++	if (!par->buf) {
++		retval = -ENOMEM;
++		goto buf_fail;
++	}
+ 
+ #ifdef __LITTLE_ENDIAN
+ 	/* Allocated swapped shadow buffer */
+ 	par->ssbuf = kmalloc(vmem_size, GFP_KERNEL);
+-	if (!par->ssbuf)
+-		return retval;
++	if (!par->ssbuf) {
++		retval = -ENOMEM;
++		goto ssbuf_fail;
++	}
+ #endif
+ 
++	retval = st7735fb_init_display(par);
++	if (retval < 0)
++		goto init_fail;
++
+ 	retval = register_framebuffer(info);
+ 	if (retval < 0)
+ 		goto fbreg_fail;
+ 
+ 	spi_set_drvdata(spi, info);
+ 
+-	retval = st7735fb_init_display(par);
+-	if (retval < 0)
+-		goto init_fail;
+-
+ 	printk(KERN_INFO
+ 		"fb%d: %s frame buffer device,\n\tusing %d KiB of video memory\n",
+ 		info->node, info->fix.id, vmem_size);
+@@ -508,11 +542,27 @@ static int __devinit st7735fb_probe (struct spi_device *spi)
+ 	return 0;
+ 
+ 
+-	/* TODO: release gpios on fail */
+-init_fail:
+ 	spi_set_drvdata(spi, NULL);
+ 
+ fbreg_fail:
++	/* TODO: release gpios on fail */
++	/* TODO: and unwind everything in init */
++
++init_fail:
++#ifdef __LITTLE_ENDIAN
++	kfree(par->ssbuf);
++#endif
++
++ssbuf_fail:
++	kfree(par->buf);
++
++buf_fail:
++	fb_dealloc_cmap(&info->cmap);
++
++cmap_fail:
++	kfree(info->pseudo_palette);
++
++palette_fail:
+ 	framebuffer_release(info);
+ 
+ fballoc_fail:
+@@ -533,6 +583,8 @@ static int __devexit st7735fb_remove(struct spi_device *spi)
+ 
+ 	if (info) {
+ 		unregister_framebuffer(info);
++		fb_dealloc_cmap(&info->cmap);
++		kfree(info->pseudo_palette);
+ 		vfree(info->screen_base);	
+ 		framebuffer_release(info);
+ 	}
+diff --git a/drivers/video/st7735fb.h b/drivers/video/st7735fb.h
+index 15c2499..0ce5c11 100644
+--- a/drivers/video/st7735fb.h
++++ b/drivers/video/st7735fb.h
+@@ -12,6 +12,7 @@
+ #define WIDTH		128
+ #define HEIGHT		160
+ #define BPP		16
++#define MAX_PALETTE	16
+ 
+ /* Supported display modules */
+ #define ST7735_AF_TFT18_GREEN		0	/* Adafruit SPI TFT 1.8" - green tab */
+-- 
+1.7.7.6
+
