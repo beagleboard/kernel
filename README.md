@@ -12,6 +12,21 @@ git checkout origin/beagleboard-3.5 -b beagleboard-3.5
 
 ./patch.sh
 
+Status
+======
+
+Beagle Cx: Stable
+
+Beagle xM: Stable (no 800Mhz due to cpufreq disabled, can "re-enable" just make sure to do a FULL POWER plug reset...)
+
+* Patch/printf trace: https://github.com/RobertCNelson/linux-dev/blob/master/patches/debug/0001-beagle_xm-cpufreq-debug.patch
+
+* Trigger defconfig diff: https://github.com/RobertCNelson/linux-dev/blob/master/patches/debug/config.diff
+
+Panda : Random Lockups
+
+Panda ES: HardCrash on Bootup
+
 Board Maintainers List
 ---------------------
 
