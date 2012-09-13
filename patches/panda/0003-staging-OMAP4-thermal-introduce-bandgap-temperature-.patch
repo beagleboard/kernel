@@ -1,7 +1,7 @@
-From 1bbddbbfa0acf96791446d06097a7c549575447d Mon Sep 17 00:00:00 2001
+From f0eed33a56425de46a6dc7d9395c872e39d8696a Mon Sep 17 00:00:00 2001
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Wed, 4 Jul 2012 01:37:07 +0300
-Subject: [PATCH 3/6] staging: OMAP4+: thermal: introduce bandgap temperature
+Date: Thu, 12 Jul 2012 19:02:29 +0300
+Subject: [PATCH 3/9] staging: OMAP4+: thermal: introduce bandgap temperature
  sensor
 
 In the System Control Module, OMAP supplies a voltage reference
@@ -20,15 +20,20 @@ This driver provides only APIs to access the device properties,
 like temperature, thresholds and update rate.
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: J Keerthy <j-keerthy@ti.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  drivers/staging/Kconfig                       |    2 +
  drivers/staging/Makefile                      |    1 +
- drivers/staging/omap-thermal/TODO             |   27 +
- drivers/staging/omap-thermal/omap-bandgap.c   | 1166 +++++++++++++++++++++++++
+ drivers/staging/omap-thermal/Kconfig          |   11 +
+ drivers/staging/omap-thermal/Makefile         |    2 +
+ drivers/staging/omap-thermal/TODO             |   28 +
+ drivers/staging/omap-thermal/omap-bandgap.c   | 1167 +++++++++++++++++++++++++
  drivers/staging/omap-thermal/omap-bandgap.h   |  425 +++++++++
  drivers/staging/omap-thermal/omap_bandgap.txt |   30 +
- 6 files changed, 1651 insertions(+)
+ 8 files changed, 1666 insertions(+)
+ create mode 100644 drivers/staging/omap-thermal/Kconfig
+ create mode 100644 drivers/staging/omap-thermal/Makefile
  create mode 100644 drivers/staging/omap-thermal/TODO
  create mode 100644 drivers/staging/omap-thermal/omap-bandgap.c
  create mode 100644 drivers/staging/omap-thermal/omap-bandgap.h
@@ -46,20 +51,45 @@ index 05e33c7..a51d0f3 100644
 +
  endif # STAGING
 diff --git a/drivers/staging/Makefile b/drivers/staging/Makefile
-index a987b3a..8c612a8 100644
+index a987b3a..324905b 100644
 --- a/drivers/staging/Makefile
 +++ b/drivers/staging/Makefile
 @@ -58,3 +58,4 @@ obj-$(CONFIG_RAMSTER)		+= ramster/
  obj-$(CONFIG_USB_WPAN_HCD)	+= ozwpan/
  obj-$(CONFIG_USB_G_CCG)		+= ccg/
  obj-$(CONFIG_WIMAX_GDM72XX)	+= gdm72xx/
-+obj-y				+= omap-thermal/
++obj-$(CONFIG_OMAP_BANDGAP)	+= omap-thermal/
+diff --git a/drivers/staging/omap-thermal/Kconfig b/drivers/staging/omap-thermal/Kconfig
+new file mode 100644
+index 0000000..8c9979d
+--- /dev/null
++++ b/drivers/staging/omap-thermal/Kconfig
+@@ -0,0 +1,11 @@
++config OMAP_BANDGAP
++	tristate "Texas Instruments OMAP4+ temperature sensor driver"
++	depends on THERMAL
++	depends on ARCH_OMAP4 || SOC_OMAP5
++	help
++	  If you say yes here you get support for the Texas Instruments
++	  OMAP4460+ on die bandgap temperature sensor support. The register
++	  set is part of system control module.
++
++	  This includes alert interrupts generation and also the TSHUT
++	  support.
+diff --git a/drivers/staging/omap-thermal/Makefile b/drivers/staging/omap-thermal/Makefile
+new file mode 100644
+index 0000000..c92a854
+--- /dev/null
++++ b/drivers/staging/omap-thermal/Makefile
+@@ -0,0 +1,2 @@
++obj-$(CONFIG_OMAP_BANDGAP)	+= omap-thermal.o
++omap-thermal-y			:= omap-bandgap.o
 diff --git a/drivers/staging/omap-thermal/TODO b/drivers/staging/omap-thermal/TODO
 new file mode 100644
-index 0000000..77b761b
+index 0000000..9e23cc4
 --- /dev/null
 +++ b/drivers/staging/omap-thermal/TODO
-@@ -0,0 +1,27 @@
+@@ -0,0 +1,28 @@
 +List of TODOs (by Eduardo Valentin)
 +
 +on omap-bandgap.c:
@@ -82,6 +112,7 @@ index 0000000..77b761b
 +- Add support for GPU cooling
 +
 +generally:
++- write Kconfig dependencies so that omap variants are covered
 +- make checkpatch.pl and sparse happy
 +- make sure this code works on OMAP4430, OMAP4460 and OMAP5430
 +- update documentation
@@ -89,10 +120,10 @@ index 0000000..77b761b
 +Copy patches to Eduardo Valentin <eduardo.valentin@ti.com>
 diff --git a/drivers/staging/omap-thermal/omap-bandgap.c b/drivers/staging/omap-thermal/omap-bandgap.c
 new file mode 100644
-index 0000000..3b2cd87
+index 0000000..8ea6264
 --- /dev/null
 +++ b/drivers/staging/omap-thermal/omap-bandgap.c
-@@ -0,0 +1,1166 @@
+@@ -0,0 +1,1167 @@
 +/*
 + * OMAP4 Bandgap temperature sensor driver
 + *
@@ -130,6 +161,7 @@ index 0000000..3b2cd87
 +#include <linux/types.h>
 +#include <linux/mutex.h>
 +#include <linux/reboot.h>
++#include <linux/of_device.h>
 +#include <linux/of_platform.h>
 +#include <linux/of_irq.h>
 +
@@ -316,7 +348,7 @@ index 0000000..3b2cd87
 +	struct temp_sensor_data *ts_data = bg_ptr->conf->sensors[id].ts_data;
 +	struct temp_sensor_registers *tsr;
 +	u32 thresh_val, reg_val;
-+	int cold, err;
++	int cold, err = 0;
 +
 +	tsr = bg_ptr->conf->sensors[id].registers;
 +

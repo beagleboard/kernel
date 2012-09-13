@@ -1,7 +1,7 @@
-From 29a6e1d6ba89b8364d587ae79e8a88e753f3c25a Mon Sep 17 00:00:00 2001
+From ac2bdf225921ab1142fb4277cabcb8bcb9413956 Mon Sep 17 00:00:00 2001
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Wed, 4 Jul 2012 01:37:09 +0300
-Subject: [PATCH 5/6] staging: omap-thermal: add OMAP4 data structures
+Date: Thu, 12 Jul 2012 19:02:31 +0300
+Subject: [PATCH 5/9] staging: omap-thermal: add OMAP4 data structures
 
 This patch adds the data structures needed for proper registration
 of OMAP4 chips. This patch includes definitions for these chip versions:
@@ -10,6 +10,7 @@ of OMAP4 chips. This patch includes definitions for these chip versions:
 . OMAP4470
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  drivers/staging/omap-thermal/Kconfig         |   14 ++
  drivers/staging/omap-thermal/Makefile        |    1 +
@@ -20,10 +21,10 @@ Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
  create mode 100644 drivers/staging/omap-thermal/omap4-thermal.c
 
 diff --git a/drivers/staging/omap-thermal/Kconfig b/drivers/staging/omap-thermal/Kconfig
-index b3996cc..e16f0bc 100644
+index f44228c..b0105d2 100644
 --- a/drivers/staging/omap-thermal/Kconfig
 +++ b/drivers/staging/omap-thermal/Kconfig
-@@ -17,3 +17,17 @@ config OMAP_THERMAL
+@@ -18,3 +18,17 @@ config OMAP_THERMAL
  	  If you say yes here you want to get support for generic thermal
  	  framework for the Texas Instruments OMAP4460+ on die bandgap
  	  temperature sensor.
@@ -51,10 +52,10 @@ index fcdf773..76f9c19 100644
  omap-thermal-$(CONFIG_OMAP_THERMAL)	+= omap-thermal-common.o
 +omap-thermal-$(CONFIG_OMAP4_THERMAL)	+= omap4-thermal.o
 diff --git a/drivers/staging/omap-thermal/omap-bandgap.c b/drivers/staging/omap-thermal/omap-bandgap.c
-index 3b2cd87..cc0869a 100644
+index 8ea6264..5158aa8 100644
 --- a/drivers/staging/omap-thermal/omap-bandgap.c
 +++ b/drivers/staging/omap-thermal/omap-bandgap.c
-@@ -1143,6 +1143,20 @@ static const struct dev_pm_ops omap_bandgap_dev_pm_ops = {
+@@ -1144,6 +1144,20 @@ static const struct dev_pm_ops omap_bandgap_dev_pm_ops = {
  #endif
  
  static const struct of_device_id of_omap_bandgap_match[] = {

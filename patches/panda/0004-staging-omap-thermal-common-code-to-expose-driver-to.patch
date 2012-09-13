@@ -1,7 +1,7 @@
-From d31d17a833f4955a99e87bb5010a874ddd485218 Mon Sep 17 00:00:00 2001
+From acf71f29135a37c4c7102ccf8fb5a04c9635165e Mon Sep 17 00:00:00 2001
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Date: Wed, 4 Jul 2012 01:37:08 +0300
-Subject: [PATCH 4/6] staging: omap-thermal: common code to expose driver to
+Date: Thu, 12 Jul 2012 19:02:30 +0300
+Subject: [PATCH 4/9] staging: omap-thermal: common code to expose driver to
  thermal framework
 
 This patch has the common thermal framework support for OMAP
@@ -17,33 +17,24 @@ registers the cpu cooling, as it relies on the table walk api
 from cpufreq.
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/staging/omap-thermal/Kconfig               |   19 +
- drivers/staging/omap-thermal/Makefile              |    3 +
- drivers/staging/omap-thermal/omap-thermal-common.c |  397 ++++++++++++++++++++
+ drivers/staging/omap-thermal/Kconfig               |    9 +
+ drivers/staging/omap-thermal/Makefile              |    1 +
+ drivers/staging/omap-thermal/omap-thermal-common.c |  364 ++++++++++++++++++++
  drivers/staging/omap-thermal/omap-thermal.h        |  108 ++++++
- 4 files changed, 527 insertions(+)
- create mode 100644 drivers/staging/omap-thermal/Kconfig
- create mode 100644 drivers/staging/omap-thermal/Makefile
+ 4 files changed, 482 insertions(+)
  create mode 100644 drivers/staging/omap-thermal/omap-thermal-common.c
  create mode 100644 drivers/staging/omap-thermal/omap-thermal.h
 
 diff --git a/drivers/staging/omap-thermal/Kconfig b/drivers/staging/omap-thermal/Kconfig
-new file mode 100644
-index 0000000..b3996cc
---- /dev/null
+index 8c9979d..f44228c 100644
+--- a/drivers/staging/omap-thermal/Kconfig
 +++ b/drivers/staging/omap-thermal/Kconfig
-@@ -0,0 +1,19 @@
-+config OMAP_BANDGAP
-+	tristate "Texas Instruments OMAP4+ temperature sensor driver"
-+	depends on THERMAL
-+	help
-+	  If you say yes here you get support for the Texas Instruments
-+	  OMAP4460+ on die bandgap temperature sensor support. The register
-+	  set is part of system control module.
-+
-+	  This includes alert interrupts generation and also the TSHUT
-+	  support.
+@@ -9,3 +9,12 @@ config OMAP_BANDGAP
+ 
+ 	  This includes alert interrupts generation and also the TSHUT
+ 	  support.
 +
 +config OMAP_THERMAL
 +	bool "Texas Instruments OMAP4+ thermal framework support"
@@ -54,20 +45,19 @@ index 0000000..b3996cc
 +	  framework for the Texas Instruments OMAP4460+ on die bandgap
 +	  temperature sensor.
 diff --git a/drivers/staging/omap-thermal/Makefile b/drivers/staging/omap-thermal/Makefile
-new file mode 100644
-index 0000000..fcdf773
---- /dev/null
+index c92a854..fcdf773 100644
+--- a/drivers/staging/omap-thermal/Makefile
 +++ b/drivers/staging/omap-thermal/Makefile
-@@ -0,0 +1,3 @@
-+obj-$(CONFIG_OMAP_BANDGAP)	+= omap-thermal.o
-+omap-thermal-y			:= omap-bandgap.o
+@@ -1,2 +1,3 @@
+ obj-$(CONFIG_OMAP_BANDGAP)	+= omap-thermal.o
+ omap-thermal-y			:= omap-bandgap.o
 +omap-thermal-$(CONFIG_OMAP_THERMAL)	+= omap-thermal-common.o
 diff --git a/drivers/staging/omap-thermal/omap-thermal-common.c b/drivers/staging/omap-thermal/omap-thermal-common.c
 new file mode 100644
-index 0000000..a52caa4
+index 0000000..0675a5e
 --- /dev/null
 +++ b/drivers/staging/omap-thermal/omap-thermal-common.c
-@@ -0,0 +1,397 @@
+@@ -0,0 +1,364 @@
 +/*
 + * OMAP thermal driver interface
 + *
@@ -156,13 +146,7 @@ index 0000000..a52caa4
 +		return ret;
 +
 +	pcb_temp = 0;
-+	ret = thermal_zone_lookup_temperature("pcb", &pcb_temp);
-+	if (ret) {
-+		dev_dbg(bg_ptr->dev, "%s: failed to read pcb zone\n", __func__);
-+		pcb_temp = 0;
-+		ret = 0;
-+	}
-+
++	/* TODO: Introduce pcb temperature lookup */
 +	/* In case pcb zone is available, use the extrapolation rule with it */
 +	if (pcb_temp) {
 +		tmp -= pcb_temp;
@@ -175,35 +159,6 @@ index 0000000..a52caa4
 +	*temp = omap_thermal_hotspot_temperature(tmp, slope, constant);
 +
 +	return ret;
-+}
-+
-+/* simple trending callback function for thermal zone */
-+static int omap_thermal_get_trend(struct thermal_zone_device *thermal,
-+				  int trip, enum thermal_trend *trend)
-+{
-+	unsigned long trip_temp;
-+	long t;
-+
-+	if (!omap_thermal_is_valid_trip(trip))
-+		return -EINVAL;
-+
-+	if (trip != 0)
-+		return -EINVAL;
-+
-+	trip_temp = omap_thermal_get_trip_value(trip);
-+
-+	/*
-+	 * tz->temperature has already been updated by generic thermal layer,
-+	 * before this callback being invoked
-+	 * TODO: update this based on hw history buffer
-+	 */
-+	t = (thermal->temperature - thermal->last_temperature) +
-+		2 * (thermal->temperature - trip_temp);
-+
-+	*trend = t > 0 ? THERMAL_TREND_RAISING :
-+		(t < 0 ? THERMAL_TREND_DROPPING : THERMAL_TREND_NONE);
-+
-+	return 0;
 +}
 +
 +/* Bind callback functions for thermal zone */
@@ -223,8 +178,9 @@ index 0000000..a52caa4
 +	id = data->sensor_id;
 +	max = data->bg_ptr->conf->sensors[id].cooling_data.freq_clip_count;
 +
++	/* TODO: bind with min and max states */
 +	/* Simple thing, two trips, one passive another critical */
-+	return thermal_zone_bind_cooling_device(thermal, 0, cdev, 0, max - 1);
++	return thermal_zone_bind_cooling_device(thermal, 0, cdev);
 +}
 +
 +/* Unbind callback functions for thermal zone */
@@ -321,7 +277,7 @@ index 0000000..a52caa4
 +
 +static struct thermal_zone_device_ops omap_thermal_ops = {
 +	.get_temp = omap_thermal_get_temp,
-+	.get_trend = omap_thermal_get_trend,
++	/* TODO: add .get_trend */
 +	.bind = omap_thermal_bind,
 +	.unbind = omap_thermal_unbind,
 +	.get_mode = omap_thermal_get_mode,
@@ -346,10 +302,11 @@ index 0000000..a52caa4
 +	data->mode = THERMAL_DEVICE_ENABLED;
 +	INIT_WORK(&data->thermal_wq, omap_thermal_work);
 +
++	/* TODO: remove TC1 TC2 */
 +	/* Create thermal zone */
 +	data->omap_thermal = thermal_zone_device_register(domain,
 +				OMAP_TRIP_NUMBER, 0, data, &omap_thermal_ops,
-+				0, FAST_TEMP_MONITORING_RATE);
++				0, FAST_TEMP_MONITORING_RATE, 0, 0);
 +	if (IS_ERR_OR_NULL(data->omap_thermal)) {
 +		dev_err(bg_ptr->dev, "thermal zone device is NULL\n");
 +		return PTR_ERR(data->omap_thermal);
