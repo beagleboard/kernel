@@ -1,4 +1,4 @@
-From 347eb64d72de494c4083275d3b0e44da0bb8506a Mon Sep 17 00:00:00 2001
+From b742d75da3b6640521612e878a82d4d95f92e83f Mon Sep 17 00:00:00 2001
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 Date: Wed, 29 Aug 2012 15:18:11 +0530
 Subject: [PATCH 10/43] ARM: OMAP: omap_device: Do not overwrite resources
@@ -36,10 +36,10 @@ Signed-off-by: Benoit Cousson <b-cousson@ti.com>
  3 files changed, 87 insertions(+), 12 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 6ca8e51..7768804 100644
+index 37afbd1..d0d6417 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3158,6 +3158,33 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
+@@ -3159,6 +3159,33 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
  }
  
  /**

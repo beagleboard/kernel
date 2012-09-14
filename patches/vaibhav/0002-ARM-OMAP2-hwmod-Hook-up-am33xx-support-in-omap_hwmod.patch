@@ -1,7 +1,7 @@
-From c0688b26ba3a7c5fff1a1148f9a78bf764861257 Mon Sep 17 00:00:00 2001
+From 18074fdae7e2575d9600a51cad71b530c674619a Mon Sep 17 00:00:00 2001
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 Date: Mon, 28 May 2012 16:21:52 +0530
-Subject: [PATCH 04/13] ARM: OMAP2+: hwmod: Hook-up am33xx support in
+Subject: [PATCH 02/10] ARM: OMAP2+: hwmod: Hook-up am33xx support in
  omap_hwmod framework
 
 AM33XX PRCM architecture is different that any OMAP family
@@ -25,7 +25,7 @@ http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69023.html
  1 files changed, 180 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 7768804..edabfb3 100644
+index d0d6417..5b91de9 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
 @@ -149,8 +149,10 @@
@@ -137,7 +137,7 @@ index 7768804..edabfb3 100644
   * _ocp_softreset - reset an omap_hwmod via the OCP_SYSCONFIG bit
   * @oh: struct omap_hwmod *
   *
-@@ -2548,6 +2627,33 @@ static int _omap4_wait_target_ready(struct omap_hwmod *oh)
+@@ -2549,6 +2628,33 @@ static int _omap4_wait_target_ready(struct omap_hwmod *oh)
  }
  
  /**
@@ -171,7 +171,7 @@ index 7768804..edabfb3 100644
   * _omap2_assert_hardreset - call OMAP2 PRM hardreset fn with hwmod args
   * @oh: struct omap_hwmod * to assert hardreset
   * @ohri: hardreset line data
-@@ -2678,6 +2784,72 @@ static int _omap4_is_hardreset_asserted(struct omap_hwmod *oh,
+@@ -2679,6 +2785,72 @@ static int _omap4_is_hardreset_asserted(struct omap_hwmod *oh,
  				oh->prcm.omap4.rstctrl_offs);
  }
  
@@ -244,7 +244,7 @@ index 7768804..edabfb3 100644
  /* Public functions */
  
  u32 omap_hwmod_read(struct omap_hwmod *oh, u16 reg_offs)
-@@ -3704,6 +3876,14 @@ void __init omap_hwmod_init(void)
+@@ -3705,6 +3877,14 @@ void __init omap_hwmod_init(void)
  		soc_ops.deassert_hardreset = _omap4_deassert_hardreset;
  		soc_ops.is_hardreset_asserted = _omap4_is_hardreset_asserted;
  		soc_ops.init_clkdm = _init_clkdm;

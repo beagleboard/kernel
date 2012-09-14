@@ -1,4 +1,4 @@
-From 93b615a79c5f6cdef88ea4a30a6a4797efe80715 Mon Sep 17 00:00:00 2001
+From 88d0e866f18c95c13b6685dbfdb587c9319e3ed2 Mon Sep 17 00:00:00 2001
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Date: Wed, 4 Jul 2012 18:32:32 +0530
 Subject: [PATCH 21/43] ARM: OMAP4: Add local timer support for Device Tree
@@ -32,7 +32,7 @@ index cb18d2a..2b670ab 100644
  	 * The soc node represents the soc top level view. It is uses for IPs
  	 * that are not memory mapped in the MPU view or for the MPU itself.
 diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 2ff6d41..31f9c93 100644
+index 2ba4f57..80fa8c6 100644
 --- a/arch/arm/mach-omap2/timer.c
 +++ b/arch/arm/mach-omap2/timer.c
 @@ -36,6 +36,7 @@
@@ -43,7 +43,7 @@ index 2ff6d41..31f9c93 100644
  
  #include <asm/mach/time.h>
  #include <plat/dmtimer.h>
-@@ -386,6 +387,11 @@ static void __init omap4_timer_init(void)
+@@ -393,6 +394,11 @@ static void __init omap4_timer_init(void)
  	if (omap_rev() != OMAP4430_REV_ES1_0) {
  		int err;
  

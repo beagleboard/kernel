@@ -1,19 +1,23 @@
-From 087e1a0baae8159938a4b3e4456b4599a26f783b Mon Sep 17 00:00:00 2001
+From 9354358eaa045301fea5bf9ab3093f3126acfd9c Mon Sep 17 00:00:00 2001
 From: Grant Likely <grant.likely@secretlab.ca>
 Date: Tue, 2 Aug 2011 15:30:09 +0100
-Subject: [PATCH 09/13] ARM: CUSTOM: Build a uImage with dtb already appended
+Subject: [PATCH 06/10] ARM: CUSTOM: Build a uImage with dtb already appended
 
 Do not commit to mainline; this is a useful hack only for now.
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+
+Conflicts:
+
+	arch/arm/Makefile
 ---
  arch/arm/Makefile      |    3 +++
  arch/arm/boot/Makefile |    7 +++++++
  2 files changed, 10 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/Makefile b/arch/arm/Makefile
-index 30eae87..0eb244a 100644
+index a051dfb..d21c1bc 100644
 --- a/arch/arm/Makefile
 +++ b/arch/arm/Makefile
 @@ -284,6 +284,9 @@ zImage Image xipImage bootpImage uImage: vmlinux
@@ -23,7 +27,7 @@ index 30eae87..0eb244a 100644
 +uImage-dtb.%:
 +	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
 +
- %.dtb:
+ %.dtb: scripts
  	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
  
 diff --git a/arch/arm/boot/Makefile b/arch/arm/boot/Makefile
