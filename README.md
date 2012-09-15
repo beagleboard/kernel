@@ -23,9 +23,9 @@ Beagle xM: Stable (no 800Mhz due to cpufreq disabled, can "re-enable" just make 
 
 * Trigger defconfig diff: https://github.com/RobertCNelson/linux-dev/blob/master/patches/debug/config.diff
 
-Panda : Random Lockups
+Panda : Random Lockups (currently stress testing)
 
-Panda ES: HardCrash on Bootup
+Panda ES: Random Lockups (currently stress testing)
 
 Board Maintainers List
 ---------------------
