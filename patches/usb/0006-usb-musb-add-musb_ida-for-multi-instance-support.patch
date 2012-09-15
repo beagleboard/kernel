@@ -1,4 +1,4 @@
-From 24ad52fb19f1bca6f4e1e368c70307e8b2bcc2d8 Mon Sep 17 00:00:00 2001
+From f67f73faab8bff6efa382a033f08732f808a4fb7 Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Mon, 2 Jul 2012 14:53:32 +0530
 Subject: [PATCH 06/17] usb: musb: add musb_ida for multi instance support
@@ -16,9 +16,8 @@ Signed-off-by: Ravi Babu <ravibabu@ti.com>
  drivers/usb/musb/musb_core.h |    2 ++
  drivers/usb/musb/musb_dsps.c |   25 ++++++++++++++++++-------
  drivers/usb/musb/omap2430.c  |   26 ++++++++++++++++++++------
- drivers/usb/musb/tusb6010.c  |   26 ++++++++++++++++++++------
  drivers/usb/musb/ux500.c     |   33 +++++++++++++++++++++++----------
- 10 files changed, 210 insertions(+), 69 deletions(-)
+ 9 files changed, 190 insertions(+), 63 deletions(-)
 
 diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
 index 7a95ab8..01203eb 100644
@@ -650,84 +649,6 @@ index 5fdb9da..759752b 100644
  	platform_device_del(glue->musb);
  	platform_device_put(glue->musb);
  
-diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
-index 1a1bd9c..64a0e95 100644
---- a/drivers/usb/musb/tusb6010.c
-+++ b/drivers/usb/musb/tusb6010.c
-@@ -1175,6 +1175,7 @@ static int __devinit tusb_probe(struct platform_device *pdev)
- 	struct tusb6010_glue		*glue;
- 
- 	int				ret = -ENOMEM;
-+	int				musbid;
- 
- 	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
- 	if (!glue) {
-@@ -1182,12 +1183,21 @@ static int __devinit tusb_probe(struct platform_device *pdev)
- 		goto err0;
- 	}
- 
--	musb = platform_device_alloc("musb-hdrc", -1);
-+	/* get the musb id */
-+	musbid = musb_get_id(&pdev->dev, GFP_KERNEL);
-+	if (musbid < 0) {
-+		dev_err(&pdev->dev, "failed to allocate musb id\n");
-+		ret = -ENOMEM;
-+		goto err1;
-+	}
-+
-+	musb = platform_device_alloc("musb-hdrc", musbid);
- 	if (!musb) {
- 		dev_err(&pdev->dev, "failed to allocate musb device\n");
--		goto err1;
-+		goto err2;
- 	}
- 
-+	musb->id			= musbid;
- 	musb->dev.parent		= &pdev->dev;
- 	musb->dev.dma_mask		= &tusb_dmamask;
- 	musb->dev.coherent_dma_mask	= tusb_dmamask;
-@@ -1203,26 +1213,29 @@ static int __devinit tusb_probe(struct platform_device *pdev)
- 			pdev->num_resources);
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to add resources\n");
--		goto err2;
-+		goto err3;
- 	}
- 
- 	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to add platform_data\n");
--		goto err2;
-+		goto err3;
- 	}
- 
- 	ret = platform_device_add(musb);
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to register musb device\n");
--		goto err1;
-+		goto err3;
- 	}
- 
- 	return 0;
- 
--err2:
-+err3:
- 	platform_device_put(musb);
- 
-+err2:
-+	musb_put_id(&pdev->dev, musbid);
-+
- err1:
- 	kfree(glue);
- 
-@@ -1234,6 +1247,7 @@ static int __devexit tusb_remove(struct platform_device *pdev)
- {
- 	struct tusb6010_glue		*glue = platform_get_drvdata(pdev);
- 
-+	musb_put_id(&pdev->dev, glue->musb->id);
- 	platform_device_del(glue->musb);
- 	platform_device_put(glue->musb);
- 	kfree(glue);
 diff --git a/drivers/usb/musb/ux500.c b/drivers/usb/musb/ux500.c
 index a8c0fad..d62a91f 100644
 --- a/drivers/usb/musb/ux500.c
