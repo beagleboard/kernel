@@ -1,0 +1,72 @@
+From 452ad14599e5933cfb39328af660a0e42c2078a1 Mon Sep 17 00:00:00 2001
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Date: Thu, 26 Jul 2012 21:35:29 +0530
+Subject: [PATCH 05/10] ARM: OMAP2+: HWMOD: AM33xx: Fixes the naming
+ convention for PWM
+
+Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index 2364c9a..0a99389 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -795,7 +795,7 @@ static struct omap_hwmod_irq_info am33xx_ehrpwm0_irqs[] = {
+ };
+ 
+ static struct omap_hwmod am33xx_ehrpwm0_hwmod = {
+-	.name		= "ehrpwm.0",
++	.name		= "ehrpwm0",
+ 	.class		= &am33xx_epwmss_hwmod_class,
+ 	.clkdm_name	= "l4ls_clkdm",
+ 	.mpu_irqs	= am33xx_ehrpwm0_irqs,
+@@ -816,7 +816,7 @@ static struct omap_hwmod_irq_info am33xx_ehrpwm1_irqs[] = {
+ };
+ 
+ static struct omap_hwmod am33xx_ehrpwm1_hwmod = {
+-	.name		= "ehrpwm.1",
++	.name		= "ehrpwm1",
+ 	.class		= &am33xx_epwmss_hwmod_class,
+ 	.clkdm_name	= "l4ls_clkdm",
+ 	.mpu_irqs	= am33xx_ehrpwm1_irqs,
+@@ -837,7 +837,7 @@ static struct omap_hwmod_irq_info am33xx_ehrpwm2_irqs[] = {
+ };
+ 
+ static struct omap_hwmod am33xx_ehrpwm2_hwmod = {
+-	.name		= "ehrpwm.2",
++	.name		= "ehrpwm2",
+ 	.class		= &am33xx_epwmss_hwmod_class,
+ 	.clkdm_name	= "l4ls_clkdm",
+ 	.mpu_irqs	= am33xx_ehrpwm2_irqs,
+@@ -857,7 +857,7 @@ static struct omap_hwmod_irq_info am33xx_ecap0_irqs[] = {
+ };
+ 
+ static struct omap_hwmod am33xx_ecap0_hwmod = {
+-	.name		= "ecap.0",
++	.name		= "ecap0",
+ 	.class		= &am33xx_epwmss_hwmod_class,
+ 	.clkdm_name	= "l4ls_clkdm",
+ 	.mpu_irqs	= am33xx_ecap0_irqs,
+@@ -877,7 +877,7 @@ static struct omap_hwmod_irq_info am33xx_ecap1_irqs[] = {
+ };
+ 
+ static struct omap_hwmod am33xx_ecap1_hwmod = {
+-	.name		= "ecap.1",
++	.name		= "ecap1",
+ 	.class		= &am33xx_epwmss_hwmod_class,
+ 	.clkdm_name	= "l4ls_clkdm",
+ 	.mpu_irqs	= am33xx_ecap1_irqs,
+@@ -897,7 +897,7 @@ static struct omap_hwmod_irq_info am33xx_ecap2_irqs[] = {
+ };
+ 
+ static struct omap_hwmod am33xx_ecap2_hwmod = {
+-	.name		= "ecap.2",
++	.name		= "ecap2",
+ 	.mpu_irqs	= am33xx_ecap2_irqs,
+ 	.class		= &am33xx_epwmss_hwmod_class,
+ 	.clkdm_name	= "l4ls_clkdm",
+-- 
+1.7.7.6
+
