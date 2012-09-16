@@ -1,7 +1,7 @@
-From 5d1d6a203db77731ec290226b0a88c4890a9f6b7 Mon Sep 17 00:00:00 2001
+From 491550cdde16c0b5bcfe0c0915498806443e6558 Mon Sep 17 00:00:00 2001
 From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Tue, 22 May 2012 11:34:58 +0530
-Subject: [PATCH 06/10] Control module : EHRPWM clk enabling
+Subject: [PATCH 09/13] Control module : EHRPWM clk enabling
 
 Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
  1 files changed, 15 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 577cd04..176da53 100644
+index c00c689..4060f77 100644
 --- a/arch/arm/mach-omap2/devices.c
 +++ b/arch/arm/mach-omap2/devices.c
-@@ -435,6 +435,20 @@ static void omap_init_mcspi(void)
+@@ -434,6 +434,20 @@ static void omap_init_mcspi(void)
  static inline void omap_init_mcspi(void) {}
  #endif
  
@@ -33,7 +33,7 @@ index 577cd04..176da53 100644
  static struct resource omap2_pmu_resource = {
  	.start	= 3,
  	.end	= 3,
-@@ -655,6 +669,7 @@ static int __init omap2_init_devices(void)
+@@ -651,6 +665,7 @@ static int __init omap2_init_devices(void)
  	omap_init_aes();
  	omap_init_vout();
  

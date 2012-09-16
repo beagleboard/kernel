@@ -1,7 +1,7 @@
-From 22f5669ba135c5cae1449c5f44cff8171b26e3de Mon Sep 17 00:00:00 2001
+From 30efe8dbe814e195faaa3a2b686693ae9c75ead0 Mon Sep 17 00:00:00 2001
 From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Thu, 9 Aug 2012 13:52:37 +0530
-Subject: [PATCH 02/10] pwm: pwm-tiehrpwm: Add support for configuring
+Subject: [PATCH 05/13] pwm: pwm-tiehrpwm: Add support for configuring
  polarity of PWM
 
 EHRPWM hardware supports polarity configuration of PWM output.
@@ -47,26 +47,7 @@ index c3756d1..2d1bff5 100644
 -	unsigned short aqctl_val, aqctl_mask;
 +	if (config == config_dutycycle) {
 +		int cmp_reg;
- 
--	/*
--	 * Channels can be configured from action qualifier module.
--	 * Channel 0 configured with compare A register and for
--	 * up-counter mode.
--	 * Channel 1 configured with compare B register and for
--	 * up-counter mode.
--	 */
--	if (chan == 1) {
--		aqctl_reg = AQCTLB;
--		cmp_reg = CMPB;
--		/* Configure PWM Low from compare B value */
--		aqctl_val = AQCTL_CBU_FRCLOW;
--		aqctl_mask = AQCTL_CBU_MASK;
--	} else {
--		cmp_reg = CMPA;
--		aqctl_reg = AQCTLA;
--		/* Configure PWM Low from compare A value*/
--		aqctl_val = AQCTL_CAU_FRCLOW;
--		aqctl_mask = AQCTL_CAU_MASK;
++
 +		if (chan == 1)
 +			cmp_reg = CMPB;
 +		else
@@ -112,7 +93,26 @@ index c3756d1..2d1bff5 100644
 +				aqctl_val = AQCTL_CAU_FRCLOW |
 +					AQCTL_PRD_FRCHIGH | AQCTL_ZRO_FRCHIGH;
 +		}
-+
+ 
+-	/*
+-	 * Channels can be configured from action qualifier module.
+-	 * Channel 0 configured with compare A register and for
+-	 * up-counter mode.
+-	 * Channel 1 configured with compare B register and for
+-	 * up-counter mode.
+-	 */
+-	if (chan == 1) {
+-		aqctl_reg = AQCTLB;
+-		cmp_reg = CMPB;
+-		/* Configure PWM Low from compare B value */
+-		aqctl_val = AQCTL_CBU_FRCLOW;
+-		aqctl_mask = AQCTL_CBU_MASK;
+-	} else {
+-		cmp_reg = CMPA;
+-		aqctl_reg = AQCTLA;
+-		/* Configure PWM Low from compare A value*/
+-		aqctl_val = AQCTL_CAU_FRCLOW;
+-		aqctl_mask = AQCTL_CAU_MASK;
 +		aqctl_mask |= AQCTL_PRD_MASK | AQCTL_ZRO_MASK;
 +		ehrpwm_modify(pc->mmio_base,  aqctl_reg, aqctl_mask, aqctl_val);
  	}
