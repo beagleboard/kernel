@@ -1,0 +1,42 @@
+From bd7fe0bf97de8766db16135df93a20fdb98de89d Mon Sep 17 00:00:00 2001
+From: Amerigo Wang <amwang@redhat.com>
+Date: Sat, 18 Aug 2012 07:02:20 +0000
+Subject: [PATCH 52/94] netconsole: remove a redundant netconsole_target_put()
+
+commit 72d3eb13b5c0abe7d63efac41f39c5b644c7bbaa upstream.
+
+This netconsole_target_put() is obviously redundant, and it
+causes a kernel segfault when removing a bridge device which has
+netconsole running on it.
+
+This is caused by:
+
+	commit 8d8fc29d02a33e4bd5f4fa47823c1fd386346093
+	Author: Amerigo Wang <amwang@redhat.com>
+	Date:   Thu May 19 21:39:10 2011 +0000
+
+	    netpoll: disable netpoll when enslave a device
+
+Cc: David Miller <davem@davemloft.net>
+Signed-off-by: Cong Wang <amwang@redhat.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/netconsole.c |    1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/net/netconsole.c b/drivers/net/netconsole.c
+index e888202..01b104e 100644
+--- a/drivers/net/netconsole.c
++++ b/drivers/net/netconsole.c
+@@ -652,7 +652,6 @@ static int netconsole_netdev_event(struct notifier_block *this,
+ 							  flags);
+ 					dev_put(nt->np.dev);
+ 					nt->np.dev = NULL;
+-					netconsole_target_put(nt);
+ 				}
+ 				nt->enabled = 0;
+ 				stopped = true;
+-- 
+1.7.10.4
+

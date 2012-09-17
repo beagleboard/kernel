@@ -1,0 +1,55 @@
+From c52f6cc5d3e4dcb9167448614338a25a31573484 Mon Sep 17 00:00:00 2001
+From: Jeff Layton <jlayton@redhat.com>
+Date: Thu, 2 Aug 2012 14:30:56 -0400
+Subject: [PATCH 02/94] nfs: tear down caches in nfs_init_writepagecache when
+ allocation fails
+
+commit 3dd4765fce04c0b4af1e0bc4c0b10f906f95fabc upstream.
+
+...and ensure that we tear down the nfs_commit_data cache too when
+unloading the module.
+
+Cc: Bryan Schumaker <bjschuma@netapp.com>
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+[bwh: Backported to 3.2: drop the nfs_cdata_cachep cleanup; it doesn't exist]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/write.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/fs/nfs/write.c b/fs/nfs/write.c
+index c6e523a..301391a 100644
+--- a/fs/nfs/write.c
++++ b/fs/nfs/write.c
+@@ -1742,12 +1742,12 @@ int __init nfs_init_writepagecache(void)
+ 	nfs_wdata_mempool = mempool_create_slab_pool(MIN_POOL_WRITE,
+ 						     nfs_wdata_cachep);
+ 	if (nfs_wdata_mempool == NULL)
+-		return -ENOMEM;
++		goto out_destroy_write_cache;
+ 
+ 	nfs_commit_mempool = mempool_create_slab_pool(MIN_POOL_COMMIT,
+ 						      nfs_wdata_cachep);
+ 	if (nfs_commit_mempool == NULL)
+-		return -ENOMEM;
++		goto out_destroy_write_mempool;
+ 
+ 	/*
+ 	 * NFS congestion size, scale with available memory.
+@@ -1770,6 +1770,12 @@ int __init nfs_init_writepagecache(void)
+ 		nfs_congestion_kb = 256*1024;
+ 
+ 	return 0;
++
++out_destroy_write_mempool:
++	mempool_destroy(nfs_wdata_mempool);
++out_destroy_write_cache:
++	kmem_cache_destroy(nfs_wdata_cachep);
++	return -ENOMEM;
+ }
+ 
+ void nfs_destroy_writepagecache(void)
+-- 
+1.7.10.4
+

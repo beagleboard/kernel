@@ -1,0 +1,105 @@
+From 43007cdf7ef0067581def99b20ac1625e33008c9 Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Sun, 12 Aug 2012 22:17:14 +0200
+Subject: [PATCH 27/94] drm/i915: reorder edp disabling to fix ivb MacBook Air
+
+commit 35a38556d900b9cb5dfa2529c93944b847f8a8a4 upstream.
+
+eDP is tons of fun. It turns out that at least the new MacBook Air 5,1
+model absolutely doesn't like the new force vdd dance we've introduced
+in
+
+commit 6cb49835da0426f69a2931bc2a0a8156344b0e41
+Author: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date:   Sun May 20 17:14:50 2012 +0200
+
+    drm/i915: enable vdd when switching off the eDP panel
+
+But that patch also tried to fix some neat edp sequence issue with the
+force_vdd timings. Closer inspection reveals that we've raised
+force_vdd only to do the aux channel communication dp_sink_dpms. If we
+move the edp_panel_off below that, we don't need any force_vdd for the
+disable sequence, which makes the Air happy.
+
+Unfortunately the reporter of the original bug that the above commit
+fixed is travelling, so we can't test whether this regresses things.
+But my theory is that since we don't check for any power-off ->
+force_vdd-on delays in edp_panel_vdd_on, this was the actual
+root-cause of this failure. With that force_vdd dance completely
+eliminated, I'm hopeful the original bug stays fixed, too.
+
+For reference the old bug, which hopefully doesn't get broken by this:
+
+https://bugzilla.kernel.org/show_bug.cgi?id=43163
+
+In any case, regression fixers win over plain bugfixes, so this needs
+to go in asap.
+
+v2: The crucial pieces seems to be to clear the force_vdd flag
+uncoditionally, too, in edp_panel_off. Looks like this is left behind
+by the firmware somehow.
+
+v3: The Apple firmware seems to switch off the panel on it's own, hence
+we still need to keep force_vdd on, but properly clear it when switching
+the panel off.
+
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=45671
+Tested-by: Roberto Romer <sildurin@gmail.com>
+Tested-by: Daniel Wagner <wagi@monom.org>
+Tested-by: Keith Packard <keithp@keithp.com>
+Cc: Keith Packard <keithp@keithp.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_dp.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
+index fae2050..c8ecaab 100644
+--- a/drivers/gpu/drm/i915/intel_dp.c
++++ b/drivers/gpu/drm/i915/intel_dp.c
+@@ -1152,10 +1152,14 @@ static void ironlake_edp_panel_off(struct intel_dp *intel_dp)
+ 	WARN(!intel_dp->want_panel_vdd, "Need VDD to turn off panel\n");
+ 
+ 	pp = ironlake_get_pp_control(dev_priv);
+-	pp &= ~(POWER_TARGET_ON | PANEL_POWER_RESET | EDP_BLC_ENABLE);
++	/* We need to switch off panel power _and_ force vdd, for otherwise some
++	 * panels get very unhappy and cease to work. */
++	pp &= ~(POWER_TARGET_ON | EDP_FORCE_VDD | PANEL_POWER_RESET | EDP_BLC_ENABLE);
+ 	I915_WRITE(PCH_PP_CONTROL, pp);
+ 	POSTING_READ(PCH_PP_CONTROL);
+ 
++	intel_dp->want_panel_vdd = false;
++
+ 	ironlake_wait_panel_off(intel_dp);
+ }
+ 
+@@ -1265,11 +1269,9 @@ static void intel_dp_prepare(struct drm_encoder *encoder)
+ 	 * ensure that we have vdd while we switch off the panel. */
+ 	ironlake_edp_panel_vdd_on(intel_dp);
+ 	ironlake_edp_backlight_off(intel_dp);
+-	ironlake_edp_panel_off(intel_dp);
+-
+ 	intel_dp_sink_dpms(intel_dp, DRM_MODE_DPMS_ON);
++	ironlake_edp_panel_off(intel_dp);
+ 	intel_dp_link_down(intel_dp);
+-	ironlake_edp_panel_vdd_off(intel_dp, false);
+ }
+ 
+ static void intel_dp_commit(struct drm_encoder *encoder)
+@@ -1304,11 +1306,9 @@ intel_dp_dpms(struct drm_encoder *encoder, int mode)
+ 		/* Switching the panel off requires vdd. */
+ 		ironlake_edp_panel_vdd_on(intel_dp);
+ 		ironlake_edp_backlight_off(intel_dp);
+-		ironlake_edp_panel_off(intel_dp);
+-
+ 		intel_dp_sink_dpms(intel_dp, mode);
++		ironlake_edp_panel_off(intel_dp);
+ 		intel_dp_link_down(intel_dp);
+-		ironlake_edp_panel_vdd_off(intel_dp, false);
+ 
+ 		if (is_cpu_edp(intel_dp))
+ 			ironlake_edp_pll_off(encoder);
+-- 
+1.7.10.4
+

@@ -1,0 +1,43 @@
+From 8dd138a98241fc7be5d89950e6e09bbc18024a53 Mon Sep 17 00:00:00 2001
+From: Miklos Szeredi <mszeredi@suse.cz>
+Date: Wed, 15 Aug 2012 13:01:24 +0200
+Subject: [PATCH 30/94] vfs: canonicalize create mode in build_open_flags()
+
+commit e68726ff72cf7ba5e7d789857fcd9a75ca573f03 upstream.
+
+Userspace can pass weird create mode in open(2) that we canonicalize to
+"(mode & S_IALLUGO) | S_IFREG" in vfs_create().
+
+The problem is that we use the uncanonicalized mode before calling vfs_create()
+with unforseen consequences.
+
+So do the canonicalization early in build_open_flags().
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Tested-by: Richard W.M. Jones <rjones@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/open.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/fs/open.c b/fs/open.c
+index e2b5d51..b8485d3 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -882,9 +882,10 @@ static inline int build_open_flags(int flags, int mode, struct open_flags *op)
+ 	int lookup_flags = 0;
+ 	int acc_mode;
+ 
+-	if (!(flags & O_CREAT))
+-		mode = 0;
+-	op->mode = mode;
++	if (flags & O_CREAT)
++		op->mode = (mode & S_IALLUGO) | S_IFREG;
++	else
++		op->mode = 0;
+ 
+ 	/* Must never be set by userspace */
+ 	flags &= ~FMODE_NONOTIFY;
+-- 
+1.7.10.4
+

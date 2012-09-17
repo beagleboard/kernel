@@ -1,0 +1,43 @@
+From e60af62b40a97d3cfa1d8624d0e55037930bc039 Mon Sep 17 00:00:00 2001
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Fri, 17 Aug 2012 17:48:28 -0700
+Subject: [PATCH 43/94] USB: p54usb: remove __devinit* from the struct
+ usb_device_id table
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit b9c4167cbbafddac3462134013bc15e63e4c53ef upstream.
+
+This structure needs to always stick around, even if CONFIG_HOTPLUG
+is disabled, otherwise we can oops when trying to probe a device that
+was added after the structure is thrown away.
+
+Thanks to Fengguang Wu and Bjørn Mork for tracking this issue down.
+
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Reported-by: Bjørn Mork <bjorn@mork.no>
+CC: Christian Lamparter <chunkeey@googlemail.com>
+CC: "John W. Linville" <linville@tuxdriver.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/p54/p54usb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/p54/p54usb.c b/drivers/net/wireless/p54/p54usb.c
+index 9b60968..8a009bc 100644
+--- a/drivers/net/wireless/p54/p54usb.c
++++ b/drivers/net/wireless/p54/p54usb.c
+@@ -42,7 +42,7 @@ MODULE_FIRMWARE("isl3887usb");
+  * whenever you add a new device.
+  */
+ 
+-static struct usb_device_id p54u_table[] __devinitdata = {
++static struct usb_device_id p54u_table[] = {
+ 	/* Version 1 devices (pci chip + net2280) */
+ 	{USB_DEVICE(0x0411, 0x0050)},	/* Buffalo WLI2-USB2-G54 */
+ 	{USB_DEVICE(0x045e, 0x00c2)},	/* Microsoft MN-710 */
+-- 
+1.7.10.4
+

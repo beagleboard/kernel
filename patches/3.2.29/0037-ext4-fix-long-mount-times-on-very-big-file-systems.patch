@@ -1,0 +1,37 @@
+From 4ac2515cf5201e7762c16303d860b6ec0e02aecb Mon Sep 17 00:00:00 2001
+From: Theodore Ts'o <tytso@mit.edu>
+Date: Thu, 16 Aug 2012 11:59:04 -0400
+Subject: [PATCH 37/94] ext4: fix long mount times on very big file systems
+
+commit 0548bbb85337e532ca2ed697c3e9b227ff2ed4b4 upstream.
+
+Commit 8aeb00ff85a: "ext4: fix overhead calculation used by
+ext4_statfs()" introduced a O(n**2) calculation which makes very large
+file systems take forever to mount.  Fix this with an optimization for
+non-bigalloc file systems.  (For bigalloc file systems the overhead
+needs to be set in the the superblock.)
+
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ext4/super.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+index 129925a..f8d5fce 100644
+--- a/fs/ext4/super.c
++++ b/fs/ext4/super.c
+@@ -3108,6 +3108,10 @@ static int count_overhead(struct super_block *sb, ext4_group_t grp,
+ 	ext4_group_t		i, ngroups = ext4_get_groups_count(sb);
+ 	int			s, j, count = 0;
+ 
++	if (!EXT4_HAS_RO_COMPAT_FEATURE(sb, EXT4_FEATURE_RO_COMPAT_BIGALLOC))
++		return (ext4_bg_has_super(sb, grp) + ext4_bg_num_gdb(sb, grp) +
++			sbi->s_itb_per_group + 2);
++
+ 	first_block = le32_to_cpu(sbi->s_es->s_first_data_block) +
+ 		(grp * EXT4_BLOCKS_PER_GROUP(sb));
+ 	last_block = first_block + EXT4_BLOCKS_PER_GROUP(sb) - 1;
+-- 
+1.7.10.4
+

@@ -1,0 +1,50 @@
+From 11181d02b12a7935c32389308a7e46901718be57 Mon Sep 17 00:00:00 2001
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Date: Mon, 23 Jul 2012 16:06:08 -0700
+Subject: [PATCH 10/94] xhci: Increase reset timeout for Renesas 720201 host.
+
+commit 22ceac191211cf6688b1bf6ecd93c8b6bf80ed9b upstream.
+
+The NEC/Renesas 720201 xHCI host controller does not complete its reset
+within 250 milliseconds.  In fact, it takes about 9 seconds to reset the
+host controller, and 1 second for the host to be ready for doorbell
+rings.  Extend the reset and CNR polling timeout to 10 seconds each.
+
+This patch should be backported to kernels as old as 2.6.31, that
+contain the commit 66d4eadd8d067269ea8fead1a50fe87c2979a80d "USB: xhci:
+BIOS handoff and HW initialization."
+
+Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Reported-by: Edwin Klein Mentink <e.kleinmentink@zonnet.nl>
+[bwh: Backported to 3.2: result of second handshake call is returned directly]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/host/xhci.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
+index 05f82e9..f7c0a2a 100644
+--- a/drivers/usb/host/xhci.c
++++ b/drivers/usb/host/xhci.c
+@@ -163,7 +163,7 @@ int xhci_reset(struct xhci_hcd *xhci)
+ 	xhci_writel(xhci, command, &xhci->op_regs->command);
+ 
+ 	ret = handshake(xhci, &xhci->op_regs->command,
+-			CMD_RESET, 0, 250 * 1000);
++			CMD_RESET, 0, 10 * 1000 * 1000);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -172,7 +172,8 @@ int xhci_reset(struct xhci_hcd *xhci)
+ 	 * xHCI cannot write to any doorbells or operational registers other
+ 	 * than status until the "Controller Not Ready" flag is cleared.
+ 	 */
+-	return handshake(xhci, &xhci->op_regs->status, STS_CNR, 0, 250 * 1000);
++	return handshake(xhci, &xhci->op_regs->status,
++			 STS_CNR, 0, 10 * 1000 * 1000);
+ }
+ 
+ #ifdef CONFIG_PCI
+-- 
+1.7.10.4
+

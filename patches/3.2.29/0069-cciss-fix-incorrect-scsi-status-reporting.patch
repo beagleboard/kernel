@@ -1,0 +1,48 @@
+From e371958b32716cd73d5f3fa01778de9c79fa550b Mon Sep 17 00:00:00 2001
+From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
+Date: Tue, 21 Aug 2012 16:15:49 -0700
+Subject: [PATCH 69/94] cciss: fix incorrect scsi status reporting
+
+commit b0cf0b118c90477d1a6811f2cd2307f6a5578362 upstream.
+
+Delete code which sets SCSI status incorrectly as it's already been set
+correctly above this incorrect code.  The bug was introduced in 2009 by
+commit b0e15f6db111 ("cciss: fix typo that causes scsi status to be
+lost.")
+
+Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Reported-by: Roel van Meer <roel.vanmeer@bokxing.nl>
+Tested-by: Roel van Meer <roel.vanmeer@bokxing.nl>
+Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/block/cciss_scsi.c |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/drivers/block/cciss_scsi.c b/drivers/block/cciss_scsi.c
+index acda773..38aa6dd 100644
+--- a/drivers/block/cciss_scsi.c
++++ b/drivers/block/cciss_scsi.c
+@@ -763,16 +763,7 @@ static void complete_scsi_command(CommandList_struct *c, int timeout,
+ 		{
+ 			case CMD_TARGET_STATUS:
+ 				/* Pass it up to the upper layers... */
+-				if( ei->ScsiStatus)
+-                		{
+-#if 0
+-                    			printk(KERN_WARNING "cciss: cmd %p "
+-						"has SCSI Status = %x\n",
+-						c, ei->ScsiStatus);
+-#endif
+-					cmd->result |= (ei->ScsiStatus << 1);
+-                		}
+-				else {  /* scsi status is zero??? How??? */
++				if (!ei->ScsiStatus) {
+ 					
+ 	/* Ordinarily, this case should never happen, but there is a bug
+ 	   in some released firmware revisions that allows it to happen
+-- 
+1.7.10.4
+

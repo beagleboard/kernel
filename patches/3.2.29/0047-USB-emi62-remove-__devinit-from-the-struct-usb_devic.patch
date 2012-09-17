@@ -1,0 +1,44 @@
+From 0a97b367d2da87668e8b20f1d10d6956ed76bb1a Mon Sep 17 00:00:00 2001
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Fri, 17 Aug 2012 17:48:41 -0700
+Subject: [PATCH 47/94] USB: emi62: remove __devinit* from the struct
+ usb_device_id table
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit 83957df21dd94655d2b026e0944a69ff37b83988 upstream.
+
+This structure needs to always stick around, even if CONFIG_HOTPLUG
+is disabled, otherwise we can oops when trying to probe a device that
+was added after the structure is thrown away.
+
+Thanks to Fengguang Wu and Bjørn Mork for tracking this issue down.
+
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Reported-by: Bjørn Mork <bjorn@mork.no>
+CC: Paul Gortmaker <paul.gortmaker@windriver.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/misc/emi62.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/misc/emi62.c b/drivers/usb/misc/emi62.c
+index fc15ad4..723e833 100644
+--- a/drivers/usb/misc/emi62.c
++++ b/drivers/usb/misc/emi62.c
+@@ -259,7 +259,7 @@ wraperr:
+ 	return err;
+ }
+ 
+-static const struct usb_device_id id_table[] __devinitconst = {
++static const struct usb_device_id id_table[] = {
+ 	{ USB_DEVICE(EMI62_VENDOR_ID, EMI62_PRODUCT_ID) },
+ 	{ }                                             /* Terminating entry */
+ };
+-- 
+1.7.10.4
+

@@ -1,0 +1,60 @@
+From 4e049fb9423043ed82a92504cf6befc97b274844 Mon Sep 17 00:00:00 2001
+From: Cyrus Lien <cyrus.lien@canonical.com>
+Date: Mon, 23 Jul 2012 17:11:51 +0800
+Subject: [PATCH 01/94] HID: add ASUS AIO keyboard model AK1D
+
+commit 2d8767bb421574dfcf48e4be0751ce7d8f73d5d7 upstream.
+
+Add Asus All-In-One PC keyboard model AK1D.
+
+BugLink: https://bugs.launchpad.net/bugs/1027789
+
+Signed-off-by: Cyrus Lien <cyrus.lien@canonical.com>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/hid/hid-chicony.c |    1 +
+ drivers/hid/hid-core.c    |    1 +
+ drivers/hid/hid-ids.h     |    1 +
+ 3 files changed, 3 insertions(+)
+
+diff --git a/drivers/hid/hid-chicony.c b/drivers/hid/hid-chicony.c
+index b99af34..a2abb8e 100644
+--- a/drivers/hid/hid-chicony.c
++++ b/drivers/hid/hid-chicony.c
+@@ -60,6 +60,7 @@ static int ch_input_mapping(struct hid_device *hdev, struct hid_input *hi,
+ static const struct hid_device_id ch_devices[] = {
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_CHICONY, USB_DEVICE_ID_CHICONY_TACTICAL_PAD) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_CHICONY, USB_DEVICE_ID_CHICONY_WIRELESS2) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_CHICONY, USB_DEVICE_ID_CHICONY_AK1D) },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(hid, ch_devices);
+diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
+index 95430a0..bbf59e8 100644
+--- a/drivers/hid/hid-core.c
++++ b/drivers/hid/hid-core.c
+@@ -1398,6 +1398,7 @@ static const struct hid_device_id hid_have_special_driver[] = {
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_CHICONY, USB_DEVICE_ID_CHICONY_TACTICAL_PAD) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_CHICONY, USB_DEVICE_ID_CHICONY_WIRELESS) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_CHICONY, USB_DEVICE_ID_CHICONY_WIRELESS2) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_CHICONY, USB_DEVICE_ID_CHICONY_AK1D) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_CHUNGHWAT, USB_DEVICE_ID_CHUNGHWAT_MULTITOUCH) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_CREATIVELABS, USB_DEVICE_ID_PRODIKEYS_PCMIDI) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_CVTOUCH, USB_DEVICE_ID_CVTOUCH_SCREEN) },
+diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
+index 7db934d..c07cb52 100644
+--- a/drivers/hid/hid-ids.h
++++ b/drivers/hid/hid-ids.h
+@@ -196,6 +196,7 @@
+ #define USB_DEVICE_ID_CHICONY_MULTI_TOUCH	0xb19d
+ #define USB_DEVICE_ID_CHICONY_WIRELESS	0x0618
+ #define USB_DEVICE_ID_CHICONY_WIRELESS2	0x1123
++#define USB_DEVICE_ID_CHICONY_AK1D	0x1125
+ 
+ #define USB_VENDOR_ID_CHUNGHWAT		0x2247
+ #define USB_DEVICE_ID_CHUNGHWAT_MULTITOUCH	0x0001
+-- 
+1.7.10.4
+

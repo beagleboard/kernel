@@ -1,0 +1,36 @@
+From a2810e5462e83ee74a5d20b68b39daa1402a4e5e Mon Sep 17 00:00:00 2001
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
+Date: Mon, 20 Aug 2012 12:42:15 -0400
+Subject: [PATCH 62/94] NFSv3: Ensure that do_proc_get_root() reports errors
+ correctly
+
+commit 086600430493e04b802bee6e5b3ce0458e4eb77f upstream.
+
+If the rpc call to NFS3PROC_FSINFO fails, then we need to report that
+error so that the mount fails. Otherwise we can end up with a
+superblock with completely unusable values for block sizes, maxfilesize,
+etc.
+
+Reported-by: Yuanming Chen <hikvision_linux@163.com>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/nfs3proc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/nfs/nfs3proc.c b/fs/nfs/nfs3proc.c
+index d4bc9ed9..5195fd6 100644
+--- a/fs/nfs/nfs3proc.c
++++ b/fs/nfs/nfs3proc.c
+@@ -68,7 +68,7 @@ do_proc_get_root(struct rpc_clnt *client, struct nfs_fh *fhandle,
+ 	nfs_fattr_init(info->fattr);
+ 	status = rpc_call_sync(client, &msg, 0);
+ 	dprintk("%s: reply fsinfo: %d\n", __func__, status);
+-	if (!(info->fattr->valid & NFS_ATTR_FATTR)) {
++	if (status == 0 && !(info->fattr->valid & NFS_ATTR_FATTR)) {
+ 		msg.rpc_proc = &nfs3_procedures[NFS3PROC_GETATTR];
+ 		msg.rpc_resp = info->fattr;
+ 		status = rpc_call_sync(client, &msg, 0);
+-- 
+1.7.10.4
+

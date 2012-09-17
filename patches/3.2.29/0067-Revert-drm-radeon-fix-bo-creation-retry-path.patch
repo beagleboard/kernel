@@ -1,0 +1,44 @@
+From 2744f4e762141d0b1233f962ebe706d60cd460d2 Mon Sep 17 00:00:00 2001
+From: Alex Deucher <alexander.deucher@amd.com>
+Date: Tue, 21 Aug 2012 09:55:01 -0400
+Subject: [PATCH 67/94] Revert "drm/radeon: fix bo creation retry path"
+
+commit 676bc2e1e4f9072f7a640d5b7c99ffdf9709a6e7 upstream.
+
+This reverts commit d1c7871ddb1f588b8eb35affd9ee1a3d5e11cd0c.
+
+ttm_bo_init() destroys the BO on failure. So this patch makes
+the retry path work with freed memory.  This ends up causing
+kernel panics when this path is hit.
+
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_object.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_object.c b/drivers/gpu/drm/radeon/radeon_object.c
+index 39497c7..f3ae607 100644
+--- a/drivers/gpu/drm/radeon/radeon_object.c
++++ b/drivers/gpu/drm/radeon/radeon_object.c
+@@ -117,6 +117,7 @@ int radeon_bo_create(struct radeon_device *rdev,
+ 		return -ENOMEM;
+ 	}
+ 
++retry:
+ 	bo = kzalloc(sizeof(struct radeon_bo), GFP_KERNEL);
+ 	if (bo == NULL)
+ 		return -ENOMEM;
+@@ -129,8 +130,6 @@ int radeon_bo_create(struct radeon_device *rdev,
+ 	bo->gem_base.driver_private = NULL;
+ 	bo->surface_reg = -1;
+ 	INIT_LIST_HEAD(&bo->list);
+-
+-retry:
+ 	radeon_ttm_placement_from_domain(bo, domain);
+ 	/* Kernel allocation are uninterruptible */
+ 	mutex_lock(&rdev->vram_mutex);
+-- 
+1.7.10.4
+

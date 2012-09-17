@@ -1,0 +1,41 @@
+From d9033bcc75a39d79411c722502665ccaab0dd4d6 Mon Sep 17 00:00:00 2001
+From: Tony Luck <tony.luck@intel.com>
+Date: Fri, 20 Jul 2012 13:15:20 -0700
+Subject: [PATCH 81/94] dmi: Feed DMI table to /dev/random driver
+
+commit d114a33387472555188f142ed8e98acdb8181c6d upstream.
+
+Send the entire DMI (SMBIOS) table to the /dev/random driver to
+help seed its pools.
+
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/firmware/dmi_scan.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/firmware/dmi_scan.c b/drivers/firmware/dmi_scan.c
+index 153980b..b298158 100644
+--- a/drivers/firmware/dmi_scan.c
++++ b/drivers/firmware/dmi_scan.c
+@@ -6,6 +6,7 @@
+ #include <linux/dmi.h>
+ #include <linux/efi.h>
+ #include <linux/bootmem.h>
++#include <linux/random.h>
+ #include <asm/dmi.h>
+ 
+ /*
+@@ -111,6 +112,8 @@ static int __init dmi_walk_early(void (*decode)(const struct dmi_header *,
+ 
+ 	dmi_table(buf, dmi_len, dmi_num, decode, NULL);
+ 
++	add_device_randomness(buf, dmi_len);
++
+ 	dmi_iounmap(buf, dmi_len);
+ 	return 0;
+ }
+-- 
+1.7.10.4
+

@@ -1,0 +1,46 @@
+From e91f7b801664f7aa25d4cb7420885ee277b19b5c Mon Sep 17 00:00:00 2001
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Fri, 17 Aug 2012 17:48:33 -0700
+Subject: [PATCH 45/94] USB: vt6656: remove __devinit* from the struct
+ usb_device_id table
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit 4d088876f24887cd15a29db923f5f37db6a99f21 upstream.
+
+This structure needs to always stick around, even if CONFIG_HOTPLUG
+is disabled, otherwise we can oops when trying to probe a device that
+was added after the structure is thrown away.
+
+Thanks to Fengguang Wu and Bjørn Mork for tracking this issue down.
+
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Reported-by: Bjørn Mork <bjorn@mork.no>
+CC: Forest Bond <forest@alittletooquiet.net>
+CC: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
+CC: "David S. Miller" <davem@davemloft.net>
+CC: Jesper Juhl <jj@chaosbits.net>
+CC: Jiri Pirko <jpirko@redhat.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/vt6656/main_usb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/vt6656/main_usb.c b/drivers/staging/vt6656/main_usb.c
+index 27521b6..ae62d57 100644
+--- a/drivers/staging/vt6656/main_usb.c
++++ b/drivers/staging/vt6656/main_usb.c
+@@ -222,7 +222,7 @@ DEVICE_PARAM(b80211hEnable, "802.11h mode");
+ // Static vars definitions
+ //
+ 
+-static struct usb_device_id vt6656_table[] __devinitdata = {
++static struct usb_device_id vt6656_table[] = {
+ 	{USB_DEVICE(VNT_USB_VENDOR_ID, VNT_USB_PRODUCT_ID)},
+ 	{}
+ };
+-- 
+1.7.10.4
+

@@ -1,0 +1,45 @@
+From 372c463a7c5ea46eca693ea52bd95cb8512247f8 Mon Sep 17 00:00:00 2001
+From: Mathias Krause <minipli@googlemail.com>
+Date: Wed, 15 Aug 2012 11:31:54 +0000
+Subject: [PATCH 33/94] dccp: check ccid before dereferencing
+
+commit 276bdb82dedb290511467a5a4fdbe9f0b52dce6f upstream.
+
+ccid_hc_rx_getsockopt() and ccid_hc_tx_getsockopt() might be called with
+a NULL ccid pointer leading to a NULL pointer dereference. This could
+lead to a privilege escalation if the attacker is able to map page 0 and
+prepare it with a fake ccid_ops pointer.
+
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+Cc: Gerrit Renker <gerrit@erg.abdn.ac.uk>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/dccp/ccid.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/dccp/ccid.h b/net/dccp/ccid.h
+index 75c3582..fb85d37 100644
+--- a/net/dccp/ccid.h
++++ b/net/dccp/ccid.h
+@@ -246,7 +246,7 @@ static inline int ccid_hc_rx_getsockopt(struct ccid *ccid, struct sock *sk,
+ 					u32 __user *optval, int __user *optlen)
+ {
+ 	int rc = -ENOPROTOOPT;
+-	if (ccid->ccid_ops->ccid_hc_rx_getsockopt != NULL)
++	if (ccid != NULL && ccid->ccid_ops->ccid_hc_rx_getsockopt != NULL)
+ 		rc = ccid->ccid_ops->ccid_hc_rx_getsockopt(sk, optname, len,
+ 						 optval, optlen);
+ 	return rc;
+@@ -257,7 +257,7 @@ static inline int ccid_hc_tx_getsockopt(struct ccid *ccid, struct sock *sk,
+ 					u32 __user *optval, int __user *optlen)
+ {
+ 	int rc = -ENOPROTOOPT;
+-	if (ccid->ccid_ops->ccid_hc_tx_getsockopt != NULL)
++	if (ccid != NULL && ccid->ccid_ops->ccid_hc_tx_getsockopt != NULL)
+ 		rc = ccid->ccid_ops->ccid_hc_tx_getsockopt(sk, optname, len,
+ 						 optval, optlen);
+ 	return rc;
+-- 
+1.7.10.4
+

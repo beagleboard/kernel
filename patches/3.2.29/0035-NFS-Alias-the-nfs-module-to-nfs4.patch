@@ -1,0 +1,32 @@
+From 93478b6b303be51b15e078ddbda862ec39300f4f Mon Sep 17 00:00:00 2001
+From: "bjschuma@gmail.com" <bjschuma@gmail.com>
+Date: Wed, 8 Aug 2012 13:57:10 -0400
+Subject: [PATCH 35/94] NFS: Alias the nfs module to nfs4
+
+commit 425e776d93a7a5070b77d4f458a5bab0f924652c upstream.
+
+This allows distros to remove the line from their modprobe
+configuration.
+
+Signed-off-by: Bryan Schumaker <bjschuma@netapp.com>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/super.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/fs/nfs/super.c b/fs/nfs/super.c
+index 376cd65..6e85ec6 100644
+--- a/fs/nfs/super.c
++++ b/fs/nfs/super.c
+@@ -3087,4 +3087,6 @@ static struct dentry *nfs4_referral_mount(struct file_system_type *fs_type,
+ 	return res;
+ }
+ 
++MODULE_ALIAS("nfs4");
++
+ #endif /* CONFIG_NFS_V4 */
+-- 
+1.7.10.4
+

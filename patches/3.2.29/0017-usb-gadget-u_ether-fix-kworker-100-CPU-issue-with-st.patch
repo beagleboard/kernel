@@ -1,0 +1,77 @@
+From 18256787181341d60420bc17b345ca1ff6444661 Mon Sep 17 00:00:00 2001
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+Date: Wed, 8 Aug 2012 11:48:10 +0200
+Subject: [PATCH 17/94] usb: gadget: u_ether: fix kworker 100% CPU issue with
+ still used interfaces in eth_stop
+
+commit b1b552a69b8805e7e338074a9e8b670b4a795218 upstream.
+
+This patch fixes an issue introduced by patch:
+
+    72c973d usb: gadget: add usb_endpoint_descriptor to struct usb_ep
+
+Without this patch we see a kworker taking 100% CPU, after this sequence:
+
+- Connect gadget to a windows host
+- load g_ether
+- ifconfig up <ip>; ifconfig down; ifconfig up
+- ping <windows host>
+
+The "ifconfig down" results in calling eth_stop(), which will call
+usb_ep_disable() and, if the carrier is still ok, usb_ep_enable():
+
+         usb_ep_disable(link->in_ep);
+         usb_ep_disable(link->out_ep);
+         if (netif_carrier_ok(net)) {
+                 usb_ep_enable(link->in_ep);
+                 usb_ep_enable(link->out_ep);
+         }
+
+The ep should stay enabled, but will not, as ep_disable set the desc
+pointer to NULL, therefore the subsequent ep_enable will fail. This leads
+to permanent rescheduling of the eth_work() worker as usb_ep_queue()
+(called by the worker) will fail due to the unconfigured endpoint.
+
+We fix this issue by saving the ep descriptors and re-assign them before
+usb_ep_enable().
+
+Cc: Tatyana Brokhman <tlinder@codeaurora.org>
+Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/gadget/u_ether.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/usb/gadget/u_ether.c b/drivers/usb/gadget/u_ether.c
+index 4e1f0aa..9a2a1ae 100644
+--- a/drivers/usb/gadget/u_ether.c
++++ b/drivers/usb/gadget/u_ether.c
+@@ -669,6 +669,8 @@ static int eth_stop(struct net_device *net)
+ 	spin_lock_irqsave(&dev->lock, flags);
+ 	if (dev->port_usb) {
+ 		struct gether	*link = dev->port_usb;
++		const struct usb_endpoint_descriptor *in;
++		const struct usb_endpoint_descriptor *out;
+ 
+ 		if (link->close)
+ 			link->close(link);
+@@ -682,10 +684,14 @@ static int eth_stop(struct net_device *net)
+ 		 * their own pace; the network stack can handle old packets.
+ 		 * For the moment we leave this here, since it works.
+ 		 */
++		in = link->in_ep->desc;
++		out = link->out_ep->desc;
+ 		usb_ep_disable(link->in_ep);
+ 		usb_ep_disable(link->out_ep);
+ 		if (netif_carrier_ok(net)) {
+ 			DBG(dev, "host still using in/out endpoints\n");
++			link->in_ep->desc = in;
++			link->out_ep->desc = out;
+ 			usb_ep_enable(link->in_ep);
+ 			usb_ep_enable(link->out_ep);
+ 		}
+-- 
+1.7.10.4
+

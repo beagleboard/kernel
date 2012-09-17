@@ -1,0 +1,36 @@
+From 22ea071ae686f53bd4902b96b58c8c64976f831d Mon Sep 17 00:00:00 2001
+From: Will Deacon <will.deacon@arm.com>
+Date: Fri, 3 Aug 2012 17:24:14 +0100
+Subject: [PATCH 18/94] ARM: 7483/1: vfp: only advertise VFPv4 in hwcaps if
+ CONFIG_VFPv3 is enabled
+
+commit 3d9fb0038a9b02febb01efc79a4a5d97f1822a90 upstream.
+
+VFPv4 support depends on the VFPv3 context save/restore code, so only
+advertise support in the hwcaps if the kernel can actually handle it.
+
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/arm/vfp/vfpmodule.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/vfp/vfpmodule.c b/arch/arm/vfp/vfpmodule.c
+index ad83dad..f0702f3 100644
+--- a/arch/arm/vfp/vfpmodule.c
++++ b/arch/arm/vfp/vfpmodule.c
+@@ -628,8 +628,10 @@ static int __init vfp_init(void)
+ 			if ((fmrx(MVFR1) & 0x000fff00) == 0x00011100)
+ 				elf_hwcap |= HWCAP_NEON;
+ #endif
++#ifdef CONFIG_VFPv3
+ 			if ((fmrx(MVFR1) & 0xf0000000) == 0x10000000)
+ 				elf_hwcap |= HWCAP_VFPv4;
++#endif
+ 		}
+ 	}
+ 	return 0;
+-- 
+1.7.10.4
+

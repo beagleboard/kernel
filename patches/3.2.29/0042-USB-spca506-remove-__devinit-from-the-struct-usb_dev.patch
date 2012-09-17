@@ -1,0 +1,43 @@
+From 75fc31282f88bf314ad4cee90e84f763e909da18 Mon Sep 17 00:00:00 2001
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Fri, 17 Aug 2012 17:48:27 -0700
+Subject: [PATCH 42/94] USB: spca506: remove __devinit* from the struct
+ usb_device_id table
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit e694d518886c7afedcdd1732477832b2e32744e4 upstream.
+
+This structure needs to always stick around, even if CONFIG_HOTPLUG
+is disabled, otherwise we can oops when trying to probe a device that
+was added after the structure is thrown away.
+
+Thanks to Fengguang Wu and Bjørn Mork for tracking this issue down.
+
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Reported-by: Bjørn Mork <bjorn@mork.no>
+CC: Hans de Goede <hdegoede@redhat.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/media/video/gspca/spca506.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/video/gspca/spca506.c b/drivers/media/video/gspca/spca506.c
+index 89fec4c..731cd16 100644
+--- a/drivers/media/video/gspca/spca506.c
++++ b/drivers/media/video/gspca/spca506.c
+@@ -685,7 +685,7 @@ static const struct sd_desc sd_desc = {
+ };
+ 
+ /* -- module initialisation -- */
+-static const struct usb_device_id device_table[] __devinitconst = {
++static const struct usb_device_id device_table[] = {
+ 	{USB_DEVICE(0x06e1, 0xa190)},
+ /*fixme: may be IntelPCCameraPro BRIDGE_SPCA505
+ 	{USB_DEVICE(0x0733, 0x0430)}, */
+-- 
+1.7.10.4
+

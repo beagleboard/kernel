@@ -1,0 +1,57 @@
+From 5e1bf138823dfadd94a6270112d5882d3e4c13d4 Mon Sep 17 00:00:00 2001
+From: Lorenzo Bianconi <lorenzo.bianconi83@gmail.com>
+Date: Fri, 10 Aug 2012 11:00:24 +0200
+Subject: [PATCH 25/94] ath9k: fix decrypt_error initialization in
+ ath_rx_tasklet()
+
+commit e1352fde5682ab1bdd2a9e5d75c22d1fe210ef77 upstream.
+
+ath_rx_tasklet() calls ath9k_rx_skb_preprocess() and ath9k_rx_skb_postprocess()
+in a loop over the received frames. The decrypt_error flag is
+initialized to false
+just outside ath_rx_tasklet() loop. ath9k_rx_accept(), called by
+ath9k_rx_skb_preprocess(),
+only sets decrypt_error to true and never to false.
+Then ath_rx_tasklet() calls ath9k_rx_skb_postprocess() and passes
+decrypt_error to it.
+So, after a decryption error, in ath9k_rx_skb_postprocess(), we can
+have a leftover value
+from another processed frame. In that case, the frame will not be marked with
+RX_FLAG_DECRYPTED even if it is decrypted correctly.
+When using CCMP encryption this issue can lead to connection stuck
+because of CCMP
+PN corruption and a waste of CPU time since mac80211 tries to decrypt an already
+deciphered frame with ieee80211_aes_ccm_decrypt.
+Fix the issue initializing decrypt_error flag at the begging of the
+ath_rx_tasklet() loop.
+
+Signed-off-by: Lorenzo Bianconi <lorenzo.bianconi83@gmail.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/ath/ath9k/recv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/ath/ath9k/recv.c b/drivers/net/wireless/ath/ath9k/recv.c
+index e6d791c..b4cbc82 100644
+--- a/drivers/net/wireless/ath/ath9k/recv.c
++++ b/drivers/net/wireless/ath/ath9k/recv.c
+@@ -1782,7 +1782,6 @@ int ath_rx_tasklet(struct ath_softc *sc, int flush, bool hp)
+ 	struct ieee80211_hw *hw = sc->hw;
+ 	struct ieee80211_hdr *hdr;
+ 	int retval;
+-	bool decrypt_error = false;
+ 	struct ath_rx_status rs;
+ 	enum ath9k_rx_qtype qtype;
+ 	bool edma = !!(ah->caps.hw_caps & ATH9K_HW_CAP_EDMA);
+@@ -1804,6 +1803,7 @@ int ath_rx_tasklet(struct ath_softc *sc, int flush, bool hp)
+ 	tsf_lower = tsf & 0xffffffff;
+ 
+ 	do {
++		bool decrypt_error = false;
+ 		/* If handling rx interrupt and flush is in progress => exit */
+ 		if ((sc->sc_flags & SC_OP_RXFLUSH) && (flush == 0))
+ 			break;
+-- 
+1.7.10.4
+

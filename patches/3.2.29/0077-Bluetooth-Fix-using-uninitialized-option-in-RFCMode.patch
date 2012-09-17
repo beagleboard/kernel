@@ -1,0 +1,58 @@
+From 39b78b60059ba51c89008f93139719b489639124 Mon Sep 17 00:00:00 2001
+From: Szymon Janc <szymon.janc@tieto.com>
+Date: Fri, 8 Jun 2012 11:33:33 +0200
+Subject: [PATCH 77/94] Bluetooth: Fix using uninitialized option in RFCMode
+
+commit 8f321f853ea33330c7141977cd34804476e2e07e upstream.
+
+If remote device sends bogus RFC option with invalid length,
+undefined options values are used. Fix this by using defaults when
+remote misbehaves.
+
+This also fixes the following warning reported by gcc 4.7.0:
+
+net/bluetooth/l2cap_core.c: In function 'l2cap_config_rsp':
+net/bluetooth/l2cap_core.c:3302:13: warning: 'rfc.max_pdu_size' may be used uninitialized in this function [-Wmaybe-uninitialized]
+net/bluetooth/l2cap_core.c:3266:24: note: 'rfc.max_pdu_size' was declared here
+net/bluetooth/l2cap_core.c:3298:25: warning: 'rfc.monitor_timeout' may be used uninitialized in this function [-Wmaybe-uninitialized]
+net/bluetooth/l2cap_core.c:3266:24: note: 'rfc.monitor_timeout' was declared here
+net/bluetooth/l2cap_core.c:3297:25: warning: 'rfc.retrans_timeout' may be used uninitialized in this function [-Wmaybe-uninitialized]
+net/bluetooth/l2cap_core.c:3266:24: note: 'rfc.retrans_timeout' was declared here
+net/bluetooth/l2cap_core.c:3295:2: warning: 'rfc.mode' may be used uninitialized in this function [-Wmaybe-uninitialized]
+net/bluetooth/l2cap_core.c:3266:24: note: 'rfc.mode' was declared here
+
+Signed-off-by: Szymon Janc <szymon.janc@tieto.com>
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/bluetooth/l2cap_core.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/net/bluetooth/l2cap_core.c b/net/bluetooth/l2cap_core.c
+index 888fdca..dd76177 100644
+--- a/net/bluetooth/l2cap_core.c
++++ b/net/bluetooth/l2cap_core.c
+@@ -2264,12 +2264,14 @@ static void l2cap_conf_rfc_get(struct l2cap_chan *chan, void *rsp, int len)
+ 	while (len >= L2CAP_CONF_OPT_SIZE) {
+ 		len -= l2cap_get_conf_opt(&rsp, &type, &olen, &val);
+ 
+-		switch (type) {
+-		case L2CAP_CONF_RFC:
+-			if (olen == sizeof(rfc))
+-				memcpy(&rfc, (void *)val, olen);
+-			goto done;
+-		}
++		if (type != L2CAP_CONF_RFC)
++			continue;
++
++		if (olen != sizeof(rfc))
++			break;
++
++		memcpy(&rfc, (void *)val, olen);
++		goto done;
+ 	}
+ 
+ 	/* Use sane default values in case a misbehaving remote device
+-- 
+1.7.10.4
+

@@ -1,0 +1,47 @@
+From e18b3cbd16e4d5f77f9b9138ab143b2d10db88fe Mon Sep 17 00:00:00 2001
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Date: Sun, 12 Aug 2012 23:26:07 +0200
+Subject: [PATCH 31/94] PCI: EHCI: Fix crash during hibernation on ASUS
+ computers
+
+commit 0b68c8e2c3afaf9807eb1ebe0ccfb3b809570aa4 upstream.
+
+Commit dbf0e4c (PCI: EHCI: fix crash during suspend on ASUS
+computers) added a workaround for an ASUS suspend issue related to
+USB EHCI and a bug in a number of ASUS BIOSes that attempt to shut
+down the EHCI controller during system suspend if its PCI command
+register doesn't contain 0 at that time.
+
+It turns out that the same workaround is necessary in the analogous
+hibernation code path, so add it.
+
+References: https://bugzilla.kernel.org/show_bug.cgi?id=45811
+Reported-and-tested-by: Oleksij Rempel <bug-track@fisher-privat.net>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/pci/pci-driver.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
+index d024f83..68af94c 100644
+--- a/drivers/pci/pci-driver.c
++++ b/drivers/pci/pci-driver.c
+@@ -952,6 +952,13 @@ static int pci_pm_poweroff_noirq(struct device *dev)
+ 	if (!pci_dev->state_saved && !pci_is_bridge(pci_dev))
+ 		pci_prepare_to_sleep(pci_dev);
+ 
++	/*
++	 * The reason for doing this here is the same as for the analogous code
++	 * in pci_pm_suspend_noirq().
++	 */
++	if (pci_dev->class == PCI_CLASS_SERIAL_USB_EHCI)
++		pci_write_config_word(pci_dev, PCI_COMMAND, 0);
++
+ 	return 0;
+ }
+ 
+-- 
+1.7.10.4
+

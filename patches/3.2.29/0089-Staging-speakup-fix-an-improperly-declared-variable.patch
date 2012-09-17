@@ -1,0 +1,34 @@
+From fc1dd47cd57da67691c13e1f2d3cde814d857ebe Mon Sep 17 00:00:00 2001
+From: Christopher Brannon <chris@the-brannons.com>
+Date: Sat, 16 Jun 2012 16:55:20 -0500
+Subject: [PATCH 89/94] Staging: speakup: fix an improperly-declared variable.
+
+commit 4ea418b8b2fa8a70d0fcc8231b65e67b3a72984b upstream.
+
+A local static variable was declared as a pointer to a string
+constant.  We're assigning to the underlying memory, so it
+needs to be an array instead.
+
+Signed-off-by: Christopher Brannon <chris@the-brannons.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/speakup/main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/speakup/main.c b/drivers/staging/speakup/main.c
+index 8be5604..0d70f68 100644
+--- a/drivers/staging/speakup/main.c
++++ b/drivers/staging/speakup/main.c
+@@ -1854,7 +1854,7 @@ static void speakup_bits(struct vc_data *vc)
+ 
+ static int handle_goto(struct vc_data *vc, u_char type, u_char ch, u_short key)
+ {
+-	static u_char *goto_buf = "\0\0\0\0\0\0";
++	static u_char goto_buf[8];
+ 	static int num;
+ 	int maxlen, go_pos;
+ 	char *cp;
+-- 
+1.7.10.4
+

@@ -1,0 +1,43 @@
+From 61c4b1fbe39d46c59ef0ae914298b16e91a05c04 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>
+Date: Sat, 19 May 2012 19:20:50 +0200
+Subject: [PATCH 13/94] USB: option: Add Vodafone/Huawei K5005 support
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit 4cbbb039a9719fb3bba73d255c6a95bc6dc6428b upstream.
+
+Tested-by: Thomas Schäfer <tschaefer@t-online.de>
+Signed-off-by: Bjørn Mork <bjorn@mork.no>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/option.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/usb/serial/option.c b/drivers/usb/serial/option.c
+index d89aac1..5263f6c 100644
+--- a/drivers/usb/serial/option.c
++++ b/drivers/usb/serial/option.c
+@@ -151,6 +151,7 @@ static void option_instat_callback(struct urb *urb);
+ #define HUAWEI_PRODUCT_E14AC			0x14AC
+ #define HUAWEI_PRODUCT_K3806			0x14AE
+ #define HUAWEI_PRODUCT_K4605			0x14C6
++#define HUAWEI_PRODUCT_K5005			0x14C8
+ #define HUAWEI_PRODUCT_K3770			0x14C9
+ #define HUAWEI_PRODUCT_K3771			0x14CA
+ #define HUAWEI_PRODUCT_K4510			0x14CB
+@@ -692,6 +693,9 @@ static const struct usb_device_id option_ids[] = {
+ 		.driver_info = (kernel_ulong_t) &huawei_cdc12_blacklist },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K4605, 0xff, 0x01, 0x31) },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K4605, 0xff, 0x01, 0x32) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K5005, 0xff, 0x01, 0x31) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K5005, 0xff, 0x01, 0x32) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K5005, 0xff, 0x01, 0x33) },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K3770, 0xff, 0x02, 0x31) },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K3770, 0xff, 0x02, 0x32) },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K3771, 0xff, 0x02, 0x31) },
+-- 
+1.7.10.4
+

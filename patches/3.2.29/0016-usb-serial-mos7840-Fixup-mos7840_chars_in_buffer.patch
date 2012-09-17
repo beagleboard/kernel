@@ -1,0 +1,41 @@
+From 4ca589e245b8806bc8dc055250c0168dc2a25a92 Mon Sep 17 00:00:00 2001
+From: Mark Ferrell <mferrell@uplogix.com>
+Date: Tue, 24 Jul 2012 14:15:13 -0500
+Subject: [PATCH 16/94] usb: serial: mos7840: Fixup mos7840_chars_in_buffer()
+
+commit 5c263b92f828af6a8cf54041db45ceae5af8f2ab upstream.
+
+ * Use the buffer content length as opposed to the total buffer size.  This can
+   be a real problem when using the mos7840 as a usb serial-console as all
+   kernel output is truncated during boot.
+
+Signed-off-by: Mark Ferrell <mferrell@uplogix.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/mos7840.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/usb/serial/mos7840.c b/drivers/usb/serial/mos7840.c
+index 5c7d654..b150ed9 100644
+--- a/drivers/usb/serial/mos7840.c
++++ b/drivers/usb/serial/mos7840.c
+@@ -1191,9 +1191,12 @@ static int mos7840_chars_in_buffer(struct tty_struct *tty)
+ 	}
+ 
+ 	spin_lock_irqsave(&mos7840_port->pool_lock, flags);
+-	for (i = 0; i < NUM_URBS; ++i)
+-		if (mos7840_port->busy[i])
+-			chars += URB_TRANSFER_BUFFER_SIZE;
++	for (i = 0; i < NUM_URBS; ++i) {
++		if (mos7840_port->busy[i]) {
++			struct urb *urb = mos7840_port->write_urb_pool[i];
++			chars += urb->transfer_buffer_length;
++		}
++	}
+ 	spin_unlock_irqrestore(&mos7840_port->pool_lock, flags);
+ 	dbg("%s - returns %d", __func__, chars);
+ 	return chars;
+-- 
+1.7.10.4
+

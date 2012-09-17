@@ -1,0 +1,50 @@
+From 775152296f2a750ebefc58d35fe0479a679f6797 Mon Sep 17 00:00:00 2001
+From: Will Deacon <will.deacon@arm.com>
+Date: Fri, 10 Aug 2012 17:51:19 +0100
+Subject: [PATCH 19/94] ARM: 7488/1: mm: use 5 bits for swapfile type encoding
+
+commit f5f2025ef3e2cdb593707cbf87378761f17befbe upstream.
+
+Page migration encodes the pfn in the offset field of a swp_entry_t.
+For LPAE, we support physical addresses of up to 36 bits (due to
+sparsemem limitations with the size of page flags), requiring 24 bits
+to represent a pfn. A further 3 bits are used to encode a swp_entry into
+a pte, leaving 5 bits for the type field. Furthermore, the core code
+defines MAX_SWAPFILES_SHIFT as 5, so the additional type bit does not
+get used.
+
+This patch reduces the width of the type field to 5 bits, allowing us
+to create up to 31 swapfiles of 64GB each.
+
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/arm/include/asm/pgtable.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/include/asm/pgtable.h b/arch/arm/include/asm/pgtable.h
+index 9451dce..8512475 100644
+--- a/arch/arm/include/asm/pgtable.h
++++ b/arch/arm/include/asm/pgtable.h
+@@ -288,13 +288,13 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+  *
+  *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+  *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
+- *   <--------------- offset --------------------> <- type --> 0 0 0
++ *   <--------------- offset ----------------------> < type -> 0 0 0
+  *
+- * This gives us up to 63 swap files and 32GB per swap file.  Note that
++ * This gives us up to 31 swap files and 64GB per swap file.  Note that
+  * the offset field is always non-zero.
+  */
+ #define __SWP_TYPE_SHIFT	3
+-#define __SWP_TYPE_BITS		6
++#define __SWP_TYPE_BITS		5
+ #define __SWP_TYPE_MASK		((1 << __SWP_TYPE_BITS) - 1)
+ #define __SWP_OFFSET_SHIFT	(__SWP_TYPE_BITS + __SWP_TYPE_SHIFT)
+ 
+-- 
+1.7.10.4
+

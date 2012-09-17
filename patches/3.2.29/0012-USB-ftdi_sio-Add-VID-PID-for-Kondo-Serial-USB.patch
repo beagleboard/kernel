@@ -1,0 +1,57 @@
+From 0752d91680fa6c41718558c01ed39f072da878ea Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ozan=20=C3=87a=C4=9Flayan?= <ozancag@gmail.com>
+Date: Fri, 10 Aug 2012 17:25:10 +0300
+Subject: [PATCH 12/94] USB: ftdi_sio: Add VID/PID for Kondo Serial USB
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit 7724a1edbe463b06d4e7831a41149ba095b16c53 upstream.
+
+This adds VID/PID for Kondo Kagaku Co. Ltd. Serial USB Adapter
+interface:
+http://www.kondo-robot.com/EN/wp/?cat=28
+
+Tested by controlling an RCB3 board using libRCB3.
+
+Signed-off-by: Ozan Çağlayan <ozancag@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/ftdi_sio.c     |    1 +
+ drivers/usb/serial/ftdi_sio_ids.h |    7 +++++++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/drivers/usb/serial/ftdi_sio.c b/drivers/usb/serial/ftdi_sio.c
+index 4045e39..b3182bb 100644
+--- a/drivers/usb/serial/ftdi_sio.c
++++ b/drivers/usb/serial/ftdi_sio.c
+@@ -811,6 +811,7 @@ static struct usb_device_id id_table_combined [] = {
+ 	{ USB_DEVICE(LARSENBRUSGAARD_VID, LB_ALTITRACK_PID) },
+ 	{ USB_DEVICE(GN_OTOMETRICS_VID, AURICAL_USB_PID) },
+ 	{ USB_DEVICE(PI_VID, PI_E861_PID) },
++	{ USB_DEVICE(KONDO_VID, KONDO_USB_SERIAL_PID) },
+ 	{ USB_DEVICE(BAYER_VID, BAYER_CONTOUR_CABLE_PID) },
+ 	{ USB_DEVICE(FTDI_VID, MARVELL_OPENRD_PID),
+ 		.driver_info = (kernel_ulong_t)&ftdi_jtag_quirk },
+diff --git a/drivers/usb/serial/ftdi_sio_ids.h b/drivers/usb/serial/ftdi_sio_ids.h
+index d27d7d7..54b4258 100644
+--- a/drivers/usb/serial/ftdi_sio_ids.h
++++ b/drivers/usb/serial/ftdi_sio_ids.h
+@@ -795,6 +795,13 @@
+ #define PI_E861_PID         0x1008  /* E-861 piezo controller USB connection */
+ 
+ /*
++ * Kondo Kagaku Co.Ltd.
++ * http://www.kondo-robot.com/EN
++ */
++#define KONDO_VID 		0x165c
++#define KONDO_USB_SERIAL_PID	0x0002
++
++/*
+  * Bayer Ascensia Contour blood glucose meter USB-converter cable.
+  * http://winglucofacts.com/cables/
+  */
+-- 
+1.7.10.4
+

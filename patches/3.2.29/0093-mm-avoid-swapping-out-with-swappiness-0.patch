@@ -1,0 +1,68 @@
+From a65afe79af5181ca0fca10262908738b4f453b97 Mon Sep 17 00:00:00 2001
+From: Satoru Moriya <satoru.moriya@hds.com>
+Date: Tue, 29 May 2012 15:06:47 -0700
+Subject: [PATCH 93/94] mm: avoid swapping out with swappiness==0
+
+commit fe35004fbf9eaf67482b074a2e032abb9c89b1dd upstream.
+
+Sometimes we'd like to avoid swapping out anonymous memory.  In
+particular, avoid swapping out pages of important process or process
+groups while there is a reasonable amount of pagecache on RAM so that we
+can satisfy our customers' requirements.
+
+OTOH, we can control how aggressive the kernel will swap memory pages with
+/proc/sys/vm/swappiness for global and
+/sys/fs/cgroup/memory/memory.swappiness for each memcg.
+
+But with current reclaim implementation, the kernel may swap out even if
+we set swappiness=0 and there is pagecache in RAM.
+
+This patch changes the behavior with swappiness==0.  If we set
+swappiness==0, the kernel does not swap out completely (for global reclaim
+until the amount of free pages and filebacked pages in a zone has been
+reduced to something very very small (nr_free + nr_filebacked < high
+watermark)).
+
+Signed-off-by: Satoru Moriya <satoru.moriya@hds.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: Jerome Marchand <jmarchan@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+[bwh: Backported to 3.2:
+ - Adjust context
+ - vmscan_swappiness() does not have a zone parameter]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/vmscan.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 48febd7..86eb848 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -1977,10 +1977,10 @@ static void get_scan_count(struct zone *zone, struct scan_control *sc,
+ 	 * proportional to the fraction of recently scanned pages on
+ 	 * each list that were recently referenced and in active use.
+ 	 */
+-	ap = (anon_prio + 1) * (reclaim_stat->recent_scanned[0] + 1);
++	ap = anon_prio * (reclaim_stat->recent_scanned[0] + 1);
+ 	ap /= reclaim_stat->recent_rotated[0] + 1;
+ 
+-	fp = (file_prio + 1) * (reclaim_stat->recent_scanned[1] + 1);
++	fp = file_prio * (reclaim_stat->recent_scanned[1] + 1);
+ 	fp /= reclaim_stat->recent_rotated[1] + 1;
+ 	spin_unlock_irq(&zone->lru_lock);
+ 
+@@ -1993,7 +1993,7 @@ out:
+ 		unsigned long scan;
+ 
+ 		scan = zone_nr_lru_pages(zone, sc, l);
+-		if (priority || noswap) {
++		if (priority || noswap || !vmscan_swappiness(sc)) {
+ 			scan >>= priority;
+ 			if (!scan && force_scan)
+ 				scan = SWAP_CLUSTER_MAX;
+-- 
+1.7.10.4
+

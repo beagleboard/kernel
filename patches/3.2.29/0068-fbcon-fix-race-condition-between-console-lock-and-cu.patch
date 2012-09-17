@@ -1,0 +1,72 @@
+From 94fb24693f5fff6ddbbfe2efd93be7f24e47e669 Mon Sep 17 00:00:00 2001
+From: Dave Airlie <airlied@redhat.com>
+Date: Tue, 21 Aug 2012 16:29:47 +1000
+Subject: [PATCH 68/94] fbcon: fix race condition between console lock and
+ cursor timer (v1.1)
+
+commit d8636a2717bb3da2a7ce2154bf08de90bb8c87b0 upstream.
+
+So we've had a fair few reports of fbcon handover breakage between
+efi/vesafb and i915 surface recently, so I dedicated a couple of
+days to finding the problem.
+
+Essentially the last thing we saw was the conflicting framebuffer
+message and that was all.
+
+So after much tracing with direct netconsole writes (printks
+under console_lock not so useful), I think I found the race.
+
+Thread A (driver load)    Thread B (timer thread)
+  unbind_con_driver ->              |
+  bind_con_driver ->                |
+  vc->vc_sw->con_deinit ->          |
+  fbcon_deinit ->                   |
+  console_lock()                    |
+      |                             |
+      |                       fbcon_flashcursor timer fires
+      |                       console_lock() <- blocked for A
+      |
+      |
+fbcon_del_cursor_timer ->
+  del_timer_sync
+  (BOOM)
+
+Of course because all of this is under the console lock,
+we never see anything, also since we also just unbound the active
+console guess what we never see anything.
+
+Hopefully this fixes the problem for anyone seeing vesafb->kms
+driver handoff.
+
+v1.1: add comment suggestion from Alan.
+
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/video/console/fbcon.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/video/console/fbcon.c b/drivers/video/console/fbcon.c
+index 8745637..bf9a9b7 100644
+--- a/drivers/video/console/fbcon.c
++++ b/drivers/video/console/fbcon.c
+@@ -373,8 +373,15 @@ static void fb_flashcursor(struct work_struct *work)
+ 	struct vc_data *vc = NULL;
+ 	int c;
+ 	int mode;
++	int ret;
++
++	/* FIXME: we should sort out the unbind locking instead */
++	/* instead we just fail to flash the cursor if we can't get
++	 * the lock instead of blocking fbcon deinit */
++	ret = console_trylock();
++	if (ret == 0)
++		return;
+ 
+-	console_lock();
+ 	if (ops && ops->currcon != -1)
+ 		vc = vc_cons[ops->currcon].d;
+ 
+-- 
+1.7.10.4
+

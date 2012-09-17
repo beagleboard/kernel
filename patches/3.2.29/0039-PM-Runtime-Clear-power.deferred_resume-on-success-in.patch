@@ -1,0 +1,52 @@
+From 9379931f204703f9ccdf33b9273f3e755d86f8e6 Mon Sep 17 00:00:00 2001
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Date: Wed, 15 Aug 2012 21:31:55 +0200
+Subject: [PATCH 39/94] PM / Runtime: Clear power.deferred_resume on success
+ in rpm_suspend()
+
+commit 58a34de7b1a920d287d17d2ca08bc9aaf7e6d35b upstream.
+
+The power.deferred_resume can only be set if the runtime PM status
+of device is RPM_SUSPENDING and it should be cleared after its
+status has been changed, regardless of whether or not the runtime
+suspend has been successful.  However, it only is cleared on
+suspend failure, while it may remain set on successful suspend and
+is happily leaked to rpm_resume() executed in that case.
+
+That shouldn't happen, so if power.deferred_resume is set in
+rpm_suspend() after the status has been changed to RPM_SUSPENDED,
+clear it before calling rpm_resume().  Then, it doesn't need to be
+cleared before changing the status to RPM_SUSPENDING any more,
+because it's always cleared after the status has been changed to
+either RPM_SUSPENDED (on success) or RPM_ACTIVE (on failure).
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/base/power/runtime.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
+index 5f8a871..3790c80 100644
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -385,7 +385,6 @@ static int rpm_suspend(struct device *dev, int rpmflags)
+ 		goto repeat;
+ 	}
+ 
+-	dev->power.deferred_resume = false;
+ 	if (dev->power.no_callbacks)
+ 		goto no_callback;	/* Assume success. */
+ 
+@@ -446,6 +445,7 @@ static int rpm_suspend(struct device *dev, int rpmflags)
+ 	wake_up_all(&dev->power.wait_queue);
+ 
+ 	if (dev->power.deferred_resume) {
++		dev->power.deferred_resume = false;
+ 		rpm_resume(dev, 0);
+ 		retval = -EAGAIN;
+ 		goto out;
+-- 
+1.7.10.4
+

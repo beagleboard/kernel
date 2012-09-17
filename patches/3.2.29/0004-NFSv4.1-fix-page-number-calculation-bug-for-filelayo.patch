@@ -1,0 +1,45 @@
+From c9bdb0b448ba51ff1ec87813de6940205ccf49d3 Mon Sep 17 00:00:00 2001
+From: Andy Adamson <andros@netapp.com>
+Date: Sat, 14 Apr 2012 03:56:35 -0400
+Subject: [PATCH 04/94] NFSv4.1 fix page number calculation bug for filelayout
+ decode buffers
+
+commit e5265a0c587423bbd21a6b39a572cecff16b9346 upstream.
+
+Signed-off-by: Andy Adamson <andros@netapp.com>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/nfs4filelayoutdev.c |    2 +-
+ fs/nfs/pnfs.c              |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/fs/nfs/nfs4filelayoutdev.c b/fs/nfs/nfs4filelayoutdev.c
+index ed388aa..bd5d9cf 100644
+--- a/fs/nfs/nfs4filelayoutdev.c
++++ b/fs/nfs/nfs4filelayoutdev.c
+@@ -721,7 +721,7 @@ get_device_info(struct inode *inode, struct nfs4_deviceid *dev_id, gfp_t gfp_fla
+ 	 * GETDEVICEINFO's maxcount
+ 	 */
+ 	max_resp_sz = server->nfs_client->cl_session->fc_attrs.max_resp_sz;
+-	max_pages = max_resp_sz >> PAGE_SHIFT;
++	max_pages = nfs_page_array_len(0, max_resp_sz);
+ 	dprintk("%s inode %p max_resp_sz %u max_pages %d\n",
+ 		__func__, inode, max_resp_sz, max_pages);
+ 
+diff --git a/fs/nfs/pnfs.c b/fs/nfs/pnfs.c
+index 4dfc3f1..72380f3 100644
+--- a/fs/nfs/pnfs.c
++++ b/fs/nfs/pnfs.c
+@@ -588,7 +588,7 @@ send_layoutget(struct pnfs_layout_hdr *lo,
+ 
+ 	/* allocate pages for xdr post processing */
+ 	max_resp_sz = server->nfs_client->cl_session->fc_attrs.max_resp_sz;
+-	max_pages = max_resp_sz >> PAGE_SHIFT;
++	max_pages = nfs_page_array_len(0, max_resp_sz);
+ 
+ 	pages = kcalloc(max_pages, sizeof(struct page *), gfp_flags);
+ 	if (!pages)
+-- 
+1.7.10.4
+

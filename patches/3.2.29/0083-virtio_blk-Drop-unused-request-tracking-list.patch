@@ -1,0 +1,88 @@
+From 788c8de383e3c59df49126f95343eed0cf1733ea Mon Sep 17 00:00:00 2001
+From: Asias He <asias@redhat.com>
+Date: Fri, 30 Mar 2012 11:24:10 +0800
+Subject: [PATCH 83/94] virtio_blk: Drop unused request tracking list
+
+commit f65ca1dc6a8c81c6bd72297d4399ec5f4c1f3a01 upstream.
+
+Benchmark shows small performance improvement on fusion io device.
+
+Before:
+  seq-read : io=1,024MB, bw=19,982KB/s, iops=39,964, runt= 52475msec
+  seq-write: io=1,024MB, bw=20,321KB/s, iops=40,641, runt= 51601msec
+  rnd-read : io=1,024MB, bw=15,404KB/s, iops=30,808, runt= 68070msec
+  rnd-write: io=1,024MB, bw=14,776KB/s, iops=29,552, runt= 70963msec
+
+After:
+  seq-read : io=1,024MB, bw=20,343KB/s, iops=40,685, runt= 51546msec
+  seq-write: io=1,024MB, bw=20,803KB/s, iops=41,606, runt= 50404msec
+  rnd-read : io=1,024MB, bw=16,221KB/s, iops=32,442, runt= 64642msec
+  rnd-write: io=1,024MB, bw=15,199KB/s, iops=30,397, runt= 68991msec
+
+Signed-off-by: Asias He <asias@redhat.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/block/virtio_blk.c |   10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/drivers/block/virtio_blk.c b/drivers/block/virtio_blk.c
+index b672b9f..108ebb4 100644
+--- a/drivers/block/virtio_blk.c
++++ b/drivers/block/virtio_blk.c
+@@ -27,9 +27,6 @@ struct virtio_blk
+ 	/* The disk structure for the kernel. */
+ 	struct gendisk *disk;
+ 
+-	/* Request tracking. */
+-	struct list_head reqs;
+-
+ 	mempool_t *pool;
+ 
+ 	/* Process context for config space updates */
+@@ -53,7 +50,6 @@ struct virtio_blk
+ 
+ struct virtblk_req
+ {
+-	struct list_head list;
+ 	struct request *req;
+ 	struct virtio_blk_outhdr out_hdr;
+ 	struct virtio_scsi_inhdr in_hdr;
+@@ -97,7 +93,6 @@ static void blk_done(struct virtqueue *vq)
+ 		}
+ 
+ 		__blk_end_request_all(vbr->req, error);
+-		list_del(&vbr->list);
+ 		mempool_free(vbr, vblk->pool);
+ 	}
+ 	/* In case queue is stopped waiting for more buffers. */
+@@ -182,7 +177,6 @@ static bool do_req(struct request_queue *q, struct virtio_blk *vblk,
+ 		return false;
+ 	}
+ 
+-	list_add_tail(&vbr->list, &vblk->reqs);
+ 	return true;
+ }
+ 
+@@ -394,7 +388,6 @@ static int __devinit virtblk_probe(struct virtio_device *vdev)
+ 		goto out_free_index;
+ 	}
+ 
+-	INIT_LIST_HEAD(&vblk->reqs);
+ 	vblk->vdev = vdev;
+ 	vblk->sg_elems = sg_elems;
+ 	sg_init_table(vblk->sg, vblk->sg_elems);
+@@ -559,9 +552,6 @@ static void __devexit virtblk_remove(struct virtio_device *vdev)
+ 	vblk->config_enable = false;
+ 	mutex_unlock(&vblk->config_lock);
+ 
+-	/* Nothing should be pending. */
+-	BUG_ON(!list_empty(&vblk->reqs));
+-
+ 	/* Stop all the virtqueues. */
+ 	vdev->config->reset(vdev);
+ 
+-- 
+1.7.10.4
+

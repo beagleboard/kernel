@@ -1,0 +1,35 @@
+From 2b1e8d056506b172b7326734cdbe6ca0a1e703c5 Mon Sep 17 00:00:00 2001
+From: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
+Date: Mon, 20 Aug 2012 15:16:04 +0100
+Subject: [PATCH 54/94] drm/radeon/kms: extend the Fujitsu D3003-S2 board
+ connector quirk to cover later silicon stepping
+
+commit 52e9b39d9a89ae33662596bd30e62dd56bddbe73 upstream.
+
+There is a more recent APU stepping with a new PCI ID
+shipping in the same board by Fujitsu which needs the
+same quirk to correctly mark the back plane connectors.
+
+Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_atombios.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_atombios.c b/drivers/gpu/drm/radeon/radeon_atombios.c
+index 9d2c369..38585c5 100644
+--- a/drivers/gpu/drm/radeon/radeon_atombios.c
++++ b/drivers/gpu/drm/radeon/radeon_atombios.c
+@@ -446,7 +446,7 @@ static bool radeon_atom_apply_quirks(struct drm_device *dev,
+ 	}
+ 
+ 	/* Fujitsu D3003-S2 board lists DVI-I as DVI-D and VGA */
+-	if ((dev->pdev->device == 0x9802) &&
++	if (((dev->pdev->device == 0x9802) || (dev->pdev->device == 0x9806)) &&
+ 	    (dev->pdev->subsystem_vendor == 0x1734) &&
+ 	    (dev->pdev->subsystem_device == 0x11bd)) {
+ 		if (*connector_type == DRM_MODE_CONNECTOR_VGA) {
+-- 
+1.7.10.4
+

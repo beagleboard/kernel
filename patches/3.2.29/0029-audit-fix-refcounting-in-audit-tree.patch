@@ -1,0 +1,89 @@
+From c2cc94c67ca8e3c496a790d631fd1ac38d31d522 Mon Sep 17 00:00:00 2001
+From: Miklos Szeredi <mszeredi@suse.cz>
+Date: Wed, 15 Aug 2012 12:55:22 +0200
+Subject: [PATCH 29/94] audit: fix refcounting in audit-tree
+
+commit a2140fc0cb0325bb6384e788edd27b9a568714e2 upstream.
+
+Refcounting of fsnotify_mark in audit tree is broken.  E.g:
+
+                              refcount
+create_chunk
+  alloc_chunk                 1
+  fsnotify_add_mark           2
+
+untag_chunk
+  fsnotify_get_mark           3
+  fsnotify_destroy_mark
+    audit_tree_freeing_mark   2
+  fsnotify_put_mark           1
+  fsnotify_put_mark           0
+  via destroy_list
+    fsnotify_mark_destroy    -1
+
+This was reported by various people as triggering Oops when stopping auditd.
+
+We could just remove the put_mark from audit_tree_freeing_mark() but that would
+break freeing via inode destruction.  So this patch simply omits a put_mark
+after calling destroy_mark or adds a get_mark before.
+
+The additional get_mark is necessary where there's no other put_mark after
+fsnotify_destroy_mark() since it assumes that the caller is holding a reference
+(or the inode is keeping the mark pinned, not the case here AFAICS).
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Reported-by: Valentin Avram <aval13@gmail.com>
+Reported-by: Peter Moody <pmoody@google.com>
+Acked-by: Eric Paris <eparis@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/audit_tree.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/kernel/audit_tree.c b/kernel/audit_tree.c
+index d52d247..31fdc48 100644
+--- a/kernel/audit_tree.c
++++ b/kernel/audit_tree.c
+@@ -250,7 +250,6 @@ static void untag_chunk(struct node *p)
+ 		spin_unlock(&hash_lock);
+ 		spin_unlock(&entry->lock);
+ 		fsnotify_destroy_mark(entry);
+-		fsnotify_put_mark(entry);
+ 		goto out;
+ 	}
+ 
+@@ -293,7 +292,6 @@ static void untag_chunk(struct node *p)
+ 	spin_unlock(&hash_lock);
+ 	spin_unlock(&entry->lock);
+ 	fsnotify_destroy_mark(entry);
+-	fsnotify_put_mark(entry);
+ 	goto out;
+ 
+ Fallback:
+@@ -332,6 +330,7 @@ static int create_chunk(struct inode *inode, struct audit_tree *tree)
+ 		spin_unlock(&hash_lock);
+ 		chunk->dead = 1;
+ 		spin_unlock(&entry->lock);
++		fsnotify_get_mark(entry);
+ 		fsnotify_destroy_mark(entry);
+ 		fsnotify_put_mark(entry);
+ 		return 0;
+@@ -412,6 +411,7 @@ static int tag_chunk(struct inode *inode, struct audit_tree *tree)
+ 		spin_unlock(&chunk_entry->lock);
+ 		spin_unlock(&old_entry->lock);
+ 
++		fsnotify_get_mark(chunk_entry);
+ 		fsnotify_destroy_mark(chunk_entry);
+ 
+ 		fsnotify_put_mark(chunk_entry);
+@@ -445,7 +445,6 @@ static int tag_chunk(struct inode *inode, struct audit_tree *tree)
+ 	spin_unlock(&old_entry->lock);
+ 	fsnotify_destroy_mark(old_entry);
+ 	fsnotify_put_mark(old_entry); /* pair to fsnotify_find mark_entry */
+-	fsnotify_put_mark(old_entry); /* and kill it */
+ 	return 0;
+ }
+ 
+-- 
+1.7.10.4
+

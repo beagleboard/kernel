@@ -1,0 +1,54 @@
+From 55add10c00b8ddd4cc091fa7e5dc974a0985fd90 Mon Sep 17 00:00:00 2001
+From: Mel Gorman <mgorman@suse.de>
+Date: Sun, 19 Aug 2012 14:41:03 +1200
+Subject: [PATCH 50/94] Redefine ATOMIC_INIT and ATOMIC64_INIT to drop the
+ casts
+
+commit 67a806d9499353fabd5b5ff07337f3aa88a1c3ba upstream.
+
+The following build error occurred during an alpha build:
+
+  net/core/sock.c:274:36: error: initializer element is not constant
+
+Dave Anglin says:
+> Here is the line in sock.i:
+>
+> struct static_key memalloc_socks = ((struct static_key) { .enabled =
+> ((atomic_t) { (0) }) });
+
+The above line contains two compound literals.  It also uses a designated
+initializer to initialize the field enabled.  A compound literal is not a
+constant expression.
+
+The location of the above statement isn't fully clear, but if a compound
+literal occurs outside the body of a function, the initializer list must
+consist of constant expressions.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Michael Cree <mcree@orcon.net.nz>
+Acked-by: Matt Turner <mattst88@gmail.com>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/alpha/include/asm/atomic.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/alpha/include/asm/atomic.h b/arch/alpha/include/asm/atomic.h
+index 640f909..6f1aca7 100644
+--- a/arch/alpha/include/asm/atomic.h
++++ b/arch/alpha/include/asm/atomic.h
+@@ -14,8 +14,8 @@
+  */
+ 
+ 
+-#define ATOMIC_INIT(i)		( (atomic_t) { (i) } )
+-#define ATOMIC64_INIT(i)	( (atomic64_t) { (i) } )
++#define ATOMIC_INIT(i)		{ (i) }
++#define ATOMIC64_INIT(i)	{ (i) }
+ 
+ #define atomic_read(v)		(*(volatile int *)&(v)->counter)
+ #define atomic64_read(v)	(*(volatile long *)&(v)->counter)
+-- 
+1.7.10.4
+

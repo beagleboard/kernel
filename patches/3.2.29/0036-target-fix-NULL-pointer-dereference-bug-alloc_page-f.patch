@@ -1,0 +1,42 @@
+From 077bfcc044b6ec6f780bc53b206dd1ba10aa2cd3 Mon Sep 17 00:00:00 2001
+From: Yi Zou <yi.zou@intel.com>
+Date: Tue, 14 Aug 2012 16:06:43 -0700
+Subject: [PATCH 36/94] target: fix NULL pointer dereference bug alloc_page()
+ fails to get memory
+
+commit d0e27c88d795fb9647153063ec48051fd84e1731 upstream.
+
+I am hitting this bug when the target is low in memory that fails the
+alloc_page() for the newly submitted command. This is a sort of off-by-one
+bug causing NULL pointer dereference in __free_page() since 'i' here is
+really the counter of total pages that have been successfully allocated here.
+
+Signed-off-by: Yi Zou <yi.zou@intel.com>
+Cc: Andy Grover <agrover@redhat.com>
+Cc: Nicholas Bellinger <nab@linux-iscsi.org>
+Cc: Open-FCoE.org <devel@open-fcoe.org>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/target/target_core_transport.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/target/target_core_transport.c b/drivers/target/target_core_transport.c
+index 94c03d2..597fb9b 100644
+--- a/drivers/target/target_core_transport.c
++++ b/drivers/target/target_core_transport.c
+@@ -3509,9 +3509,9 @@ transport_generic_get_mem(struct se_cmd *cmd)
+ 	return 0;
+ 
+ out:
+-	while (i >= 0) {
+-		__free_page(sg_page(&cmd->t_data_sg[i]));
++	while (i > 0) {
+ 		i--;
++		__free_page(sg_page(&cmd->t_data_sg[i]));
+ 	}
+ 	kfree(cmd->t_data_sg);
+ 	cmd->t_data_sg = NULL;
+-- 
+1.7.10.4
+

@@ -1,0 +1,51 @@
+From 7d78916c93c07eedb9cf37f5b09e62fbd65968cc Mon Sep 17 00:00:00 2001
+From: Miklos Szeredi <mszeredi@suse.cz>
+Date: Wed, 15 Aug 2012 12:55:22 +0200
+Subject: [PATCH 28/94] audit: don't free_chunk() after fsnotify_add_mark()
+
+commit 0fe33aae0e94b4097dd433c9399e16e17d638cd8 upstream.
+
+Don't do free_chunk() after fsnotify_add_mark().  That one does a delayed unref
+via the destroy list and this results in use-after-free.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Acked-by: Eric Paris <eparis@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/audit_tree.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/kernel/audit_tree.c b/kernel/audit_tree.c
+index 5bf0790..d52d247 100644
+--- a/kernel/audit_tree.c
++++ b/kernel/audit_tree.c
+@@ -259,7 +259,7 @@ static void untag_chunk(struct node *p)
+ 
+ 	fsnotify_duplicate_mark(&new->mark, entry);
+ 	if (fsnotify_add_mark(&new->mark, new->mark.group, new->mark.i.inode, NULL, 1)) {
+-		free_chunk(new);
++		fsnotify_put_mark(&new->mark);
+ 		goto Fallback;
+ 	}
+ 
+@@ -322,7 +322,7 @@ static int create_chunk(struct inode *inode, struct audit_tree *tree)
+ 
+ 	entry = &chunk->mark;
+ 	if (fsnotify_add_mark(entry, audit_tree_group, inode, NULL, 0)) {
+-		free_chunk(chunk);
++		fsnotify_put_mark(entry);
+ 		return -ENOSPC;
+ 	}
+ 
+@@ -396,7 +396,7 @@ static int tag_chunk(struct inode *inode, struct audit_tree *tree)
+ 	fsnotify_duplicate_mark(chunk_entry, old_entry);
+ 	if (fsnotify_add_mark(chunk_entry, chunk_entry->group, chunk_entry->i.inode, NULL, 1)) {
+ 		spin_unlock(&old_entry->lock);
+-		free_chunk(chunk);
++		fsnotify_put_mark(chunk_entry);
+ 		fsnotify_put_mark(old_entry);
+ 		return -ENOSPC;
+ 	}
+-- 
+1.7.10.4
+

@@ -1,0 +1,56 @@
+From 6e6abc0339f25e0f45d85fec27aef1e8fe358897 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Date: Mon, 20 Aug 2012 15:28:00 +0100
+Subject: [PATCH 63/94] vfs: missed source of ->f_pos races
+
+commit 0e665d5d1125f9f4ccff56a75e814f10f88861a2 upstream.
+
+compat_sys_{read,write}v() need the same "pass a copy of file->f_pos" thing
+as sys_{read,write}{,v}().
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/compat.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/fs/compat.c b/fs/compat.c
+index c987875..e07a3d3 100644
+--- a/fs/compat.c
++++ b/fs/compat.c
+@@ -1174,11 +1174,14 @@ compat_sys_readv(unsigned long fd, const struct compat_iovec __user *vec,
+ 	struct file *file;
+ 	int fput_needed;
+ 	ssize_t ret;
++	loff_t pos;
+ 
+ 	file = fget_light(fd, &fput_needed);
+ 	if (!file)
+ 		return -EBADF;
+-	ret = compat_readv(file, vec, vlen, &file->f_pos);
++	pos = file->f_pos;
++	ret = compat_readv(file, vec, vlen, &pos);
++	file->f_pos = pos;
+ 	fput_light(file, fput_needed);
+ 	return ret;
+ }
+@@ -1233,11 +1236,14 @@ compat_sys_writev(unsigned long fd, const struct compat_iovec __user *vec,
+ 	struct file *file;
+ 	int fput_needed;
+ 	ssize_t ret;
++	loff_t pos;
+ 
+ 	file = fget_light(fd, &fput_needed);
+ 	if (!file)
+ 		return -EBADF;
+-	ret = compat_writev(file, vec, vlen, &file->f_pos);
++	pos = file->f_pos;
++	ret = compat_writev(file, vec, vlen, &pos);
++	file->f_pos = pos;
+ 	fput_light(file, fput_needed);
+ 	return ret;
+ }
+-- 
+1.7.10.4
+

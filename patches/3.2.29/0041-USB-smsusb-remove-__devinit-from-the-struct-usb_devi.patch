@@ -1,0 +1,45 @@
+From ba98e0dd6eccff9cdb27e008c0a1310747e3fb8f Mon Sep 17 00:00:00 2001
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Fri, 17 Aug 2012 17:48:26 -0700
+Subject: [PATCH 41/94] USB: smsusb: remove __devinit* from the struct
+ usb_device_id table
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit d04dbd1c0ec17a13326c8f2279399c225836a79f upstream.
+
+This structure needs to always stick around, even if CONFIG_HOTPLUG
+is disabled, otherwise we can oops when trying to probe a device that
+was added after the structure is thrown away.
+
+Thanks to Fengguang Wu and Bjørn Mork for tracking this issue down.
+
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Reported-by: Bjørn Mork <bjorn@mork.no>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Michael Krufky <mkrufky@linuxtv.org>
+CC: Paul Gortmaker <paul.gortmaker@windriver.com>
+CC: Doron Cohen <doronc@siano-ms.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/media/dvb/siano/smsusb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb/siano/smsusb.c b/drivers/media/dvb/siano/smsusb.c
+index fb68805..027550d 100644
+--- a/drivers/media/dvb/siano/smsusb.c
++++ b/drivers/media/dvb/siano/smsusb.c
+@@ -481,7 +481,7 @@ static int smsusb_resume(struct usb_interface *intf)
+ 	return 0;
+ }
+ 
+-static const struct usb_device_id smsusb_id_table[] __devinitconst = {
++static const struct usb_device_id smsusb_id_table[] = {
+ 	{ USB_DEVICE(0x187f, 0x0010),
+ 		.driver_info = SMS1XXX_BOARD_SIANO_STELLAR },
+ 	{ USB_DEVICE(0x187f, 0x0100),
+-- 
+1.7.10.4
+

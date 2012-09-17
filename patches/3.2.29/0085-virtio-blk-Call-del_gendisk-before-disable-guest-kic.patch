@@ -1,0 +1,68 @@
+From 88963fd6c66bf065c6e9c36f1f5de4dff30624a1 Mon Sep 17 00:00:00 2001
+From: Asias He <asias@redhat.com>
+Date: Fri, 25 May 2012 10:34:47 +0800
+Subject: [PATCH 85/94] virtio-blk: Call del_gendisk() before disable guest
+ kick
+
+commit 02e2b124943648fba0a2ccee5c3656a5653e0151 upstream.
+
+del_gendisk() might not return due to failing to remove the
+/sys/block/vda/serial sysfs entry when another thread (udev) is
+trying to read it.
+
+virtblk_remove()
+  vdev->config->reset() : guest will not kick us through interrupt
+    del_gendisk()
+      device_del()
+        kobject_del(): got stuck, sysfs entry ref count non zero
+
+sysfs_open_file(): user space process read /sys/block/vda/serial
+   sysfs_get_active() : got sysfs entry ref count
+      dev_attr_show()
+        virtblk_serial_show()
+           blk_execute_rq() : got stuck, interrupt is disabled
+                              request cannot be finished
+
+This patch fixes it by calling del_gendisk() before we disable guest's
+interrupt so that the request sent in virtblk_serial_show() will be
+finished and del_gendisk() will success.
+
+This fixes another race in hot-unplug process.
+
+It is save to call del_gendisk(vblk->disk) before
+flush_work(&vblk->config_work) which might access vblk->disk, because
+vblk->disk is not freed until put_disk(vblk->disk).
+
+Cc: virtualization@lists.linux-foundation.org
+Cc: kvm@vger.kernel.org
+Signed-off-by: Asias He <asias@redhat.com>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/block/virtio_blk.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/block/virtio_blk.c b/drivers/block/virtio_blk.c
+index cadf9bb..4f018c4 100644
+--- a/drivers/block/virtio_blk.c
++++ b/drivers/block/virtio_blk.c
+@@ -554,13 +554,13 @@ static void __devexit virtblk_remove(struct virtio_device *vdev)
+ 	vblk->config_enable = false;
+ 	mutex_unlock(&vblk->config_lock);
+ 
++	del_gendisk(vblk->disk);
++
+ 	/* Stop all the virtqueues. */
+ 	vdev->config->reset(vdev);
+ 
+ 	flush_work(&vblk->config_work);
+ 
+-	del_gendisk(vblk->disk);
+-
+ 	/* Abort requests dispatched to driver. */
+ 	spin_lock_irqsave(&vblk->lock, flags);
+ 	while ((vbr = virtqueue_detach_unused_buf(vblk->vq))) {
+-- 
+1.7.10.4
+

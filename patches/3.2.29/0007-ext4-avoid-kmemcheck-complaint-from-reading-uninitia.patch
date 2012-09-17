@@ -1,0 +1,40 @@
+From 11306f0a62f8c12b0fa4a35d0b4dc5a91fa79612 Mon Sep 17 00:00:00 2001
+From: Theodore Ts'o <tytso@mit.edu>
+Date: Sun, 5 Aug 2012 23:28:16 -0400
+Subject: [PATCH 07/94] ext4: avoid kmemcheck complaint from reading
+ uninitialized memory
+
+commit 7e731bc9a12339f344cddf82166b82633d99dd86 upstream.
+
+Commit 03179fe923 introduced a kmemcheck complaint in
+ext4_da_get_block_prep() because we save and restore
+ei->i_da_metadata_calc_last_lblock even though it is left
+uninitialized in the case where i_da_metadata_calc_len is zero.
+
+This doesn't hurt anything, but silencing the kmemcheck complaint
+makes it easier for people to find real bugs.
+
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=45631
+(which is marked as a regression).
+
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ext4/super.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+index a071348..129925a 100644
+--- a/fs/ext4/super.c
++++ b/fs/ext4/super.c
+@@ -904,6 +904,7 @@ static struct inode *ext4_alloc_inode(struct super_block *sb)
+ 	ei->i_reserved_meta_blocks = 0;
+ 	ei->i_allocated_meta_blocks = 0;
+ 	ei->i_da_metadata_calc_len = 0;
++	ei->i_da_metadata_calc_last_lblock = 0;
+ 	spin_lock_init(&(ei->i_block_reservation_lock));
+ #ifdef CONFIG_QUOTA
+ 	ei->i_reserved_quota = 0;
+-- 
+1.7.10.4
+

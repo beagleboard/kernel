@@ -1,0 +1,44 @@
+From b4d810559cd5e73751adbd9cf05034bb8775a691 Mon Sep 17 00:00:00 2001
+From: "J. Bruce Fields" <bfields@redhat.com>
+Date: Thu, 9 Aug 2012 18:12:28 -0400
+Subject: [PATCH 64/94] svcrpc: fix BUG() in svc_tcp_clear_pages
+
+commit be1e44441a560c43c136a562d49a1c9623c91197 upstream.
+
+Examination of svc_tcp_clear_pages shows that it assumes sk_tcplen is
+consistent with sk_pages[] (in particular, sk_pages[n] can't be NULL if
+sk_tcplen would lead us to expect n pages of data).
+
+svc_tcp_restore_pages zeroes out sk_pages[] while leaving sk_tcplen.
+This is OK, since both functions are serialized by XPT_BUSY.  However,
+that means the inconsistency must be repaired before dropping XPT_BUSY.
+
+Therefore we should be ensuring that svc_tcp_save_pages repairs the
+problem before exiting svc_tcp_recv_record on error.
+
+Symptoms were a BUG() in svc_tcp_clear_pages.
+
+Signed-off-by: J. Bruce Fields <bfields@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/sunrpc/svcsock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/sunrpc/svcsock.c b/net/sunrpc/svcsock.c
+index 71bed1c..296192c 100644
+--- a/net/sunrpc/svcsock.c
++++ b/net/sunrpc/svcsock.c
+@@ -1136,9 +1136,9 @@ static int svc_tcp_recvfrom(struct svc_rqst *rqstp)
+ 	if (len >= 0)
+ 		svsk->sk_tcplen += len;
+ 	if (len != want) {
++		svc_tcp_save_pages(svsk, rqstp);
+ 		if (len < 0 && len != -EAGAIN)
+ 			goto err_other;
+-		svc_tcp_save_pages(svsk, rqstp);
+ 		dprintk("svc: incomplete TCP record (%d of %d)\n",
+ 			svsk->sk_tcplen, svsk->sk_reclen);
+ 		goto err_noclose;
+-- 
+1.7.10.4
+

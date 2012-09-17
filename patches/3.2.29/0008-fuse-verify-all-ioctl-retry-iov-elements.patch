@@ -1,0 +1,44 @@
+From 14269c277963f682ee99b8bff23816f8e07390d2 Mon Sep 17 00:00:00 2001
+From: Zach Brown <zab@redhat.com>
+Date: Tue, 24 Jul 2012 12:10:11 -0700
+Subject: [PATCH 08/94] fuse: verify all ioctl retry iov elements
+
+commit fb6ccff667712c46b4501b920ea73a326e49626a upstream.
+
+Commit 7572777eef78ebdee1ecb7c258c0ef94d35bad16 attempted to verify that
+the total iovec from the client doesn't overflow iov_length() but it
+only checked the first element.  The iovec could still overflow by
+starting with a small element.  The obvious fix is to check all the
+elements.
+
+The overflow case doesn't look dangerous to the kernel as the copy is
+limited by the length after the overflow.  This fix restores the
+intention of returning an error instead of successfully copying less
+than the iovec represented.
+
+I found this by code inspection.  I built it but don't have a test case.
+I'm cc:ing stable because the initial commit did as well.
+
+Signed-off-by: Zach Brown <zab@redhat.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/fuse/file.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 0c84100..5242006 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -1687,7 +1687,7 @@ static int fuse_verify_ioctl_iov(struct iovec *iov, size_t count)
+ 	size_t n;
+ 	u32 max = FUSE_MAX_PAGES_PER_REQ << PAGE_SHIFT;
+ 
+-	for (n = 0; n < count; n++) {
++	for (n = 0; n < count; n++, iov++) {
+ 		if (iov->iov_len > (size_t) max)
+ 			return -ENOMEM;
+ 		max -= iov->iov_len;
+-- 
+1.7.10.4
+

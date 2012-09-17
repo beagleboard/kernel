@@ -1,0 +1,53 @@
+From 9bf9e4d2dd0ff4b80defa1d705ea65f3789c9ff2 Mon Sep 17 00:00:00 2001
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Date: Tue, 21 Aug 2012 16:16:12 -0700
+Subject: [PATCH 74/94] rapidio/tsi721: fix unused variable compiler warning
+
+commit 9a9a9a7adafe62a34de8b4fb48936c1c5f9bafa5 upstream.
+
+Fix unused variable compiler warning when built with CONFIG_RAPIDIO_DEBUG
+option off.
+
+This patch is applicable to kernel versions starting from v3.2
+
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/rapidio/devices/tsi721.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/rapidio/devices/tsi721.c b/drivers/rapidio/devices/tsi721.c
+index 91e0f31..33471e1 100644
+--- a/drivers/rapidio/devices/tsi721.c
++++ b/drivers/rapidio/devices/tsi721.c
+@@ -2162,7 +2162,7 @@ static int __devinit tsi721_probe(struct pci_dev *pdev,
+ 				  const struct pci_device_id *id)
+ {
+ 	struct tsi721_device *priv;
+-	int i, cap;
++	int cap;
+ 	int err;
+ 	u32 regval;
+ 
+@@ -2182,12 +2182,15 @@ static int __devinit tsi721_probe(struct pci_dev *pdev,
+ 	priv->pdev = pdev;
+ 
+ #ifdef DEBUG
++	{
++	int i;
+ 	for (i = 0; i <= PCI_STD_RESOURCE_END; i++) {
+ 		dev_dbg(&pdev->dev, "res[%d] @ 0x%llx (0x%lx, 0x%lx)\n",
+ 			i, (unsigned long long)pci_resource_start(pdev, i),
+ 			(unsigned long)pci_resource_len(pdev, i),
+ 			pci_resource_flags(pdev, i));
+ 	}
++	}
+ #endif
+ 	/*
+ 	 * Verify BAR configuration
+-- 
+1.7.10.4
+

@@ -1,0 +1,42 @@
+From 6af55b4401610228dec74fa2c1c3add42f71e038 Mon Sep 17 00:00:00 2001
+From: Jim Rees <rees@umich.edu>
+Date: Mon, 9 Apr 2012 22:33:39 -0400
+Subject: [PATCH 05/94] fix page number calculation bug for block layout
+ decode buffer
+
+commit 10bd295a0b6488ebe634b72a11d8986bd3af3819 upstream.
+
+Signed-off-by: Jim Rees <rees@umich.edu>
+Suggested-by: Andy Adamson <andros@netapp.com>
+Suggested-by: Fred Isaman <iisaman@netapp.com>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/blocklayout/blocklayout.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/fs/nfs/blocklayout/blocklayout.c b/fs/nfs/blocklayout/blocklayout.c
+index 3db6b82..d774309 100644
+--- a/fs/nfs/blocklayout/blocklayout.c
++++ b/fs/nfs/blocklayout/blocklayout.c
+@@ -38,6 +38,8 @@
+ #include <linux/buffer_head.h>	/* various write calls */
+ #include <linux/prefetch.h>
+ 
++#include "../pnfs.h"
++#include "../internal.h"
+ #include "blocklayout.h"
+ 
+ #define NFSDBG_FACILITY	NFSDBG_PNFS_LD
+@@ -814,7 +816,7 @@ nfs4_blk_get_deviceinfo(struct nfs_server *server, const struct nfs_fh *fh,
+ 	 * GETDEVICEINFO's maxcount
+ 	 */
+ 	max_resp_sz = server->nfs_client->cl_session->fc_attrs.max_resp_sz;
+-	max_pages = max_resp_sz >> PAGE_SHIFT;
++	max_pages = nfs_page_array_len(0, max_resp_sz);
+ 	dprintk("%s max_resp_sz %u max_pages %d\n",
+ 		__func__, max_resp_sz, max_pages);
+ 
+-- 
+1.7.10.4
+

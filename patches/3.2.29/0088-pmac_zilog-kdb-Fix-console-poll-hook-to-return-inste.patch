@@ -1,0 +1,50 @@
+From 4422e6fe13eff3fc4337dedc76f6830e1a3b4e1a Mon Sep 17 00:00:00 2001
+From: Jason Wessel <jason.wessel@windriver.com>
+Date: Sun, 12 Aug 2012 07:16:43 -0500
+Subject: [PATCH 88/94] pmac_zilog,kdb: Fix console poll hook to return
+ instead of loop
+
+commit 38f8eefccf3a23c4058a570fa2938a4f553cf8e0 upstream.
+
+kdb <-> kgdb transitioning does not work properly with this UART
+driver because the get character routine loops indefinitely as opposed
+to returning NO_POLL_CHAR per the expectation of the KDB I/O driver
+API.
+
+The symptom is a kernel hang when trying to switch debug modes.
+
+Cc: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/tty/serial/pmac_zilog.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/tty/serial/pmac_zilog.c b/drivers/tty/serial/pmac_zilog.c
+index 5acd24a..086f7fe 100644
+--- a/drivers/tty/serial/pmac_zilog.c
++++ b/drivers/tty/serial/pmac_zilog.c
+@@ -1407,10 +1407,16 @@ static int pmz_verify_port(struct uart_port *port, struct serial_struct *ser)
+ static int pmz_poll_get_char(struct uart_port *port)
+ {
+ 	struct uart_pmac_port *uap = (struct uart_pmac_port *)port;
++	int tries = 2;
+ 
+-	while ((read_zsreg(uap, R0) & Rx_CH_AV) == 0)
+-		udelay(5);
+-	return read_zsdata(uap);
++	while (tries) {
++		if ((read_zsreg(uap, R0) & Rx_CH_AV) != 0)
++			return read_zsdata(uap);
++		if (tries--)
++			udelay(5);
++	}
++
++	return NO_POLL_CHAR;
+ }
+ 
+ static void pmz_poll_put_char(struct uart_port *port, unsigned char c)
+-- 
+1.7.10.4
+

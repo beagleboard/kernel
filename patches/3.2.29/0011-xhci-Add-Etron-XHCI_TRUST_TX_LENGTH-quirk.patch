@@ -1,0 +1,48 @@
+From adf91438324d368a9ad7c480ba0169c9fae25425 Mon Sep 17 00:00:00 2001
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Date: Mon, 2 Jul 2012 13:36:23 -0700
+Subject: [PATCH 11/94] xhci: Add Etron XHCI_TRUST_TX_LENGTH quirk.
+
+commit 5cb7df2b2d3afee7638b3ef23a5bcb89c6f07bd9 upstream.
+
+Gary reports that with recent kernels, he notices more xHCI driver
+warnings:
+
+xhci_hcd 0000:03:00.0: WARN Successful completion on short TX: needs XHCI_TRUST_TX_LENGTH quirk?
+
+We think his Etron xHCI host controller may have the same buggy behavior
+as the Fresco Logic xHCI host.  When a short transfer is received, the
+host will mark the transfer as successfully completed when it should be
+marking it with a short completion.
+
+Fix this by turning on the XHCI_TRUST_TX_LENGTH quirk when the Etron
+host is discovered.  Note that Gary has revision 1, but if Etron fixes
+this bug in future revisions, the quirk will have no effect.
+
+This patch should be backported to kernels as old as 2.6.36, that
+contain a backported version of commit
+1530bbc6272d9da1e39ef8e06190d42c13a02733 "xhci: Add new short TX quirk
+for Fresco Logic host."
+
+Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Reported-by: Gary E. Miller <gem@rellim.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/host/xhci-pci.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/usb/host/xhci-pci.c b/drivers/usb/host/xhci-pci.c
+index daf5754..07c72a4 100644
+--- a/drivers/usb/host/xhci-pci.c
++++ b/drivers/usb/host/xhci-pci.c
+@@ -95,6 +95,7 @@ static void xhci_pci_quirks(struct device *dev, struct xhci_hcd *xhci)
+ 			pdev->device == PCI_DEVICE_ID_ASROCK_P67) {
+ 		xhci->quirks |= XHCI_RESET_ON_RESUME;
+ 		xhci_dbg(xhci, "QUIRK: Resetting on resume\n");
++		xhci->quirks |= XHCI_TRUST_TX_LENGTH;
+ 	}
+ 	if (pdev->vendor == PCI_VENDOR_ID_VIA)
+ 		xhci->quirks |= XHCI_RESET_ON_RESUME;
+-- 
+1.7.10.4
+

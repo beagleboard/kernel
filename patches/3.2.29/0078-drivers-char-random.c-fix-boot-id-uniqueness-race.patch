@@ -1,0 +1,55 @@
+From a457fb130726356e758eeadf230b21993986d0ab Mon Sep 17 00:00:00 2001
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Date: Thu, 12 Apr 2012 12:49:12 -0700
+Subject: [PATCH 78/94] drivers/char/random.c: fix boot id uniqueness race
+
+commit 44e4360fa3384850d65dd36fb4e6e5f2f112709b upstream.
+
+/proc/sys/kernel/random/boot_id can be read concurrently by userspace
+processes.  If two (or more) user-space processes concurrently read
+boot_id when sysctl_bootid is not yet assigned, a race can occur making
+boot_id differ between the reads.  Because the whole point of the boot id
+is to be unique across a kernel execution, fix this by protecting this
+operation with a spinlock.
+
+Given that this operation is not frequently used, hitting the spinlock
+on each call should not be an issue.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Greg Kroah-Hartman <greg@kroah.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/char/random.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/char/random.c b/drivers/char/random.c
+index 631d4f6..918979f 100644
+--- a/drivers/char/random.c
++++ b/drivers/char/random.c
+@@ -1391,10 +1391,15 @@ static int proc_do_uuid(ctl_table *table, int write,
+ 	uuid = table->data;
+ 	if (!uuid) {
+ 		uuid = tmp_uuid;
+-		uuid[8] = 0;
+-	}
+-	if (uuid[8] == 0)
+ 		generate_random_uuid(uuid);
++	} else {
++		static DEFINE_SPINLOCK(bootid_spinlock);
++
++		spin_lock(&bootid_spinlock);
++		if (!uuid[8])
++			generate_random_uuid(uuid);
++		spin_unlock(&bootid_spinlock);
++	}
+ 
+ 	sprintf(buf, "%pU", uuid);
+ 
+-- 
+1.7.10.4
+

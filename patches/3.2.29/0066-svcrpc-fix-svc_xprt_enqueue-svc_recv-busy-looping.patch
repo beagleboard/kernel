@@ -1,0 +1,73 @@
+From 9d16d84d61a215bfce9a342cb4eb7347dae3e4c3 Mon Sep 17 00:00:00 2001
+From: "J. Bruce Fields" <bfields@redhat.com>
+Date: Fri, 17 Aug 2012 17:31:53 -0400
+Subject: [PATCH 66/94] svcrpc: fix svc_xprt_enqueue/svc_recv busy-looping
+
+commit d10f27a750312ed5638c876e4bd6aa83664cccd8 upstream.
+
+The rpc server tries to ensure that there will be room to send a reply
+before it receives a request.
+
+It does this by tracking, in xpt_reserved, an upper bound on the total
+size of the replies that is has already committed to for the socket.
+
+Currently it is adding in the estimate for a new reply *before* it
+checks whether there is space available.  If it finds that there is not
+space, it then subtracts the estimate back out.
+
+This may lead the subsequent svc_xprt_enqueue to decide that there is
+space after all.
+
+The results is a svc_recv() that will repeatedly return -EAGAIN, causing
+server threads to loop without doing any actual work.
+
+Reported-by: Michael Tokarev <mjt@tls.msk.ru>
+Tested-by: Michael Tokarev <mjt@tls.msk.ru>
+Signed-off-by: J. Bruce Fields <bfields@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/sunrpc/svc_xprt.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/net/sunrpc/svc_xprt.c b/net/sunrpc/svc_xprt.c
+index 622ba40..3282453 100644
+--- a/net/sunrpc/svc_xprt.c
++++ b/net/sunrpc/svc_xprt.c
+@@ -315,7 +315,6 @@ static bool svc_xprt_has_something_to_do(struct svc_xprt *xprt)
+  */
+ void svc_xprt_enqueue(struct svc_xprt *xprt)
+ {
+-	struct svc_serv	*serv = xprt->xpt_server;
+ 	struct svc_pool *pool;
+ 	struct svc_rqst	*rqstp;
+ 	int cpu;
+@@ -361,8 +360,6 @@ void svc_xprt_enqueue(struct svc_xprt *xprt)
+ 				rqstp, rqstp->rq_xprt);
+ 		rqstp->rq_xprt = xprt;
+ 		svc_xprt_get(xprt);
+-		rqstp->rq_reserved = serv->sv_max_mesg;
+-		atomic_add(rqstp->rq_reserved, &xprt->xpt_reserved);
+ 		pool->sp_stats.threads_woken++;
+ 		wake_up(&rqstp->rq_wait);
+ 	} else {
+@@ -642,8 +639,6 @@ int svc_recv(struct svc_rqst *rqstp, long timeout)
+ 	if (xprt) {
+ 		rqstp->rq_xprt = xprt;
+ 		svc_xprt_get(xprt);
+-		rqstp->rq_reserved = serv->sv_max_mesg;
+-		atomic_add(rqstp->rq_reserved, &xprt->xpt_reserved);
+ 
+ 		/* As there is a shortage of threads and this request
+ 		 * had to be queued, don't allow the thread to wait so
+@@ -740,6 +735,8 @@ int svc_recv(struct svc_rqst *rqstp, long timeout)
+ 		else
+ 			len = xprt->xpt_ops->xpo_recvfrom(rqstp);
+ 		dprintk("svc: got len=%d\n", len);
++		rqstp->rq_reserved = serv->sv_max_mesg;
++		atomic_add(rqstp->rq_reserved, &xprt->xpt_reserved);
+ 	}
+ 	svc_xprt_received(xprt);
+ 
+-- 
+1.7.10.4
+

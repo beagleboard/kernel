@@ -1,0 +1,40 @@
+From b64c7d340e491c5bbcd62bc5617c49f7ee8693e2 Mon Sep 17 00:00:00 2001
+From: AceLan Kao <acelan.kao@canonical.com>
+Date: Wed, 4 Jul 2012 15:20:14 +0800
+Subject: [PATCH 91/94] asus-nb-wmi: add some video toggle keys
+
+commit 3766054fff4af1b58a1440a284907887f4d2e8be upstream.
+
+There are some new video switch keys that used by newer machines.
+0xA0 - SDSP HDMI only
+0xA1 - SDSP LCD + HDMI
+0xA2 - SDSP CRT + HDMI
+0xA3 - SDSP TV + HDMI
+But in Linux, there is no suitable userspace application to handle this,
+so, mapping them all to KEY_SWITCHVIDEOMODE.
+
+Signed-off-by: AceLan Kao <acelan.kao@canonical.com>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/platform/x86/asus-nb-wmi.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/platform/x86/asus-nb-wmi.c b/drivers/platform/x86/asus-nb-wmi.c
+index b0859d4..ec5b17f 100644
+--- a/drivers/platform/x86/asus-nb-wmi.c
++++ b/drivers/platform/x86/asus-nb-wmi.c
+@@ -86,6 +86,10 @@ static const struct key_entry asus_nb_wmi_keymap[] = {
+ 	{ KE_KEY, 0x8A, { KEY_PROG1 } },
+ 	{ KE_KEY, 0x95, { KEY_MEDIA } },
+ 	{ KE_KEY, 0x99, { KEY_PHONE } },
++	{ KE_KEY, 0xA0, { KEY_SWITCHVIDEOMODE } }, /* SDSP HDMI only */
++	{ KE_KEY, 0xA1, { KEY_SWITCHVIDEOMODE } }, /* SDSP LCD + HDMI */
++	{ KE_KEY, 0xA2, { KEY_SWITCHVIDEOMODE } }, /* SDSP CRT + HDMI */
++	{ KE_KEY, 0xA3, { KEY_SWITCHVIDEOMODE } }, /* SDSP TV + HDMI */
+ 	{ KE_KEY, 0xb5, { KEY_CALC } },
+ 	{ KE_KEY, 0xc4, { KEY_KBDILLUMUP } },
+ 	{ KE_KEY, 0xc5, { KEY_KBDILLUMDOWN } },
+-- 
+1.7.10.4
+

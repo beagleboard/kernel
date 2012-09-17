@@ -1,0 +1,58 @@
+From 122d1fd84d1d67a466877df35a9a9c6ca531ea2e Mon Sep 17 00:00:00 2001
+From: Igor Murzov <intergalactic.anonymous@gmail.com>
+Date: Sun, 22 Jan 2012 18:47:28 +0400
+Subject: [PATCH 59/94] drm/radeon: finish getting bios earlier
+
+commit 211fa4fc4e13492151e698d92b0dff56b29928ec upstream.
+
+Return a number of bytes read in radeon_atrm_get_bios_chunk() and
+properly check this value in radeon_atrm_get_bios().
+If radeon_atrm_get_bios_chunk() read less bytes then were requested,
+it means that it finished reading bios data.
+
+Prior to this patch, condition in radeon_atrm_get_bios() was always
+equivalent to "if (ATRM_BIOS_PAGE <= 0)", so it was always false,
+thus radeon_atrm_get_bios() was trying to read past the bios data
+wasting boot time.
+
+On my lenovo ideapad u455 laptop this patch drops bios reading time
+from ~5.5s to ~1.5s.
+
+Signed-off-by: Igor Murzov <e-mail@date.by>
+Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_atpx_handler.c |    2 +-
+ drivers/gpu/drm/radeon/radeon_bios.c         |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_atpx_handler.c b/drivers/gpu/drm/radeon/radeon_atpx_handler.c
+index c666a5b..13ac63b 100644
+--- a/drivers/gpu/drm/radeon/radeon_atpx_handler.c
++++ b/drivers/gpu/drm/radeon/radeon_atpx_handler.c
+@@ -60,7 +60,7 @@ static int radeon_atrm_call(acpi_handle atrm_handle, uint8_t *bios,
+ 	obj = (union acpi_object *)buffer.pointer;
+ 	memcpy(bios+offset, obj->buffer.pointer, obj->buffer.length);
+ 	kfree(buffer.pointer);
+-	return len;
++	return obj->buffer.length;
+ }
+ 
+ bool radeon_atrm_supported(struct pci_dev *pdev)
+diff --git a/drivers/gpu/drm/radeon/radeon_bios.c b/drivers/gpu/drm/radeon/radeon_bios.c
+index 4b0ed99..ab0b2f7 100644
+--- a/drivers/gpu/drm/radeon/radeon_bios.c
++++ b/drivers/gpu/drm/radeon/radeon_bios.c
+@@ -121,7 +121,7 @@ static bool radeon_atrm_get_bios(struct radeon_device *rdev)
+ 		ret = radeon_atrm_get_bios_chunk(rdev->bios,
+ 						 (i * ATRM_BIOS_PAGE),
+ 						 ATRM_BIOS_PAGE);
+-		if (ret <= 0)
++		if (ret < ATRM_BIOS_PAGE)
+ 			break;
+ 	}
+ 
+-- 
+1.7.10.4
+
