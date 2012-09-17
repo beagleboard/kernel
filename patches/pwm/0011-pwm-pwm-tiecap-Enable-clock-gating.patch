@@ -1,7 +1,7 @@
-From d462f3dec04fedc3a584ea6e191d4e0394eb3bb1 Mon Sep 17 00:00:00 2001
+From 2e7e17e0e0e743307be01002fc08c15f3d689c90 Mon Sep 17 00:00:00 2001
 From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Tue, 24 Jul 2012 14:58:09 +0530
-Subject: [PATCH 10/13] pwm: pwm-tiecap: Enable clock gating
+Subject: [PATCH 11/16] pwm: pwm-tiecap: Enable clock gating
 
 In AM335x SOC, clock to PWM modules is gated in common config space.
 This commit adds support for enabling clock gating in the driver and
@@ -41,10 +41,10 @@ index fa56534..7d83587 100644
 +		has_configspace = <1>;
 +	};
 diff --git a/drivers/pwm/pwm-tiecap.c b/drivers/pwm/pwm-tiecap.c
-index 7aa5213..fe03996 100644
+index d32fb62..7f3b186 100644
 --- a/drivers/pwm/pwm-tiecap.c
 +++ b/drivers/pwm/pwm-tiecap.c
-@@ -199,12 +199,16 @@ static struct pwm_device *of_ecap_xlate(struct pwm_chip *chip,
+@@ -206,12 +206,16 @@ static struct pwm_device *of_ecap_xlate(struct pwm_chip *chip,
  	return pwm;
  }
  
@@ -62,7 +62,7 @@ index 7aa5213..fe03996 100644
  
  	pc = devm_kzalloc(&pdev->dev, sizeof(*pc), GFP_KERNEL);
  	if (!pc) {
-@@ -248,6 +252,37 @@ static int __devinit ecap_pwm_probe(struct platform_device *pdev)
+@@ -255,6 +259,37 @@ static int __devinit ecap_pwm_probe(struct platform_device *pdev)
  	}
  
  	pm_runtime_enable(&pdev->dev);

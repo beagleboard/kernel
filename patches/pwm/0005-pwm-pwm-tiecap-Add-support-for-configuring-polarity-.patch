@@ -1,7 +1,7 @@
-From e0470cb4c16b058cdfe845223b246a5c22c82e18 Mon Sep 17 00:00:00 2001
+From 6c0dc36fe1bd97d6a294b12b1789621e9cdc4174 Mon Sep 17 00:00:00 2001
 From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Mon, 16 Jul 2012 16:36:37 +0530
-Subject: [PATCH 04/13] pwm: pwm-tiecap: Add support for configuring polarity
+Subject: [PATCH 05/16] pwm: pwm-tiecap: Add support for configuring polarity
  of PWM
 
 ECAP APWM hardware supports polarity configuration of PWM output.
@@ -13,7 +13,7 @@ Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
  1 files changed, 22 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/pwm/pwm-tiecap.c b/drivers/pwm/pwm-tiecap.c
-index 0b66d0f..3036eab 100644
+index 4b66889..a3d21e7 100644
 --- a/drivers/pwm/pwm-tiecap.c
 +++ b/drivers/pwm/pwm-tiecap.c
 @@ -32,6 +32,7 @@
@@ -24,7 +24,7 @@ index 0b66d0f..3036eab 100644
  #define ECCTL2_APWM_MODE	BIT(9)
  #define ECCTL2_SYNC_SEL_DISA	(BIT(7) | BIT(6))
  #define ECCTL2_TSCTR_FREERUN	BIT(4)
-@@ -104,6 +105,26 @@ static int ecap_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
+@@ -111,6 +112,26 @@ static int ecap_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
  	return 0;
  }
  
@@ -51,7 +51,7 @@ index 0b66d0f..3036eab 100644
  static int ecap_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
  {
  	struct ecap_pwm_chip *pc = to_ecap_pwm_chip(chip);
-@@ -150,6 +171,7 @@ static void ecap_pwm_free(struct pwm_chip *chip, struct pwm_device *pwm)
+@@ -157,6 +178,7 @@ static void ecap_pwm_free(struct pwm_chip *chip, struct pwm_device *pwm)
  static const struct pwm_ops ecap_pwm_ops = {
  	.free		= ecap_pwm_free,
  	.config		= ecap_pwm_config,

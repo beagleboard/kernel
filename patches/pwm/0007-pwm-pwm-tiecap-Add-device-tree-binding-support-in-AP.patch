@@ -1,7 +1,7 @@
-From 19bfe985c23d09ade160ff116a6fd385c475a6a3 Mon Sep 17 00:00:00 2001
+From 89ba0762bced994f4b74ca970360e0122e12c122 Mon Sep 17 00:00:00 2001
 From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Fri, 29 Jun 2012 10:52:57 +0530
-Subject: [PATCH 06/13] pwm: pwm-tiecap: Add device-tree binding support in
+Subject: [PATCH 07/16] pwm: pwm-tiecap: Add device-tree binding support in
  APWM driver
 
 Adds support for device-tree binding in ECAP APWM driver and custom
@@ -49,7 +49,7 @@ index 0000000..fa56534
 +		#pwm-cells = <3>;
 +	};
 diff --git a/drivers/pwm/pwm-tiecap.c b/drivers/pwm/pwm-tiecap.c
-index 3036eab..7aa5213 100644
+index a3d21e7..d32fb62 100644
 --- a/drivers/pwm/pwm-tiecap.c
 +++ b/drivers/pwm/pwm-tiecap.c
 @@ -37,6 +37,8 @@
@@ -61,7 +61,7 @@ index 3036eab..7aa5213 100644
  struct ecap_pwm_chip {
  	struct pwm_chip	chip;
  	unsigned int	clk_rate;
-@@ -177,6 +179,26 @@ static const struct pwm_ops ecap_pwm_ops = {
+@@ -184,6 +186,26 @@ static const struct pwm_ops ecap_pwm_ops = {
  	.owner		= THIS_MODULE,
  };
  
@@ -88,7 +88,7 @@ index 3036eab..7aa5213 100644
  static int __devinit ecap_pwm_probe(struct platform_device *pdev)
  {
  	int ret;
-@@ -204,6 +226,8 @@ static int __devinit ecap_pwm_probe(struct platform_device *pdev)
+@@ -211,6 +233,8 @@ static int __devinit ecap_pwm_probe(struct platform_device *pdev)
  
  	pc->chip.dev = &pdev->dev;
  	pc->chip.ops = &ecap_pwm_ops;
@@ -97,7 +97,7 @@ index 3036eab..7aa5213 100644
  	pc->chip.base = -1;
  	pc->chip.npwm = 1;
  
-@@ -237,9 +261,20 @@ static int __devexit ecap_pwm_remove(struct platform_device *pdev)
+@@ -244,9 +268,20 @@ static int __devexit ecap_pwm_remove(struct platform_device *pdev)
  	return pwmchip_remove(&pc->chip);
  }
  

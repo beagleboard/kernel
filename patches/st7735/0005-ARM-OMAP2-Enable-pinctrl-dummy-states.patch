@@ -1,7 +1,7 @@
-From c01b38fe8044db8624e819d46e73d62e08569052 Mon Sep 17 00:00:00 2001
+From 95559eb1c4c0c17338fe0ddacd1f06ceb87835a7 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Tue, 11 Sep 2012 10:49:58 -0400
-Subject: [PATCH 5/8] ARM: OMAP2+: Enable pinctrl dummy states
+Subject: [PATCH 5/9] ARM: OMAP2+: Enable pinctrl dummy states
 
 Enable pinctrl dummy states for all OMAP platforms. This allows
 drivers to be converted to pinctrl while still running on
@@ -13,7 +13,7 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  1 files changed, 4 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index c00c689..577cd04 100644
+index 4060f77..176da53 100644
 --- a/arch/arm/mach-omap2/devices.c
 +++ b/arch/arm/mach-omap2/devices.c
 @@ -17,6 +17,7 @@
@@ -24,7 +24,7 @@ index c00c689..577cd04 100644
  #include <linux/platform_data/omap4-keypad.h>
  
  #include <mach/hardware.h>
-@@ -631,6 +632,9 @@ static inline void omap_init_vout(void) {}
+@@ -645,6 +646,9 @@ static inline void omap_init_vout(void) {}
  
  static int __init omap2_init_devices(void)
  {

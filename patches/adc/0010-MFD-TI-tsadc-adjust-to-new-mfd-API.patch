@@ -1,0 +1,28 @@
+From c9312b1873dbc4e5f2f0eb4a264be63b781d8f14 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Mon, 17 Sep 2012 10:28:52 +0200
+Subject: [PATCH 10/10] MFD: TI-tsadc: adjust to new mfd API:
+
+	  mfd: core: Push irqdomain mapping out into devices
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ drivers/mfd/ti_tscadc.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/mfd/ti_tscadc.c b/drivers/mfd/ti_tscadc.c
+index 2c84aed..bfb67bd 100644
+--- a/drivers/mfd/ti_tscadc.c
++++ b/drivers/mfd/ti_tscadc.c
+@@ -166,7 +166,7 @@ static	int __devinit ti_tscadc_probe(struct platform_device *pdev)
+ 	cell->pdata_size = sizeof(*tscadc);
+ 
+ 	err = mfd_add_devices(&pdev->dev, pdev->id, tscadc->cells,
+-			TSCADC_CELLS, NULL, 0);
++			TSCADC_CELLS, NULL, 0, NULL);
+ 	if (err < 0)
+ 		goto err_disable_clk;
+ 
+-- 
+1.7.7.6
+
