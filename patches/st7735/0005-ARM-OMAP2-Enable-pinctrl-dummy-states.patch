@@ -1,19 +1,21 @@
-From 95559eb1c4c0c17338fe0ddacd1f06ceb87835a7 Mon Sep 17 00:00:00 2001
+From 3bc1f3514f0f621cfdfbe06a743006525496c4d5 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
-Date: Tue, 11 Sep 2012 10:49:58 -0400
-Subject: [PATCH 5/9] ARM: OMAP2+: Enable pinctrl dummy states
+Date: Mon, 17 Sep 2012 12:57:47 -0400
+Subject: [PATCH 05/10] ARM: OMAP2+: Enable pinctrl dummy states
 
-Enable pinctrl dummy states for all OMAP platforms. This allows
-drivers to be converted to pinctrl while still running on
-platforms that do not provide pinctrl data.
+Enable pinctrl dummy states for all OMAP platforms that don't
+populate DT. This allows drivers to be converted to pinctrl
+and not generate new warnings on platforms that do not provide
+pinctrl data. These platforms already have pinmuxes configured
+before the drivers probe.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- arch/arm/mach-omap2/devices.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/devices.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 4060f77..176da53 100644
+index 4060f77..ac51327 100644
 --- a/arch/arm/mach-omap2/devices.c
 +++ b/arch/arm/mach-omap2/devices.c
 @@ -17,6 +17,7 @@
@@ -24,12 +26,13 @@ index 4060f77..176da53 100644
  #include <linux/platform_data/omap4-keypad.h>
  
  #include <mach/hardware.h>
-@@ -645,6 +646,9 @@ static inline void omap_init_vout(void) {}
+@@ -645,6 +646,10 @@ static inline void omap_init_vout(void) {}
  
  static int __init omap2_init_devices(void)
  {
 +	/* Enable dummy states for those platforms without pinctrl support */
-+	pinctrl_provide_dummies();
++	if (!of_have_populated_dt())
++		pinctrl_provide_dummies();
 +
  	/*
  	 * please keep these calls, and their implementations above,

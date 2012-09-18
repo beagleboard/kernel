@@ -1,18 +1,18 @@
-From 983a593f567690718f5581da3b4876384290bd14 Mon Sep 17 00:00:00 2001
+From baa45763cb0e51b087cee0a7bbbe0217dc92311b Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Tue, 11 Sep 2012 09:58:29 -0400
-Subject: [PATCH 4/9] spi: omap2-mcspi: add pinctrl support
+Subject: [PATCH 04/10] spi: omap2-mcspi: add pinctrl support
 
 Adds pinctrl support to support OMAP platforms that boot from DT
 and rely on pinctrl support to set pinmuxes.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- drivers/spi/spi-omap2-mcspi.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ drivers/spi/spi-omap2-mcspi.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 1e8871d..e874c0c 100644
+index 1e8871d..876ca4a 100644
 --- a/drivers/spi/spi-omap2-mcspi.c
 +++ b/drivers/spi/spi-omap2-mcspi.c
 @@ -39,6 +39,8 @@
@@ -32,15 +32,14 @@ index 1e8871d..e874c0c 100644
  
  	master = spi_alloc_master(&pdev->dev, sizeof *mcspi);
  	if (master == NULL) {
-@@ -1222,6 +1225,12 @@ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
+@@ -1222,6 +1225,11 @@ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
  	if (status < 0)
  		goto dma_chnl_free;
  
 +	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
-+	if (IS_ERR(pinctrl)) {
-+		status = PTR_ERR(pinctrl);
-+		goto dma_chnl_free;
-+	}
++	if (IS_ERR(pinctrl))
++		dev_warn(&pdev->dev,
++			"pins are not configured from the driver\n");
 +
  	pm_runtime_use_autosuspend(&pdev->dev);
  	pm_runtime_set_autosuspend_delay(&pdev->dev, SPI_AUTOSUSPEND_TIMEOUT);

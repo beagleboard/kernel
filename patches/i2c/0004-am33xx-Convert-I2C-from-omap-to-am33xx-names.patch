@@ -1,0 +1,110 @@
+From ed9e20ad25dddac172b59289a6a2b0f37190ed53 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Sat, 15 Sep 2012 14:49:11 +0300
+Subject: [PATCH 4/4] am33xx: Convert I2C from omap to am33xx names
+
+On OMAP the TRM names I2C instances as i2c1, i2c2, etc.
+On the am33xx's it is i2c0, i2c1, etc.
+
+Use am33xx naming everywhere, beside the hwmod name.
+---
+ arch/arm/boot/dts/am335x-bone.dts |    8 ++++----
+ arch/arm/boot/dts/am335x-evm.dts  |    2 +-
+ arch/arm/boot/dts/am33xx.dtsi     |   12 ++++++------
+ 3 files changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 9ff6c8a..fb37749 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -48,7 +48,7 @@
+ 				0x1ac 0x17	/* mcasp0_ahclkx.gpio3_21, OUTPUT_PULLUP | MODE7 */
+ 			>;
+ 		};
+-		i2c3_pins: pinmux_i2c3_pins {
++		i2c2_pins: pinmux_i2c2_pins {
+ 			pinctrl-single,pins = <
+ 				0x178 0x73 	/* uart1_ctsn.i2c2_sda, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
+ 				0x17c 0x73	/* uart1_rtsn.i2c2_scl, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
+@@ -95,7 +95,7 @@
+ 	};
+ };
+ 
+-&i2c1 {
++&i2c0 {
+ 	status = "okay";
+ 	clock-frequency = <400000>;
+ 
+@@ -110,10 +110,10 @@
+        
+ };
+ 
+-&i2c3 {
++&i2c2 {
+ 	status = "okay";
+ 	pinctrl-names = "default";
+-	pinctrl-0 = <&i2c3_pins>;
++	pinctrl-0 = <&i2c2_pins>;
+ 
+ 	clock-frequency = <100000>;
+ 
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 9db92f4..c2451dd 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -29,7 +29,7 @@
+ 			status = "okay";
+ 		};
+ 
+-		i2c1: i2c@44e0b000 {
++		i2c0: i2c@44e0b000 {
+ 			status = "okay";
+ 			clock-frequency = <400000>;
+ 
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index e8033eb..2e4499c 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -194,33 +194,33 @@
+ 			status = "disabled";
+ 		};
+ 
+-		i2c1: i2c@44e0b000 {
++		i2c0: i2c@44e0b000 {
+ 			compatible = "ti,omap4-i2c";
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+-			ti,hwmods = "i2c1";
++			ti,hwmods = "i2c1";	/* TODO: Fix hwmod */
+ 			reg = <0x44e0b000 0x1000>;
+ 			interrupt-parent = <&intc>;
+ 			interrupts = <70>;
+ 			status = "disabled";
+ 		};
+ 
+-		i2c2: i2c@4802a000 {
++		i2c1: i2c@4802a000 {
+ 			compatible = "ti,omap4-i2c";
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+-			ti,hwmods = "i2c2";
++			ti,hwmods = "i2c2";	/* TODO: Fix hwmod */
+ 			reg = <0x4802a000 0x1000>;
+ 			interrupt-parent = <&intc>;
+ 			interrupts = <71>;
+ 			status = "disabled";
+ 		};
+ 
+-		i2c3: i2c@4819c000 {
++		i2c2: i2c@4819c000 {
+ 			compatible = "ti,omap4-i2c";
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+-			ti,hwmods = "i2c3";
++			ti,hwmods = "i2c3";	/* TODO: Fix hwmod */
+ 			reg = <0x4819c000 0x1000>;
+ 			interrupt-parent = <&intc>;
+ 			interrupts = <30>;
+-- 
+1.7.7.6
+
