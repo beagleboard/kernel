@@ -1,0 +1,51 @@
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index bc21538..d4911c9 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -31,6 +31,7 @@
+ 				0x58 0x17	/* gpmc_a6.gpio1_22, OUTPUT_PULLUP | MODE7 */
+ 				0x5c 0x7	/* gpmc_a7.gpio1_23, OUTPUT | MODE7 */
+ 				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
++				0x0c 0x37	/* gpmc_ad3.gpio1_3, OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE7 - w1-gpio */
+ 			>;
+ 		};
+ 		spi1_pins: pinmux_spi1_pins {
+@@ -101,6 +102,11 @@
+ 			brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100>;
+ 			default-brightness-level = <50>; /* index to the array above */ 
+ 		};
++
++	onewire@0 {
++		compatible = "w1-gpio";
++		gpios = <&gpio1 3 0>;
++	};
+ };
+ 
+ &i2c0 {
+@@ -231,3 +237,26 @@
+ 	};
+ };
+ 
++&i2c2 {
++	clock-frequency = <400000>;
++
++	/* Ambient light sensor */
++	tsl2550@39 {
++		compatible = "tsl,tsl2550";
++		reg = <0x39>;
++	};
++		
++	/* Humidity Sensor */
++	sht21@40 {
++		compatible = "sensiron,sht21";
++		reg = <0x40>;
++	};
++
++	/* Barometric pressure sensor */
++	bmp085@77 {
++		compatible = "bosch,bmp085";
++		reg = <0x77>;
++	};
++};
++
++
