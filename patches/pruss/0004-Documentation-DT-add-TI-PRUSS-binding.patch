@@ -1,0 +1,64 @@
+From 7b441efb7cba8402bab256dad373a91e0687e758 Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Fri, 21 Sep 2012 12:41:36 -0400
+Subject: [PATCH 4/4] Documentation: DT: add TI PRUSS binding
+
+Add a simple DT binding for PRUSS.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ Documentation/devicetree/bindings/uio/pruss.txt    |   17 +++++++++++++++++
+ .../devicetree/bindings/uio/uio_pruss.txt          |   17 +++++++++++++++++
+ 2 files changed, 34 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/uio/pruss.txt
+ create mode 100644 Documentation/devicetree/bindings/uio/uio_pruss.txt
+
+diff --git a/Documentation/devicetree/bindings/uio/pruss.txt b/Documentation/devicetree/bindings/uio/pruss.txt
+new file mode 100644
+index 0000000..2ac45c5
+--- /dev/null
++++ b/Documentation/devicetree/bindings/uio/pruss.txt
+@@ -0,0 +1,17 @@
++TI PRUSS device
++
++Required properties:
++- compatible :
++  - "ti,pruss-v1" for AM18xx/OMAP-L138/DA850
++  - "ti,pruss-v2" for AM33xx.
++- ti,pintc-offset : Offset of the PINTC from the PRUSS address base
++- ti,hwmods: Name of the hwmod associated to the PRUSS
++
++Example:
++
++pruss: pruss@4a300000 {
++	compatible = "ti,pruss-v2";
++	ti,hwmods = "pruss";
++	reg = <0x4a300000 0x080000>;
++	ti,pintc-offset = <0x20000>;
++};
+diff --git a/Documentation/devicetree/bindings/uio/uio_pruss.txt b/Documentation/devicetree/bindings/uio/uio_pruss.txt
+new file mode 100644
+index 0000000..2ac45c5
+--- /dev/null
++++ b/Documentation/devicetree/bindings/uio/uio_pruss.txt
+@@ -0,0 +1,17 @@
++TI PRUSS device
++
++Required properties:
++- compatible :
++  - "ti,pruss-v1" for AM18xx/OMAP-L138/DA850
++  - "ti,pruss-v2" for AM33xx.
++- ti,pintc-offset : Offset of the PINTC from the PRUSS address base
++- ti,hwmods: Name of the hwmod associated to the PRUSS
++
++Example:
++
++pruss: pruss@4a300000 {
++	compatible = "ti,pruss-v2";
++	ti,hwmods = "pruss";
++	reg = <0x4a300000 0x080000>;
++	ti,pintc-offset = <0x20000>;
++};
+-- 
+1.7.7.6
+

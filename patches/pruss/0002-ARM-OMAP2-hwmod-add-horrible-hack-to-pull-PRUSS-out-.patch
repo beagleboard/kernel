@@ -1,0 +1,51 @@
+From bac39b8bb93f49ee01a8c4a785cd93bc63bf82cc Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Fri, 21 Sep 2012 12:27:43 -0400
+Subject: [PATCH 2/4] ARM: OMAP2+: hwmod: add horrible hack to pull PRUSS out
+ of reset
+
+The approach with hwmod and hwmods that have rst_lines is to
+assert those resets. If runtime PM is used in a driver and a rst
+line is detected as asserted, the enable will never happen.
+
+Hack this to deassert all rst_lines in a hwmod when enable is
+called.
+
+The intention is for the drivers themselves to directly control
+the rst_lines rather than indirectly through runtime PM. This
+requires some discussion as to what APIs can be used as currently
+there's only an arch specific call for this to happen...it may
+require an OF helper to be defined in conjunction with a module
+reset driver.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 5b91de9..73e61c3 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1918,7 +1918,18 @@ static int _enable(struct omap_hwmod *oh)
+ 	 * can do.
+ 	 */
+ 	if (_are_any_hardreset_lines_asserted(oh))
++#if 0
+ 		return 0;
++#else
++	{
++	/* FIXME: Horrible hack */
++	/* We are supposed to control the rst_lines at the driver level */
++		int i;
++		for (i = 0; i < oh->rst_lines_cnt; i++)
++			_deassert_hardreset(oh, oh->rst_lines[i].name);
++	}
++#endif
++
+ 
+ 	/* Mux pins for device runtime if populated */
+ 	if (oh->mux && (!oh->mux->enabled ||
+-- 
+1.7.7.6
+
