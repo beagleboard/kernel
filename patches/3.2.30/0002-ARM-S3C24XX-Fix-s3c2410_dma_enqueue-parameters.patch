@@ -1,0 +1,37 @@
+From ccd2951d12243c68b49654b14d54af7821c5eeaa Mon Sep 17 00:00:00 2001
+From: Heiko Stuebner <heiko@sntech.de>
+Date: Tue, 7 Aug 2012 19:12:05 +0900
+Subject: [PATCH 002/136] ARM: S3C24XX: Fix s3c2410_dma_enqueue parameters
+
+commit b01858c7806e7e6f6121da2e51c9222fc4d21dc6 upstream.
+
+Commit d670ac019f60 (ARM: SAMSUNG: DMA Cleanup as per sparse) changed the
+prototype of the s3c2410_dma_* functions to use the enum dma_ch instead
+of an generic unsigned int.
+
+In the s3c24xx dma.c s3c2410_dma_enqueue seems to have been forgotten,
+the other functions there were changed correctly.
+
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Kukjin Kim <kgene.kim@samsung.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/arm/plat-s3c24xx/dma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/plat-s3c24xx/dma.c b/arch/arm/plat-s3c24xx/dma.c
+index 8a90b6a..1eedf8d 100644
+--- a/arch/arm/plat-s3c24xx/dma.c
++++ b/arch/arm/plat-s3c24xx/dma.c
+@@ -431,7 +431,7 @@ s3c2410_dma_canload(struct s3c2410_dma_chan *chan)
+  * when necessary.
+ */
+ 
+-int s3c2410_dma_enqueue(unsigned int channel, void *id,
++int s3c2410_dma_enqueue(enum dma_ch channel, void *id,
+ 			dma_addr_t data, int size)
+ {
+ 	struct s3c2410_dma_chan *chan = s3c_dma_lookup_channel(channel);
+-- 
+1.7.10.4
+
