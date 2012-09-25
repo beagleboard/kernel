@@ -18,7 +18,7 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="979570e02981d4a8fc20b3cc8fd651856c98ee9d"
+EXTERNAL_SHA="56d27adcb536b7430d5f8a6240df8ad261eb00bd"
 
 PATCHSET="devel-dt vaibhav net-next-am335x cpsw usb pinctrl rtc mmc da8xx-fb fixes cpufreq spi adc dma pwm st7735 i2c w1 pruss"
 
