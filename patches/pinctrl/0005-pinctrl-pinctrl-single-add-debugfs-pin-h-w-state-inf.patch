@@ -1,0 +1,36 @@
+From 244dc755fb7438c4efaa0fab73fc19e31ca8b384 Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Wed, 26 Sep 2012 12:41:42 -0400
+Subject: [PATCH] pinctrl: pinctrl-single: add debugfs pin h/w state info
+
+Adds support for displaying the individual pin h/w config state.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ drivers/pinctrl/pinctrl-single.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index aabecfa..726a729 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -246,7 +246,15 @@ static void pcs_pin_dbg_show(struct pinctrl_dev *pctldev,
+ 					struct seq_file *s,
+ 					unsigned offset)
+ {
+-	seq_printf(s, " " DRIVER_NAME);
++	struct pcs_device *pcs;
++	unsigned val;
++
++	pcs = pinctrl_dev_get_drvdata(pctldev);
++
++	val = pcs->read(pcs->base + offset);
++	val &= pcs->fmask;
++
++	seq_printf(s, "%08x %s " , val, DRIVER_NAME);
+ }
+ 
+ static void pcs_dt_free_map(struct pinctrl_dev *pctldev,
+-- 
+1.7.7.6
+
