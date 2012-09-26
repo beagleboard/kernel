@@ -1,12 +1,21 @@
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index ea870e9..f50a33a 100644
+index dee02b3..94188bb 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -39,7 +39,7 @@
+ 				0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
+ 				0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
+ 				0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
+-				0x48 0x6        /* gpmc_a2.ehrpwm1A, MODE6 */
++				0x4c 0x6        /* gpmc_a3.ehrpwm1B, MODE6 */
+ 			>;
+ 		};
+ 		lcd_pins: pinmux_lcd_pins {
 @@ -56,7 +56,31 @@
  		};
  		pruss_led_pins: pinmux_pruss_led_pins {
  			pinctrl-single,pins = <
--				0x800 0x15	/* lcd_data0.pr1_pru1_pru_r30_0, OUTPUT_PULLUP | MODE5 */
+-				0x0a0 0x15	/* lcd_data0.pr1_pru1_pru_r30_0, OUTPUT_PULLUP | MODE5 */
 +				0x018 0x47 /* P8_3 gpmc_ad6.gpio1_6 OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
 +				0x008 0x57 /* P8_5 gpmc_ad2.gpio1_2 OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
 +				0x0c 0x37  /* gpmc_ad3.gpio1_3, OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE7 - w1-gpio */
@@ -35,7 +44,13 @@ index ea870e9..f50a33a 100644
  			>;
  		};
  	};
-@@ -106,6 +130,11 @@
+@@ -101,11 +125,35 @@
+ 
+ 	st7735fb-bl {
+ 			compatible	= "pwm-backlight"; 
+-			pwms = <&ehrpwm1 0 500000 0>;
++			pwms = <&ehrpwm1 1 500000 0>;
+ 			pwm-names = "st7735fb";
  			brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100>;
  			default-brightness-level = <50>; /* index to the array above */ 
  		};
@@ -44,6 +59,32 @@ index ea870e9..f50a33a 100644
 +		compatible = "w1-gpio";
 +		gpios = <&gpio1 3 0>;
 +	};
++
++	pwm_test0: ehrpwm1A {
++		compatible	= "pwm_test";
++		pwms = <&ehrpwm1 0 5000000 0>;
++		pwm-names = "ehrpwm.1";
++	};
++
++	pwm_test1: ehrpwm2A {
++		compatible	= "pwm_test";
++		pwms = <&ehrpwm2 0 5000000 0>;
++		pwm-names = "ehrpwm.2";
++	};
++
++	pwm_test2: ehrpwm2B {
++		compatible	= "pwm_test";
++		pwms = <&ehrpwm2 1 5000000 0>;
++		pwm-names = "ehrpwm.2";
++	};
++
  };
  
  &i2c0 {
+@@ -242,3 +290,6 @@
+ 	pinctrl-0 = <&pruss_led_pins>;
+ };
+ 
++&ehrpwm2 {
++	status = "okay";
++};
