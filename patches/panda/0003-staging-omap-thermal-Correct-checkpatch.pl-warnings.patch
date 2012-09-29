@@ -1,0 +1,58 @@
+From 907cfffa6e6c01a8827b25083ffea5fa92144d44 Mon Sep 17 00:00:00 2001
+From: J Keerthy <j-keerthy@ti.com>
+Date: Tue, 11 Sep 2012 19:06:52 +0300
+Subject: [PATCH 3/6] staging: omap-thermal: Correct checkpatch.pl warnings
+
+Removes checkpatch warnings on omap-bandgap.c.
+
+Signed-off-by: J Keerthy <j-keerthy@ti.com>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ drivers/staging/omap-thermal/omap-bandgap.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/staging/omap-thermal/omap-bandgap.c b/drivers/staging/omap-thermal/omap-bandgap.c
+index c556abb..9ef44ea 100644
+--- a/drivers/staging/omap-thermal/omap-bandgap.c
++++ b/drivers/staging/omap-thermal/omap-bandgap.c
+@@ -1037,20 +1037,20 @@ static int omap_bandgap_save_ctxt(struct omap_bandgap *bg_ptr)
+ 
+ 		if (OMAP_BANDGAP_HAS(bg_ptr, MODE_CONFIG))
+ 			rval->bg_mode_ctrl = omap_bandgap_readl(bg_ptr,
+-								tsr->bgap_mode_ctrl);
++							tsr->bgap_mode_ctrl);
+ 		if (OMAP_BANDGAP_HAS(bg_ptr, COUNTER))
+ 			rval->bg_counter = omap_bandgap_readl(bg_ptr,
+-							      tsr->bgap_counter);
++							tsr->bgap_counter);
+ 		if (OMAP_BANDGAP_HAS(bg_ptr, TALERT)) {
+ 			rval->bg_threshold = omap_bandgap_readl(bg_ptr,
+-								tsr->bgap_threshold);
++							tsr->bgap_threshold);
+ 			rval->bg_ctrl = omap_bandgap_readl(bg_ptr,
+-							   tsr->bgap_mask_ctrl);
++						   tsr->bgap_mask_ctrl);
+ 		}
+ 
+ 		if (OMAP_BANDGAP_HAS(bg_ptr, TSHUT_CONFIG))
+ 			rval->tshut_threshold = omap_bandgap_readl(bg_ptr,
+-								   tsr->tshut_threshold);
++						   tsr->tshut_threshold);
+ 	}
+ 
+ 	return 0;
+@@ -1074,8 +1074,9 @@ static int omap_bandgap_restore_ctxt(struct omap_bandgap *bg_ptr)
+ 
+ 		if (val == 0) {
+ 			if (OMAP_BANDGAP_HAS(bg_ptr, TSHUT_CONFIG))
+-				omap_bandgap_writel(bg_ptr, rval->tshut_threshold,
+-							   tsr->tshut_threshold);
++				omap_bandgap_writel(bg_ptr,
++					rval->tshut_threshold,
++						   tsr->tshut_threshold);
+ 			/* Force immediate temperature measurement and update
+ 			 * of the DTEMP field
+ 			 */
+-- 
+1.7.10.4
+

@@ -6,9 +6,9 @@ Kernel for the beagleboard.org boards
 usage
 ======
 
-beagleboard-3.5 patchset:
+beagleboard-3.6 patchset:
 
-git checkout origin/beagleboard-3.5 -b beagleboard-3.5
+git checkout origin/beagleboard-3.6 -b beagleboard-3.6
 
 ./patch.sh
 
@@ -17,15 +17,18 @@ Status
 
 Beagle Cx: Stable
 
-Beagle xM: Stable (no 800Mhz due to cpufreq disabled, can "re-enable" just make sure to do a FULL POWER plug reset...)
+* Device will lockup (only on soft reboot) with: CONFIG_CPU_FREQ_GOV_ONDEMAND set
 
-* Patch/printf trace: https://github.com/RobertCNelson/linux-dev/blob/master/patches/debug/0001-beagle_xm-cpufreq-debug.patch
+Beagle xM: Stable
 
-* Trigger defconfig diff: https://github.com/RobertCNelson/linux-dev/blob/master/patches/debug/config.diff
+* Device will (randomly) lockup (only on soft reboot) with: 800Mhz enabled
+* patches/beagle/0005-TEMP-Beagle-xM-cpufreq-disable-800Mhz-opp.patch
 
-Panda : Random Lockups (currently stress testing)
+Panda: Random Lockups after 1-2-3 hours at 100% load...
 
-Panda ES: Random Lockups (currently stress testing)
+* Unhandled fault: imprecise external abort (0x1406)
+
+Panda ES: Stable
 
 Board Maintainers List
 ---------------------

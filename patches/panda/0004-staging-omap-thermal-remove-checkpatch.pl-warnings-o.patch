@@ -1,0 +1,149 @@
+From b976f2ca85ccc9e516840d9d5c3a7ab940b31072 Mon Sep 17 00:00:00 2001
+From: Eduardo Valentin <eduardo.valentin@TI.COM>
+Date: Tue, 11 Sep 2012 19:06:53 +0300
+Subject: [PATCH 4/6] staging: omap-thermal: remove checkpatch.pl warnings on
+ data files
+
+Simple checkpatch.pl clean ups.
+
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ drivers/staging/omap-thermal/omap4-thermal.c |   54 +++++++++++++-------------
+ drivers/staging/omap-thermal/omap5-thermal.c |   38 +++++++++---------
+ 2 files changed, 46 insertions(+), 46 deletions(-)
+
+diff --git a/drivers/staging/omap-thermal/omap4-thermal.c b/drivers/staging/omap-thermal/omap4-thermal.c
+index fa9dbcd..04c02b6 100644
+--- a/drivers/staging/omap-thermal/omap4-thermal.c
++++ b/drivers/staging/omap-thermal/omap4-thermal.c
+@@ -77,15 +77,15 @@ const struct omap_bandgap_data omap4430_data = {
+ 	.remove_sensor = omap_thermal_remove_sensor,
+ 	.sensors = {
+ 		{
+-			.registers = &omap4430_mpu_temp_sensor_registers,
+-			.ts_data = &omap4430_mpu_temp_sensor_data,
+-			.domain = "cpu",
+-			.slope = 0,
+-			.constant = 20000,
+-			.slope_pcb = 0,
+-			.constant_pcb = 20000,
+-			.register_cooling = omap_thermal_register_cpu_cooling,
+-			.unregister_cooling = omap_thermal_unregister_cpu_cooling,
++		.registers = &omap4430_mpu_temp_sensor_registers,
++		.ts_data = &omap4430_mpu_temp_sensor_data,
++		.domain = "cpu",
++		.slope = 0,
++		.constant = 20000,
++		.slope_pcb = 0,
++		.constant_pcb = 20000,
++		.register_cooling = omap_thermal_register_cpu_cooling,
++		.unregister_cooling = omap_thermal_unregister_cpu_cooling,
+ 		},
+ 	},
+ 	.sensor_count = 1,
+@@ -215,15 +215,15 @@ const struct omap_bandgap_data omap4460_data = {
+ 	.remove_sensor = omap_thermal_remove_sensor,
+ 	.sensors = {
+ 		{
+-			.registers = &omap4460_mpu_temp_sensor_registers,
+-			.ts_data = &omap4460_mpu_temp_sensor_data,
+-			.domain = "cpu",
+-			.slope = OMAP_GRADIENT_SLOPE_4460,
+-			.constant = OMAP_GRADIENT_CONST_4460,
+-			.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_4460,
+-			.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_4460,
+-			.register_cooling = omap_thermal_register_cpu_cooling,
+-			.unregister_cooling = omap_thermal_unregister_cpu_cooling,
++		.registers = &omap4460_mpu_temp_sensor_registers,
++		.ts_data = &omap4460_mpu_temp_sensor_data,
++		.domain = "cpu",
++		.slope = OMAP_GRADIENT_SLOPE_4460,
++		.constant = OMAP_GRADIENT_CONST_4460,
++		.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_4460,
++		.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_4460,
++		.register_cooling = omap_thermal_register_cpu_cooling,
++		.unregister_cooling = omap_thermal_unregister_cpu_cooling,
+ 		},
+ 	},
+ 	.sensor_count = 1,
+@@ -244,15 +244,15 @@ const struct omap_bandgap_data omap4470_data = {
+ 	.remove_sensor = omap_thermal_remove_sensor,
+ 	.sensors = {
+ 		{
+-			.registers = &omap4460_mpu_temp_sensor_registers,
+-			.ts_data = &omap4460_mpu_temp_sensor_data,
+-			.domain = "cpu",
+-			.slope = OMAP_GRADIENT_SLOPE_4470,
+-			.constant = OMAP_GRADIENT_CONST_4470,
+-			.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_4470,
+-			.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_4470,
+-			.register_cooling = omap_thermal_register_cpu_cooling,
+-			.unregister_cooling = omap_thermal_unregister_cpu_cooling,
++		.registers = &omap4460_mpu_temp_sensor_registers,
++		.ts_data = &omap4460_mpu_temp_sensor_data,
++		.domain = "cpu",
++		.slope = OMAP_GRADIENT_SLOPE_4470,
++		.constant = OMAP_GRADIENT_CONST_4470,
++		.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_4470,
++		.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_4470,
++		.register_cooling = omap_thermal_register_cpu_cooling,
++		.unregister_cooling = omap_thermal_unregister_cpu_cooling,
+ 		},
+ 	},
+ 	.sensor_count = 1,
+diff --git a/drivers/staging/omap-thermal/omap5-thermal.c b/drivers/staging/omap-thermal/omap5-thermal.c
+index 0658af2..2f3a498 100644
+--- a/drivers/staging/omap-thermal/omap5-thermal.c
++++ b/drivers/staging/omap-thermal/omap5-thermal.c
+@@ -268,29 +268,29 @@ const struct omap_bandgap_data omap5430_data = {
+ 	.remove_sensor = omap_thermal_remove_sensor,
+ 	.sensors = {
+ 		{
+-			.registers = &omap5430_mpu_temp_sensor_registers,
+-			.ts_data = &omap5430_mpu_temp_sensor_data,
+-			.domain = "cpu",
+-			.register_cooling = omap_thermal_register_cpu_cooling,
+-			.unregister_cooling = omap_thermal_unregister_cpu_cooling,
+-			.slope = OMAP_GRADIENT_SLOPE_5430_CPU,
+-			.constant = OMAP_GRADIENT_CONST_5430_CPU,
+-			.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_5430_CPU,
+-			.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_5430_CPU,
++		.registers = &omap5430_mpu_temp_sensor_registers,
++		.ts_data = &omap5430_mpu_temp_sensor_data,
++		.domain = "cpu",
++		.register_cooling = omap_thermal_register_cpu_cooling,
++		.unregister_cooling = omap_thermal_unregister_cpu_cooling,
++		.slope = OMAP_GRADIENT_SLOPE_5430_CPU,
++		.constant = OMAP_GRADIENT_CONST_5430_CPU,
++		.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_5430_CPU,
++		.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_5430_CPU,
+ 		},
+ 		{
+-			.registers = &omap5430_gpu_temp_sensor_registers,
+-			.ts_data = &omap5430_gpu_temp_sensor_data,
+-			.domain = "gpu",
+-			.slope = OMAP_GRADIENT_SLOPE_5430_GPU,
+-			.constant = OMAP_GRADIENT_CONST_5430_GPU,
+-			.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_5430_GPU,
+-			.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_5430_GPU,
++		.registers = &omap5430_gpu_temp_sensor_registers,
++		.ts_data = &omap5430_gpu_temp_sensor_data,
++		.domain = "gpu",
++		.slope = OMAP_GRADIENT_SLOPE_5430_GPU,
++		.constant = OMAP_GRADIENT_CONST_5430_GPU,
++		.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_5430_GPU,
++		.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_5430_GPU,
+ 		},
+ 		{
+-			.registers = &omap5430_core_temp_sensor_registers,
+-			.ts_data = &omap5430_core_temp_sensor_data,
+-			.domain = "core",
++		.registers = &omap5430_core_temp_sensor_registers,
++		.ts_data = &omap5430_core_temp_sensor_data,
++		.domain = "core",
+ 		},
+ 	},
+ 	.sensor_count = 3,
+-- 
+1.7.10.4
+

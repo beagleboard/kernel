@@ -20,11 +20,11 @@ Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
  arch/arm/mach-omap2/board-omap3beagle.c          |  135 ++++++++++++++++++++++
- drivers/video/omap2/displays/panel-generic-dpi.c |   25 ++++
- 2 files changed, 160 insertions(+)
+ drivers/video/omap2/displays/panel-generic-dpi.c |   27 +++++
+ 2 files changed, 162 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 3acd816..5947f0a 100644
+index e0e7b98..e39846c 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
 @@ -43,6 +43,7 @@
@@ -249,11 +249,11 @@ index 3acd816..5947f0a 100644
  MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
  	/* Maintainer: Syed Mohammed Khasim - http://beagleboard.org */
 diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
-index e42f9dc..6948589 100644
+index bc5af25..da5ab7a 100644
 --- a/drivers/video/omap2/displays/panel-generic-dpi.c
 +++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-@@ -486,6 +486,31 @@ static struct panel_config generic_dpi_panels[] = {
- 					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
+@@ -538,6 +538,33 @@ static struct panel_config generic_dpi_panels[] = {
+ 		},
  		.name			= "primeview_pd104slf",
  	},
 +
@@ -272,11 +272,13 @@ index e42f9dc..6948589 100644
 +			.vsw		= 4,
 +			.vfp		= 14,
 +			.vbp		= 29,
++
++			.vsync_level	= OMAPDSS_SIG_ACTIVE_LOW,
++			.hsync_level	= OMAPDSS_SIG_ACTIVE_LOW,
++			.data_pclk_edge	= OMAPDSS_DRIVE_SIG_RISING_EDGE,
++			.de_level	= OMAPDSS_SIG_ACTIVE_HIGH,
++			.sync_pclk_edge	= OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES,
 +		},
-+		.acbi			= 0x0,
-+		.acb			= 0x0,
-+		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+					  OMAP_DSS_LCD_IHS, // | OMAP_DSS_LCD_IEO; - TODO check this - doesn't work with this enabled
 +		.power_on_delay		= 50,
 +		.power_off_delay	= 100,
 +		.name			= "tfc_s9700rtwv35tr-01b",

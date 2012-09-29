@@ -13,14 +13,14 @@ PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.5.4"
+TAG="v3.6-rc7"
 EXTRATAG=""
 
 #EXTERNAL_TREE="git://arago-project.org/git/projects/linux-am33x.git"
 #EXTERNAL_BRANCH="v3.2-staging"
 #EXTERNAL_SHA="e8004dad869568692ca2a45c04e8464ce48cc4d7"
 
-PATCHSET="distro sakoman beagle/expansion beagle panda omap_fixes drm sgx mainline-fixes cpuidle cpuidle_omap"
+PATCHSET="distro sakoman beagle/expansion beagle panda omap_fixes sgx mainline-fixes"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
