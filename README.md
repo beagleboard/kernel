@@ -15,6 +15,8 @@ git checkout origin/beagleboard-3.5 -b beagleboard-3.5
 Status
 ======
 
+* Unmaintained: Please use next branch: origin/beagleboard-3.6
+
 Beagle Cx: Stable
 
 Beagle xM: Stable (no 800Mhz due to cpufreq disabled, can "re-enable" just make sure to do a FULL POWER plug reset...)
