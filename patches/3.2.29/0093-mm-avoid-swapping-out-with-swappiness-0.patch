@@ -1,4 +1,4 @@
-From a65afe79af5181ca0fca10262908738b4f453b97 Mon Sep 17 00:00:00 2001
+From d923cbb4387f1af7d08e5aa8637f4188c79afcee Mon Sep 17 00:00:00 2001
 From: Satoru Moriya <satoru.moriya@hds.com>
 Date: Tue, 29 May 2012 15:06:47 -0700
 Subject: [PATCH 93/94] mm: avoid swapping out with swappiness==0
@@ -35,7 +35,7 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  mm/vmscan.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/mm/vmscan.c b/mm/vmscan.c
 index 48febd7..86eb848 100644
@@ -64,5 +64,5 @@ index 48febd7..86eb848 100644
  			if (!scan && force_scan)
  				scan = SWAP_CLUSTER_MAX;
 -- 
-1.7.10.4
+1.7.7.6
 

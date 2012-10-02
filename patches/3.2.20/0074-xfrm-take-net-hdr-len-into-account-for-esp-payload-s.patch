@@ -1,4 +1,4 @@
-From f7687e882a0bbdc0bbd60613ed170d5fa4d55a44 Mon Sep 17 00:00:00 2001
+From c4be75d2b1eb842732c9ded5b47b44fecc7a4004 Mon Sep 17 00:00:00 2001
 From: Benjamin Poirier <bpoirier@suse.de>
 Date: Thu, 24 May 2012 11:32:38 +0000
 Subject: [PATCH 74/86] xfrm: take net hdr len into account for esp payload
@@ -78,17 +78,17 @@ index 1ac7938..65dd543 100644
 -	mtu -= x->props.header_len + crypto_aead_authsize(esp->aead);
 -	rem = mtu & (align - 1);
 -	mtu &= ~(align - 1);
-+	if (x->props.mode != XFRM_MODE_TUNNEL)
-+		net_adj = sizeof(struct ipv6hdr);
-+	else
-+		net_adj = 0;
- 
+-
 -	if (x->props.mode != XFRM_MODE_TUNNEL) {
 -		u32 padsize = ((blksize - 1) & 7) + 1;
 -		mtu -= blksize - padsize;
 -		mtu += min_t(u32, blksize - padsize, rem);
 -	}
--
++	if (x->props.mode != XFRM_MODE_TUNNEL)
++		net_adj = sizeof(struct ipv6hdr);
++	else
++		net_adj = 0;
+ 
 -	return mtu - 2;
 +	return ((mtu - x->props.header_len - crypto_aead_authsize(esp->aead) -
 +		 net_adj) & ~(align - 1)) + (net_adj - 2);
@@ -96,5 +96,5 @@ index 1ac7938..65dd543 100644
  
  static void esp6_err(struct sk_buff *skb, struct inet6_skb_parm *opt,
 -- 
-1.7.9.5
+1.7.7.6
 

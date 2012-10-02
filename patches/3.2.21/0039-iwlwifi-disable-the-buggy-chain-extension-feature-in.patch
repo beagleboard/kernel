@@ -1,4 +1,4 @@
-From cbb05493366d341a1b66b2bf7488b4957ffc7e75 Mon Sep 17 00:00:00 2001
+From 19f2d1a63864ec424ff8e0728b49ae803c1ef126 Mon Sep 17 00:00:00 2001
 From: Emmanuel Grumbach <emmanuel.grumbach@intel.com>
 Date: Wed, 6 Jun 2012 13:55:02 +0200
 Subject: [PATCH 39/67] iwlwifi: disable the buggy chain extension feature in
@@ -17,7 +17,7 @@ Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  drivers/net/wireless/iwlwifi/iwl-prph.h       |    1 +
  drivers/net/wireless/iwlwifi/iwl-trans-pcie.c |    5 +++++
- 2 files changed, 6 insertions(+)
+ 2 files changed, 6 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/net/wireless/iwlwifi/iwl-prph.h b/drivers/net/wireless/iwlwifi/iwl-prph.h
 index d9b089e..0683006 100644
@@ -48,5 +48,5 @@ index 5f17ab8..5815cf5 100644
  	for (chan = 0; chan < FH_TCSR_CHNL_NUM ; chan++)
  		iwl_write_direct32(bus(trans), FH_TCSR_CHNL_TX_CONFIG_REG(chan),
 -- 
-1.7.9.5
+1.7.7.6
 

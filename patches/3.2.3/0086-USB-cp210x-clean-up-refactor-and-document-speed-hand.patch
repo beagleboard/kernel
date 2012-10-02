@@ -1,4 +1,4 @@
-From 2cfb09b2282a9cf46547260f897064b24b04b4bb Mon Sep 17 00:00:00 2001
+From 80feea00d482ccf2ca925f24e55e28d35662fd81 Mon Sep 17 00:00:00 2001
 From: Johan Hovold <jhovold@gmail.com>
 Date: Mon, 16 Jan 2012 00:36:51 +0100
 Subject: [PATCH 86/90] USB: cp210x: clean up, refactor and document speed
@@ -13,8 +13,8 @@ Signed-off-by: Johan Hovold <jhovold@gmail.com>
 Cc: Preston Fick <preston.fick@silabs.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/serial/cp210x.c |   71 ++++++++++++++++++++++++++++++++++---------
- 1 file changed, 57 insertions(+), 14 deletions(-)
+ drivers/usb/serial/cp210x.c |   71 ++++++++++++++++++++++++++++++++++--------
+ 1 files changed, 57 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/usb/serial/cp210x.c b/drivers/usb/serial/cp210x.c
 index 5c3b7d1..d2c4080 100644
@@ -117,5 +117,5 @@ index 5c3b7d1..d2c4080 100644
  	/* If the number of data bits is to be updated */
  	if ((cflag & CSIZE) != (old_cflag & CSIZE)) {
 -- 
-1.7.9.4
+1.7.7.6
 

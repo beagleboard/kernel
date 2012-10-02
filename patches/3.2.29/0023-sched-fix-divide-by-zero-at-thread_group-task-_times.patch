@@ -1,4 +1,4 @@
-From 097e2f40cbca70422ade38ea61d72c3b8566f14d Mon Sep 17 00:00:00 2001
+From 79b0f61edec4820c1ad414d7d6d2c000f93d13ec Mon Sep 17 00:00:00 2001
 From: Stanislaw Gruszka <sgruszka@redhat.com>
 Date: Wed, 8 Aug 2012 11:27:15 +0200
 Subject: [PATCH 23/94] sched: fix divide by zero at {thread_group,task}_times
@@ -50,7 +50,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  kernel/sched.c |   34 ++++++++++++++++++++--------------
- 1 file changed, 20 insertions(+), 14 deletions(-)
+ 1 files changed, 20 insertions(+), 14 deletions(-)
 
 diff --git a/kernel/sched.c b/kernel/sched.c
 index e0431c4..910db7d 100644
@@ -112,5 +112,5 @@ index e0431c4..910db7d 100644
  
  	sig->prev_utime = max(sig->prev_utime, utime);
 -- 
-1.7.10.4
+1.7.7.6
 

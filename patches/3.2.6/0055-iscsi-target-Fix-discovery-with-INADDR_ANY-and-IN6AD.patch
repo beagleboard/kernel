@@ -1,4 +1,4 @@
-From 758300f8f6a9d7df69151cb4b6c076ce2abe3a33 Mon Sep 17 00:00:00 2001
+From 35022d9133be70bd671ca64e7fce4c2820875d25 Mon Sep 17 00:00:00 2001
 From: Nicholas Bellinger <nab@linux-iscsi.org>
 Date: Mon, 16 Jan 2012 23:33:48 -0800
 Subject: [PATCH 55/87] iscsi-target: Fix discovery with INADDR_ANY and
@@ -19,9 +19,9 @@ Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/target/iscsi/iscsi_target.c       |   37 +++++++++++++++++++++++++----
- drivers/target/iscsi/iscsi_target_core.h  |    2 ++
- drivers/target/iscsi/iscsi_target_login.c |   31 ++++++++++++++++++++----
+ drivers/target/iscsi/iscsi_target.c       |   37 +++++++++++++++++++++++++---
+ drivers/target/iscsi/iscsi_target_core.h  |    2 +
+ drivers/target/iscsi/iscsi_target_login.c |   31 +++++++++++++++++++++---
  3 files changed, 62 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/target/iscsi/iscsi_target.c b/drivers/target/iscsi/iscsi_target.c
@@ -172,5 +172,5 @@ index d734bde..bd2adec 100644
  	pr_debug("Moving to TARG_CONN_STATE_IN_LOGIN.\n");
  	conn->conn_state	= TARG_CONN_STATE_IN_LOGIN;
 -- 
-1.7.9.4
+1.7.7.6
 

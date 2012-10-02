@@ -1,7 +1,7 @@
-From e89768f97b1d5faa0cb6335e46558f889320621e Mon Sep 17 00:00:00 2001
+From 5b91bf9c3fabb26cca073e42b1e0fbc42e429044 Mon Sep 17 00:00:00 2001
 From: Jeff Layton <jlayton@redhat.com>
 Date: Tue, 20 Dec 2011 06:57:45 -0500
-Subject: [PATCH 026/130] nfs: fix regression in handling of context= option
+Subject: [PATCH 026/129] nfs: fix regression in handling of context= option
  in NFSv4
 
 commit 8a0d551a59ac92d8ff048d6cb29d3a02073e81e8 upstream.
@@ -28,7 +28,7 @@ Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
  fs/nfs/super.c |   43 +++++++++++++++++++------------------------
- 1 file changed, 19 insertions(+), 24 deletions(-)
+ 1 files changed, 19 insertions(+), 24 deletions(-)
 
 diff --git a/fs/nfs/super.c b/fs/nfs/super.c
 index 1347774..3ada13c 100644
@@ -143,5 +143,5 @@ index 1347774..3ada13c 100644
  			error != 0 ? " [error]" : "");
  	return res;
 -- 
-1.7.9.4
+1.7.7.6
 

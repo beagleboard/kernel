@@ -1,4 +1,4 @@
-From d9a5888a4162d8e06eb909d31cbe5c779c8b67dc Mon Sep 17 00:00:00 2001
+From 664b18c96320930c2348c45fb87f9dbcc1a8c810 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Date: Fri, 22 Jun 2012 15:52:09 +0200
 Subject: [PATCH 028/109] sched/nohz: Rewrite and fix load-avg computation --
@@ -242,10 +242,12 @@ index 576a27f..52ac69b 100644
 +		int idx = calc_load_write_idx();
 +		atomic_long_add(delta, &calc_load_idle[idx]);
 +	}
-+}
-+
+ }
+ 
+-static long calc_load_fold_idle(void)
 +void calc_load_exit_idle(void)
-+{
+ {
+-	long delta = 0;
 +	struct rq *this_rq = this_rq();
 +
 +	/*
@@ -253,27 +255,25 @@ index 576a27f..52ac69b 100644
 +	 */
 +	if (time_before(jiffies, this_rq->calc_load_update))
 +		return;
-+
-+	/*
+ 
+ 	/*
+-	 * Its got a race, we don't care...
 +	 * We woke inside or after the sample window, this means we're already
 +	 * accounted through the nohz accounting, so skip the entire deal and
 +	 * sync up for the next window.
-+	 */
+ 	 */
+-	if (atomic_long_read(&calc_load_tasks_idle))
+-		delta = atomic_long_xchg(&calc_load_tasks_idle, 0);
 +	this_rq->calc_load_update = calc_load_update;
 +	if (time_before(jiffies, this_rq->calc_load_update + 10))
 +		this_rq->calc_load_update += LOAD_FREQ;
- }
- 
- static long calc_load_fold_idle(void)
- {
++}
++
++static long calc_load_fold_idle(void)
++{
 +	int idx = calc_load_read_idx();
- 	long delta = 0;
- 
--	/*
--	 * Its got a race, we don't care...
--	 */
--	if (atomic_long_read(&calc_load_tasks_idle))
--		delta = atomic_long_xchg(&calc_load_tasks_idle, 0);
++	long delta = 0;
++
 +	if (atomic_long_read(&calc_load_idle[idx]))
 +		delta = atomic_long_xchg(&calc_load_idle[idx], 0);
  

@@ -1,4 +1,4 @@
-From 94c63ce73eda68e07380ef495c19c9f87f4655ba Mon Sep 17 00:00:00 2001
+From e4d6f5560580be8becfddf80e0006097aff41057 Mon Sep 17 00:00:00 2001
 From: Joe Thornber <ejt@redhat.com>
 Date: Wed, 28 Mar 2012 18:41:23 +0100
 Subject: [PATCH 121/147] dm persistent data: fix btree rebalancing after
@@ -23,7 +23,7 @@ Signed-off-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  drivers/md/persistent-data/dm-btree-remove.c |  174 +++++++++++++++-----------
- 1 file changed, 99 insertions(+), 75 deletions(-)
+ 1 files changed, 99 insertions(+), 75 deletions(-)
 
 diff --git a/drivers/md/persistent-data/dm-btree-remove.c b/drivers/md/persistent-data/dm-btree-remove.c
 index 023fbc2..1a35caf 100644
@@ -268,5 +268,5 @@ index 023fbc2..1a35caf 100644
  	has_right_sibling = i < (le32_to_cpu(n->header.nr_entries) - 1);
  
 -- 
-1.7.9.4
+1.7.7.6
 

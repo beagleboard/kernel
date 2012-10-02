@@ -1,4 +1,4 @@
-From 5aa0f981535b054fa447c0202317be5f9e79f676 Mon Sep 17 00:00:00 2001
+From 81baf0835d90b103f9b6c254c15475479547682e Mon Sep 17 00:00:00 2001
 From: Jason Wessel <jason.wessel@windriver.com>
 Date: Wed, 21 Mar 2012 10:17:03 -0500
 Subject: [PATCH 33/60] kgdb,debug_core: pass the breakpoint struct instead of
@@ -20,8 +20,8 @@ variable which indicates how the breakpoint was installed.
 Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- include/linux/kgdb.h      |    4 ++--
- kernel/debug/debug_core.c |   53 ++++++++++++++++++++-------------------------
+ include/linux/kgdb.h      |    4 +-
+ kernel/debug/debug_core.c |   53 ++++++++++++++++++++------------------------
  2 files changed, 26 insertions(+), 31 deletions(-)
 
 diff --git a/include/linux/kgdb.h b/include/linux/kgdb.h
@@ -176,5 +176,5 @@ index 0d7c087..7fda904 100644
  		kgdb_break[i].state = BP_UNDEFINED;
  	}
 -- 
-1.7.9.5
+1.7.7.6
 

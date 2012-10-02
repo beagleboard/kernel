@@ -1,4 +1,4 @@
-From cf6db92080c563161f5626184902162432f5fac5 Mon Sep 17 00:00:00 2001
+From 77c4d5336f47aa5cdc67c9b5abdc557eabb641c8 Mon Sep 17 00:00:00 2001
 From: Milan Broz <mbroz@redhat.com>
 Date: Wed, 7 Mar 2012 19:09:37 +0000
 Subject: [PATCH 85/95] dm io: fix discard support
@@ -31,7 +31,7 @@ Signed-off-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  drivers/md/dm-io.c |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ 1 files changed, 16 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/md/dm-io.c b/drivers/md/dm-io.c
 index ad2eba4..ea5dd28 100644
@@ -82,5 +82,5 @@ index ad2eba4..ea5dd28 100644
  			len = min(len, to_bytes(remaining));
  			if (!bio_add_page(bio, page, len, offset))
 -- 
-1.7.9.4
+1.7.7.6
 

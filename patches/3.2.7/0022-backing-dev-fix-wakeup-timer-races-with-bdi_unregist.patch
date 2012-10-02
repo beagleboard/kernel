@@ -1,4 +1,4 @@
-From 9384e0438d5b84afda5d6478bc509681e1ea3777 Mon Sep 17 00:00:00 2001
+From db7575769556f0e61dd50ad2ed8d9ae145310884 Mon Sep 17 00:00:00 2001
 From: Rabin Vincent <rabin@rab.in>
 Date: Sun, 29 Jan 2012 12:17:33 -0600
 Subject: [PATCH 22/30] backing-dev: fix wakeup timer races with
@@ -23,7 +23,7 @@ Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  mm/backing-dev.c |   25 +++++++++++++++++++------
- 1 file changed, 19 insertions(+), 6 deletions(-)
+ 1 files changed, 19 insertions(+), 6 deletions(-)
 
 diff --git a/mm/backing-dev.c b/mm/backing-dev.c
 index 71034f4..2b49dd2 100644
@@ -91,5 +91,5 @@ index 71034f4..2b49dd2 100644
  }
  EXPORT_SYMBOL(bdi_unregister);
 -- 
-1.7.9.4
+1.7.7.6
 

@@ -1,4 +1,4 @@
-From 2bc105d9e4132f8a07cec0b5df3d308c1b99455f Mon Sep 17 00:00:00 2001
+From e5f122d9ed2fdf94e148278c2d9584c6714ac67b Mon Sep 17 00:00:00 2001
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Date: Wed, 21 Mar 2012 16:34:08 -0700
 Subject: [PATCH 056/147] hugetlbfs: avoid taking i_mutex from
@@ -48,7 +48,7 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  fs/hugetlbfs/inode.c |   25 +++++++++----------------
- 1 file changed, 9 insertions(+), 16 deletions(-)
+ 1 files changed, 9 insertions(+), 16 deletions(-)
 
 diff --git a/fs/hugetlbfs/inode.c b/fs/hugetlbfs/inode.c
 index 0be5a78..2d0ca24 100644
@@ -136,5 +136,5 @@ index 0be5a78..2d0ca24 100644
  }
  
 -- 
-1.7.9.4
+1.7.7.6
 

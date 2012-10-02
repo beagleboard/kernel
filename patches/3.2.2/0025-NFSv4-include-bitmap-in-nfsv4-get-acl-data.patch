@@ -1,7 +1,7 @@
-From 02df7d0ce33039c06e2be9a446ed816f3d9c9177 Mon Sep 17 00:00:00 2001
+From 4e0e8df7c6790b4fd63e20ea953a4354538cbada Mon Sep 17 00:00:00 2001
 From: Andy Adamson <andros@netapp.com>
 Date: Wed, 7 Dec 2011 11:55:27 -0500
-Subject: [PATCH 025/130] NFSv4: include bitmap in nfsv4 get acl data
+Subject: [PATCH 025/129] NFSv4: include bitmap in nfsv4 get acl data
 
 commit bf118a342f10dafe44b14451a1392c3254629a1f upstream.
 
@@ -24,7 +24,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
  fs/nfs/nfs4proc.c          |   96 ++++++++++++++++++++++++++------------------
  fs/nfs/nfs4xdr.c           |   31 ++++++++++----
- include/linux/nfs_xdr.h    |    5 +++
+ include/linux/nfs_xdr.h    |    5 ++
  include/linux/sunrpc/xdr.h |    2 +
  net/sunrpc/xdr.c           |    3 +-
  5 files changed, 89 insertions(+), 48 deletions(-)
@@ -309,5 +309,5 @@ index 277ebd4..593f4c6 100644
  /*
   * xdr_shrink_bufhead
 -- 
-1.7.9.4
+1.7.7.6
 

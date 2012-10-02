@@ -1,4 +1,4 @@
-From 7e7c42f798163e04171f7d0ea97cb9f759236191 Mon Sep 17 00:00:00 2001
+From de8b659767e616327cc59960bdd31c9e3275ae02 Mon Sep 17 00:00:00 2001
 From: Rabin Vincent <rabin@rab.in>
 Date: Wed, 15 Feb 2012 16:01:42 +0100
 Subject: [PATCH 19/72] ARM: 7325/1: fix v7 boot with lockdep enabled
@@ -25,7 +25,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  arch/arm/include/asm/assembler.h |    5 +++++
  arch/arm/mm/cache-v7.S           |    2 +-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ 2 files changed, 6 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/include/asm/assembler.h b/arch/arm/include/asm/assembler.h
 index 29035e8..7bb8bf9 100644
@@ -57,5 +57,5 @@ index 7a24d39..a655d3d 100644
  	mcr	p15, 2, r10, c0, c0, 0		@ select current cache level in cssr
  	isb					@ isb to sych the new cssr&csidr
 -- 
-1.7.9.4
+1.7.7.6
 

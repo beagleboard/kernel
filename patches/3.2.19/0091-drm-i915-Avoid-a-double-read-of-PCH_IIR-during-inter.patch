@@ -1,4 +1,4 @@
-From d4599f3bbffe162f91ebeea6c610af549a34348b Mon Sep 17 00:00:00 2001
+From ca7349e518f2f887890830d959a5a3b0a67dd82a Mon Sep 17 00:00:00 2001
 From: Chris Wilson <chris@chris-wilson.co.uk>
 Date: Wed, 9 May 2012 21:45:43 +0100
 Subject: [PATCH 091/117] drm/i915: Avoid a double-read of PCH_IIR during
@@ -18,7 +18,7 @@ Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  drivers/gpu/drm/i915/i915_irq.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ 1 files changed, 3 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/i915_irq.c b/drivers/gpu/drm/i915/i915_irq.c
 index d47a53b..d3820c2 100644
@@ -59,5 +59,5 @@ index d47a53b..d3820c2 100644
  
  	if (de_iir & DE_PCU_EVENT) {
 -- 
-1.7.9.5
+1.7.7.6
 

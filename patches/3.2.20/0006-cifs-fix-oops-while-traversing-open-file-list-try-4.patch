@@ -1,4 +1,4 @@
-From 7a35b41ff5811ed26e5265ad2c594062e4565571 Mon Sep 17 00:00:00 2001
+From 9b0792547f6d6e35f8d38bd668b7827727f680b7 Mon Sep 17 00:00:00 2001
 From: Shirish Pargaonkar <shirishpargaonkar@gmail.com>
 Date: Mon, 21 May 2012 09:20:12 -0500
 Subject: [PATCH 06/86] cifs: fix oops while traversing open file list (try
@@ -24,7 +24,7 @@ Signed-off-by: Steve French <sfrench@us.ibm.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  fs/cifs/cifsglob.h |    1 +
- fs/cifs/file.c     |   57 ++++++++++++++++++++++++++++++----------------------
+ fs/cifs/file.c     |   57 ++++++++++++++++++++++++++++++---------------------
  2 files changed, 34 insertions(+), 24 deletions(-)
 
 diff --git a/fs/cifs/cifsglob.h b/fs/cifs/cifsglob.h
@@ -137,5 +137,5 @@ index 0f7dc22..0bb785f 100644
  }
  
 -- 
-1.7.9.5
+1.7.7.6
 

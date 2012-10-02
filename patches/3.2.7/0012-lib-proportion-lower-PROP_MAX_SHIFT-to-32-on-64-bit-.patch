@@ -1,4 +1,4 @@
-From d5438321087a6e5fb24d0797224ae63411cfe7c5 Mon Sep 17 00:00:00 2001
+From d54c8f69d4a87133700f2c5022bd0d81e66be6aa Mon Sep 17 00:00:00 2001
 From: Wu Fengguang <fengguang.wu@intel.com>
 Date: Mon, 9 Jan 2012 11:53:50 -0600
 Subject: [PATCH 12/30] lib: proportion: lower PROP_MAX_SHIFT to 32 on 64-bit
@@ -25,7 +25,7 @@ Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  include/linux/proportions.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
 diff --git a/include/linux/proportions.h b/include/linux/proportions.h
 index ef35bb7..26a8a4e 100644
@@ -44,5 +44,5 @@ index ef35bb7..26a8a4e 100644
  #define PROP_FRAC_SHIFT		(BITS_PER_LONG - PROP_MAX_SHIFT - 1)
  #define PROP_FRAC_BASE		(1UL << PROP_FRAC_SHIFT)
 -- 
-1.7.9.4
+1.7.7.6
 

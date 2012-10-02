@@ -1,4 +1,4 @@
-From 0946969a44d5f9dec1506431e88e942ce924ab82 Mon Sep 17 00:00:00 2001
+From 81b35e1a46c710b80180d06c26dba8a6e0e26c95 Mon Sep 17 00:00:00 2001
 From: Jiri Slaby <jslaby@suse.cz>
 Date: Thu, 12 Jan 2012 22:55:15 +0100
 Subject: [PATCH 50/90] TTY: fix UV serial console regression
@@ -34,7 +34,7 @@ References: https://bugzilla.novell.com/show_bug.cgi?id=718518
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  drivers/tty/tty_port.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ 1 files changed, 7 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/tty/tty_port.c b/drivers/tty/tty_port.c
 index ef9dd62..bf6e238 100644
@@ -68,5 +68,5 @@ index ef9dd62..bf6e238 100644
  		if (signal_pending(current)) {
  			retval = -ERESTARTSYS;
 -- 
-1.7.9.4
+1.7.7.6
 

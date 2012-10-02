@@ -1,4 +1,4 @@
-From b5451060a038e1d725d22ca8e852704903167514 Mon Sep 17 00:00:00 2001
+From 6d847c28c5c3d4ba2517c85caaf8ea9dfdcb15fa Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Thu, 8 Dec 2011 21:13:46 +0100
 Subject: [PATCH 078/117] ext3: Fix error handling on inode bitmap corruption
@@ -17,7 +17,7 @@ Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  fs/ext3/ialloc.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/fs/ext3/ialloc.c b/fs/ext3/ialloc.c
 index 5c866e0..adae962 100644
@@ -39,5 +39,5 @@ index 5c866e0..adae962 100644
  	spin_lock(&sbi->s_next_gen_lock);
  	inode->i_generation = sbi->s_next_generation++;
 -- 
-1.7.9.5
+1.7.7.6
 

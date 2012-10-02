@@ -1,4 +1,4 @@
-From ef53defb2f4e1fb16a4688aaef10a084adf2e644 Mon Sep 17 00:00:00 2001
+From 91a376078c59c3b05853337569a89f4dd879ea94 Mon Sep 17 00:00:00 2001
 From: Gao feng <gaofeng@cn.fujitsu.com>
 Date: Sat, 26 May 2012 01:30:53 +0000
 Subject: [PATCH 66/86] ipv6: fix incorrect ipsec fragment
@@ -28,8 +28,8 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  include/net/dst.h      |    1 +
- net/ipv6/ip6_output.c  |   68 +++++++++++++++++++++++++++++++++++-------------
- net/xfrm/xfrm_policy.c |    3 +++
+ net/ipv6/ip6_output.c  |   68 +++++++++++++++++++++++++++++++++++------------
+ net/xfrm/xfrm_policy.c |    3 ++
  3 files changed, 54 insertions(+), 18 deletions(-)
 
 diff --git a/include/net/dst.h b/include/net/dst.h
@@ -129,11 +129,11 @@ index f7f07e2..ae98e09 100644
  			 * we know we need more fragment(s).
  			 */
  			datalen = length + fraggap;
-+
- 			if (datalen > (cork->length <= mtu && !(cork->flags & IPCORK_ALLFRAG) ? mtu : maxfraglen) - fragheaderlen)
+-			if (datalen > (cork->length <= mtu && !(cork->flags & IPCORK_ALLFRAG) ? mtu : maxfraglen) - fragheaderlen)
 -				datalen = maxfraglen - fragheaderlen;
--
+ 
 -			fraglen = datalen + fragheaderlen;
++			if (datalen > (cork->length <= mtu && !(cork->flags & IPCORK_ALLFRAG) ? mtu : maxfraglen) - fragheaderlen)
 +				datalen = maxfraglen - fragheaderlen - rt->dst.trailer_len;
  			if ((flags & MSG_MORE) &&
  			    !(rt->dst.dev->features&NETIF_F_SG))
@@ -177,5 +177,5 @@ index 9049a5c..0174034 100644
  
  nopol:
 -- 
-1.7.9.5
+1.7.7.6
 

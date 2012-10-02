@@ -1,4 +1,4 @@
-From 55d8b2b2ea9545b29091216b9875c4e119215b63 Mon Sep 17 00:00:00 2001
+From d206f6cc004494bdd1f10bb0d814345658b2a6ec Mon Sep 17 00:00:00 2001
 From: Lucas De Marchi <lucas.demarchi@profusion.mobi>
 Date: Thu, 22 Mar 2012 14:42:22 -0700
 Subject: [PATCH 100/147] sysctl: protect poll() in entries that may go away
@@ -35,7 +35,7 @@ Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  fs/proc/proc_sysctl.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ 1 files changed, 16 insertions(+), 1 deletions(-)
 
 diff --git a/fs/proc/proc_sysctl.c b/fs/proc/proc_sysctl.c
 index a6b6217..53c3bce 100644
@@ -93,5 +93,5 @@ index a6b6217..53c3bce 100644
  }
  
 -- 
-1.7.9.4
+1.7.7.6
 

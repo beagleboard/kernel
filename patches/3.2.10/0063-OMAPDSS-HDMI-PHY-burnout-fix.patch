@@ -1,4 +1,4 @@
-From 9fc3feeb0ef1abf039e3de62212a1590a050d4af Mon Sep 17 00:00:00 2001
+From 6a37b48cf8157984154abe8975396eee20de29b2 Mon Sep 17 00:00:00 2001
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Date: Tue, 17 Jan 2012 11:09:57 +0200
 Subject: [PATCH 63/95] OMAPDSS: HDMI: PHY burnout fix
@@ -29,12 +29,12 @@ from the user's point of view.
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/arm/mach-omap2/board-4430sdp.c       |    5 +++
- arch/arm/mach-omap2/board-omap4panda.c    |    5 +++
- drivers/video/omap2/dss/hdmi.c            |    3 ++
+ arch/arm/mach-omap2/board-4430sdp.c       |    5 ++
+ arch/arm/mach-omap2/board-omap4panda.c    |    5 ++
+ drivers/video/omap2/dss/hdmi.c            |    3 +
  drivers/video/omap2/dss/ti_hdmi.h         |    4 ++
  drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   68 +++++++++++++++++++++++++++--
- include/video/omapdss.h                   |    5 +++
+ include/video/omapdss.h                   |    5 ++
  6 files changed, 86 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
@@ -242,5 +242,5 @@ index 378c7ed..6582c45 100644
  	struct device_driver driver;
  
 -- 
-1.7.9.4
+1.7.7.6
 

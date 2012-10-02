@@ -1,4 +1,4 @@
-From c0ebd50aab8d8fa2f98ceb9da54d161f492326e0 Mon Sep 17 00:00:00 2001
+From 8f6e16ab984cffbe6805f375871613a6c91cc123 Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Mon, 5 Mar 2012 19:35:04 +0000
 Subject: [PATCH 25/42] tcp: fix tcp_shift_skb_data() to not shift SACKed data
@@ -67,7 +67,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  net/ipv4/tcp_input.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
 diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
 index 1c774af..e4d1e4a 100644
@@ -85,5 +85,5 @@ index 1c774af..e4d1e4a 100644
  		goto fallback;
  	if (!tcp_shifted_skb(sk, skb, state, pcount, len, mss, dup_sack))
 -- 
-1.7.9.4
+1.7.7.6
 

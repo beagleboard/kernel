@@ -1,4 +1,4 @@
-From 8bdd32d35e2bc723a11b475eb797a9f11e8db598 Mon Sep 17 00:00:00 2001
+From 5b371702d9bcb802f30e48141de0af650d519a7f Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Wed, 15 Feb 2012 20:43:11 +0000
 Subject: [PATCH 14/42] atl1c: dont use highprio tx queue
@@ -29,7 +29,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  drivers/net/ethernet/atheros/atl1c/atl1c_main.c |    4 ----
- 1 file changed, 4 deletions(-)
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/net/ethernet/atheros/atl1c/atl1c_main.c b/drivers/net/ethernet/atheros/atl1c/atl1c_main.c
 index 02c7ed8..eccdcff 100644
@@ -47,5 +47,5 @@ index 02c7ed8..eccdcff 100644
  	if (atl1c_tpd_avail(adapter, type) < tpd_req) {
  		/* no enough descriptor, just stop queue */
 -- 
-1.7.9.4
+1.7.7.6
 

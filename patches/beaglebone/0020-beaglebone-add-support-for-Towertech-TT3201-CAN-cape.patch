@@ -1,13 +1,13 @@
-From 3554b72659f168b6b699a02a57e9d91471ad7c32 Mon Sep 17 00:00:00 2001
+From c6b65f1a8e32f9d77d569979e7e80caa5d69c046 Mon Sep 17 00:00:00 2001
 From: Alessandro Zummo <a.zummo@towertech.it>
 Date: Thu, 9 Feb 2012 12:46:52 +0100
-Subject: [PATCH 20/33] beaglebone: add support for Towertech TT3201 CAN cape
+Subject: [PATCH 20/92] beaglebone: add support for Towertech TT3201 CAN cape
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
  arch/arm/mach-omap2/board-am335xevm.c |   54 ++++++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/mux33xx.c         |    8 ++---
- drivers/net/can/dev.c                 |    8 ++---
+ arch/arm/mach-omap2/mux33xx.c         |    8 ++--
+ drivers/net/can/dev.c                 |    8 ++--
  drivers/net/can/mcp251x.c             |   47 ++++++++++++++++++++++------
  4 files changed, 98 insertions(+), 19 deletions(-)
 
@@ -98,7 +98,7 @@ index 3ba4bbc..a8dfcdf 100644
  		pr_info("BeagleBone cape: exporting ADC pins to sysfs\n");
  		bone_tsc_init(0,0);
 diff --git a/arch/arm/mach-omap2/mux33xx.c b/arch/arm/mach-omap2/mux33xx.c
-index 0f71646..25dcedb 100644
+index 72ef7b8..30471f0 100644
 --- a/arch/arm/mach-omap2/mux33xx.c
 +++ b/arch/arm/mach-omap2/mux33xx.c
 @@ -312,16 +312,16 @@ static struct omap_mux __initdata am33xx_muxmodes[] = {
@@ -163,10 +163,10 @@ index 25695bd..bc1e87e 100644
  	}
  
 diff --git a/drivers/net/can/mcp251x.c b/drivers/net/can/mcp251x.c
-index 330140e..b3e231c 100644
+index 9bcc39a..6b76bc9 100644
 --- a/drivers/net/can/mcp251x.c
 +++ b/drivers/net/can/mcp251x.c
-@@ -93,8 +93,9 @@
+@@ -98,8 +98,9 @@
  #  define CANCTRL_REQOP_LOOPBACK    0x40
  #  define CANCTRL_REQOP_SLEEP	    0x20
  #  define CANCTRL_REQOP_NORMAL	    0x00
@@ -177,7 +177,7 @@ index 330140e..b3e231c 100644
  #define TEC	      0x1c
  #define REC	      0x1d
  #define CNF1	      0x2a
-@@ -287,7 +288,7 @@ static void mcp251x_clean(struct net_device *net)
+@@ -292,7 +293,7 @@ static void mcp251x_clean(struct net_device *net)
  /*
   * Note about handling of error return of mcp251x_spi_trans: accessing
   * registers via SPI is not really different conceptually than using
@@ -186,7 +186,7 @@ index 330140e..b3e231c 100644
   * complicated from a practical POV. So it's not advisable to always
   * check the return value of this function. Imagine that every
   * read{b,l}, write{b,l} and friends would be bracketed in "if ( < 0)
-@@ -490,7 +491,7 @@ static void mcp251x_hw_rx(struct spi_device *spi, int buf_idx)
+@@ -499,7 +500,7 @@ static void mcp251x_hw_rx(struct spi_device *spi, int buf_idx)
  
  static void mcp251x_hw_sleep(struct spi_device *spi)
  {
@@ -195,7 +195,7 @@ index 330140e..b3e231c 100644
  }
  
  static netdev_tx_t mcp251x_hard_start_xmit(struct sk_buff *skb,
-@@ -547,13 +548,16 @@ static int mcp251x_set_normal_mode(struct spi_device *spi)
+@@ -556,13 +557,16 @@ static int mcp251x_set_normal_mode(struct spi_device *spi)
  
  	if (priv->can.ctrlmode & CAN_CTRLMODE_LOOPBACK) {
  		/* Put device into loopback mode */
@@ -215,7 +215,7 @@ index 330140e..b3e231c 100644
  
  		/* Wait for the device to enter normal mode */
  		timeout = jiffies + HZ;
-@@ -585,11 +589,15 @@ static int mcp251x_do_set_bittiming(struct net_device *net)
+@@ -594,11 +598,15 @@ static int mcp251x_do_set_bittiming(struct net_device *net)
  			  (bt->prop_seg - 1));
  	mcp251x_write_bits(spi, CNF3, CNF3_PHSEG2_MASK,
  			   (bt->phase_seg2 - 1));
@@ -232,7 +232,7 @@ index 330140e..b3e231c 100644
  	return 0;
  }
  
-@@ -600,6 +608,7 @@ static int mcp251x_setup(struct net_device *net, struct mcp251x_priv *priv,
+@@ -609,6 +617,7 @@ static int mcp251x_setup(struct net_device *net, struct mcp251x_priv *priv,
  
  	mcp251x_write_reg(spi, RXBCTRL(0),
  			  RXBCTRL_BUKT | RXBCTRL_RXM0 | RXBCTRL_RXM1);
@@ -240,7 +240,7 @@ index 330140e..b3e231c 100644
  	mcp251x_write_reg(spi, RXBCTRL(1),
  			  RXBCTRL_RXM0 | RXBCTRL_RXM1);
  	return 0;
-@@ -728,7 +737,9 @@ static void mcp251x_tx_work_handler(struct work_struct *ws)
+@@ -737,7 +746,9 @@ static void mcp251x_tx_work_handler(struct work_struct *ws)
  	mutex_lock(&priv->mcp_lock);
  	if (priv->tx_skb) {
  		if (priv->can.state == CAN_STATE_BUS_OFF) {
@@ -250,7 +250,7 @@ index 330140e..b3e231c 100644
  		} else {
  			frame = (struct can_frame *)priv->tx_skb->data;
  
-@@ -827,21 +838,37 @@ static irqreturn_t mcp251x_can_ist(int irq, void *dev_id)
+@@ -836,21 +847,37 @@ static irqreturn_t mcp251x_can_ist(int irq, void *dev_id)
  
  		/* Update can state */
  		if (eflag & EFLG_TXBO) {
@@ -288,7 +288,7 @@ index 330140e..b3e231c 100644
  			new_state = CAN_STATE_ERROR_WARNING;
  			can_id |= CAN_ERR_CRTL;
  			data1 |= CAN_ERR_CRTL_RX_WARNING;
-@@ -918,7 +945,7 @@ static int mcp251x_open(struct net_device *net)
+@@ -927,7 +954,7 @@ static int mcp251x_open(struct net_device *net)
  
  	ret = open_candev(net);
  	if (ret) {
@@ -297,7 +297,7 @@ index 330140e..b3e231c 100644
  		return ret;
  	}
  
-@@ -934,7 +961,7 @@ static int mcp251x_open(struct net_device *net)
+@@ -943,7 +970,7 @@ static int mcp251x_open(struct net_device *net)
  		  pdata->irq_flags ? pdata->irq_flags : IRQF_TRIGGER_FALLING,
  		  DEVICE_NAME, priv);
  	if (ret) {
@@ -306,7 +306,7 @@ index 330140e..b3e231c 100644
  		if (pdata->transceiver_enable)
  			pdata->transceiver_enable(0);
  		close_candev(net);
-@@ -1071,7 +1098,7 @@ static int __devinit mcp251x_can_probe(struct spi_device *spi)
+@@ -1080,7 +1107,7 @@ static int __devinit mcp251x_can_probe(struct spi_device *spi)
  
  	ret = register_candev(net);
  	if (!ret) {
@@ -316,5 +316,5 @@ index 330140e..b3e231c 100644
  	}
  error_probe:
 -- 
-1.7.10
+1.7.7.6
 

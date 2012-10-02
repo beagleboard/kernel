@@ -1,4 +1,4 @@
-From ddfdc39959c916766a3264facffc75fbba3d7f4c Mon Sep 17 00:00:00 2001
+From e2eae6bbc0ce9454b3253ba50cad7a397a2b448e Mon Sep 17 00:00:00 2001
 From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Date: Wed, 29 Feb 2012 21:53:22 +0900
 Subject: [PATCH 48/60] TOMOYO: Fix mount flags checking order.
@@ -29,7 +29,7 @@ Signed-off-by: James Morris <james.l.morris@oracle.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  security/tomoyo/mount.c |   38 ++++++++++++++++++++------------------
- 1 file changed, 20 insertions(+), 18 deletions(-)
+ 1 files changed, 20 insertions(+), 18 deletions(-)
 
 diff --git a/security/tomoyo/mount.c b/security/tomoyo/mount.c
 index bee09d0..fe00cdf 100644
@@ -87,5 +87,5 @@ index bee09d0..fe00cdf 100644
  	if (!type)
  		type = "<NULL>";
 -- 
-1.7.9.5
+1.7.7.6
 

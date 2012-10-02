@@ -1,4 +1,4 @@
-From fc7834af1b974a2578440d1210a991eedd2151b1 Mon Sep 17 00:00:00 2001
+From 28e79f2c5fc981f775eabaeb161968d20c924668 Mon Sep 17 00:00:00 2001
 From: Bart Van Assche <bvanassche@acm.org>
 Date: Tue, 14 Aug 2012 13:18:53 +0000
 Subject: [PATCH 32/94] IB/srp: Fix a race condition
@@ -17,7 +17,7 @@ Signed-off-by: Roland Dreier <roland@purestorage.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  drivers/infiniband/ulp/srp/ib_srp.c |   87 +++++++++++++++++++++++++----------
- 1 file changed, 63 insertions(+), 24 deletions(-)
+ 1 files changed, 63 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
 index 0bfa545..c76b051 100644
@@ -158,5 +158,5 @@ index 0bfa545..c76b051 100644
  
  static int srp_reset_device(struct scsi_cmnd *scmnd)
 -- 
-1.7.10.4
+1.7.7.6
 

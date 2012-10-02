@@ -1,7 +1,7 @@
-From 377526578f2c343ea281a918b18ece1fca65005c Mon Sep 17 00:00:00 2001
+From 0a7ebe03e8d76db8f56462d67456f7dbaa853f26 Mon Sep 17 00:00:00 2001
 From: Daniel Drake <dsd@laptop.org>
 Date: Wed, 14 Mar 2012 22:34:33 +0000
-Subject: [PATCH 05/17] libertas: remove dump_survey implementation
+Subject: [PATCH 05/16] libertas: remove dump_survey implementation
 
 libertas provides a dump_survey implementation based on reading of
 a RSSI value. However, this RSSI value is calculated based on the
@@ -21,10 +21,10 @@ Signed-off-by: John W. Linville <linville@tuxdriver.com>
  1 files changed, 0 insertions(+), 37 deletions(-)
 
 diff --git a/drivers/net/wireless/libertas/cfg.c b/drivers/net/wireless/libertas/cfg.c
-index a7cd311..3fa1ece 100644
+index db64ef1..72e2c8e 100644
 --- a/drivers/net/wireless/libertas/cfg.c
 +++ b/drivers/net/wireless/libertas/cfg.c
-@@ -1631,42 +1631,6 @@ static int lbs_cfg_get_station(struct wiphy *wiphy, struct net_device *dev,
+@@ -1628,42 +1628,6 @@ static int lbs_cfg_get_station(struct wiphy *wiphy, struct net_device *dev,
  
  
  /*
@@ -67,7 +67,7 @@ index a7cd311..3fa1ece 100644
   * Change interface
   */
  
-@@ -2068,7 +2032,6 @@ static struct cfg80211_ops lbs_cfg80211_ops = {
+@@ -2063,7 +2027,6 @@ static struct cfg80211_ops lbs_cfg80211_ops = {
  	.del_key = lbs_cfg_del_key,
  	.set_default_key = lbs_cfg_set_default_key,
  	.get_station = lbs_cfg_get_station,
@@ -76,5 +76,5 @@ index a7cd311..3fa1ece 100644
  	.join_ibss = lbs_join_ibss,
  	.leave_ibss = lbs_leave_ibss,
 -- 
-1.7.4.4
+1.7.7.6
 

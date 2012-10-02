@@ -1,4 +1,4 @@
-From e2326264ad383c7611301ccad5f1cb1f90d87f8f Mon Sep 17 00:00:00 2001
+From 23eba2cf9994781ac5393d57877c85bfe11fca4d Mon Sep 17 00:00:00 2001
 From: Joe Thornber <ejt@redhat.com>
 Date: Wed, 28 Mar 2012 18:41:23 +0100
 Subject: [PATCH 122/147] dm thin: fix stacked bi_next usage
@@ -22,8 +22,8 @@ Signed-off-by: Mike Snitzer <snitzer@redhat.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/md/dm-thin.c |  124 +++++++++++++++++++++++++++++---------------------
- 1 file changed, 73 insertions(+), 51 deletions(-)
+ drivers/md/dm-thin.c |  124 +++++++++++++++++++++++++++++--------------------
+ 1 files changed, 73 insertions(+), 51 deletions(-)
 
 diff --git a/drivers/md/dm-thin.c b/drivers/md/dm-thin.c
 index c308757..da2f021 100644
@@ -229,5 +229,5 @@ index c308757..da2f021 100644
  	} else
  		cell_defer(tc, m->cell, m->data_block);
 -- 
-1.7.9.4
+1.7.7.6
 

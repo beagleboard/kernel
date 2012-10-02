@@ -1,0 +1,43 @@
+From 5bb2caf5086c71e26f0a095ba48abce38a5af27c Mon Sep 17 00:00:00 2001
+From: Ian Abbott <abbotti@mev.co.uk>
+Date: Fri, 31 Aug 2012 20:41:29 +0100
+Subject: [PATCH 094/135] staging: comedi: das08: Correct AI encoding for
+ das08jr-16-ao
+
+commit e6391a182865efc896cb2a8d79e07b7ac2f45b48 upstream.
+
+The element of `das08_boards[]` for the 'das08jr-16-ao' board has the
+`ai_encoding` member set to `das08_encode12`.  It should be set to
+`das08_encode16` same as the 'das08jr/16' board.  After all, this board
+has 16-bit AI resolution.
+
+The description of the A/D LSB register at offset 0 seems incorrect in
+the user manual "cio-das08jr-16-ao.pdf" as it implies that the AI
+resolution is only 12 bits.  The diagrams of the A/D LSB and MSB
+registers show 15 data bits and a sign bit, which matches what the
+software expects for the `das08_encode16` AI encoding method.
+
+Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+[bwh: Backported to 3.2: adjust indentation]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/comedi/drivers/das08.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/staging/comedi/drivers/das08.c b/drivers/staging/comedi/drivers/das08.c
+index 3141dc8..dc4ef4c 100644
+--- a/drivers/staging/comedi/drivers/das08.c
++++ b/drivers/staging/comedi/drivers/das08.c
+@@ -385,7 +385,7 @@ static const struct das08_board_struct das08_boards[] = {
+ 	 .ai = das08_ai_rinsn,
+ 	 .ai_nbits = 16,
+ 	 .ai_pg = das08_pg_none,
+-	 .ai_encoding = das08_encode12,
++	 .ai_encoding = das08_encode16,
+ 	 .ao = das08jr_ao_winsn,
+ 	 .ao_nbits = 16,
+ 	 .di = das08jr_di_rbits,
+-- 
+1.7.7.6
+

@@ -1,4 +1,4 @@
-From 4e25692d8b794add23cb09fdeeaa62ecee2ef697 Mon Sep 17 00:00:00 2001
+From 41e15f27211857af78b9705398b8943659075acb Mon Sep 17 00:00:00 2001
 From: Christoph Lameter <cl@linux.com>
 Date: Tue, 17 Jan 2012 09:27:31 -0600
 Subject: [PATCH 125/147] slub: Do not hold slub_lock when calling
@@ -24,7 +24,7 @@ Signed-off-by: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  mm/slub.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
 diff --git a/mm/slub.c b/mm/slub.c
 index 1a919f0..a99c785 100644
@@ -47,5 +47,5 @@ index 1a919f0..a99c785 100644
  		}
  		kfree(n);
 -- 
-1.7.9.4
+1.7.7.6
 

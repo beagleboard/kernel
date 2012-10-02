@@ -1,4 +1,4 @@
-From bdd06be083b51fa7bdf04d8c8b699870f29bae69 Mon Sep 17 00:00:00 2001
+From 495bc50c85afd768e989863ead7d46b9bfb7ed94 Mon Sep 17 00:00:00 2001
 From: Jeff Mahoney <jeffm@suse.com>
 Date: Wed, 25 Apr 2012 14:32:09 +0000
 Subject: [PATCH 084/117] dl2k: Clean up rio_ioctl
@@ -27,7 +27,7 @@ Signed-off-by: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/ethernet/dlink/dl2k.c |   52 +++++++------------------------------
+ drivers/net/ethernet/dlink/dl2k.c |   52 ++++++------------------------------
  drivers/net/ethernet/dlink/dl2k.h |    7 -----
  2 files changed, 9 insertions(+), 50 deletions(-)
 
@@ -48,21 +48,17 @@ index b2dc2c8..2e09edb 100644
  	phy_addr = np->phy_addr;
  	switch (cmd) {
 -	case SIOCDEVPRIVATE:
-+	case SIOCGMIIPHY:
-+		miidata->phy_id = phy_addr;
- 		break;
+-		break;
 -
 -	case SIOCDEVPRIVATE + 1:
 -		miidata->out_value = mii_read (dev, phy_addr, miidata->reg_num);
-+	case SIOCGMIIREG:
-+		miidata->val_out = mii_read (dev, phy_addr, miidata->reg_num);
++	case SIOCGMIIPHY:
++		miidata->phy_id = phy_addr;
  		break;
 -	case SIOCDEVPRIVATE + 2:
 -		mii_write (dev, phy_addr, miidata->reg_num, miidata->in_value);
-+	case SIOCSMIIREG:
-+		if (!capable(CAP_NET_ADMIN))
-+			return -EPERM;
-+		mii_write (dev, phy_addr, miidata->reg_num, miidata->val_in);
++	case SIOCGMIIREG:
++		miidata->val_out = mii_read (dev, phy_addr, miidata->reg_num);
  		break;
 -	case SIOCDEVPRIVATE + 3:
 -		break;
@@ -70,7 +66,11 @@ index b2dc2c8..2e09edb 100644
 -		break;
 -	case SIOCDEVPRIVATE + 5:
 -		netif_stop_queue (dev);
--		break;
++	case SIOCSMIIREG:
++		if (!capable(CAP_NET_ADMIN))
++			return -EPERM;
++		mii_write (dev, phy_addr, miidata->reg_num, miidata->val_in);
+ 		break;
 -	case SIOCDEVPRIVATE + 6:
 -		netif_wake_queue (dev);
 -		break;
@@ -119,5 +119,5 @@ index ba0adca..30c2da3 100644
  struct netdev_desc {
  	__le64 next_desc;
 -- 
-1.7.9.5
+1.7.7.6
 

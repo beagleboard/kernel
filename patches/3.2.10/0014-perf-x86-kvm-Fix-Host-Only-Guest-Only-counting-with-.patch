@@ -1,4 +1,4 @@
-From cdc630df410e8ee7d102f495e5f2bf628d450828 Mon Sep 17 00:00:00 2001
+From 99d809e88c04410a2354aa9327b44ccd3ba95d59 Mon Sep 17 00:00:00 2001
 From: Joerg Roedel <joerg.roedel@amd.com>
 Date: Wed, 29 Feb 2012 14:57:32 +0100
 Subject: [PATCH 14/95] perf/x86/kvm: Fix Host-Only/Guest-Only counting with
@@ -30,10 +30,10 @@ Link: http://lkml.kernel.org/r/1330523852-19566-1-git-send-email-joerg.roedel@am
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/x86/include/asm/perf_event.h    |    8 ++++++++
- arch/x86/kernel/cpu/perf_event.h     |    8 ++++++--
- arch/x86/kernel/cpu/perf_event_amd.c |   37 ++++++++++++++++++++++++++++++++--
- arch/x86/kvm/svm.c                   |    5 +++++
+ arch/x86/include/asm/perf_event.h    |    8 +++++++
+ arch/x86/kernel/cpu/perf_event.h     |    8 +++++-
+ arch/x86/kernel/cpu/perf_event_amd.c |   37 ++++++++++++++++++++++++++++++++-
+ arch/x86/kvm/svm.c                   |    5 ++++
  4 files changed, 54 insertions(+), 4 deletions(-)
 
 diff --git a/arch/x86/include/asm/perf_event.h b/arch/x86/include/asm/perf_event.h
@@ -178,5 +178,5 @@ index e32243e..94a4672 100644
  }
  
 -- 
-1.7.9.4
+1.7.7.6
 

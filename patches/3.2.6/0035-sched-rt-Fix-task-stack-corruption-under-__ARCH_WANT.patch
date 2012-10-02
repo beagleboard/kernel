@@ -1,4 +1,4 @@
-From e7ccb073d5d2b9913e74d288a09fe1141258dc65 Mon Sep 17 00:00:00 2001
+From b1b11f33be95064387993f0dce7f5d096a9b1213 Mon Sep 17 00:00:00 2001
 From: Chanho Min <chanho0207@gmail.com>
 Date: Thu, 5 Jan 2012 20:00:19 +0900
 Subject: [PATCH 35/87] sched/rt: Fix task stack corruption under
@@ -71,7 +71,7 @@ Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  kernel/sched_rt.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
 diff --git a/kernel/sched_rt.c b/kernel/sched_rt.c
 index 583a136..78fcacf 100644
@@ -90,5 +90,5 @@ index 583a136..78fcacf 100644
  	if (unlikely(next_task == rq->curr)) {
  		WARN_ON(1);
 -- 
-1.7.9.4
+1.7.7.6
 

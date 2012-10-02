@@ -1,4 +1,4 @@
-From db46b26cf3a124bd5beb357e48c0e2ea6e2f1725 Mon Sep 17 00:00:00 2001
+From 37fb89a8ada1048766ead46bf809d1515c0b5d7b Mon Sep 17 00:00:00 2001
 From: Stanislaw Ledwon <staszek.ledwon@linux.jf.intel.com>
 Date: Mon, 18 Jun 2012 15:20:00 +0200
 Subject: [PATCH 026/109] usb: Add support for root hub port status CAS
@@ -41,7 +41,7 @@ Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
  3 files changed, 53 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 52d27ed..175b6bb 100644
+index 50cf41a..2bc736f 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
 @@ -2039,12 +2039,16 @@ static unsigned hub_is_wusb(struct usb_hub *hub)

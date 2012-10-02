@@ -1,4 +1,4 @@
-From 11c78e244603f384d1f8cebc627823cc01e952eb Mon Sep 17 00:00:00 2001
+From 265fb5d8b1997b0853220b918684c75741652470 Mon Sep 17 00:00:00 2001
 From: Andrea Arcangeli <aarcange@redhat.com>
 Date: Wed, 21 Mar 2012 16:33:42 -0700
 Subject: [PATCH 052/147] mm: thp: fix pmd_bad() triggering in code paths
@@ -214,7 +214,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/x86/kernel/vm86_32.c     |    2 ++
+ arch/x86/kernel/vm86_32.c     |    2 +
  fs/proc/task_mmu.c            |    9 ++++++
  include/asm-generic/pgtable.h |   61 +++++++++++++++++++++++++++++++++++++++++
  mm/memcontrol.c               |    4 +++
@@ -476,5 +476,5 @@ index b1cd120..2015a1e 100644
  		ret = unuse_pte_range(vma, pmd, addr, next, entry, page);
  		if (ret)
 -- 
-1.7.9.4
+1.7.7.6
 

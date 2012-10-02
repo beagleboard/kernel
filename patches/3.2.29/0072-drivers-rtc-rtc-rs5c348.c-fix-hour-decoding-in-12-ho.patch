@@ -1,4 +1,4 @@
-From 05621c97f432220a529abd1356b4b902a8e3aecd Mon Sep 17 00:00:00 2001
+From 99135f1770cc0dc2f32826b8b18190f93017c669 Mon Sep 17 00:00:00 2001
 From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 Date: Tue, 21 Aug 2012 16:16:10 -0700
 Subject: [PATCH 72/94] drivers/rtc/rtc-rs5c348.c: fix hour decoding in
@@ -30,7 +30,7 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  drivers/rtc/rtc-rs5c348.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/rtc/rtc-rs5c348.c b/drivers/rtc/rtc-rs5c348.c
 index 971bc8e..11bcb20 100644
@@ -52,5 +52,5 @@ index 971bc8e..11bcb20 100644
  	tm->tm_wday = bcd2bin(rxbuf[RS5C348_REG_WDAY] & RS5C348_WDAY_MASK);
  	tm->tm_mday = bcd2bin(rxbuf[RS5C348_REG_DAY] & RS5C348_DAY_MASK);
 -- 
-1.7.10.4
+1.7.7.6
 

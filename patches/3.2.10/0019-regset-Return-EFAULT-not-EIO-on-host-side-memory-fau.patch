@@ -1,4 +1,4 @@
-From d14a04319db794d5cb918747293a54d6d212cf00 Mon Sep 17 00:00:00 2001
+From dd833f6f63b10e38df75322edac38741d026b81c Mon Sep 17 00:00:00 2001
 From: "H. Peter Anvin" <hpa@zytor.com>
 Date: Fri, 2 Mar 2012 10:43:49 -0800
 Subject: [PATCH 19/95] regset: Return -EFAULT, not -EIO, on host-side memory
@@ -19,7 +19,7 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  include/linux/regset.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/include/linux/regset.h b/include/linux/regset.h
 index 5150fd1..686f373 100644
@@ -44,5 +44,5 @@ index 5150fd1..686f373 100644
  	return regset->set(target, regset, offset, size, NULL, data);
  }
 -- 
-1.7.9.4
+1.7.7.6
 

@@ -1,7 +1,7 @@
-From 2ade67b1a3c53567ea131902c3631f7d57b4332f Mon Sep 17 00:00:00 2001
+From 1c7973a67e8048b9a6b879a4f0007406951a1dbd Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Tue, 17 Apr 2012 12:35:01 +0200
-Subject: [PATCH 28/29] beaglebone: fix ehrpwm backlight
+Subject: [PATCH 28/92] beaglebone: fix ehrpwm backlight
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
  1 files changed, 1 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
-index b0ee67e..0d20bb1 100644
+index 4d5238d..24ed0b6 100644
 --- a/arch/arm/mach-omap2/board-am335xevm.c
 +++ b/arch/arm/mach-omap2/board-am335xevm.c
-@@ -1434,6 +1434,7 @@ late_initcall(ecap0_init);
+@@ -1436,6 +1436,7 @@ late_initcall(ecap0_init);
  static void enable_ehrpwm1(int evm_id, int profile)
  {
  	ehrpwm_backlight_enable = true;

@@ -1,4 +1,4 @@
-From eaa74c53680f04bc6f9e79d930c532fb58d818d3 Mon Sep 17 00:00:00 2001
+From e3df139bc350e38209d416909d420cff0c25a6bc Mon Sep 17 00:00:00 2001
 From: Felix Fietkau <nbd@openwrt.org>
 Date: Tue, 29 May 2012 03:35:08 +0000
 Subject: [PATCH 73/86] skb: avoid unnecessary reallocations in __skb_cow
@@ -22,7 +22,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  include/linux/skbuff.h |    2 --
- 1 file changed, 2 deletions(-)
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
 diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
 index e689b47..bdb4590 100644
@@ -38,5 +38,5 @@ index e689b47..bdb4590 100644
  		delta = headroom - skb_headroom(skb);
  
 -- 
-1.7.9.5
+1.7.7.6
 

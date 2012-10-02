@@ -1,4 +1,4 @@
-From 58d245d715be41e6b0d736466a9589d75156f0ff Mon Sep 17 00:00:00 2001
+From 0317fc19706117869d30691f5651cf3cf26acd4a Mon Sep 17 00:00:00 2001
 From: Masami Ichikawa <masami256@gmail.com>
 Date: Tue, 21 Feb 2012 07:43:50 +0900
 Subject: [PATCH 021/147] sysfs: Fix memory leak in sysfs_sd_setsecdata().
@@ -62,7 +62,7 @@ Signed-off-by: Masami Ichikawa <masami256@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  fs/sysfs/inode.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/fs/sysfs/inode.c b/fs/sysfs/inode.c
 index deb804b..9db61a4 100644
@@ -88,5 +88,5 @@ index deb804b..9db61a4 100644
  	old_secdata_len = iattrs->ia_secdata_len;
  
 -- 
-1.7.9.4
+1.7.7.6
 

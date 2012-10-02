@@ -1,4 +1,4 @@
-From 1c5b4f2f9d7b36fb5d78f959705af57cc0233de9 Mon Sep 17 00:00:00 2001
+From 45658891b1456294e28799cdf37a3f63e44b5d5b Mon Sep 17 00:00:00 2001
 From: Peter Hurley <peter@hurleysoftware.com>
 Date: Mon, 2 Apr 2012 13:44:56 +0200
 Subject: [PATCH 59/60] Bluetooth: Fix l2cap conn failures for ssp devices
@@ -21,7 +21,7 @@ Acked-by: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Johan Hedberg <johan.hedberg@intel.com>
 ---
  net/bluetooth/hci_conn.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
 diff --git a/net/bluetooth/hci_conn.c b/net/bluetooth/hci_conn.c
 index c1c597e..98bfbd5 100644
@@ -39,5 +39,5 @@ index c1c597e..98bfbd5 100644
  		hci_send_cmd(conn->hdev, HCI_OP_AUTH_REQUESTED,
  							sizeof(cp), &cp);
 -- 
-1.7.9.5
+1.7.7.6
 

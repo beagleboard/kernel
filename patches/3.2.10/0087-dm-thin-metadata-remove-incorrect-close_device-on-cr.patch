@@ -1,4 +1,4 @@
-From 1797a1bfe359bd465954e915c1cd1988f346f792 Mon Sep 17 00:00:00 2001
+From ff2272fdb9ae0cf90aeda5c235f38827aef6ba50 Mon Sep 17 00:00:00 2001
 From: Mike Snitzer <snitzer@redhat.com>
 Date: Wed, 7 Mar 2012 19:09:41 +0000
 Subject: [PATCH 87/95] dm thin metadata: remove incorrect close_device on
@@ -19,7 +19,7 @@ Signed-off-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  drivers/md/dm-thin-metadata.c |   22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ 1 files changed, 17 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/md/dm-thin-metadata.c b/drivers/md/dm-thin-metadata.c
 index 59c4f04..13d9646 100644
@@ -96,5 +96,5 @@ index 59c4f04..13d9646 100644
  	dm_btree_remove(&pmd->details_info, pmd->details_root,
  			&key, &pmd->details_root);
 -- 
-1.7.9.4
+1.7.7.6
 

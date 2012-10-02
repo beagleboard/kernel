@@ -1,0 +1,28 @@
+From 2a47ee7a9c117680380cc0be0f0b509525cba5cd Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Wed, 19 Sep 2012 11:18:15 +0200
+Subject: [PATCH 90/92] beaglebone: map LCD7 A4 to A3 for the time being
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/board-am335xevm.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
+index 438e51f..ea1fa2f 100644
+--- a/arch/arm/mach-omap2/board-am335xevm.c
++++ b/arch/arm/mach-omap2/board-am335xevm.c
+@@ -3045,6 +3045,10 @@ static void beaglebone_cape_setup(struct memory_accessor *mem_acc, void *context
+ 			setup_pin_mux(bbtoys7a3_pin_mux);
+ 			gpio_request(BEAGLEBONE_LCD7A3_AVDD_EN, "BONE_LCD_AVDD_EN");
+ 			gpio_direction_output(BEAGLEBONE_LCD7A3_AVDD_EN, 1);			
++		} else if(!strncmp("00A4", cape_config.version, 4)) {
++			setup_pin_mux(bbtoys7a3_pin_mux);
++			gpio_request(BEAGLEBONE_LCD7A3_AVDD_EN, "BONE_LCD_AVDD_EN");
++			gpio_direction_output(BEAGLEBONE_LCD7A3_AVDD_EN, 1);			
+ 		} else {
+ 			setup_pin_mux(bbtoys7_pin_mux);
+ 			gpio_request(BEAGLEBONE_LCD_AVDD_EN, "BONE_LCD_AVDD_EN");
+-- 
+1.7.7.6
+

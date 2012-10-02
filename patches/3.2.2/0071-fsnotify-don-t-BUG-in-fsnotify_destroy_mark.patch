@@ -1,7 +1,7 @@
-From 02b345f49fe190f76c4191d6f189ce6ba1c86a1f Mon Sep 17 00:00:00 2001
+From cbcd8569ec04757cb83bfa7cb6587fc8d98bf093 Mon Sep 17 00:00:00 2001
 From: Miklos Szeredi <mszeredi@suse.cz>
 Date: Thu, 12 Jan 2012 17:59:46 +0100
-Subject: [PATCH 071/130] fsnotify: don't BUG in fsnotify_destroy_mark()
+Subject: [PATCH 071/129] fsnotify: don't BUG in fsnotify_destroy_mark()
 
 commit fed474857efbed79cd390d0aee224231ca718f63 upstream.
 
@@ -28,7 +28,7 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
  fs/notify/mark.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
 diff --git a/fs/notify/mark.c b/fs/notify/mark.c
 index e14587d..f104d56 100644
@@ -57,5 +57,5 @@ index e14587d..f104d56 100644
  	 * this mark was simultaneously being freed by inode.  If that's the
  	 * case, we finish freeing the group here.
 -- 
-1.7.9.4
+1.7.7.6
 

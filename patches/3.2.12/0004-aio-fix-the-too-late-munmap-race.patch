@@ -1,4 +1,4 @@
-From a0e1937b89ad227fad39dd1f0edb83d57dc46c12 Mon Sep 17 00:00:00 2001
+From 20fcca9be66b227439d87c53de9732792f228f51 Mon Sep 17 00:00:00 2001
 From: Al Viro <viro@ZenIV.linux.org.uk>
 Date: Thu, 8 Mar 2012 17:51:19 +0000
 Subject: [PATCH 04/42] aio: fix the "too late munmap()" race
@@ -31,7 +31,7 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  fs/aio.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ 1 files changed, 6 insertions(+), 8 deletions(-)
 
 diff --git a/fs/aio.c b/fs/aio.c
 index f6578cb..b9d64d8 100644
@@ -77,5 +77,5 @@ index f6578cb..b9d64d8 100644
  		list_add(&req->ki_list, &fput_head);
  		spin_unlock(&fput_lock);
 -- 
-1.7.9.4
+1.7.7.6
 

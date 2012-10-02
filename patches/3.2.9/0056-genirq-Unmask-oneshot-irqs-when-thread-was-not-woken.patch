@@ -1,4 +1,4 @@
-From fb8f89c9c078476af3cda9f2373b5dc72cfc3ead Mon Sep 17 00:00:00 2001
+From 278dcf2ad73530edf984d391c2db12b962a60331 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 7 Feb 2012 17:58:03 +0100
 Subject: [PATCH 56/72] genirq: Unmask oneshot irqs when thread was not woken
@@ -24,7 +24,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  kernel/irq/chip.c |   25 +++++++++++++++++++++++--
- 1 file changed, 23 insertions(+), 2 deletions(-)
+ 1 files changed, 23 insertions(+), 2 deletions(-)
 
 diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
 index f7c543a..b742edc 100644
@@ -77,5 +77,5 @@ index f7c543a..b742edc 100644
  	desc->irq_data.chip->irq_eoi(&desc->irq_data);
  out_unlock:
 -- 
-1.7.9.4
+1.7.7.6
 

@@ -1,4 +1,4 @@
-From 6c6967906305e4681c555338d8ad8823e8487c42 Mon Sep 17 00:00:00 2001
+From 66c36cd08ede806b54706fc9296cdc47f664a28f Mon Sep 17 00:00:00 2001
 From: Stanislaw Gruszka <sgruszka@redhat.com>
 Date: Fri, 1 Jun 2012 11:29:40 +0200
 Subject: [PATCH 27/67] rt2x00: use atomic variable for seqno
@@ -156,19 +156,19 @@ index 9b1b2b7..50f92d5 100644
 -
  	if (test_bit(ENTRY_TXD_FIRST_FRAGMENT, &txdesc->flags))
 -		intf->seqno += 0x10;
-+		seqno = atomic_add_return(0x10, &intf->seqno);
-+	else
-+		seqno = atomic_read(&intf->seqno);
-+
- 	hdr->seq_ctrl &= cpu_to_le16(IEEE80211_SCTL_FRAG);
+-	hdr->seq_ctrl &= cpu_to_le16(IEEE80211_SCTL_FRAG);
 -	hdr->seq_ctrl |= cpu_to_le16(intf->seqno);
 -
 -	spin_unlock(&intf->seqlock);
--
++		seqno = atomic_add_return(0x10, &intf->seqno);
++	else
++		seqno = atomic_read(&intf->seqno);
+ 
++	hdr->seq_ctrl &= cpu_to_le16(IEEE80211_SCTL_FRAG);
 +	hdr->seq_ctrl |= cpu_to_le16(seqno);
  }
  
  static void rt2x00queue_create_tx_descriptor_plcp(struct rt2x00_dev *rt2x00dev,
 -- 
-1.7.9.5
+1.7.7.6
 

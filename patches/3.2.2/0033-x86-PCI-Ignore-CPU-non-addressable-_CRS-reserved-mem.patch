@@ -1,7 +1,7 @@
-From 18329c64230886275000c9f9e4ff499d15ca7fb4 Mon Sep 17 00:00:00 2001
+From c93bcee4acbed30a05afa92cea4b4350d45850d4 Mon Sep 17 00:00:00 2001
 From: Gary Hade <garyhade@us.ibm.com>
 Date: Mon, 14 Nov 2011 15:42:16 -0800
-Subject: [PATCH 033/130] x86/PCI: Ignore CPU non-addressable _CRS reserved
+Subject: [PATCH 033/129] x86/PCI: Ignore CPU non-addressable _CRS reserved
  memory resources
 
 commit ae5cd86455381282ece162966183d3f208c6fad7 upstream.
@@ -22,7 +22,7 @@ Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
  arch/x86/pci/acpi.c |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ 1 files changed, 16 insertions(+), 2 deletions(-)
 
 diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
 index 404f21a..f8348ab 100644
@@ -61,5 +61,5 @@ index 404f21a..f8348ab 100644
  	res = &info->res[info->res_num];
  	res->name = info->name;
 -- 
-1.7.9.4
+1.7.7.6
 

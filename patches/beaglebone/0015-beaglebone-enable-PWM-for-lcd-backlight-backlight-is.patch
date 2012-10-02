@@ -1,19 +1,19 @@
-From 46c7fc0ed1ad0e5da431d15a4333a4fb5bb0ff0e Mon Sep 17 00:00:00 2001
+From 3899dc120731c755fdee870f9b101de4bc48f927 Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Tue, 31 Jan 2012 17:02:10 +0100
-Subject: [PATCH 15/26] beaglebone: enable PWM for lcd backlight <- backlight
+Subject: [PATCH 15/92] beaglebone: enable PWM for lcd backlight <- backlight
  is inverted
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
  arch/arm/mach-omap2/board-am335xevm.c |   51 +++++++++++++++++++++++++++------
- 1 file changed, 42 insertions(+), 9 deletions(-)
+ 1 files changed, 42 insertions(+), 9 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
-index 3c67e94..23b59c2 100644
+index ffbecae..43a83ca 100644
 --- a/arch/arm/mach-omap2/board-am335xevm.c
 +++ b/arch/arm/mach-omap2/board-am335xevm.c
-@@ -179,6 +179,16 @@ static const struct display_panel bbtoys7_panel = {
+@@ -181,6 +181,16 @@ static const struct display_panel bbtoys7_panel = {
  	COLOR_ACTIVE,
  };
  
@@ -30,7 +30,7 @@ index 3c67e94..23b59c2 100644
  static struct lcd_ctrl_config bbtoys7_cfg = {
  	&bbtoys7_panel,
  	.ac_bias		= 255,
-@@ -599,9 +609,9 @@ static struct pinmux_config bbtoys7_pin_mux[] = {
+@@ -601,9 +611,9 @@ static struct pinmux_config bbtoys7_pin_mux[] = {
  	{"lcd_vsync.lcd_vsync",		OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT},
  	{"lcd_hsync.lcd_hsync",		OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT},
  	{"lcd_pclk.lcd_pclk",		OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT},
@@ -42,7 +42,7 @@ index 3c67e94..23b59c2 100644
  	{NULL, 0},
  };
  
-@@ -1134,6 +1144,7 @@ static struct pinmux_config ecap0_pin_mux[] = {
+@@ -1136,6 +1146,7 @@ static struct pinmux_config ecap0_pin_mux[] = {
  	{NULL, 0},
  };
  
@@ -50,7 +50,7 @@ index 3c67e94..23b59c2 100644
  static int backlight_enable;
  
  #define AM335XEVM_WLAN_PMENA_GPIO	GPIO_TO_PIN(1, 30)
-@@ -1216,6 +1227,30 @@ static int __init ecap0_init(void)
+@@ -1218,6 +1229,30 @@ static int __init ecap0_init(void)
  }
  late_initcall(ecap0_init);
  
@@ -81,7 +81,7 @@ index 3c67e94..23b59c2 100644
  static int __init conf_disp_pll(int rate)
  {
  	struct clk *disp_pll;
-@@ -1250,11 +1285,12 @@ static void lcdc_init(int evm_id, int profile)
+@@ -1252,11 +1287,12 @@ static void lcdc_init(int evm_id, int profile)
  }
  
  #define BEAGLEBONE_LCD_AVDD_EN GPIO_TO_PIN(0, 7)
@@ -95,7 +95,7 @@ index 3c67e94..23b59c2 100644
  
  	// we are being stupid and setting pixclock from here instead of da8xx-fb.c
  	if (conf_disp_pll(300000000)) {
-@@ -1265,12 +1301,7 @@ static void bbtoys7lcd_init(int evm_id, int profile)
+@@ -1267,12 +1303,7 @@ static void bbtoys7lcd_init(int evm_id, int profile)
  	
  	if (am33xx_register_lcdc(&bbtoys7_pdata))
  		pr_info("Failed to register Beagleboardtoys 7\" LCD cape device\n");
@@ -109,7 +109,7 @@ index 3c67e94..23b59c2 100644
  	return;
  }
  
-@@ -1831,6 +1862,8 @@ static void beaglebone_cape_setup(struct memory_accessor *mem_acc, void *context
+@@ -1833,6 +1864,8 @@ static void beaglebone_cape_setup(struct memory_accessor *mem_acc, void *context
  		bbtoys7lcd_init(0,0);
  		pr_info("BeagleBone cape: initializing LCD cape touchscreen\n");
  		tsc_init(0,0);
@@ -119,5 +119,5 @@ index 3c67e94..23b59c2 100644
  	}
  	
 -- 
-1.7.9.5
+1.7.7.6
 

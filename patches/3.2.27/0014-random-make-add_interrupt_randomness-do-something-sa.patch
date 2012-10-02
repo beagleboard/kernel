@@ -1,7 +1,7 @@
-From 7069678424c5a5ab11938a274e2c03b1dd0b3302 Mon Sep 17 00:00:00 2001
+From 8a2657ff185861325d41f2a4a5b39d986fe8b022 Mon Sep 17 00:00:00 2001
 From: Theodore Ts'o <tytso@mit.edu>
 Date: Mon, 2 Jul 2012 07:52:16 -0400
-Subject: [PATCH 14/71] random: make 'add_interrupt_randomness()' do something
+Subject: [PATCH 14/70] random: make 'add_interrupt_randomness()' do something
  sane
 
 commit 775f4b297b780601e61787b766f306ed3e1d23eb upstream.
@@ -177,8 +177,7 @@ index 9a2156d..a30df99 100644
 +	struct pt_regs		*regs = get_irq_regs();
 +	unsigned long		now = jiffies;
 +	__u32			input[4], cycles = get_cycles();
- 
--	state = get_timer_rand_state(irq);
++
 +	input[0] = cycles ^ jiffies;
 +	input[1] = irq;
 +	if (regs) {
@@ -187,9 +186,10 @@ index 9a2156d..a30df99 100644
 +		input[3] = ip >> 32;
 +	}
  
--	if (state == NULL)
+-	state = get_timer_rand_state(irq);
 +	fast_mix(fast_pool, input, sizeof(input));
-+
+ 
+-	if (state == NULL)
 +	if ((fast_pool->count & 1023) &&
 +	    !time_after(now, fast_pool->last + HZ))
  		return;

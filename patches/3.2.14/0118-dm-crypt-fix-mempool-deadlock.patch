@@ -1,4 +1,4 @@
-From 27573d35b38cf9f8b2bb9f1f258bcac632ef4e0e Mon Sep 17 00:00:00 2001
+From 2b6742b4766c21aa9fab881ac753e0b541ed9bd4 Mon Sep 17 00:00:00 2001
 From: Mikulas Patocka <mpatocka@redhat.com>
 Date: Wed, 28 Mar 2012 18:41:22 +0100
 Subject: [PATCH 118/147] dm crypt: fix mempool deadlock
@@ -29,7 +29,7 @@ Signed-off-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  drivers/md/dm-crypt.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/md/dm-crypt.c b/drivers/md/dm-crypt.c
 index 8c2a000..c75d947 100644
@@ -61,5 +61,5 @@ index 8c2a000..c75d947 100644
  		len = (size > PAGE_SIZE) ? PAGE_SIZE : size;
  
 -- 
-1.7.9.4
+1.7.7.6
 

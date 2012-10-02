@@ -1,18 +1,18 @@
-From d76d09ea8918a1aa315b44d4e12b71a522545da8 Mon Sep 17 00:00:00 2001
+From 20f645783305c355c9faa29efaab995d375289d8 Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Mon, 19 Mar 2012 15:15:06 +0100
-Subject: [PATCH 24/26] beaglebone: add gpio-keys for lcd
+Subject: [PATCH 24/92] beaglebone: add gpio-keys for lcd
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
  arch/arm/mach-omap2/board-am335xevm.c |   82 +++++++++++++++++++++++++++++++--
- 1 file changed, 78 insertions(+), 4 deletions(-)
+ 1 files changed, 78 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
-index e77bcd6..ed2ea68 100644
+index 8c78eb5..5266f78 100644
 --- a/arch/arm/mach-omap2/board-am335xevm.c
 +++ b/arch/arm/mach-omap2/board-am335xevm.c
-@@ -1068,6 +1068,82 @@ static void beaglebone_lcd7_keys_init(int evm_id, int profile)
+@@ -1070,6 +1070,82 @@ static void beaglebone_lcd7_keys_init(int evm_id, int profile)
  		pr_err("failed to register gpio keys for LCD7 cape\n");
  }
  
@@ -95,7 +95,7 @@ index e77bcd6..ed2ea68 100644
  /*
  * @evm_id - evm id which needs to be configured
  * @dev_cfg - single evm structure which includes
-@@ -2029,10 +2105,8 @@ static void beaglebone_cape_setup(struct memory_accessor *mem_acc, void *context
+@@ -2031,10 +2107,8 @@ static void beaglebone_cape_setup(struct memory_accessor *mem_acc, void *context
  		pr_info("BeagleBone cape: initializing LCD cape touchscreen\n");
  		tsc_init(0,0);
  		beaglebone_tsadcpins_free = 0;
@@ -109,5 +109,5 @@ index e77bcd6..ed2ea68 100644
  	
  	if (!strncmp("BB-BONE-VGA-01", cape_config.partnumber, 15)) {
 -- 
-1.7.9.5
+1.7.7.6
 

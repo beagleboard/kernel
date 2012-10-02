@@ -1,7 +1,7 @@
-From a40eb4d0e3ca83642a3035f7385de0ddf9421b08 Mon Sep 17 00:00:00 2001
+From 13408d27132ecf6cc0467dfa170bd41c9cd1ef26 Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Wed, 29 Feb 2012 17:25:22 +0100
-Subject: [PATCH 26/26] beaglebone: fix 3.5" lcd cape support
+Subject: [PATCH 26/92] beaglebone: fix 3.5" lcd cape support
 
 * proper timings
 * fix gpio conflict
@@ -10,13 +10,13 @@ Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
  arch/arm/mach-omap2/board-am335xevm.c |   42 ++++++++++++++++++++++++++++++++-
  drivers/video/da8xx-fb.c              |   14 +++++++++++
- 2 files changed, 55 insertions(+), 1 deletion(-)
+ 2 files changed, 55 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
-index ed03e14..74a7e91 100644
+index 36b0c85..127516f 100644
 --- a/arch/arm/mach-omap2/board-am335xevm.c
 +++ b/arch/arm/mach-omap2/board-am335xevm.c
-@@ -214,6 +214,29 @@ struct da8xx_lcdc_platform_data bbtoys7_pdata = {
+@@ -216,6 +216,29 @@ struct da8xx_lcdc_platform_data bbtoys7_pdata = {
  	.type			= "TFC_S9700RTWV35TR_01B",
  };
  
@@ -46,7 +46,7 @@ index ed03e14..74a7e91 100644
  static const struct display_panel dvi_panel = {
  	WVGA,
  	16,
-@@ -1486,6 +1509,23 @@ static void bbtoys7lcd_init(int evm_id, int profile)
+@@ -1488,6 +1511,23 @@ static void bbtoys7lcd_init(int evm_id, int profile)
  	return;
  }
  
@@ -70,7 +70,7 @@ index ed03e14..74a7e91 100644
  #define BEAGLEBONEDVI_PDn  GPIO_TO_PIN(1, 7)
  
  static void dvi_init(int evm_id, int profile)
-@@ -2101,7 +2141,7 @@ static void beaglebone_cape_setup(struct memory_accessor *mem_acc, void *context
+@@ -2103,7 +2143,7 @@ static void beaglebone_cape_setup(struct memory_accessor *mem_acc, void *context
  	
  	if (!strncmp("BB-BONE-LCD3-01", cape_config.partnumber, 15)) {
  		pr_info("BeagleBone cape: initializing LCD cape\n");
@@ -105,5 +105,5 @@ index b01f15b..86b19ac 100644
  
  /* Enable the Raster Engine of the LCD Controller */
 -- 
-1.7.9.5
+1.7.7.6
 

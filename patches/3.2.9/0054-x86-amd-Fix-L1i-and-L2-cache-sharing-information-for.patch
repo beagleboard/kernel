@@ -1,4 +1,4 @@
-From 4b28bc6793780be8553a9b92da9aa2288e112fd2 Mon Sep 17 00:00:00 2001
+From 7ac8c626b058bfffaed5443f332fa7b80fa58b72 Mon Sep 17 00:00:00 2001
 From: Andreas Herrmann <andreas.herrmann3@amd.com>
 Date: Wed, 8 Feb 2012 20:52:29 +0100
 Subject: [PATCH 54/72] x86/amd: Fix L1i and L2 cache sharing information for
@@ -20,7 +20,7 @@ Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  arch/x86/kernel/cpu/intel_cacheinfo.c |   44 +++++++++++++++++++++++++++------
- 1 file changed, 36 insertions(+), 8 deletions(-)
+ 1 files changed, 36 insertions(+), 8 deletions(-)
 
 diff --git a/arch/x86/kernel/cpu/intel_cacheinfo.c b/arch/x86/kernel/cpu/intel_cacheinfo.c
 index a3b0811..0e89635 100644
@@ -96,5 +96,5 @@ index a3b0811..0e89635 100644
  	num_threads_sharing = 1 + this_leaf->base.eax.split.num_threads_sharing;
  
 -- 
-1.7.9.4
+1.7.7.6
 

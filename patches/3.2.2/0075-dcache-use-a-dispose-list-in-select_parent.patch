@@ -1,7 +1,7 @@
-From 396e27ebad49960c3fc3871b5d3204433c68228a Mon Sep 17 00:00:00 2001
+From cbedccf871fdee8167b3497f364d127294865ee9 Mon Sep 17 00:00:00 2001
 From: Dave Chinner <david@fromorbit.com>
 Date: Tue, 23 Aug 2011 18:56:24 +1000
-Subject: [PATCH 075/130] dcache: use a dispose list in select_parent
+Subject: [PATCH 075/129] dcache: use a dispose list in select_parent
 
 commit b48f03b319ba78f3abf9a7044d1f436d8d90f4f9 upstream.
 
@@ -34,8 +34,8 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- fs/dcache.c |   63 ++++++++++++++++++++---------------------------------------
- 1 file changed, 21 insertions(+), 42 deletions(-)
+ fs/dcache.c |   63 +++++++++++++++++++---------------------------------------
+ 1 files changed, 21 insertions(+), 42 deletions(-)
 
 diff --git a/fs/dcache.c b/fs/dcache.c
 index 89509b5..108116e 100644
@@ -168,5 +168,5 @@ index 89509b5..108116e 100644
  EXPORT_SYMBOL(shrink_dcache_parent);
  
 -- 
-1.7.9.4
+1.7.7.6
 

@@ -1,4 +1,4 @@
-From 2f2b39355ba0c612927fbf28328480f0b3cef853 Mon Sep 17 00:00:00 2001
+From bcce17e4aba2b16fddfa66a72d7c462c97fa224a Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Wed, 18 Jan 2012 07:21:42 +0000
 Subject: [PATCH 76/90] net: bpf_jit: fix divide by 0 generation
@@ -24,7 +24,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  arch/x86/net/bpf_jit_comp.c |   36 ++++++++++++++++++++++--------------
- 1 file changed, 22 insertions(+), 14 deletions(-)
+ 1 files changed, 22 insertions(+), 14 deletions(-)
 
 diff --git a/arch/x86/net/bpf_jit_comp.c b/arch/x86/net/bpf_jit_comp.c
 index 7b65f75..7c1b765 100644
@@ -125,5 +125,5 @@ index 7b65f75..7c1b765 100644
  		}
  		if (proglen == oldproglen) {
 -- 
-1.7.9.4
+1.7.7.6
 

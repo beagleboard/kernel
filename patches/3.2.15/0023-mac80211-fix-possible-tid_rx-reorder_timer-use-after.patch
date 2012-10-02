@@ -1,4 +1,4 @@
-From 53449f46a7b2624a2350f041791882d070cad719 Mon Sep 17 00:00:00 2001
+From e7da0f9f4fa62dffb4f3b71da222208511741db9 Mon Sep 17 00:00:00 2001
 From: Stanislaw Gruszka <sgruszka@redhat.com>
 Date: Mon, 19 Mar 2012 16:00:26 +0100
 Subject: [PATCH 23/60] mac80211: fix possible tid_rx->reorder_timer use after
@@ -24,7 +24,7 @@ Signed-off-by: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  net/mac80211/agg-rx.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
 diff --git a/net/mac80211/agg-rx.c b/net/mac80211/agg-rx.c
 index 41c2310..aea1559 100644
@@ -48,5 +48,5 @@ index 41c2310..aea1559 100644
  	call_rcu(&tid_rx->rcu_head, ieee80211_free_tid_rx);
  }
 -- 
-1.7.9.5
+1.7.7.6
 

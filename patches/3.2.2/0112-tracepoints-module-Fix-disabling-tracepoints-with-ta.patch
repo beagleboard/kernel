@@ -1,7 +1,7 @@
-From f346bd3ef355be96371b53ec2e93f072618bdce7 Mon Sep 17 00:00:00 2001
+From cfd3fe7fb1e7d3ee7d49ccab92a37de1c4dec581 Mon Sep 17 00:00:00 2001
 From: Steven Rostedt <srostedt@redhat.com>
 Date: Fri, 13 Jan 2012 21:40:59 -0500
-Subject: [PATCH 112/130] tracepoints/module: Fix disabling tracepoints with
+Subject: [PATCH 112/129] tracepoints/module: Fix disabling tracepoints with
  taint CRAP or OOT
 
 commit c10076c4304083af15a41f6bc5e657e781c1f9a6 upstream.
@@ -24,7 +24,7 @@ Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
  kernel/tracepoint.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/kernel/tracepoint.c b/kernel/tracepoint.c
 index db110b8..f1539de 100644
@@ -46,5 +46,5 @@ index db110b8..f1539de 100644
  	mutex_lock(&tracepoints_mutex);
  	tp_mod = kmalloc(sizeof(struct tp_module), GFP_KERNEL);
 -- 
-1.7.9.4
+1.7.7.6
 

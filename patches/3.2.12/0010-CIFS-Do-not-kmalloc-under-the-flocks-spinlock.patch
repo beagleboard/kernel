@@ -1,4 +1,4 @@
-From 6fc4721b47d58ae599a4bb37869d4bfd41f70511 Mon Sep 17 00:00:00 2001
+From dfdc9814782b5f6461e15730e5e4047cb18ea6e2 Mon Sep 17 00:00:00 2001
 From: Pavel Shilovsky <piastry@etersoft.ru>
 Date: Mon, 5 Mar 2012 09:39:20 +0300
 Subject: [PATCH 10/42] CIFS: Do not kmalloc under the flocks spinlock
@@ -13,8 +13,8 @@ Signed-off-by: Pavel Shilovsky <piastry@etersoft.ru>
 Signed-off-by: Steve French <sfrench@us.ibm.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/cifs/file.c |   69 +++++++++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 56 insertions(+), 13 deletions(-)
+ fs/cifs/file.c |   69 +++++++++++++++++++++++++++++++++++++++++++++----------
+ 1 files changed, 56 insertions(+), 13 deletions(-)
 
 diff --git a/fs/cifs/file.c b/fs/cifs/file.c
 index 4dd9283..5e64748 100644
@@ -136,5 +136,5 @@ index 4dd9283..5e64748 100644
  
  static int
 -- 
-1.7.9.4
+1.7.7.6
 

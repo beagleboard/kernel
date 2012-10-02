@@ -1,4 +1,4 @@
-From 9a0fcfb4bd9264ed3a442cb86097cea6aaa9772b Mon Sep 17 00:00:00 2001
+From 2bf58f71f51fe3787a4d571fbf4605818be27c22 Mon Sep 17 00:00:00 2001
 From: Stuart Hayes <Stuart_Hayes@Dell.com>
 Date: Wed, 13 Jun 2012 16:10:45 -0500
 Subject: [PATCH 44/46] acpi_pad: fix power_saving thread deadlock
@@ -20,7 +20,7 @@ Signed-off-by: Len Brown <len.brown@intel.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  drivers/acpi/acpi_pad.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
 index a43fa1a..1502c502 100644
@@ -62,5 +62,5 @@ index a43fa1a..1502c502 100644
  	set_cpus_allowed_ptr(current, cpumask_of(preferred_cpu));
  }
 -- 
-1.7.10
+1.7.7.6
 

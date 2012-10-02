@@ -1,4 +1,4 @@
-From 9a02204e0d49b5a0717822d1919f90768cef64ff Mon Sep 17 00:00:00 2001
+From 4e016f04465639eac86b93bc303a1588700f6d6a Mon Sep 17 00:00:00 2001
 From: Lukas Czerner <lczerner@redhat.com>
 Date: Mon, 20 Feb 2012 17:53:00 -0500
 Subject: [PATCH 108/147] ext4: ignore EXT4_INODE_JOURNAL_DATA flag with
@@ -49,8 +49,8 @@ Signed-off-by: Lukas Czerner <lczerner@redhat.com>
 Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/ext4/ext4_jbd2.h |   56 ++++++++++++++++++++++++++-------------------------
- fs/ext4/inode.c     |   36 ++++++++++++++++++++-------------
+ fs/ext4/ext4_jbd2.h |   56 ++++++++++++++++++++++++++------------------------
+ fs/ext4/inode.c     |   36 ++++++++++++++++++++------------
  2 files changed, 51 insertions(+), 41 deletions(-)
 
 diff --git a/fs/ext4/ext4_jbd2.h b/fs/ext4/ext4_jbd2.h
@@ -190,5 +190,5 @@ index 9df447f..fbd2ea4 100644
  
  
 -- 
-1.7.9.4
+1.7.7.6
 

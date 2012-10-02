@@ -1,4 +1,4 @@
-From a37d6fc330e71aba8579662b09722796306cd846 Mon Sep 17 00:00:00 2001
+From 3d50ed5da540f287c14804eaec941ee623deb181 Mon Sep 17 00:00:00 2001
 From: Roland Dreier <roland@purestorage.com>
 Date: Tue, 7 Feb 2012 14:51:21 +0000
 Subject: [PATCH 30/72] IPoIB: Stop lying about hard_header_len and use
@@ -19,7 +19,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  drivers/infiniband/ulp/ipoib/ipoib.h           |    6 ++-
- drivers/infiniband/ulp/ipoib/ipoib_main.c      |   55 ++++++++----------------
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      |   55 ++++++++---------------
  drivers/infiniband/ulp/ipoib/ipoib_multicast.c |    9 +---
  3 files changed, 24 insertions(+), 46 deletions(-)
 
@@ -209,5 +209,5 @@ index 873bff9..e5069b4 100644
  	}
  	netif_tx_unlock_bh(dev);
 -- 
-1.7.9.4
+1.7.7.6
 

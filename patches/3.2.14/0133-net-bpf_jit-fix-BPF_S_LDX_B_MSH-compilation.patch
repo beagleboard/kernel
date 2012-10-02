@@ -1,4 +1,4 @@
-From 3f5659b743cac5379f2b1619b713edeb60844b23 Mon Sep 17 00:00:00 2001
+From 4d0f900cc94489fd06386c615bc7fa35eab6dcc5 Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Sun, 18 Mar 2012 02:40:48 +0000
 Subject: [PATCH 133/147] net: bpf_jit: fix BPF_S_LDX_B_MSH compilation
@@ -22,7 +22,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  arch/x86/net/bpf_jit_comp.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ 1 files changed, 5 insertions(+), 9 deletions(-)
 
 diff --git a/arch/x86/net/bpf_jit_comp.c b/arch/x86/net/bpf_jit_comp.c
 index 7c1b765..5671752 100644
@@ -58,5 +58,5 @@ index 7c1b765..5671752 100644
  				seen |= SEEN_DATAREF | SEEN_XREG;
  				t_offset = sk_load_byte_msh - (image + addrs[i]);
 -- 
-1.7.9.4
+1.7.7.6
 

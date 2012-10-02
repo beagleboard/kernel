@@ -1,4 +1,4 @@
-From 2db9d57eedac7a46b62c73eec6a34bc7fa46e14e Mon Sep 17 00:00:00 2001
+From d890434c0e1d5e1a4f186b6d1b9b90ac81401e14 Mon Sep 17 00:00:00 2001
 From: Chris Wilson <chris@chris-wilson.co.uk>
 Date: Sun, 15 Apr 2012 11:56:03 +0100
 Subject: [PATCH 33/46] drm/i915: Refactor the deferred PM_IIR handling into a
@@ -16,8 +16,8 @@ Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 [bwh: Backported to 3.2: adjust context; drop changes for Valley View]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/i915/i915_irq.c |   58 +++++++++++++++++++--------------------
- 1 file changed, 29 insertions(+), 29 deletions(-)
+ drivers/gpu/drm/i915/i915_irq.c |   58 +++++++++++++++++++-------------------
+ 1 files changed, 29 insertions(+), 29 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/i915_irq.c b/drivers/gpu/drm/i915/i915_irq.c
 index d3820c2..17c335e 100644
@@ -103,5 +103,5 @@ index d3820c2..17c335e 100644
  	/* should clear PCH hotplug event before clear CPU irq */
  	I915_WRITE(SDEIIR, pch_iir);
 -- 
-1.7.10
+1.7.7.6
 

@@ -1,4 +1,4 @@
-From a9f1af04f086656246f30354fb4564ce3b08c4a0 Mon Sep 17 00:00:00 2001
+From 93ce39aa3d0322be781f077f99c21ff7a84eb3ce Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Wed, 27 Jun 2012 21:23:07 +0200
 Subject: [PATCH 27/49] udf: Fortify loading of sparing table
@@ -11,8 +11,8 @@ unallocated memory or writing to it.
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/udf/super.c |   86 ++++++++++++++++++++++++++++++++++----------------------
- 1 file changed, 53 insertions(+), 33 deletions(-)
+ fs/udf/super.c |   86 ++++++++++++++++++++++++++++++++++---------------------
+ 1 files changed, 53 insertions(+), 33 deletions(-)
 
 diff --git a/fs/udf/super.c b/fs/udf/super.c
 index 800e839..270e135 100644
@@ -130,5 +130,5 @@ index 800e839..270e135 100644
  						UDF_ID_METADATA,
  						strlen(UDF_ID_METADATA))) {
 -- 
-1.7.10
+1.7.7.6
 

@@ -1,4 +1,4 @@
-From b8878d246b5cacedcebd20cac9add30a4dbcf7df Mon Sep 17 00:00:00 2001
+From c558fc47d00a101707f0e323eb15d38cf5c1b318 Mon Sep 17 00:00:00 2001
 From: Shawn Guo <shawn.guo@linaro.org>
 Date: Tue, 22 May 2012 22:13:46 +0800
 Subject: [PATCH 35/67] ARM: imx6: exit coherency when shutting down a cpu
@@ -22,7 +22,7 @@ Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  arch/arm/mach-imx/hotplug.c |   42 +++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 41 insertions(+), 1 deletion(-)
+ 1 files changed, 41 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-imx/hotplug.c b/arch/arm/mach-imx/hotplug.c
 index 89493ab..20ed2d5 100644
@@ -94,5 +94,5 @@ index 89493ab..20ed2d5 100644
  	/* We should never return from idle */
  	panic("cpu %d unexpectedly exit from shutdown\n", cpu);
 -- 
-1.7.9.5
+1.7.7.6
 

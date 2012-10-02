@@ -1,7 +1,7 @@
-From d09a2f22bfced52dcccd53ccc62d2cd5d9f194b7 Mon Sep 17 00:00:00 2001
+From 5d491a4326a7122bf6853842752cbe0ca049ed4c Mon Sep 17 00:00:00 2001
 From: Peng Tao <bergwolf@gmail.com>
 Date: Thu, 12 Jan 2012 23:18:41 +0800
-Subject: [PATCH 077/130] pnfsblock: acquire im_lock in _preload_range
+Subject: [PATCH 077/129] pnfsblock: acquire im_lock in _preload_range
 
 commit 39e567ae36fe03c2b446e1b83ee3d39bea08f90b upstream.
 
@@ -14,7 +14,7 @@ Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
  fs/nfs/blocklayout/extents.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/fs/nfs/blocklayout/extents.c b/fs/nfs/blocklayout/extents.c
 index 19fa7b0..c69682a 100644
@@ -60,5 +60,5 @@ index 19fa7b0..c69682a 100644
  
  	spin_lock(&marks->im_lock);
 -- 
-1.7.9.4
+1.7.7.6
 

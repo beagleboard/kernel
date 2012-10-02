@@ -1,4 +1,4 @@
-From efa29d9bc05bda5c379ae199d1a0feefdea632c2 Mon Sep 17 00:00:00 2001
+From d1742719f1b1b3c69ab2c5887cdb735892d4a463 Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Tue, 8 May 2012 12:05:47 +0530
 Subject: [PATCH 1/6] usb: musb: cppi41: revisit the teardown path to fix isoc
@@ -10,7 +10,7 @@ Changes:
 	- FIFO flush only when RxPktRdy is set
 	- Clear ReqPkt if in host mode.
 ---
- drivers/usb/musb/cppi41_dma.c |   42 ++++++++++++++++++++++++-----------------
+ drivers/usb/musb/cppi41_dma.c |   42 ++++++++++++++++++++++++----------------
  drivers/usb/musb/musb_host.c  |    2 +-
  2 files changed, 26 insertions(+), 18 deletions(-)
 
@@ -99,5 +99,5 @@ index d805d1b..2195633 100644
  		csr = musb_h_flush_rxfifo(ep, 0);
  
 -- 
-1.7.10
+1.7.7.6
 

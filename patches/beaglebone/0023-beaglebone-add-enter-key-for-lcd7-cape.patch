@@ -1,18 +1,18 @@
-From 2eb2e497cb55889497801ac263d7aa309656ff89 Mon Sep 17 00:00:00 2001
+From 15ca23da6a1882f018da2f3e7526ab6e33a13d5c Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Mon, 19 Mar 2012 14:26:37 +0100
-Subject: [PATCH 23/26] beaglebone: add enter key for lcd7 cape
+Subject: [PATCH 23/92] beaglebone: add enter key for lcd7 cape
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
  arch/arm/mach-omap2/board-am335xevm.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
-index a3d7846..e77bcd6 100644
+index 9e9cf5b..8c78eb5 100644
 --- a/arch/arm/mach-omap2/board-am335xevm.c
 +++ b/arch/arm/mach-omap2/board-am335xevm.c
-@@ -998,6 +998,7 @@ static struct pinmux_config lcd7_keys_pin_mux[] = {
+@@ -1000,6 +1000,7 @@ static struct pinmux_config lcd7_keys_pin_mux[] = {
  	{"gpmc_a1.gpio1_17",    OMAP_MUX_MODE7 | AM33XX_PIN_INPUT},
  	{"gpmc_a3.gpio1_19",  OMAP_MUX_MODE7 | AM33XX_PIN_INPUT},
  	{"mcasp0_axr0.gpio3_16",    OMAP_MUX_MODE7 | AM33XX_PIN_INPUT},
@@ -20,7 +20,7 @@ index a3d7846..e77bcd6 100644
  	{NULL, 0},
  };
  
-@@ -1035,6 +1036,14 @@ static struct gpio_keys_button beaglebone_lcd7_gpio_keys[] = {
+@@ -1037,6 +1038,14 @@ static struct gpio_keys_button beaglebone_lcd7_gpio_keys[] = {
  		.type                   = EV_KEY,
  		.wakeup                 = 1,
  	},
@@ -36,5 +36,5 @@ index a3d7846..e77bcd6 100644
  
  static struct gpio_keys_platform_data beaglebone_lcd7_gpio_key_info = {
 -- 
-1.7.9.5
+1.7.7.6
 

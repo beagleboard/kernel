@@ -1,7 +1,7 @@
-From 529eb4be71f6387842a1823c7dcac803cc31d8f9 Mon Sep 17 00:00:00 2001
+From 96333d400ef208c65054e1fcf05f77cd951751b0 Mon Sep 17 00:00:00 2001
 From: Joel A Fernandes <joelagnel@ti.com>
 Date: Wed, 30 Nov 2011 15:00:40 +0100
-Subject: [PATCH 06/26] tscadc: Add general purpose mode, untested with
+Subject: [PATCH 06/92] tscadc: Add general purpose mode, untested with
  touchscreen functionality
 
 Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
@@ -19,10 +19,10 @@ Conflicts:
  5 files changed, 178 insertions(+), 49 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
-index b0f5ce3..5ab9c18 100644
+index ba611c0..8f7ee0b 100644
 --- a/arch/arm/mach-omap2/board-am335xevm.c
 +++ b/arch/arm/mach-omap2/board-am335xevm.c
-@@ -2245,6 +2245,7 @@ static struct evm_dev_cfg beaglebone_old_dev_cfg[] = {
+@@ -2277,6 +2277,7 @@ static struct evm_dev_cfg beaglebone_old_dev_cfg[] = {
  	{i2c2_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
  	{mmc0_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
  	{boneleds_init,	DEV_ON_BASEBOARD, PROFILE_ALL},
@@ -30,7 +30,7 @@ index b0f5ce3..5ab9c18 100644
  	{NULL, 0, 0},
  };
  
-@@ -2257,6 +2258,7 @@ static struct evm_dev_cfg beaglebone_dev_cfg[] = {
+@@ -2289,6 +2290,7 @@ static struct evm_dev_cfg beaglebone_dev_cfg[] = {
  	{i2c2_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
  	{mmc0_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
  	{boneleds_init,	DEV_ON_BASEBOARD, PROFILE_ALL},
@@ -39,7 +39,7 @@ index b0f5ce3..5ab9c18 100644
  };
  
 diff --git a/arch/arm/mach-omap2/mux33xx.c b/arch/arm/mach-omap2/mux33xx.c
-index 59e51e0..572ed16 100644
+index 5749d20..23391ef 100644
 --- a/arch/arm/mach-omap2/mux33xx.c
 +++ b/arch/arm/mach-omap2/mux33xx.c
 @@ -584,6 +584,18 @@ static struct omap_mux __initdata am33xx_muxmodes[] = {
@@ -77,7 +77,7 @@ index 70a3012..348c8e5 100644
  #define AM33XX_CONTROL_PADCONF_AIN2_OFFSET			0x0B24
  #define AM33XX_CONTROL_PADCONF_AIN1_OFFSET			0x0B28
 diff --git a/drivers/input/touchscreen/ti_tscadc.c b/drivers/input/touchscreen/ti_tscadc.c
-index 950c07f..2f38c0c 100644
+index 835a0ba..c6dc6f0 100644
 --- a/drivers/input/touchscreen/ti_tscadc.c
 +++ b/drivers/input/touchscreen/ti_tscadc.c
 @@ -28,6 +28,8 @@
@@ -109,7 +109,7 @@ index 950c07f..2f38c0c 100644
  #define TSCADC_STEPCONFIG_XPP		BIT(5)
  #define TSCADC_STEPCONFIG_XNN		BIT(6)
  #define TSCADC_STEPCONFIG_YPP		BIT(7)
-@@ -108,6 +117,7 @@ struct tscadc {
+@@ -109,6 +118,7 @@ struct tscadc {
  	int			wires;
  	int			analog_input;
  	int			x_plate_resistance;
@@ -117,7 +117,7 @@ index 950c07f..2f38c0c 100644
  	int			irq;
  	void __iomem		*tsc_base;
  	unsigned int		ctrl;
-@@ -124,6 +134,86 @@ static void tscadc_writel(struct tscadc *tsc, unsigned int reg,
+@@ -125,6 +135,86 @@ static void tscadc_writel(struct tscadc *tsc, unsigned int reg,
  	writel(val, tsc->tsc_base + reg);
  }
  
@@ -204,7 +204,7 @@ index 950c07f..2f38c0c 100644
  static void tsc_step_config(struct tscadc *ts_dev)
  {
  	unsigned int	stepconfigx = 0, stepconfigy = 0;
-@@ -228,7 +318,7 @@ static void tsc_step_config(struct tscadc *ts_dev)
+@@ -229,7 +319,7 @@ static void tsc_step_config(struct tscadc *ts_dev)
  	tscadc_writel(ts_dev, TSCADC_REG_STEPCONFIG14, stepconfigz2);
  	tscadc_writel(ts_dev, TSCADC_REG_STEPDELAY14, delay);
  
@@ -213,7 +213,7 @@ index 950c07f..2f38c0c 100644
  }
  
  static void tsc_idle_config(struct tscadc *ts_config)
-@@ -246,7 +336,7 @@ static void tsc_idle_config(struct tscadc *ts_config)
+@@ -247,7 +337,7 @@ static void tsc_idle_config(struct tscadc *ts_config)
  	tscadc_writel(ts_config, TSCADC_REG_IDLECONFIG, idleconfig);
  }
  
@@ -222,7 +222,7 @@ index 950c07f..2f38c0c 100644
  {
  	struct tscadc		*ts_dev = (struct tscadc *)dev;
  	struct input_dev	*input_dev = ts_dev->input;
-@@ -367,7 +457,7 @@ static irqreturn_t tscadc_interrupt(int irq, void *dev)
+@@ -368,7 +458,7 @@ static irqreturn_t tscadc_interrupt(int irq, void *dev)
  	/* check pending interrupts */
  	tscadc_writel(ts_dev, TSCADC_REG_IRQEOI, 0x0);
  
@@ -231,7 +231,7 @@ index 950c07f..2f38c0c 100644
  	return IRQ_HANDLED;
  }
  
-@@ -405,13 +495,15 @@ static	int __devinit tscadc_probe(struct platform_device *pdev)
+@@ -406,13 +496,15 @@ static	int __devinit tscadc_probe(struct platform_device *pdev)
  		return -ENODEV;
  	}
  
@@ -253,7 +253,7 @@ index 950c07f..2f38c0c 100644
  
  	res =  request_mem_region(res->start, resource_size(res), pdev->name);
  	if (!res) {
-@@ -427,8 +519,15 @@ static	int __devinit tscadc_probe(struct platform_device *pdev)
+@@ -428,8 +520,15 @@ static	int __devinit tscadc_probe(struct platform_device *pdev)
  		goto err_release_mem;
  	}
  
@@ -271,7 +271,7 @@ index 950c07f..2f38c0c 100644
  	if (err) {
  		dev_err(&pdev->dev, "failed to allocate irq.\n");
  		goto err_unmap_regs;
-@@ -444,12 +543,18 @@ static	int __devinit tscadc_probe(struct platform_device *pdev)
+@@ -445,12 +544,18 @@ static	int __devinit tscadc_probe(struct platform_device *pdev)
  		goto err_free_irq;
  	}
  	clock_rate = clk_get_rate(clk);
@@ -290,7 +290,7 @@ index 950c07f..2f38c0c 100644
  	/* TSCADC_CLKDIV needs to be configured to the value minus 1 */
  	clk_value = clk_value - 1;
  	tscadc_writel(ts_dev, TSCADC_REG_CLKDIV, clk_value);
-@@ -457,53 +562,55 @@ static	int __devinit tscadc_probe(struct platform_device *pdev)
+@@ -458,53 +563,55 @@ static	int __devinit tscadc_probe(struct platform_device *pdev)
  	ts_dev->wires = pdata->wires;
  	ts_dev->analog_input = pdata->analog_input;
  	ts_dev->x_plate_resistance = pdata->x_plate_resistance;
@@ -402,5 +402,5 @@ index 2c547bb..850cd4b 100644
 +	int mode;
  };
 -- 
-1.7.9.5
+1.7.7.6
 

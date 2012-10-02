@@ -1,7 +1,8 @@
-From 6e14ab85bd71ec3831169d665c4e79f646a60df8 Mon Sep 17 00:00:00 2001
+From 671c8e697f8e31b77d7d1ded017edce4717eaf3b Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Thu, 19 Apr 2012 07:55:55 +0200
-Subject: [PATCH 30/30] beaglebone: don't compare undefined characters, it makes strncomp fail
+Subject: [PATCH 30/92] beaglebone: don't compare undefined characters, it
+ makes strncomp fail
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
@@ -9,10 +10,10 @@ Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
  1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
-index bfcccd9..08a0425 100644
+index a4e113c..f2f03b6 100644
 --- a/arch/arm/mach-omap2/board-am335xevm.c
 +++ b/arch/arm/mach-omap2/board-am335xevm.c
-@@ -2152,7 +2152,7 @@ static void beaglebone_cape_setup(struct memory_accessor *mem_acc, void *context
+@@ -2154,7 +2154,7 @@ static void beaglebone_cape_setup(struct memory_accessor *mem_acc, void *context
  		beaglebone_lcd3_keys_init(0,0);
  	}
  	
@@ -22,5 +23,5 @@ index bfcccd9..08a0425 100644
  		dvi_init(0,0);
  	}
 -- 
-1.7.2.5
+1.7.7.6
 

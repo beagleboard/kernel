@@ -1,4 +1,4 @@
-From 16d9af6f04790a3847ebaa777cb1efa116a93b6e Mon Sep 17 00:00:00 2001
+From fbb7bab2006d807479ac30b36e1c99f78e18cd1a Mon Sep 17 00:00:00 2001
 From: Herbert Xu <herbert@gondor.apana.org.au>
 Date: Sun, 5 Feb 2012 15:09:28 +1100
 Subject: [PATCH 21/30] crypto: sha512 - Avoid stack bloat on i386
@@ -23,7 +23,7 @@ Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  crypto/sha512_generic.c |   68 ++++++++++++++++++++++-------------------------
- 1 file changed, 32 insertions(+), 36 deletions(-)
+ 1 files changed, 32 insertions(+), 36 deletions(-)
 
 diff --git a/crypto/sha512_generic.c b/crypto/sha512_generic.c
 index 3edebfd..f04af93 100644
@@ -109,5 +109,5 @@ index 3edebfd..f04af93 100644
  
  	state[0] += a; state[1] += b; state[2] += c; state[3] += d;
 -- 
-1.7.9.4
+1.7.7.6
 

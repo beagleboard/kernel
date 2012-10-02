@@ -1,4 +1,4 @@
-From 650bb7d911ba40c634964921badb10e175276089 Mon Sep 17 00:00:00 2001
+From 61859cc85bcb04e2740c44994aee69fb42093ce8 Mon Sep 17 00:00:00 2001
 From: Jeff Moyer <jmoyer@redhat.com>
 Date: Mon, 20 Feb 2012 17:59:24 -0500
 Subject: [PATCH 109/147] ext4: fix race between unwritten extent conversion
@@ -86,5 +86,5 @@ index 7e106c8..924298a 100644
  	if (atomic_dec_and_test(&EXT4_I(inode)->i_aiodio_unwritten))
  		wake_up_all(ext4_ioend_wq(io->inode));
 -- 
-1.7.9.4
+1.7.7.6
 

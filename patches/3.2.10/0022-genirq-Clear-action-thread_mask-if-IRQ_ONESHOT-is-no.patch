@@ -1,4 +1,4 @@
-From 81924cb9ad2be5172d94d8ec1bf687a451f4227a Mon Sep 17 00:00:00 2001
+From 4fbaa056d29905a0b28b0e56254c33afc4621a47 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 6 Mar 2012 23:18:54 +0100
 Subject: [PATCH 22/95] genirq: Clear action->thread_mask if IRQ_ONESHOT is
@@ -26,7 +26,7 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  kernel/irq/manage.c |   44 ++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 38 insertions(+), 6 deletions(-)
+ 1 files changed, 38 insertions(+), 6 deletions(-)
 
 diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
 index cf2d7ae..ae95cd2 100644
@@ -93,5 +93,5 @@ index cf2d7ae..ae95cd2 100644
  	if (!shared) {
  		init_waitqueue_head(&desc->wait_for_threads);
 -- 
-1.7.9.4
+1.7.7.6
 

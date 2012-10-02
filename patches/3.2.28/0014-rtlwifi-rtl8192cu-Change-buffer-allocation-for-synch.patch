@@ -1,4 +1,4 @@
-From 4fc6a970e371907943871c1b51ef5a064d0bd02d Mon Sep 17 00:00:00 2001
+From 3b00901e9bf89a83b544351e03e5fcc9549a9c1c Mon Sep 17 00:00:00 2001
 From: Larry Finger <Larry.Finger@lwfinger.net>
 Date: Wed, 11 Jul 2012 14:37:28 -0500
 Subject: [PATCH 14/38] rtlwifi: rtl8192cu: Change buffer allocation for
@@ -18,9 +18,9 @@ Signed-off-by: Larry Finger <Larry.Finger@lwfinger.net>
 Signed-off-by: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/wireless/rtlwifi/usb.c  |   20 ++++++++++++++------
+ drivers/net/wireless/rtlwifi/usb.c  |   14 +++++++++++---
  drivers/net/wireless/rtlwifi/wifi.h |    1 +
- 2 files changed, 15 insertions(+), 6 deletions(-)
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/net/wireless/rtlwifi/usb.c b/drivers/net/wireless/rtlwifi/usb.c
 index db34db6..a49e848 100644
@@ -34,21 +34,18 @@ index db34db6..a49e848 100644
 +	__le32 *data;
 +	unsigned long flags;
  
--	request = REALTEK_USB_VENQT_CMD_REQ;
--	index = REALTEK_USB_VENQT_CMD_IDX; /* n/a */
--
--	wvalue = (u16)addr;
--	_usbctrl_vendorreq_sync_read(udev, request, wvalue, index, data, len);
 +	spin_lock_irqsave(&rtlpriv->locks.usb_lock, flags);
- 	if (++rtlpriv->usb_data_index >= RTL_USB_MAX_RX_COUNT)
- 		rtlpriv->usb_data_index = 0;
++	if (++rtlpriv->usb_data_index >= RTL_USB_MAX_RX_COUNT)
++		rtlpriv->usb_data_index = 0;
 +	data = &rtlpriv->usb_data[rtlpriv->usb_data_index];
 +	spin_unlock_irqrestore(&rtlpriv->locks.usb_lock, flags);
-+	request = REALTEK_USB_VENQT_CMD_REQ;
-+	index = REALTEK_USB_VENQT_CMD_IDX; /* n/a */
-+
-+	wvalue = (u16)addr;
-+	_usbctrl_vendorreq_sync_read(udev, request, wvalue, index, data, len);
+ 	request = REALTEK_USB_VENQT_CMD_REQ;
+ 	index = REALTEK_USB_VENQT_CMD_IDX; /* n/a */
+ 
+ 	wvalue = (u16)addr;
+ 	_usbctrl_vendorreq_sync_read(udev, request, wvalue, index, data, len);
+-	if (++rtlpriv->usb_data_index >= RTL_USB_MAX_RX_COUNT)
+-		rtlpriv->usb_data_index = 0;
  	return le32_to_cpu(*data);
  }
  

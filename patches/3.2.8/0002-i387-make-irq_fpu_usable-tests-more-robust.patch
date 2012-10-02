@@ -1,4 +1,4 @@
-From b55aa0fd65bf5076507e1380ec3ee1431ff5bb16 Mon Sep 17 00:00:00 2001
+From acaa744458050b3462aed4de4f22127714e7a40b Mon Sep 17 00:00:00 2001
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Date: Mon, 13 Feb 2012 13:56:14 -0800
 Subject: [PATCH 02/11] i387: make irq_fpu_usable() tests more robust
@@ -28,7 +28,7 @@ be more obviously correct and robust.
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/x86/include/asm/i387.h |   54 ++++++++++++++++++++++++++++++++++++-------
+ arch/x86/include/asm/i387.h |   54 ++++++++++++++++++++++++++++++++++++------
  arch/x86/kernel/traps.c     |    1 +
  2 files changed, 47 insertions(+), 8 deletions(-)
 
@@ -127,5 +127,5 @@ index 727e6c1..41e0b8c 100644
  	if (read_cr0() & X86_CR0_EM) {
  		struct math_emu_info info = { };
 -- 
-1.7.9.4
+1.7.7.6
 

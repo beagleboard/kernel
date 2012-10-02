@@ -1,4 +1,4 @@
-From 46d271aef8236ed77b9d17051590886c4677e882 Mon Sep 17 00:00:00 2001
+From 790ae7ad392fe619146b4a9e438b2eac0fa897f2 Mon Sep 17 00:00:00 2001
 From: Hugh Dickins <hughd@google.com>
 Date: Thu, 23 Aug 2012 12:17:36 +0200
 Subject: [PATCH 76/94] block: replace __getblk_slow misfix by grow_dev_page
@@ -41,8 +41,8 @@ Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/buffer.c |   66 +++++++++++++++++++++++++++--------------------------------
- 1 file changed, 30 insertions(+), 36 deletions(-)
+ fs/buffer.c |   66 ++++++++++++++++++++++++++--------------------------------
+ 1 files changed, 30 insertions(+), 36 deletions(-)
 
 diff --git a/fs/buffer.c b/fs/buffer.c
 index e0bc021..19a4f0b 100644
@@ -200,5 +200,5 @@ index e0bc021..19a4f0b 100644
   * attempt is failing.  FIXME, perhaps?
   */
 -- 
-1.7.10.4
+1.7.7.6
 

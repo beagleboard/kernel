@@ -1,4 +1,4 @@
-From ac9426f8233d76fd80412576fb53a26a7b1bd7ea Mon Sep 17 00:00:00 2001
+From 5556c35817187b58dee66d9cdfc17138f2ccc72e Mon Sep 17 00:00:00 2001
 From: Jeff Layton <jlayton@redhat.com>
 Date: Tue, 17 Jan 2012 16:08:51 -0500
 Subject: [PATCH 121/129] cifs: lower default wsize when unix extensions are
@@ -18,7 +18,7 @@ Signed-off-by: Steve French <smfrench@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
  fs/cifs/connect.c |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ 1 files changed, 19 insertions(+), 4 deletions(-)
 
 diff --git a/fs/cifs/connect.c b/fs/cifs/connect.c
 index f3670cf..63e4be4 100644
@@ -63,5 +63,5 @@ index f3670cf..63e4be4 100644
  	/* can server support 24-bit write sizes? (via UNIX extensions) */
  	if (!tcon->unix_ext || !(unix_cap & CIFS_UNIX_LARGE_WRITE_CAP))
 -- 
-1.7.9.5
+1.7.7.6
 

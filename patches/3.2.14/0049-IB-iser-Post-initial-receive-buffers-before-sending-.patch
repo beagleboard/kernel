@@ -1,4 +1,4 @@
-From de960f13b12a65cff5f74f1f7bb6871fbd9ac432 Mon Sep 17 00:00:00 2001
+From 2fcdad4eeb0f2613e9e459eb2442274f5d14d086 Mon Sep 17 00:00:00 2001
 From: Or Gerlitz <ogerlitz@mellanox.com>
 Date: Mon, 5 Mar 2012 18:21:44 +0200
 Subject: [PATCH 049/147] IB/iser: Post initial receive buffers before sending
@@ -20,9 +20,9 @@ Signed-off-by: Or Gerlitz <ogerlitz@mellanox.com>
 Signed-off-by: Roland Dreier <roland@purestorage.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.c     |   18 ++++------------
+ drivers/infiniband/ulp/iser/iscsi_iser.c     |   18 +++------------
  drivers/infiniband/ulp/iser/iscsi_iser.h     |    1 +
- drivers/infiniband/ulp/iser/iser_initiator.c |   30 +++++++++++++++-----------
+ drivers/infiniband/ulp/iser/iser_initiator.c |   30 ++++++++++++++-----------
  3 files changed, 22 insertions(+), 27 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
@@ -139,5 +139,5 @@ index a607542..738a149 100644
  
  	err = iser_post_send(iser_conn->ib_conn, mdesc);
 -- 
-1.7.9.4
+1.7.7.6
 

@@ -1,4 +1,4 @@
-From b9f60ea7bcd215aca12be7989406fd04c43e8adf Mon Sep 17 00:00:00 2001
+From 0941da129179b7aaac25df7ca82da03e74caec3c Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?=E8=AF=B4=E4=B8=8D=E5=BE=97?= <gavin.kx@qq.com>
 Date: Mon, 28 May 2012 21:31:29 +0800
 Subject: [PATCH 54/67] USB: option: add more YUGA device ids
@@ -9,8 +9,8 @@ Signed-off-by: gavin zhu <gavin.zhu@qq.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/serial/option.c |   40 +++++++++++++++++++++++++---------------
- 1 file changed, 25 insertions(+), 15 deletions(-)
+ drivers/usb/serial/option.c |   44 ++++++++++++++++++++++++++----------------
+ 1 files changed, 27 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/usb/serial/option.c b/drivers/usb/serial/option.c
 index 4bd2b85..61d6c31 100644
@@ -40,22 +40,14 @@ index 4bd2b85..61d6c31 100644
  #define YUGA_PRODUCT_CWU528			0x260D
 +#define YUGA_PRODUCT_CWU581			0x260E
  #define YUGA_PRODUCT_CWU526			0x260F
-+#define YUGA_PRODUCT_CWU582			0x261F
-+#define YUGA_PRODUCT_CWU583			0x262F
- 
+-
 -#define YUGA_PRODUCT_CLM600			0x2601
 -#define YUGA_PRODUCT_CLM610			0x2602
 -#define YUGA_PRODUCT_CLM500			0x2603
 -#define YUGA_PRODUCT_CLM510			0x2604
 -#define YUGA_PRODUCT_CLM800			0x2605
 -#define YUGA_PRODUCT_CLM900			0x2606
-+#define YUGA_PRODUCT_CLM600			0x3601
-+#define YUGA_PRODUCT_CLM610			0x3602
-+#define YUGA_PRODUCT_CLM500			0x3603
-+#define YUGA_PRODUCT_CLM510			0x3604
-+#define YUGA_PRODUCT_CLM800			0x3605
-+#define YUGA_PRODUCT_CLM900			0x3606
- 
+-
 -#define YUGA_PRODUCT_CLU718			0x2607
 -#define YUGA_PRODUCT_CLU716			0x2608
 -#define YUGA_PRODUCT_CLU728			0x2609
@@ -64,6 +56,16 @@ index 4bd2b85..61d6c31 100644
 -#define YUGA_PRODUCT_CLU516			0x260C
 -#define YUGA_PRODUCT_CLU528			0x260D
 -#define YUGA_PRODUCT_CLU526			0x260F
++#define YUGA_PRODUCT_CWU582			0x261F
++#define YUGA_PRODUCT_CWU583			0x262F
++
++#define YUGA_PRODUCT_CLM600			0x3601
++#define YUGA_PRODUCT_CLM610			0x3602
++#define YUGA_PRODUCT_CLM500			0x3603
++#define YUGA_PRODUCT_CLM510			0x3604
++#define YUGA_PRODUCT_CLM800			0x3605
++#define YUGA_PRODUCT_CLM900			0x3606
++
 +#define YUGA_PRODUCT_CLU718			0x3607
 +#define YUGA_PRODUCT_CLU716			0x3608
 +#define YUGA_PRODUCT_CLU728			0x3609
@@ -88,5 +90,5 @@ index 4bd2b85..61d6c31 100644
  	{ USB_DEVICE_AND_INTERFACE_INFO(ZD_VENDOR_ID, ZD_PRODUCT_7000, 0xff, 0xff, 0xff) },
  	{ USB_DEVICE(LG_VENDOR_ID, LG_PRODUCT_L02C) }, /* docomo L-02C modem */
 -- 
-1.7.9.5
+1.7.7.6
 

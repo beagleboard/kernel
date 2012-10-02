@@ -1,4 +1,4 @@
-From fae96c11ba3ff99d1475cf2e750ee6b36bbac43c Mon Sep 17 00:00:00 2001
+From 5d9eb6c3c226ef536330dc40a91171f3f17ffd9e Mon Sep 17 00:00:00 2001
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Date: Fri, 17 Feb 2012 21:48:54 -0800
 Subject: [PATCH 09/11] i387: move TS_USEDFPU flag from thread_info to
@@ -64,7 +64,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  arch/x86/include/asm/i387.h        |   44 ++++++++++++++++++------------------
  arch/x86/include/asm/processor.h   |    1 +
- arch/x86/include/asm/thread_info.h |    2 --
+ arch/x86/include/asm/thread_info.h |    2 -
  arch/x86/kernel/traps.c            |   11 ++++-----
  arch/x86/kernel/xsave.c            |    2 +-
  arch/x86/kvm/vmx.c                 |    2 +-
@@ -301,5 +301,5 @@ index b2c612d..4ea7678 100644
  	load_gdt(&__get_cpu_var(host_gdt));
  }
 -- 
-1.7.9.4
+1.7.7.6
 

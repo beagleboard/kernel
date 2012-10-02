@@ -1,4 +1,4 @@
-From 3bbc9e1917b93542c0da222e06496f37d1e82182 Mon Sep 17 00:00:00 2001
+From 72c7336dce483880e116568dda6063552a8057b7 Mon Sep 17 00:00:00 2001
 From: Todd Poynor <toddpoynor@google.com>
 Date: Fri, 13 Jul 2012 15:30:48 +0900
 Subject: [PATCH 045/109] ARM: SAMSUNG: fix race in s3c_adc_start for ADC
@@ -20,22 +20,23 @@ diff --git a/arch/arm/plat-samsung/adc.c b/arch/arm/plat-samsung/adc.c
 index 33ecd0c..b1e05cc 100644
 --- a/arch/arm/plat-samsung/adc.c
 +++ b/arch/arm/plat-samsung/adc.c
-@@ -157,10 +157,12 @@ int s3c_adc_start(struct s3c_adc_client *client,
+@@ -157,11 +157,13 @@ int s3c_adc_start(struct s3c_adc_client *client,
  		return -EINVAL;
  	}
  
 -	if (client->is_ts && adc->ts_pend)
-+	spin_lock_irqsave(&adc->lock, flags);
-+
+-		return -EAGAIN;
+-
+ 	spin_lock_irqsave(&adc->lock, flags);
+ 
 +	if (client->is_ts && adc->ts_pend) {
 +		spin_unlock_irqrestore(&adc->lock, flags);
- 		return -EAGAIN;
--
--	spin_lock_irqsave(&adc->lock, flags);
++		return -EAGAIN;
 +	}
- 
++
  	client->channel = channel;
  	client->nr_samples = nr_samples;
+ 
 -- 
 1.7.7.6
 

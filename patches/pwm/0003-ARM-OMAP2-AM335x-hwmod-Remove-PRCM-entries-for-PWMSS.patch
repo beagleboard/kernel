@@ -1,7 +1,8 @@
-From 4710b3d23eb813eb8cb4b7f718e3a4a203c1fa1c Mon Sep 17 00:00:00 2001
-From: Philip, Avinash <avinashphilip@ti.com>
+From 6ae907b72fc65ca57a0df9abc445715d0edc394b Mon Sep 17 00:00:00 2001
+From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Tue, 7 Aug 2012 18:25:50 +0530
-Subject: [PATCH 1/2] ARM: OMAP2+: AM335x: hwmod: Remove PRCM entries for PWMSS
+Subject: [PATCH 3/6] ARM: OMAP2+: AM335x: hwmod: Remove PRCM entries for
+ PWMSS
 
 PWMSS clock resources being used as a shared resource for eCAP & eHRPWM
 OMAP devices. However OMAP hwmod didn't protect the race condition for
@@ -20,10 +21,10 @@ Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
  1 files changed, 0 insertions(+), 36 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index 995b73f..a3f05b6 100644
+index 9d3c9a5..832bba3 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -891,12 +891,6 @@ static struct omap_hwmod am33xx_ehrpwm0_hwmod = {
+@@ -729,12 +729,6 @@ static struct omap_hwmod am33xx_ehrpwm0_hwmod = {
  	.class		= &am33xx_epwmss_hwmod_class,
  	.main_clk	= "epwmss0_fck",
  	.clkdm_name	= "l4ls_clkdm",
@@ -36,7 +37,7 @@ index 995b73f..a3f05b6 100644
  	.slaves		= am33xx_ehrpwm0_slaves,
  	.slaves_cnt	= ARRAY_SIZE(am33xx_ehrpwm0_slaves),
  	.opt_clks	= ehrpwm0_opt_clks,
-@@ -949,12 +943,6 @@ static struct omap_hwmod am33xx_ehrpwm1_hwmod = {
+@@ -787,12 +781,6 @@ static struct omap_hwmod am33xx_ehrpwm1_hwmod = {
  	.class		= &am33xx_epwmss_hwmod_class,
  	.main_clk	= "epwmss1_fck",
  	.clkdm_name	= "l4ls_clkdm",
@@ -49,7 +50,7 @@ index 995b73f..a3f05b6 100644
  	.slaves		= am33xx_ehrpwm1_slaves,
  	.slaves_cnt	= ARRAY_SIZE(am33xx_ehrpwm1_slaves),
  	.opt_clks	= ehrpwm1_opt_clks,
-@@ -1007,12 +995,6 @@ static struct omap_hwmod am33xx_ehrpwm2_hwmod = {
+@@ -845,12 +833,6 @@ static struct omap_hwmod am33xx_ehrpwm2_hwmod = {
  	.class		= &am33xx_epwmss_hwmod_class,
  	.main_clk	= "epwmss2_fck",
  	.clkdm_name	= "l4ls_clkdm",
@@ -62,7 +63,7 @@ index 995b73f..a3f05b6 100644
  	.slaves		= am33xx_ehrpwm2_slaves,
  	.slaves_cnt	= ARRAY_SIZE(am33xx_ehrpwm2_slaves),
  	.opt_clks	= ehrpwm2_opt_clks,
-@@ -1060,12 +1042,6 @@ static struct omap_hwmod am33xx_ecap0_hwmod = {
+@@ -898,12 +880,6 @@ static struct omap_hwmod am33xx_ecap0_hwmod = {
  	.class		= &am33xx_epwmss_hwmod_class,
  	.main_clk	= "epwmss0_fck",
  	.clkdm_name	= "l4ls_clkdm",
@@ -75,7 +76,7 @@ index 995b73f..a3f05b6 100644
  	.slaves		= am33xx_ecap0_slaves,
  	.slaves_cnt	= ARRAY_SIZE(am33xx_ecap0_slaves),
  };
-@@ -1111,12 +1087,6 @@ static struct omap_hwmod am33xx_ecap1_hwmod = {
+@@ -949,12 +925,6 @@ static struct omap_hwmod am33xx_ecap1_hwmod = {
  	.class		= &am33xx_epwmss_hwmod_class,
  	.main_clk	= "epwmss1_fck",
  	.clkdm_name	= "l4ls_clkdm",
@@ -88,7 +89,7 @@ index 995b73f..a3f05b6 100644
  	.slaves		= am33xx_ecap1_slaves,
  	.slaves_cnt	= ARRAY_SIZE(am33xx_ecap1_slaves),
  };
-@@ -1162,12 +1132,6 @@ static struct omap_hwmod am33xx_ecap2_hwmod = {
+@@ -1000,12 +970,6 @@ static struct omap_hwmod am33xx_ecap2_hwmod = {
  	.class		= &am33xx_epwmss_hwmod_class,
  	.clkdm_name	= "l4ls_clkdm",
  	.main_clk	= "epwmss2_fck",
@@ -102,5 +103,5 @@ index 995b73f..a3f05b6 100644
  	.slaves_cnt	= ARRAY_SIZE(am33xx_ecap2_slaves),
  };
 -- 
-1.7.0.4
+1.7.7.6
 

@@ -1,4 +1,4 @@
-From 0f74abb5d9cf907fcce94d69514faeaa2d774378 Mon Sep 17 00:00:00 2001
+From 8f5a86285d7a3a3d0f82891241e7f2eb83d925b8 Mon Sep 17 00:00:00 2001
 From: Johannes Berg <johannes.berg@intel.com>
 Date: Thu, 19 Jan 2012 08:20:57 -0800
 Subject: [PATCH 53/90] iwlwifi: fix PCI-E transport "inta" race
@@ -28,7 +28,7 @@ Signed-off-by: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  drivers/net/wireless/iwlwifi/iwl-trans-pcie-rx.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/wireless/iwlwifi/iwl-trans-pcie-rx.c b/drivers/net/wireless/iwlwifi/iwl-trans-pcie-rx.c
 index 1920237..1daf01e 100644
@@ -49,5 +49,5 @@ index 1920237..1daf01e 100644
  	if (inta & CSR_INT_BIT_HW_ERR) {
  		IWL_ERR(trans, "Hardware error detected.  Restarting.\n");
 -- 
-1.7.9.4
+1.7.7.6
 

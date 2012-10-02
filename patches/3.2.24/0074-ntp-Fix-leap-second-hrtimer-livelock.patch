@@ -1,4 +1,4 @@
-From a57ccabee60519dd90051266c00d038055b93878 Mon Sep 17 00:00:00 2001
+From 516eaf54b1cf11b39d2a8e24834e8a2b627bac84 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Tue, 17 Jul 2012 03:05:14 -0400
 Subject: [PATCH 074/109] ntp: Fix leap-second hrtimer livelock
@@ -74,9 +74,9 @@ Signed-off-by: John Stultz <john.stultz@linaro.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  include/linux/timex.h     |    2 +-
- kernel/time/ntp.c         |  142 ++++++++++++++++-----------------------------
- kernel/time/timekeeping.c |   18 ++----
- 3 files changed, 58 insertions(+), 104 deletions(-)
+ kernel/time/ntp.c         |  122 +++++++++++++++------------------------------
+ kernel/time/timekeeping.c |   18 +++----
+ 3 files changed, 48 insertions(+), 94 deletions(-)
 
 diff --git a/include/linux/timex.h b/include/linux/timex.h
 index aa60fe7..08e90fb 100644
@@ -104,90 +104,63 @@ index 4b85a7a..4508f7f 100644
  #define MAX_TICKADJ		500LL		/* usecs */
  #define MAX_TICKADJ_SCALED \
  	(((MAX_TICKADJ * NSEC_PER_USEC) << NTP_SCALE_SHIFT) / NTP_INTERVAL_FREQ)
-@@ -350,61 +348,61 @@ void ntp_clear(void)
+@@ -350,60 +348,60 @@ void ntp_clear(void)
  }
  
  /*
 - * Leap second processing. If in leap-insert state at the end of the
 - * day, the system clock is set back one second; if in leap-delete
 - * state, the system clock is set ahead one second.
-- */
--static enum hrtimer_restart ntp_leap_second(struct hrtimer *timer)
--{
--	enum hrtimer_restart res = HRTIMER_NORESTART;
--
--	write_seqlock(&xtime_lock);
--
--	switch (time_state) {
--	case TIME_OK:
--		break;
--	case TIME_INS:
--		timekeeping_leap_insert(-1);
--		time_state = TIME_OOP;
--		printk(KERN_NOTICE
--			"Clock: inserting leap second 23:59:60 UTC\n");
--		hrtimer_add_expires_ns(&leap_timer, NSEC_PER_SEC);
--		res = HRTIMER_RESTART;
--		break;
--	case TIME_DEL:
--		timekeeping_leap_insert(1);
--		time_tai--;
--		time_state = TIME_WAIT;
--		printk(KERN_NOTICE
--			"Clock: deleting leap second 23:59:59 UTC\n");
--		break;
--	case TIME_OOP:
--		time_tai++;
--		time_state = TIME_WAIT;
--		/* fall through */
--	case TIME_WAIT:
--		if (!(time_status & (STA_INS | STA_DEL)))
--			time_state = TIME_OK;
--		break;
--	}
--
--	write_sequnlock(&xtime_lock);
--
--	return res;
--}
--
--/*
-  * this routine handles the overflow of the microsecond field
-  *
-  * The tricky bits of code to handle the accurate clock support
-  * were provided by Dave Mills (Mills@UDEL.EDU) of NTP fame.
-  * They were originally developed for SUN and DEC kernels.
-  * All the kudos should go to Dave for this stuff.
++ * this routine handles the overflow of the microsecond field
++ *
++ * The tricky bits of code to handle the accurate clock support
++ * were provided by Dave Mills (Mills@UDEL.EDU) of NTP fame.
++ * They were originally developed for SUN and DEC kernels.
++ * All the kudos should go to Dave for this stuff.
 + *
 + * Also handles leap second processing, and returns leap offset
   */
--void second_overflow(void)
+-static enum hrtimer_restart ntp_leap_second(struct hrtimer *timer)
 +int second_overflow(unsigned long secs)
  {
+-	enum hrtimer_restart res = HRTIMER_NORESTART;
+-
+-	write_seqlock(&xtime_lock);
 +	int leap = 0;
- 	s64 delta;
++	s64 delta;
  
 +	/*
 +	 * Leap second processing. If in leap-insert state at the end of the
 +	 * day, the system clock is set back one second; if in leap-delete
 +	 * state, the system clock is set ahead one second.
 +	 */
-+	switch (time_state) {
-+	case TIME_OK:
+ 	switch (time_state) {
+ 	case TIME_OK:
 +		if (time_status & STA_INS)
 +			time_state = TIME_INS;
 +		else if (time_status & STA_DEL)
 +			time_state = TIME_DEL;
-+		break;
-+	case TIME_INS:
+ 		break;
+ 	case TIME_INS:
+-		timekeeping_leap_insert(-1);
+-		time_state = TIME_OOP;
+-		printk(KERN_NOTICE
+-			"Clock: inserting leap second 23:59:60 UTC\n");
+-		hrtimer_add_expires_ns(&leap_timer, NSEC_PER_SEC);
+-		res = HRTIMER_RESTART;
 +		if (secs % 86400 == 0) {
 +			leap = -1;
 +			time_state = TIME_OOP;
 +			printk(KERN_NOTICE
 +				"Clock: inserting leap second 23:59:60 UTC\n");
 +		}
-+		break;
-+	case TIME_DEL:
+ 		break;
+ 	case TIME_DEL:
+-		timekeeping_leap_insert(1);
+-		time_tai--;
+-		time_state = TIME_WAIT;
+-		printk(KERN_NOTICE
+-			"Clock: deleting leap second 23:59:59 UTC\n");
 +		if ((secs + 1) % 86400 == 0) {
 +			leap = 1;
 +			time_tai--;
@@ -195,22 +168,38 @@ index 4b85a7a..4508f7f 100644
 +			printk(KERN_NOTICE
 +				"Clock: deleting leap second 23:59:59 UTC\n");
 +		}
-+		break;
-+	case TIME_OOP:
-+		time_tai++;
-+		time_state = TIME_WAIT;
+ 		break;
+ 	case TIME_OOP:
+ 		time_tai++;
+ 		time_state = TIME_WAIT;
+-		/* fall through */
 +		break;
 +
-+	case TIME_WAIT:
-+		if (!(time_status & (STA_INS | STA_DEL)))
-+			time_state = TIME_OK;
-+		break;
-+	}
-+
-+
+ 	case TIME_WAIT:
+ 		if (!(time_status & (STA_INS | STA_DEL)))
+ 			time_state = TIME_OK;
+ 		break;
+ 	}
+ 
+-	write_sequnlock(&xtime_lock);
+-
+-	return res;
+-}
+-
+-/*
+- * this routine handles the overflow of the microsecond field
+- *
+- * The tricky bits of code to handle the accurate clock support
+- * were provided by Dave Mills (Mills@UDEL.EDU) of NTP fame.
+- * They were originally developed for SUN and DEC kernels.
+- * All the kudos should go to Dave for this stuff.
+- */
+-void second_overflow(void)
+-{
+-	s64 delta;
+ 
  	/* Bump the maxerror field */
  	time_maxerror += MAXFREQ / NSEC_PER_USEC;
- 	if (time_maxerror > NTP_PHASE_LIMIT) {
 @@ -423,23 +421,25 @@ void second_overflow(void)
  	pps_dec_valid();
  

@@ -1,4 +1,4 @@
-From 76f4fa4be06ea1de34b0cf441d97fe1916bb4b6e Mon Sep 17 00:00:00 2001
+From 3e14a838ba9e92a00f19c2c165d9f47c8401c8cc Mon Sep 17 00:00:00 2001
 From: Theodore Ts'o <tytso@mit.edu>
 Date: Thu, 7 Jun 2012 18:56:06 -0400
 Subject: [PATCH 85/86] ext4: fix the free blocks calculation for ext3 file
@@ -36,7 +36,7 @@ Tested-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  fs/ext4/balloc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/fs/ext4/balloc.c b/fs/ext4/balloc.c
 index 12ccacd..914bf9e 100644
@@ -72,5 +72,5 @@ index 12ccacd..914bf9e 100644
  			    (c == block_cluster) || (c == itbl_cluster))
  				continue;
 -- 
-1.7.9.5
+1.7.7.6
 

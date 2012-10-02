@@ -1,4 +1,4 @@
-From cdc2a3f4e2494e413531264d3949ce6801123ad9 Mon Sep 17 00:00:00 2001
+From da575ef9c60a60294a7bc96eb2d0b0e0ed87b5cd Mon Sep 17 00:00:00 2001
 From: Trond Myklebust <Trond.Myklebust@netapp.com>
 Date: Mon, 19 Mar 2012 13:39:35 -0400
 Subject: [PATCH 093/147] SUNRPC: We must not use list_for_each_entry_safe()
@@ -22,7 +22,7 @@ Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  net/sunrpc/sched.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ 1 files changed, 11 insertions(+), 4 deletions(-)
 
 diff --git a/net/sunrpc/sched.c b/net/sunrpc/sched.c
 index 00a1a2a..4e2b3b4 100644
@@ -69,5 +69,5 @@ index 00a1a2a..4e2b3b4 100644
  			rpc_wake_up_task_queue_locked(queue, task);
  		}
 -- 
-1.7.9.4
+1.7.7.6
 

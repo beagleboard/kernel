@@ -1,7 +1,7 @@
-From 237564961047194a9d952292197ccc794264cab7 Mon Sep 17 00:00:00 2001
+From b41e8b870ca2684e24f5213fd759a87ca84b47ef Mon Sep 17 00:00:00 2001
 From: Haogang Chen <haogangchen@gmail.com>
 Date: Tue, 29 Nov 2011 18:32:25 -0300
-Subject: [PATCH 074/130] uvcvideo: Fix integer overflow in
+Subject: [PATCH 074/129] uvcvideo: Fix integer overflow in
  uvc_ioctl_ctrl_map()
 
 commit 806e23e95f94a27ee445022d724060b9b45cb64a upstream.
@@ -23,7 +23,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
  drivers/media/video/uvc/uvc_v4l2.c |    9 +++++++++
  drivers/media/video/uvc/uvcvideo.h |    1 +
- 2 files changed, 10 insertions(+)
+ 2 files changed, 10 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
 index dadf11f..cf7788f 100644
@@ -58,5 +58,5 @@ index 4c1392e..bc446ba 100644
  /* Devices quirks */
  #define UVC_QUIRK_STATUS_INTERVAL	0x00000001
 -- 
-1.7.9.4
+1.7.7.6
 

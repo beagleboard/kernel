@@ -1,4 +1,4 @@
-From 0056a5555414ff62439e07deb3a40dd7f11156d6 Mon Sep 17 00:00:00 2001
+From 7ed38a5159dd655d0282fe980ff94f596bd19147 Mon Sep 17 00:00:00 2001
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Date: Tue, 5 Jun 2012 12:31:32 +0100
 Subject: [PATCH 30/67] ASoC: wm8994: Apply volume updates with clocks enabled
@@ -16,7 +16,7 @@ Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  sound/soc/codecs/wm8994.c |   93 ++++++++++++++++++++++++++++-----------------
- 1 file changed, 58 insertions(+), 35 deletions(-)
+ 1 files changed, 58 insertions(+), 35 deletions(-)
 
 diff --git a/sound/soc/codecs/wm8994.c b/sound/soc/codecs/wm8994.c
 index 3de9c6a..de61b8a 100644
@@ -166,5 +166,5 @@ index 3de9c6a..de61b8a 100644
  	/* Set the low bit of the 3D stereo depth so TLV matches */
  	snd_soc_update_bits(codec, WM8994_AIF1_DAC1_FILTERS_2,
 -- 
-1.7.9.5
+1.7.7.6
 

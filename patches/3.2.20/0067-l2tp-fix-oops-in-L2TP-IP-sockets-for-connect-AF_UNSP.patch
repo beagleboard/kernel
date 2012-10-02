@@ -1,4 +1,4 @@
-From dc999edca1654eff8494d9eadf2ec8e951a655fe Mon Sep 17 00:00:00 2001
+From e9386f33f42492a24d08c8703bff76e5fb2fd3bd Mon Sep 17 00:00:00 2001
 From: James Chapman <jchapman@katalix.com>
 Date: Tue, 29 May 2012 23:13:23 +0000
 Subject: [PATCH 67/86] l2tp: fix oops in L2TP IP sockets for connect()
@@ -32,7 +32,7 @@ Signed-off-by: James Chapman <jchapman@katalix.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  net/l2tp/l2tp_ip.c |   30 ++++++++++++++++++++++++------
- 1 file changed, 24 insertions(+), 6 deletions(-)
+ 1 files changed, 24 insertions(+), 6 deletions(-)
 
 diff --git a/net/l2tp/l2tp_ip.c b/net/l2tp/l2tp_ip.c
 index 2a2a3e7..2fbbe1f 100644
@@ -109,5 +109,5 @@ index 2a2a3e7..2fbbe1f 100644
  	.destroy	   = l2tp_ip_destroy_sock,
  	.setsockopt	   = ip_setsockopt,
 -- 
-1.7.9.5
+1.7.7.6
 

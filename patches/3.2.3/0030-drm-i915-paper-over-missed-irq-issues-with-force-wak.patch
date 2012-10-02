@@ -1,4 +1,4 @@
-From cfd65d7a489fbc3594ce751173d3c46089ab41d5 Mon Sep 17 00:00:00 2001
+From 786c75cee0a38dfe54fc26defe07631acf179fc4 Mon Sep 17 00:00:00 2001
 From: Daniel Vetter <daniel.vetter@ffwll.ch>
 Date: Fri, 14 Dec 2012 16:01:25 +0100
 Subject: [PATCH 30/90] drm/i915: paper over missed irq issues with force wake
@@ -46,7 +46,7 @@ Signed-off-by: Keith Packard <keithp@keithp.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  drivers/gpu/drm/i915/intel_ringbuffer.c |   27 +++++++++++++++++++++++++--
- 1 file changed, 25 insertions(+), 2 deletions(-)
+ 1 files changed, 25 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.c b/drivers/gpu/drm/i915/intel_ringbuffer.c
 index ca70e2f..30a9af9 100644
@@ -122,5 +122,5 @@ index ca70e2f..30a9af9 100644
  		ring->add_request = pc_render_add_request;
  		ring->get_seqno = pc_render_get_seqno;
 -- 
-1.7.9.4
+1.7.7.6
 

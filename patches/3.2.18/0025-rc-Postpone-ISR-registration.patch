@@ -1,4 +1,4 @@
-From 584f5ceeea1df933a89ceb18592b0e28349fd4fe Mon Sep 17 00:00:00 2001
+From fc45d98f3398731bb4b185d591f39d36653d49c4 Mon Sep 17 00:00:00 2001
 From: Luis Henriques <luis.henriques@canonical.com>
 Date: Sat, 21 Apr 2012 12:25:21 -0300
 Subject: [PATCH 25/56] rc: Postpone ISR registration
@@ -22,11 +22,11 @@ Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
  drivers/media/rc/fintek-cir.c  |   20 +++++-----
  drivers/media/rc/ite-cir.c     |   20 +++++-----
  drivers/media/rc/nuvoton-cir.c |   36 +++++++++---------
- drivers/media/rc/winbond-cir.c |   80 ++++++++++++++++++++--------------------
- 5 files changed, 94 insertions(+), 94 deletions(-)
+ drivers/media/rc/winbond-cir.c |   78 ++++++++++++++++++++--------------------
+ 5 files changed, 93 insertions(+), 93 deletions(-)
 
 diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
-index cf10ecf..ed77c6d 100644
+index 860c112..bef5296 100644
 --- a/drivers/media/rc/ene_ir.c
 +++ b/drivers/media/rc/ene_ir.c
 @@ -1018,22 +1018,6 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
@@ -254,13 +254,11 @@ index a7e7d6f..4591770 100644
  	data->dev->priv = data;
  	data->dev->dev.parent = &device->dev;
  
--	err = rc_register_device(data->dev);
--	if (err)
 +	if (!request_region(data->wbase, WAKEUP_IOMEM_LEN, DRVNAME)) {
 +		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
 +			data->wbase, data->wbase + WAKEUP_IOMEM_LEN - 1);
 +		err = -EBUSY;
- 		goto exit_free_rc;
++		goto exit_free_rc;
 +	}
 +
 +	if (!request_region(data->ebase, EHFUNC_IOMEM_LEN, DRVNAME)) {
@@ -285,39 +283,40 @@ index a7e7d6f..4591770 100644
 +		goto exit_release_sbase;
 +	}
 +
-+	err = rc_register_device(data->dev);
-+	if (err)
+ 	err = rc_register_device(data->dev);
+ 	if (err)
+-		goto exit_free_rc;
 +		goto exit_free_irq;
  
  	device_init_wakeup(&device->dev, 1);
  
-@@ -1072,6 +1072,14 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
+@@ -1072,14 +1072,6 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
  
  	return 0;
  
-+exit_free_irq:
-+	free_irq(data->irq, device);
-+exit_release_sbase:
-+	release_region(data->sbase, SP_IOMEM_LEN);
-+exit_release_ebase:
-+	release_region(data->ebase, EHFUNC_IOMEM_LEN);
-+exit_release_wbase:
-+	release_region(data->wbase, WAKEUP_IOMEM_LEN);
- exit_free_rc:
- 	rc_free_device(data->dev);
- exit_unregister_led:
-@@ -1080,14 +1088,6 @@ exit_unregister_rxtrigger:
- 	led_trigger_unregister_simple(data->rxtrigger);
- exit_unregister_txtrigger:
- 	led_trigger_unregister_simple(data->txtrigger);
--exit_free_irq:
--	free_irq(data->irq, device);
--exit_release_sbase:
--	release_region(data->sbase, SP_IOMEM_LEN);
--exit_release_ebase:
--	release_region(data->ebase, EHFUNC_IOMEM_LEN);
--exit_release_wbase:
--	release_region(data->wbase, WAKEUP_IOMEM_LEN);
+-exit_free_rc:
+-	rc_free_device(data->dev);
+-exit_unregister_led:
+-	led_classdev_unregister(&data->led);
+-exit_unregister_rxtrigger:
+-	led_trigger_unregister_simple(data->rxtrigger);
+-exit_unregister_txtrigger:
+-	led_trigger_unregister_simple(data->txtrigger);
+ exit_free_irq:
+ 	free_irq(data->irq, device);
+ exit_release_sbase:
+@@ -1088,6 +1080,14 @@ exit_release_ebase:
+ 	release_region(data->ebase, EHFUNC_IOMEM_LEN);
+ exit_release_wbase:
+ 	release_region(data->wbase, WAKEUP_IOMEM_LEN);
++exit_free_rc:
++	rc_free_device(data->dev);
++exit_unregister_led:
++	led_classdev_unregister(&data->led);
++exit_unregister_rxtrigger:
++	led_trigger_unregister_simple(data->rxtrigger);
++exit_unregister_txtrigger:
++	led_trigger_unregister_simple(data->txtrigger);
  exit_free_data:
  	kfree(data);
  	pnp_set_drvdata(device, NULL);

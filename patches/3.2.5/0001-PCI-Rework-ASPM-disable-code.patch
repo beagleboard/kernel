@@ -1,4 +1,4 @@
-From 01216f2d0e79e2d1a255e38141c9204bc6a5bae7 Mon Sep 17 00:00:00 2001
+From b0199391afdee16344c720ca7bd27eb54ed8830d Mon Sep 17 00:00:00 2001
 From: Matthew Garrett <mjg@redhat.com>
 Date: Thu, 10 Nov 2011 16:38:33 -0500
 Subject: [PATCH 1/2] PCI: Rework ASPM disable code
@@ -32,10 +32,10 @@ Signed-off-by: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/acpi/pci_root.c  |    7 ++++++
+ drivers/acpi/pci_root.c  |    7 +++++
  drivers/pci/pci-acpi.c   |    1 -
- drivers/pci/pcie/aspm.c  |   58 +++++++++++++++++++++++++++++-----------------
- include/linux/pci-aspm.h |    4 ++--
+ drivers/pci/pcie/aspm.c  |   58 +++++++++++++++++++++++++++++----------------
+ include/linux/pci-aspm.h |    4 +-
  4 files changed, 46 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
@@ -232,5 +232,5 @@ index 7cea7b6..c832014 100644
  }
  static inline void pcie_no_aspm(void)
 -- 
-1.7.9.4
+1.7.7.6
 

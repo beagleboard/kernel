@@ -1,4 +1,4 @@
-From 99725fe4821eb426b92b7c0bbdedeb30efc9f4f0 Mon Sep 17 00:00:00 2001
+From c1f0dca1536a31eed7e77e51674412ae0f347013 Mon Sep 17 00:00:00 2001
 From: Dan Magenheimer <dan.magenheimer@oracle.com>
 Date: Wed, 25 Jan 2012 14:32:51 -0800
 Subject: [PATCH 83/87] zcache: fix deadlock condition
@@ -19,7 +19,7 @@ Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  drivers/staging/zcache/zcache-main.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/staging/zcache/zcache-main.c b/drivers/staging/zcache/zcache-main.c
 index d3a8e67..f5e469d 100644
@@ -51,5 +51,5 @@ index d3a8e67..f5e469d 100644
  	atomic_inc(&zcache_zbud_curr_zpages);
  	zcache_zbud_cumul_zpages++;
 -- 
-1.7.9.4
+1.7.7.6
 

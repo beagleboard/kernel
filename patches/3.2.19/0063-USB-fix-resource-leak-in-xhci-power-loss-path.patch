@@ -1,4 +1,4 @@
-From 86d17bfb1a8d1b265f466604761e82e8dd2c52d5 Mon Sep 17 00:00:00 2001
+From d6fdf0d3f2a21203ab5cd844674af214cfcf748a Mon Sep 17 00:00:00 2001
 From: Oliver Neukum <oneukum@suse.de>
 Date: Thu, 10 May 2012 10:19:21 +0200
 Subject: [PATCH 063/117] USB: fix resource leak in xhci power loss path
@@ -21,7 +21,7 @@ Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  drivers/usb/host/xhci-mem.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ 1 files changed, 26 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/usb/host/xhci-mem.c b/drivers/usb/host/xhci-mem.c
 index 01c3800..a7b0676 100644
@@ -70,5 +70,5 @@ index 01c3800..a7b0676 100644
  	kfree(xhci->usb3_ports);
  	kfree(xhci->port_array);
 -- 
-1.7.9.5
+1.7.7.6
 

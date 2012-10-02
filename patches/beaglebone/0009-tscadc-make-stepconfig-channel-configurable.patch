@@ -1,18 +1,18 @@
-From f7e890d43fd383c48e75bbdc363e5ce44bd5eb04 Mon Sep 17 00:00:00 2001
+From 2599d3af5c4eaccfb9fdb01f812eb7766059f443 Mon Sep 17 00:00:00 2001
 From: Joel A Fernandes <joelagnel@ti.com>
 Date: Mon, 28 Nov 2011 18:18:04 -0600
-Subject: [PATCH 09/26] tscadc: make stepconfig channel-configurable
+Subject: [PATCH 09/92] tscadc: make stepconfig channel-configurable
 
 Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
 ---
  drivers/input/touchscreen/ti_tscadc.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/input/touchscreen/ti_tscadc.c b/drivers/input/touchscreen/ti_tscadc.c
-index 5070450..3950696 100644
+index b50a08c..6083de7 100644
 --- a/drivers/input/touchscreen/ti_tscadc.c
 +++ b/drivers/input/touchscreen/ti_tscadc.c
-@@ -134,7 +134,9 @@ static void tscadc_writel(struct tscadc *tsc, unsigned int reg,
+@@ -135,7 +135,9 @@ static void tscadc_writel(struct tscadc *tsc, unsigned int reg,
  	writel(val, tsc->tsc_base + reg);
  }
  
@@ -23,7 +23,7 @@ index 5070450..3950696 100644
  {
  	unsigned int	stepconfig = 0, delay = 0, chargeconfig = 0;
  
-@@ -146,7 +148,7 @@ static void tsc_adc_step_config(struct tscadc *ts_dev)
+@@ -147,7 +149,7 @@ static void tsc_adc_step_config(struct tscadc *ts_dev)
   	 */
  	stepconfig = TSCADC_STEPCONFIG_MODE_SWONESHOT |
  		TSCADC_STEPCONFIG_2SAMPLES_AVG |
@@ -32,7 +32,7 @@ index 5070450..3950696 100644
  
  	delay = TSCADC_STEPCONFIG_SAMPLEDLY | TSCADC_STEPCONFIG_OPENDLY;
  
-@@ -603,7 +605,7 @@ static	int __devinit tscadc_probe(struct platform_device *pdev)
+@@ -604,7 +606,7 @@ static	int __devinit tscadc_probe(struct platform_device *pdev)
  			goto err_fail;
  	}
  	else {
@@ -42,5 +42,5 @@ index 5070450..3950696 100644
  		irqenable = TSCADC_IRQENB_FIFO0THRES;
  	}
 -- 
-1.7.9.5
+1.7.7.6
 

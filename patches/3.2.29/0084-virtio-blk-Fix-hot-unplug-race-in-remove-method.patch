@@ -1,4 +1,4 @@
-From e5000b33460e5008a3a189dc2107d274d8096eff Mon Sep 17 00:00:00 2001
+From d1b4ce15b7b55172bdfafa0d6402f5330c80c9e1 Mon Sep 17 00:00:00 2001
 From: Asias He <asias@redhat.com>
 Date: Fri, 4 May 2012 20:22:04 +0800
 Subject: [PATCH 84/94] virtio-blk: Fix hot-unplug race in remove method
@@ -35,7 +35,7 @@ Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  drivers/block/virtio_blk.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/block/virtio_blk.c b/drivers/block/virtio_blk.c
 index 108ebb4..cadf9bb 100644
@@ -67,5 +67,5 @@ index 108ebb4..cadf9bb 100644
  	put_disk(vblk->disk);
  	mempool_destroy(vblk->pool);
 -- 
-1.7.10.4
+1.7.7.6
 

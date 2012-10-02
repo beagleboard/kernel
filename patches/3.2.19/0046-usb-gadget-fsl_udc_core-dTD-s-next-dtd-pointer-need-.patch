@@ -1,4 +1,4 @@
-From 525e9aed9a619a41ba17d1e4ea57b4c2746eb2c0 Mon Sep 17 00:00:00 2001
+From 21c53e7fdba4c261ac60cd861364d949f25fb857 Mon Sep 17 00:00:00 2001
 From: Peter Chen <peter.chen@freescale.com>
 Date: Sun, 1 Apr 2012 15:17:16 +0800
 Subject: [PATCH 046/117] usb: gadget: fsl_udc_core: dTD's next dtd pointer
@@ -24,10 +24,10 @@ Signed-off-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  drivers/usb/gadget/fsl_udc_core.c |    2 ++
- 1 file changed, 2 insertions(+)
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/usb/gadget/fsl_udc_core.c b/drivers/usb/gadget/fsl_udc_core.c
-index 8e3e509..01de16e 100644
+index 9085d14..185db03 100644
 --- a/drivers/usb/gadget/fsl_udc_core.c
 +++ b/drivers/usb/gadget/fsl_udc_core.c
 @@ -736,6 +736,8 @@ static void fsl_queue_td(struct fsl_ep *ep, struct fsl_req *req)
@@ -40,5 +40,5 @@ index 8e3e509..01de16e 100644
  		if (fsl_readl(&dr_regs->endpointprime) & bitmask)
  			return;
 -- 
-1.7.9.5
+1.7.7.6
 

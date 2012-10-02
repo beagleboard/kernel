@@ -1,4 +1,4 @@
-From 0264b862b122cdfda51029c78382e0b7865a3cd9 Mon Sep 17 00:00:00 2001
+From 9397c1a7314511f0c0239e8aa35eda19b5358261 Mon Sep 17 00:00:00 2001
 From: Al Viro <viro@zeniv.linux.org.uk>
 Date: Tue, 29 May 2012 22:03:48 -0400
 Subject: [PATCH 41/86] vfs: umount_tree() might be called on subtree that had
@@ -15,7 +15,7 @@ Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
  fs/namespace.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
 diff --git a/fs/namespace.c b/fs/namespace.c
 index cfc6d44..ca4913a 100644
@@ -33,5 +33,5 @@ index cfc6d44..ca4913a 100644
  		if (p->mnt_parent != p) {
  			p->mnt_parent->mnt_ghosts++;
 -- 
-1.7.9.5
+1.7.7.6
 

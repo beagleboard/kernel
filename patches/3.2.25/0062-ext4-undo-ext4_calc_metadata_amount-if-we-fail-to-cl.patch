@@ -1,4 +1,4 @@
-From d9af29329519c623a5a9c8b39439ed2886c9f30b Mon Sep 17 00:00:00 2001
+From 204907c4f01f94bc23cc38799b2b7b38d393680b Mon Sep 17 00:00:00 2001
 From: Theodore Ts'o <tytso@mit.edu>
 Date: Mon, 23 Jul 2012 00:00:20 -0400
 Subject: [PATCH 62/73] ext4: undo ext4_calc_metadata_amount if we fail to
@@ -24,7 +24,7 @@ Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
  1 files changed, 21 insertions(+), 11 deletions(-)
 
 diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 0d5e18f..8b01f9f 100644
+index 03373c3..b556994 100644
 --- a/fs/ext4/inode.c
 +++ b/fs/ext4/inode.c
 @@ -1111,6 +1111,17 @@ static int ext4_da_reserve_space(struct inode *inode, ext4_lblk_t lblock)

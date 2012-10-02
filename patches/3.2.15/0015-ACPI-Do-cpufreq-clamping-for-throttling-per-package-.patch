@@ -1,4 +1,4 @@
-From 35cb6ba080586b2b780b032650a816887e7ad96d Mon Sep 17 00:00:00 2001
+From 8d0b142270897700562a26b7c535e65226716739 Mon Sep 17 00:00:00 2001
 From: Andi Kleen <andi@firstfloor.org>
 Date: Mon, 6 Feb 2012 08:17:11 -0800
 Subject: [PATCH 15/60] ACPI: Do cpufreq clamping for throttling per package
@@ -40,8 +40,8 @@ Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/acpi/processor_thermal.c |   45 +++++++++++++++++++++++++++++++-------
- 1 file changed, 37 insertions(+), 8 deletions(-)
+ drivers/acpi/processor_thermal.c |   45 +++++++++++++++++++++++++++++++------
+ 1 files changed, 37 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
 index 870550d..4da7d9d 100644
@@ -128,5 +128,5 @@ index 870550d..4da7d9d 100644
  				      CPUFREQ_POLICY_NOTIFIER);
  	if (!i)
 -- 
-1.7.9.5
+1.7.7.6
 

@@ -1,4 +1,4 @@
-From dd26fed234814467b3d7b537485351705545370c Mon Sep 17 00:00:00 2001
+From 3e32ce64ead105e706b2710c475cb7ad8b4b7ba4 Mon Sep 17 00:00:00 2001
 From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Date: Fri, 16 Dec 2011 11:26:30 -0800
 Subject: [PATCH 29/49] usbfs: Fix oops related to user namespace conversion.
@@ -104,7 +104,7 @@ Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
  drivers/usb/core/devio.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/usb/core/devio.c b/drivers/usb/core/devio.c
 index e3beaf2..7abf060 100644
@@ -121,5 +121,5 @@ index e3beaf2..7abf060 100644
  	kfree(as->urb->setup_packet);
  	usb_free_urb(as->urb);
 -- 
-1.7.9.4
+1.7.7.6
 

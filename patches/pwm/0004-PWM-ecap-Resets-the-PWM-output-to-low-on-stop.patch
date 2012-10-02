@@ -1,7 +1,7 @@
-From ccc73c9fc81b79c24603923efcb00aab2a1d4353 Mon Sep 17 00:00:00 2001
-From: Philip, Avinash <avinashphilip@ti.com>
+From a47acf815898de178f0f49d1ea44a9c510eb230c Mon Sep 17 00:00:00 2001
+From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Wed, 8 Aug 2012 18:17:11 +0530
-Subject: [PATCH 2/2] PWM: ecap: Resets the PWM output to low on stop
+Subject: [PATCH 4/6] PWM: ecap: Resets the PWM output to low on stop
 
 When PWM is stopped, the output on the PWM pin is not reset to low. This
 can result in un-predictable output (example pwm brightness goes to 100%
@@ -14,7 +14,7 @@ Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
  1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/pwm/ecap.c b/drivers/pwm/ecap.c
-index a75ef36..56cba1a 100644
+index 614be36..670b32e 100644
 --- a/drivers/pwm/ecap.c
 +++ b/drivers/pwm/ecap.c
 @@ -77,7 +77,7 @@ static int ecap_pwm_stop(struct pwm_device *p)
@@ -36,5 +36,5 @@ index a75ef36..56cba1a 100644
  	spin_unlock_irqrestore(&ep->lock, flags);
  	set_bit(FLAG_RUNNING, &p->flags);
 -- 
-1.7.0.4
+1.7.7.6
 

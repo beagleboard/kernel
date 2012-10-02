@@ -1,4 +1,4 @@
-From e901f21292b75d5eec1f2f979590c6413ebf18a0 Mon Sep 17 00:00:00 2001
+From 27ddfbfe0fdea101639c252f2b6a317203651bab Mon Sep 17 00:00:00 2001
 From: Tyler Hicks <tyhicks@canonical.com>
 Date: Thu, 19 Jan 2012 20:33:44 -0600
 Subject: [PATCH 06/90] eCryptfs: Check inode changes in setattr
@@ -35,7 +35,7 @@ Reviewed-by: Li Wang <liwang@nudt.edu.cn>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  fs/ecryptfs/inode.c |   48 ++++++++++++++++++++++++++++++++++++------------
- 1 file changed, 36 insertions(+), 12 deletions(-)
+ 1 files changed, 36 insertions(+), 12 deletions(-)
 
 diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
 index 32f90a3..d2039ca 100644
@@ -118,5 +118,5 @@ index 32f90a3..d2039ca 100644
  		rc = filemap_write_and_wait(inode->i_mapping);
  		if (rc)
 -- 
-1.7.9.4
+1.7.7.6
 

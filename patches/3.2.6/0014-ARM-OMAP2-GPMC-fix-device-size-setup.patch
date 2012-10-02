@@ -1,4 +1,4 @@
-From d32f43943a473899c4ac53710148f066ebc0d227 Mon Sep 17 00:00:00 2001
+From 9ab26cc2ecae7c26bde9440258eb95e1c6c4b941 Mon Sep 17 00:00:00 2001
 From: Yegor Yefremov <yegor_sub1@visionsystems.de>
 Date: Mon, 23 Jan 2012 08:32:23 +0100
 Subject: [PATCH 14/87] ARM: OMAP2+: GPMC: fix device size setup
@@ -18,13 +18,13 @@ Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
  arch/arm/mach-omap2/gpmc.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index a78f79d..9876c63 100644
+index 1c53c05..9a276f8 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -533,7 +533,13 @@ int gpmc_cs_configure(int cs, int cmd, int wval)
+@@ -579,7 +579,13 @@ int gpmc_cs_configure(int cs, int cmd, int wval)
  
  	case GPMC_CONFIG_DEV_SIZE:
  		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
@@ -39,5 +39,5 @@ index a78f79d..9876c63 100644
  		break;
  
 -- 
-1.7.9.4
+1.7.7.6
 
