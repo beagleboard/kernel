@@ -72,14 +72,19 @@ fi
 
 # apply patches
 for patchset in ${PATCHSET} ; do
+	CURRENTCOMMIT="$(git log --oneline --no-abbrev -1 | awk '{print $1}')"
+
 	mkdir -p ${EXPORTPATH}/$patchset
-	patchcount=0
 	for patch in $(ls -1 ${PATCHPATH}/$patchset/*.patch | sort -n) ; do
 		$ECHO -n "$patch: "
 		git am -q $patch && echo applied || exit 1
-		let patchcount=$patchcount+1
 	done
-	git format-patch -${patchcount} --quiet -o ${EXPORTPATH}/$patchset
+
+	NEWCOMMIT="$(git log --oneline --no-abbrev -1 | awk '{print $1}')"
+
+	git format-patch ${CURRENTCOMMIT}..${NEWCOMMIT} --quiet -o ${EXPORTPATH}/$patchset
+	rm -rf ${PATCHPATH}/$patchset && cp -a ${EXPORTPATH}/$patchset ${PATCHPATH}
+
 	git commit --allow-empty -a -m "${TAG}-${patchset}${EXTRATAG}"
 done
 
