@@ -1,0 +1,59 @@
+From 1cebfa3a9ff5bfce862efed1dae0a0de32683293 Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Thu, 20 Sep 2012 09:21:16 -0400
+Subject: [PATCH 16/17] spi: omap2-mcspi: add generic DMA request support to
+ the DT binding
+
+The binding definition is based on the generic DMA request binding.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ Documentation/devicetree/bindings/spi/omap-spi.txt |   27 +++++++++++++++++++-
+ 1 files changed, 26 insertions(+), 1 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/spi/omap-spi.txt b/Documentation/devicetree/bindings/spi/omap-spi.txt
+index 81df374..11aff04 100644
+--- a/Documentation/devicetree/bindings/spi/omap-spi.txt
++++ b/Documentation/devicetree/bindings/spi/omap-spi.txt
+@@ -7,8 +7,18 @@ Required properties:
+ - ti,spi-num-cs : Number of chipselect supported  by the instance.
+ - ti,hwmods: Name of the hwmod associated to the McSPI
+ 
++Optional properties:
++- dmas: List of DMA controller phandle and DMA request ordered
++	pairs. One tx and one rx pair is required for each chip
++	select.
++- dma-names: List of DMA request names. These strings correspond
++	1:1 with the ordered pairs in dmas. The string naming is
++	to be "rxN" and "txN" for RX and TX requests,
++	respectively, where N equals the chip select number.
+ 
+-Example:
++Examples:
++
++[hwmod populated DMA resources]
+ 
+ mcspi1: mcspi@1 {
+     #address-cells = <1>;
+@@ -18,3 +28,18 @@ mcspi1: mcspi@1 {
+     ti,spi-num-cs = <4>;
+ };
+ 
++[generic DMA request binding]
++
++mcspi1: mcspi@1 {
++    #address-cells = <1>;
++    #size-cells = <0>;
++    compatible = "ti,omap4-mcspi";
++    ti,hwmods = "mcspi1";
++    ti,spi-num-cs = <2>;
++    dmas = <&edma 42
++	    &edma 43
++	    &edma 44
++	    &edma 45>;
++    dma-names = "tx0", "rx0", "tx1", "rx1";
++};
++
+-- 
+1.7.7.6
+
