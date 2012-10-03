@@ -16,11 +16,11 @@ EXPORTPATH="${DIR}/export"
 TAG="v3.6"
 EXTRATAG=""
 
-#EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
-#EXTERNAL_BRANCH="master"
-#EXTERNAL_SHA="63994137eb53bb0fc42ad180c0ce509d3eb3bdc9"
+EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
+EXTERNAL_BRANCH="master"
+EXTERNAL_SHA="56d92aa5cf7c96c70f81d0350c94faf46a9fb76d"
 
-PATCHSET="devel-dt vaibhav net-next-am335x cpsw usb pinctrl rtc mmc da8xx-fb fixes cpufreq spi adc dma pwm st7735 i2c w1 pruss"
+PATCHSET="cpsw usb pinctrl rtc mmc da8xx-fb fixes cpufreq spi adc dma pwm st7735 i2c w1 pruss"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
