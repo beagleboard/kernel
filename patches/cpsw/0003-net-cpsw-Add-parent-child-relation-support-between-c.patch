@@ -1,4 +1,4 @@
-From 6653be0c5cd1bd1ce8138363f963c484562eae19 Mon Sep 17 00:00:00 2001
+From f36fdb06650613eda38e3bd9e7b18fb2d9dfa5ee Mon Sep 17 00:00:00 2001
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 Date: Mon, 3 Sep 2012 21:25:38 +0530
 Subject: [PATCH 3/4] net: cpsw: Add parent<->child relation support between
@@ -38,10 +38,10 @@ Cc: Mugunthan V N <mugunthanvnm@ti.com>
  1 files changed, 14 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 0cbc0e5..aa78168 100644
+index df55e24..fb1a692 100644
 --- a/drivers/net/ethernet/ti/cpsw.c
 +++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -822,7 +822,7 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
+@@ -827,7 +827,7 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
  	}
  	data->mac_control = prop;
  
@@ -50,7 +50,7 @@ index 0cbc0e5..aa78168 100644
  		struct cpsw_slave_data *slave_data = data->slave_data + i;
  		const char *phy_id = NULL;
  		const void *mac_addr = NULL;
-@@ -857,6 +857,14 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
+@@ -862,6 +862,14 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
  		i++;
  	}
  
@@ -65,7 +65,7 @@ index 0cbc0e5..aa78168 100644
  	return 0;
  
  error_ret:
-@@ -890,6 +898,11 @@ static int __devinit cpsw_probe(struct platform_device *pdev)
+@@ -895,6 +903,11 @@ static int __devinit cpsw_probe(struct platform_device *pdev)
  	priv->msg_enable = netif_msg_init(debug_level, CPSW_DEBUG);
  	priv->rx_packet_max = max(rx_packet_max, 128);
  
@@ -77,7 +77,7 @@ index 0cbc0e5..aa78168 100644
  	if (cpsw_probe_dt(&priv->data, pdev)) {
  		pr_err("cpsw: platform data missing\n");
  		ret = -ENODEV;
-@@ -916,7 +929,6 @@ static int __devinit cpsw_probe(struct platform_device *pdev)
+@@ -921,7 +934,6 @@ static int __devinit cpsw_probe(struct platform_device *pdev)
  	for (i = 0; i < data->slaves; i++)
  		priv->slaves[i].slave_num = i;
  

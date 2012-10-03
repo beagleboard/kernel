@@ -1,7 +1,7 @@
-From 1d1dd372e7405ca45f595925ae73f6aa7122c017 Mon Sep 17 00:00:00 2001
+From 1fe1f43760886cd2f90a635993004ed34d5484d6 Mon Sep 17 00:00:00 2001
 From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Mon, 2 Jul 2012 13:51:39 +0530
-Subject: [PATCH 02/17] ARM: OMAP3+: hwmod: Corrects resource data for PWM
+Subject: [PATCH 02/16] ARM: OMAP3+: hwmod: Corrects resource data for PWM
  devices.
 
 PWM device has common space + module specific part in AM335x. To access
@@ -17,10 +17,10 @@ Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
  1 files changed, 36 insertions(+), 36 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index 8e279a4..2364c9a 100644
+index f96bbc0..b6f78c1 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -2553,17 +2553,17 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__elm = {
+@@ -2549,17 +2549,17 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__elm = {
  
  /*
   * Splitting the resources to handle access of PWMSS config space
@@ -44,7 +44,7 @@ index 8e279a4..2364c9a 100644
  		.flags		= ADDR_TYPE_RT
  	},
  	{ }
-@@ -2579,17 +2579,17 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__ehrpwm0 = {
+@@ -2575,17 +2575,17 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__ehrpwm0 = {
  
  /*
   * Splitting the resources to handle access of PWMSS config space
@@ -68,7 +68,7 @@ index 8e279a4..2364c9a 100644
  		.flags		= ADDR_TYPE_RT
  	},
  	{ }
-@@ -2605,17 +2605,17 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__ehrpwm1 = {
+@@ -2601,17 +2601,17 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__ehrpwm1 = {
  
  /*
   * Splitting the resources to handle access of PWMSS config space
@@ -92,7 +92,7 @@ index 8e279a4..2364c9a 100644
  		.flags		= ADDR_TYPE_RT
  	},
  	{ }
-@@ -2631,17 +2631,17 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__ehrpwm2 = {
+@@ -2627,17 +2627,17 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__ehrpwm2 = {
  
  /*
   * Splitting the resources to handle access of PWMSS config space
@@ -116,7 +116,7 @@ index 8e279a4..2364c9a 100644
  		.flags		= ADDR_TYPE_RT
  	},
  	{ }
-@@ -2657,17 +2657,17 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__ecap0 = {
+@@ -2653,17 +2653,17 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__ecap0 = {
  
  /*
   * Splitting the resources to handle access of PWMSS config space
@@ -140,7 +140,7 @@ index 8e279a4..2364c9a 100644
  		.flags		= ADDR_TYPE_RT
  	},
  	{ }
-@@ -2683,17 +2683,17 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__ecap1 = {
+@@ -2679,17 +2679,17 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__ecap1 = {
  
  /*
   * Splitting the resources to handle access of PWMSS config space

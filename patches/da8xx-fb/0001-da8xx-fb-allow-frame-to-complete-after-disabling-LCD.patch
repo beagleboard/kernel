@@ -1,4 +1,4 @@
-From a993b208478e0aec3aba3a71c0380c264744610b Mon Sep 17 00:00:00 2001
+From db324db5af190744de774340c90dc83f53339650 Mon Sep 17 00:00:00 2001
 From: "Manjunathappa, Prakash" <prakash.pm@ti.com>
 Date: Fri, 24 Aug 2012 13:13:00 +0000
 Subject: [PATCH 1/3] da8xx-fb: allow frame to complete after disabling LCDC
@@ -16,7 +16,7 @@ Signed-off-by: Manjunathappa, Prakash <prakash.pm@ti.com>
  1 files changed, 40 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 7ae9d53..32f0d06 100644
+index 113d43a..7f0ac13 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
 @@ -27,6 +27,7 @@
@@ -35,7 +35,7 @@ index 7ae9d53..32f0d06 100644
  
  /* LCD DMA Control Register */
  #define LCD_DMA_BURST_SIZE(x)		((x) << 4)
-@@ -135,6 +137,8 @@ static resource_size_t da8xx_fb_reg_base;
+@@ -135,6 +137,8 @@ static void __iomem *da8xx_fb_reg_base;
  static struct resource *lcdc_regs;
  static unsigned int lcd_revision;
  static irq_handler_t lcdc_irq_handler;

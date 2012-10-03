@@ -1,7 +1,7 @@
-From 7050b5319ef9cf1ef1849742d5e4e44284374335 Mon Sep 17 00:00:00 2001
+From ce4ac92f77919c9264b0f781eb61cec3a1290ac3 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Tue, 11 Sep 2012 15:30:10 -0400
-Subject: [PATCH 01/10] video: st7735fb: add st7735 framebuffer driver
+Subject: [PATCH 1/8] video: st7735fb: add st7735 framebuffer driver
 
 Add driver for the SPI-connected ST7735 display controller.
 This driver requires that the platform support DT booting.
@@ -17,10 +17,10 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  create mode 100644 drivers/video/st7735fb.h
 
 diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index 0217f74..510c6e3 100644
+index 20c33c4..0f93f37 100644
 --- a/drivers/video/Kconfig
 +++ b/drivers/video/Kconfig
-@@ -2444,6 +2444,17 @@ config FB_PUV3_UNIGFX
+@@ -2432,6 +2432,17 @@ config FB_PUV3_UNIGFX
  	  Choose this option if you want to use the Unigfx device as a
  	  framebuffer device. Without the support of PCI & AGP.
  
@@ -39,10 +39,10 @@ index 0217f74..510c6e3 100644
  source "drivers/video/omap2/Kconfig"
  source "drivers/video/exynos/Kconfig"
 diff --git a/drivers/video/Makefile b/drivers/video/Makefile
-index ee8dafb..9a8b40c 100644
+index 1940359..0dddc4a 100644
 --- a/drivers/video/Makefile
 +++ b/drivers/video/Makefile
-@@ -149,6 +149,7 @@ obj-$(CONFIG_FB_MSM)              += msm/
+@@ -148,6 +148,7 @@ obj-$(CONFIG_FB_MSM)              += msm/
  obj-$(CONFIG_FB_NUC900)           += nuc900fb.o
  obj-$(CONFIG_FB_JZ4740)		  += jz4740_fb.o
  obj-$(CONFIG_FB_PUV3_UNIGFX)      += fb-puv3.o

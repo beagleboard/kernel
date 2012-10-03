@@ -1,4 +1,4 @@
-From c372f342b91c5e52cbc32d7b3c9333c82caa4415 Mon Sep 17 00:00:00 2001
+From 127064ccaa73a4535b0a0bc07c74c0688c726acb Mon Sep 17 00:00:00 2001
 From: "Manjunathappa, Prakash" <prakash.pm@ti.com>
 Date: Fri, 21 Sep 2012 15:50:57 +0000
 Subject: [PATCH 3/3] da8xx-fb: add pm_runtime support
@@ -11,7 +11,7 @@ Signed-off-by: Manjunathappa, Prakash <prakash.pm@ti.com>
  1 files changed, 13 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 963bc91..5fbf9d6 100644
+index 513eade..d4da704 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
 @@ -26,6 +26,7 @@
@@ -31,7 +31,7 @@ index 963bc91..5fbf9d6 100644
 +		pm_runtime_put_sync(&dev->dev);
 +		pm_runtime_disable(&dev->dev);
  		framebuffer_release(info);
- 		iounmap((void __iomem *)da8xx_fb_reg_base);
+ 		iounmap(da8xx_fb_reg_base);
  		release_mem_region(lcdc_regs->start, resource_size(lcdc_regs));
 @@ -1210,9 +1211,9 @@ static int __devinit fb_probe(struct platform_device *device)
  		ret = -ENODEV;
@@ -78,7 +78,7 @@ index 963bc91..5fbf9d6 100644
 +	pm_runtime_disable(&device->dev);
  
  err_ioremap:
- 	iounmap((void __iomem *)da8xx_fb_reg_base);
+ 	iounmap(da8xx_fb_reg_base);
 @@ -1441,7 +1440,7 @@ static int fb_suspend(struct platform_device *dev, pm_message_t state)
  
  	fb_set_suspend(info, 1);

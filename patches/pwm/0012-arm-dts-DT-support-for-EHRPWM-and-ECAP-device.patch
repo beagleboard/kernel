@@ -1,0 +1,63 @@
+From 7d30c84e31e56fb935a4cf715e0995e674b809a9 Mon Sep 17 00:00:00 2001
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Date: Wed, 11 Jul 2012 11:01:33 +0530
+Subject: [PATCH 12/16] arm/dts: DT support for EHRPWM and ECAP device.
+
+Adds DT support for EHRPWM and ECAP APWM device. Also sets size of
+pwm-cells to 3 to support -  <PWM instance number>, <PWM period> in
+nano-seconds and <PWM polarity>.
+
+Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi |   36 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 36 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index bc864ab..f97a15d 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -350,5 +350,41 @@
+ 			ti,hwmods = "spi1";
+ 			status = "disabled";
+ 		};
++
++		ehrpwm0: ehrpwm@48300200 {
++			compatible	= "ti,ehrpwm";
++			ti,hwmods = "ehrpwm0";
++			#pwm-cells = <3>;
++		};
++
++		ehrpwm1: ehrpwm@48302200 {
++			compatible	= "ti,ehrpwm";
++			ti,hwmods = "ehrpwm1";
++			#pwm-cells = <3>;
++		};
++
++		ehrpwm2: ehrpwm@48304200 {
++			compatible	= "ti,ehrpwm";
++			ti,hwmods = "ehrpwm2";
++			#pwm-cells = <3>;
++		};
++
++		ecap0: ecap@48300100 {
++			compatible	= "ti,ecap";
++			ti,hwmods = "ecap0";
++			#pwm-cells = <3>;
++		};
++
++		ecap1: ecap@48302100 {
++			compatible	= "ti,ecap";
++			ti,hwmods = "ecap1";
++			#pwm-cells = <3>;
++		};
++
++		ecap2: ecap@48304100 {
++			compatible	= "ti,ecap";
++			ti,hwmods = "ecap2";
++			#pwm-cells = <3>;
++		};
+ 	};
+ };
+-- 
+1.7.7.6
+

@@ -1,0 +1,136 @@
+From 2b47b401e24e2efc39e56b5b3075ca3b30e7de06 Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Wed, 12 Sep 2012 12:26:34 -0400
+Subject: [PATCH 4/8] video: st7735fb: defer all in-kernel updates and fix
+ locking
+
+fbcon generates a lot of changes to the framebuffer in system
+memory. If we do an immediate update on each one this is a huge
+load on the system, resulting in bad fbcon performance. Instead,
+schedule updates to occur on the same defio_delay interval as
+userspace framebuffer updates occur.
+
+Also, add a mutex to guard h/w accesses.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ drivers/video/st7735fb.c |   42 ++++++++++++++++++++++++------------------
+ drivers/video/st7735fb.h |    1 +
+ 2 files changed, 25 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/video/st7735fb.c b/drivers/video/st7735fb.c
+index e2f081b..da84891 100644
+--- a/drivers/video/st7735fb.c
++++ b/drivers/video/st7735fb.c
+@@ -256,6 +256,8 @@ static void st7735fb_update_display(struct st7735fb_par *par)
+ 	vmem = (u16 *)par->info->screen_base;
+ #endif
+ 
++	mutex_lock(&(par->io_lock));
++
+ 	/* Set row/column data window */
+ 	st7735_set_addr_win(par, 0, 0, WIDTH-1, HEIGHT-1);
+ 
+@@ -267,12 +269,8 @@ static void st7735fb_update_display(struct st7735fb_par *par)
+ 	if (ret < 0)
+ 		pr_err("%s: spi_write failed to update display buffer\n",
+ 			par->info->fix.id);
+-}
+ 
+-static void st7735fb_deferred_io(struct fb_info *info,
+-				struct list_head *pagelist)
+-{
+-	st7735fb_update_display(info->par);
++	mutex_unlock(&(par->io_lock));
+ }
+ 
+ static int st7735fb_init_display(struct st7735fb_par *par)
+@@ -301,37 +299,43 @@ out:
+ 	return ret;
+ }
+ 
+-void st7735fb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
++static void st7735fb_deferred_io(struct fb_info *info,
++				struct list_head *pagelist)
++{
++	st7735fb_update_display(info->par);
++}
++
++static void st7735fb_update_display_deferred(struct fb_info *info)
+ {
+-	struct st7735fb_par *par = info->par;
++	struct fb_deferred_io *fbdefio = info->fbdefio;
++
++	schedule_delayed_work(&info->deferred_work, fbdefio->delay);
++}
+ 
++static void st7735fb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
++{
+ 	sys_fillrect(info, rect);
+ 
+-	st7735fb_update_display(par);
++	st7735fb_update_display_deferred(info);
+ }
+ 
+-void st7735fb_copyarea(struct fb_info *info, const struct fb_copyarea *area) 
++static void st7735fb_copyarea(struct fb_info *info, const struct fb_copyarea *area) 
+ {
+-	struct st7735fb_par *par = info->par;
+-
+ 	sys_copyarea(info, area);
+ 
+-	st7735fb_update_display(par);
++	st7735fb_update_display_deferred(info);
+ }
+ 
+-void st7735fb_imageblit(struct fb_info *info, const struct fb_image *image) 
++static void st7735fb_imageblit(struct fb_info *info, const struct fb_image *image) 
+ {
+-	struct st7735fb_par *par = info->par;
+-
+ 	sys_imageblit(info, image);
+ 
+-	st7735fb_update_display(par);
++	st7735fb_update_display_deferred(info);
+ }
+ 
+ static ssize_t st7735fb_write(struct fb_info *info, const char __user *buf,
+ 		size_t count, loff_t *ppos)
+ {
+-	struct st7735fb_par *par = info->par;
+ 	unsigned long p = *ppos;
+ 	void *dst;
+ 	int err = 0;
+@@ -365,7 +369,7 @@ static ssize_t st7735fb_write(struct fb_info *info, const char __user *buf,
+ 	if  (!err)
+ 		*ppos += count;
+ 
+-	st7735fb_update_display(par);
++	st7735fb_update_display_deferred(info);
+ 
+ 	return (err) ? err : count;
+ }
+@@ -459,6 +463,8 @@ static int __devinit st7735fb_probe (struct spi_device *spi)
+ 	par->info = info;
+ 	par->spi = spi;
+ 
++	mutex_init(&par->io_lock);
++
+ 	if (spi_id->driver_data == ST7735_AF_TFT18_GREEN) {
+ 		par->xoff = 2;
+ 		par->yoff = 1;
+diff --git a/drivers/video/st7735fb.h b/drivers/video/st7735fb.h
+index 7e7458f..15c2499 100644
+--- a/drivers/video/st7735fb.h
++++ b/drivers/video/st7735fb.h
+@@ -35,6 +35,7 @@ enum st7735_cmd {
+ struct st7735fb_par {
+ 	struct spi_device *spi;
+ 	struct fb_info *info;
++	struct mutex io_lock;
+ 	int xoff;
+ 	int yoff;
+ 	int rst;
+-- 
+1.7.7.6
+

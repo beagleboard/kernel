@@ -1,4 +1,4 @@
-From ba8b28c0adb12605d0efd754fbbc4a11261e20b5 Mon Sep 17 00:00:00 2001
+From 35ca9123a81cd76c7eb1c442e502359864a9c43f Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Mon, 24 Sep 2012 09:54:17 -0400
 Subject: [PATCH 2/3] ARM: omap: add DT support for deasserting hardware reset
@@ -36,10 +36,10 @@ index d0051a7..3133a4b 100644
  
  Example:
 diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 6f5c580..50a59d0 100644
+index d5f617c..d1ae68c 100644
 --- a/arch/arm/plat-omap/omap_device.c
 +++ b/arch/arm/plat-omap/omap_device.c
-@@ -335,8 +335,8 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+@@ -330,8 +330,8 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
  	struct omap_device *od;
  	struct omap_hwmod *oh;
  	struct device_node *node = pdev->dev.of_node;
@@ -50,7 +50,7 @@ index 6f5c580..50a59d0 100644
  
  	oh_cnt = of_property_count_strings(node, "ti,hwmods");
  	if (!oh_cnt || IS_ERR_VALUE(oh_cnt)) {
-@@ -381,6 +381,27 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+@@ -376,6 +376,27 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
  	if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
  		omap_device_disable_idle_on_suspend(pdev);
  

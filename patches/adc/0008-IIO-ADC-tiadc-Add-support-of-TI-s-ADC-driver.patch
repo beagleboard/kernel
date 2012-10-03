@@ -1,4 +1,4 @@
-From a3c2afce933b40b58e4b6b2f4bd6dbeaf8573b43 Mon Sep 17 00:00:00 2001
+From e0ad31b1feee93a4b675b0c98b272b073823e3ad Mon Sep 17 00:00:00 2001
 From: "Patil, Rachna" <rachna@ti.com>
 Date: Thu, 30 Aug 2012 07:38:25 +0000
 Subject: [PATCH 08/10] IIO : ADC: tiadc: Add support of TI's ADC driver
@@ -22,12 +22,12 @@ Signed-off-by: Patil, Rachna <rachna@ti.com>
  create mode 100644 include/linux/platform_data/ti_adc.h
 
 diff --git a/drivers/iio/adc/Kconfig b/drivers/iio/adc/Kconfig
-index 8a78b4f..ad32df8 100644
+index 4927581..ec169a9 100644
 --- a/drivers/iio/adc/Kconfig
 +++ b/drivers/iio/adc/Kconfig
-@@ -22,4 +22,11 @@ config AT91_ADC
+@@ -60,4 +60,11 @@ config LP8788_ADC
  	help
- 	  Say yes here to build support for Atmel AT91 ADC.
+ 	  Say yes here to build support for TI LP8788 ADC.
  
 +config TI_ADC
 +	tristate "TI's ADC driver"
@@ -38,13 +38,13 @@ index 8a78b4f..ad32df8 100644
 +
  endmenu
 diff --git a/drivers/iio/adc/Makefile b/drivers/iio/adc/Makefile
-index 52eec25..a930cee 100644
+index 900995d..60bf91c 100644
 --- a/drivers/iio/adc/Makefile
 +++ b/drivers/iio/adc/Makefile
-@@ -4,3 +4,4 @@
- 
- obj-$(CONFIG_AD7266) += ad7266.o
+@@ -8,3 +8,4 @@ obj-$(CONFIG_AD7476) += ad7476.o
+ obj-$(CONFIG_AD7791) += ad7791.o
  obj-$(CONFIG_AT91_ADC) += at91_adc.o
+ obj-$(CONFIG_LP8788_ADC) += lp8788_adc.o
 +obj-$(CONFIG_TI_ADC) += ti_adc.o
 diff --git a/drivers/iio/adc/ti_adc.c b/drivers/iio/adc/ti_adc.c
 new file mode 100644

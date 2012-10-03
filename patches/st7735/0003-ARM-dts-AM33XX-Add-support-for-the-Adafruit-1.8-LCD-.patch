@@ -1,8 +1,8 @@
-From 685348d8260948793b37f4bebfe550c40e08e5d6 Mon Sep 17 00:00:00 2001
+From bde802bd53b4c131584af8bbc104f3a61c12ddc1 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Tue, 11 Sep 2012 15:34:21 -0400
-Subject: [PATCH 03/10] ARM: dts: AM33XX: Add support for the Adafruit 1.8"
- LCD on BeagleBone
+Subject: [PATCH 3/8] ARM: dts: AM33XX: Add support for the Adafruit 1.8" LCD
+ on BeagleBone
 
 This adds DT support for an Adafruit 1.8" green tab LCD attached
 to the Beaglebone. The LCD module must be interfaced as documented
@@ -10,11 +10,11 @@ at http://engineersofthecorn.blogspot.com/2012/06/beaglebone-and-adafruit-18-spi
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- arch/arm/boot/dts/am335x-bone.dts |   32 +++++++++++++++++++++++++++++---
- 1 files changed, 29 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/am335x-bone.dts |   45 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 45 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 3f1774c..7ff921f 100644
+index 67fd6ff..49cd9d1 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
 @@ -33,6 +33,20 @@
@@ -38,20 +38,28 @@ index 3f1774c..7ff921f 100644
  	};
  
  	ocp {
-@@ -148,11 +162,23 @@
- 
- &spi1 {
- 	status = "okay";
+@@ -135,3 +149,34 @@
+ &cpsw_emac1 {
+ 	phy_id = "4a101000.mdio:01";
+ };
++
++&mmc1 {
++	vmmc-supply = <&ldo3_reg>;
++};
++
++&spi0 {
++	status = "okay";
++};
++
++&spi1 {
++	status = "okay";
 +	pinctrl-names = "default";
 +	pinctrl-0 = <&spi1_pins>;
- 
--	spidev@2 {
--		compatible = "spidev";
--		spi-max-frequency = <1200000>;
++
 +	lcd@0 {
 +		compatible = "adafruit,tft-lcd-1.8-green", "sitronix,st7735";
 +		spi-max-frequency = <8000000>;
- 		reg = <0>;
++		reg = <0>;
 +		spi-cpol;
 +		spi-cpha;
 +		pinctrl-names = "default";
@@ -62,9 +70,9 @@ index 3f1774c..7ff921f 100644
 +		st7735-dc {
 +			gpios = <&gpio3 21 0>;
 +		};
- 	};
- };
- 
++	};
++};
++
 -- 
 1.7.7.6
 
