@@ -1,0 +1,127 @@
+From 0913c93ec8ad7ea12c6c993e8434b2a717544832 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 4 Oct 2012 17:53:53 +0300
+Subject: [PATCH 3/3] musb: Fix crashes, and other weirdness.
+
+---
+ arch/arm/boot/dts/am33xx.dtsi |    8 +++---
+ drivers/usb/musb/musb_dsps.c  |   55 +++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 52 insertions(+), 11 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 37f673e..90ee00f 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -352,10 +352,10 @@
+ 			compatible = "ti,musb-am33xx";
+ 			ti,hwmods = "usb_otg_hs";
+ 			multipoint = <1>;
+-			num_eps = <16>;
+-			ram_bits = <12>;
+-			port0_mode = <3>;
+-			port1_mode = <1>;
++			num-eps = <16>;
++			ram-bits = <12>;
++			port0-mode = <3>;
++			port1-mode = <1>;
+ 			power = <250>;
+ 			usb0-phy = <&usb0_phy>;
+ 			usb1-phy = <&usb1_phy>;
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 444346e..8742df3 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -368,12 +368,30 @@ static int dsps_musb_init(struct musb *musb)
+ 	struct musb_hdrc_platform_data *plat = dev->platform_data;
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
+-	const struct dsps_musb_wrapper *wrp = glue->wrp;
+-	struct omap_musb_board_data *data = plat->board_data;
+-	void __iomem *reg_base = musb->ctrl_base;
++	const struct dsps_musb_wrapper *wrp;
++	struct omap_musb_board_data *data;
++	void __iomem *reg_base;
+ 	u32 rev, val;
+ 	int status;
+ 
++	if (plat->board_data == NULL) {
++		static struct omap_musb_board_data musb_default_board_data = {
++			.interface_type         = MUSB_INTERFACE_ULPI,
++			.mode                   = MUSB_OTG,
++			.power                  = 100,
++		};
++		dev_err(dev, "no board_data! supplying default.");
++		plat->board_data = &musb_default_board_data;
++	}
++
++	BUG_ON(glue == NULL);
++	wrp = glue->wrp;
++	BUG_ON(wrp == NULL);
++	data = plat->board_data;
++	BUG_ON(data == NULL);
++	reg_base = musb->ctrl_base;
++	BUG_ON(reg_base == NULL);
++
+ 	/* mentor core register starts at offset of 0x400 from musb base */
+ 	musb->mregs += wrp->musb_core_offset;
+ 
+@@ -460,6 +478,7 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
+ 	struct resource	resources[2];
+ 	char res_name[10];
+ 	int ret, musbid;
++	u32 val;
+ 
+ 	/* get memory resource */
+ 	sprintf(res_name, "musb%d", id);
+@@ -513,6 +532,8 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
+ 	}
+ 
+ 	if (np) {
++		dev_info(dev, "Adding config from OF\n");
++
+ 		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+ 		if (!pdata) {
+ 			dev_err(&pdev->dev,
+@@ -528,15 +549,35 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
+ 			goto err2;
+ 		}
+ 
+-		of_property_read_u32(np, "num-eps", (u32 *)&config->num_eps);
+-		of_property_read_u32(np, "ram-bits", (u32 *)&config->ram_bits);
++		val = 0;
++		of_property_read_u32(np, "num-eps", &val);
++		config->num_eps = val;
++
++		val = 0;
++		of_property_read_u32(np, "ram-bits", &val);
++		config->ram_bits = val;
+ 		sprintf(res_name, "port%d-mode", id);
+-		of_property_read_u32(np, res_name, (u32 *)&pdata->mode);
+-		of_property_read_u32(np, "power", (u32 *)&pdata->power);
++
++		val = 0;
++		of_property_read_u32(np, res_name, &val);
++		pdata->mode = val;
++
++		val = 0;
++		of_property_read_u32(np, "power", &val);
++		pdata->power = val;
++
+ 		config->multipoint = of_property_read_bool(np, "multipoint");
+ 
+ 		pdata->config		= config;
+ 	}
++	config = pdata->config;
++	BUG_ON(config == NULL);
++	dev_info(dev, "config->num_eps = %u\n", (unsigned int)config->num_eps);
++	dev_info(dev, "config->ram_bits = %u\n", (unsigned int)config->ram_bits);
++
++	BUG_ON(pdata == NULL);
++	dev_info(dev, "pdata->mode = %u\n", (unsigned int)pdata->mode);
++	dev_info(dev, "pdata->power = %u\n", (unsigned int)pdata->power);
+ 
+ 	pdata->platform_ops		= &dsps_ops;
+ 
+-- 
+1.7.7.6
+
