@@ -20,5 +20,5 @@ Board Maintainers List
 ---------------------
 
 ### BeagleBoard/PandaBoard
-* defconfig: patches/beagleboard/defconfig
+* defconfig: configs/beagleboard_defconfig
 * Robert Nelson <robertcnelson@gmail.com>
