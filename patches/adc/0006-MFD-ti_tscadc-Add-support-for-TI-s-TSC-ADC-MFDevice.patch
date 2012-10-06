@@ -1,4 +1,4 @@
-From a93a67961655dbfac5a220b6bfecfb3ce0050b61 Mon Sep 17 00:00:00 2001
+From ae5a2a62b0e75820c74e8004a0908cd87d84f911 Mon Sep 17 00:00:00 2001
 From: "Patil, Rachna" <rachna@ti.com>
 Date: Thu, 30 Aug 2012 07:38:23 +0000
 Subject: [PATCH 06/10] MFD: ti_tscadc: Add support for TI's TSC/ADC MFDevice
@@ -19,7 +19,7 @@ Signed-off-by: Patil, Rachna <rachna@ti.com>
  create mode 100644 include/linux/mfd/ti_tscadc.h
 
 diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index b1a1462..3504637 100644
+index acab3ef..ab8f0dc 100644
 --- a/drivers/mfd/Kconfig
 +++ b/drivers/mfd/Kconfig
 @@ -94,6 +94,15 @@ config MFD_TI_SSP
@@ -39,7 +39,7 @@ index b1a1462..3504637 100644
  	bool "HTC EGPIO support"
  	depends on GENERIC_HARDIRQS && GPIOLIB && ARM
 diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index 79dd22d..1537f74 100644
+index d8ccb63..0ecd25a 100644
 --- a/drivers/mfd/Makefile
 +++ b/drivers/mfd/Makefile
 @@ -16,6 +16,7 @@ obj-$(CONFIG_HTC_I2CPLD)	+= htc-i2cpld.o

@@ -1,4 +1,4 @@
-From fd290260c746b1a2b52526bade25dd9f34a42e9b Mon Sep 17 00:00:00 2001
+From 4d437eb72ae021de26c61849b744eb56b3501586 Mon Sep 17 00:00:00 2001
 From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Tue, 17 Jul 2012 21:35:11 +0530
 Subject: [PATCH 16/16] pwm: pwm_test: Driver support for PWM module testing
@@ -12,10 +12,10 @@ Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
  create mode 100644 drivers/pwm/pwm_test.c
 
 diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
-index 90c5c73..2860fc8 100644
+index d7c6b83..12f18b4 100644
 --- a/drivers/pwm/Kconfig
 +++ b/drivers/pwm/Kconfig
-@@ -124,4 +124,15 @@ config PWM_VT8500
+@@ -133,4 +133,15 @@ config PWM_VT8500
  	  To compile this driver as a module, choose M here: the module
  	  will be called pwm-vt8500.
  
@@ -32,12 +32,12 @@ index 90c5c73..2860fc8 100644
 +
  endif
 diff --git a/drivers/pwm/Makefile b/drivers/pwm/Makefile
-index e4b2c89..049f615 100644
+index 78f123d..ba4ff13 100644
 --- a/drivers/pwm/Makefile
 +++ b/drivers/pwm/Makefile
-@@ -9,3 +9,4 @@ obj-$(CONFIG_PWM_TEGRA)		+= pwm-tegra.o
- obj-$(CONFIG_PWM_TIECAP)	+= pwm-tiecap.o
+@@ -10,3 +10,4 @@ obj-$(CONFIG_PWM_TIECAP)	+= pwm-tiecap.o
  obj-$(CONFIG_PWM_TIEHRPWM)	+= pwm-tiehrpwm.o
+ obj-$(CONFIG_PWM_TWL6030)	+= pwm-twl6030.o
  obj-$(CONFIG_PWM_VT8500)	+= pwm-vt8500.o
 +obj-$(CONFIG_EHRPWM_TEST)	+= pwm_test.o
 diff --git a/drivers/pwm/pwm_test.c b/drivers/pwm/pwm_test.c
