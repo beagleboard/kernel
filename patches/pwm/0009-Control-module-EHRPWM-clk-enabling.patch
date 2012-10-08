@@ -1,4 +1,4 @@
-From 7a9f21e88fd04af10035ee5576d9c178e2da3a92 Mon Sep 17 00:00:00 2001
+From 72da5441fa48e8404e6bf9f83482436fbe547e6c Mon Sep 17 00:00:00 2001
 From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Tue, 22 May 2012 11:34:58 +0530
 Subject: [PATCH 09/16] Control module : EHRPWM clk enabling
@@ -9,7 +9,7 @@ Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
  1 files changed, 15 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index d092d2a8..669a8ac 100644
+index c8c2117..026cfbd 100644
 --- a/arch/arm/mach-omap2/devices.c
 +++ b/arch/arm/mach-omap2/devices.c
 @@ -433,6 +433,20 @@ static void omap_init_mcspi(void)
@@ -30,10 +30,10 @@ index d092d2a8..669a8ac 100644
 +	return 0;
 +}
 +
- static struct resource omap2_pmu_resource = {
- 	.start	= 3 + OMAP_INTC_START,
- 	.flags	= IORESOURCE_IRQ,
-@@ -652,6 +666,7 @@ static int __init omap2_init_devices(void)
+ /**
+  * omap_init_rng - bind the RNG hwmod to the RNG omap_device
+  *
+@@ -641,6 +655,7 @@ static int __init omap2_init_devices(void)
  	omap_init_aes();
  	omap_init_vout();
  
