@@ -1,0 +1,38 @@
+From ea558b9d7b7e2b5ebfa16f75863d14c1ae530eb9 Mon Sep 17 00:00:00 2001
+From: Mathias Krause <minipli@googlemail.com>
+Date: Wed, 19 Sep 2012 11:33:38 +0000
+Subject: [PATCH 078/109] xfrm_user: fix info leak in copy_to_user_auth()
+
+[ Upstream commit 4c87308bdea31a7b4828a51f6156e6f721a1fcc9 ]
+
+copy_to_user_auth() fails to initialize the remainder of alg_name and
+therefore discloses up to 54 bytes of heap memory via netlink to
+userland.
+
+Use strncpy() instead of strcpy() to fill the trailing bytes of alg_name
+with null bytes.
+
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+Acked-by: Steffen Klassert <steffen.klassert@secunet.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/xfrm/xfrm_user.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/xfrm/xfrm_user.c b/net/xfrm/xfrm_user.c
+index 1221b77..7f53c82 100644
+--- a/net/xfrm/xfrm_user.c
++++ b/net/xfrm/xfrm_user.c
+@@ -742,7 +742,7 @@ static int copy_to_user_auth(struct xfrm_algo_auth *auth, struct sk_buff *skb)
+ 		return -EMSGSIZE;
+ 
+ 	algo = nla_data(nla);
+-	strcpy(algo->alg_name, auth->alg_name);
++	strncpy(algo->alg_name, auth->alg_name, sizeof(algo->alg_name));
+ 	memcpy(algo->alg_key, auth->alg_key, (auth->alg_key_len + 7) / 8);
+ 	algo->alg_key_len = auth->alg_key_len;
+ 
+-- 
+1.7.10.4
+

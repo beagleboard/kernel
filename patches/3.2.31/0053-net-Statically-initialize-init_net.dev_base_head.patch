@@ -1,0 +1,53 @@
+From 9c350007556d6ba20770a1d51ef2775e5337cc48 Mon Sep 17 00:00:00 2001
+From: "Rustad, Mark D" <mark.d.rustad@intel.com>
+Date: Wed, 18 Jul 2012 09:06:07 +0000
+Subject: [PATCH 053/109] net: Statically initialize init_net.dev_base_head
+
+commit 734b65417b24d6eea3e3d7457e1f11493890ee1d upstream.
+
+This change eliminates an initialization-order hazard most
+recently seen when netprio_cgroup is built into the kernel.
+
+With thanks to Eric Dumazet for catching a bug.
+
+Signed-off-by: Mark Rustad <mark.d.rustad@intel.com>
+Acked-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/core/dev.c           |    3 ++-
+ net/core/net_namespace.c |    4 +++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 832ba6d..8715938 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -6387,7 +6387,8 @@ static struct hlist_head *netdev_create_hash(void)
+ /* Initialize per network namespace state */
+ static int __net_init netdev_init(struct net *net)
+ {
+-	INIT_LIST_HEAD(&net->dev_base_head);
++	if (net != &init_net)
++		INIT_LIST_HEAD(&net->dev_base_head);
+ 
+ 	net->dev_name_head = netdev_create_hash();
+ 	if (net->dev_name_head == NULL)
+diff --git a/net/core/net_namespace.c b/net/core/net_namespace.c
+index 31a5ae5..dd00b71 100644
+--- a/net/core/net_namespace.c
++++ b/net/core/net_namespace.c
+@@ -25,7 +25,9 @@ static DEFINE_MUTEX(net_mutex);
+ LIST_HEAD(net_namespace_list);
+ EXPORT_SYMBOL_GPL(net_namespace_list);
+ 
+-struct net init_net;
++struct net init_net = {
++	.dev_base_head = LIST_HEAD_INIT(init_net.dev_base_head),
++};
+ EXPORT_SYMBOL(init_net);
+ 
+ #define INITIAL_NET_GEN_PTRS	13 /* +1 for len +2 for rcu_head */
+-- 
+1.7.10.4
+

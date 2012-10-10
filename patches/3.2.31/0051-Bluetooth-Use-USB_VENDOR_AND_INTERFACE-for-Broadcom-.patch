@@ -1,0 +1,47 @@
+From e0f70b9399129d35b72c552b892a9a5d1d2f27a2 Mon Sep 17 00:00:00 2001
+From: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
+Date: Mon, 6 Aug 2012 15:36:49 -0300
+Subject: [PATCH 051/109] Bluetooth: Use USB_VENDOR_AND_INTERFACE() for
+ Broadcom devices
+
+commit 92c385f46b30f4954e9dd2d2005c12d233b479ea upstream.
+
+Many Broadcom devices has a vendor specific devices class, with this rule
+we match all existent and future controllers with this behavior.
+
+We also remove old rules to that matches product id for Broadcom devices.
+
+Tested-by: John Hommel <john.hommel@hp.com>
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/bluetooth/btusb.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
+index 8cec91a..801b196 100644
+--- a/drivers/bluetooth/btusb.c
++++ b/drivers/bluetooth/btusb.c
+@@ -102,16 +102,14 @@ static struct usb_device_id btusb_table[] = {
+ 
+ 	/* Broadcom BCM20702A0 */
+ 	{ USB_DEVICE(0x0489, 0xe042) },
+-	{ USB_DEVICE(0x0a5c, 0x21e3) },
+-	{ USB_DEVICE(0x0a5c, 0x21e6) },
+-	{ USB_DEVICE(0x0a5c, 0x21e8) },
+-	{ USB_DEVICE(0x0a5c, 0x21f3) },
+-	{ USB_DEVICE(0x0a5c, 0x21f4) },
+ 	{ USB_DEVICE(0x413c, 0x8197) },
+ 
+ 	/* Foxconn - Hon Hai */
+ 	{ USB_DEVICE(0x0489, 0xe033) },
+ 
++	/*Broadcom devices with vendor specific id */
++	{ USB_VENDOR_AND_INTERFACE_INFO(0x0a5c, 0xff, 0x01, 0x01) },
++
+ 	{ }	/* Terminating entry */
+ };
+ 
+-- 
+1.7.10.4
+

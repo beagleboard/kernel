@@ -1,0 +1,34 @@
+From 9e9d9e55a192693d2a96733b869d6ea1a22e724c Mon Sep 17 00:00:00 2001
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Date: Tue, 11 Sep 2012 17:21:44 +0200
+Subject: [PATCH 018/109] dmaengine: at_hdmac: fix comment in
+ atc_prep_slave_sg()
+
+commit c618a9be0e8c0f36baee2560860a0118a428fb26 upstream.
+
+s/dma_memcpy/slave_sg/ and it is sg length that we are
+talking about.
+
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Signed-off-by: Vinod Koul <vinod.koul@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/dma/at_hdmac.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/dma/at_hdmac.c b/drivers/dma/at_hdmac.c
+index 79dcf6e..77cb8b4 100644
+--- a/drivers/dma/at_hdmac.c
++++ b/drivers/dma/at_hdmac.c
+@@ -678,7 +678,7 @@ atc_prep_slave_sg(struct dma_chan *chan, struct scatterlist *sgl,
+ 			flags);
+ 
+ 	if (unlikely(!atslave || !sg_len)) {
+-		dev_dbg(chan2dev(chan), "prep_dma_memcpy: length is zero!\n");
++		dev_dbg(chan2dev(chan), "prep_slave_sg: sg length is zero!\n");
+ 		return NULL;
+ 	}
+ 
+-- 
+1.7.10.4
+

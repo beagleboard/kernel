@@ -1,0 +1,54 @@
+From 6a229a0eeee3c892c76956973b4695f0419cf604 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Sat, 22 Sep 2012 00:08:29 +0000
+Subject: [PATCH 097/109] ipv4: raw: fix icmp_filter()
+
+[ Upstream commit ab43ed8b7490cb387782423ecf74aeee7237e591 ]
+
+icmp_filter() should not modify its input, or else its caller
+would need to recompute ip_hdr() if skb->head is reallocated.
+
+Use skb_header_pointer() instead of pskb_may_pull() and
+change the prototype to make clear both sk and skb are const.
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv4/raw.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/net/ipv4/raw.c b/net/ipv4/raw.c
+index 007e2eb..e1d4f30 100644
+--- a/net/ipv4/raw.c
++++ b/net/ipv4/raw.c
+@@ -131,18 +131,20 @@ found:
+  *	0 - deliver
+  *	1 - block
+  */
+-static __inline__ int icmp_filter(struct sock *sk, struct sk_buff *skb)
++static int icmp_filter(const struct sock *sk, const struct sk_buff *skb)
+ {
+-	int type;
++	struct icmphdr _hdr;
++	const struct icmphdr *hdr;
+ 
+-	if (!pskb_may_pull(skb, sizeof(struct icmphdr)))
++	hdr = skb_header_pointer(skb, skb_transport_offset(skb),
++				 sizeof(_hdr), &_hdr);
++	if (!hdr)
+ 		return 1;
+ 
+-	type = icmp_hdr(skb)->type;
+-	if (type < 32) {
++	if (hdr->type < 32) {
+ 		__u32 data = raw_sk(sk)->filter.data;
+ 
+-		return ((1 << type) & data) != 0;
++		return ((1U << hdr->type) & data) != 0;
+ 	}
+ 
+ 	/* Do not block unknown ICMP types */
+-- 
+1.7.10.4
+

@@ -1,0 +1,35 @@
+From ea490bba780716edb9104d8beb79a8038529b659 Mon Sep 17 00:00:00 2001
+From: Ed Cashin <ecashin@coraid.com>
+Date: Wed, 19 Sep 2012 15:46:39 +0000
+Subject: [PATCH 103/109] aoe: assert AoE packets marked as requiring no
+ checksum
+
+[ Upstream commit 8babe8cc6570ed896b7b596337eb8fe730c3ff45 ]
+
+In order for the network layer to see that AoE requires
+no checksumming in a generic way, the packets must be
+marked as requiring no checksum, so we make this requirement
+explicit with the assertion.
+
+Signed-off-by: Ed Cashin <ecashin@coraid.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/block/aoe/aoecmd.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/block/aoe/aoecmd.c b/drivers/block/aoe/aoecmd.c
+index de0435e..887f68f 100644
+--- a/drivers/block/aoe/aoecmd.c
++++ b/drivers/block/aoe/aoecmd.c
+@@ -35,6 +35,7 @@ new_skb(ulong len)
+ 		skb_reset_mac_header(skb);
+ 		skb_reset_network_header(skb);
+ 		skb->protocol = __constant_htons(ETH_P_AOE);
++		skb_checksum_none_assert(skb);
+ 	}
+ 	return skb;
+ }
+-- 
+1.7.10.4
+

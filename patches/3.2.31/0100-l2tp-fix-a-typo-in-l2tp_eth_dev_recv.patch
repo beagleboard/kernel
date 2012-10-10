@@ -1,0 +1,33 @@
+From 9339d7cb67cdb36dff9edbea4d71a5c8aae71b7f Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Tue, 4 Sep 2012 15:54:55 -0400
+Subject: [PATCH 100/109] l2tp: fix a typo in l2tp_eth_dev_recv()
+
+[ Upstream commit c0cc88a7627c333de50b07b7c60b1d49d9d2e6cc ]
+
+While investigating l2tp bug, I hit a bug in eth_type_trans(),
+because not enough bytes were pulled in skb head.
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/l2tp/l2tp_eth.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/l2tp/l2tp_eth.c b/net/l2tp/l2tp_eth.c
+index 3c55f63..2cef50b 100644
+--- a/net/l2tp/l2tp_eth.c
++++ b/net/l2tp/l2tp_eth.c
+@@ -132,7 +132,7 @@ static void l2tp_eth_dev_recv(struct l2tp_session *session, struct sk_buff *skb,
+ 		printk("\n");
+ 	}
+ 
+-	if (!pskb_may_pull(skb, sizeof(ETH_HLEN)))
++	if (!pskb_may_pull(skb, ETH_HLEN))
+ 		goto error;
+ 
+ 	secpath_reset(skb);
+-- 
+1.7.10.4
+

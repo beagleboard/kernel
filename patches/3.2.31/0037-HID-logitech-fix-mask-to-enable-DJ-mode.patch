@@ -1,0 +1,40 @@
+From e8a6e2cbf8fd1f3d193632cdc58758e7dbf38544 Mon Sep 17 00:00:00 2001
+From: Nestor Lopez Casado <nlopezcasad@logitech.com>
+Date: Thu, 2 Feb 2012 10:54:14 +0100
+Subject: [PATCH 037/109] HID: logitech: fix mask to enable DJ mode
+
+commit 765031668fb2b064aebd9a568e5ad794cbe3413a upstream.
+
+The user can only experience the bug if she pairs 6 devices to a Unifying
+receiver. The sixth paired device would not work.
+
+The value changed is actually a bitmask that enables reporting from each
+paired device. As the sixth bit was not set, the sixth device reports are
+ignored by the receiver and never get to the driver.
+
+Signed-off-by: Nestor Lopez Casado <nlopezcasad@logitech.com>
+
+ drivers/hid/hid-logitech-dj.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/hid/hid-logitech-dj.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/hid/hid-logitech-dj.c b/drivers/hid/hid-logitech-dj.c
+index 2eac8c5..d44ea58 100644
+--- a/drivers/hid/hid-logitech-dj.c
++++ b/drivers/hid/hid-logitech-dj.c
+@@ -446,7 +446,7 @@ static int logi_dj_recv_switch_to_dj_mode(struct dj_receiver_dev *djrcv_dev,
+ 	dj_report.report_id = REPORT_ID_DJ_SHORT;
+ 	dj_report.device_index = 0xFF;
+ 	dj_report.report_type = REPORT_TYPE_CMD_SWITCH;
+-	dj_report.report_params[CMD_SWITCH_PARAM_DEVBITFIELD] = 0x1F;
++	dj_report.report_params[CMD_SWITCH_PARAM_DEVBITFIELD] = 0x3F;
+ 	dj_report.report_params[CMD_SWITCH_PARAM_TIMEOUT_SECONDS] = (u8)timeout;
+ 	return logi_dj_recv_send_report(djrcv_dev, &dj_report);
+ }
+-- 
+1.7.10.4
+

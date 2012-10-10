@@ -1,0 +1,47 @@
+From 97359554a50c167c79aff469b3e99d2a758c8472 Mon Sep 17 00:00:00 2001
+From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
+Date: Fri, 14 Sep 2012 16:34:25 -0500
+Subject: [PATCH 027/109] hpsa: fix handling of protocol error
+
+commit 256d0eaac87da1e993190846064f339f4c7a63f5 upstream.
+
+If a command status of CMD_PROTOCOL_ERR is received, this
+information should be conveyed to the SCSI mid layer, not
+dropped on the floor.  CMD_PROTOCOL_ERR may be received
+from the Smart Array for any commands destined for an external
+RAID controller such as a P2000, or commands destined for tape
+drives or CD/DVD-ROM drives, if for instance a cable is
+disconnected.  This mostly affects multipath configurations, as
+disconnecting a cable on a non-multipath configuration is not
+going to do anything good regardless of whether CMD_PROTOCOL_ERR
+is handled correctly or not.  Not handling CMD_PROTOCOL_ERR
+correctly in a multipath configaration involving external RAID
+controllers may cause data corruption, so this is quite a serious
+bug.  This bug should not normally cause a problem for direct
+attached disk storage.
+
+Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Signed-off-by: James Bottomley <JBottomley@Parallels.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/scsi/hpsa.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/scsi/hpsa.c b/drivers/scsi/hpsa.c
+index b4d2c86..be9aad8 100644
+--- a/drivers/scsi/hpsa.c
++++ b/drivers/scsi/hpsa.c
+@@ -1213,8 +1213,9 @@ static void complete_scsi_command(struct CommandList *cp)
+ 	}
+ 		break;
+ 	case CMD_PROTOCOL_ERR:
++		cmd->result = DID_ERROR << 16;
+ 		dev_warn(&h->pdev->dev, "cp %p has "
+-			"protocol error \n", cp);
++			"protocol error\n", cp);
+ 		break;
+ 	case CMD_HARDWARE_ERR:
+ 		cmd->result = DID_ERROR << 16;
+-- 
+1.7.10.4
+

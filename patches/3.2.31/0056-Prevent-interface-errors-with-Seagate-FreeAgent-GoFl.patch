@@ -1,0 +1,39 @@
+From 3cce1612c77a51066a291e0cdbfa5cd88edf5fe8 Mon Sep 17 00:00:00 2001
+From: Daniel J Blueman <daniel@quora.org>
+Date: Mon, 23 Jul 2012 12:22:37 +0800
+Subject: [PATCH 056/109] Prevent interface errors with Seagate FreeAgent
+ GoFlex
+
+commit c531077f40abc9f2129c4c83a30b3f8d6ce1c0e7 upstream.
+
+When using my Seagate FreeAgent GoFlex eSATAp external disk enclosure,
+interface errors are always seen until 1.5Gbps is negotiated [1]. This
+occurs using any disk in the enclosure, and when the disk is connected
+directly with a generic passive eSATAp cable, we see stable 3Gbps
+operation as expected.
+
+Blacklist 3Gbps mode to avoid dataloss and the ~30s delay bus reset
+and renegotiation incurs.
+
+Signed-off-by: Daniel J Blueman <daniel@quora.org>
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/ata/libata-core.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/ata/libata-core.c b/drivers/ata/libata-core.c
+index c04ad68..321e23e 100644
+--- a/drivers/ata/libata-core.c
++++ b/drivers/ata/libata-core.c
+@@ -4118,6 +4118,7 @@ static const struct ata_blacklist_entry ata_device_blacklist [] = {
+ 
+ 	/* Devices which aren't very happy with higher link speeds */
+ 	{ "WD My Book",			NULL,	ATA_HORKAGE_1_5_GBPS, },
++	{ "Seagate FreeAgent GoFlex",	NULL,	ATA_HORKAGE_1_5_GBPS, },
+ 
+ 	/*
+ 	 * Devices which choke on SETXFER.  Applies only if both the
+-- 
+1.7.10.4
+

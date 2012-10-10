@@ -1,0 +1,45 @@
+From c282329285aacd24ca3038a67190f198506968d8 Mon Sep 17 00:00:00 2001
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 11 Sep 2012 13:43:17 -0700
+Subject: [PATCH 028/109] hwmon: (ad7314) Add 'name' sysfs attribute
+
+commit 3ceefe4319636d89d4bdf40dca9471970f942e4f upstream.
+
+The 'name' sysfs attribute is mandatory for hwmon devices, but was missing
+in this driver.
+
+Cc: Jonathan Cameron <jic23@cam.ac.uk>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/hwmon/ad7314.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/hwmon/ad7314.c b/drivers/hwmon/ad7314.c
+index 5d760f3..08e2947 100644
+--- a/drivers/hwmon/ad7314.c
++++ b/drivers/hwmon/ad7314.c
+@@ -96,10 +96,18 @@ static ssize_t ad7314_show_temperature(struct device *dev,
+ 	}
+ }
+ 
++static ssize_t ad7314_show_name(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	return sprintf(buf, "%s\n", to_spi_device(dev)->modalias);
++}
++
++static DEVICE_ATTR(name, S_IRUGO, ad7314_show_name, NULL);
+ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO,
+ 			  ad7314_show_temperature, NULL, 0);
+ 
+ static struct attribute *ad7314_attributes[] = {
++	&dev_attr_name.attr,
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	NULL,
+ };
+-- 
+1.7.10.4
+

@@ -1,0 +1,41 @@
+From 9289eb530c80a38c3e2cde5bd1a39ee6774be2a4 Mon Sep 17 00:00:00 2001
+From: "sreekanth.reddy@lsi.com" <sreekanth.reddy@lsi.com>
+Date: Wed, 22 Aug 2012 16:55:13 +0530
+Subject: [PATCH 024/109] mpt2sas: Fix for issue - Unable to boot from the
+ drive connected to HBA
+
+commit 10cce6d8b5af0b32bc4254ae4a28423a74c0921c upstream.
+
+This patch checks whether HBA is SAS2008 B0 controller.
+if it is a SAS2008 B0 controller then it use IO-APIC interrupt instead of MSIX,
+as SAS2008 B0 controller doesn't support MSIX interrupts.
+
+[jejb: fix whitespace problems]
+Signed-off-by: Sreekanth Reddy <sreekanth.reddy@lsi.com>
+Signed-off-by: James Bottomley <JBottomley@Parallels.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/scsi/mpt2sas/mpt2sas_base.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/scsi/mpt2sas/mpt2sas_base.c b/drivers/scsi/mpt2sas/mpt2sas_base.c
+index 98cb5e6..17de348 100644
+--- a/drivers/scsi/mpt2sas/mpt2sas_base.c
++++ b/drivers/scsi/mpt2sas/mpt2sas_base.c
+@@ -1156,6 +1156,13 @@ _base_check_enable_msix(struct MPT2SAS_ADAPTER *ioc)
+ 	u16 message_control;
+ 
+ 
++	/* Check whether controller SAS2008 B0 controller,
++	   if it is SAS2008 B0 controller use IO-APIC instead of MSIX */
++	if (ioc->pdev->device == MPI2_MFGPAGE_DEVID_SAS2008 &&
++	    ioc->pdev->revision == 0x01) {
++		return -EINVAL;
++	}
++
+ 	base = pci_find_capability(ioc->pdev, PCI_CAP_ID_MSIX);
+ 	if (!base) {
+ 		dfailprintk(ioc, printk(MPT2SAS_INFO_FMT "msix not "
+-- 
+1.7.10.4
+

@@ -1,0 +1,64 @@
+From e605600d80aa44b668b71ec6c95ac3e7df285868 Mon Sep 17 00:00:00 2001
+From: Matt Carlson <mcarlson@broadcom.com>
+Date: Mon, 28 Nov 2011 09:41:03 +0000
+Subject: [PATCH 104/109] tg3: Fix TSO CAP for 5704 devs w / ASF enabled
+
+[ Upstream commit cf9ecf4b631f649a964fa611f1a5e8874f2a76db ]
+
+On the earliest TSO capable devices, TSO was accomplished through
+firmware.  The TSO cannot coexist with ASF management firmware though.
+The tg3 driver determines whether or not ASF is enabled by calling
+tg3_get_eeprom_hw_cfg(), which checks a particular bit of NIC memory.
+Commit dabc5c670d3f86d15ee4f42ab38ec5bd2682487d, entitled "tg3: Move
+TSO_CAPABLE assignment", accidentally moved the code that determines
+TSO capabilities earlier than the call to tg3_get_eeprom_hw_cfg().  As a
+consequence, the driver was attempting to determine TSO capabilities
+before it had all the data it needed to make the decision.
+
+This patch fixes the problem by revisiting and reevaluating the decision
+after tg3_get_eeprom_hw_cfg() is called.
+
+Signed-off-by: Matt Carlson <mcarlson@broadcom.com>
+Signed-off-by: Michael Chan <mchan@broadcom.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/broadcom/tg3.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/broadcom/tg3.c b/drivers/net/ethernet/broadcom/tg3.c
+index 6b258d9..01bc102 100644
+--- a/drivers/net/ethernet/broadcom/tg3.c
++++ b/drivers/net/ethernet/broadcom/tg3.c
+@@ -14013,9 +14013,13 @@ static int __devinit tg3_get_invariants(struct tg3 *tp)
+ 	if (tg3_flag(tp, HW_TSO_1) ||
+ 	    tg3_flag(tp, HW_TSO_2) ||
+ 	    tg3_flag(tp, HW_TSO_3) ||
+-	    (tp->fw_needed && !tg3_flag(tp, ENABLE_ASF)))
++	    tp->fw_needed) {
++		/* For firmware TSO, assume ASF is disabled.
++		 * We'll disable TSO later if we discover ASF
++		 * is enabled in tg3_get_eeprom_hw_cfg().
++		 */
+ 		tg3_flag_set(tp, TSO_CAPABLE);
+-	else {
++	} else {
+ 		tg3_flag_clear(tp, TSO_CAPABLE);
+ 		tg3_flag_clear(tp, TSO_BUG);
+ 		tp->fw_needed = NULL;
+@@ -14290,6 +14294,12 @@ static int __devinit tg3_get_invariants(struct tg3 *tp)
+ 	 */
+ 	tg3_get_eeprom_hw_cfg(tp);
+ 
++	if (tp->fw_needed && tg3_flag(tp, ENABLE_ASF)) {
++		tg3_flag_clear(tp, TSO_CAPABLE);
++		tg3_flag_clear(tp, TSO_BUG);
++		tp->fw_needed = NULL;
++	}
++
+ 	if (tg3_flag(tp, ENABLE_APE)) {
+ 		/* Allow reads and writes to the
+ 		 * APE register and memory space.
+-- 
+1.7.10.4
+

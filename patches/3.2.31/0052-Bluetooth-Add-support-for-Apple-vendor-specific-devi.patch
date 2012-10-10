@@ -1,0 +1,42 @@
+From f8fa79bceaafe0557e811194909a75b9b17c637a Mon Sep 17 00:00:00 2001
+From: Henrik Rydberg <rydberg@euromail.se>
+Date: Sat, 25 Aug 2012 19:28:06 +0200
+Subject: [PATCH 052/109] Bluetooth: Add support for Apple vendor-specific
+ devices
+
+commit 1fa6535faf055cd71311ab887e94fc234f04ee18 upstream.
+
+As pointed out by Gustavo and Marcel, all Apple-specific Broadcom
+devices seen so far have the same interface class, subclass and
+protocol numbers. This patch adds an entry which matches all of them,
+using the new USB_VENDOR_AND_INTERFACE_INFO() macro.
+
+In particular, this patch adds support for the MacBook Pro Retina
+(05ac:8286), which is not in the present list.
+
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Tested-by: Shea Levy <shea@shealevy.com>
+Acked-by: Marcel Holtmann <marcel@holtmann.org>
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/bluetooth/btusb.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
+index 801b196..9583d0f 100644
+--- a/drivers/bluetooth/btusb.c
++++ b/drivers/bluetooth/btusb.c
+@@ -60,6 +60,9 @@ static struct usb_device_id btusb_table[] = {
+ 	/* Generic Bluetooth USB device */
+ 	{ USB_DEVICE_INFO(0xe0, 0x01, 0x01) },
+ 
++	/* Apple-specific (Broadcom) devices */
++	{ USB_VENDOR_AND_INTERFACE_INFO(0x05ac, 0xff, 0x01, 0x01) },
++
+ 	/* Broadcom SoftSailing reporting vendor specific */
+ 	{ USB_DEVICE(0x0a5c, 0x21e1) },
+ 
+-- 
+1.7.10.4
+

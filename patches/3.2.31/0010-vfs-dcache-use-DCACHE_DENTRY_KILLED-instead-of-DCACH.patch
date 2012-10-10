@@ -1,0 +1,69 @@
+From 26a76a5fe3d2804d7d3ba91f892db11604c8ead6 Mon Sep 17 00:00:00 2001
+From: Miklos Szeredi <mszeredi@suse.cz>
+Date: Mon, 17 Sep 2012 22:31:38 +0200
+Subject: [PATCH 010/109] vfs: dcache: use DCACHE_DENTRY_KILLED instead of
+ DCACHE_DISCONNECTED in d_kill()
+
+commit b161dfa6937ae46d50adce8a7c6b12233e96e7bd upstream.
+
+IBM reported a soft lockup after applying the fix for the rename_lock
+deadlock.  Commit c83ce989cb5f ("VFS: Fix the nfs sillyrename regression
+in kernel 2.6.38") was found to be the culprit.
+
+The nfs sillyrename fix used DCACHE_DISCONNECTED to indicate that the
+dentry was killed.  This flag can be set on non-killed dentries too,
+which results in infinite retries when trying to traverse the dentry
+tree.
+
+This patch introduces a separate flag: DCACHE_DENTRY_KILLED, which is
+only set in d_kill() and makes try_to_ascend() test only this flag.
+
+IBM reported successful test results with this patch.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/dcache.c            |    4 ++--
+ include/linux/dcache.h |    2 ++
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/fs/dcache.c b/fs/dcache.c
+index eb723d3..d20dc2b 100644
+--- a/fs/dcache.c
++++ b/fs/dcache.c
+@@ -311,7 +311,7 @@ static struct dentry *d_kill(struct dentry *dentry, struct dentry *parent)
+ 	 * Inform try_to_ascend() that we are no longer attached to the
+ 	 * dentry tree
+ 	 */
+-	dentry->d_flags |= DCACHE_DISCONNECTED;
++	dentry->d_flags |= DCACHE_DENTRY_KILLED;
+ 	if (parent)
+ 		spin_unlock(&parent->d_lock);
+ 	dentry_iput(dentry);
+@@ -968,7 +968,7 @@ static struct dentry *try_to_ascend(struct dentry *old, int locked, unsigned seq
+ 	 * or deletion
+ 	 */
+ 	if (new != old->d_parent ||
+-		 (old->d_flags & DCACHE_DISCONNECTED) ||
++		 (old->d_flags & DCACHE_DENTRY_KILLED) ||
+ 		 (!locked && read_seqretry(&rename_lock, seq))) {
+ 		spin_unlock(&new->d_lock);
+ 		new = NULL;
+diff --git a/include/linux/dcache.h b/include/linux/dcache.h
+index 4eb8c80..1dfe974 100644
+--- a/include/linux/dcache.h
++++ b/include/linux/dcache.h
+@@ -219,6 +219,8 @@ struct dentry_operations {
+ #define DCACHE_MANAGED_DENTRY \
+ 	(DCACHE_MOUNTED|DCACHE_NEED_AUTOMOUNT|DCACHE_MANAGE_TRANSIT)
+ 
++#define DCACHE_DENTRY_KILLED	0x100000
++
+ extern seqlock_t rename_lock;
+ 
+ static inline int dname_external(struct dentry *dentry)
+-- 
+1.7.10.4
+

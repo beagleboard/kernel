@@ -1,0 +1,102 @@
+From c2a0d10994ac7d41203750ac8c8c4d0def60491b Mon Sep 17 00:00:00 2001
+From: Vinicius Costa Gomes <vinicius.gomes@openbossa.org>
+Date: Thu, 23 Aug 2012 21:32:43 -0300
+Subject: [PATCH 058/109] Bluetooth: Change signature of smp_conn_security()
+
+commit cc110922da7e902b62d18641a370fec01a9fa794 upstream.
+
+To make it clear that it may be called from contexts that may not have
+any knowledge of L2CAP, we change the connection parameter, to receive
+a hci_conn.
+
+This also makes it clear that it is checking the security of the link.
+
+Signed-off-by: Vinicius Costa Gomes <vinicius.gomes@openbossa.org>
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ include/net/bluetooth/smp.h |    2 +-
+ net/bluetooth/l2cap_core.c  |   11 ++++++-----
+ net/bluetooth/l2cap_sock.c  |    2 +-
+ net/bluetooth/smp.c         |    4 ++--
+ 4 files changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/include/net/bluetooth/smp.h b/include/net/bluetooth/smp.h
+index 15b97d5..fe810d4 100644
+--- a/include/net/bluetooth/smp.h
++++ b/include/net/bluetooth/smp.h
+@@ -131,7 +131,7 @@ struct smp_chan {
+ };
+ 
+ /* SMP Commands */
+-int smp_conn_security(struct l2cap_conn *conn, __u8 sec_level);
++int smp_conn_security(struct hci_conn *hcon, __u8 sec_level);
+ int smp_sig_channel(struct l2cap_conn *conn, struct sk_buff *skb);
+ int smp_distribute_keys(struct l2cap_conn *conn, __u8 force);
+ 
+diff --git a/net/bluetooth/l2cap_core.c b/net/bluetooth/l2cap_core.c
+index dd76177..04175d9 100644
+--- a/net/bluetooth/l2cap_core.c
++++ b/net/bluetooth/l2cap_core.c
+@@ -902,14 +902,15 @@ static void l2cap_chan_ready(struct sock *sk)
+ static void l2cap_conn_ready(struct l2cap_conn *conn)
+ {
+ 	struct l2cap_chan *chan;
++	struct hci_conn *hcon = conn->hcon;
+ 
+ 	BT_DBG("conn %p", conn);
+ 
+-	if (!conn->hcon->out && conn->hcon->type == LE_LINK)
++	if (!hcon->out && hcon->type == LE_LINK)
+ 		l2cap_le_conn_ready(conn);
+ 
+-	if (conn->hcon->out && conn->hcon->type == LE_LINK)
+-		smp_conn_security(conn, conn->hcon->pending_sec_level);
++	if (hcon->out && hcon->type == LE_LINK)
++		smp_conn_security(hcon, hcon->pending_sec_level);
+ 
+ 	read_lock(&conn->chan_lock);
+ 
+@@ -918,8 +919,8 @@ static void l2cap_conn_ready(struct l2cap_conn *conn)
+ 
+ 		bh_lock_sock(sk);
+ 
+-		if (conn->hcon->type == LE_LINK) {
+-			if (smp_conn_security(conn, chan->sec_level))
++		if (hcon->type == LE_LINK) {
++			if (smp_conn_security(hcon, chan->sec_level))
+ 				l2cap_chan_ready(sk);
+ 
+ 		} else if (chan->chan_type != L2CAP_CHAN_CONN_ORIENTED) {
+diff --git a/net/bluetooth/l2cap_sock.c b/net/bluetooth/l2cap_sock.c
+index 6dedd6f..158887a 100644
+--- a/net/bluetooth/l2cap_sock.c
++++ b/net/bluetooth/l2cap_sock.c
+@@ -616,7 +616,7 @@ static int l2cap_sock_setsockopt(struct socket *sock, int level, int optname, ch
+ 				break;
+ 			}
+ 
+-			if (smp_conn_security(conn, sec.level))
++			if (smp_conn_security(conn->hcon, sec.level))
+ 				break;
+ 
+ 			err = 0;
+diff --git a/net/bluetooth/smp.c b/net/bluetooth/smp.c
+index 759b635..c27b4e3 100644
+--- a/net/bluetooth/smp.c
++++ b/net/bluetooth/smp.c
+@@ -554,9 +554,9 @@ static u8 smp_cmd_security_req(struct l2cap_conn *conn, struct sk_buff *skb)
+ 	return 0;
+ }
+ 
+-int smp_conn_security(struct l2cap_conn *conn, __u8 sec_level)
++int smp_conn_security(struct hci_conn *hcon, __u8 sec_level)
+ {
+-	struct hci_conn *hcon = conn->hcon;
++	struct l2cap_conn *conn = hcon->l2cap_data;
+ 	struct smp_chan *smp = conn->smp_chan;
+ 
+ 	BT_DBG("conn %p hcon %p level 0x%2.2x", conn, hcon, sec_level);
+-- 
+1.7.10.4
+

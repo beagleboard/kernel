@@ -1,0 +1,44 @@
+From 85f181b0f60d1b8ff1a90844012d85e138b3da93 Mon Sep 17 00:00:00 2001
+From: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Date: Tue, 11 Sep 2012 15:58:15 -0700
+Subject: [PATCH 035/109] can: janz-ican3: fix support for older hardware
+ revisions
+
+commit e21093ef6fb4cbecdf926102286dbe280ae965db upstream.
+
+The Revision 1.0 Janz CMOD-IO Carrier Board does not have support for
+the reset registers. To support older hardware, the code is changed to
+use the hardware reset register on the Janz VMOD-ICAN3 hardware itself.
+
+Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/can/janz-ican3.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/net/can/janz-ican3.c b/drivers/net/can/janz-ican3.c
+index 32778d5..46194bc 100644
+--- a/drivers/net/can/janz-ican3.c
++++ b/drivers/net/can/janz-ican3.c
+@@ -1250,7 +1250,6 @@ static irqreturn_t ican3_irq(int irq, void *dev_id)
+  */
+ static int ican3_reset_module(struct ican3_dev *mod)
+ {
+-	u8 val = 1 << mod->num;
+ 	unsigned long start;
+ 	u8 runold, runnew;
+ 
+@@ -1264,8 +1263,7 @@ static int ican3_reset_module(struct ican3_dev *mod)
+ 	runold = ioread8(mod->dpm + TARGET_RUNNING);
+ 
+ 	/* reset the module */
+-	iowrite8(val, &mod->ctrl->reset_assert);
+-	iowrite8(val, &mod->ctrl->reset_deassert);
++	iowrite8(0x00, &mod->dpmctrl->hwreset);
+ 
+ 	/* wait until the module has finished resetting and is running */
+ 	start = jiffies;
+-- 
+1.7.10.4
+

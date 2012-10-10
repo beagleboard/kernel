@@ -1,0 +1,111 @@
+From 58a3d9d75238d7e18fbbd6d9af8cf2d141727089 Mon Sep 17 00:00:00 2001
+From: Steffen Klassert <steffen.klassert@secunet.com>
+Date: Tue, 4 Sep 2012 00:03:29 +0000
+Subject: [PATCH 074/109] xfrm: Workaround incompatibility of ESN and async
+ crypto
+
+[ Upstream commit 3b59df46a449ec9975146d71318c4777ad086744 ]
+
+ESN for esp is defined in RFC 4303. This RFC assumes that the
+sequence number counters are always up to date. However,
+this is not true if an async crypto algorithm is employed.
+
+If the sequence number counters are not up to date on sequence
+number check, we may incorrectly update the upper 32 bit of
+the sequence number. This leads to a DOS.
+
+We workaround this by comparing the upper sequence number,
+(used for authentication) with the upper sequence number
+computed after the async processing. We drop the packet
+if these numbers are different.
+
+To do this, we introduce a recheck function that does this
+check in the ESN case.
+
+Signed-off-by: Steffen Klassert <steffen.klassert@secunet.com>
+Acked-by: Herbert Xu <herbert@gondor.apana.org.au>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ include/net/xfrm.h     |    3 +++
+ net/xfrm/xfrm_input.c  |    2 +-
+ net/xfrm/xfrm_replay.c |   15 +++++++++++++++
+ 3 files changed, 19 insertions(+), 1 deletion(-)
+
+diff --git a/include/net/xfrm.h b/include/net/xfrm.h
+index b203e14..921f627 100644
+--- a/include/net/xfrm.h
++++ b/include/net/xfrm.h
+@@ -269,6 +269,9 @@ struct xfrm_replay {
+ 	int	(*check)(struct xfrm_state *x,
+ 			 struct sk_buff *skb,
+ 			 __be32 net_seq);
++	int	(*recheck)(struct xfrm_state *x,
++			   struct sk_buff *skb,
++			   __be32 net_seq);
+ 	void	(*notify)(struct xfrm_state *x, int event);
+ 	int	(*overflow)(struct xfrm_state *x, struct sk_buff *skb);
+ };
+diff --git a/net/xfrm/xfrm_input.c b/net/xfrm/xfrm_input.c
+index 54a0dc2..ab2bb42 100644
+--- a/net/xfrm/xfrm_input.c
++++ b/net/xfrm/xfrm_input.c
+@@ -212,7 +212,7 @@ resume:
+ 		/* only the first xfrm gets the encap type */
+ 		encap_type = 0;
+ 
+-		if (async && x->repl->check(x, skb, seq)) {
++		if (async && x->repl->recheck(x, skb, seq)) {
+ 			XFRM_INC_STATS(net, LINUX_MIB_XFRMINSTATESEQERROR);
+ 			goto drop_unlock;
+ 		}
+diff --git a/net/xfrm/xfrm_replay.c b/net/xfrm/xfrm_replay.c
+index 2f6d11d..3efb07d 100644
+--- a/net/xfrm/xfrm_replay.c
++++ b/net/xfrm/xfrm_replay.c
+@@ -420,6 +420,18 @@ err:
+ 	return -EINVAL;
+ }
+ 
++static int xfrm_replay_recheck_esn(struct xfrm_state *x,
++				   struct sk_buff *skb, __be32 net_seq)
++{
++	if (unlikely(XFRM_SKB_CB(skb)->seq.input.hi !=
++		     htonl(xfrm_replay_seqhi(x, net_seq)))) {
++			x->stats.replay_window++;
++			return -EINVAL;
++	}
++
++	return xfrm_replay_check_esn(x, skb, net_seq);
++}
++
+ static void xfrm_replay_advance_esn(struct xfrm_state *x, __be32 net_seq)
+ {
+ 	unsigned int bitnr, nr, i;
+@@ -479,6 +491,7 @@ static void xfrm_replay_advance_esn(struct xfrm_state *x, __be32 net_seq)
+ static struct xfrm_replay xfrm_replay_legacy = {
+ 	.advance	= xfrm_replay_advance,
+ 	.check		= xfrm_replay_check,
++	.recheck	= xfrm_replay_check,
+ 	.notify		= xfrm_replay_notify,
+ 	.overflow	= xfrm_replay_overflow,
+ };
+@@ -486,6 +499,7 @@ static struct xfrm_replay xfrm_replay_legacy = {
+ static struct xfrm_replay xfrm_replay_bmp = {
+ 	.advance	= xfrm_replay_advance_bmp,
+ 	.check		= xfrm_replay_check_bmp,
++	.recheck	= xfrm_replay_check_bmp,
+ 	.notify		= xfrm_replay_notify_bmp,
+ 	.overflow	= xfrm_replay_overflow_bmp,
+ };
+@@ -493,6 +507,7 @@ static struct xfrm_replay xfrm_replay_bmp = {
+ static struct xfrm_replay xfrm_replay_esn = {
+ 	.advance	= xfrm_replay_advance_esn,
+ 	.check		= xfrm_replay_check_esn,
++	.recheck	= xfrm_replay_recheck_esn,
+ 	.notify		= xfrm_replay_notify_bmp,
+ 	.overflow	= xfrm_replay_overflow_esn,
+ };
+-- 
+1.7.10.4
+

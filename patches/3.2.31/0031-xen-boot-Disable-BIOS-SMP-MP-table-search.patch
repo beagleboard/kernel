@@ -1,0 +1,92 @@
+From 797be28ec89a5dfb67cfdb704df185253fc15164 Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Wed, 19 Sep 2012 08:30:55 -0400
+Subject: [PATCH 031/109] xen/boot: Disable BIOS SMP MP table search.
+
+commit bd49940a35ec7d488ae63bd625639893b3385b97 upstream.
+
+As the initial domain we are able to search/map certain regions
+of memory to harvest configuration data. For all low-level we
+use ACPI tables - for interrupts we use exclusively ACPI _PRT
+(so DSDT) and MADT for INT_SRC_OVR.
+
+The SMP MP table is not used at all. As a matter of fact we do
+not even support machines that only have SMP MP but no ACPI tables.
+
+Lets follow how Moorestown does it and just disable searching
+for BIOS SMP tables.
+
+This also fixes an issue on HP Proliant BL680c G5 and DL380 G6:
+
+9f->100 for 1:1 PTE
+Freeing 9f-100 pfn range: 97 pages freed
+1-1 mapping on 9f->100
+.. snip..
+e820: BIOS-provided physical RAM map:
+Xen: [mem 0x0000000000000000-0x000000000009efff] usable
+Xen: [mem 0x000000000009f400-0x00000000000fffff] reserved
+Xen: [mem 0x0000000000100000-0x00000000cfd1dfff] usable
+.. snip..
+Scan for SMP in [mem 0x00000000-0x000003ff]
+Scan for SMP in [mem 0x0009fc00-0x0009ffff]
+Scan for SMP in [mem 0x000f0000-0x000fffff]
+found SMP MP-table at [mem 0x000f4fa0-0x000f4faf] mapped at [ffff8800000f4fa0]
+(XEN) mm.c:908:d0 Error getting mfn 100 (pfn 5555555555555555) from L1 entry 0000000000100461 for l1e_owner=0, pg_owner=0
+(XEN) mm.c:4995:d0 ptwr_emulate: could not get_page_from_l1e()
+BUG: unable to handle kernel NULL pointer dereference at           (null)
+IP: [<ffffffff81ac07e2>] xen_set_pte_init+0x66/0x71
+. snip..
+Pid: 0, comm: swapper Not tainted 3.6.0-rc6upstream-00188-gb6fb969-dirty #2 HP ProLiant BL680c G5
+.. snip..
+Call Trace:
+ [<ffffffff81ad31c6>] __early_ioremap+0x18a/0x248
+ [<ffffffff81624731>] ? printk+0x48/0x4a
+ [<ffffffff81ad32ac>] early_ioremap+0x13/0x15
+ [<ffffffff81acc140>] get_mpc_size+0x2f/0x67
+ [<ffffffff81acc284>] smp_scan_config+0x10c/0x136
+ [<ffffffff81acc2e4>] default_find_smp_config+0x36/0x5a
+ [<ffffffff81ac3085>] setup_arch+0x5b3/0xb5b
+ [<ffffffff81624731>] ? printk+0x48/0x4a
+ [<ffffffff81abca7f>] start_kernel+0x90/0x390
+ [<ffffffff81abc356>] x86_64_start_reservations+0x131/0x136
+ [<ffffffff81abfa83>] xen_start_kernel+0x65f/0x661
+(XEN) Domain 0 crashed: 'noreboot' set - not rebooting.
+
+which is that ioremap would end up mapping 0xff using _PAGE_IOMAP
+(which is what early_ioremap sticks as a flag) - which meant
+we would get MFN 0xFF (pte ff461, which is OK), and then it would
+also map 0x100 (b/c ioremap tries to get page aligned request, and
+it was trying to map 0xf4fa0 + PAGE_SIZE - so it mapped the next page)
+as _PAGE_IOMAP. Since 0x100 is actually a RAM page, and the _PAGE_IOMAP
+bypasses the P2M lookup we would happily set the PTE to 1000461.
+Xen would deny the request since we do not have access to the
+Machine Frame Number (MFN) of 0x100. The P2M[0x100] is for example
+0x80140.
+
+Fixes-Oracle-Bugzilla: https://bugzilla.oracle.com/bugzilla/show_bug.cgi?id=13665
+Acked-by: Jan Beulich <jbeulich@suse.com>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/xen/enlighten.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
+index 44d4393..a1e21ae 100644
+--- a/arch/x86/xen/enlighten.c
++++ b/arch/x86/xen/enlighten.c
+@@ -1289,6 +1289,10 @@ asmlinkage void __init xen_start_kernel(void)
+ 
+ 		/* Make sure ACS will be enabled */
+ 		pci_request_acs();
++
++		/* Avoid searching for BIOS MP tables */
++		x86_init.mpparse.find_smp_config = x86_init_noop;
++		x86_init.mpparse.get_smp_config = x86_init_uint_noop;
+ 	}
+ #ifdef CONFIG_PCI
+ 	/* PCI BIOS service won't work from a PV guest. */
+-- 
+1.7.10.4
+

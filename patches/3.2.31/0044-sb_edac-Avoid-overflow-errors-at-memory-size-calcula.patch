@@ -1,0 +1,67 @@
+From d1704c4fa9a7fc9d7c17e15af235530571e3021f Mon Sep 17 00:00:00 2001
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Thu, 20 Sep 2012 12:09:30 -0300
+Subject: [PATCH 044/109] sb_edac: Avoid overflow errors at memory size
+ calculation
+
+commit deb09ddaff1435f72dd598d38f9b58354c68a5ec upstream.
+
+Sandy bridge EDAC is calculating the memory size with overflow.
+Basically, the size field and the integer calculation is using 32 bits.
+More bits are needed, when the DIMM memories have high density.
+
+The net result is that memories are improperly reported there, when
+high-density DIMMs are used:
+
+EDAC DEBUG: in drivers/edac/sb_edac.c, line at 591: mc#0: channel 0, dimm 0, -16384 Mb (-4194304 pages) bank: 8, rank: 2, row: 0x10000, col: 0x800
+EDAC DEBUG: in drivers/edac/sb_edac.c, line at 591: mc#0: channel 1, dimm 0, -16384 Mb (-4194304 pages) bank: 8, rank: 2, row: 0x10000, col: 0x800
+
+As the number of pages value is handled at the EDAC core as unsigned
+ints, the driver shows the 16 GB memories at sysfs interface as 16760832
+MB! The fix is simple: calculate the number of pages as unsigned 64-bits
+integer.
+
+After the patch, the memory size (16 GB) is properly detected:
+
+EDAC DEBUG: in drivers/edac/sb_edac.c, line at 592: mc#0: channel 0, dimm 0, 16384 Mb (4194304 pages) bank: 8, rank: 2, row: 0x10000, col: 0x800
+EDAC DEBUG: in drivers/edac/sb_edac.c, line at 592: mc#0: channel 1, dimm 0, 16384 Mb (4194304 pages) bank: 8, rank: 2, row: 0x10000, col: 0x800
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+[bwh: Backported to 3.2:
+ - Adjust context
+ - Debug log function is debugf0(), not edac_dbg()]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/edac/sb_edac.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/edac/sb_edac.c b/drivers/edac/sb_edac.c
+index 0db57b5..da71881 100644
+--- a/drivers/edac/sb_edac.c
++++ b/drivers/edac/sb_edac.c
+@@ -554,7 +554,8 @@ static int get_dimm_config(const struct mem_ctl_info *mci)
+ {
+ 	struct sbridge_pvt *pvt = mci->pvt_info;
+ 	struct csrow_info *csr;
+-	int i, j, banks, ranks, rows, cols, size, npages;
++	unsigned i, j, banks, ranks, rows, cols, npages;
++	u64 size;
+ 	int csrow = 0;
+ 	unsigned long last_page = 0;
+ 	u32 reg;
+@@ -626,10 +627,10 @@ static int get_dimm_config(const struct mem_ctl_info *mci)
+ 				cols = numcol(mtr);
+ 
+ 				/* DDR3 has 8 I/O banks */
+-				size = (rows * cols * banks * ranks) >> (20 - 3);
++				size = ((u64)rows * cols * banks * ranks) >> (20 - 3);
+ 				npages = MiB_TO_PAGES(size);
+ 
+-				debugf0("mc#%d: channel %d, dimm %d, %d Mb (%d pages) bank: %d, rank: %d, row: %#x, col: %#x\n",
++				debugf0("mc#%d: channel %d, dimm %d, %Ld Mb (%d pages) bank: %d, rank: %d, row: %#x, col: %#x\n",
+ 					pvt->sbridge_dev->mc, i, j,
+ 					size, npages,
+ 					banks, ranks, rows, cols);
+-- 
+1.7.10.4
+

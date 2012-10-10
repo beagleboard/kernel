@@ -1,0 +1,57 @@
+From 74d5d4a6ba96a0336a3924e398320a57adfdd086 Mon Sep 17 00:00:00 2001
+From: Bjorn Helgaas <bhelgaas@google.com>
+Date: Wed, 20 Jun 2012 16:18:29 -0600
+Subject: [PATCH 072/109] PCI: acpiphp: check whether _ADR evaluation
+ succeeded
+
+commit dfb117b3e50c52c7b3416db4a4569224b8db80bb upstream.
+
+Check whether we evaluated _ADR successfully.  Previously we ignored
+failure, so we would have used garbage data from the stack as the device
+and function number.
+
+We return AE_OK so that we ignore only this slot and continue looking
+for other slots.
+
+Found by Coverity (CID 113981).
+
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/pci/hotplug/acpiphp_glue.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 9ddf69e..74d38ca 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -132,6 +132,15 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	if (!acpi_pci_check_ejectable(pbus, handle) && !is_dock_device(handle))
+ 		return AE_OK;
+ 
++	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
++	if (ACPI_FAILURE(status)) {
++		warn("can't evaluate _ADR (%#x)\n", status);
++		return AE_OK;
++	}
++
++	device = (adr >> 16) & 0xffff;
++	function = adr & 0xffff;
++
+ 	pdev = pbus->self;
+ 	if (pdev && pci_is_pcie(pdev)) {
+ 		tmp = acpi_find_root_bridge_handle(pdev);
+@@ -144,10 +153,6 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 		}
+ 	}
+ 
+-	acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
+-	device = (adr >> 16) & 0xffff;
+-	function = adr & 0xffff;
+-
+ 	newfunc = kzalloc(sizeof(struct acpiphp_func), GFP_KERNEL);
+ 	if (!newfunc)
+ 		return AE_NO_MEMORY;
+-- 
+1.7.10.4
+

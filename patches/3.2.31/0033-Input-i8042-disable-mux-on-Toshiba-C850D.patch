@@ -1,0 +1,37 @@
+From 70994b1b13fb368fa10b10e11fc11c36d8a08b42 Mon Sep 17 00:00:00 2001
+From: Anisse Astier <anisse@astier.eu>
+Date: Wed, 19 Sep 2012 11:10:48 -0700
+Subject: [PATCH 033/109] Input: i8042 - disable mux on Toshiba C850D
+
+commit 8669cf6793bb38307a30fb6b9565ddc8840ebd3f upstream.
+
+On Toshiba Satellite C850D, the touchpad and the keyboard might randomly
+not work at boot. Preventing MUX mode activation solves this issue.
+
+Signed-off-by: Anisse Astier <anisse@astier.eu>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/input/serio/i8042-x86ia64io.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/input/serio/i8042-x86ia64io.h b/drivers/input/serio/i8042-x86ia64io.h
+index d4ec371..cd1a843 100644
+--- a/drivers/input/serio/i8042-x86ia64io.h
++++ b/drivers/input/serio/i8042-x86ia64io.h
+@@ -335,6 +335,12 @@ static const struct dmi_system_id __initconst i8042_dmi_nomux_table[] = {
+ 	},
+ 	{
+ 		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "SATELLITE C850D"),
++		},
++	},
++	{
++		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "ALIENWARE"),
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "Sentia"),
+ 		},
+-- 
+1.7.10.4
+

@@ -1,0 +1,57 @@
+From d5e7b09b881f2d0a7734b06045df6efb6cf2b163 Mon Sep 17 00:00:00 2001
+From: Francesco Ruggeri <fruggeri@aristanetworks.com>
+Date: Thu, 13 Sep 2012 15:03:37 -0700
+Subject: [PATCH 003/109] fs/proc: fix potential unregister_sysctl_table hang
+
+commit 6bf6104573482570f7103d3e5ddf9574db43a363 upstream.
+
+The unregister_sysctl_table() function hangs if all references to its
+ctl_table_header structure are not dropped.
+
+This can happen sometimes because of a leak in proc_sys_lookup():
+proc_sys_lookup() gets a reference to the table via lookup_entry(), but
+it does not release it when a subsequent call to sysctl_follow_link()
+fails.
+
+This patch fixes this leak by making sure the reference is always
+dropped on return.
+
+See also commit 076c3eed2c31 ("sysctl: Rewrite proc_sys_lookup
+introducing find_entry and lookup_entry") which reorganized this code in
+3.4.
+
+Tested in Linux 3.4.4.
+
+Signed-off-by: Francesco Ruggeri <fruggeri@aristanetworks.com>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/proc/proc_sysctl.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/fs/proc/proc_sysctl.c b/fs/proc/proc_sysctl.c
+index 53c3bce..0be1aa4 100644
+--- a/fs/proc/proc_sysctl.c
++++ b/fs/proc/proc_sysctl.c
+@@ -123,9 +123,6 @@ static struct dentry *proc_sys_lookup(struct inode *dir, struct dentry *dentry,
+ 
+ 	err = ERR_PTR(-ENOMEM);
+ 	inode = proc_sys_make_inode(dir->i_sb, h ? h : head, p);
+-	if (h)
+-		sysctl_head_finish(h);
+-
+ 	if (!inode)
+ 		goto out;
+ 
+@@ -134,6 +131,8 @@ static struct dentry *proc_sys_lookup(struct inode *dir, struct dentry *dentry,
+ 	d_add(dentry, inode);
+ 
+ out:
++	if (h)
++		sysctl_head_finish(h);
+ 	sysctl_head_finish(head);
+ 	return err;
+ }
+-- 
+1.7.10.4
+

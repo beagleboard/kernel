@@ -1,0 +1,37 @@
+From 2e67b517702c19094b9ef28dc23ca46dff5bdae3 Mon Sep 17 00:00:00 2001
+From: Hante Meuleman <meuleman@broadcom.com>
+Date: Tue, 11 Sep 2012 21:16:47 +0200
+Subject: [PATCH 016/109] brcmfmac: fix big endian bug in i-scan.
+
+commit ed205b361956c96e0d8c09a8c9135a6a79cd9541 upstream.
+
+ssid len is 32 bit and needs endian conversion for big endian systems.
+
+Signed-off-by: Hante Meuleman <meuleman@broadcom.com>
+Signed-off-by: Arend van Spriel <arend@broadcom.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/brcm80211/brcmfmac/wl_cfg80211.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/wireless/brcm80211/brcmfmac/wl_cfg80211.c b/drivers/net/wireless/brcm80211/brcmfmac/wl_cfg80211.c
+index 5eddabe..e4e326a 100644
+--- a/drivers/net/wireless/brcm80211/brcmfmac/wl_cfg80211.c
++++ b/drivers/net/wireless/brcm80211/brcmfmac/wl_cfg80211.c
+@@ -498,8 +498,10 @@ static void wl_iscan_prep(struct brcmf_scan_params_le *params_le,
+ 	params_le->active_time = cpu_to_le32(-1);
+ 	params_le->passive_time = cpu_to_le32(-1);
+ 	params_le->home_time = cpu_to_le32(-1);
+-	if (ssid && ssid->SSID_len)
+-		memcpy(&params_le->ssid_le, ssid, sizeof(struct brcmf_ssid));
++	if (ssid && ssid->SSID_len) {
++		params_le->ssid_le.SSID_len = cpu_to_le32(ssid->SSID_len);
++		memcpy(&params_le->ssid_le.SSID, ssid->SSID, ssid->SSID_len);
++	}
+ }
+ 
+ static s32
+-- 
+1.7.10.4
+

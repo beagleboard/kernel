@@ -1,0 +1,59 @@
+From 50ad98f6c1dfec792c9566d2fa191e46bd32d52e Mon Sep 17 00:00:00 2001
+From: Paul Clements <paul.clements@steeleye.com>
+Date: Mon, 17 Sep 2012 14:09:02 -0700
+Subject: [PATCH 005/109] nbd: clear waiting_queue on shutdown
+
+commit fded4e090c60100d709318896c79816d68d5b47d upstream.
+
+Fix a serious but uncommon bug in nbd which occurs when there is heavy
+I/O going to the nbd device while, at the same time, a failure (server,
+network) or manual disconnect of the nbd connection occurs.
+
+There is a small window between the time that the nbd_thread is stopped
+and the socket is shutdown where requests can continue to be queued to
+nbd's internal waiting_queue.  When this happens, those requests are
+never completed or freed.
+
+The fix is to clear the waiting_queue on shutdown of the nbd device, in
+the same way that the nbd request queue (queue_head) is already being
+cleared.
+
+Signed-off-by: Paul Clements <paul.clements@steeleye.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+[bwh: Backported to 3.2: local nbd_device pointers are called 'lo' not 'nbd']
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/block/nbd.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/block/nbd.c b/drivers/block/nbd.c
+index c3f0ee1..86848c6 100644
+--- a/drivers/block/nbd.c
++++ b/drivers/block/nbd.c
+@@ -445,6 +445,14 @@ static void nbd_clear_que(struct nbd_device *lo)
+ 		req->errors++;
+ 		nbd_end_request(req);
+ 	}
++
++	while (!list_empty(&lo->waiting_queue)) {
++		req = list_entry(lo->waiting_queue.next, struct request,
++				 queuelist);
++		list_del_init(&req->queuelist);
++		req->errors++;
++		nbd_end_request(req);
++	}
+ }
+ 
+ 
+@@ -594,6 +602,7 @@ static int __nbd_ioctl(struct block_device *bdev, struct nbd_device *lo,
+ 		lo->file = NULL;
+ 		nbd_clear_que(lo);
+ 		BUG_ON(!list_empty(&lo->queue_head));
++		BUG_ON(!list_empty(&lo->waiting_queue));
+ 		if (file)
+ 			fput(file);
+ 		return 0;
+-- 
+1.7.10.4
+

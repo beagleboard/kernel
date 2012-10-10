@@ -1,0 +1,45 @@
+From 4ea511c29fc8d0812a726fdc1888c60cf3be0d69 Mon Sep 17 00:00:00 2001
+From: Avi Kivity <avi@redhat.com>
+Date: Wed, 22 Aug 2012 13:03:48 +0300
+Subject: [PATCH 066/109] x86/alternatives: Fix p6 nops on non-modular kernels
+
+commit cb09cad44f07044d9810f18f6f9a6a6f3771f979 upstream.
+
+Probably a leftover from the early days of self-patching, p6nops
+are marked __initconst_or_module, which causes them to be
+discarded in a non-modular kernel.  If something later triggers
+patching, it will overwrite kernel code with garbage.
+
+Reported-by: Tomas Racek <tracek@redhat.com>
+Signed-off-by: Avi Kivity <avi@redhat.com>
+Cc: Michael Tokarev <mjt@tls.msk.ru>
+Cc: Borislav Petkov <borislav.petkov@amd.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: qemu-devel@nongnu.org
+Cc: Anthony Liguori <anthony@codemonkey.ws>
+Cc: H. Peter Anvin <hpa@linux.intel.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alan Cox <alan@linux.intel.com>
+Link: http://lkml.kernel.org/r/5034AE84.90708@redhat.com
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kernel/alternative.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/x86/kernel/alternative.c b/arch/x86/kernel/alternative.c
+index 73ef56c..bda833c 100644
+--- a/arch/x86/kernel/alternative.c
++++ b/arch/x86/kernel/alternative.c
+@@ -160,7 +160,7 @@ static const unsigned char * const k7_nops[ASM_NOP_MAX+2] =
+ #endif
+ 
+ #ifdef P6_NOP1
+-static const unsigned char  __initconst_or_module p6nops[] =
++static const unsigned char p6nops[] =
+ {
+ 	P6_NOP1,
+ 	P6_NOP2,
+-- 
+1.7.10.4
+

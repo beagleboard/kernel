@@ -1,0 +1,43 @@
+From e68fd31641615044eb3817729e447c16bc8a0390 Mon Sep 17 00:00:00 2001
+From: Paolo Valente <paolo.valente@unimore.it>
+Date: Sat, 15 Sep 2012 00:41:35 +0000
+Subject: [PATCH 088/109] pkt_sched: fix virtual-start-time update in QFQ
+
+[ Upstream commit 71261956973ba9e0637848a5adb4a5819b4bae83 ]
+
+If the old timestamps of a class, say cl, are stale when the class
+becomes active, then QFQ may assign to cl a much higher start time
+than the maximum value allowed. This may happen when QFQ assigns to
+the start time of cl the finish time of a group whose classes are
+characterized by a higher value of the ratio
+max_class_pkt/weight_of_the_class with respect to that of
+cl. Inserting a class with a too high start time into the bucket list
+corrupts the data structure and may eventually lead to crashes.
+This patch limits the maximum start time assigned to a class.
+
+Signed-off-by: Paolo Valente <paolo.valente@unimore.it>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/sched/sch_qfq.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/net/sched/sch_qfq.c b/net/sched/sch_qfq.c
+index 7b03254..ca0fb48 100644
+--- a/net/sched/sch_qfq.c
++++ b/net/sched/sch_qfq.c
+@@ -829,7 +829,10 @@ static void qfq_update_start(struct qfq_sched *q, struct qfq_class *cl)
+ 		if (mask) {
+ 			struct qfq_group *next = qfq_ffs(q, mask);
+ 			if (qfq_gt(roundedF, next->F)) {
+-				cl->S = next->F;
++				if (qfq_gt(limit, next->F))
++					cl->S = next->F;
++				else /* preserve timestamp correctness */
++					cl->S = limit;
+ 				return;
+ 			}
+ 		}
+-- 
+1.7.10.4
+

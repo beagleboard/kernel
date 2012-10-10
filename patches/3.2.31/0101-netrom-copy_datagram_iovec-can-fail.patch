@@ -1,0 +1,37 @@
+From 24d1881c987091f29ebbf30dda566f1b882363f6 Mon Sep 17 00:00:00 2001
+From: Alan Cox <alan@linux.intel.com>
+Date: Tue, 4 Sep 2012 04:13:18 +0000
+Subject: [PATCH 101/109] netrom: copy_datagram_iovec can fail
+
+[ Upstream commit 6cf5c951175abcec4da470c50565cc0afe6cd11d ]
+
+Check for an error from this and if so bail properly.
+
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/netrom/af_netrom.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/net/netrom/af_netrom.c b/net/netrom/af_netrom.c
+index 732152f..f156382 100644
+--- a/net/netrom/af_netrom.c
++++ b/net/netrom/af_netrom.c
+@@ -1170,7 +1170,12 @@ static int nr_recvmsg(struct kiocb *iocb, struct socket *sock,
+ 		msg->msg_flags |= MSG_TRUNC;
+ 	}
+ 
+-	skb_copy_datagram_iovec(skb, 0, msg->msg_iov, copied);
++	er = skb_copy_datagram_iovec(skb, 0, msg->msg_iov, copied);
++	if (er < 0) {
++		skb_free_datagram(sk, skb);
++		release_sock(sk);
++		return er;
++	}
+ 
+ 	if (sax != NULL) {
+ 		sax->sax25_family = AF_NETROM;
+-- 
+1.7.10.4
+

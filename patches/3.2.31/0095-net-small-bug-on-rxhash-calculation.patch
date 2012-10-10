@@ -1,0 +1,63 @@
+From 72b8016162d7fcbc6c1ee0c26275e47c375a6a22 Mon Sep 17 00:00:00 2001
+From: Chema Gonzalez <chema@google.com>
+Date: Fri, 7 Sep 2012 13:40:50 +0000
+Subject: [PATCH 095/109] net: small bug on rxhash calculation
+
+[ Upstream commit 6862234238e84648c305526af2edd98badcad1e0 ]
+
+In the current rxhash calculation function, while the
+sorting of the ports/addrs is coherent (you get the
+same rxhash for packets sharing the same 4-tuple, in
+both directions), ports and addrs are sorted
+independently. This implies packets from a connection
+between the same addresses but crossed ports hash to
+the same rxhash.
+
+For example, traffic between A=S:l and B=L:s is hashed
+(in both directions) from {L, S, {s, l}}. The same
+rxhash is obtained for packets between C=S:s and D=L:l.
+
+This patch ensures that you either swap both addrs and ports,
+or you swap none. Traffic between A and B, and traffic
+between C and D, get their rxhash from different sources
+({L, S, {l, s}} for A<->B, and {L, S, {s, l}} for C<->D)
+
+The patch is co-written with Eric Dumazet <edumazet@google.com>
+
+Signed-off-by: Chema Gonzalez <chema@google.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/core/dev.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 8715938..611294a 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -2686,16 +2686,17 @@ ipv6:
+ 		nhoff += poff;
+ 		if (pskb_may_pull(skb, nhoff + 4)) {
+ 			ports.v32 = * (__force u32 *) (skb->data + nhoff);
+-			if (ports.v16[1] < ports.v16[0])
+-				swap(ports.v16[0], ports.v16[1]);
+ 			skb->l4_rxhash = 1;
+ 		}
+ 	}
+ 
+ 	/* get a consistent hash (same value on both flow directions) */
+-	if (addr2 < addr1)
++	if (addr2 < addr1 ||
++	    (addr2 == addr1 &&
++	     ports.v16[1] < ports.v16[0])) {
+ 		swap(addr1, addr2);
+-
++		swap(ports.v16[0], ports.v16[1]);
++	}
+ 	hash = jhash_3words(addr1, addr2, ports.v32, hashrnd);
+ 	if (!hash)
+ 		hash = 1;
+-- 
+1.7.10.4
+

@@ -1,0 +1,36 @@
+From fd248921f93f07699ddb4c9347108ebdced1bd4d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B8ren=20holm?= <sgh@sgh.dk>
+Date: Mon, 17 Sep 2012 21:50:57 +0000
+Subject: [PATCH 032/109] asix: Support DLink DUB-E100 H/W Ver C1
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit ed3770a9cd5764a575b83810ea679bbff2b03082 upstream.
+
+Signed-off-by: Søren Holm <sgh@sgh.dk>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+[bwh: Backported to 3.2: adjust filename]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/usb/asix.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/net/usb/asix.c b/drivers/net/usb/asix.c
+index fc147a5..6729585 100644
+--- a/drivers/net/usb/asix.c
++++ b/drivers/net/usb/asix.c
+@@ -1648,6 +1648,10 @@ static const struct usb_device_id	products [] = {
+ 	USB_DEVICE (0x2001, 0x3c05),
+ 	.driver_info = (unsigned long) &ax88772_info,
+ }, {
++       // DLink DUB-E100 H/W Ver C1
++       USB_DEVICE (0x2001, 0x1a02),
++       .driver_info = (unsigned long) &ax88772_info,
++}, {
+ 	// Linksys USB1000
+ 	USB_DEVICE (0x1737, 0x0039),
+ 	.driver_info = (unsigned long) &ax88178_info,
+-- 
+1.7.10.4
+

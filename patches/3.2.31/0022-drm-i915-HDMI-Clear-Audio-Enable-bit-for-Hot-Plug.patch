@@ -1,0 +1,51 @@
+From 186338cb30f980c847422a421412bed47c430113 Mon Sep 17 00:00:00 2001
+From: Wang Xingchao <xingchao.wang@intel.com>
+Date: Thu, 13 Sep 2012 07:43:22 +0800
+Subject: [PATCH 022/109] drm/i915: HDMI - Clear Audio Enable bit for Hot Plug
+
+commit b98b60167279df3acac9422c3c9820d9ebbcf9fb upstream.
+
+Clear Audio Enable bit to trigger unsolicated event to notify Audio
+Driver part the HDMI hot plug change. The patch fixed the bug when
+remove HDMI cable the bit was not cleared correctly.
+
+In intel_hdmi_dpms(), if intel_hdmi->has_audio been true, the "Audio enable bit" will
+be set to trigger unsolicated event to notify Alsa driver the change.
+
+intel_hdmi->has_audio will be reset to false from intel_hdmi_detect() after
+remove the hdmi cable, here's debug log:
+
+[  187.494153] [drm:output_poll_execute], [CONNECTOR:17:HDMI-A-1] status updated from 1 to 2
+[  187.525349] [drm:intel_hdmi_detect], HDMI: has_audio = 0
+
+so when comes back to intel_hdmi_dpms(), the "Audio enable bit" will not be cleared. And this
+cause the eld infomation and pin presence doesnot update accordingly in alsa driver side.
+
+This patch will also trigger unsolicated event to alsa driver to notify the hot plug event:
+
+[  187.853159] ALSA sound/pci/hda/patch_hdmi.c:772 HDMI hot plug event: Codec=3 Pin=5 Presence_Detect=0 ELD_Valid=1
+[  187.853268] ALSA sound/pci/hda/patch_hdmi.c:990 HDMI status: Codec=3 Pin=5 Presence_Detect=0 ELD_Valid=0
+
+Signed-off-by: Wang Xingchao <xingchao.wang@intel.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_hdmi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_hdmi.c b/drivers/gpu/drm/i915/intel_hdmi.c
+index 9cd81ba..c2a64f4 100644
+--- a/drivers/gpu/drm/i915/intel_hdmi.c
++++ b/drivers/gpu/drm/i915/intel_hdmi.c
+@@ -271,7 +271,7 @@ static void intel_hdmi_dpms(struct drm_encoder *encoder, int mode)
+ 	u32 temp;
+ 	u32 enable_bits = SDVO_ENABLE;
+ 
+-	if (intel_hdmi->has_audio)
++	if (intel_hdmi->has_audio || mode != DRM_MODE_DPMS_ON)
+ 		enable_bits |= SDVO_AUDIO_ENABLE;
+ 
+ 	temp = I915_READ(intel_hdmi->sdvox_reg);
+-- 
+1.7.10.4
+

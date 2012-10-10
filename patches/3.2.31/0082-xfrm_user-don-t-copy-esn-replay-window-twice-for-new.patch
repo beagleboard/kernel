@@ -1,0 +1,59 @@
+From 6dd0a058321c49970355d5662d5c9113165537e3 Mon Sep 17 00:00:00 2001
+From: Mathias Krause <minipli@googlemail.com>
+Date: Wed, 19 Sep 2012 11:33:43 +0000
+Subject: [PATCH 082/109] xfrm_user: don't copy esn replay window twice for
+ new states
+
+[ Upstream commit e3ac104d41a97b42316915020ba228c505447d21 ]
+
+The ESN replay window was already fully initialized in
+xfrm_alloc_replay_state_esn(). No need to copy it again.
+
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+Acked-by: Steffen Klassert <steffen.klassert@secunet.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/xfrm/xfrm_user.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/net/xfrm/xfrm_user.c b/net/xfrm/xfrm_user.c
+index 8f916a7..28e4f751 100644
+--- a/net/xfrm/xfrm_user.c
++++ b/net/xfrm/xfrm_user.c
+@@ -442,10 +442,11 @@ static void copy_from_user_state(struct xfrm_state *x, struct xfrm_usersa_info *
+  * somehow made shareable and move it to xfrm_state.c - JHS
+  *
+ */
+-static void xfrm_update_ae_params(struct xfrm_state *x, struct nlattr **attrs)
++static void xfrm_update_ae_params(struct xfrm_state *x, struct nlattr **attrs,
++				  int update_esn)
+ {
+ 	struct nlattr *rp = attrs[XFRMA_REPLAY_VAL];
+-	struct nlattr *re = attrs[XFRMA_REPLAY_ESN_VAL];
++	struct nlattr *re = update_esn ? attrs[XFRMA_REPLAY_ESN_VAL] : NULL;
+ 	struct nlattr *lt = attrs[XFRMA_LTIME_VAL];
+ 	struct nlattr *et = attrs[XFRMA_ETIMER_THRESH];
+ 	struct nlattr *rt = attrs[XFRMA_REPLAY_THRESH];
+@@ -555,7 +556,7 @@ static struct xfrm_state *xfrm_state_construct(struct net *net,
+ 		goto error;
+ 
+ 	/* override default values from above */
+-	xfrm_update_ae_params(x, attrs);
++	xfrm_update_ae_params(x, attrs, 0);
+ 
+ 	return x;
+ 
+@@ -1801,7 +1802,7 @@ static int xfrm_new_ae(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		goto out;
+ 
+ 	spin_lock_bh(&x->lock);
+-	xfrm_update_ae_params(x, attrs);
++	xfrm_update_ae_params(x, attrs, 1);
+ 	spin_unlock_bh(&x->lock);
+ 
+ 	c.event = nlh->nlmsg_type;
+-- 
+1.7.10.4
+

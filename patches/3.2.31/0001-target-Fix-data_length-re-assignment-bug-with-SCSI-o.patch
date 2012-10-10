@@ -1,0 +1,74 @@
+From 87ade83ce3d8657e22c6c0e7571b4533d8e7f2bb Mon Sep 17 00:00:00 2001
+From: Nicholas Bellinger <nab@linux-iscsi.org>
+Date: Thu, 16 Aug 2012 15:33:10 -0700
+Subject: [PATCH 001/109] target: Fix ->data_length re-assignment bug with
+ SCSI overflow
+
+commit 4c054ba63ad47ef244cfcfa1cea38134620a5bae upstream.
+
+This patch fixes a long-standing bug with SCSI overflow handling
+where se_cmd->data_length was incorrectly being re-assigned to
+the larger CDB extracted allocation length, resulting in a number
+of fabric level errors that would end up causing a session reset
+in most cases.  So instead now:
+
+ - Only re-assign se_cmd->data_length durining UNDERFLOW (to use the
+   smaller value)
+ - Use existing se_cmd->data_length for OVERFLOW (to use the smaller
+   value)
+
+This fix has been tested with the following CDB to generate an
+SCSI overflow:
+
+  sg_raw -r512 /dev/sdc 28 0 0 0 0 0 0 0 9 0
+
+Tested using iscsi-target, tcm_qla2xxx, loopback and tcm_vhost fabric
+ports.  Here is a bit more detail on each case:
+
+ - iscsi-target: Bug with open-iscsi with overflow, sg_raw returns
+                 -3584 bytes of data.
+ - tcm_qla2xxx: Working as expected, returnins 512 bytes of data
+ - loopback: sg_raw returns CHECK_CONDITION, from overflow rejection
+             in transport_generic_map_mem_to_cmd()
+ - tcm_vhost: Same as loopback
+
+Reported-by: Roland Dreier <roland@purestorage.com>
+Cc: Roland Dreier <roland@purestorage.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Boaz Harrosh <bharrosh@panasas.com>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/target/target_core_transport.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/target/target_core_transport.c b/drivers/target/target_core_transport.c
+index 597fb9b..34d114a 100644
+--- a/drivers/target/target_core_transport.c
++++ b/drivers/target/target_core_transport.c
+@@ -3039,15 +3039,20 @@ static int transport_generic_cmd_sequencer(
+ 			/* Returns CHECK_CONDITION + INVALID_CDB_FIELD */
+ 			goto out_invalid_cdb_field;
+ 		}
+-
++		/*
++		 * For the overflow case keep the existing fabric provided
++		 * ->data_length.  Otherwise for the underflow case, reset
++		 * ->data_length to the smaller SCSI expected data transfer
++		 * length.
++		 */
+ 		if (size > cmd->data_length) {
+ 			cmd->se_cmd_flags |= SCF_OVERFLOW_BIT;
+ 			cmd->residual_count = (size - cmd->data_length);
+ 		} else {
+ 			cmd->se_cmd_flags |= SCF_UNDERFLOW_BIT;
+ 			cmd->residual_count = (cmd->data_length - size);
++			cmd->data_length = size;
+ 		}
+-		cmd->data_length = size;
+ 	}
+ 
+ 	/* reject any command that we don't have a handler for */
+-- 
+1.7.10.4
+

@@ -1,0 +1,51 @@
+From bc0be1283aa3fcef8d34dac7f66462e69c242c25 Mon Sep 17 00:00:00 2001
+From: Florian Fainelli <florian@openwrt.org>
+Date: Mon, 10 Sep 2012 14:06:58 +0200
+Subject: [PATCH 085/109] ixp4xx_hss: fix build failure due to missing
+ linux/module.h inclusion
+
+[ Upstream commit 0b836ddde177bdd5790ade83772860940bd481ea ]
+
+Commit 36a1211970193ce215de50ed1e4e1272bc814df1 (netprio_cgroup.h:
+dont include module.h from other includes) made the following build
+error on ixp4xx_hss pop up:
+
+  CC [M]  drivers/net/wan/ixp4xx_hss.o
+ drivers/net/wan/ixp4xx_hss.c:1412:20: error: expected ';', ',' or ')'
+ before string constant
+ drivers/net/wan/ixp4xx_hss.c:1413:25: error: expected ';', ',' or ')'
+ before string constant
+ drivers/net/wan/ixp4xx_hss.c:1414:21: error: expected ';', ',' or ')'
+ before string constant
+ drivers/net/wan/ixp4xx_hss.c:1415:19: error: expected ';', ',' or ')'
+ before string constant
+ make[8]: *** [drivers/net/wan/ixp4xx_hss.o] Error 1
+
+This was previously hidden because ixp4xx_hss includes linux/hdlc.h which
+includes linux/netdevice.h which includes linux/netprio_cgroup.h which
+used to include linux/module.h. The real issue was actually present since
+the initial commit that added this driver since it uses macros from
+linux/module.h without including this file.
+
+Signed-off-by: Florian Fainelli <florian@openwrt.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wan/ixp4xx_hss.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/net/wan/ixp4xx_hss.c b/drivers/net/wan/ixp4xx_hss.c
+index aaaca9a..3f575af 100644
+--- a/drivers/net/wan/ixp4xx_hss.c
++++ b/drivers/net/wan/ixp4xx_hss.c
+@@ -10,6 +10,7 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
++#include <linux/module.h>
+ #include <linux/bitops.h>
+ #include <linux/cdev.h>
+ #include <linux/dma-mapping.h>
+-- 
+1.7.10.4
+

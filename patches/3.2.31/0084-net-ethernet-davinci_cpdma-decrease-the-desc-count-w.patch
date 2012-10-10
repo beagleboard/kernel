@@ -1,0 +1,34 @@
+From 8c043294987dc8a94a20685171a9ce0eeed35541 Mon Sep 17 00:00:00 2001
+From: htbegin <hotforest@gmail.com>
+Date: Mon, 1 Oct 2012 16:42:43 +0000
+Subject: [PATCH 084/109] net: ethernet: davinci_cpdma: decrease the desc
+ count when cleaning up the remaining packets
+
+[ Upstream commit ffb5ba90017505a19e238e986e6d33f09e4df765 ]
+
+chan->count is used by rx channel. If the desc count is not updated by
+the clean up loop in cpdma_chan_stop, the value written to the rxfree
+register in cpdma_chan_start will be incorrect.
+
+Signed-off-by: Tao Hou <hotforest@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/ti/davinci_cpdma.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+index 306d930..d9dcd8b 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.c
++++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+@@ -871,6 +871,7 @@ int cpdma_chan_stop(struct cpdma_chan *chan)
+ 
+ 		next_dma = desc_read(desc, hw_next);
+ 		chan->head = desc_from_phys(pool, next_dma);
++		chan->count--;
+ 		chan->stats.teardown_dequeue++;
+ 
+ 		/* issue callback without locks held */
+-- 
+1.7.10.4
+

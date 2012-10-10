@@ -1,0 +1,65 @@
+From ae284bf5164ba45c7209f69bf98591c1b9fa58b4 Mon Sep 17 00:00:00 2001
+From: Jianguo Wu <wujianguo@huawei.com>
+Date: Mon, 17 Sep 2012 14:08:56 -0700
+Subject: [PATCH 004/109] mm/ia64: fix a memory block size bug
+
+commit 05cf96398e1b6502f9e191291b715c7463c9d5dd upstream.
+
+I found following definition in include/linux/memory.h, in my IA64
+platform, SECTION_SIZE_BITS is equal to 32, and MIN_MEMORY_BLOCK_SIZE
+will be 0.
+
+  #define MIN_MEMORY_BLOCK_SIZE     (1 << SECTION_SIZE_BITS)
+
+Because MIN_MEMORY_BLOCK_SIZE is int type and length of 32bits,
+so MIN_MEMORY_BLOCK_SIZE(1 << 32) will will equal to 0.
+Actually when SECTION_SIZE_BITS >= 31, MIN_MEMORY_BLOCK_SIZE will be wrong.
+This will cause wrong system memory infomation in sysfs.
+I think it should be:
+
+  #define MIN_MEMORY_BLOCK_SIZE     (1UL << SECTION_SIZE_BITS)
+
+And "echo offline > memory0/state" will cause following call trace:
+
+  kernel BUG at mm/memory_hotplug.c:885!
+  sh[6455]: bugcheck! 0 [1]
+  Pid: 6455, CPU 0, comm:                   sh
+  psr : 0000101008526030 ifs : 8000000000000fa4 ip  : [<a0000001008c40f0>]    Not tainted (3.6.0-rc1)
+  ip is at offline_pages+0x210/0xee0
+  Call Trace:
+    show_stack+0x80/0xa0
+    show_regs+0x640/0x920
+    die+0x190/0x2c0
+    die_if_kernel+0x50/0x80
+    ia64_bad_break+0x3d0/0x6e0
+    ia64_native_leave_kernel+0x0/0x270
+    offline_pages+0x210/0xee0
+    alloc_pages_current+0x180/0x2a0
+
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ include/linux/memory.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/linux/memory.h b/include/linux/memory.h
+index 935699b..6bea2c2 100644
+--- a/include/linux/memory.h
++++ b/include/linux/memory.h
+@@ -20,7 +20,7 @@
+ #include <linux/compiler.h>
+ #include <linux/mutex.h>
+ 
+-#define MIN_MEMORY_BLOCK_SIZE     (1 << SECTION_SIZE_BITS)
++#define MIN_MEMORY_BLOCK_SIZE     (1UL << SECTION_SIZE_BITS)
+ 
+ struct memory_block {
+ 	unsigned long start_section_nr;
+-- 
+1.7.10.4
+

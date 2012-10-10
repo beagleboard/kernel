@@ -1,0 +1,38 @@
+From 195707d207ef3f2957eb6acf1b7bacc7fb7ef7e5 Mon Sep 17 00:00:00 2001
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Date: Sat, 15 Sep 2012 09:41:57 +0100
+Subject: [PATCH 021/109] drm/i915: Reduce a pin-leak BUG into a WARN
+
+commit 7e81a42e341a4f15d76624b7c02ffb21b085b56f upstream.
+
+Pin-leaks persist and we get the perennial bug reports of machine
+lockups to the BUG_ON(pin_count==MAX). If we instead loudly report that
+the object cannot be pinned at that time it should prevent the driver from
+locking up, and hopefully restore a semblance of working whilst still
+leaving us a OOPS to debug.
+
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_gem.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index 548a400..e48e01e 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -3357,7 +3357,8 @@ i915_gem_object_pin(struct drm_i915_gem_object *obj,
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	int ret;
+ 
+-	BUG_ON(obj->pin_count == DRM_I915_GEM_OBJECT_MAX_PIN_COUNT);
++	if (WARN_ON(obj->pin_count == DRM_I915_GEM_OBJECT_MAX_PIN_COUNT))
++		return -EBUSY;
+ 	WARN_ON(i915_verify_lists(dev));
+ 
+ 	if (obj->gtt_space != NULL) {
+-- 
+1.7.10.4
+

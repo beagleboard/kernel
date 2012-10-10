@@ -1,0 +1,53 @@
+From ebf9d67990aa34685e71cfb3775fc889130007b0 Mon Sep 17 00:00:00 2001
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Date: Wed, 19 Sep 2012 19:25:34 +0000
+Subject: [PATCH 091/109] ipv6: release reference of ip6_null_entry's dst
+ entry in __ip6_del_rt
+
+[ Upstream commit 6825a26c2dc21eb4f8df9c06d3786ddec97cf53b ]
+
+as we hold dst_entry before we call __ip6_del_rt,
+so we should alse call dst_release not only return
+-ENOENT when the rt6_info is ip6_null_entry.
+
+and we already hold the dst entry, so I think it's
+safe to call dst_release out of the write-read lock.
+
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv6/route.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/net/ipv6/route.c b/net/ipv6/route.c
+index 2e21751..488a1b7 100644
+--- a/net/ipv6/route.c
++++ b/net/ipv6/route.c
+@@ -1435,17 +1435,18 @@ static int __ip6_del_rt(struct rt6_info *rt, struct nl_info *info)
+ 	struct fib6_table *table;
+ 	struct net *net = dev_net(rt->rt6i_dev);
+ 
+-	if (rt == net->ipv6.ip6_null_entry)
+-		return -ENOENT;
++	if (rt == net->ipv6.ip6_null_entry) {
++		err = -ENOENT;
++		goto out;
++	}
+ 
+ 	table = rt->rt6i_table;
+ 	write_lock_bh(&table->tb6_lock);
+-
+ 	err = fib6_del(rt, info);
+-	dst_release(&rt->dst);
+-
+ 	write_unlock_bh(&table->tb6_lock);
+ 
++out:
++	dst_release(&rt->dst);
+ 	return err;
+ }
+ 
+-- 
+1.7.10.4
+

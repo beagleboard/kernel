@@ -1,0 +1,38 @@
+From 413f5f4673d11aed39fe5470170f8f187f8f566b Mon Sep 17 00:00:00 2001
+From: Nikolay Aleksandrov <nikolay@redhat.com>
+Date: Fri, 14 Sep 2012 05:50:03 +0000
+Subject: [PATCH 086/109] netxen: check for root bus in
+ netxen_mask_aer_correctable
+
+[ Upstream commit e4d1aa40e363ed3e0486aeeeb0d173f7f822737e ]
+
+Add a check if pdev->bus->self == NULL (root bus). When attaching
+a netxen NIC to a VM it can be on the root bus and the guest would
+crash in netxen_mask_aer_correctable() because of a NULL pointer
+dereference if CONFIG_PCIEAER is present.
+
+Signed-off-by: Nikolay Aleksandrov <nikolay@redhat.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c b/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
+index 8cf3173..da5204d 100644
+--- a/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
++++ b/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
+@@ -1351,6 +1351,10 @@ static void netxen_mask_aer_correctable(struct netxen_adapter *adapter)
+ 	struct pci_dev *root = pdev->bus->self;
+ 	u32 aer_pos;
+ 
++	/* root bus? */
++	if (!root)
++		return;
++
+ 	if (adapter->ahw.board_type != NETXEN_BRDTYPE_P3_4_GB_MM &&
+ 		adapter->ahw.board_type != NETXEN_BRDTYPE_P3_10G_TP)
+ 		return;
+-- 
+1.7.10.4
+

@@ -1,0 +1,49 @@
+From 61f9cdd70c6a476425e3609eaa7a0f85a4f46042 Mon Sep 17 00:00:00 2001
+From: Li Haifeng <omycle@gmail.com>
+Date: Mon, 17 Sep 2012 14:09:21 -0700
+Subject: [PATCH 007/109] mm/page_alloc: fix the page address of higher page's
+ buddy calculation
+
+commit 0ba8f2d59304dfe69b59c034de723ad80f7ab9ac upstream.
+
+The heuristic method for buddy has been introduced since commit
+43506fad21ca ("mm/page_alloc.c: simplify calculation of combined index
+of adjacent buddy lists").  But the page address of higher page's buddy
+was wrongly calculated, which will lead page_is_buddy to fail for ever.
+IOW, the heuristic method would be disabled with the wrong page address
+of higher page's buddy.
+
+Calculating the page address of higher page's buddy should be based
+higher_page with the offset between index of higher page and index of
+higher page's buddy.
+
+Signed-off-by: Haifeng Li <omycle@gmail.com>
+Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: KyongHo Cho <pullip.cho@samsung.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 6e51bf0..a88dded 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -541,7 +541,7 @@ static inline void __free_one_page(struct page *page,
+ 		combined_idx = buddy_idx & page_idx;
+ 		higher_page = page + (combined_idx - page_idx);
+ 		buddy_idx = __find_buddy_index(combined_idx, order + 1);
+-		higher_buddy = page + (buddy_idx - combined_idx);
++		higher_buddy = higher_page + (buddy_idx - combined_idx);
+ 		if (page_is_buddy(higher_page, higher_buddy, order + 1)) {
+ 			list_add_tail(&page->lru,
+ 				&zone->free_area[order].free_list[migratetype]);
+-- 
+1.7.10.4
+

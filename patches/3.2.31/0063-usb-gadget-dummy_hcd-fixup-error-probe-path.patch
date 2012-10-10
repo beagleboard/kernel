@@ -1,0 +1,52 @@
+From 60d7f60842a165f1b2b8fcaf91b944ea831bb144 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Date: Sun, 19 Aug 2012 21:54:58 +0200
+Subject: [PATCH 063/109] usb: gadget: dummy_hcd: fixup error probe path
+
+commit 1b68a4ca2d038addb7314211d122fb6d7002b38b upstream.
+
+If USB2 host controller probes fine but USB3 does not then we don't
+remove the USB controller properly and lock up the system while the HUB
+code will try to enumerate the USB2 controller and access memory which
+is no longer available in case the dummy_hcd was compiled as a module.
+
+This is a problem since 448b6eb1 ("USB: Make sure to fetch the BOS desc
+for roothubs.) if used in USB3 mode because dummy does not provide this
+descriptor and explodes later.
+
+Signed-off-by: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/gadget/dummy_hcd.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/usb/gadget/dummy_hcd.c b/drivers/usb/gadget/dummy_hcd.c
+index 9098642..e8223c2 100644
+--- a/drivers/usb/gadget/dummy_hcd.c
++++ b/drivers/usb/gadget/dummy_hcd.c
+@@ -2291,10 +2291,8 @@ static int dummy_hcd_probe(struct platform_device *pdev)
+ 	hs_hcd->has_tt = 1;
+ 
+ 	retval = usb_add_hcd(hs_hcd, 0, 0);
+-	if (retval != 0) {
+-		usb_put_hcd(hs_hcd);
+-		return retval;
+-	}
++	if (retval)
++		goto put_usb2_hcd;
+ 
+ 	if (mod_data.is_super_speed) {
+ 		ss_hcd = usb_create_shared_hcd(&dummy_hcd, &pdev->dev,
+@@ -2313,6 +2311,8 @@ static int dummy_hcd_probe(struct platform_device *pdev)
+ put_usb3_hcd:
+ 	usb_put_hcd(ss_hcd);
+ dealloc_usb2_hcd:
++	usb_remove_hcd(hs_hcd);
++put_usb2_hcd:
+ 	usb_put_hcd(hs_hcd);
+ 	the_controller.hs_hcd = the_controller.ss_hcd = NULL;
+ 	return retval;
+-- 
+1.7.10.4
+

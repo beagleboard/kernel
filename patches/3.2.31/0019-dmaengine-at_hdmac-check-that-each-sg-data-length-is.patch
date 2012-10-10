@@ -1,0 +1,59 @@
+From bea47a2b9189c63a5db211774ab96ef576dd0090 Mon Sep 17 00:00:00 2001
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Date: Tue, 11 Sep 2012 17:21:45 +0200
+Subject: [PATCH 019/109] dmaengine: at_hdmac: check that each sg data length
+ is non-null
+
+commit c456797681db814f4f5b36909e8e94047bf53d9c upstream.
+
+Avoid the construction of a malformed DMA request sent to
+the DMA controller.
+Log message is for debug only because this condition is unlikely to
+append and may only trigger at driver development time.
+
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Signed-off-by: Vinod Koul <vinod.koul@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/dma/at_hdmac.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/drivers/dma/at_hdmac.c b/drivers/dma/at_hdmac.c
+index 77cb8b4..c60d9c1 100644
+--- a/drivers/dma/at_hdmac.c
++++ b/drivers/dma/at_hdmac.c
+@@ -706,6 +706,11 @@ atc_prep_slave_sg(struct dma_chan *chan, struct scatterlist *sgl,
+ 
+ 			mem = sg_dma_address(sg);
+ 			len = sg_dma_len(sg);
++			if (unlikely(!len)) {
++				dev_dbg(chan2dev(chan),
++					"prep_slave_sg: sg(%d) data length is zero\n", i);
++				goto err;
++			}
+ 			mem_width = 2;
+ 			if (unlikely(mem & 3 || len & 3))
+ 				mem_width = 0;
+@@ -740,6 +745,11 @@ atc_prep_slave_sg(struct dma_chan *chan, struct scatterlist *sgl,
+ 
+ 			mem = sg_dma_address(sg);
+ 			len = sg_dma_len(sg);
++			if (unlikely(!len)) {
++				dev_dbg(chan2dev(chan),
++					"prep_slave_sg: sg(%d) data length is zero\n", i);
++				goto err;
++			}
+ 			mem_width = 2;
+ 			if (unlikely(mem & 3 || len & 3))
+ 				mem_width = 0;
+@@ -773,6 +783,7 @@ atc_prep_slave_sg(struct dma_chan *chan, struct scatterlist *sgl,
+ 
+ err_desc_get:
+ 	dev_err(chan2dev(chan), "not enough descriptors available\n");
++err:
+ 	atc_desc_put(atchan, first);
+ 	return NULL;
+ }
+-- 
+1.7.10.4
+

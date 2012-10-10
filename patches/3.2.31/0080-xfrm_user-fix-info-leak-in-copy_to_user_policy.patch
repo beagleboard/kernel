@@ -1,0 +1,35 @@
+From dad45fccb54378afcf5afc54566979a38bdeabad Mon Sep 17 00:00:00 2001
+From: Mathias Krause <minipli@googlemail.com>
+Date: Wed, 19 Sep 2012 11:33:40 +0000
+Subject: [PATCH 080/109] xfrm_user: fix info leak in copy_to_user_policy()
+
+[ Upstream commit 7b789836f434c87168eab067cfbed1ec4783dffd ]
+
+The memory reserved to dump the xfrm policy includes multiple padding
+bytes added by the compiler for alignment (padding bytes in struct
+xfrm_selector and struct xfrm_userpolicy_info). Add an explicit
+memset(0) before filling the buffer to avoid the heap info leak.
+
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+Acked-by: Steffen Klassert <steffen.klassert@secunet.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/xfrm/xfrm_user.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/xfrm/xfrm_user.c b/net/xfrm/xfrm_user.c
+index f252cae..1d222e9 100644
+--- a/net/xfrm/xfrm_user.c
++++ b/net/xfrm/xfrm_user.c
+@@ -1300,6 +1300,7 @@ static void copy_from_user_policy(struct xfrm_policy *xp, struct xfrm_userpolicy
+ 
+ static void copy_to_user_policy(struct xfrm_policy *xp, struct xfrm_userpolicy_info *p, int dir)
+ {
++	memset(p, 0, sizeof(*p));
+ 	memcpy(&p->sel, &xp->selector, sizeof(p->sel));
+ 	memcpy(&p->lft, &xp->lft, sizeof(p->lft));
+ 	memcpy(&p->curlft, &xp->curlft, sizeof(p->curlft));
+-- 
+1.7.10.4
+

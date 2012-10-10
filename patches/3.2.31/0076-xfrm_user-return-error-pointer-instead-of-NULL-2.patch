@@ -1,0 +1,48 @@
+From 38acfe420ff75e01ee556d2d2cd5b40f1091e923 Mon Sep 17 00:00:00 2001
+From: Mathias Krause <minipli@googlemail.com>
+Date: Fri, 14 Sep 2012 09:58:32 +0000
+Subject: [PATCH 076/109] xfrm_user: return error pointer instead of NULL #2
+
+[ Upstream commit c25463722509fef0ed630b271576a8c9a70236f3 ]
+
+When dump_one_policy() returns an error, e.g. because of a too small
+buffer to dump the whole xfrm policy, xfrm_policy_netlink() returns
+NULL instead of an error pointer. But its caller expects an error
+pointer and therefore continues to operate on a NULL skbuff.
+
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+Acked-by: Steffen Klassert <steffen.klassert@secunet.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/xfrm/xfrm_user.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/net/xfrm/xfrm_user.c b/net/xfrm/xfrm_user.c
+index a092828..1221b77 100644
+--- a/net/xfrm/xfrm_user.c
++++ b/net/xfrm/xfrm_user.c
+@@ -1531,6 +1531,7 @@ static struct sk_buff *xfrm_policy_netlink(struct sk_buff *in_skb,
+ {
+ 	struct xfrm_dump_info info;
+ 	struct sk_buff *skb;
++	int err;
+ 
+ 	skb = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+ 	if (!skb)
+@@ -1541,9 +1542,10 @@ static struct sk_buff *xfrm_policy_netlink(struct sk_buff *in_skb,
+ 	info.nlmsg_seq = seq;
+ 	info.nlmsg_flags = 0;
+ 
+-	if (dump_one_policy(xp, dir, 0, &info) < 0) {
++	err = dump_one_policy(xp, dir, 0, &info);
++	if (err) {
+ 		kfree_skb(skb);
+-		return NULL;
++		return ERR_PTR(err);
+ 	}
+ 
+ 	return skb;
+-- 
+1.7.10.4
+

@@ -1,0 +1,72 @@
+From f222e7b3ad7d004904149a3d9788eeaee478845a Mon Sep 17 00:00:00 2001
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Mon, 17 Sep 2012 22:23:30 +0200
+Subject: [PATCH 062/109] vfs: dcache: fix deadlock in tree traversal
+
+commit 8110e16d42d587997bcaee0c864179e6d93603fe upstream.
+
+IBM reported a deadlock in select_parent().  This was found to be caused
+by taking rename_lock when already locked when restarting the tree
+traversal.
+
+There are two cases when the traversal needs to be restarted:
+
+ 1) concurrent d_move(); this can only happen when not already locked,
+    since taking rename_lock protects against concurrent d_move().
+
+ 2) racing with final d_put() on child just at the moment of ascending
+    to parent; rename_lock doesn't protect against this rare race, so it
+    can happen when already locked.
+
+Because of case 2, we need to be able to handle restarting the traversal
+when rename_lock is already held.  This patch fixes all three callers of
+try_to_ascend().
+
+IBM reported that the deadlock is gone with this patch.
+
+[ I rewrote the patch to be smaller and just do the "goto again" if the
+  lock was already held, but credit goes to Miklos for the real work.
+   - Linus ]
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/dcache.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/fs/dcache.c b/fs/dcache.c
+index d20dc2b..63c0c6b 100644
+--- a/fs/dcache.c
++++ b/fs/dcache.c
+@@ -1054,6 +1054,8 @@ positive:
+ 	return 1;
+ 
+ rename_retry:
++	if (locked)
++		goto again;
+ 	locked = 1;
+ 	write_seqlock(&rename_lock);
+ 	goto again;
+@@ -1156,6 +1158,8 @@ out:
+ rename_retry:
+ 	if (found)
+ 		return found;
++	if (locked)
++		goto again;
+ 	locked = 1;
+ 	write_seqlock(&rename_lock);
+ 	goto again;
+@@ -2922,6 +2926,8 @@ resume:
+ 	return;
+ 
+ rename_retry:
++	if (locked)
++		goto again;
+ 	locked = 1;
+ 	write_seqlock(&rename_lock);
+ 	goto again;
+-- 
+1.7.10.4
+

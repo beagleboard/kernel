@@ -1,0 +1,51 @@
+From c59ef59e6efae796d27879d9ce07a2d7321a967e Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Tue, 11 Sep 2012 13:11:12 +0000
+Subject: [PATCH 087/109] net-sched: sch_cbq: avoid infinite loop
+
+[ Upstream commit bdfc87f7d1e253e0a61e2fc6a75ea9d76f7fc03a ]
+
+Its possible to setup a bad cbq configuration leading to
+an infinite loop in cbq_classify()
+
+DEV_OUT=eth0
+ICMP="match ip protocol 1 0xff"
+U32="protocol ip u32"
+DST="match ip dst"
+tc qdisc add dev $DEV_OUT root handle 1: cbq avpkt 1000 \
+	bandwidth 100mbit
+tc class add dev $DEV_OUT parent 1: classid 1:1 cbq \
+	rate 512kbit allot 1500 prio 5 bounded isolated
+tc filter add dev $DEV_OUT parent 1: prio 3 $U32 \
+	$ICMP $DST 192.168.3.234 flowid 1:
+
+Reported-by: Denys Fedoryschenko <denys@visp.net.lb>
+Tested-by: Denys Fedoryschenko <denys@visp.net.lb>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/sched/sch_cbq.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/net/sched/sch_cbq.c b/net/sched/sch_cbq.c
+index 24d94c0..599f67a 100644
+--- a/net/sched/sch_cbq.c
++++ b/net/sched/sch_cbq.c
+@@ -250,10 +250,11 @@ cbq_classify(struct sk_buff *skb, struct Qdisc *sch, int *qerr)
+ 			else if ((cl = defmap[res.classid & TC_PRIO_MAX]) == NULL)
+ 				cl = defmap[TC_PRIO_BESTEFFORT];
+ 
+-			if (cl == NULL || cl->level >= head->level)
++			if (cl == NULL)
+ 				goto fallback;
+ 		}
+-
++		if (cl->level >= head->level)
++			goto fallback;
+ #ifdef CONFIG_NET_CLS_ACT
+ 		switch (result) {
+ 		case TC_ACT_QUEUED:
+-- 
+1.7.10.4
+

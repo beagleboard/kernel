@@ -1,0 +1,49 @@
+From 86dbef54ae481d42575927271b6bff6e1214f763 Mon Sep 17 00:00:00 2001
+From: Wen Congyang <wency@cn.fujitsu.com>
+Date: Thu, 20 Sep 2012 14:04:47 +0800
+Subject: [PATCH 034/109] tracing: Don't call page_to_pfn() if page is NULL
+
+commit 85f2a2ef1d0ab99523e0b947a2b723f5650ed6aa upstream.
+
+When allocating memory fails, page is NULL. page_to_pfn() will
+cause the kernel panicked if we don't use sparsemem vmemmap.
+
+Link: http://lkml.kernel.org/r/505AB1FF.8020104@cn.fujitsu.com
+
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ include/trace/events/kmem.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/trace/events/kmem.h b/include/trace/events/kmem.h
+index a9c87ad..a9536da 100644
+--- a/include/trace/events/kmem.h
++++ b/include/trace/events/kmem.h
+@@ -214,7 +214,7 @@ TRACE_EVENT(mm_page_alloc,
+ 
+ 	TP_printk("page=%p pfn=%lu order=%d migratetype=%d gfp_flags=%s",
+ 		__entry->page,
+-		page_to_pfn(__entry->page),
++		__entry->page ? page_to_pfn(__entry->page) : 0,
+ 		__entry->order,
+ 		__entry->migratetype,
+ 		show_gfp_flags(__entry->gfp_flags))
+@@ -240,7 +240,7 @@ DECLARE_EVENT_CLASS(mm_page,
+ 
+ 	TP_printk("page=%p pfn=%lu order=%u migratetype=%d percpu_refill=%d",
+ 		__entry->page,
+-		page_to_pfn(__entry->page),
++		__entry->page ? page_to_pfn(__entry->page) : 0,
+ 		__entry->order,
+ 		__entry->migratetype,
+ 		__entry->order == 0)
+-- 
+1.7.10.4
+

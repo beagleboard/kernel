@@ -1,0 +1,34 @@
+From ed6aea41723ebb4e3a0357362d5658527d1193cb Mon Sep 17 00:00:00 2001
+From: Lennart Sorensen <lsorense@csclub.uwaterloo.ca>
+Date: Fri, 7 Sep 2012 12:14:02 +0000
+Subject: [PATCH 089/109] sierra_net: Endianess bug fix.
+
+[ Upstream commit 2120c52da6fe741454a60644018ad2a6abd957ac ]
+
+I discovered I couldn't get sierra_net to work on a powerpc.  Turns out
+the firmware attribute check assumes the system is little endian and
+hence fails because the attributes is a 16 bit value.
+
+Signed-off-by: Len Sorensen <lsorense@csclub.uwaterloo.ca>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/usb/sierra_net.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/usb/sierra_net.c b/drivers/net/usb/sierra_net.c
+index 864448b..e773250 100644
+--- a/drivers/net/usb/sierra_net.c
++++ b/drivers/net/usb/sierra_net.c
+@@ -678,7 +678,7 @@ static int sierra_net_get_fw_attr(struct usbnet *dev, u16 *datap)
+ 		return -EIO;
+ 	}
+ 
+-	*datap = *attrdata;
++	*datap = le16_to_cpu(*attrdata);
+ 
+ 	kfree(attrdata);
+ 	return result;
+-- 
+1.7.10.4
+

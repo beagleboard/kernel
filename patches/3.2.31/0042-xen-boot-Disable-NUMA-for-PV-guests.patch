@@ -1,0 +1,93 @@
+From 54f14b8470f0566634e8b1aa90e61f7b1ea3a73b Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Fri, 17 Aug 2012 10:22:37 -0400
+Subject: [PATCH 042/109] xen/boot: Disable NUMA for PV guests.
+
+commit 8d54db795dfb1049d45dc34f0dddbc5347ec5642 upstream.
+
+The hypervisor is in charge of allocating the proper "NUMA" memory
+and dealing with the CPU scheduler to keep them bound to the proper
+NUMA node. The PV guests (and PVHVM) have no inkling of where they
+run and do not need to know that right now. In the future we will
+need to inject NUMA configuration data (if a guest spans two or more
+NUMA nodes) so that the kernel can make the right choices. But those
+patches are not yet present.
+
+In the meantime, disable the NUMA capability in the PV guest, which
+also fixes a bootup issue. Andre says:
+
+"we see Dom0 crashes due to the kernel detecting the NUMA topology not
+by ACPI, but directly from the northbridge (CONFIG_AMD_NUMA).
+
+This will detect the actual NUMA config of the physical machine, but
+will crash about the mismatch with Dom0's virtual memory. Variation of
+the theme: Dom0 sees what it's not supposed to see.
+
+This happens with the said config option enabled and on a machine where
+this scanning is still enabled (K8 and Fam10h, not Bulldozer class)
+
+We have this dump then:
+NUMA: Warning: node ids are out of bound, from=-1 to=-1 distance=10
+Scanning NUMA topology in Northbridge 24
+Number of physical nodes 4
+Node 0 MemBase 0000000000000000 Limit 0000000040000000
+Node 1 MemBase 0000000040000000 Limit 0000000138000000
+Node 2 MemBase 0000000138000000 Limit 00000001f8000000
+Node 3 MemBase 00000001f8000000 Limit 0000000238000000
+Initmem setup node 0 0000000000000000-0000000040000000
+  NODE_DATA [000000003ffd9000 - 000000003fffffff]
+Initmem setup node 1 0000000040000000-0000000138000000
+  NODE_DATA [0000000137fd9000 - 0000000137ffffff]
+Initmem setup node 2 0000000138000000-00000001f8000000
+  NODE_DATA [00000001f095e000 - 00000001f0984fff]
+Initmem setup node 3 00000001f8000000-0000000238000000
+Cannot find 159744 bytes in node 3
+BUG: unable to handle kernel NULL pointer dereference at (null)
+IP: [<ffffffff81d220e6>] __alloc_bootmem_node+0x43/0x96
+Pid: 0, comm: swapper Not tainted 3.3.6 #1 AMD Dinar/Dinar
+RIP: e030:[<ffffffff81d220e6>]  [<ffffffff81d220e6>] __alloc_bootmem_node+0x43/0x96
+.. snip..
+  [<ffffffff81d23024>] sparse_early_usemaps_alloc_node+0x64/0x178
+  [<ffffffff81d23348>] sparse_init+0xe4/0x25a
+  [<ffffffff81d16840>] paging_init+0x13/0x22
+  [<ffffffff81d07fbb>] setup_arch+0x9c6/0xa9b
+  [<ffffffff81683954>] ? printk+0x3c/0x3e
+  [<ffffffff81d01a38>] start_kernel+0xe5/0x468
+  [<ffffffff81d012cf>] x86_64_start_reservations+0xba/0xc1
+  [<ffffffff81007153>] ? xen_setup_runstate_info+0x2c/0x36
+  [<ffffffff81d050ee>] xen_start_kernel+0x565/0x56c
+"
+
+so we just disable NUMA scanning by setting numa_off=1.
+
+Reported-and-Tested-by: Andre Przywara <andre.przywara@amd.com>
+Acked-by: Andre Przywara <andre.przywara@amd.com>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/xen/setup.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/x86/xen/setup.c b/arch/x86/xen/setup.c
+index bb104b4..6e5a7f1 100644
+--- a/arch/x86/xen/setup.c
++++ b/arch/x86/xen/setup.c
+@@ -16,6 +16,7 @@
+ #include <asm/e820.h>
+ #include <asm/setup.h>
+ #include <asm/acpi.h>
++#include <asm/numa.h>
+ #include <asm/xen/hypervisor.h>
+ #include <asm/xen/hypercall.h>
+ 
+@@ -431,4 +432,7 @@ void __init xen_arch_setup(void)
+ 	boot_option_idle_override = IDLE_HALT;
+ 	WARN_ON(set_pm_idle_to_default());
+ 	fiddle_vdso();
++#ifdef CONFIG_NUMA
++	numa_off = 1;
++#endif
+ }
+-- 
+1.7.10.4
+
