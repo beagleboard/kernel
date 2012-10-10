@@ -1,0 +1,67 @@
+From 4b1efbb9fb576221f5acdbf170c0c15ab0bcdcfd Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Tue, 9 Oct 2012 15:54:56 -0500
+Subject: [PATCH 2/4] Revert "[media] omap3isp: Default link validation for
+ ccp2, csi2, preview and resizer"
+
+This reverts commit 20d4ab7bea8e79bb330c2d52da9c245911ea29ed.
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ drivers/media/video/omap3isp/ispccp2.c    |    1 -
+ drivers/media/video/omap3isp/ispcsi2.c    |    1 -
+ drivers/media/video/omap3isp/isppreview.c |    1 -
+ drivers/media/video/omap3isp/ispresizer.c |    1 -
+ 4 files changed, 4 deletions(-)
+
+diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
+index 85f0de8..ee7dcda 100644
+--- a/drivers/media/video/omap3isp/ispccp2.c
++++ b/drivers/media/video/omap3isp/ispccp2.c
+@@ -998,7 +998,6 @@ static int ccp2_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations ccp2_media_ops = {
+ 	.link_setup = ccp2_link_setup,
+-	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ /*
+diff --git a/drivers/media/video/omap3isp/ispcsi2.c b/drivers/media/video/omap3isp/ispcsi2.c
+index a172436..75ac6d4 100644
+--- a/drivers/media/video/omap3isp/ispcsi2.c
++++ b/drivers/media/video/omap3isp/ispcsi2.c
+@@ -1167,7 +1167,6 @@ static int csi2_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations csi2_media_ops = {
+ 	.link_setup = csi2_link_setup,
+-	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_csi2_unregister_entities(struct isp_csi2_device *csi2)
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index 53f5a70..3257d38 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -2217,7 +2217,6 @@ static int preview_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations preview_media_ops = {
+ 	.link_setup = preview_link_setup,
+-	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_preview_unregister_entities(struct isp_prev_device *prev)
+diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
+index ae17d91..e4668ad 100644
+--- a/drivers/media/video/omap3isp/ispresizer.c
++++ b/drivers/media/video/omap3isp/ispresizer.c
+@@ -1641,7 +1641,6 @@ static int resizer_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations resizer_media_ops = {
+ 	.link_setup = resizer_link_setup,
+-	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_resizer_unregister_entities(struct isp_res_device *res)
+-- 
+1.7.10.4
+

@@ -1,0 +1,136 @@
+From 4d0593d60f3d51c241f42f4dee6844fe509cdc2a Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Tue, 9 Oct 2012 15:55:15 -0500
+Subject: [PATCH 3/4] Revert "[media] omap3isp: Use external rate instead of
+ vpcfg"
+
+This reverts commit c6c01f97b1733ba110993ec51600c06961e41bfe.
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ drivers/media/video/omap3isp/isp.c      |   14 ++++++++++++++
+ drivers/media/video/omap3isp/isp.h      |    1 +
+ drivers/media/video/omap3isp/ispccdc.c  |    6 ++++--
+ drivers/media/video/omap3isp/ispccdc.h  |   10 ++++++++++
+ drivers/media/video/omap3isp/ispvideo.c |    2 +-
+ 5 files changed, 30 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index 1c34763..0307ac3 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -329,6 +329,19 @@ void omap3isp_configure_bridge(struct isp_device *isp,
+ 	isp_reg_writel(isp, ispctrl_val, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
+ }
+ 
++/**
++ * isp_set_pixel_clock - Configures the ISP pixel clock
++ * @isp: OMAP3 ISP device
++ * @pixelclk: Average pixel clock in Hz
++ *
++ * Set the average pixel clock required by the sensor. The ISP will use the
++ * lowest possible memory bandwidth settings compatible with the clock.
++ **/
++static void isp_set_pixel_clock(struct isp_device *isp, unsigned int pixelclk)
++{
++	isp->isp_ccdc.vpcfg.pixelclk = pixelclk;
++}
++
+ void omap3isp_hist_dma_done(struct isp_device *isp)
+ {
+ 	if (omap3isp_ccdc_busy(&isp->isp_ccdc) ||
+@@ -2064,6 +2077,7 @@ static int __devinit isp_probe(struct platform_device *pdev)
+ 
+ 	isp->autoidle = autoidle;
+ 	isp->platform_cb.set_xclk = isp_set_xclk;
++	isp->platform_cb.set_pixel_clock = isp_set_pixel_clock;
+ 
+ 	mutex_init(&isp->isp_mutex);
+ 	spin_lock_init(&isp->stat_lock);
+diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
+index fc7af3e..38c6619 100644
+--- a/drivers/media/video/omap3isp/isp.h
++++ b/drivers/media/video/omap3isp/isp.h
+@@ -129,6 +129,7 @@ struct isp_platform_callback {
+ 	int (*csiphy_config)(struct isp_csiphy *phy,
+ 			     struct isp_csiphy_dphy_cfg *dphy,
+ 			     struct isp_csiphy_lanes_cfg *lanes);
++	void (*set_pixel_clock)(struct isp_device *isp, unsigned int pixelclk);
+ };
+ 
+ /*
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index c1a0e89..267d15e 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -839,8 +839,8 @@ static void ccdc_config_vp(struct isp_ccdc_device *ccdc)
+ 
+ 	if (pipe->input)
+ 		div = DIV_ROUND_UP(l3_ick, pipe->max_rate);
+-	else if (pipe->external_rate)
+-		div = l3_ick / pipe->external_rate;
++	else if (ccdc->vpcfg.pixelclk)
++		div = l3_ick / ccdc->vpcfg.pixelclk;
+ 
+ 	div = clamp(div, 2U, max_div);
+ 	fmtcfg_vp |= (div - 2) << ISPCCDC_FMTCFG_VPIF_FRQ_SHIFT;
+@@ -2433,6 +2433,8 @@ int omap3isp_ccdc_init(struct isp_device *isp)
+ 	ccdc->clamp.oblen = 0;
+ 	ccdc->clamp.dcsubval = 0;
+ 
++	ccdc->vpcfg.pixelclk = 0;
++
+ 	ccdc->update = OMAP3ISP_CCDC_BLCLAMP;
+ 	ccdc_apply_controls(ccdc);
+ 
+diff --git a/drivers/media/video/omap3isp/ispccdc.h b/drivers/media/video/omap3isp/ispccdc.h
+index 890f6b3..966bbf8 100644
+--- a/drivers/media/video/omap3isp/ispccdc.h
++++ b/drivers/media/video/omap3isp/ispccdc.h
+@@ -80,6 +80,14 @@ struct ispccdc_syncif {
+ 	u8 bt_r656_en;
+ };
+ 
++/*
++ * struct ispccdc_vp - Structure for Video Port parameters
++ * @pixelclk: Input pixel clock in Hz
++ */
++struct ispccdc_vp {
++	unsigned int pixelclk;
++};
++
+ enum ispccdc_lsc_state {
+ 	LSC_STATE_STOPPED = 0,
+ 	LSC_STATE_STOPPING = 1,
+@@ -154,6 +162,7 @@ struct ispccdc_lsc {
+  * @update: Bitmask of controls to update during the next interrupt
+  * @shadow_update: Controls update in progress by userspace
+  * @syncif: Interface synchronization configuration
++ * @vpcfg: Video port configuration
+  * @underrun: A buffer underrun occurred and a new buffer has been queued
+  * @state: Streaming state
+  * @lock: Serializes shadow_update with interrupt handler
+@@ -183,6 +192,7 @@ struct isp_ccdc_device {
+ 	unsigned int shadow_update;
+ 
+ 	struct ispccdc_syncif syncif;
++	struct ispccdc_vp vpcfg;
+ 
+ 	unsigned int underrun:1;
+ 	enum isp_pipeline_stream_state state;
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index 66bc674..ffad91e 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -352,7 +352,7 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+ 			unsigned int rate = UINT_MAX;
+ 
+ 			omap3isp_ccdc_max_rate(&isp->isp_ccdc, &rate);
+-			if (pipe->external_rate > rate)
++			if (isp->isp_ccdc.vpcfg.pixelclk > rate)
+ 				return -ENOSPC;
+ 		}
+ 
+-- 
+1.7.10.4
+
