@@ -187,12 +187,12 @@ index 5a3903d..0ee16f3 100644
 +static int __init omap3_beagle_late_initcall(void)
 +{
 +#if defined(CONFIG_VIDEO_MT9P031)
-+	if (!strcmp(camera_name, "lbcm5m1"))
++	if ((!strcmp(camera_name, "lbcm5m1")) || (!strcmp(camera_name, "li5m03")))
 +	{
 +		if (!cpu_is_omap3630())
 +			return 0;
 +
-+		pr_info("Beagle expansionboard: MT9P031 init");
++		pr_info("Beagle camera: MT9P031 init");
 +
 +		reg_1v8 = regulator_get(NULL, "cam_1v8");
 +		if (IS_ERR(reg_1v8))
