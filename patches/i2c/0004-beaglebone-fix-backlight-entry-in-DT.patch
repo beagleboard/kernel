@@ -1,0 +1,32 @@
+From b5a463a2de0d8b8912332f6f6e30d8b7ebe28ff7 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Tue, 18 Sep 2012 11:23:47 +0200
+Subject: [PATCH 4/4] beaglebone: fix backlight entry in DT
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am335x-bone.dts |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index e12ada5..cba2157 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -92,6 +92,14 @@
+ 			};
+ 		};
+ 	};
++
++	backlight {
++			compatible	= "pwm-backlight"; 
++			pwms = <&ehrpwm1 0 500000 0>;
++			pwm-names = "st7735fb";
++			brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100>;
++			default-brightness-level = <50>; /* index to the array above */ 
++		};
+ };
+ 
+ &i2c0 {
+-- 
+1.7.7.6
+

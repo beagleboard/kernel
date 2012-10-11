@@ -1,0 +1,105 @@
+From e58a01d1d188cb1ec913cf3cb54123848537d9a6 Mon Sep 17 00:00:00 2001
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Date: Tue, 24 Jul 2012 14:58:09 +0530
+Subject: [PATCH 5/7] pwm: pwm-tiecap: Enable clock gating
+
+In AM335x SOC, clock to PWM modules is gated in common config space.
+This commit adds support for enabling clock gating in the driver and
+leave it enabled if config space node is present.
+
+Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+---
+ Documentation/devicetree/bindings/pwm/ecap-pwm.txt |   12 ++++++
+ drivers/pwm/pwm-tiecap.c                           |   37 +++++++++++++++++++-
+ 2 files changed, 48 insertions(+), 1 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/pwm/ecap-pwm.txt b/Documentation/devicetree/bindings/pwm/ecap-pwm.txt
+index fa56534..7d83587 100644
+--- a/Documentation/devicetree/bindings/pwm/ecap-pwm.txt
++++ b/Documentation/devicetree/bindings/pwm/ecap-pwm.txt
+@@ -9,6 +9,11 @@ Required properties:
+   polarity of PWM output. Polarity 0 gives normal polarity and 1 gives
+   inversed polarity (inverse duty cycle)
+ 
++Optional properties:
++- has_configspace: Some ECAP hardwares has config space memory region
++  to enable clock gating to individual modules. Adding this as optional
++  properties.
++
+ Note: Current implementation will fetch base address, irq and dma
+ from omap hwmod data base during device registration.
+ Future plan is to migrate hwmod data base contents into device tree
+@@ -22,3 +27,10 @@ Example:
+ 		ti,hwmods = "ecap0";
+ 		#pwm-cells = <3>;
+ 	};
++Example with has_configspace:
++	ecap0: ecap@0 {
++		compatible = "ti, ecap";
++		ti,hwmods = "ecap0";
++		#pwm-cells = <3>;
++		has_configspace = <1>;
++	};
+diff --git a/drivers/pwm/pwm-tiecap.c b/drivers/pwm/pwm-tiecap.c
+index d15941c..5b07707 100644
+--- a/drivers/pwm/pwm-tiecap.c
++++ b/drivers/pwm/pwm-tiecap.c
+@@ -206,12 +206,16 @@ static struct pwm_device *of_ecap_xlate(struct pwm_chip *chip,
+ 	return pwm;
+ }
+ 
++#define	CLKCONFIG	8
++#define ECAP_CLK_EN	1
+ static int __devinit ecap_pwm_probe(struct platform_device *pdev)
+ {
+-	int ret;
++	int ret, len;
+ 	struct resource *r;
+ 	struct clk *clk;
+ 	struct ecap_pwm_chip *pc;
++	void __iomem	*mmio_base;
++	unsigned long regval;
+ 
+ 	pc = devm_kzalloc(&pdev->dev, sizeof(*pc), GFP_KERNEL);
+ 	if (!pc) {
+@@ -255,6 +259,37 @@ static int __devinit ecap_pwm_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	pm_runtime_enable(&pdev->dev);
++
++	/*
++	 * Some IP's have config space and require special handling of
++	 * clock gating from config space. So enabling clock gating
++	 * at config space.
++	 */
++	if (pdev->dev.of_node && of_find_property(pdev->dev.of_node,
++				"has_configspace", &len)) {
++
++		r = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++		if (!r) {
++			pm_runtime_disable(&pdev->dev);
++			dev_err(&pdev->dev, "no memory resource defined\n");
++			return -ENODEV;
++		}
++
++		mmio_base = devm_ioremap(&pdev->dev, r->start,
++				resource_size(r));
++		if (!mmio_base) {
++			pm_runtime_disable(&pdev->dev);
++			dev_err(&pdev->dev, "failed to ioremap() registers\n");
++			return -EADDRNOTAVAIL;
++		}
++
++		pm_runtime_get_sync(&pdev->dev);
++		regval = readw(mmio_base + CLKCONFIG);
++		regval |= ECAP_CLK_EN;
++		writew(regval, mmio_base + CLKCONFIG);
++		pm_runtime_put_sync(&pdev->dev);
++	}
++
+ 	platform_set_drvdata(pdev, pc);
+ 	return 0;
+ }
+-- 
+1.7.7.6
+

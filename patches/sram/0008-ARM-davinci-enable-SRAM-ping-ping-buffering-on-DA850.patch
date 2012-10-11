@@ -1,0 +1,58 @@
+From 5955d90efb7a5fb1d40bbd378e39156d8da5aafc Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Thu, 4 Oct 2012 05:48:09 -0400
+Subject: [PATCH 8/8] ARM: davinci: enable SRAM ping ping buffering on DA850
+
+Passes the DA850 shared SRAM gen_pool to the McASP driver
+and enables the ping-pong buffer DMA support.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ arch/arm/mach-davinci/board-da850-evm.c |   24 ++++++++++++++----------
+ 1 files changed, 14 insertions(+), 10 deletions(-)
+
+diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
+index acc6e84a..c14ca9d 100644
+--- a/arch/arm/mach-davinci/board-da850-evm.c
++++ b/arch/arm/mach-davinci/board-da850-evm.c
+@@ -750,16 +750,19 @@ static u8 da850_iis_serializer_direction[] = {
+ };
+ 
+ static struct snd_platform_data da850_evm_snd_data = {
+-	.tx_dma_offset	= 0x2000,
+-	.rx_dma_offset	= 0x2000,
+-	.op_mode	= DAVINCI_MCASP_IIS_MODE,
+-	.num_serializer	= ARRAY_SIZE(da850_iis_serializer_direction),
+-	.tdm_slots	= 2,
+-	.serial_dir	= da850_iis_serializer_direction,
+-	.asp_chan_q	= EVENTQ_0,
+-	.version	= MCASP_VERSION_2,
+-	.txnumevt	= 1,
+-	.rxnumevt	= 1,
++	.tx_dma_offset		= 0x2000,
++	.rx_dma_offset		= 0x2000,
++	.op_mode		= DAVINCI_MCASP_IIS_MODE,
++	.num_serializer		= ARRAY_SIZE(da850_iis_serializer_direction),
++	.tdm_slots		= 2,
++	.serial_dir		= da850_iis_serializer_direction,
++	.asp_chan_q		= EVENTQ_0,
++	.ram_chan_q		= EVENTQ_1,
++	.version		= MCASP_VERSION_2,
++	.txnumevt		= 1,
++	.rxnumevt		= 1,
++	.sram_size_playback	= SZ_8K,
++	.sram_size_capture	= SZ_8K,
+ };
+ 
+ static const short da850_evm_mcasp_pins[] __initconst = {
+@@ -1338,6 +1341,7 @@ static __init void da850_evm_init(void)
+ 		pr_warning("da850_evm_init: mcasp mux setup failed: %d\n",
+ 				ret);
+ 
++	da850_evm_snd_data.sram_pool = sram_get_gen_pool();
+ 	da8xx_register_mcasp(0, &da850_evm_snd_data);
+ 
+ 	ret = davinci_cfg_reg_list(da850_lcdcntl_pins);
+-- 
+1.7.7.6
+

@@ -1,32 +1,50 @@
-From d14e3e04aae4276846877ddeabefc1b11d049f8e Mon Sep 17 00:00:00 2001
+From fe17056f3662a7a4407ae700101c9b0f0572bac0 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 4 Oct 2012 17:53:53 +0300
 Subject: [PATCH 3/3] musb: Fix crashes, and other weirdness.
 
 ---
- arch/arm/boot/dts/am33xx.dtsi |    8 +++---
+ arch/arm/boot/dts/am33xx.dtsi |   26 +++++++++++++++++++
  drivers/usb/musb/musb_dsps.c  |   55 +++++++++++++++++++++++++++++++++++-----
- 2 files changed, 52 insertions(+), 11 deletions(-)
+ 2 files changed, 74 insertions(+), 7 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 37f673e..90ee00f 100644
+index 4db34b4..0b0cf02 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -352,10 +352,10 @@
- 			compatible = "ti,musb-am33xx";
- 			ti,hwmods = "usb_otg_hs";
- 			multipoint = <1>;
--			num_eps = <16>;
--			ram_bits = <12>;
--			port0_mode = <3>;
--			port1_mode = <1>;
+@@ -284,6 +284,32 @@
+ 			status = "disabled";
+ 		};
+ 
++		usb0_phy: phy0 {
++			compatible = "nop-xceiv-usb";
++		};
++
++		usb1_phy: phy1 {
++			compatible = "nop-xceiv-usb";
++		};
++
++		usb_otg_hs: usb_otg_hs {
++			compatible = "ti,musb-am33xx";
++			ti,hwmods = "usb_otg_hs";
++			multipoint = <1>;
 +			num-eps = <16>;
 +			ram-bits = <12>;
 +			port0-mode = <3>;
 +			port1-mode = <1>;
- 			power = <250>;
- 			usb0-phy = <&usb0_phy>;
- 			usb1-phy = <&usb1_phy>;
++			power = <250>;
++			usb0-phy = <&usb0_phy>;
++			usb1-phy = <&usb1_phy>;
++		};
++
++		rtc {
++			compatible = "ti,da830-rtc";
++			ti,hwmods = "rtc";
++		};
++
+ 		spi0: spi@48030000 {
+ 			compatible = "ti,omap4-mcspi";
+ 			ti,hwmods = "spi0";
 diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
 index 444346e..8742df3 100644
 --- a/drivers/usb/musb/musb_dsps.c

@@ -1,0 +1,76 @@
+From f86da3889db6c6e0ffc6d9764eeca2158051cf7d Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Sat, 29 Sep 2012 16:36:22 +0300
+Subject: [PATCH 4/8] Make beaglebone DVI cape work.
+
+---
+ drivers/video/Kconfig    |    2 +-
+ drivers/video/da8xx-fb.c |   15 +++++++++++++++
+ include/video/da8xx-fb.h |    4 ++--
+ 3 files changed, 18 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index 510c6e3..bca22b1 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -2229,7 +2229,7 @@ config FB_SH7760
+ 
+ config FB_DA8XX
+ 	tristate "DA8xx/OMAP-L1xx Framebuffer support"
+-	depends on FB && ARCH_DAVINCI_DA8XX
++	depends on FB && (ARCH_DAVINCI_DA8XX || SOC_AM33XX)
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+index 5fbf9d6..f7396a7 100644
+--- a/drivers/video/da8xx-fb.c
++++ b/drivers/video/da8xx-fb.c
+@@ -268,6 +268,20 @@ static struct da8xx_panel known_lcd_panels[] = {
+ 		.pxl_clk = 7833600,
+ 		.invert_pxl_clk = 0,
+ 	},
++	[3] = {
++		 /* 1024 x 768 @ 60 Hz  Reduced blanking VESA CVT 0.79M3-R */ 
++		.name = "1024x768@60",
++		.width = 1024,
++		.height = 768,
++		.hfp = 48,
++		.hbp = 80,
++		.hsw = 32,
++		.vfp = 3,
++		.vbp = 15,
++		.vsw = 4,
++		.pxl_clk = 56000000,
++		.invert_pxl_clk = 0,
++	},
+ };
+ 
+ /* Enable the Raster Engine of the LCD Controller */
+@@ -1221,6 +1235,7 @@ static int __devinit fb_probe(struct platform_device *device)
+ 		lcd_revision = LCD_VERSION_1;
+ 		break;
+ 	case 0x4F200800:
++	case 0x4F201000:
+ 		lcd_revision = LCD_VERSION_2;
+ 		break;
+ 	default:
+diff --git a/include/video/da8xx-fb.h b/include/video/da8xx-fb.h
+index 5a0e4f9..a512d6b 100644
+--- a/include/video/da8xx-fb.h
++++ b/include/video/da8xx-fb.h
+@@ -35,9 +35,9 @@ struct display_panel {
+ };
+ 
+ struct da8xx_lcdc_platform_data {
+-	const char manu_name[10];
++	char manu_name[10];
+ 	void *controller_data;
+-	const char type[25];
++	char type[25];
+ 	void (*panel_power_ctrl)(int);
+ };
+ 
+-- 
+1.7.7.6
+

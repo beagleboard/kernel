@@ -1,4 +1,4 @@
-From 6e7a07cf59559552dde00b2d84c1580d951cb14c Mon Sep 17 00:00:00 2001
+From ee4c68c9036adcf6dd335dc9d4e7aa76d82c244f Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Fri, 21 Sep 2012 12:33:14 -0400
 Subject: [PATCH 3/3] ARM: dts: AM33xx PRUSS support
@@ -7,28 +7,29 @@ Adds a pruss node and an example of use on Beaglebone.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- arch/arm/boot/dts/am335x-bone.dts |    3 +++
+ arch/arm/boot/dts/am335x-bone.dts |    4 ++++
  arch/arm/boot/dts/am33xx.dtsi     |   11 +++++++++++
- 2 files changed, 14 insertions(+), 0 deletions(-)
+ 2 files changed, 15 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 24a36ae..abf6e00 100644
+index cba2157..507c29c 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -229,3 +229,6 @@
+@@ -221,3 +221,7 @@
+ 		st7735-dc = <&gpio4 21 0>;
  	};
  };
- 
++
 +&pruss {
 +	status = "okay";
 +};
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index e7e4517..37f673e 100644
+index 4cb9d61..4db34b4 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -442,5 +442,16 @@
- 			#pwm-cells = <3>;
- 			has_configspace = <1>;
+@@ -375,5 +375,16 @@
+ 			};
+ 
  		};
 +
 +		pruss: pruss@4a300000 {

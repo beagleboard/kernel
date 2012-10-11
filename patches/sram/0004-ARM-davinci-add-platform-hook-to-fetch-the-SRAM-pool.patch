@@ -1,0 +1,46 @@
+From e6142c1692fdd1dbc8357c8598851884e98d813f Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Wed, 3 Oct 2012 09:55:49 -0400
+Subject: [PATCH 4/8] ARM: davinci: add platform hook to fetch the SRAM pool
+
+Adds sram_get_gen_pool() which allows platform code to get
+the SRAM gen_pool for purposes of providing it in platform
+data for driver genalloc use.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ arch/arm/mach-davinci/include/mach/sram.h |    3 +++
+ arch/arm/mach-davinci/sram.c              |    5 +++++
+ 2 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-davinci/include/mach/sram.h b/arch/arm/mach-davinci/include/mach/sram.h
+index 111f7cc..4e5db56 100644
+--- a/arch/arm/mach-davinci/include/mach/sram.h
++++ b/arch/arm/mach-davinci/include/mach/sram.h
+@@ -24,4 +24,7 @@
+ extern void *sram_alloc(size_t len, dma_addr_t *dma);
+ extern void sram_free(void *addr, size_t len);
+ 
++/* Get the struct gen_pool * for use in platform data */
++extern struct gen_pool *sram_get_gen_pool(void);
++
+ #endif /* __MACH_SRAM_H */
+diff --git a/arch/arm/mach-davinci/sram.c b/arch/arm/mach-davinci/sram.c
+index 0e8ca4f..b47b64d 100644
+--- a/arch/arm/mach-davinci/sram.c
++++ b/arch/arm/mach-davinci/sram.c
+@@ -18,6 +18,11 @@
+ 
+ static struct gen_pool *sram_pool;
+ 
++struct gen_pool *sram_get_gen_pool(void)
++{
++	return sram_pool;
++}
++
+ void *sram_alloc(size_t len, dma_addr_t *dma)
+ {
+ 	unsigned long vaddr;
+-- 
+1.7.7.6
+

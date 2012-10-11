@@ -1,0 +1,127 @@
+From 72a4b3a6d58d07f02e94025fed94e09b2abb10e2 Mon Sep 17 00:00:00 2001
+From: Ben Gardiner <bengardiner@nanometrics.ca>
+Date: Wed, 1 Jun 2011 15:03:24 +0000
+Subject: [PATCH 2/8] ARM: davinci: da850-dm646x: remove the SRAM_VIRT iotable
+ entry
+
+The sram regions defined for da850-dm646x in their iotable entries are also
+defined in their davinci_soc_info's.
+
+Remove this duplicate information which is now uneccessary since sram
+init will ioremap the regions defined by their davinci_soc_info's.
+
+Since this removal completely removes all uses of SRAM_VIRT, also remove
+the SRAM_VIRT definition.
+
+Signed-off-by: Ben Gardiner <bengardiner@nanometrics.ca>
+Tested-by: Matt Porter <mporter@ti.com>
+---
+ arch/arm/mach-davinci/da850.c               |    6 ------
+ arch/arm/mach-davinci/dm355.c               |    6 ------
+ arch/arm/mach-davinci/dm365.c               |    6 ------
+ arch/arm/mach-davinci/dm644x.c              |    6 ------
+ arch/arm/mach-davinci/dm646x.c              |    6 ------
+ arch/arm/mach-davinci/include/mach/common.h |    2 --
+ 6 files changed, 0 insertions(+), 32 deletions(-)
+
+diff --git a/arch/arm/mach-davinci/da850.c b/arch/arm/mach-davinci/da850.c
+index 6676dee..b4b324f 100644
+--- a/arch/arm/mach-davinci/da850.c
++++ b/arch/arm/mach-davinci/da850.c
+@@ -713,12 +713,6 @@ static struct map_desc da850_io_desc[] = {
+ 		.length		= DA8XX_CP_INTC_SIZE,
+ 		.type		= MT_DEVICE
+ 	},
+-	{
+-		.virtual	= SRAM_VIRT,
+-		.pfn		= __phys_to_pfn(DA8XX_ARM_RAM_BASE),
+-		.length		= SZ_8K,
+-		.type		= MT_DEVICE
+-	},
+ };
+ 
+ static u32 da850_psc_bases[] = { DA8XX_PSC0_BASE, DA8XX_PSC1_BASE };
+diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
+index a255434..b49c3b7 100644
+--- a/arch/arm/mach-davinci/dm355.c
++++ b/arch/arm/mach-davinci/dm355.c
+@@ -758,12 +758,6 @@ static struct map_desc dm355_io_desc[] = {
+ 		.length		= IO_SIZE,
+ 		.type		= MT_DEVICE
+ 	},
+-	{
+-		.virtual	= SRAM_VIRT,
+-		.pfn		= __phys_to_pfn(0x00010000),
+-		.length		= SZ_32K,
+-		.type		= MT_MEMORY_NONCACHED,
+-	},
+ };
+ 
+ /* Contents of JTAG ID register used to identify exact cpu type */
+diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
+index b680c83..6c39805 100644
+--- a/arch/arm/mach-davinci/dm365.c
++++ b/arch/arm/mach-davinci/dm365.c
+@@ -985,12 +985,6 @@ static struct map_desc dm365_io_desc[] = {
+ 		.length		= IO_SIZE,
+ 		.type		= MT_DEVICE
+ 	},
+-	{
+-		.virtual	= SRAM_VIRT,
+-		.pfn		= __phys_to_pfn(0x00010000),
+-		.length		= SZ_32K,
+-		.type		= MT_MEMORY_NONCACHED,
+-	},
+ };
+ 
+ static struct resource dm365_ks_resources[] = {
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index 0755d46..f8aaa7d 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -795,12 +795,6 @@ static struct map_desc dm644x_io_desc[] = {
+ 		.length		= IO_SIZE,
+ 		.type		= MT_DEVICE
+ 	},
+-	{
+-		.virtual	= SRAM_VIRT,
+-		.pfn		= __phys_to_pfn(0x00008000),
+-		.length		= SZ_16K,
+-		.type		= MT_MEMORY_NONCACHED,
+-	},
+ };
+ 
+ /* Contents of JTAG ID register used to identify exact cpu type */
+diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
+index 97c0f8e..ac7b431 100644
+--- a/arch/arm/mach-davinci/dm646x.c
++++ b/arch/arm/mach-davinci/dm646x.c
+@@ -756,12 +756,6 @@ static struct map_desc dm646x_io_desc[] = {
+ 		.length		= IO_SIZE,
+ 		.type		= MT_DEVICE
+ 	},
+-	{
+-		.virtual	= SRAM_VIRT,
+-		.pfn		= __phys_to_pfn(0x00010000),
+-		.length		= SZ_32K,
+-		.type		= MT_MEMORY_NONCACHED,
+-	},
+ };
+ 
+ /* Contents of JTAG ID register used to identify exact cpu type */
+diff --git a/arch/arm/mach-davinci/include/mach/common.h b/arch/arm/mach-davinci/include/mach/common.h
+index bdc4aa8..046c723 100644
+--- a/arch/arm/mach-davinci/include/mach/common.h
++++ b/arch/arm/mach-davinci/include/mach/common.h
+@@ -104,8 +104,6 @@ int davinci_pm_init(void);
+ static inline int davinci_pm_init(void) { return 0; }
+ #endif
+ 
+-/* standard place to map on-chip SRAMs; they *may* support DMA */
+-#define SRAM_VIRT	0xfffe0000
+ #define SRAM_SIZE	SZ_128K
+ 
+ #endif /* __ARCH_ARM_MACH_DAVINCI_COMMON_H */
+-- 
+1.7.7.6
+

@@ -1,0 +1,41 @@
+From 3825cd08537cabfc0a198f5c0753a57ccdd3b6da Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Sat, 29 Sep 2012 16:37:49 +0300
+Subject: [PATCH 5/8] Add missing da8xx DVI panel clock
+
+---
+ arch/arm/mach-omap2/clock33xx_data.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
+index 4933993..cf625f7 100644
+--- a/arch/arm/mach-omap2/clock33xx_data.c
++++ b/arch/arm/mach-omap2/clock33xx_data.c
+@@ -867,6 +867,16 @@ static struct clk lcd_gclk = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
++static struct clk lcdc_fck = {
++	.name           = "lcdc_fck",
++	.clkdm_name     = "lcdc_clkdm",
++	.parent         = &lcd_gclk,
++	.enable_reg     = AM33XX_CM_PER_LCDC_CLKCTRL,
++	.enable_bit     = AM33XX_MODULEMODE_SWCTRL,
++	.ops            = &clkops_omap2_dflt,
++	.recalc         = &followparent_recalc,
++};
++
+ static struct clk mmc_clk = {
+ 	.name		= "mmc_clk",
+ 	.clkdm_name	= "l4ls_clkdm",
+@@ -1071,6 +1081,7 @@ static struct omap_clk am33xx_clks[] = {
+ 	CLK(NULL,	"gfx_fck_div_ck",	&gfx_fck_div_ck,	CK_AM33XX),
+ 	CLK(NULL,	"sysclkout_pre_ck",	&sysclkout_pre_ck,	CK_AM33XX),
+ 	CLK(NULL,	"clkout2_ck",		&clkout2_ck,	CK_AM33XX),
++	CLK("da8xx_lcdc.0",     NULL,           &lcdc_fck,      CK_AM33XX),
+ };
+ 
+ int __init am33xx_clk_init(void)
+-- 
+1.7.7.6
+

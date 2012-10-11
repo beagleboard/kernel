@@ -1,21 +1,42 @@
-From 8a0e0e402e68f4d415d00aaf98994ddfd7e5c941 Mon Sep 17 00:00:00 2001
+From c660b9b19dd87a7f44afa222bdbae51baa1c9115 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Tue, 11 Sep 2012 15:30:10 -0400
-Subject: [PATCH 1/8] video: st7735fb: add st7735 framebuffer driver
+Subject: [PATCH] video: st7735fb: add st7735 framebuffer driver
 
 Add driver for the SPI-connected ST7735 display controller.
 This driver requires that the platform support DT booting.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- drivers/video/Kconfig    |   11 +
- drivers/video/Makefile   |    1 +
- drivers/video/st7735fb.c |  571 ++++++++++++++++++++++++++++++++++++++++++++++
- drivers/video/st7735fb.h |   82 +++++++
- 4 files changed, 665 insertions(+), 0 deletions(-)
+ .../devicetree/bindings/vendor-prefixes.txt        |    2 +
+ drivers/video/Kconfig                              |   11 +
+ drivers/video/Makefile                             |    1 +
+ drivers/video/st7735fb.c                           |  631 ++++++++++++++++++++
+ drivers/video/st7735fb.h                           |   84 +++
+ 5 files changed, 729 insertions(+), 0 deletions(-)
  create mode 100644 drivers/video/st7735fb.c
  create mode 100644 drivers/video/st7735fb.h
 
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index 9de2b9f..54463a7 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -4,6 +4,7 @@ This isn't an exhaustive list, but you should add new prefixes to it before
+ using them to avoid name-space collisions.
+ 
+ ad	Avionic Design GmbH
++adafruit	Adafruit Industries
+ adi	Analog Devices, Inc.
+ amcc	Applied Micro Circuits Corporation (APM, formally AMCC)
+ apm	Applied Micro Circuits Corporation (APM)
+@@ -45,6 +46,7 @@ schindler	Schindler
+ sil	Silicon Image
+ simtek
+ sirf	SiRF Technology, Inc.
++sitronix Sitronix Technology Corp.
+ st	STMicroelectronics
+ stericsson	ST-Ericsson
+ ti	Texas Instruments
 diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
 index 20c33c4..0f93f37 100644
 --- a/drivers/video/Kconfig
@@ -52,10 +73,10 @@ index 1940359..0dddc4a 100644
  obj-$(CONFIG_FB_UVESA)            += uvesafb.o
 diff --git a/drivers/video/st7735fb.c b/drivers/video/st7735fb.c
 new file mode 100644
-index 0000000..e2f081b
+index 0000000..67c2544
 --- /dev/null
 +++ b/drivers/video/st7735fb.c
-@@ -0,0 +1,571 @@
+@@ -0,0 +1,631 @@
 +/*
 + * linux/drivers/video/st7735fb.c -- FB driver for ST7735 LCD controller
 + * Layout is based on skeletonfb.c by James Simmons and Geert Uytterhoeven.
@@ -79,10 +100,12 @@ index 0000000..e2f081b
 +#include <linux/gpio.h>
 +#include <linux/spi/spi.h>
 +#include <linux/delay.h>
++#include <linux/err.h>
 +#include <linux/uaccess.h>
 +#include <linux/of.h>
 +#include <linux/of_device.h>
 +#include <linux/of_gpio.h>
++#include <linux/pinctrl/consumer.h>
 +
 +#include "st7735fb.h"
 +
@@ -187,7 +210,7 @@ index 0000000..e2f081b
 +static struct fb_fix_screeninfo st7735fb_fix __devinitdata = {
 +	.id =		"ST7735", 
 +	.type =		FB_TYPE_PACKED_PIXELS,
-+	.visual =	FB_VISUAL_PSEUDOCOLOR,
++	.visual =	FB_VISUAL_DIRECTCOLOR,
 +	.xpanstep =	0,
 +	.ypanstep =	0,
 +	.ywrapstep =	0, 
@@ -201,7 +224,7 @@ index 0000000..e2f081b
 +	.xres_virtual =		WIDTH,
 +	.yres_virtual =		HEIGHT,
 +	.bits_per_pixel =	BPP,
-+	.nonstd	=		1,
++	.nonstd	=		0,
 +};
 +
 +static int st7735_write(struct st7735fb_par *par, u8 data)
@@ -314,6 +337,8 @@ index 0000000..e2f081b
 +	vmem = (u16 *)par->info->screen_base;
 +#endif
 +
++	mutex_lock(&(par->io_lock));
++
 +	/* Set row/column data window */
 +	st7735_set_addr_win(par, 0, 0, WIDTH-1, HEIGHT-1);
 +
@@ -325,12 +350,8 @@ index 0000000..e2f081b
 +	if (ret < 0)
 +		pr_err("%s: spi_write failed to update display buffer\n",
 +			par->info->fix.id);
-+}
 +
-+static void st7735fb_deferred_io(struct fb_info *info,
-+				struct list_head *pagelist)
-+{
-+	st7735fb_update_display(info->par);
++	mutex_unlock(&(par->io_lock));
 +}
 +
 +static int st7735fb_init_display(struct st7735fb_par *par)
@@ -359,37 +380,43 @@ index 0000000..e2f081b
 +	return ret;
 +}
 +
-+void st7735fb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
++static void st7735fb_deferred_io(struct fb_info *info,
++				struct list_head *pagelist)
 +{
-+	struct st7735fb_par *par = info->par;
++	st7735fb_update_display(info->par);
++}
 +
++static void st7735fb_update_display_deferred(struct fb_info *info)
++{
++	struct fb_deferred_io *fbdefio = info->fbdefio;
++
++	schedule_delayed_work(&info->deferred_work, fbdefio->delay);
++}
++
++static void st7735fb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
++{
 +	sys_fillrect(info, rect);
 +
-+	st7735fb_update_display(par);
++	st7735fb_update_display_deferred(info);
 +}
 +
-+void st7735fb_copyarea(struct fb_info *info, const struct fb_copyarea *area) 
++static void st7735fb_copyarea(struct fb_info *info, const struct fb_copyarea *area) 
 +{
-+	struct st7735fb_par *par = info->par;
-+
 +	sys_copyarea(info, area);
 +
-+	st7735fb_update_display(par);
++	st7735fb_update_display_deferred(info);
 +}
 +
-+void st7735fb_imageblit(struct fb_info *info, const struct fb_image *image) 
++static void st7735fb_imageblit(struct fb_info *info, const struct fb_image *image) 
 +{
-+	struct st7735fb_par *par = info->par;
-+
 +	sys_imageblit(info, image);
 +
-+	st7735fb_update_display(par);
++	st7735fb_update_display_deferred(info);
 +}
 +
 +static ssize_t st7735fb_write(struct fb_info *info, const char __user *buf,
 +		size_t count, loff_t *ppos)
 +{
-+	struct st7735fb_par *par = info->par;
 +	unsigned long p = *ppos;
 +	void *dst;
 +	int err = 0;
@@ -423,9 +450,25 @@ index 0000000..e2f081b
 +	if  (!err)
 +		*ppos += count;
 +
-+	st7735fb_update_display(par);
++	st7735fb_update_display_deferred(info);
 +
 +	return (err) ? err : count;
++}
++
++static int st7735fb_setcolreg(unsigned regno, unsigned red, unsigned green,
++				unsigned blue, unsigned transp,
++				struct fb_info *info)
++{
++	if (regno >= MAX_PALETTE)
++		return -EINVAL;
++
++	/* RGB565 */
++	((u32*)(info->pseudo_palette))[regno] =
++		((red & 0xf800) |
++		((green & 0xfc00) >> 5) |
++		((blue & 0xf800) >> 11));
++
++	return 0;
 +}
 +
 +static struct fb_ops st7735fb_ops = {
@@ -435,6 +478,7 @@ index 0000000..e2f081b
 +	.fb_fillrect	= st7735fb_fillrect,
 +	.fb_copyarea	= st7735fb_copyarea,
 +	.fb_imageblit	= st7735fb_imageblit,
++	.fb_setcolreg	= st7735fb_setcolreg,
 +};
 +
 +static struct fb_deferred_io st7735fb_defio = {
@@ -468,15 +512,20 @@ index 0000000..e2f081b
 +	struct fb_info *info;
 +	struct st7735fb_par *par;
 +	int retval = -ENOMEM;
-+	struct device_node *np = spi->dev.of_node, *child;
-+	enum of_gpio_flags flags;
++	struct device_node *np = spi->dev.of_node;
 +	const struct spi_device_id *spi_id = spi_get_device_id(spi);
++	struct pinctrl *pinctrl;
 +
 +	if (!spi_id) {
 +		dev_err(&spi->dev,
 +			"device id not supported!\n");
 +		return -EINVAL;
 +	}
++
++	pinctrl = devm_pinctrl_get_select_default(&spi->dev);
++	if (IS_ERR(pinctrl))
++		dev_warn(&spi->dev,
++			"pins are not configured from the driver\n");
 +
 +#ifdef __LITTLE_ENDIAN
 +	vmem = (u8 *)vmalloc(vmem_size);
@@ -489,6 +538,11 @@ index 0000000..e2f081b
 +	info = framebuffer_alloc(sizeof(struct st7735fb_par), &spi->dev);
 +	if (!info)
 +		goto fballoc_fail;
++
++	info->pseudo_palette = kmalloc(sizeof(u32)*MAX_PALETTE, GFP_KERNEL);
++	if (!info->pseudo_palette) {
++		goto palette_fail;
++	}
 +
 +	info->screen_base = (u8 __force __iomem *)vmem;
 +	info->fbops = &st7735fb_ops;
@@ -504,18 +558,21 @@ index 0000000..e2f081b
 +	info->var.blue.length = 5;
 +	info->var.transp.offset = 0;
 +	info->var.transp.length = 0;
-+	info->flags = FBINFO_FLAG_DEFAULT |
-+#ifdef __LITTLE_ENDIAN
-+			FBINFO_FOREIGN_ENDIAN |
-+#endif
-+			FBINFO_VIRTFB;
++	info->flags = FBINFO_FLAG_DEFAULT | FBINFO_VIRTFB;
 +
 +	info->fbdefio = &st7735fb_defio;
 +	fb_deferred_io_init(info);
 +
++	retval = fb_alloc_cmap(&info->cmap, MAX_PALETTE, 0);
++	if (retval < 0)
++		goto cmap_fail;
++	info->cmap.len = MAX_PALETTE;
++
 +	par = info->par;
 +	par->info = info;
 +	par->spi = spi;
++
++	mutex_init(&par->io_lock);
 +
 +	if (spi_id->driver_data == ST7735_AF_TFT18_GREEN) {
 +		par->xoff = 2;
@@ -525,37 +582,43 @@ index 0000000..e2f081b
 +		par->yoff = 0;
 +	}
 +
-+	child = of_find_node_by_name(np, "st7735-rst");
-+	if (!child) {
++	/* TODO: fix all exit paths for cleanup */
++        par->rst = of_get_named_gpio(np, "st7735-rst", 0);
++	if (par->rst < 0) {
 +		printk("failed to find st7735-rst node!\n");
 +		return -EINVAL;
 +	}
-+	par->rst = of_get_gpio_flags(child, 0, &flags);
-+	child = of_find_node_by_name(np, "st7735-dc");
-+	if (!child) {
++
++        par->dc = of_get_named_gpio(np, "st7735-dc", 0);
++	if (par->dc < 0) {
 +		printk("failed to find st7735-dc node!\n");
 +		return -EINVAL;
 +	}
-+	par->dc = of_get_gpio_flags(child, 0, &flags);
 +
 +	par->buf = kmalloc(1, GFP_KERNEL);
++	if (!par->buf) {
++		retval = -ENOMEM;
++		goto buf_fail;
++	}
 +
 +#ifdef __LITTLE_ENDIAN
 +	/* Allocated swapped shadow buffer */
 +	par->ssbuf = kmalloc(vmem_size, GFP_KERNEL);
-+	if (!par->ssbuf)
-+		return retval;
++	if (!par->ssbuf) {
++		retval = -ENOMEM;
++		goto ssbuf_fail;
++	}
 +#endif
++
++	retval = st7735fb_init_display(par);
++	if (retval < 0)
++		goto init_fail;
 +
 +	retval = register_framebuffer(info);
 +	if (retval < 0)
 +		goto fbreg_fail;
 +
 +	spi_set_drvdata(spi, info);
-+
-+	retval = st7735fb_init_display(par);
-+	if (retval < 0)
-+		goto init_fail;
 +
 +	printk(KERN_INFO
 +		"fb%d: %s frame buffer device,\n\tusing %d KiB of video memory\n",
@@ -564,11 +627,27 @@ index 0000000..e2f081b
 +	return 0;
 +
 +
-+	/* TODO: release gpios on fail */
-+init_fail:
 +	spi_set_drvdata(spi, NULL);
 +
 +fbreg_fail:
++	/* TODO: release gpios on fail */
++	/* TODO: and unwind everything in init */
++
++init_fail:
++#ifdef __LITTLE_ENDIAN
++	kfree(par->ssbuf);
++#endif
++
++ssbuf_fail:
++	kfree(par->buf);
++
++buf_fail:
++	fb_dealloc_cmap(&info->cmap);
++
++cmap_fail:
++	kfree(info->pseudo_palette);
++
++palette_fail:
 +	framebuffer_release(info);
 +
 +fballoc_fail:
@@ -589,6 +668,8 @@ index 0000000..e2f081b
 +
 +	if (info) {
 +		unregister_framebuffer(info);
++		fb_dealloc_cmap(&info->cmap);
++		kfree(info->pseudo_palette);
 +		vfree(info->screen_base);	
 +		framebuffer_release(info);
 +	}
@@ -629,10 +710,10 @@ index 0000000..e2f081b
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/video/st7735fb.h b/drivers/video/st7735fb.h
 new file mode 100644
-index 0000000..7e7458f
+index 0000000..0ce5c11
 --- /dev/null
 +++ b/drivers/video/st7735fb.h
-@@ -0,0 +1,82 @@
+@@ -0,0 +1,84 @@
 +/*
 + * linux/include/video/st7735fb.h -- FB driver for ST7735 LCD controller
 + *
@@ -647,6 +728,7 @@ index 0000000..7e7458f
 +#define WIDTH		128
 +#define HEIGHT		160
 +#define BPP		16
++#define MAX_PALETTE	16
 +
 +/* Supported display modules */
 +#define ST7735_AF_TFT18_GREEN		0	/* Adafruit SPI TFT 1.8" - green tab */
@@ -670,6 +752,7 @@ index 0000000..7e7458f
 +struct st7735fb_par {
 +	struct spi_device *spi;
 +	struct fb_info *info;
++	struct mutex io_lock;
 +	int xoff;
 +	int yoff;
 +	int rst;

@@ -1,0 +1,88 @@
+From 66f0e23651710f3679b23914a655db31928a8262 Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Thu, 11 Oct 2012 08:51:46 -0400
+Subject: [PATCH 21/22] ARM: dts: add AM33XX SPI support
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ arch/arm/boot/dts/am335x-bone.dts |   14 ++++++++++++++
+ arch/arm/boot/dts/am33xx.dtsi     |   34 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 48 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 770c465..9db39c9 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -33,6 +33,14 @@
+ 				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
+ 			>;
+ 		};
++		spi1_pins: pinmux_spi1_pins {
++			pinctrl-single,pins = <
++				0x190 0x13	/* mcasp0_aclkx.spi1_sclk, OUTPUT_PULLUP | MODE3 */
++				0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
++				0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
++				0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
++			>;
++		};
+ 	};
+ 
+ 	ocp {
+@@ -141,3 +149,9 @@
+ &mmc1 {
+ 	vmmc-supply = <&ldo3_reg>;
+ };
++
++&spi1 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi1_pins>;
++};
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 3c868c7..37cef86 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -284,6 +284,40 @@
+ 			status = "disabled";
+ 		};
+ 
++		spi0: spi@48030000 {
++			compatible = "ti,omap4-mcspi";
++			ti,hwmods = "spi0";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0x48030000 0x400>;
++			interrupt-parent = <&intc>;
++			interrupt = <65>;
++			dmas = <&edma 16
++				&edma 17
++				&edma 18
++				&edma 19>;
++			dma-names = "tx0", "rx0", "tx1", "rx1";
++			ti,spi-num-cs = <2>;
++			status = "disabled";
++		};
++
++		spi1: spi@481a0000 {
++			compatible = "ti,omap4-mcspi";
++			ti,hwmods = "spi1";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0x481a0000 0x400>;
++			interrupt-parent = <&intc>;
++			interrupt = <125>;
++			dmas = <&edma 42
++				&edma 43
++				&edma 44
++				&edma 45>;
++			dma-names = "tx0", "rx0", "tx1", "rx1";
++			ti,spi-num-cs = <2>;
++			status = "disabled";
++		};
++
+ 		wdt2: wdt@44e35000 {
+ 			compatible = "ti,omap3-wdt";
+ 			ti,hwmods = "wd_timer2";
+-- 
+1.7.7.6
+

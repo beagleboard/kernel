@@ -1,0 +1,283 @@
+From 30ae471c1a448b40beca4c6f67901ff9d4afcab9 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 28 Sep 2012 22:22:00 +0300
+Subject: [PATCH 3/8] More cleanups of the capebus
+
+---
+ arch/arm/boot/dts/am335x-bone.dts |    2 +
+ drivers/capebus/bone-dvi-cape.c   |   60 +++++++---------------------
+ drivers/capebus/capebus-driver.c  |   77 ++++++++++++++++++++++++++++++++----
+ drivers/capebus/capebus.h         |   10 ++++-
+ 4 files changed, 93 insertions(+), 56 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 789456c..23d5496 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -257,6 +257,8 @@
+ };
+ 
+ &bone_dvi_cape {
++	board-name = "BeagleBone DVI-D CAPE";
++
+ 	gpio-leds {
+ 		compatible = "gpio-leds";
+ 		pinctrl-names = "default";
+diff --git a/drivers/capebus/bone-dvi-cape.c b/drivers/capebus/bone-dvi-cape.c
+index 0d85ccf..c81b8e2 100644
+--- a/drivers/capebus/bone-dvi-cape.c
++++ b/drivers/capebus/bone-dvi-cape.c
+@@ -19,11 +19,6 @@
+ /* fwd decl. */
+ extern struct cape_driver bonedvi_driver;
+ 
+-static const char *bonedvi_board_names[] = {
+-	"BeagleBone DVI-D CAPE",
+-	NULL
+-};
+-
+ static const struct of_device_id bonedvi_of_match[] = {
+ 	{
+ 		.compatible = "bone-dvi-cape",
+@@ -39,33 +34,30 @@ struct bone_dvi_info {
+ 
+ static int bonedvi_probe(struct cape_dev *dev, const struct cape_device_id *id)
+ {
+-	static const struct of_device_id leds_gpio_of_match[] = {
+-		{
+-			.compatible = "gpio-leds",
+-		},
++	static const struct of_device_id gpio_leds_of_match[] = {
++		{ .compatible = "gpio-leds", },
+ 		{ },
+ 	};
+ 	char rname[33];
+-	const struct of_device_id *match, *match2;
++	const char *board_name;
++	const struct of_device_id *match;
+ 	struct bone_dvi_info *info;
+-	struct device_node *node, *node2;
+-	int r;
+ 
+-	r = bone_capebus_match_board(id, "beaglebone", bonedvi_board_names);
+-	if (r < 0) {
+-		dev_info(&dev->dev, "%s: not matched\n", __func__);
+-		return r;
+-	}
++	/* only beaglebone is supported */
++	if (strcmp(id->name, "beaglebone") != 0)
++		return -ENODEV;
++
++	/* get the board name */
++	board_name = bone_capebus_id_get_field(id, BONE_CAPEBUS_BOARD_NAME, rname, sizeof(rname));
++	if (board_name == NULL)
++		return -ENODEV;
+ 
+ 	/* match compatible? */
+-	match = capebus_of_match_device(bonedvi_driver.driver.of_match_table, dev);
++	match = capebus_of_match_device(bonedvi_driver.driver.of_match_table, dev, "board-name", board_name);
+ 	if (match == NULL)
+ 		return -ENODEV;
+ 
+-	dev_info(&dev->dev, "%s: initialized - '%s'\n",
+-		bone_capebus_id_get_field(id, BONE_CAPEBUS_BOARD_NAME,
+-					rname, sizeof(rname)),
+-			match->compatible);
++	dev_info(&dev->dev, "%s: initialized - '%s'\n", board_name, match->compatible);
+ 
+ 	dev->drv_priv = devm_kzalloc(&dev->dev, sizeof(*info), GFP_KERNEL);
+ 	if (dev->drv_priv == NULL) {
+@@ -74,29 +66,7 @@ static int bonedvi_probe(struct cape_dev *dev, const struct cape_device_id *id)
+ 	}
+ 	info = dev->drv_priv;
+ 
+-	dev_info(&dev->dev, "Going to scan node & instantiate platform drivers\n");
+-
+-	dev_info(&dev->dev, "finding leds-gpio compatible node\n");
+-
+-	node2 = NULL;
+-	match2 = NULL;
+-	while ((node = of_get_next_child(dev->dev.of_node, node2)) != NULL) { 
+-
+-		match2 = of_match_node(leds_gpio_of_match, node);
+-		if (match2)
+-			break;
+-
+-		node2 = node;
+-	}
+-
+-	if (node == NULL) {
+-		dev_err(&dev->dev, "failed to find compatible leds-gpio node\n");
+-		return -ENODEV;
+-	}
+-
+-	dev_info(&dev->dev, "create leds-gpio platform device\n");
+-
+-	info->leds_pdev = of_platform_device_create(node, "bone-dvi-leds", dev->bus->dev.parent);
++	info->leds_pdev = capebus_of_platform_compatible_device_create(dev, gpio_leds_of_match, "dvi-cape-leds");
+ 	if (info->leds_pdev == NULL) {
+ 		dev_err(&dev->dev, "Failed to create platform led platform device\n");
+ 		return -ENODEV;
+diff --git a/drivers/capebus/capebus-driver.c b/drivers/capebus/capebus-driver.c
+index 80a89bb..b1f0830 100644
+--- a/drivers/capebus/capebus-driver.c
++++ b/drivers/capebus/capebus-driver.c
+@@ -105,9 +105,8 @@ __capebus_device_probe(struct cape_driver *drv, struct cape_dev *cape_dev)
+ 		error = -ENODEV;
+ 
+ 		id = capebus_match_device(drv, cape_dev);
+-		if (id) {
++		if (id)
+ 			error = capebus_call_probe(drv, cape_dev, id);
+-		}
+ 		if (error >= 0) {
+ 			cape_dev->driver = drv;
+ 			error = 0;
+@@ -202,7 +201,6 @@ int __capebus_register_driver(struct cape_driver *drv, struct module *owner,
+ 			  const char *mod_name)
+ {
+ 	/* initialize common driver fields */
+-	drv->driver.name = drv->name;
+ 	drv->driver.bus = &capebus_bus_type;
+ 	drv->driver.owner = owner;
+ 	drv->driver.mod_name = mod_name;
+@@ -289,15 +287,19 @@ static int __init capebus_driver_init(void)
+ 
+ postcore_initcall(capebus_driver_init);
+ 
+-const struct of_device_id *capebus_of_match_device(const struct of_device_id *matches, struct cape_dev *cdev)
++const struct of_device_id *
++capebus_of_match_device(const struct of_device_id *matches, struct cape_dev *cdev,
++		const char *property, const char *value)
+ {
+ 	struct cape_bus *bus = cdev->bus;
+ 	struct device *dev = &cdev->dev;
+ 	struct device_node *pnode = cape_bus_to_parent_of_node(bus);
+ 	struct device_node *node, *node2;
+ 	const struct of_device_id *match;
++	const char* cp;
++	int cplen, l;
+ 
+-	dev_info(dev, "Iterating on parent of node name='%s' type='%s' full_name='%s'\n",
++	dev_dbg(dev, "Iterating on parent of node name='%s' type='%s' full_name='%s'\n",
+ 			pnode->name, pnode->type, pnode->full_name);
+ 
+ 	match = NULL;
+@@ -306,19 +308,36 @@ const struct of_device_id *capebus_of_match_device(const struct of_device_id *ma
+ 
+ 		dev->of_node = node;
+ 		match = of_match_device(dev->driver->of_match_table, dev);
+-		if (match)
+-			break;
++		if (!match)
++			goto next_node;
++
++		cp = of_get_property(node, property, &cplen);
++		if (cp == NULL)
++			goto next_node;
++
++		while (cplen > 0) {
++			if (of_compat_cmp(cp, value, strlen(value)) == 0)
++				break;
++			l = strlen(cp) + 1;
++			cp += l;
++			cplen -= l;
++		}
+ 
++		/* matched */
++		if (cplen > 0)
++			break;
++next_node:
++		match = NULL;
+ 		dev->of_node = NULL;
+ 		node2 = node;
+ 	}
+ 
+ 	if (match == NULL) {
+-		dev_err(dev, "Failed to find matching child-node\n");
++		dev_dbg(dev, "Failed to find matching child-node\n");
+ 		return NULL;
+ 	}
+ 
+-	dev_info(dev, "Found matching child node name='%s' type='%s' full_name='%s' (compatible='%s')\n",
++	dev_dbg(dev, "Found matching child node name='%s' type='%s' full_name='%s' (compatible='%s')\n",
+ 		node->name, node->type, node->full_name,
+ 		match->compatible);
+ 
+@@ -326,6 +345,46 @@ const struct of_device_id *capebus_of_match_device(const struct of_device_id *ma
+ }
+ EXPORT_SYMBOL(capebus_of_match_device);
+ 
++struct platform_device *
++capebus_of_platform_compatible_device_create(struct cape_dev *dev,
++		const struct of_device_id *matches,
++		const char *pdev_name)
++{
++	const struct of_device_id *match;
++	struct device_node *node, *node2;
++	struct platform_device *pdev;
++
++	node2 = NULL;
++	match = NULL;
++	while ((node = of_get_next_child(dev->dev.of_node, node2)) != NULL) { 
++
++		match = of_match_node(matches, node);
++		if (match)
++			break;
++
++		node2 = node;
++	}
++
++	if (node == NULL) {
++		dev_err(&dev->dev, "failed to find compatible node\n");
++		return ERR_PTR(-ENODEV);
++	}
++
++	pdev = of_platform_device_create(node, pdev_name, dev->bus->dev.parent);
++
++	/* release the refence to the node */
++	of_node_put(node);
++	node = NULL;
++
++	if (pdev == NULL) {
++		dev_err(&dev->dev, "Failed to create platform device '%s'\n", pdev_name);
++		return ERR_PTR(-ENODEV);
++	}
++
++	return pdev;
++}
++EXPORT_SYMBOL(capebus_of_platform_compatible_device_create);
++
+ EXPORT_SYMBOL(__capebus_register_driver);
+ EXPORT_SYMBOL(capebus_unregister_driver);
+ EXPORT_SYMBOL(capebus_bus_type);
+diff --git a/drivers/capebus/capebus.h b/drivers/capebus/capebus.h
+index e0060ef..24d9250 100644
+--- a/drivers/capebus/capebus.h
++++ b/drivers/capebus/capebus.h
+@@ -50,7 +50,6 @@ struct cape_slot {
+ 
+ struct cape_driver {
+ 	struct list_head node;
+-	const char *name;
+ 	int (*probe)(struct cape_dev *dev, const struct cape_device_id *id);
+ 	void (*remove)(struct cape_dev *dev);
+ 	int  (*suspend) (struct cape_dev *dev, pm_message_t state);	/* Device suspended */
+@@ -181,6 +180,13 @@ extern struct bus_attribute capebus_bus_attrs[];
+ 
+ extern struct bus_type capebus_bus_type;
+ 
+-const struct of_device_id *capebus_of_match_device(const struct of_device_id *matches, struct cape_dev *dev);
++const struct of_device_id *
++capebus_of_match_device(const struct of_device_id *matches, struct cape_dev *cdev,
++		const char *property, const char *value);
++
++struct platform_device *
++capebus_of_platform_compatible_device_create(struct cape_dev *dev,
++		const struct of_device_id *matches,
++		const char *pdev_name);
+ 
+ #endif
+-- 
+1.7.7.6
+
