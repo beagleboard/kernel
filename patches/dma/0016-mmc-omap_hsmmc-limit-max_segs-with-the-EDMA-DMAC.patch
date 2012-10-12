@@ -1,15 +1,15 @@
-From d8a6856881fcde292ef398ed295990e3606d2dfb Mon Sep 17 00:00:00 2001
+From 04aa95556c85d0146e3b65e5798486bf7b326f5a Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 20 Sep 2012 08:55:41 -0400
-Subject: [PATCH 16/22] mmc: omap_hsmmc: limit max_segs with the EDMA DMAC
+Subject: [PATCH 16/23] mmc: omap_hsmmc: limit max_segs with the EDMA DMAC
 
 The EDMA DMAC has a hardware limitation that prevents supporting
 scatter gather lists with any number of segments. Since the EDMA
 DMA Engine driver sets the maximum segments to 16, we do the
 same.
 
-Note: this can be removed once the DMA Engine API supports an
-API to query the DMAC's segment limitations.
+TODO: this will be replaced once the DMA Engine API supports an
+API to query the DMAC's segment size limit.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
@@ -17,7 +17,7 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  1 files changed, 10 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index cef82d2..19ccb59 100644
+index b327cd0..52bab01 100644
 --- a/drivers/mmc/host/omap_hsmmc.c
 +++ b/drivers/mmc/host/omap_hsmmc.c
 @@ -1828,6 +1828,16 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)

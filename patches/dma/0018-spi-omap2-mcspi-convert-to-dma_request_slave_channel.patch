@@ -1,22 +1,23 @@
-From 506825c70b3cd6dc22bd137986bf373799d21956 Mon Sep 17 00:00:00 2001
+From b7ea409bec19170e8415528a77e78e9250ae5ed8 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 20 Sep 2012 00:37:54 -0400
-Subject: [PATCH 19/22] spi: omap2-mcspi: dma_request_slave_channel() support
- for DT platforms
+Subject: [PATCH 18/23] spi: omap2-mcspi: convert to
+ dma_request_slave_channel_compat()
 
-For platforms with DT populated, use dma_request_slave_channel()
-to acquire the DMA channel. For !DT platforms, we fall back to
-explicitly passing the omap_dma_filter_fn() to dma_request_channel().
-Once all platforms boot from DT, the dma_request_channel() path can
-be dropped.
+Convert dmaengine channel requests to use
+dma_request_slave_channel_compat(). This supports the DT case of
+platforms requiring channel selection from either the OMAP DMA or
+the EDMA engine. AM33xx only boots from DT and is the only user
+implementing EDMA so in the !DT case we can default to the OMAP DMA
+filter.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- drivers/spi/spi-omap2-mcspi.c |   68 +++++++++++++++++++++++++++++------------
- 1 files changed, 48 insertions(+), 20 deletions(-)
+ drivers/spi/spi-omap2-mcspi.c |   65 ++++++++++++++++++++++++++++------------
+ 1 files changed, 45 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 3542fdc..577c7e7 100644
+index 3542fdc..793ae8c 100644
 --- a/drivers/spi/spi-omap2-mcspi.c
 +++ b/drivers/spi/spi-omap2-mcspi.c
 @@ -103,6 +103,9 @@ struct omap2_mcspi_dma {
@@ -29,18 +30,17 @@ index 3542fdc..577c7e7 100644
  };
  
  /* use PIO for small transfers, avoiding DMA setup/teardown overhead and
-@@ -819,14 +822,26 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
+@@ -819,14 +822,23 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
  	dma_cap_zero(mask);
  	dma_cap_set(DMA_SLAVE, mask);
  	sig = mcspi_dma->dma_rx_sync_dev;
 -	mcspi_dma->dma_rx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
-+	if (spi->dev.of_node)
-+		mcspi_dma->dma_rx =
-+			dma_request_slave_channel(&master->dev,
-+						  mcspi_dma->dma_rx_ch_name);
-+	else
-+		mcspi_dma->dma_rx =
-+			dma_request_channel(mask, omap_dma_filter_fn, &sig);
++
++	mcspi_dma->dma_rx =
++		dma_request_slave_channel_compat(mask, omap_dma_filter_fn,
++						 &sig, &master->dev,
++						 mcspi_dma->dma_rx_ch_name);
++
  	if (!mcspi_dma->dma_rx) {
  		dev_err(&spi->dev, "no RX DMA engine channel for McSPI\n");
  		return -EAGAIN;
@@ -48,17 +48,15 @@ index 3542fdc..577c7e7 100644
  
  	sig = mcspi_dma->dma_tx_sync_dev;
 -	mcspi_dma->dma_tx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
-+	if (spi->dev.of_node)
-+		mcspi_dma->dma_tx =
-+			dma_request_slave_channel(&master->dev,
-+						  mcspi_dma->dma_tx_ch_name);
-+	else
-+		mcspi_dma->dma_tx =
-+			dma_request_channel(mask, omap_dma_filter_fn, &sig);
++	mcspi_dma->dma_tx =
++		dma_request_slave_channel_compat(mask, omap_dma_filter_fn,
++						 &sig, &master->dev,
++						 mcspi_dma->dma_tx_ch_name);
++
  	if (!mcspi_dma->dma_tx) {
  		dev_err(&spi->dev, "no TX DMA engine channel for McSPI\n");
  		dma_release_channel(mcspi_dma->dma_rx);
-@@ -1217,29 +1232,42 @@ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
+@@ -1217,29 +1229,42 @@ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
  		goto free_master;
  
  	for (i = 0; i < master->num_chipselect; i++) {

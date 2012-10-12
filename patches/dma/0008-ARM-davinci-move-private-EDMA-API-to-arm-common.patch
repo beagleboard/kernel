@@ -1,11 +1,11 @@
-From 3d4fbbe30596a8cb595ac61456369d5440364bb1 Mon Sep 17 00:00:00 2001
+From b9c14ded8556bff94ea73b9b6227cc88d68258a3 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Wed, 22 Aug 2012 09:24:24 -0400
-Subject: [PATCH 08/22] ARM: davinci: move private EDMA API to arm/common
+Subject: [PATCH 08/23] ARM: davinci: move private EDMA API to arm/common
 
 Move mach-davinci/dma.c to common/edma.c so it can be used
-by OMAP (specifically AM33xx atm) as well. This just moves
-the private EDMA API but does not support OMAP.
+by OMAP (specifically AM33xx) as well. This just moves the
+private EDMA API but does not support OMAP.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
@@ -1796,7 +1796,7 @@ index b680c83..a611716 100644
  #include <mach/mux.h>
  #include <mach/irqs.h>
 diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index 0755d46..0949dc4 100644
+index cd0c8b1..90f5639 100644
 --- a/arch/arm/mach-davinci/dm644x.c
 +++ b/arch/arm/mach-davinci/dm644x.c
 @@ -12,11 +12,11 @@
@@ -3424,11 +3424,11 @@ index a685e97..0000000
 -arch_initcall(edma_init);
 -
 diff --git a/arch/arm/mach-davinci/include/mach/da8xx.h b/arch/arm/mach-davinci/include/mach/da8xx.h
-index c9ee723..750936a 100644
+index aaccdc4..4380691 100644
 --- a/arch/arm/mach-davinci/include/mach/da8xx.h
 +++ b/arch/arm/mach-davinci/include/mach/da8xx.h
-@@ -19,8 +19,8 @@
- #include <linux/platform_data/davinci_asp.h>
+@@ -20,8 +20,8 @@
+ #include <linux/videodev2.h>
  
  #include <mach/serial.h>
 -#include <mach/edma.h>
