@@ -20,7 +20,7 @@ EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
 EXTERNAL_SHA="ddffeb8c4d0331609ef2581d84de4d763607bd37"
 
-PATCHSET="cpsw pinctrl cpufreq adc st7735 dma pwm i2c pruss usb pwm2"
+PATCHSET="cpsw pinctrl cpufreq adc st7735 dma pwm i2c pruss usb pwm2 fixes"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true

@@ -1,4 +1,4 @@
-From 2b8e4f1fffa69abad5c04ba0b924e50762738006 Mon Sep 17 00:00:00 2001
+From d5ce4af9a33de8b45b82a963af20f8b30a88ed23 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 6 Sep 2012 17:40:42 -0400
 Subject: [PATCH 10/23] ARM: edma: add DT and runtime PM support for AM335x
@@ -13,7 +13,7 @@ TODO: add AM33XX crossbar support and DT binding
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- arch/arm/common/edma.c                      |  252 +++++++++++++++++++++++++--
+ arch/arm/common/edma.c                      |  255 +++++++++++++++++++++++++--
  arch/arm/mach-davinci/board-da830-evm.c     |    4 +-
  arch/arm/mach-davinci/board-da850-evm.c     |    8 +-
  arch/arm/mach-davinci/board-dm646x-evm.c    |    4 +-
@@ -25,10 +25,10 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  arch/arm/mach-davinci/dm644x.c              |    4 +-
  arch/arm/mach-davinci/dm646x.c              |    4 +-
  include/linux/platform_data/edma.h          |    8 +-
- 12 files changed, 271 insertions(+), 41 deletions(-)
+ 12 files changed, 272 insertions(+), 43 deletions(-)
 
 diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index a3d189d..fd039db 100644
+index a3d189d..6d2a590 100644
 --- a/arch/arm/common/edma.c
 +++ b/arch/arm/common/edma.c
 @@ -24,6 +24,13 @@
@@ -45,7 +45,7 @@ index a3d189d..fd039db 100644
  
  #include <linux/platform_data/edma.h>
  
-@@ -1366,30 +1373,237 @@ void edma_clear_event(unsigned channel)
+@@ -1366,31 +1373,237 @@ void edma_clear_event(unsigned channel)
  EXPORT_SYMBOL(edma_clear_event);
  
  /*-----------------------------------------------------------------------*/
@@ -236,7 +236,8 @@ index a3d189d..fd039db 100644
 +	s16			(*rsv_slots)[2];
  	int			irq[EDMA_MAX_CC] = {0, 0};
  	int			err_irq[EDMA_MAX_CC] = {0, 0};
- 	struct resource		*r[EDMA_MAX_CC] = {NULL};
+-	struct resource		*r[EDMA_MAX_CC] = {NULL};
++	struct resource		*r[EDMA_MAX_CC] = {NULL, NULL};
 +	struct resource		res[EDMA_MAX_CC];
  	resource_size_t		len[EDMA_MAX_CC];
  	char			res_name[10];
@@ -244,9 +245,9 @@ index a3d189d..fd039db 100644
 +	struct device_node	*node = pdev->dev.of_node;
 +	struct device		*dev = &pdev->dev;
 +	struct edma_soc_info	*pdata;
++	int			ret;
 +
 +	if (node) {
-+		int ret;
 +		pdata = devm_kzalloc(dev,
 +				     sizeof(struct edma_soc_info),
 +				     GFP_KERNEL);
@@ -270,26 +271,27 @@ index a3d189d..fd039db 100644
  	for (j = 0; j < EDMA_MAX_CC; j++) {
 -		sprintf(res_name, "edma_cc%d", j);
 -		r[j] = platform_get_resource_byname(pdev, IORESOURCE_MEM,
++		if (!info[j]) {
++			if (!found)
++				return -ENODEV;
++			break;
++		}
 +		if (node) {
-+			int err;
-+			err = of_address_to_resource(node, 0, &res[j]);
-+			if (err) {
-+				dev_err(dev,
-+					"unable to find 'reg' property\n");
-+				return -EIO;
-+			}
-+			r[j] = &res[j];
-+
++			ret = of_address_to_resource(node, j, &res[j]);
++			if (!IS_ERR_VALUE(ret))
++				r[j] = &res[j];
 +		} else {
 +			sprintf(res_name, "edma_cc%d", j);
 +			r[j] = platform_get_resource_byname(pdev,
 +						IORESOURCE_MEM,
  						res_name);
+-		if (!r[j] || !info[j]) {
 +		}
- 		if (!r[j] || !info[j]) {
++		if (!r[j]) {
  			if (found)
  				break;
-@@ -1465,8 +1679,12 @@ static int __init edma_probe(struct platform_device *pdev)
+ 			else
+@@ -1465,8 +1678,12 @@ static int __init edma_probe(struct platform_device *pdev)
  			}
  		}
  
@@ -304,7 +306,7 @@ index a3d189d..fd039db 100644
  		edma_cc[j]->irq_res_start = irq[j];
  		status = request_irq(irq[j], dma_irq_handler, 0, "edma",
  					&pdev->dev);
-@@ -1476,8 +1694,12 @@ static int __init edma_probe(struct platform_device *pdev)
+@@ -1476,8 +1693,12 @@ static int __init edma_probe(struct platform_device *pdev)
  			goto fail;
  		}
  
@@ -319,7 +321,7 @@ index a3d189d..fd039db 100644
  		edma_cc[j]->irq_res_end = err_irq[j];
  		status = request_irq(err_irq[j], dma_ccerr_handler, 0,
  					"edma_error", &pdev->dev);
-@@ -1538,9 +1760,17 @@ fail1:
+@@ -1538,9 +1759,17 @@ fail1:
  	return status;
  }
  

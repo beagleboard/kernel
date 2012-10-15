@@ -1,22 +1,26 @@
-From 9bec3847fa0732ea076a3c10307bb72c4fd7df4c Mon Sep 17 00:00:00 2001
+From 6edddd34eea96a8b0ebf31c2c996369cfd514a2d Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 11 Oct 2012 08:51:46 -0400
 Subject: [PATCH 22/23] ARM: dts: add AM33XX SPI support
 
+Adds AM33XX SPI support to the am33xx.dtsi and the BeagleBone
+dts.
+
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- arch/arm/boot/dts/am335x-bone.dts |   14 ++++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts |   15 +++++++++++++++
  arch/arm/boot/dts/am33xx.dtsi     |   34 ++++++++++++++++++++++++++++++++++
- 2 files changed, 48 insertions(+), 0 deletions(-)
+ 2 files changed, 49 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 770c465..9db39c9 100644
+index 770c465..ec8bc18 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -33,6 +33,14 @@
+@@ -33,6 +33,15 @@
  				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
  			>;
  		};
++
 +		spi1_pins: pinmux_spi1_pins {
 +			pinctrl-single,pins = <
 +				0x190 0x13	/* mcasp0_aclkx.spi1_sclk, OUTPUT_PULLUP | MODE3 */
@@ -28,7 +32,7 @@ index 770c465..9db39c9 100644
  	};
  
  	ocp {
-@@ -141,3 +149,9 @@
+@@ -141,3 +150,9 @@
  &mmc1 {
  	vmmc-supply = <&ldo3_reg>;
  };

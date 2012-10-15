@@ -1,4 +1,4 @@
-From 6be11a56a87319fbfb6b34df26c9a9b2e0a4f194 Mon Sep 17 00:00:00 2001
+From a4352b247657b1edb1a64a8770a0c7ecd725710a Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Sat, 15 Sep 2012 12:05:04 +0300
 Subject: [PATCH 2/4] Bone DTS working i2c2 (i2c3 in the tree)
@@ -8,10 +8,10 @@ Subject: [PATCH 2/4] Bone DTS working i2c2 (i2c3 in the tree)
  1 files changed, 47 insertions(+), 7 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index cdbe76d..f4a08b5 100644
+index 75fb51e..a7a6e50 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -47,6 +47,12 @@
+@@ -48,6 +48,12 @@
  				0x1ac 0x17	/* mcasp0_ahclkx.gpio3_21, OUTPUT_PULLUP | MODE7 */
  			>;
  		};
@@ -24,7 +24,7 @@ index cdbe76d..f4a08b5 100644
  	};
  
  	ocp {
-@@ -85,16 +91,50 @@
+@@ -86,16 +92,50 @@
  				default-state = "off";
  			};
  		};
