@@ -6,16 +6,24 @@ Kernel for the beagleboard.org boards
 usage
 ======
 
-beaglebone-3.6 patchset:
+3.7 patchset:
 
-git checkout origin/beaglebone-3.6 -b beaglebone-3.6
+git checkout origin/3.7 -b 3.7
 ./patch.sh
 
 To build it:
 
 cd kernel
-make uImage
-make uImage-dtb.am335x-bone
+make uImage dtbs
+
+copy over uImage and am335x-bone.dtb to /boot
+
+uEnv.txt:
+
+devtree=/boot/am335x-bone.dtb
+dtboot=run mmcargs; ext2load mmc ${mmcdev}:2 ${kloadaddr} ${bootfile} ; ext2load mmc ${mmcdev}:2 ${fdtaddr} ${devtree} ; bootm ${kloadaddr} - ${fdtaddr}
+uenvcmd=run dtboot
+optargs=consoleblank=0
 
 Status
 ======
