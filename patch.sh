@@ -13,14 +13,14 @@ PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.6"
+TAG="v3.7-rc1"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="4f1cd91497774488ed16119ec3f54b3daf1561de"
+EXTERNAL_SHA="ddffeb8c4d0331609ef2581d84de4d763607bd37"
 
-PATCHSET="cpsw pinctrl cpufreq adc st7735 dma pwm i2c pruss dt usb pwm2"
+PATCHSET="cpsw pinctrl cpufreq adc st7735 dma pwm i2c pruss usb pwm2"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true

@@ -1,4 +1,4 @@
-From b9c14ded8556bff94ea73b9b6227cc88d68258a3 Mon Sep 17 00:00:00 2001
+From ebbc3a6f6f126af686eb79808a497cd089338c32 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Wed, 22 Aug 2012 09:24:24 -0400
 Subject: [PATCH 08/23] ARM: davinci: move private EDMA API to arm/common
@@ -42,19 +42,19 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  create mode 100644 include/linux/platform_data/edma.h
 
 diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 767aae8..56b7b23 100644
+index 73067ef..0e4646a 100644
 --- a/arch/arm/Kconfig
 +++ b/arch/arm/Kconfig
-@@ -911,6 +911,7 @@ config ARCH_DAVINCI
- 	select GENERIC_IRQ_CHIP
- 	select ARCH_HAS_HOLES_MEMORYMODEL
+@@ -925,6 +925,7 @@ config ARCH_DAVINCI
+ 	select HAVE_IDE
  	select NEED_MACH_GPIO_H
+ 	select ZONE_DMA
 +	select TI_PRIV_EDMA
  	help
  	  Support for TI's DaVinci platform.
  
 diff --git a/arch/arm/common/Kconfig b/arch/arm/common/Kconfig
-index 283fa1d..bd87838 100644
+index 45ceeb0..9e32d0d 100644
 --- a/arch/arm/common/Kconfig
 +++ b/arch/arm/common/Kconfig
 @@ -40,3 +40,6 @@ config SHARP_PARAM
@@ -3711,13 +3711,13 @@ index 7e84c90..0000000
 -
 -#endif
 diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index c9d1c36..2aa70cd 100644
+index 7cd56ed..c51ccbd 100644
 --- a/arch/arm/plat-omap/Kconfig
 +++ b/arch/arm/plat-omap/Kconfig
 @@ -29,6 +29,7 @@ config ARCH_OMAP2PLUS
- 	select OMAP_DM_TIMER
- 	select USE_OF
  	select PROC_DEVICETREE if PROC_FS
+ 	select SPARSE_IRQ
+ 	select USE_OF
 +	select TI_PRIV_EDMA
  	help
  	  "Systems based on OMAP2, OMAP3, OMAP4 or OMAP5"
