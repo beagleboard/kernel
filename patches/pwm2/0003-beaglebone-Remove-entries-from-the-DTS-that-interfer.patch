@@ -1,0 +1,50 @@
+From c34ef7f218ff988803c1cc105e99b3ef107fad95 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Sat, 13 Oct 2012 18:13:15 +0300
+Subject: [PATCH 3/4] beaglebone: Remove entries from the DTS that interfere
+
+Some entries (backlight & spi1) interfere with capebus. Comment
+them out for now.
+---
+ arch/arm/boot/dts/am335x-bone.dts |   18 ++++++++++--------
+ 1 files changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 79d5380..5dec14c 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -95,13 +95,14 @@
+ 		};
+ 	};
+ 
+-	backlight {
+-			compatible	= "pwm-backlight"; 
+-			pwms = <&ehrpwm1 0 500000 0>;
+-			pwm-names = "st7735fb";
+-			brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100>;
+-			default-brightness-level = <50>; /* index to the array above */ 
+-		};
++	// Remove backlight; it inteferes with capebus
++	// backlight {
++	//		compatible	= "pwm-backlight"; 
++	//		pwms = <&ehrpwm1 0 500000 0>;
++	//		pwm-names = "st7735fb";
++	//		brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100>;
++	//		default-brightness-level = <50>; /* index to the array above */ 
++	//	};
+ };
+ 
+ &i2c0 {
+@@ -207,7 +208,8 @@
+ };
+ 
+ &spi1 {
+-	status = "okay";
++	// Remove spi1; it inteferes with capebus
++	// status = "okay";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&spi1_pins>;
+ 
+-- 
+1.7.7.6
+

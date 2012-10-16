@@ -1,0 +1,25 @@
+From 83556eec079e99e7dc852204f8c3d7dd87eb4241 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Mon, 15 Oct 2012 16:53:28 +0200
+Subject: [PATCH 5/5] beaglebone: add a cpu led trigger
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am335x-bone.dts |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index f2ee748..aaccc66 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -56,6 +56,7 @@
+ 			led2 {
+ 				label = "beaglebone:green:usr2";
+ 				gpios = <&gpio2 23 0>;
++				linux,default-trigger = "cpu0";
+ 				default-state = "off";
+ 			};
+ 
+-- 
+1.7.7.6
+

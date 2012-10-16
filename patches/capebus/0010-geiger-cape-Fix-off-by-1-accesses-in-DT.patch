@@ -1,0 +1,42 @@
+From 4239c63e1d7c306eb164aecd55d3ce009c6d463d Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Tue, 16 Oct 2012 17:09:32 +0300
+Subject: [PATCH 10/12] geiger-cape: Fix off by 1 accesses in DT
+
+---
+ arch/arm/boot/dts/am335x-bone.dts |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 0e8689c..77f138b 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -399,7 +399,7 @@
+ 
+ 	event-blink-delay = <30>;	/* 30ms */
+ 
+-	gpios = <&gpio3 17 0>;		/* pulse */
++	gpios = <&gpio4 17 0>;		/* pulse */
+ 
+ 	vsense-name = "AIN5";		/* analog vsense */
+ 	vsense-scale = <37325>;		/* scaling */
+@@ -411,14 +411,14 @@
+ 
+ 		geiger-led0 {
+ 			label = "geiger:green:usr0";
+-			gpios = <&gpio2 23 0>;
++			gpios = <&gpio3 23 0>;
+ 			linux,default-trigger = "geiger-run";
+ 			default-state = "off";
+ 		};
+ 
+ 		geiger-led1 {
+ 			label = "geiger:red:usr1";
+-			gpios = <&gpio2 25 0>;
++			gpios = <&gpio3 25 0>;
+ 			linux,default-trigger = "geiger-event";
+ 			default-state = "off";
+ 		};
+-- 
+1.7.7.6
+
