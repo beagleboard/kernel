@@ -1,0 +1,49 @@
+From 8134fd65f157eefba8f95876fd9e968944ec4edf Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 14 Sep 2012 17:51:11 +0300
+Subject: [PATCH 2/4] i2c: pinctrl-ify i2c-omap.c
+
+Conflicts:
+	drivers/i2c/busses/i2c-omap.c
+---
+ drivers/i2c/busses/i2c-omap.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index db31eae..4c38aa0 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -44,6 +44,8 @@
+ #include <linux/i2c-omap.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/pm_qos.h>
++#include <linux/pinctrl/consumer.h>
++#include <linux/err.h>
+ 
+ /* I2C controller revisions */
+ #define OMAP_I2C_OMAP1_REV_2		0x20
+@@ -1064,6 +1066,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	const struct of_device_id *match;
+ 	int irq;
+ 	int r;
++	struct pinctrl *pinctrl;
+ 
+ 	/* NOTE: driver uses the static register mapping */
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -1202,6 +1205,13 @@ omap_i2c_probe(struct platform_device *pdev)
+ 
+ 	of_i2c_register_devices(adap);
+ 
++	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
++	if (IS_ERR(pinctrl))
++		dev_warn(dev->dev, "unable to select pin group\n");
++
++	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", adap->nr,
++		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
++
+ 	pm_runtime_mark_last_busy(dev->dev);
+ 	pm_runtime_put_autosuspend(dev->dev);
+ 
+-- 
+1.7.7.6
+

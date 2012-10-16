@@ -1,14 +1,16 @@
-From 3825cd08537cabfc0a198f5c0753a57ccdd3b6da Mon Sep 17 00:00:00 2001
+From 0b19b106f37826a3a7f88daa3d8a704b3beb572f Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Date: Sat, 29 Sep 2012 16:37:49 +0300
-Subject: [PATCH 5/8] Add missing da8xx DVI panel clock
+Date: Sat, 13 Oct 2012 16:12:22 +0300
+Subject: [PATCH 1/5] omap2-clk: Add missing lcdc clock definition
 
+Looks like the lcdc clock definition got dropped.
+It is required for the LCD controller to work. Reintroduce.
 ---
  arch/arm/mach-omap2/clock33xx_data.c |   11 +++++++++++
  1 files changed, 11 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
-index 4933993..cf625f7 100644
+index 114ab4b..7b2b67f 100644
 --- a/arch/arm/mach-omap2/clock33xx_data.c
 +++ b/arch/arm/mach-omap2/clock33xx_data.c
 @@ -867,6 +867,16 @@ static struct clk lcd_gclk = {
@@ -28,7 +30,7 @@ index 4933993..cf625f7 100644
  static struct clk mmc_clk = {
  	.name		= "mmc_clk",
  	.clkdm_name	= "l4ls_clkdm",
-@@ -1071,6 +1081,7 @@ static struct omap_clk am33xx_clks[] = {
+@@ -1073,6 +1083,7 @@ static struct omap_clk am33xx_clks[] = {
  	CLK(NULL,	"gfx_fck_div_ck",	&gfx_fck_div_ck,	CK_AM33XX),
  	CLK(NULL,	"sysclkout_pre_ck",	&sysclkout_pre_ck,	CK_AM33XX),
  	CLK(NULL,	"clkout2_ck",		&clkout2_ck,	CK_AM33XX),
