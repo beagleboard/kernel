@@ -1,0 +1,66 @@
+From 0c78172587928b1ae2727392c77bc06425b62b92 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 17 Oct 2012 13:36:46 +0300
+Subject: [PATCH 13/16] capebus: Expand id with extra eeprom fields
+
+Expand the text_id with version manufacturer & part number information.
+---
+ drivers/capebus/boards/capebus-bone.c |   21 +++++++++++++++++++--
+ include/linux/capebus/capebus-bone.h  |    2 +-
+ 2 files changed, 20 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/capebus/boards/capebus-bone.c b/drivers/capebus/boards/capebus-bone.c
+index b168027..2bd91d7 100644
+--- a/drivers/capebus/boards/capebus-bone.c
++++ b/drivers/capebus/boards/capebus-bone.c
+@@ -248,6 +248,10 @@ const struct cape_device_id *bone_capebus_get_dev_id(struct cape_slot *slot)
+ 	struct cape_device_id *id;
+ 	const u8 *p;
+ 	int r;
++	char board_name[32+1];
++	char version[4+1];
++	char manufacturer[16+1];
++	char part_number[16+1];
+ 
+ 	id = &bone_slot->id;
+ 
+@@ -288,8 +292,21 @@ const struct cape_device_id *bone_capebus_get_dev_id(struct cape_slot *slot)
+ 		bone_slot->id.data = bone_slot->eeprom_signature;
+ 
+ 		bone_capebus_id_get_field(id, BONE_CAPEBUS_BOARD_NAME,
+-					bone_slot->text_id,
+-					sizeof(bone_slot->text_id));
++					board_name, sizeof(board_name));
++		bone_capebus_id_get_field(id, BONE_CAPEBUS_VERSION,
++					version, sizeof(version));
++		bone_capebus_id_get_field(id, BONE_CAPEBUS_MANUFACTURER,
++					manufacturer, sizeof(manufacturer));
++		bone_capebus_id_get_field(id, BONE_CAPEBUS_PART_NUMBER,
++					part_number, sizeof(part_number));
++
++		/* board_name,version,manufacturer,part_number */
++		snprintf(bone_slot->text_id, sizeof(bone_slot->text_id) - 1,
++				"%s,%s,%s,%s", board_name, version,
++				manufacturer, part_number);
++
++		/* terminate always */
++		bone_slot->text_id[sizeof(bone_slot->text_id) - 1] = '\0';
+ 
+ 	}
+ 
+diff --git a/include/linux/capebus/capebus-bone.h b/include/linux/capebus/capebus-bone.h
+index bc02558..fdd2e83 100644
+--- a/include/linux/capebus/capebus-bone.h
++++ b/include/linux/capebus/capebus-bone.h
+@@ -34,7 +34,7 @@ struct bone_capebus_slot {
+ 	unsigned int		eeprom_failed : 1;
+ 	unsigned int		eeprom_override : 1;
+ 	struct cape_device_id	id;
+-	char			text_id[32 + 1];
++	char			text_id[256];
+ 	char			eeprom_signature[256];
+ };
+ 
+-- 
+1.7.7.6
+
