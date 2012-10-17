@@ -8,13 +8,15 @@ usage
 
 3.7 patchset:
 
-git checkout origin/3.7 -b 3.7
+```git checkout origin/3.7 -b 3.7
 ./patch.sh
+```
 
 To build it:
 
-cd kernel
+```cd kernel
 make uImage dtbs
+```
 
 copy over uImage and am335x-bone.dtb to /boot
 
