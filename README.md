@@ -23,14 +23,16 @@ uEnv.txt for the angstrom u-boot 2012.10:
 ```devtree=/boot/am335x-bone.dtb
 dtboot=run mmcargs; ext2load mmc ${mmcdev}:2 ${kloadaddr} ${bootfile} ; ext2load mmc ${mmcdev}:2 ${fdtaddr} ${devtree} ; bootm ${kloadaddr} - ${fdtaddr}
 uenvcmd=run dtboot
-optargs=consoleblank=0```
+optargs=consoleblank=0
+```
 
 uEnv.txt for vanilla u-boot 2012.10:
 
 ```devtree=/boot/am335x-bone.dtb
 dtboot=run mmcargs; ext2load mmc ${mmcdev}:2 ${loadaddr} ${bootfile} ; ext2load mmc ${mmcdev}:2 ${fdtaddr} ${devtree} ; bootm ${loadaddr} - ${fdtaddr}
 uenvcmd=run dtboot
-optargs=consoleblank=0```
+optargs=consoleblank=0
+```
 
 Status
 ======
