@@ -1,0 +1,241 @@
+From 913756985e7aca11270053efaae2833355f8be26 Mon Sep 17 00:00:00 2001
+From: Dan Aizenstros <daizenstros@quicklogic.com>
+Date: Wed, 3 Oct 2012 10:46:13 -0400
+Subject: [PATCH] beaglebone: update cssp_camera driver to support revision 4
+ chip
+
+Signed-off-by: Dan Aizenstros <daizenstros@quicklogic.com>
+---
+ arch/arm/mach-omap2/board-am335xevm.c         |   38 ++++++++++----------
+ drivers/media/video/cssp_camera/cssp_camera.c |   48 +++++++++++++++++-------
+ drivers/media/video/cssp_camera/cssp_camera.h |    2 +-
+ 3 files changed, 54 insertions(+), 34 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
+index 53653d1..d83cc53 100644
+--- a/arch/arm/mach-omap2/board-am335xevm.c
++++ b/arch/arm/mach-omap2/board-am335xevm.c
+@@ -2058,7 +2058,7 @@ static struct mt9t112_camera_info mt9t111_cam_info = {
+ 	/* divider calculated for 32Mhz CAM_MCLK */
+ 	.divider = {
+ 		.m = 24, .n = 1,
+-		.p1 = 0, .p2 = 7, .p3 = 0, .p4 = 11, .p5 = 15, .p6 = 7, .p7 = 0,
++		.p1 = 0, .p2 = 7, .p3 = 0, .p4 = 10, .p5 = 14, .p6 = 7, .p7 = 0,
+ 	},
+ };
+ 
+@@ -2098,35 +2098,35 @@ static struct platform_device cssp_camera = {
+ 
+ static struct gpmc_timings cssp_timings = {
+ 	/* Minimum clock period for synchronous mode (in picoseconds) */
+-	.sync_clk = 10000,
++	.sync_clk = 20000,
+ 
+ 	/* CS signal timings corresponding to GPMC_CONFIG2 */
+-	.cs_on = 0,
+-	.cs_rd_off = 8 * 10,		/* Read deassertion time */
+-	.cs_wr_off = 20 * 10,		/* Write deassertion time */
++	.cs_on = 1,
++	.cs_rd_off = 16 * 10,		/* Read deassertion time */
++	.cs_wr_off = 31 * 10,		/* Write deassertion time */
+ 
+ 	/* ADV signal timings corresponding to GPMC_CONFIG3 */
+ 	.adv_on = 0,			/* Assertion time */
+-	.adv_rd_off = 2 * 10,		/* Read deassertion time */
+-	.adv_wr_off = 2 * 10,		/* Write deassertion time */
++	.adv_rd_off = 4 * 10,		/* Read deassertion time */
++	.adv_wr_off = 4 * 10,		/* Write deassertion time */
+ 
+ 	/* WE signals timings corresponding to GPMC_CONFIG4 */
+-	.we_on = 3 * 10,		/* WE assertion time */
+-	.we_off = 8 * 10,		/* WE deassertion time */
++	.we_on = 6 * 10,		/* WE assertion time */
++	.we_off = 31 * 10,		/* WE deassertion time */
+ 
+ 	/* OE signals timings corresponding to GPMC_CONFIG4 */
+-	.oe_on = 3 * 10,		/* OE assertion time */
+-	.oe_off = 8 * 10,		/* OE deassertion time */
++	.oe_on = 6 * 10,		/* OE assertion time */
++	.oe_off = 16 * 10,		/* OE deassertion time */
+ 
+ 	/* Access time and cycle time timings corresponding to GPMC_CONFIG5 */
+-	.page_burst_access = 1 * 10,	/* Multiple access word delay */
+-	.access = 7 * 10,		/* Start-cycle to first data valid delay */
+-	.rd_cycle = 8 * 10,		/* Total read cycle time */
+-	.wr_cycle = 20 * 10,		/* Total write cycle time */
++	.page_burst_access = 2 * 10,	/* Multiple access word delay */
++	.access = 14 * 10,		/* Start-cycle to first data valid delay */
++	.rd_cycle = 16 * 10,		/* Total read cycle time */
++	.wr_cycle = 31 * 10,		/* Total write cycle time */
+ 
+ 	/* The following are only on OMAP3430 */
+-	.wr_access = 7 * 10,		/* WRACCESSTIME */
+-	.wr_data_mux_bus = 3 * 10,	/* WRDATAONADMUXBUS */
++	.wr_access = 10 * 10,		/* WRACCESSTIME */
++	.wr_data_mux_bus = 6 * 10,	/* WRDATAONADMUXBUS */
+ };
+ 
+ static int gpmc_cssp_init(void)
+@@ -2151,7 +2151,7 @@ static int gpmc_cssp_init(void)
+ 	val = GPMC_CONFIG1_READMULTIPLE_SUPP;
+ 	val |= GPMC_CONFIG1_READTYPE_SYNC;
+ 	val |= GPMC_CONFIG1_WRITETYPE_SYNC;
+-	val |= GPMC_CONFIG1_CLKACTIVATIONTIME(1);
++	val |= GPMC_CONFIG1_CLKACTIVATIONTIME(2);
+ 	val |= GPMC_CONFIG1_PAGE_LEN(2);
+ 	val |= GPMC_CONFIG1_DEVICESIZE_16;
+ 	val |= GPMC_CONFIG1_DEVICETYPE_NOR;
+@@ -2165,7 +2165,7 @@ static int gpmc_cssp_init(void)
+ 
+ 	val = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG6);
+ 	val &= 0xe0f0f030;
+-	val |= 0x07030481;
++	val |= 0x0a060484;
+ 	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG6, val);
+ 
+ 	printk(KERN_INFO "gpmc_cssp_init for QuickLogic CAMIF device succeeded\n");
+diff --git a/drivers/media/video/cssp_camera/cssp_camera.c b/drivers/media/video/cssp_camera/cssp_camera.c
+index 4d86bf4..86d43f7 100644
+--- a/drivers/media/video/cssp_camera/cssp_camera.c
++++ b/drivers/media/video/cssp_camera/cssp_camera.c
+@@ -51,6 +51,7 @@
+ #define PCLK_POL		BIT(14) /* PCLK polarity (0 - rising edge, 1 - falling edge */
+ #define HS_EN			BIT(13) /* High speed bus (0 =< 50 MHz, 1 > 50 MHz) */
+ #define ENABLE			BIT(12)
++#define LDR_EN			BIT(11) /* Large DMA Request Support (0 - 32 bytes, 1 - 128 bytes) */
+ #define REV			0xFF	/* Chip Revision mask */
+ 
+ 
+@@ -151,12 +152,12 @@ static int trigger_dma_transfer_to_buf(struct cssp_cam_dev *dev, struct vb2_buff
+ 	// Enable DMA
+ 	edma_write_slot(dev->dma_ch, &dev->dma_tr_params);
+ 
++	dev->current_vb = vb;
++
+ 	// Enable data capture
+ 	dev->mode |= ENABLE;
+ 	writew(dev->mode, dev->reg_base_virt + REG_MODE);
+ 
+-	dev->current_vb = vb;
+-
+ 	return 0;
+ }
+ 
+@@ -217,8 +218,10 @@ static void dma_callback(unsigned lch, u16 ch_status, void *data)
+ 		dequeue_buffer_for_dma(dev);
+ 	} else {
+ 		/* we got a missed interrupt so just start a new DMA with the existing buffer */
+-		if (dev->current_vb != NULL)
+-			trigger_dma_transfer_to_buf(dev, dev->current_vb);
++		if (dev->current_vb != NULL) {
++			if (trigger_dma_transfer_to_buf(dev, dev->current_vb))
++				dev_err(&dev->pdev->dev, "No buffer allocated!\n");
++		}
+ 	}
+ }
+ 
+@@ -246,12 +249,14 @@ static int configure_edma(struct cssp_cam_dev *cam)
+ 		dev_info(&pdev->dev, "allocating channel for DMA succeeded, chan=%d\n", cam->dma_ch);
+ 	}
+ 
++	cam->dma_req_len = cam->rev > 3 ? 128 : 32;
++
+ 	cam->dma_tr_params.opt = TCINTEN | TCC(cam->dma_ch);
+ 	cam->dma_tr_params.src = cam->reg_base_phys + REG_DATA;
+-	cam->dma_tr_params.a_b_cnt = ACNT(BYTES_PER_DMA_EVT) | BCNT((VGA_WIDTH * BYTES_PER_PIXEL) / BYTES_PER_DMA_EVT);
+-	cam->dma_tr_params.src_dst_bidx = SRCBIDX(0) | DSTBIDX(BYTES_PER_DMA_EVT);
+-	cam->dma_tr_params.link_bcntrld = BCNTRLD((VGA_WIDTH * BYTES_PER_PIXEL) / BYTES_PER_DMA_EVT) | LINK(0xffff);
+-	cam->dma_tr_params.src_dst_cidx = SRCCIDX(0) | DSTCIDX(BYTES_PER_DMA_EVT);
++	cam->dma_tr_params.a_b_cnt = ACNT(cam->dma_req_len) | BCNT((VGA_WIDTH * BYTES_PER_PIXEL) / cam->dma_req_len);
++	cam->dma_tr_params.src_dst_bidx = SRCBIDX(0) | DSTBIDX(cam->dma_req_len);
++	cam->dma_tr_params.link_bcntrld = BCNTRLD((VGA_WIDTH * BYTES_PER_PIXEL) / cam->dma_req_len) | LINK(0xffff);
++	cam->dma_tr_params.src_dst_cidx = SRCCIDX(0) | DSTCIDX(cam->dma_req_len);
+ 	cam->dma_tr_params.ccnt = CCNT(VGA_HEIGHT);
+ 
+ 	return 0;
+@@ -659,7 +664,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 	pix->bytesperline = (pix->width * fmt->depth) >> 3;
+ 	pix->sizeimage = pix->height * pix->bytesperline;
+ 
+-	if ((pix->sizeimage % BYTES_PER_DMA_EVT) != 0)
++	if ((pix->sizeimage % dev->dma_req_len) != 0)
+ 		return -EINVAL;
+ 
+ 	switch (mbus_fmt.field) {
+@@ -683,6 +688,8 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 	struct vb2_queue *q = &dev->vb_vidq;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	struct v4l2_mbus_framefmt mbus_fmt;
++	int i = 0, rem;
++	u32 bytesperline, height;
+ 
+ 	int ret = vidioc_try_fmt_vid_cap(file, priv, f);
+ 	if (ret < 0)
+@@ -705,10 +712,21 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 	v4l2_fill_mbus_format(&mbus_fmt, pix, dev->fmt->code);
+ 	v4l2_subdev_call(dev->subdev, video, s_mbus_fmt, &mbus_fmt);
+ 
++	/* Calculate DMA transfer parameters based on DMA request length */
++	bytesperline = dev->bytesperline;
++	do {
++		rem = bytesperline % dev->dma_req_len;
++		if (rem != 0) {
++			bytesperline <<= 1;
++			i++;
++		}
++	} while (rem != 0);
++	height = dev->height >> i;
++
+ 	/* Set the EDMA for the new resolution */
+-	dev->dma_tr_params.a_b_cnt = ACNT(BYTES_PER_DMA_EVT) | BCNT(dev->bytesperline / BYTES_PER_DMA_EVT);
+-	dev->dma_tr_params.link_bcntrld = BCNTRLD(dev->bytesperline / BYTES_PER_DMA_EVT) | LINK(0xffff);
+-	dev->dma_tr_params.ccnt = CCNT(dev->height);
++	dev->dma_tr_params.a_b_cnt = ACNT(dev->dma_req_len) | BCNT(bytesperline / dev->dma_req_len);
++	dev->dma_tr_params.link_bcntrld = BCNTRLD(bytesperline / dev->dma_req_len) | LINK(0xffff);
++	dev->dma_tr_params.ccnt = CCNT(height);
+ 
+ 	return 0;
+ }
+@@ -929,7 +947,7 @@ static int __init  video_probe(struct cssp_cam_dev *cam_dev)
+ 	q = &cam_dev->vb_vidq;
+ 	memset(q, 0, sizeof(cam_dev->vb_vidq));
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
++	q->io_modes = VB2_MMAP | VB2_READ;
+ 	q->drv_priv = cam_dev;
+ 	q->buf_struct_size = sizeof(struct cssp_cam_buffer);
+ 	q->ops = &cssp_cam_video_qops;
+@@ -1037,7 +1055,9 @@ static int __init  cssp_cam_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto fail2;
+ 
+-	cam_dev->mode = FMT_2X8_EN | PCLK_POL | HS_EN;
++	cam_dev->mode = FMT_2X8_EN | PCLK_POL | HS_EN;	// falling edge
++	if (cam_dev->rev > 3)
++		cam_dev->mode |= LDR_EN;
+ 
+ 	ret = configure_camera_sensor(cam_dev);
+ 	if (ret) {
+diff --git a/drivers/media/video/cssp_camera/cssp_camera.h b/drivers/media/video/cssp_camera/cssp_camera.h
+index 3bb6ea4..7e61b86 100644
+--- a/drivers/media/video/cssp_camera/cssp_camera.h
++++ b/drivers/media/video/cssp_camera/cssp_camera.h
+@@ -43,7 +43,6 @@ MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
+ 
+ #define VGA_RES (VGA_WIDTH * VGA_HEIGHT)
+ #define BYTES_PER_PIXEL 2
+-#define BYTES_PER_DMA_EVT 32
+ 
+ /* PaRAM.opt: */
+ #define TCC(v) (((v) & 0x3f) << 12)
+@@ -133,6 +132,7 @@ struct cssp_cam_dev {
+ 	struct edmacc_param		dma_tr_params;
+ 	int				dma_ch;
+ 	u64				dma_mask;
++	int				dma_req_len;
+ 
+ 	int				frame_cnt;
+ 
+-- 
+1.7.7.6
+

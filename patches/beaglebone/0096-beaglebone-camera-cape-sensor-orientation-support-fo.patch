@@ -1,0 +1,128 @@
+From faf51f6f2852c149f39eb81610a4148ac54d28ec Mon Sep 17 00:00:00 2001
+From: Dan Aizenstros <daizenstros@quicklogic.com>
+Date: Mon, 15 Oct 2012 15:34:24 -0400
+Subject: [PATCH] beaglebone: camera cape sensor orientation support for
+ mt9t112 driver
+
+Signed-off-by: Dan Aizenstros <daizenstros@quicklogic.com>
+---
+ arch/arm/mach-omap2/board-am335xevm.c |   21 ++++++++++++++++++++-
+ drivers/media/video/mt9t112.c         |   30 ++++++++++++++++++++++++++++++
+ include/media/mt9t112.h               |    2 ++
+ 3 files changed, 52 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
+index 0e00629..e9b1733 100644
+--- a/arch/arm/mach-omap2/board-am335xevm.c
++++ b/arch/arm/mach-omap2/board-am335xevm.c
+@@ -872,7 +872,7 @@ static struct pinmux_config gpmc_pin_mux[] = {
+ static struct pinmux_config camera_cape_pin_mux[] = {
+ 	{"spi0_d1.gpio0_4",    OMAP_MUX_MODE7 | AM33XX_PIN_OUTPUT },		// QL CSSP and Camera Sensor Reset
+ 	{"spi0_cs0.gpio0_5",   OMAP_MUX_MODE7 | AM33XX_PIN_OUTPUT_PULLUP },	// 1V8 and 2V8 Power Enable
+-	{"gpmc_csn1.gpio0_30",   OMAP_MUX_MODE7 | AM33XX_PIN_INPUT},		// Sensor orientation detect: low -> frontfacing, high -> backfacing
++	{"gpmc_wait0.gpio0_30", OMAP_MUX_MODE7 | AM33XX_PIN_INPUT},		// Sensor orientation detect: low -> frontfacing, high -> backfacing
+ 	{NULL, 0},
+ };
+ 
+@@ -2232,11 +2232,14 @@ free:
+ 	return -1;
+ }
+ 
++#define BEAGLEBONE_CAMERA_ORIENTATION GPIO_TO_PIN(0, 30)
++
+ static void cssp_gpmc_init(void)
+ {
+ 	struct gpmc_devices_info gpmc_device[2] = {
+ 			{ NULL, GPMC_DEVICE_NOR },
+ 		};
++	int status;
+ 
+ 	setup_pin_mux(gpmc_pin_mux);
+ 	setup_pin_mux(camera_cape_pin_mux);
+@@ -2244,6 +2247,22 @@ static void cssp_gpmc_init(void)
+ 	omap_init_gpmc(gpmc_device, sizeof(gpmc_device));
+ 	gpmc_cssp_init();
+ 
++	/* Get the sensor orientation and setup sensor flags as appropriate */
++	status = gpio_request(BEAGLEBONE_CAMERA_ORIENTATION, "camera orientation");
++	if (status < 0) {
++		pr_err("Failed to request gpio for camera sensor orientation");
++	} else {
++		int orientation;
++
++		orientation = gpio_get_value(BEAGLEBONE_CAMERA_ORIENTATION);
++		if (orientation == 0) {
++			mt9t111_cam_info.flags = MT9T112_FLAG_VFLIP;
++			pr_info("Camera cape sensor is facing forward\n");
++		} else {
++			pr_info("Camera cape sensor is facing backward\n");
++		}
++	}
++
+ 	platform_device_register(&cssp_camera);
+ 
+ 	printk(KERN_INFO "[cssp_cam platform init]: cssp_gpmc_init: DONE\n");
+diff --git a/drivers/media/video/mt9t112.c b/drivers/media/video/mt9t112.c
+index 7b34b11..13cc934 100644
+--- a/drivers/media/video/mt9t112.c
++++ b/drivers/media/video/mt9t112.c
+@@ -688,6 +688,32 @@ static int mt9t112_auto_focus_trigger(const struct i2c_client *client)
+ 	return ret;
+ }
+ 
++static int mt9t112_set_orientation(const struct i2c_client *client, int flip)
++{
++	int ret;
++
++	// if flip = 0 set [normal]
++	// if flip = 1 set [horizontal mirror]
++	// if flip = 2 set [vertical flip]
++	// if flip = 3 set [rotate 180]
++	flip &= 0x3;
++
++	// [CAM1_CTX_A_READ_MODE]
++	mt9t112_mcu_mask_set(ret, client, VAR(18, 0x000C), 0x0003, flip);
++	// [CAM1_CTX_A_PIXEL_ORDER]
++	mt9t112_mcu_write(ret, client, VAR8(18, 0x000E), flip);
++
++	// [CAM1_CTX_B_READ_MODE]
++	mt9t112_mcu_mask_set(ret, client, VAR(18, 0x0054), 0x0003, flip);
++	// [CAM1_CTX_B_PIXEL_ORDER]
++	mt9t112_mcu_write(ret, client, VAR8(18, 0x0056), flip);
++
++	// [SEQ_CMD]
++	mt9t112_mcu_write(ret, client, VAR8(1, 0), 0x06);
++
++	return ret;
++}
++
+ static int mt9t112_init_camera(const struct i2c_client *client)
+ {
+ 	int ret;
+@@ -830,6 +856,10 @@ static int mt9t112_s_stream(struct v4l2_subdev *sd, int enable)
+ 
+ 	ECHECKER(ret, mt9t112_auto_focus_trigger(client));
+ 
++	if (priv->info->flags & MT9T112_FLAG_VFLIP) {
++		ECHECKER(ret, mt9t112_set_orientation(client, 2));
++	}
++
+ 	dev_dbg(&client->dev, "format : %d\n", priv->format->code);
+ 	dev_dbg(&client->dev, "size   : %d x %d\n",
+ 		priv->frame.width,
+diff --git a/include/media/mt9t112.h b/include/media/mt9t112.h
+index a43c74a..ac152fa 100644
+--- a/include/media/mt9t112.h
++++ b/include/media/mt9t112.h
+@@ -13,6 +13,8 @@
+ 
+ #define MT9T112_FLAG_PCLK_RISING_EDGE	(1 << 0)
+ #define MT9T112_FLAG_DATAWIDTH_8	(1 << 1) /* default width is 10 */
++#define MT9T112_FLAG_VFLIP		(1 << 2)
++#define MT9T112_FLAG_HFLIP		(1 << 3)
+ 
+ struct mt9t112_pll_divider {
+ 	u8 m, n;
+-- 
+1.7.7.6
+
