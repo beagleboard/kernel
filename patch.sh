@@ -18,7 +18,7 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="8d2b6b3ae280dcf6f6c7a95623670a57cdf562ed"
+EXTERNAL_SHA="43c422eda99b894f18d1cca17bcd2401efaf7bd0"
 
 PATCHSET="cpsw pinctrl cpufreq adc st7735 dma pwm i2c pruss usb pwm2 fixes da8xx-fb capebus"
 
