@@ -1,0 +1,41 @@
+From 8dccbbc3a513c42c19030659dde83a8b37c38cb0 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Thu, 18 Oct 2012 10:11:48 +0200
+Subject: [PATCH 2/2] am33xx.dtsi: enable MMC HSPE bit for all 3 controllers
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am33xx.dtsi |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index a4ebadc..2a8121a 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -262,6 +262,7 @@
+ 			ti,hwmods = "mmc1";
+ 			ti,dual-volt;
+ 			ti,needs-special-reset;
++			ti,needs-special-hs-handling;
+ 			dmas = <&edma 24
+ 				&edma 25>;
+ 			dma-names = "tx", "rx";
+@@ -271,6 +272,7 @@
+ 			compatible = "ti,omap3-hsmmc";
+ 			ti,hwmods = "mmc2";
+ 			ti,needs-special-reset;
++			ti,needs-special-hs-handling;
+ 			dmas = <&edma 2
+ 				&edma 3>;
+ 			dma-names = "tx", "rx";
+@@ -281,6 +283,7 @@
+ 			compatible = "ti,omap3-hsmmc";
+ 			ti,hwmods = "mmc3";
+ 			ti,needs-special-reset;
++			ti,needs-special-hs-handling;
+ 			status = "disabled";
+ 		};
+ 
+-- 
+1.7.7.6
+
