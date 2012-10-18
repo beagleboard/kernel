@@ -1,23 +1,23 @@
-From 4c009a5504cb8a0e8169aea93dbfeab8e0033d71 Mon Sep 17 00:00:00 2001
+From 8132c470729f5ca368df274c42f80e34f9ef33ed Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 20 Sep 2012 07:46:04 -0400
-Subject: [PATCH 12/23] dmaengine: edma: Add TI EDMA device tree binding
+Subject: [PATCH 14/28] dmaengine: edma: Add TI EDMA device tree binding
 
 The binding definition is based on the generic DMA controller
 binding.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- Documentation/devicetree/bindings/dma/ti-edma.txt |   49 +++++++++++++++++++++
- 1 files changed, 49 insertions(+), 0 deletions(-)
+ Documentation/devicetree/bindings/dma/ti-edma.txt |   51 +++++++++++++++++++++
+ 1 files changed, 51 insertions(+), 0 deletions(-)
  create mode 100644 Documentation/devicetree/bindings/dma/ti-edma.txt
 
 diff --git a/Documentation/devicetree/bindings/dma/ti-edma.txt b/Documentation/devicetree/bindings/dma/ti-edma.txt
 new file mode 100644
-index 0000000..06402eb
+index 0000000..3344345
 --- /dev/null
 +++ b/Documentation/devicetree/bindings/dma/ti-edma.txt
-@@ -0,0 +1,49 @@
+@@ -0,0 +1,51 @@
 +TI EDMA
 +
 +Required properties:
@@ -32,6 +32,7 @@ index 0000000..06402eb
 +Optional properties:
 +- ti,edma-reserved-channels: List of reserved channel regions
 +- ti,edma-reserved-slots: List of reserved slot regions
++- ti,edma-xbar-event-map: Crossbar event to channel map
 +
 +Example:
 +
@@ -65,8 +66,9 @@ index 0000000..06402eb
 +				      1 1
 +				      2 2>;
 +	ti,edma-default-queue = <0>;
++	ti,edma-xbar-event-map = <1 12
++				  2 13>;
 +};
-+
 -- 
 1.7.7.6
 

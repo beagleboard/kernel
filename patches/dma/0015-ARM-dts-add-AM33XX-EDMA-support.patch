@@ -1,28 +1,29 @@
-From 2a22a730a5c72916d49735e8aad0526613c490e7 Mon Sep 17 00:00:00 2001
+From 4487c45fd3705a7eb412dda042148f6f6e8bb392 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Wed, 10 Oct 2012 10:01:33 -0400
-Subject: [PATCH 13/23] ARM: dts: add AM33XX EDMA support
+Subject: [PATCH 15/28] ARM: dts: add AM33XX EDMA support
 
 Adds AM33XX EDMA support to the am33xx.dtsi as documented in
 Documentation/devicetree/bindings/dma/ti-edma.txt
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi |   30 ++++++++++++++++++++++++++++++
- 1 files changed, 30 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi |   31 +++++++++++++++++++++++++++++++
+ 1 files changed, 31 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 287d7c0..eaac2ec 100644
+index 287d7c0..c724091 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -86,6 +86,36 @@
+@@ -86,6 +86,37 @@
  			reg = <0x48200000 0x1000>;
  		};
  
 +		edma: edma@49000000 {
 +			compatible = "ti,edma3";
 +			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
-+			reg = <0x49000000 0x10000>;
++			reg =	<0x49000000 0x10000>,
++				<0x44e10f90 0x10>;
 +			interrupt-parent = <&intc>;
 +			interrupts = <12 13 14>;
 +			#dma-cells = <1>;
