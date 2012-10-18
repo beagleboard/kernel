@@ -1,0 +1,104 @@
+From d99dcdc4baa9b20a81afc238a083dc2e8dd66882 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 19 Oct 2012 07:18:42 +0300
+Subject: [PATCH 19/19] capebus: Clean-up a bit
+
+---
+ drivers/capebus/boards/capebus-bone.c |   11 ++++++-----
+ drivers/capebus/capes/bone-lcd-cape.c |   26 ++++++++++++--------------
+ 2 files changed, 18 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/capebus/boards/capebus-bone.c b/drivers/capebus/boards/capebus-bone.c
+index 943c6ef..5d85c25 100644
+--- a/drivers/capebus/boards/capebus-bone.c
++++ b/drivers/capebus/boards/capebus-bone.c
+@@ -488,7 +488,8 @@ bone_capebus_probe(struct platform_device *pdev)
+ {
+ 	struct bone_capebus_bus	*bus;
+ 	struct device_node	*pnode = pdev->dev.of_node;
+-	const struct of_device_id *match;
++	const struct of_device_id *cntrlboard_match;
++	const struct of_device_id *dev_match;
+ 	struct bone_capebus_slot *slot;
+ 	const struct bone_capebus_eeprom_field *ee_field;
+ 	struct property *prop;
+@@ -520,9 +521,9 @@ bone_capebus_probe(struct platform_device *pdev)
+ 		return r;
+ 	}
+ 
+-	match = of_match_device(of_match_ptr(bone_capebus_of_match),
++	cntrlboard_match = of_match_device(of_match_ptr(bone_capebus_of_match),
+ 			&pdev->dev);
+-	if (!match) {
++	if (!cntrlboard_match) {
+ 		dev_err(&pdev->dev, "Failed to configure bone capebus\n");
+ 		return -ENODEV;
+ 	}
+@@ -559,8 +560,8 @@ bone_capebus_probe(struct platform_device *pdev)
+ 	/* now we iterate over any overrides */
+ 	for_each_child_of_node(pnode, node) {
+ 
+-		match = of_match_node(slot_override_of_match, node);
+-		if (!match)
++		dev_match = of_match_node(slot_override_of_match, node);
++		if (!dev_match)
+ 			continue;
+ 
+ 		/* no reg property */
+diff --git a/drivers/capebus/capes/bone-lcd-cape.c b/drivers/capebus/capes/bone-lcd-cape.c
+index 7be4abd..1b49b79 100644
+--- a/drivers/capebus/capes/bone-lcd-cape.c
++++ b/drivers/capebus/capes/bone-lcd-cape.c
+@@ -123,10 +123,10 @@ static int bonelcd_probe(struct cape_dev *dev, const struct cape_device_id *id)
+ 			gpio_leds_of_match, "lcd-cape-leds",
+ 			"version", version);
+ 	if (IS_ERR(info->leds_pdev)) {
+-		info->leds_pdev = NULL;
+ 		dev_err(&dev->dev, "Failed to create platform led "
+ 				"platform device\n");
+-		err = -ENODEV;
++		err = PTR_ERR(info->leds_pdev);
++		info->leds_pdev = NULL;
+ 		goto err_no_leds_pdev;
+ 	}
+ 
+@@ -136,26 +136,24 @@ static int bonelcd_probe(struct cape_dev *dev, const struct cape_device_id *id)
+ 		info->bl_pdev = capebus_of_platform_compatible_device_create(dev,
+ 				tps_bl_of_match, "lcd-cape-bl",
+ 				"version", version);
++		if (IS_ERR(info->bl_pdev)) {
++			dev_warn(&dev->dev, "Failed to tps backlight "
++					"platform device\n");
++			err = PTR_ERR(info->bl_pdev);
++			info->bl_pdev = NULL;
++			goto err_no_bl_pdev;
++		}
++		dev_info(&dev->dev, "tps backlight pdev created OK\n");
+ 	}
+ 
+-	if (IS_ERR(info->bl_pdev)) {
+-		info->bl_pdev = NULL;
+-		dev_warn(&dev->dev, "Failed to backlight "
+-				"platform device\n");
+-		err = -ENODEV;
+-		goto err_no_bl_pdev;
+-	}
+-
+-	dev_info(&dev->dev, "Backlight pdev created OK\n");
+-
+ 	info->keys_pdev = capebus_of_platform_compatible_device_create(dev,
+ 			gpio_keys_of_match, "lcd-cape-keys",
+ 			"version", version);
+ 	if (IS_ERR(info->keys_pdev)) {
+-		info->keys_pdev = NULL;
+ 		dev_err(&dev->dev, "Failed to create platform gpio-keys "
+ 				"platform device\n");
+-		err = -ENODEV;
++		err = PTR_ERR(info->keys_pdev);
++		info->keys_pdev = NULL;
+ 		goto err_no_keys_pdev;
+ 	}
+ 
+-- 
+1.7.7.6
+
