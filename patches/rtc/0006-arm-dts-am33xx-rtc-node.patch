@@ -1,0 +1,34 @@
+From 2ab7bfe0aca56ffcb318b715a33cbd0fd1a4fc16 Mon Sep 17 00:00:00 2001
+From: Afzal Mohammed <afzal@ti.com>
+Date: Wed, 18 Jul 2012 17:57:18 +0530
+Subject: [PATCH 6/7] arm/dts: am33xx rtc node
+
+add am33xx rtc node.
+
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 8bddc9c..e38afd6 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -465,5 +465,14 @@
+ 			#pwm-cells = <3>;
+ 			status = "disabled";
+ 		};
++
++		rtc {
++			compatible = "ti,da830-rtc";
++			ti,hwmods = "rtc";
++			reg = <0x44e3e000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <75
++				      76>;
++		};
+ 	};
+ };
+-- 
+1.7.7.6
+
