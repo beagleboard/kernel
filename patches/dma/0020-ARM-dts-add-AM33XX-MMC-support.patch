@@ -1,22 +1,22 @@
-From 8970e1df5d2a638630aad1f7bf7124df24d99493 Mon Sep 17 00:00:00 2001
+From 87a57cd496c2538bbaa563cbff3bcd44d19540fc Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Wed, 10 Oct 2012 15:14:03 -0400
-Subject: [PATCH 20/28] ARM: dts: add AM33XX MMC support
+Subject: [PATCH 20/31] ARM: dts: add AM33XX MMC support
 
-Adds AM33XX MMC support to the am33xx.dtsi and the BeagleBone
-dts.
+Adds AM33XX MMC support for am335x-bone and am335x-evm.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
  arch/arm/boot/dts/am335x-bone.dts |    6 ++++++
+ arch/arm/boot/dts/am335x-evm.dts  |    6 ++++++
  arch/arm/boot/dts/am33xx.dtsi     |   27 +++++++++++++++++++++++++++
- 2 files changed, 33 insertions(+), 0 deletions(-)
+ 3 files changed, 39 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 0ca1b29..905924e 100644
+index c634f87..5510979 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -120,6 +120,8 @@
+@@ -70,6 +70,8 @@
  		};
  
  		ldo3_reg: regulator@5 {
@@ -25,19 +25,37 @@ index 0ca1b29..905924e 100644
  			regulator-always-on;
  		};
  
-@@ -136,3 +138,7 @@
- &cpsw_emac1 {
- 	phy_id = "4a101000.mdio:01";
+@@ -78,3 +80,7 @@
+ 		};
+ 	};
  };
 +
 +&mmc1 {
 +	vmmc-supply = <&ldo3_reg>;
 +};
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 185d632..d63fce8 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -114,7 +114,13 @@
+ 		};
+ 
+ 		vmmc_reg: regulator@12 {
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <3300000>;
+ 			regulator-always-on;
+ 		};
+ 	};
+ };
++
++&mmc1 {
++	vmmc-supply = <&vmmc_reg>;
++};
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index c724091..f7a2be0 100644
+index ab9c78f..26a6af7 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -258,6 +258,33 @@
+@@ -234,6 +234,33 @@
  			status = "disabled";
  		};
  

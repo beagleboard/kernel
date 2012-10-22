@@ -1,17 +1,17 @@
-From 47aa6a9f78d99b64d53253f2c01bc88e9a85df50 Mon Sep 17 00:00:00 2001
+From 7fd472f03c2d99d59e8f21b98cdac8f7ae677ba9 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 16 Oct 2012 17:09:32 +0300
-Subject: [PATCH 10/26] geiger-cape: Fix off by 1 accesses in DT
+Subject: [PATCH 10/19] geiger-cape: Fix off by 1 accesses in DT
 
 ---
  arch/arm/boot/dts/am335x-bone.dts |    6 +++---
  1 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 0e8689c..77f138b 100644
+index 3081ef9..ccec817 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -399,7 +399,7 @@
+@@ -397,7 +397,7 @@
  
  	event-blink-delay = <30>;	/* 30ms */
  
@@ -20,7 +20,7 @@ index 0e8689c..77f138b 100644
  
  	vsense-name = "AIN5";		/* analog vsense */
  	vsense-scale = <37325>;		/* scaling */
-@@ -411,14 +411,14 @@
+@@ -409,14 +409,14 @@
  
  		geiger-led0 {
  			label = "geiger:green:usr0";

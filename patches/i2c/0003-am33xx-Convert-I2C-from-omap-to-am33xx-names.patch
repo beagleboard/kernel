@@ -1,4 +1,4 @@
-From f227360c894ca9a26d93304b58312b3c72605f41 Mon Sep 17 00:00:00 2001
+From 036a0833e067c9ad61d3b470d39ee4e812d0964d Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Sat, 15 Sep 2012 14:49:11 +0300
 Subject: [PATCH 3/4] am33xx: Convert I2C from omap to am33xx names
@@ -14,11 +14,11 @@ Use am33xx naming everywhere, beside the hwmod name.
  3 files changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 59c585b..a80dc5e 100644
+index d1c21ba..1daf1af 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -48,7 +48,7 @@
- 				0x1ac 0x17	/* mcasp0_ahclkx.gpio3_21, OUTPUT_PULLUP | MODE7 */
+@@ -52,7 +52,7 @@
+ 				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
  			>;
  		};
 -		i2c3_pins: pinmux_i2c3_pins {
@@ -26,7 +26,7 @@ index 59c585b..a80dc5e 100644
  			pinctrl-single,pins = <
  				0x178 0x73 	/* uart1_ctsn.i2c2_sda, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
  				0x17c 0x73	/* uart1_rtsn.i2c2_scl, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
-@@ -96,7 +96,7 @@
+@@ -109,7 +109,7 @@
  	};
  };
  
@@ -35,7 +35,7 @@ index 59c585b..a80dc5e 100644
  	status = "okay";
  	clock-frequency = <400000>;
  
-@@ -111,10 +111,10 @@
+@@ -124,10 +124,10 @@
         
  };
  
@@ -49,7 +49,7 @@ index 59c585b..a80dc5e 100644
  	clock-frequency = <100000>;
  
 diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 9db92f4..c2451dd 100644
+index 43e23a8..6032648 100644
 --- a/arch/arm/boot/dts/am335x-evm.dts
 +++ b/arch/arm/boot/dts/am335x-evm.dts
 @@ -29,7 +29,7 @@
@@ -62,7 +62,7 @@ index 9db92f4..c2451dd 100644
  			clock-frequency = <400000>;
  
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 9755276..42701e2 100644
+index 433065e..535a66c 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
 @@ -225,33 +225,33 @@

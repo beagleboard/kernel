@@ -1,17 +1,17 @@
-From 7b4815a470b0314ba6becfbc13efdb14f6a1ebfd Mon Sep 17 00:00:00 2001
+From 9e8a8a6b3228890c36b9dbe63275b283cf89b048 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Sat, 13 Oct 2012 18:33:22 +0300
-Subject: [PATCH 07/26] capebus: Beaglebone DVI cape DT updates
+Subject: [PATCH 07/19] capebus: Beaglebone DVI cape DT updates
 
 ---
  arch/arm/boot/dts/am335x-bone.dts |  113 +++++++++++++++++++++++++++++++++++++
  1 files changed, 113 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index f7358f4..62235a0 100644
+index 7b38837..ef364e3 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -54,6 +54,67 @@
+@@ -58,6 +58,67 @@
  				0x17c 0x73	/* uart1_rtsn.i2c2_scl, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
  			>;
  		};
@@ -79,7 +79,7 @@ index f7358f4..62235a0 100644
  	};
  
  	ocp {
-@@ -107,6 +168,10 @@
+@@ -110,6 +171,10 @@
  
  	capebus: capebus@0 {
  			compatible = "bone-capebus";
@@ -90,7 +90,7 @@ index f7358f4..62235a0 100644
  	};
  };
  
-@@ -242,3 +307,51 @@
+@@ -240,3 +305,51 @@
  &capebus {
  	slots = <&cape_eeprom_0 &cape_eeprom_1 &cape_eeprom_2 &cape_eeprom_3>;
  };

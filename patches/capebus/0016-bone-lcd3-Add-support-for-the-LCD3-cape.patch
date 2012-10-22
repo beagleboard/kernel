@@ -1,7 +1,7 @@
-From 663041122c11c99aad65490fef2d87f40d116c31 Mon Sep 17 00:00:00 2001
+From 36bc5c6f43186e755ea084847b8d668daed931b7 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 17 Oct 2012 20:19:41 +0300
-Subject: [PATCH 16/26] bone-lcd3: Add support for the LCD3 cape
+Subject: [PATCH 16/19] bone-lcd3: Add support for the LCD3 cape
 
 Everything works but the touchscreen.
 
@@ -15,10 +15,10 @@ Also using a backlight value other than 100 kills the ethernet.
  create mode 100644 drivers/capebus/capes/bone-lcd3-cape.c
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 1346bc6..12d8efb 100644
+index f4e268a..632ee8a 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -130,6 +130,47 @@
+@@ -134,6 +134,47 @@
  				0x19c 0x37 	/* mcasp0_ahclkr.gpio3_17, OMAP_MUX_MODE4 | INPUT_PULLUP */
  			>;
  		};
@@ -66,7 +66,7 @@ index 1346bc6..12d8efb 100644
  	};
  
  	ocp {
-@@ -192,6 +233,10 @@
+@@ -195,6 +236,10 @@
  				compatible = "bone-geiger-cape";
  			};
  
@@ -77,15 +77,15 @@ index 1346bc6..12d8efb 100644
  			/* overrides; no EEPROM (prototyping) */
  //			override@3 {
  //				compatible = "bone-capebus-slot-override";
-@@ -292,6 +337,7 @@
+@@ -295,6 +340,7 @@
  			regulator-always-on;
  		};
  	};
 +
  };
  
- &cpsw_emac0 {
-@@ -424,3 +470,91 @@
+ &mmc1 {
+@@ -422,3 +468,91 @@
  		};
  	};
  };

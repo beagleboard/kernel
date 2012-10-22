@@ -1,0 +1,143 @@
+From 3cd14cef2cb60f58045dd8554431070801813da5 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Sat, 20 Oct 2012 13:21:18 +0300
+Subject: [PATCH 30/33] capebus: Export ee-fields to sysfs before successful
+ probe.
+
+---
+ drivers/capebus/boards/capebus-bone.c |   61 ++++++++++++++++++++-------------
+ drivers/capebus/capebus-probe.c       |    4 ++
+ include/linux/capebus.h               |    5 ++-
+ 3 files changed, 44 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/capebus/boards/capebus-bone.c b/drivers/capebus/boards/capebus-bone.c
+index 5d85c25..bd5f93a 100644
+--- a/drivers/capebus/boards/capebus-bone.c
++++ b/drivers/capebus/boards/capebus-bone.c
+@@ -432,35 +432,51 @@ struct bonedev_ee_attribute ee_attrs[] = {
+ 	BONEDEV_EE_ATTR(dc-supplied, DC_SUPPLIED),
+ };
+ 
++static struct attribute *ee_attrs_flat[] = {
++	&ee_attrs[BONE_CAPEBUS_HEADER		].devattr.attr,
++	&ee_attrs[BONE_CAPEBUS_EEPROM_REV	].devattr.attr,
++	&ee_attrs[BONE_CAPEBUS_BOARD_NAME	].devattr.attr,
++	&ee_attrs[BONE_CAPEBUS_VERSION		].devattr.attr,
++	&ee_attrs[BONE_CAPEBUS_MANUFACTURER	].devattr.attr,
++	&ee_attrs[BONE_CAPEBUS_PART_NUMBER	].devattr.attr,
++	&ee_attrs[BONE_CAPEBUS_NUMBER_OF_PINS	].devattr.attr,
++	&ee_attrs[BONE_CAPEBUS_SERIAL_NUMBER	].devattr.attr,
++	&ee_attrs[BONE_CAPEBUS_PIN_USAGE	].devattr.attr,
++	&ee_attrs[BONE_CAPEBUS_VDD_3V3EXP	].devattr.attr,
++	&ee_attrs[BONE_CAPEBUS_VDD_5V		].devattr.attr,
++	&ee_attrs[BONE_CAPEBUS_SYS_5V		].devattr.attr,
++	&ee_attrs[BONE_CAPEBUS_DC_SUPPLIED	].devattr.attr,
++	NULL,
++};
++
++static const struct attribute_group bone_ee_attrgroup = {
++	.name		= "ee-fields",
++	.is_visible 	= NULL,
++	.attrs 		= ee_attrs_flat,
++};
++
+ static int bone_capebus_sysfs_register(struct cape_dev *dev)
+ {
+-	int i;
+-	int err;
+-
+-	for (i = 0; i < ARRAY_SIZE(ee_attrs); i++) {
+-		err = device_create_file(&dev->dev, &ee_attrs[i].devattr);
+-		if (err != 0) {
+-			while (--i >= 0)
+-				device_remove_file(&dev->dev,
+-						&ee_attrs[i].devattr);
+-			return err;
+-		}
+-	}
+-
+-	return 0;
++	return sysfs_create_group(&dev->dev.kobj, &bone_ee_attrgroup);
+ }
+ 
+ static void bone_capebus_sysfs_unregister(struct cape_dev *dev)
+ {
+-	int i;
+-
+-	i = ARRAY_SIZE(ee_attrs);
+-	while (--i >= 0)
+-		device_remove_file(&dev->dev, &ee_attrs[i].devattr);
++	sysfs_remove_group(&dev->dev.kobj, &bone_ee_attrgroup);
+ }
+ 
+ static int bone_capebus_dev_probed(struct cape_dev *dev)
+ {
++	return 0;
++}
++
++static void bone_capebus_dev_removed(struct cape_dev *dev)
++{
++	bone_capebus_sysfs_unregister(dev);
++}
++
++static int bone_capebus_dev_registered(struct cape_dev *dev)
++{
+ 	int ret;
+ 
+ 	ret = bone_capebus_sysfs_register(dev);
+@@ -468,12 +484,8 @@ static int bone_capebus_dev_probed(struct cape_dev *dev)
+ 		dev_err(&dev->dev, "bone_capebus sysfs registration failed\n");
+ 		return ret;
+ 	}
+-	return 0;
+-}
+ 
+-static void bone_capebus_dev_removed(struct cape_dev *dev)
+-{
+-	bone_capebus_sysfs_unregister(dev);
++	return 0;
+ }
+ 
+ static struct cape_bus_ops bone_capebus_ops = {
+@@ -481,6 +493,7 @@ static struct cape_bus_ops bone_capebus_ops = {
+ 	.get_text_dev_id	= bone_capebus_get_text_dev_id,
+ 	.dev_probed		= bone_capebus_dev_probed,
+ 	.dev_removed		= bone_capebus_dev_removed,
++	.dev_registered		= bone_capebus_dev_registered,
+ };
+ 
+ static int __devinit
+diff --git a/drivers/capebus/capebus-probe.c b/drivers/capebus/capebus-probe.c
+index dc4d227..f66adf4 100644
+--- a/drivers/capebus/capebus-probe.c
++++ b/drivers/capebus/capebus-probe.c
+@@ -283,6 +283,10 @@ int cape_bus_register_slot(struct cape_bus *bus, struct cape_slot *slot,
+ 		}
+ 
+ 		list_add_tail(&dev->bus_list, &bus->devices);
++
++		if (dev->bus->ops->dev_registered)
++			(*dev->bus->ops->dev_registered)(dev);
++
+ 	}
+ 
+ err_unlock:
+diff --git a/include/linux/capebus.h b/include/linux/capebus.h
+index 5c3fe2b..e063325 100644
+--- a/include/linux/capebus.h
++++ b/include/linux/capebus.h
+@@ -89,8 +89,9 @@ void capebus_unregister_driver(struct cape_driver *dev);
+ struct cape_bus_ops {
+ 	const struct cape_device_id *(*get_dev_id)(struct cape_slot *slot);
+ 	const char *(*get_text_dev_id)(struct cape_slot *slot);
+-	int (*dev_probed)(struct cape_dev *dev);
+-	void (*dev_removed)(struct cape_dev *dev);
++	int (*dev_probed)(struct cape_dev *dev);	/* probed succesfully */
++	void (*dev_removed)(struct cape_dev *dev);	/* removed */
++	int (*dev_registered)(struct cape_dev *dev);	/* registered OK */
+ };
+ 
+ struct cape_bus {
+-- 
+1.7.7.6
+

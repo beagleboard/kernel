@@ -1,0 +1,68 @@
+From 9b4c13482afd611a80d50c280d133c3d65e0fbbc Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Sat, 20 Oct 2012 14:08:17 +0300
+Subject: [PATCH 31/33] i2c: Export capability to probe devices
+
+Probe devices for a node other that the adapter node.
+---
+ drivers/of/of_i2c.c    |   14 ++++++++++----
+ include/linux/of_i2c.h |    3 +++
+ 2 files changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/of/of_i2c.c b/drivers/of/of_i2c.c
+index 3550f3b..7f36b05 100644
+--- a/drivers/of/of_i2c.c
++++ b/drivers/of/of_i2c.c
+@@ -18,18 +18,18 @@
+ #include <linux/of_irq.h>
+ #include <linux/module.h>
+ 
+-void of_i2c_register_devices(struct i2c_adapter *adap)
++void of_i2c_register_node_devices(struct i2c_adapter *adap,
++		struct device_node *parent_node)
+ {
+ 	void *result;
+ 	struct device_node *node;
+ 
+-	/* Only register child devices if the adapter has a node pointer set */
+-	if (!adap->dev.of_node)
++	if (!parent_node)
+ 		return;
+ 
+ 	dev_dbg(&adap->dev, "of_i2c: walking child nodes\n");
+ 
+-	for_each_child_of_node(adap->dev.of_node, node) {
++	for_each_child_of_node(parent_node, node) {
+ 		struct i2c_board_info info = {};
+ 		struct dev_archdata dev_ad = {};
+ 		const __be32 *addr;
+@@ -76,6 +76,12 @@ void of_i2c_register_devices(struct i2c_adapter *adap)
+ 		}
+ 	}
+ }
++EXPORT_SYMBOL(of_i2c_register_node_devices);
++
++void of_i2c_register_devices(struct i2c_adapter *adap)
++{
++	of_i2c_register_node_devices(adap, adap->dev.of_node);
++}
+ EXPORT_SYMBOL(of_i2c_register_devices);
+ 
+ static int of_dev_node_match(struct device *dev, void *data)
+diff --git a/include/linux/of_i2c.h b/include/linux/of_i2c.h
+index 1cb775f..d2f8ebb6 100644
+--- a/include/linux/of_i2c.h
++++ b/include/linux/of_i2c.h
+@@ -15,6 +15,9 @@
+ #if defined(CONFIG_OF_I2C) || defined(CONFIG_OF_I2C_MODULE)
+ #include <linux/i2c.h>
+ 
++extern void of_i2c_register_node_devices(struct i2c_adapter *adap,
++		struct device_node *parent_node);
++
+ extern void of_i2c_register_devices(struct i2c_adapter *adap);
+ 
+ /* must call put_device() when done with returned i2c_client device */
+-- 
+1.7.7.6
+

@@ -1,0 +1,136 @@
+From 904473f98440e3a5922f395ef0e5975ba544c89a Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Sat, 20 Oct 2012 11:47:32 +0300
+Subject: [PATCH 29/33] capebus: Simplify geiger cape using generics
+
+---
+ drivers/capebus/capes/bone-geiger-cape.c |   70 +++++++++++-------------------
+ 1 files changed, 25 insertions(+), 45 deletions(-)
+
+diff --git a/drivers/capebus/capes/bone-geiger-cape.c b/drivers/capebus/capes/bone-geiger-cape.c
+index 73b9c33..d24c364 100644
+--- a/drivers/capebus/capes/bone-geiger-cape.c
++++ b/drivers/capebus/capes/bone-geiger-cape.c
+@@ -44,9 +44,7 @@ extern struct cape_driver bonegeiger_driver;
+ 
+ struct bone_geiger_info {
+ 	struct cape_dev *dev;
+-	struct platform_device *leds_pdev;
+-	struct platform_device *tscadc_pdev;
+-
++	struct bone_capebus_generic_info *geninfo;
+ 	struct pwm_device *pwm_dev;
+ 	int pwm_frequency;
+ 	int pwm_duty_cycle;
+@@ -248,12 +246,6 @@ static irqreturn_t bonegeiger_irq_handler(int irq, void *dev_id)
+ 
+ static int bonegeiger_probe(struct cape_dev *dev, const struct cape_device_id *id)
+ {
+-	static const struct of_device_id gpio_leds_of_match[] = {
+-		{ .compatible = "gpio-leds", }, { },
+-	};
+-	static const struct of_device_id ti_tscadc_dt_of_match[] = {
+-		{ .compatible = "ti-tscadc-dt", }, { },
+-	};
+ 	char boardbuf[33];
+ 	char versionbuf[5];
+ 	const char *board_name;
+@@ -265,21 +257,19 @@ static int bonegeiger_probe(struct cape_dev *dev, const struct cape_device_id *i
+ 	u32 val;
+ 	int err;
+ 
++	/* boiler plate probing */
++	err = bone_capebus_probe_prolog(dev, id);
++	if (err != 0)
++		return err;
++
+ 	/* get the board name (after check of cntrlboard match) */
+ 	board_name = bone_capebus_id_get_field(id, BONE_CAPEBUS_BOARD_NAME,
+ 			boardbuf, sizeof(boardbuf));
+-	if (board_name == NULL)
+-		return -ENODEV;
+-
+-	/* match compatible? */
+-	match = capebus_of_match_device(dev, "board-name", board_name);
+-	if (match == NULL)
+-		return -ENODEV;
+-
+ 	/* get the board version */
+ 	version = bone_capebus_id_get_field(id, BONE_CAPEBUS_VERSION,
+ 			versionbuf, sizeof(versionbuf));
+-	if (version == NULL)
++	/* should never happen; but check anyway */
++	if (board_name == NULL || version == NULL)
+ 		return -ENODEV;
+ 
+ 	dev_info(&dev->dev, "%s: V=%s initialized - '%s'\n", board_name,
+@@ -393,25 +383,11 @@ static int bonegeiger_probe(struct cape_dev *dev, const struct cape_device_id *i
+ 	led_trigger_register_simple("geiger-event", &info->event_led);
+ 	led_trigger_register_simple("geiger-run", &info->run_led);
+ 
+-	info->tscadc_pdev = capebus_of_platform_compatible_device_create(dev,
+-			ti_tscadc_dt_of_match, "geiger-cape-ti-tscadc",
+-			"version", version);
+-	if (info->tscadc_pdev == NULL) {
+-		dev_err(&dev->dev, "Could not create tsc_adc device\n");
+-		err = -ENODEV;
+-		goto err_no_tsc_pdev;
+-	}
+-
+-	/* must be last, for the led-trigger to be picked up */
+-	info->leds_pdev = capebus_of_platform_compatible_device_create(dev,
+-			gpio_leds_of_match, "geiger-cape-leds",
+-			"version", version);
+-	if (IS_ERR(info->leds_pdev)) {
+-		info->leds_pdev = NULL;
+-		dev_err(&dev->dev, "Failed to create platform led "
+-				"platform device\n");
+-		err = -ENODEV;
+-		goto err_no_leds_pdev;
++	/* pick up the generics; tsc & leds */
++	info->geninfo = bone_capebus_probe_generic(dev, id);
++	if (info->geninfo == NULL) {
++		dev_err(&dev->dev, "Could not probe generic\n");
++		goto err_no_generic;
+ 	}
+ 
+ 	led_trigger_event(info->run_led, LED_OFF);
+@@ -455,12 +431,19 @@ static int bonegeiger_probe(struct cape_dev *dev, const struct cape_device_id *i
+ 
+ 	dev_info(&dev->dev, "Initialization complete\n");
+ 
++	err = bonegeiger_start(dev);
++	if (err != 0) {
++		dev_err(&dev->dev, "Could not start geiger device\n");
++		goto err_no_start;
++	}
++
+ 	return 0;
++
++err_no_start:
++	iio_channel_release(info->vsense_channel);
+ err_no_vsense:
+-	of_device_unregister(info->tscadc_pdev);
+-err_no_tsc_pdev:
+-	of_device_unregister(info->leds_pdev);
+-err_no_leds_pdev:
++	bone_capebus_remove_generic(info->geninfo);
++err_no_generic:
+ 	led_trigger_unregister_simple(info->run_led);
+ 	led_trigger_unregister_simple(info->event_led);
+ 	sysfs_put(info->counter_sd);
+@@ -487,10 +470,7 @@ static void bonegeiger_remove(struct cape_dev *dev)
+ 	bonegeiger_stop(dev);
+ 
+ 	iio_channel_release(info->vsense_channel);
+-
+-	of_device_unregister(info->tscadc_pdev);
+-	of_device_unregister(info->leds_pdev);
+-
++	bone_capebus_remove_generic(info->geninfo);
+ 	led_trigger_unregister_simple(info->run_led);
+ 	led_trigger_unregister_simple(info->event_led);
+ 	sysfs_put(info->counter_sd);
+-- 
+1.7.7.6
+

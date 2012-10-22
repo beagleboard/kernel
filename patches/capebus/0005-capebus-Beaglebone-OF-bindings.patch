@@ -1,31 +1,36 @@
-From 14d8e761dbaf3999e5cd842915cefb3a050c1f97 Mon Sep 17 00:00:00 2001
+From e598850eeebb0bb6461296fa91ea44c6ef55b4e4 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Sat, 13 Oct 2012 18:27:13 +0300
-Subject: [PATCH 05/26] capebus: Beaglebone OF bindings
+Subject: [PATCH 05/19] capebus: Beaglebone OF bindings
 
 ---
- arch/arm/boot/dts/am335x-bone.dts |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/am335x-bone.dts |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 3d0246c..f7358f4 100644
+index 667842d..7b38837 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -103,6 +103,11 @@
- 	//		brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100>;
- 	//		default-brightness-level = <50>; /* index to the array above */ 
- 	//	};
-+
-+
+@@ -108,13 +108,9 @@
+ 		};
+ 	};
+ 
+-	backlight {
+-			compatible	= "pwm-backlight"; 
+-			pwms = <&ehrpwm1 0 500000 0>;
+-			pwm-names = "st7735fb";
+-			brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100>;
+-			default-brightness-level = <50>; /* index to the array above */ 
+-		};
 +	capebus: capebus@0 {
 +			compatible = "bone-capebus";
 +	};
  };
  
  &i2c0 {
-@@ -233,3 +238,7 @@
- &ehrpwm1 {
- 	status = "okay";
+@@ -240,3 +236,7 @@
+ &cpsw_emac1 {
+ 	phy_id = "4a101000.mdio:01";
  };
 +
 +&capebus {

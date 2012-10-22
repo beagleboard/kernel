@@ -1,0 +1,340 @@
+From 9f3466e380d41380200a774e25883a35f1d63c7b Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 19 Oct 2012 08:28:52 +0300
+Subject: [PATCH 20/33] capebus: Make a DT ti_tscadc adapter and use it
+
+---
+ arch/arm/boot/dts/am335x-bone.dts           |   34 ++++++++
+ drivers/capebus/boards/capebus-bone-pdevs.c |  113 ++++++++++++++++++++++++++-
+ drivers/capebus/capes/bone-geiger-cape.c    |   25 ++-----
+ drivers/capebus/capes/bone-lcd-cape.c       |   35 +++------
+ 4 files changed, 162 insertions(+), 45 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 19e78f3..281ced1 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -459,6 +459,14 @@
+ 	vsense-name = "AIN5";		/* analog vsense */
+ 	vsense-scale = <37325>;		/* scaling */
+ 
++	tscadc {
++		compatible = "ti-tscadc-dt";
++
++		ti,hwmods = "adc_tsc";
++
++		adc-channels = <8>;
++	};
++
+ 	gpio-leds {
+ 		compatible = "gpio-leds";
+ 		pinctrl-names = "default";
+@@ -496,6 +504,19 @@
+ 		panel-type = "CDTech_S035Q01";
+ 	};
+ 
++	/* same thing as above */
++	tscadc {
++		compatible = "ti-tscadc-dt";
++
++		ti,hwmods = "adc_tsc";
++
++		tsc-wires = <4>;
++		tsc-x-plate-resistance = <200>;
++		tsc-steps = <6>;
++
++		adc-channels = <4>;
++	};
++
+ 	version@00A0 {
+ 		version = "00A0";
+ 
+@@ -595,6 +616,19 @@
+ 		panel-type = "TFC_S9700RTWV35TR_01B";
+ 	};
+ 
++	/* same thing as above */
++	tscadc {
++		compatible = "ti-tscadc-dt";
++
++		ti,hwmods = "adc_tsc";
++
++		tsc-wires = <4>;
++		tsc-x-plate-resistance = <200>;
++		tsc-steps = <6>;
++
++		adc-channels = <4>;
++	};
++
+ 	version@00A0 {
+ 		version = "00A0";
+ 
+diff --git a/drivers/capebus/boards/capebus-bone-pdevs.c b/drivers/capebus/boards/capebus-bone-pdevs.c
+index 4c16da5..fd91208 100644
+--- a/drivers/capebus/boards/capebus-bone-pdevs.c
++++ b/drivers/capebus/boards/capebus-bone-pdevs.c
+@@ -196,6 +196,113 @@ static struct platform_driver da8xx_dt_driver = {
+ 
+ #endif
+ 
++#if defined(CONFIG_MFD_TI_TSCADC) || defined(CONFIG_MFD_TI_TSCADC_MODULE)
++
++struct ti_tscadc_priv {
++	struct omap_hwmod *tsc_oh;
++	struct tsc_data tsc_data;
++	struct adc_data adc_data;
++	struct mfd_tscadc_board tscadc_data;
++	struct platform_device *tscadc_pdev;
++};
++
++static const struct of_device_id of_ti_tscadc_dt_match[] = {
++	{ .compatible = "ti-tscadc-dt", },
++	{},
++};
++
++static int __devinit ti_tscadc_dt_probe(struct platform_device *pdev)
++{
++	struct ti_tscadc_priv *priv;
++	struct pinctrl *pinctrl;
++	u32 val;
++	int ret;
++
++	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
++	if (priv == NULL) {
++		dev_err(&pdev->dev, "Failed to allocate priv\n");
++		return -ENOMEM;
++	}
++
++	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
++	if (IS_ERR(pinctrl))
++		dev_warn(&pdev->dev,
++			"pins are not configured from the driver\n");
++
++	ret = of_property_read_u32(pdev->dev.of_node, "tsc-wires", &val);
++	if (ret != 0) {
++		dev_info(&pdev->dev, "no tsc-wires property; disabling TSC\n");
++		val = 0;
++	}
++	priv->tsc_data.wires = val;
++
++	if (priv->tsc_data.wires > 0) {
++		ret = of_property_read_u32(pdev->dev.of_node,
++				"tsc-x-plate-resistance", &val);
++		if (ret != 0) {
++			dev_err(&pdev->dev, "Failed to read "
++					"tsc-x-plate-resistance property\n");
++			return ret;
++		}
++		priv->tsc_data.x_plate_resistance = val;
++
++		ret = of_property_read_u32(pdev->dev.of_node,
++				"tsc-steps", &val);
++		if (ret != 0) {
++			dev_err(&pdev->dev, "Failed to read "
++					"tsc-steps property\n");
++			return ret;
++		}
++		priv->tsc_data.steps_to_configure = val;
++	}
++
++	ret = of_property_read_u32(pdev->dev.of_node, "adc-channels", &val);
++	if (ret != 0) {
++		dev_info(&pdev->dev, "No adc-channels property; disabling adc\n");
++		val = 0;
++	}
++	priv->adc_data.adc_channels = val;
++
++	priv->tscadc_data.tsc_init = &priv->tsc_data;
++	priv->tscadc_data.adc_init = &priv->adc_data;
++
++	priv->tsc_oh = omap_hwmod_lookup("adc_tsc");
++	if (priv->tsc_oh == NULL) {
++		dev_err(&pdev->dev, "Could not lookup HWMOD %s\n", "adc_tsc");
++		return -ENODEV;
++	}
++	priv->tscadc_pdev = omap_device_build("ti_tscadc", -1, priv->tsc_oh,
++			&priv->tscadc_data, sizeof(priv->tscadc_data),
++			NULL, 0, 0);
++	if (priv->tscadc_pdev == NULL) {
++		dev_err(&pdev->dev, "Could not create tsc_adc device\n");
++		return -ENODEV;
++	}
++
++	dev_info(&pdev->dev, "TI tscadc pdev created OK\n");
++
++	platform_set_drvdata(pdev, priv);
++
++	return 0;
++}
++
++static int __devexit ti_tscadc_dt_remove(struct platform_device *pdev)
++{
++	return -EINVAL;	/* not supporting removal yet */
++}
++
++static struct platform_driver ti_tscadc_dt_driver = {
++	.probe		= ti_tscadc_dt_probe,
++	.remove		= __devexit_p(ti_tscadc_dt_remove),
++	.driver		= {
++		.name	= "ti_tscadc-dt",
++		.owner	= THIS_MODULE,
++		.of_match_table = of_ti_tscadc_dt_match,
++	},
++};
++
++#endif
++
+ struct bone_capebus_pdev_driver {
+ 	struct platform_driver *driver;
+ 	unsigned int registered : 1;
+@@ -204,11 +311,15 @@ struct bone_capebus_pdev_driver {
+ 
+ static struct bone_capebus_pdev_driver pdev_drivers[] = {
+ #if defined(CONFIG_FB_DA8XX) || defined(CONFIG_FB_DA8XX_MODULE)
+-
+ 	{
+ 		.driver		= &da8xx_dt_driver,
+ 	},
+ #endif
++#if defined(CONFIG_MFD_TI_TSCADC) || defined(CONFIG_MFD_TI_TSCADC_MODULE)
++	{
++		.driver		= &ti_tscadc_dt_driver,
++	},
++#endif
+ 	{
+ 		.driver		= NULL,
+ 	}
+diff --git a/drivers/capebus/capes/bone-geiger-cape.c b/drivers/capebus/capes/bone-geiger-cape.c
+index 0bbd4f6..28337c3 100644
+--- a/drivers/capebus/capes/bone-geiger-cape.c
++++ b/drivers/capebus/capes/bone-geiger-cape.c
+@@ -56,10 +56,6 @@ struct bone_geiger_info {
+ 	struct led_trigger *run_led;		/* running      */
+ 	unsigned long event_blink_delay;
+ 	struct sysfs_dirent *counter_sd;	/* notifier */
+-	struct omap_hwmod *tsc_oh;
+-	struct tsc_data tsc_data;
+-	struct adc_data adc_data;
+-	struct mfd_tscadc_board tscadc_data;
+ 	struct platform_device *tscadc_pdev;
+ 	const char *vsense_name;
+ 	unsigned int vsense_scale;
+@@ -254,6 +250,9 @@ static int bonegeiger_probe(struct cape_dev *dev, const struct cape_device_id *i
+ 	static const struct of_device_id gpio_leds_of_match[] = {
+ 		{ .compatible = "gpio-leds", }, { },
+ 	};
++	static const struct of_device_id ti_tscadc_dt_of_match[] = {
++		{ .compatible = "ti-tscadc-dt", }, { },
++	};
+ 	char boardbuf[33];
+ 	char versionbuf[5];
+ 	const char *board_name;
+@@ -411,19 +410,9 @@ static int bonegeiger_probe(struct cape_dev *dev, const struct cape_device_id *i
+ 	}
+ 	info->event_blink_delay = val;
+ 
+-	info->adc_data.adc_channels = 8;
+-	info->tscadc_data.tsc_init = &info->tsc_data;
+-	info->tscadc_data.adc_init = &info->adc_data;
+-
+-	info->tsc_oh = omap_hwmod_lookup("adc_tsc");
+-	if (info->tsc_oh == NULL) {
+-		dev_err(&dev->dev, "Could not lookup HWMOD %s\n", "adc_tsc");
+-		err = -ENODEV;
+-		goto err_no_tsc_oh;
+-	}
+-	info->tscadc_pdev = omap_device_build("ti_tscadc", -1, info->tsc_oh,
+-			&info->tscadc_data, sizeof(info->tscadc_data),
+-			NULL, 0, 0);
++	info->tscadc_pdev = capebus_of_platform_compatible_device_create(dev,
++			ti_tscadc_dt_of_match, "geiger-cape-ti-tscadc",
++			"version", version);
+ 	if (info->tscadc_pdev == NULL) {
+ 		dev_err(&dev->dev, "Could not create tsc_adc device\n");
+ 		err = -ENODEV;
+@@ -460,8 +449,6 @@ static int bonegeiger_probe(struct cape_dev *dev, const struct cape_device_id *i
+ err_no_vsense:
+ 	of_device_unregister(info->tscadc_pdev);
+ err_no_tsc_pdev:
+-	/* nothing */
+-err_no_tsc_oh:
+ 	of_device_unregister(info->leds_pdev);
+ err_no_leds_pdev:
+ 	led_trigger_unregister_simple(info->run_led);
+diff --git a/drivers/capebus/capes/bone-lcd-cape.c b/drivers/capebus/capes/bone-lcd-cape.c
+index 1b49b79..525ed80 100644
+--- a/drivers/capebus/capes/bone-lcd-cape.c
++++ b/drivers/capebus/capes/bone-lcd-cape.c
+@@ -39,10 +39,6 @@ struct bone_lcd_info {
+ 	struct platform_device *da8xx_dt_pdev;
+ 	struct platform_device *bl_pdev;
+ 	struct platform_device *keys_pdev;
+-	struct omap_hwmod *tsc_oh;
+-	struct tsc_data tsc_data;
+-	struct adc_data adc_data;
+-	struct mfd_tscadc_board tscadc_data;
+ 	struct platform_device *tscadc_pdev;
+ };
+ 
+@@ -74,6 +70,9 @@ static int bonelcd_probe(struct cape_dev *dev, const struct cape_device_id *id)
+ 	static const struct of_device_id gpio_keys_of_match[] = {
+ 		{ .compatible = "gpio-keys", }, { },
+ 	};
++	static const struct of_device_id ti_tscadc_dt_of_match[] = {
++		{ .compatible = "ti-tscadc-dt", }, { },
++	};
+ 	static const struct of_device_id da8xx_dt_of_match[] = {
+ 		{ .compatible = "da8xx-dt", }, { },
+ 	};
+@@ -132,9 +131,10 @@ static int bonelcd_probe(struct cape_dev *dev, const struct cape_device_id *id)
+ 
+ 	dev_info(&dev->dev, "LED pdev created OK\n");
+ 
+-	if (match->data == BONE_LCD_TYPE(3) || match->data == BONE_LCD_TYPE(4)) {
+-		info->bl_pdev = capebus_of_platform_compatible_device_create(dev,
+-				tps_bl_of_match, "lcd-cape-bl",
++	if (match->data == BONE_LCD_TYPE(3) ||
++			match->data == BONE_LCD_TYPE(4)) {
++		info->bl_pdev = capebus_of_platform_compatible_device_create(
++				dev, tps_bl_of_match, "lcd-cape-bl",
+ 				"version", version);
+ 		if (IS_ERR(info->bl_pdev)) {
+ 			dev_warn(&dev->dev, "Failed to tps backlight "
+@@ -159,22 +159,9 @@ static int bonelcd_probe(struct cape_dev *dev, const struct cape_device_id *id)
+ 
+ 	dev_info(&dev->dev, "GPIO keys pdev created OK\n");
+ 
+-	info->tsc_data.wires = 4;
+-	info->tsc_data.x_plate_resistance = 200;
+-	info->tsc_data.steps_to_configure = 6;
+-	info->adc_data.adc_channels = 4;
+-	info->tscadc_data.tsc_init = &info->tsc_data;
+-	info->tscadc_data.adc_init = &info->adc_data;
+-
+-	info->tsc_oh = omap_hwmod_lookup("adc_tsc");
+-	if (info->tsc_oh == NULL) {
+-		dev_err(&dev->dev, "Could not lookup HWMOD %s\n", "adc_tsc");
+-		err = -ENODEV;
+-		goto err_no_tsc_oh;
+-	}
+-	info->tscadc_pdev = omap_device_build("ti_tscadc", -1, info->tsc_oh,
+-			&info->tscadc_data, sizeof(info->tscadc_data),
+-			NULL, 0, 0);
++	info->tscadc_pdev = capebus_of_platform_compatible_device_create(dev,
++			ti_tscadc_dt_of_match, "lcd-cape-ti-tscadc",
++			"version", version);
+ 	if (info->tscadc_pdev == NULL) {
+ 		dev_err(&dev->dev, "Could not create tsc_adc device\n");
+ 		err = -ENODEV;
+@@ -200,8 +187,6 @@ static int bonelcd_probe(struct cape_dev *dev, const struct cape_device_id *id)
+ err_no_da8xx_fb:
+ 	platform_device_unregister(info->tscadc_pdev);
+ err_no_tsc_pdev:
+-	/* nothing */
+-err_no_tsc_oh:
+ 	platform_device_unregister(info->keys_pdev);
+ err_no_keys_pdev:
+ 	platform_device_unregister(info->bl_pdev);
+-- 
+1.7.7.6
+

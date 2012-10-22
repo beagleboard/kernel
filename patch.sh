@@ -13,14 +13,15 @@ PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.7-rc1"
+TAG="v3.7-rc2"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="43c422eda99b894f18d1cca17bcd2401efaf7bd0"
+EXTERNAL_SHA="6f0c0580b70c89094b3422ba81118c7b959c7556"
 
-PATCHSET="cpsw pinctrl cpufreq adc st7735 dma pwm i2c pruss usb pwm2 fixes da8xx-fb capebus mmc"
+#PATCHSET="pruss pwm2 fixes"
+PATCHSET="dma cpsw pinctrl cpufreq adc pwm i2c usb da8xx-fb mmc capebus"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
@@ -77,7 +78,7 @@ for patchset in ${PATCHSET} ; do
 	mkdir -p ${EXPORTPATH}/$patchset
 	for patch in $(ls -1 ${PATCHPATH}/$patchset/*.patch | sort -n) ; do
 		$ECHO -n "$patch: "
-		git am -q $patch && echo applied || exit 1
+		git am -3 -q $patch && echo applied || exit 1
 	done
 
 	NEWCOMMIT="$(git log --oneline --no-abbrev -1 | awk '{print $1}')"

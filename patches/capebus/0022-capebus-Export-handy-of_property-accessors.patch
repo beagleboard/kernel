@@ -1,0 +1,202 @@
+From 25a47bb216abd0ec60f509747197152027442155 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 19 Oct 2012 10:39:05 +0300
+Subject: [PATCH 22/33] capebus: Export handy of_property accessors
+
+We need these since we want to handle versioning in a transparent manner
+---
+ drivers/capebus/capebus-driver.c |   79 +++++++++++++++++++++++++++++++++
+ include/linux/capebus.h          |   89 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 168 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/capebus/capebus-driver.c b/drivers/capebus/capebus-driver.c
+index 1d08beb..5679385 100644
+--- a/drivers/capebus/capebus-driver.c
++++ b/drivers/capebus/capebus-driver.c
+@@ -476,6 +476,85 @@ capebus_of_platform_compatible_device_create(struct cape_dev *dev,
+ }
+ EXPORT_SYMBOL(capebus_of_platform_compatible_device_create);
+ 
++struct device_node *
++capebus_of_find_property_node(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name)
++{
++	struct device_node *node;
++	const char* cp;
++	int cplen, l;
++	struct property *pp;
++
++	node = NULL;
++	if (prop == NULL || prop_value == NULL)
++		goto find_direct;
++
++	/* at first try secondary match */
++	for_each_child_of_node(dev->dev.of_node, node) {
++
++		cp = of_get_property(node, prop, &cplen);
++		if (cp == NULL)
++			continue;
++
++		while (cplen > 0) {
++			if (of_compat_cmp(cp, prop_value,
++						strlen(prop_value)) == 0)
++				break;
++			l = strlen(cp) + 1;
++			cp += l;
++			cplen -= l;
++		}
++
++		/* not matched */
++		if (cplen <= 0)
++			continue;
++
++		/* found ? */
++		pp = of_find_property(node, name, NULL);
++		if (pp != NULL)
++			return node;
++	}
++find_direct:
++	pp = of_find_property(dev->dev.of_node, name, NULL);
++	if (pp == NULL)
++		return NULL;
++
++	return of_node_get(dev->dev.of_node);
++}
++EXPORT_SYMBOL_GPL(capebus_of_find_property_node);
++
++struct property *
++capebus_of_find_property(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, int *lenp)
++{
++	struct device_node *node;
++	struct property *pp;
++
++	node = capebus_of_find_property_node(dev, prop, prop_value, name);
++	if (node == NULL)
++		return NULL;
++
++	pp = of_find_property(node, name, lenp);
++
++	of_node_put(node);
++
++	return pp;
++}
++EXPORT_SYMBOL_GPL(capebus_of_find_property);
++
++const void *capebus_of_get_property(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, int *lenp)
++{
++	struct property *pp;
++
++	pp = capebus_of_find_property(dev, prop, prop_value, name, lenp);
++	return pp ? pp->value : NULL;
++}
++EXPORT_SYMBOL_GPL(capebus_of_get_property);
++
+ EXPORT_SYMBOL(__capebus_register_driver);
+ EXPORT_SYMBOL(capebus_unregister_driver);
+ EXPORT_SYMBOL(capebus_bus_type);
+diff --git a/include/linux/capebus.h b/include/linux/capebus.h
+index 5e5fa85..5c3fe2b 100644
+--- a/include/linux/capebus.h
++++ b/include/linux/capebus.h
+@@ -201,4 +201,93 @@ capebus_of_platform_compatible_device_create(struct cape_dev *dev,
+ 		const char *pdev_name,
+ 		const char *prop, const char *prop_value);
+ 
++/* of tree support */
++
++struct device_node *
++capebus_of_find_property_node(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name);
++
++struct property *
++capebus_of_find_property(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, int *lenp);
++
++const void *capebus_of_get_property(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, int *lenp);
++
++static inline int capebus_of_property_read_u32_array(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, u32 *out_values, size_t sz)
++{
++	struct device_node *node;
++	int ret;
++
++	node = capebus_of_find_property_node(dev, prop, prop_value, name);
++	ret = of_property_read_u32_array(node, name, out_values, sz);
++	of_node_put(node);
++	return ret;
++}
++
++static inline int capebus_of_property_read_u32(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++	       const char *name, u32 *out_value)
++{
++	return capebus_of_property_read_u32_array(dev, prop,
++			prop_value, name, out_value, 1);
++}
++
++static inline bool capebus_of_property_read_bool(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name)
++{
++	struct device_node *node;
++	bool ret;
++
++	node = capebus_of_find_property_node(dev, prop, prop_value, name);
++	ret = of_property_read_bool(node, name);
++	of_node_put(node);
++	return ret;
++}
++
++static inline int capebus_of_property_read_string(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, const char **out_string)
++{
++	struct device_node *node;
++	int ret;
++
++	node = capebus_of_find_property_node(dev, prop, prop_value, name);
++	ret = of_property_read_string(node, name, out_string);
++	of_node_put(node);
++	return ret;
++}
++
++static inline int capebus_of_property_read_string_index(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, int index, const char **out_string)
++{
++	struct device_node *node;
++	int ret;
++
++	node = capebus_of_find_property_node(dev, prop, prop_value, name);
++	ret = of_property_read_string_index(node, name, index, out_string);
++	of_node_put(node);
++	return ret;
++}
++
++static inline int capebus_of_property_read_u64(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, u64 *out_value)
++{
++	struct device_node *node;
++	int ret;
++
++	node = capebus_of_find_property_node(dev, prop, prop_value, name);
++	ret = of_property_read_u64(node, name, out_value);
++	of_node_put(node);
++	return ret;
++}
++
+ #endif
+-- 
+1.7.7.6
+

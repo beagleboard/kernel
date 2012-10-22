@@ -1,4 +1,4 @@
-From 7076426dad872979896ad410bc000da9686adba2 Mon Sep 17 00:00:00 2001
+From 3127df5ff955c21aeef7e2cb302e5e4c7a67bbca Mon Sep 17 00:00:00 2001
 From: Mugunthan V N <mugunthanvnm@ti.com>
 Date: Sun, 29 Jul 2012 20:56:29 +0530
 Subject: [PATCH 4/4] arm/dts: am33xx: Add cpsw and mdio module nodes for
@@ -17,12 +17,12 @@ Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
  3 files changed, 66 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index c634f87..e233cfa 100644
+index 2ad3914..47c17e8 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -78,3 +78,11 @@
- 		};
- 	};
+@@ -137,3 +137,11 @@
+ &edma {
+ 	ti,edma-xbar-event-map = <32 12>;
  };
 +
 +&cpsw_emac0 {
@@ -33,11 +33,11 @@ index c634f87..e233cfa 100644
 +	phy_id = "4a101000.mdio:01";
 +};
 diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 185d632..415c3b3 100644
+index 8d5f660..23d1e26 100644
 --- a/arch/arm/boot/dts/am335x-evm.dts
 +++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -118,3 +118,11 @@
- 		};
+@@ -133,3 +133,11 @@
+ 		reg = <0>;
  	};
  };
 +
@@ -49,10 +49,10 @@ index 185d632..415c3b3 100644
 +	phy_id = "4a101000.mdio:01";
 +};
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index bb31bff..f6bea04 100644
+index 063ecea..a6bfd9b 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -210,5 +210,55 @@
+@@ -311,5 +311,55 @@
  			interrupt-parent = <&intc>;
  			interrupts = <91>;
  		};

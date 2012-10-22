@@ -1,0 +1,26 @@
+From ea5ae24a115ebfe9d919c8b9c02a8327049f839f Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 19 Oct 2012 10:42:55 +0300
+Subject: [PATCH 25/33] capebus: Switch from lcd capebus to generic
+
+---
+ arch/arm/boot/dts/am335x-bone.dts |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 281ced1..80dd048 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -238,7 +238,8 @@
+ 			};
+ 
+ 			bone_lcd3_cape: cape@2 {
+-				compatible = "bone-lcd3-cape";
++				// compatible = "bone-lcd3-cape";
++				compatible = "bone-generic-cape";
+ 			};
+ 
+ 			bone_lcd7_cape: cape@3 {
+-- 
+1.7.7.6
+
