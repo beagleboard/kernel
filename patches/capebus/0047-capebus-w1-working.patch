@@ -1,0 +1,47 @@
+From 77dce952867dc8a8b96e9507a3c51845267664bc Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 24 Oct 2012 16:51:54 +0300
+Subject: [PATCH 47/48] capebus: w1 working
+
+---
+ arch/arm/boot/dts/am335x-bone.dts |   13 ++++++++++++-
+ 1 files changed, 12 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 5712843..5b32f14 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -295,7 +295,17 @@
+ 				manufacturer = "Adafruit";
+ 				/* TODO: Add the rest */
+ 			};
++
++			override@0 {
++				compatible = "bone-capebus-slot-override";
++				slot = <0>;
++				board-name = "BeagleBone Weather CAPE";
++				version = "00A0";
++				manufacturer = "Beagleboardtoys";
++				/* TODO: Add the rest */
++			};
+ 	};
++
+ };
+ 
+ &i2c0 {
+@@ -774,10 +784,11 @@
+ 		};
+ 	};
+ 
+-	onewire {
++	onewire@0 {
+ 		compatible	= "w1-gpio";
+ 		pinctrl-names	= "default";
+ 		pinctrl-0	= <&weather_cape_w1_pins>;
++		status		= "okay";
+ 
+ 		gpios = <&gpio1 3 0>;
+ 	};
+-- 
+1.7.7.6
+

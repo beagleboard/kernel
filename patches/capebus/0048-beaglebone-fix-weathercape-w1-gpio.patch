@@ -1,0 +1,66 @@
+From 9bb13e148a71387323f38cbc26705390f7f1e15a Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Tue, 23 Oct 2012 18:31:21 +0200
+Subject: [PATCH 48/48] beaglebone: fix weathercape w1 gpio
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am335x-bone.dts |   34 +++++++++++++++++-----------------
+ 1 files changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 5b32f14..7fafe29 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -287,23 +287,23 @@
+ //				/* TODO: Add the rest */
+ //			};
+ 
+-			override@1 {
+-				compatible = "bone-capebus-slot-override";
+-				slot = <1>;
+-				board-name = "Adafruit 1.8 Cape";
+-				version = "00A0";
+-				manufacturer = "Adafruit";
+-				/* TODO: Add the rest */
+-			};
++//			override@1 {
++//				compatible = "bone-capebus-slot-override";
++//				slot = <1>;
++//				board-name = "Adafruit 1.8 Cape";
++//				version = "00A0";
++//				manufacturer = "Adafruit";
++//				/* TODO: Add the rest */
++//			};
+ 
+-			override@0 {
+-				compatible = "bone-capebus-slot-override";
+-				slot = <0>;
+-				board-name = "BeagleBone Weather CAPE";
+-				version = "00A0";
+-				manufacturer = "Beagleboardtoys";
+-				/* TODO: Add the rest */
+-			};
++//			override@0 {
++//				compatible = "bone-capebus-slot-override";
++//				slot = <0>;
++//				board-name = "BeagleBone Weather CAPE";
++//				version = "00A0";
++//				manufacturer = "Beagleboardtoys";
++//				/* TODO: Add the rest */
++//			};
+ 	};
+ 
+ };
+@@ -790,7 +790,7 @@
+ 		pinctrl-0	= <&weather_cape_w1_pins>;
+ 		status		= "okay";
+ 
+-		gpios = <&gpio1 3 0>;
++		gpios = <&gpio2 3 0>;
+ 	};
+ 
+ };
+-- 
+1.7.7.6
+
