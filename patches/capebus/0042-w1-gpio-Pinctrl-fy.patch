@@ -1,0 +1,39 @@
+From ecaf80cf8c0e38555759b6a9cc5b4cab8b08a521 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 24 Oct 2012 09:54:37 +0300
+Subject: [PATCH 42/44] w1-gpio: Pinctrl-fy
+
+---
+ drivers/w1/masters/w1-gpio.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/w1/masters/w1-gpio.c b/drivers/w1/masters/w1-gpio.c
+index 6012c4e..aec35bd 100644
+--- a/drivers/w1/masters/w1-gpio.c
++++ b/drivers/w1/masters/w1-gpio.c
+@@ -16,6 +16,8 @@
+ #include <linux/gpio.h>
+ #include <linux/of_platform.h>
+ #include <linux/of_gpio.h>
++#include <linux/pinctrl/consumer.h>
++#include <linux/err.h>
+ 
+ #include "../w1.h"
+ #include "../w1_int.h"
+@@ -85,8 +87,13 @@ static int __init w1_gpio_probe(struct platform_device *pdev)
+ {
+ 	struct w1_bus_master *master;
+ 	struct w1_gpio_platform_data *pdata;
++	struct pinctrl *pinctrl;
+ 	int err;
+ 
++	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
++	if (IS_ERR(pinctrl))
++		dev_warn(&pdev->dev, "unable to select pin group\n");
++
+ 	err = w1_gpio_probe_dt(pdev);
+ 	if (err < 0)
+ 		return err;
+-- 
+1.7.7.6
+

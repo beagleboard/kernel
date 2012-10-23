@@ -1,0 +1,44 @@
+From 680e7b9f93ac7927f65ec1c041d4d94b2b4c70a5 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 24 Oct 2012 09:57:20 +0300
+Subject: [PATCH 44/44] weathercape: Add w1-gpio device.
+
+---
+ arch/arm/boot/dts/am335x-bone.dts |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 5eb028b..5712843 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -183,6 +183,12 @@
+ 				// 0x48 0x06       /* gpmc_a2.ehrpwm1a, OMAP_MUX_MODE6 | AM33XX_PIN_OUTPUT */
+ 			>;
+ 	       };
++
++		weather_cape_w1_pins: pinmux_weather_cape_w1_pins {
++			pinctrl-single,pins = <
++				0x0c 0x37       /* gpmc_ad3.gpio1_3, OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE7 - w1-gpio */
++			>;
++		};
+ 	};
+ 
+ 	ocp {
+@@ -768,6 +774,14 @@
+ 		};
+ 	};
+ 
++	onewire {
++		compatible	= "w1-gpio";
++		pinctrl-names	= "default";
++		pinctrl-0	= <&weather_cape_w1_pins>;
++
++		gpios = <&gpio1 3 0>;
++	};
++
+ };
+ 
+ &bone_adafruit_cape {
+-- 
+1.7.7.6
+

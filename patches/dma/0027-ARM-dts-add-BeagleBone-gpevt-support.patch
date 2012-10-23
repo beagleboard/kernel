@@ -1,0 +1,53 @@
+From 6a6d505b9b4d5707a5d29dae3f09ffdb19d2c8d2 Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Wed, 17 Oct 2012 17:12:45 -0400
+Subject: [PATCH 27/31] ARM: dts: add BeagleBone gpevt support
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ arch/arm/boot/dts/am335x-bone.dts |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 290408c..2ad3914 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -33,6 +33,11 @@
+ 				0x1ac 0x17	/* mcasp0_ahclkx.gpio3_21, OUTPUT_PULLUP | MODE7 */
+ 			>;
+ 		};
++		gpevt_pins: pinmux_gpevt_pins {
++			pinctrl-single,pins = <
++				0x090 0x37	/* gpmc_advn_ale.gpio2_2, INPUT_PULLUP | MODE7 */
++			>;
++		};
+ 	};
+ 
+ 	ocp {
+@@ -49,6 +54,15 @@
+ 			};
+ 
+ 		};
++
++		gpevt {
++			compatible = "gpevt";
++			pinctrl-names = "default";
++			pinctrl-0 = <&gpevt_pins>;
++			dmas = <&edma 12>;
++			dma-names = "gpioevt";
++			gpio-evt = <&gpio3 2 0>;
++		};
+ 	};
+ };
+ 
+@@ -119,3 +133,7 @@
+ 		st7735-dc = <&gpio4 21 0>;
+ 	};
+ };
++
++&edma {
++	ti,edma-xbar-event-map = <32 12>;
++};
+-- 
+1.7.7.6
+
