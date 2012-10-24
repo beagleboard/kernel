@@ -97,7 +97,8 @@ Loading file "/boot/am335x-bone.dtb" from mmc device 0:2
    Booting using the fdt blob at 0x80f80000
    XIP Kernel Image ... OK
 OK
-   Loading Device Tree to 8fe63000, end 8fe6aa1e ... OK```
+   Loading Device Tree to 8fe63000, end 8fe6aa1e ... OK
+```
 
 ```Starting kernel ...
 
@@ -121,5 +122,6 @@ The Angstrom Distribution bone-mainline ttyO0
 
 Angstrom v2012.10 - Kernel 3.7.0-rc2
 
-bone-mainline login:```
+bone-mainline login:
+```
 
