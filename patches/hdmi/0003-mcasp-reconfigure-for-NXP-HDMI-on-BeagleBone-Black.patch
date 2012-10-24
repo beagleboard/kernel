@@ -1,0 +1,95 @@
+From 02968510aaf43ca2e0dc399054354da875d0a93d Mon Sep 17 00:00:00 2001
+From: Jason Kridner <jdk@ti.com>
+Date: Wed, 24 Oct 2012 19:26:30 -0400
+Subject: [PATCH 3/3] mcasp: reconfigure for NXP HDMI on BeagleBone Black
+
+This is a squash of 5 patches from Joel rebased onto 3.7-rc2
+
+mcasp: put mcasp in master mode
+
+Use internal 24MHz oscillator for mcasp clock
+Generate all clocks (master mode) from mcasp
+
+Also, make a pinmux provision to input the clock.
+
+Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+
+mcasp: Switch to external clock reference
+
+Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+
+mcasp: Enable HCLK input from external oscillator
+
+Clear AHCLKXE to setup HCLK from external oscillator
+Clear AHCLK DIV value so that it doesn't divide (well we shouldn't even be
+using at HCLXE is cleared, and the input to AHCLX is used as the input HCLK
+
+BUG: It seems that clearing AHCLXE still doesn't avoid the affect of
+the above AHCLK DIV. Also, it seems that even when they is no AHCLK input,
+we still see an output on the ACLK (?) .
+
+Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+
+mcasp: Set pin direction inside McASP
+
+With this, we can drive HCLKX input and observe divided bit clock.
+
+Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+
+mcasp: Correct divider value for the bitclock freq we need
+
+Correct divider value. ACLKXDIV should be 7 instead of 8 for 24.576/8 = 3.072 KHz
+
+Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+---
+ sound/soc/davinci/davinci-mcasp.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
+index 714e51e..f84f68f 100644
+--- a/sound/soc/davinci/davinci-mcasp.c
++++ b/sound/soc/davinci/davinci-mcasp.c
+@@ -475,15 +475,18 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
+ 
+ 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
+ 	case SND_SOC_DAIFMT_CBS_CFS:
+-		/* codec is clock and frame slave */
+-		mcasp_set_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
++		mcasp_set_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE | ACLKXDIV(7));
++		mcasp_set_bits(base + DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXDIV(0));
++		mcasp_clr_bits(base + DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
+ 		mcasp_set_bits(base + DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
+ 
+ 		mcasp_set_bits(base + DAVINCI_MCASP_ACLKRCTL_REG, ACLKRE);
+ 		mcasp_set_bits(base + DAVINCI_MCASP_RXFMCTL_REG, AFSRE);
+ 
+ 		mcasp_set_bits(base + DAVINCI_MCASP_PDIR_REG,
+-				ACLKX | AHCLKX | AFSX);
++				ACLKX | AFSX);
++		mcasp_clr_bits(base + DAVINCI_MCASP_PDIR_REG,
++				AHCLKX);
+ 		break;
+ 	case SND_SOC_DAIFMT_CBM_CFS:
+ 		/* codec is clock master and frame slave */
+@@ -709,7 +712,7 @@ static void davinci_hw_param(struct davinci_audio_dev *dev, int stream)
+ 	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
+ 		/* bit stream is MSB first  with no delay */
+ 		/* DSP_B mode */
+-		mcasp_set_bits(dev->base + DAVINCI_MCASP_AHCLKXCTL_REG,
++		mcasp_clr_bits(dev->base + DAVINCI_MCASP_AHCLKXCTL_REG,
+ 				AHCLKXE);
+ 		mcasp_set_reg(dev->base + DAVINCI_MCASP_TXTDM_REG, mask);
+ 		mcasp_set_bits(dev->base + DAVINCI_MCASP_TXFMT_REG, TXORD);
+@@ -721,7 +724,8 @@ static void davinci_hw_param(struct davinci_audio_dev *dev, int stream)
+ 			printk(KERN_ERR "playback tdm slot %d not supported\n",
+ 				dev->tdm_slots);
+ 
+-		mcasp_clr_bits(dev->base + DAVINCI_MCASP_TXFMCTL_REG, FSXDUR);
++		mcasp_set_bits(dev->base + DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
++		mcasp_set_bits(dev->base + DAVINCI_MCASP_TXFMCTL_REG, FSXDUR);
+ 	} else {
+ 		/* bit stream is MSB first with no delay */
+ 		/* DSP_B mode */
+-- 
+1.7.9.5
+

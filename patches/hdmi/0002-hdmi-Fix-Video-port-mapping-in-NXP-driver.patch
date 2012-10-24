@@ -1,0 +1,36 @@
+From b7e6fc944ea3be0e9c4dc51807bff0370dbf63cb Mon Sep 17 00:00:00 2001
+From: Joel A Fernandes <joelagnel@ti.com>
+Date: Thu, 20 Sep 2012 10:33:05 -0400
+Subject: [PATCH 2/3] hdmi: Fix Video port mapping in NXP driver
+
+Basically, the NXP TDA19989 has a mux that connects the pins to the video port
+within the chip. These registers control this mapping.
+
+Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+---
+ .../tmdlHdmiTx/cfg/TDA9989/tmdlHdmiTx_Linux_cfg.c  |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/video/display/nxp/comps/tmdlHdmiTx/cfg/TDA9989/tmdlHdmiTx_Linux_cfg.c b/drivers/video/display/nxp/comps/tmdlHdmiTx/cfg/TDA9989/tmdlHdmiTx_Linux_cfg.c
+index 4867f24..aae2c10 100755
+--- a/drivers/video/display/nxp/comps/tmdlHdmiTx/cfg/TDA9989/tmdlHdmiTx_Linux_cfg.c
++++ b/drivers/video/display/nxp/comps/tmdlHdmiTx/cfg/TDA9989/tmdlHdmiTx_Linux_cfg.c
+@@ -149,12 +149,12 @@ const tmdlHdmiTxCfgVideoSignal444 videoPortMapping_YUV444[MAX_UNITS][6] = {
+ /* tmdlHdmiTx_cfg.h to get the list of possible values                        */
+ const tmdlHdmiTxCfgVideoSignal444 videoPortMapping_RGB444[MAX_UNITS][6] = {
+     {
+-        TMDL_HDMITX_VID444_VR_0_TO_3,   /* Signals connected to VPB[0..3] */
+-        TMDL_HDMITX_VID444_VR_4_TO_7,   /* Signals connected to VPB[4..7] */
+         TMDL_HDMITX_VID444_GY_0_TO_3,   /* Signals connected to VPA[0..3] */
+         TMDL_HDMITX_VID444_GY_4_TO_7,   /* Signals connected to VPA[4..7] */
+         TMDL_HDMITX_VID444_BU_0_TO_3,   /* Signals connected to VPC[0..3] */
+-        TMDL_HDMITX_VID444_BU_4_TO_7    /* Signals connected to VPC[4..7] */
++        TMDL_HDMITX_VID444_BU_4_TO_7,   /* Signals connected to VPC[4..7] */
++        TMDL_HDMITX_VID444_VR_0_TO_3,   /* Signals connected to VPB[0..3] */
++        TMDL_HDMITX_VID444_VR_4_TO_7    /* Signals connected to VPB[4..7] */
+     }
+ };
+ 
+-- 
+1.7.9.5
+
