@@ -41,19 +41,19 @@ optargs=consoleblank=0
 Status
 ======
 
-I2C: working
-SPI: working
-MMC: mmc1 working, mmc2 working, mmc3 untested
-USB host: working
-USB gadget: untested
-LCDC: capebus has support for lcd3, lcd4, lcd7 and dvi capes
-TS: not working
-ADC: capebus has adc support
-PWM: ehrpwm and ecap working
-PMIC: working
-PMIC PWM: working, kills ethernet
-CPUfreq: working
-Capes: DVI, LCD3, LCD4, LCD7, geiger and weathercape are functional, but need tweaking
+ * I2C: working
+ * SPI: working
+ * MMC: mmc1 working, mmc2 working, mmc3 untested
+ * USB host: working
+ * USB gadget: untested
+ * LCDC: capebus has support for lcd3, lcd4, lcd7 and dvi capes
+ * TS: not working
+ * ADC: capebus has adc support
+ * PWM: ehrpwm and ecap working
+ * PMIC: working
+ * PMIC PWM: working, kills ethernet
+ * CPUfreq: working
+ * Capes: DVI, LCD3, LCD4, LCD7, geiger and weathercape are functional, but need tweaking
 
 Bootlog
 ======
