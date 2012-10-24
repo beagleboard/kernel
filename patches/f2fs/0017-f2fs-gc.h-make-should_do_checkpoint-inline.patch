@@ -1,0 +1,29 @@
+From 2fdf5124db3d2334caf3b2aa64e27c04cc828983 Mon Sep 17 00:00:00 2001
+From: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Date: Tue, 23 Oct 2012 18:21:46 +0000
+Subject: [PATCH 17/19] f2fs: gc.h: make should_do_checkpoint() inline
+
+This should be an inline function, not a "real" function.  Now other
+files can properly include gc.h.
+
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ fs/f2fs/gc.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/fs/f2fs/gc.h b/fs/f2fs/gc.h
+index 29b345d..b70366f 100644
+--- a/fs/f2fs/gc.h
++++ b/fs/f2fs/gc.h
+@@ -191,7 +191,7 @@ static inline int is_idle(struct f2fs_sb_info *sbi)
+ 	return !(rl->count[BLK_RW_SYNC]) && !(rl->count[BLK_RW_ASYNC]);
+ }
+ 
+-static bool should_do_checkpoint(struct f2fs_sb_info *sbi)
++static inline bool should_do_checkpoint(struct f2fs_sb_info *sbi)
+ {
+ 	unsigned int pages_per_sec = sbi->segs_per_sec *
+ 					(1 << sbi->log_blocks_per_seg);
+-- 
+1.7.7.6
+
