@@ -1,0 +1,25 @@
+From 2ec8b56407324b7d1788d74138c40b070612f770 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Wed, 24 Oct 2012 11:34:54 +0200
+Subject: [PATCH] f2fs: compile fix
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ fs/f2fs/segment.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/fs/f2fs/segment.c b/fs/f2fs/segment.c
+index 57d0931..5bab838 100644
+--- a/fs/f2fs/segment.c
++++ b/fs/f2fs/segment.c
+@@ -12,6 +12,7 @@
+ #include <linux/f2fs_fs.h>
+ #include <linux/bio.h>
+ #include <linux/blkdev.h>
++#include <linux/vmalloc.h>
+ 
+ #include "f2fs.h"
+ #include "segment.h"
+-- 
+1.7.7.6
+
