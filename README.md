@@ -100,7 +100,8 @@ OK
    Loading Device Tree to 8fe63000, end 8fe6aa1e ... OK
 ```
 
-```Starting kernel ...
+```
+Starting kernel ...
 
 [    0.059015] omap-gpmc omap-gpmc: failed to reserve memory
 [    0.375284] tps65217-bl tps65217-bl: no platform data provided
