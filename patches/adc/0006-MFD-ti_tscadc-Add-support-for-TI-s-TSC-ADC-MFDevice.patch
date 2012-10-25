@@ -1,6 +1,6 @@
-From aeb188fba41c991c984d49a28b504dfa560d6a77 Mon Sep 17 00:00:00 2001
+From b46b63d1677c076a312fec99979d9f8abcc27f28 Mon Sep 17 00:00:00 2001
 From: "Patil, Rachna" <rachna@ti.com>
-Date: Thu, 30 Aug 2012 07:38:23 +0000
+Date: Tue, 16 Oct 2012 07:25:43 +0000
 Subject: [PATCH 06/11] MFD: ti_tscadc: Add support for TI's TSC/ADC MFDevice
 
 Add the mfd core driver which supports touchscreen
@@ -10,52 +10,54 @@ support the MFD clients.
 
 Signed-off-by: Patil, Rachna <rachna@ti.com>
 ---
- drivers/mfd/Kconfig           |    9 ++
- drivers/mfd/Makefile          |    1 +
- drivers/mfd/ti_tscadc.c       |  193 +++++++++++++++++++++++++++++++++++++++++
- include/linux/mfd/ti_tscadc.h |  133 ++++++++++++++++++++++++++++
- 4 files changed, 336 insertions(+), 0 deletions(-)
- create mode 100644 drivers/mfd/ti_tscadc.c
- create mode 100644 include/linux/mfd/ti_tscadc.h
+ drivers/mfd/Kconfig                  |   11 ++
+ drivers/mfd/Makefile                 |    1 +
+ drivers/mfd/ti_am335x_tscadc.c       |  250 ++++++++++++++++++++++++++++++++++
+ include/linux/mfd/ti_am335x_tscadc.h |  137 +++++++++++++++++++
+ 4 files changed, 399 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/mfd/ti_am335x_tscadc.c
+ create mode 100644 include/linux/mfd/ti_am335x_tscadc.h
 
 diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index acab3ef..ab8f0dc 100644
+index acab3ef..9bba7f7 100644
 --- a/drivers/mfd/Kconfig
 +++ b/drivers/mfd/Kconfig
-@@ -94,6 +94,15 @@ config MFD_TI_SSP
+@@ -94,6 +94,17 @@ config MFD_TI_SSP
  	  To compile this driver as a module, choose M here: the
  	  module will be called ti-ssp.
  
-+config MFD_TI_TSCADC
++config MFD_TI_AM335X_TSCADC
 +	tristate "TI ADC / Touch Screen chip support"
-+	depends on ARCH_OMAP2PLUS
++	select MFD_CORE
++	select REGMAP
++	select REGMAP_MMIO
 +	help
 +	  If you say yes here you get support for Texas Instruments series
 +	  of Touch Screen /ADC chips.
 +	  To compile this driver as a module, choose M here: the
-+	  module will be called ti_tscadc.
++	  module will be called ti_am335x_tscadc.
 +
  config HTC_EGPIO
  	bool "HTC EGPIO support"
  	depends on GENERIC_HARDIRQS && GPIOLIB && ARM
 diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index d8ccb63..0ecd25a 100644
+index d8ccb63..442c17e 100644
 --- a/drivers/mfd/Makefile
 +++ b/drivers/mfd/Makefile
 @@ -16,6 +16,7 @@ obj-$(CONFIG_HTC_I2CPLD)	+= htc-i2cpld.o
  obj-$(CONFIG_MFD_DAVINCI_VOICECODEC)	+= davinci_voicecodec.o
  obj-$(CONFIG_MFD_DM355EVM_MSP)	+= dm355evm_msp.o
  obj-$(CONFIG_MFD_TI_SSP)	+= ti-ssp.o
-+obj-$(CONFIG_MFD_TI_TSCADC)	+= ti_tscadc.o
++obj-$(CONFIG_MFD_TI_AM335X_TSCADC)	+= ti_am335x_tscadc.o
  
  obj-$(CONFIG_MFD_STA2X11)	+= sta2x11-mfd.o
  obj-$(CONFIG_MFD_STMPE)		+= stmpe.o
-diff --git a/drivers/mfd/ti_tscadc.c b/drivers/mfd/ti_tscadc.c
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
 new file mode 100644
-index 0000000..ac4bf7b
+index 0000000..14df67b
 --- /dev/null
-+++ b/drivers/mfd/ti_tscadc.c
-@@ -0,0 +1,193 @@
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -0,0 +1,250 @@
 +/*
 + * TI Touch Screen / ADC MFD driver
 + *
@@ -77,20 +79,32 @@ index 0000000..ac4bf7b
 +#include <linux/err.h>
 +#include <linux/io.h>
 +#include <linux/clk.h>
++#include <linux/regmap.h>
 +#include <linux/mfd/core.h>
 +#include <linux/pm_runtime.h>
-+#include <linux/mfd/ti_tscadc.h>
++
++#include <linux/mfd/ti_am335x_tscadc.h>
 +
 +static unsigned int tscadc_readl(struct ti_tscadc_dev *tsadc, unsigned int reg)
 +{
-+	return readl(tsadc->tscadc_base + reg);
++	unsigned int val;
++
++	regmap_read(tsadc->regmap_tscadc, reg, &val);
++	return val;
 +}
 +
 +static void tscadc_writel(struct ti_tscadc_dev *tsadc, unsigned int reg,
 +					unsigned int val)
 +{
-+	writel(val, tsadc->tscadc_base + reg);
++	regmap_write(tsadc->regmap_tscadc, reg, val);
 +}
++
++static const struct regmap_config tscadc_regmap_config = {
++	.name = "ti_tscadc",
++	.reg_bits = 32,
++	.reg_stride = 4,
++	.val_bits = 32,
++};
 +
 +static void tscadc_idle_config(struct ti_tscadc_dev *config)
 +{
@@ -130,7 +144,8 @@ index 0000000..ac4bf7b
 +	}
 +
 +	/* Allocate memory for device */
-+	tscadc = kzalloc(sizeof(struct ti_tscadc_dev), GFP_KERNEL);
++	tscadc = devm_kzalloc(&pdev->dev,
++			sizeof(struct ti_tscadc_dev), GFP_KERNEL);
 +	if (!tscadc) {
 +		dev_err(&pdev->dev, "failed to allocate memory.\n");
 +		return -ENOMEM;
@@ -138,18 +153,28 @@ index 0000000..ac4bf7b
 +	tscadc->dev = &pdev->dev;
 +	tscadc->irq = irq;
 +
-+	res = request_mem_region(res->start, resource_size(res), pdev->name);
++	res = devm_request_mem_region(&pdev->dev,
++			res->start, resource_size(res), pdev->name);
 +	if (!res) {
 +		dev_err(&pdev->dev, "failed to reserve registers.\n");
 +		err = -EBUSY;
-+		goto err_free_mem;
++		goto err;
 +	}
 +
-+	tscadc->tscadc_base = ioremap(res->start, resource_size(res));
++	tscadc->tscadc_base = devm_ioremap(&pdev->dev,
++			res->start, resource_size(res));
 +	if (!tscadc->tscadc_base) {
 +		dev_err(&pdev->dev, "failed to map registers.\n");
 +		err = -ENOMEM;
-+		goto err_release_mem_region;
++		goto err;
++	}
++
++	tscadc->regmap_tscadc = devm_regmap_init_mmio(&pdev->dev,
++			tscadc->tscadc_base, &tscadc_regmap_config);
++	if (IS_ERR(tscadc->regmap_tscadc)) {
++		dev_err(&pdev->dev, "regmap init failed\n");
++		err = PTR_ERR(tscadc->regmap_tscadc);
++		goto err;
 +	}
 +
 +	pm_runtime_enable(&pdev->dev);
@@ -197,47 +222,81 @@ index 0000000..ac4bf7b
 +	tscadc_writel(tscadc, REG_CTRL, ctrl);
 +
 +	err = mfd_add_devices(&pdev->dev, pdev->id, tscadc->cells,
-+			TSCADC_CELLS, NULL, 0);
++			TSCADC_CELLS, NULL, 0, NULL);
 +	if (err < 0)
 +		goto err_disable_clk;
 +
++	device_init_wakeup(&pdev->dev, true);
 +	platform_set_drvdata(pdev, tscadc);
++
 +	return 0;
 +
 +err_disable_clk:
 +	pm_runtime_put_sync(&pdev->dev);
 +	pm_runtime_disable(&pdev->dev);
-+	iounmap(tscadc->tscadc_base);
-+err_release_mem_region:
-+	release_mem_region(res->start, resource_size(res));
-+	mfd_remove_devices(tscadc->dev);
-+err_free_mem:
-+	kfree(tscadc);
++err:
 +	return err;
 +}
 +
 +static int __devexit ti_tscadc_remove(struct platform_device *pdev)
 +{
 +	struct ti_tscadc_dev	*tscadc = platform_get_drvdata(pdev);
-+	struct resource		*res;
 +
 +	tscadc_writel(tscadc, REG_SE, 0x00);
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	iounmap(tscadc->tscadc_base);
-+	release_mem_region(res->start, resource_size(res));
 +
 +	pm_runtime_put_sync(&pdev->dev);
 +	pm_runtime_disable(&pdev->dev);
 +
 +	mfd_remove_devices(tscadc->dev);
-+	kfree(tscadc);
++
 +	return 0;
 +}
++
++#ifdef CONFIG_PM
++static int tscadc_suspend(struct device *dev)
++{
++	struct ti_tscadc_dev	*tscadc_dev = dev_get_drvdata(dev);
++
++	tscadc_writel(tscadc_dev, REG_SE, 0x00);
++	pm_runtime_put_sync(dev);
++
++	return 0;
++}
++
++static int tscadc_resume(struct device *dev)
++{
++	struct ti_tscadc_dev	*tscadc_dev = dev_get_drvdata(dev);
++	unsigned int restore, ctrl;
++
++	pm_runtime_get_sync(dev);
++
++	/* context restore */
++	ctrl = CNTRLREG_STEPCONFIGWRT | CNTRLREG_TSCENB |
++			CNTRLREG_STEPID | CNTRLREG_4WIRE;
++	tscadc_writel(tscadc_dev, REG_CTRL, ctrl);
++	tscadc_idle_config(tscadc_dev);
++	tscadc_writel(tscadc_dev, REG_SE, STPENB_STEPENB);
++	restore = tscadc_readl(tscadc_dev, REG_CTRL);
++	tscadc_writel(tscadc_dev, REG_CTRL,
++			(restore | CNTRLREG_TSCSSENB));
++
++	return 0;
++}
++
++static const struct dev_pm_ops tscadc_pm_ops = {
++	.suspend = tscadc_suspend,
++	.resume = tscadc_resume,
++};
++#define TSCADC_PM_OPS (&tscadc_pm_ops)
++#else
++#define TSCADC_PM_OPS NULL
++#endif
 +
 +static struct platform_driver ti_tscadc_driver = {
 +	.driver = {
 +		.name   = "ti_tscadc",
 +		.owner	= THIS_MODULE,
++		.pm	= TSCADC_PM_OPS,
 +	},
 +	.probe	= ti_tscadc_probe,
 +	.remove	= __devexit_p(ti_tscadc_remove),
@@ -249,14 +308,14 @@ index 0000000..ac4bf7b
 +MODULE_DESCRIPTION("TI touchscreen / ADC MFD controller driver");
 +MODULE_AUTHOR("Rachna Patil <rachna@ti.com>");
 +MODULE_LICENSE("GPL");
-diff --git a/include/linux/mfd/ti_tscadc.h b/include/linux/mfd/ti_tscadc.h
+diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
 new file mode 100644
-index 0000000..a700085
+index 0000000..b7232b1
 --- /dev/null
-+++ b/include/linux/mfd/ti_tscadc.h
-@@ -0,0 +1,133 @@
-+#ifndef __LINUX_TI_TSCADC_MFD_H
-+#define __LINUX_TI_TSCADC_MFD_H
++++ b/include/linux/mfd/ti_am335x_tscadc.h
+@@ -0,0 +1,137 @@
++#ifndef __LINUX_TI_AM335X_TSCADC_MFD_H
++#define __LINUX_TI_AM335X_TSCADC_MFD_H
 +
 +/*
 + * TI Touch Screen / ADC MFD driver
@@ -297,10 +356,13 @@ index 0000000..a700085
 +#define REG_FIFO1		0x200
 +
 +/*	Register Bitfields	*/
++/* IRQ wakeup enable */
++#define IRQWKUP_ENB		BIT(0)
++
 +/* Step Enable */
 +#define STEPENB_MASK		(0x1FFFF << 0)
 +#define STEPENB(val)		((val) << 0)
-+#define STPENB_STEPENB		STEPENB(0x7FFF)
++#define STPENB_STEPENB		STEPENB(0x1FFFF)
 +
 +/* IRQ enable */
 +#define IRQENB_HW_PEN		BIT(0)
@@ -382,6 +444,7 @@ index 0000000..a700085
 +
 +struct ti_tscadc_dev {
 +	struct device *dev;
++	struct regmap *regmap_tscadc;
 +	void __iomem *tscadc_base;
 +	int irq;
 +	struct mfd_cell cells[TSCADC_CELLS];
