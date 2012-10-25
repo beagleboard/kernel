@@ -57,6 +57,7 @@ Status
  * PMIC PWM: working, kills ethernet
  * CPUfreq: working
  * Capes: DVI, LCD3, LCD4, LCD7, geiger and weathercape are functional, but need tweaking
+ * AUDIO: untested
 
 Bootlog
 ======
