@@ -17,6 +17,7 @@ To build it:
 
 ```
 cd kernel
+cp ../configs/beaglebone .config
 make uImage dtbs
 ```
 
