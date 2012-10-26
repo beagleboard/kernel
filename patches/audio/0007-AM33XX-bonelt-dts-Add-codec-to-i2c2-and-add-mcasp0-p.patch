@@ -1,0 +1,75 @@
+From 59c3de56b91d5fd26931a128eb083a2ca541aef9 Mon Sep 17 00:00:00 2001
+From: Joel A Fernandes <joelagnel@ti.com>
+Date: Thu, 25 Oct 2012 00:35:36 -0500
+Subject: [PATCH 7/7] AM33XX: bonelt/dts: Add codec to i2c2 and add mcasp0 pin
+ mxing
+
+Adapted from following patch by Gururaja Hebbar <gururaja.hebbar@ti.com>:
+    On am335x-bonelt, codec TLV320AIC3x sits on i2c1 bus.
+    This patch also add I2C1 node with I2C frequency and TLV320AIC3x Codec
+    I2C slave address.
+
+Added mcasp0 hacks for audio specific to beaglebone lt (for HDMI)
+  - pulling up crystal on input to enable it
+  - changed direction of pins to output so as the am33xx is driving the clock
+    output for audio in the beaglebone lt case.
+
+Note:
+Using i2c2 for now to test audio w/ cape. This set of patches is not
+intended to get audio cape working (though it will). It is to get mcasp sending correct
+output for hdmi work. capebus support etc is separate effort, has to be worked on. This
+effort is _only_ for hdmi audio debugging on beaglebone lt.
+
+Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+---
+ arch/arm/boot/dts/am335x-bonelt.dts |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-bonelt.dts b/arch/arm/boot/dts/am335x-bonelt.dts
+index eb46747..4fff310 100644
+--- a/arch/arm/boot/dts/am335x-bonelt.dts
++++ b/arch/arm/boot/dts/am335x-bonelt.dts
+@@ -10,6 +10,17 @@
+ /include/ "am335x-bone-common.dtsi"
+ 
+ / {
++	am3358_pinmux: pinmux@44e10800 {
++		mcasp0_pins: mcasp0_pins {
++			pinctrl-single,pins = <
++				0x190 0x00      /* mii1_crs.mcasp1_aclkx,       MODE0 | OUTPUT */
++				0x194 0x00      /* mii1_rxerr.mcasp1_fsx,       MODE0 | OUTPUT */
++				0x19c 0x02      /* mii1_col.mcasp1_axr2,        MODE2 | OUTPUT */
++				0x1ac 0x30      /* rmii1_refclk.mcasp1_axr3,    MODE0 | INPUT_PULLUP - for crystal on bonelt */
++			>;
++		};
++	};
++
+ 	sound {
+ 		compatible = "ti,davinci-evm-audio";
+ 		ti,model = "AM335X EVM";
+@@ -35,6 +46,13 @@
+ 	};
+ };
+ 
++&i2c2 {
++	tlv320aic3x: tlv320aic3x@1b {
++		compatible = "ti,tlv320aic3x";
++		reg = <0x1b>;
++	};
++};
++
+ &userled_pins {
+ 	pinctrl-single,pins = <
+ 		0x54 0x7	/* gpmc_a5.gpio1_21, OUTPUT | MODE7 */
+@@ -59,6 +77,8 @@
+ 
+ 
+ &mcasp0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&mcasp0_pins>;
+ 	op-mode = <0>;          /* MCASP_IIS_MODE */
+ 	tdm-slots = <2>;
+ 	num-serializer = <16>;
+-- 
+1.7.9.5
+

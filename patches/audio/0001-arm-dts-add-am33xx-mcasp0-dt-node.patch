@@ -1,12 +1,12 @@
-From 4eb4b762633eac69f406aac202751a3f00a02afe Mon Sep 17 00:00:00 2001
+From b4c6a38f5abfc5fb90eb63180771ce507bcc33b5 Mon Sep 17 00:00:00 2001
 From: Joel A Fernandes <joelagnel@ti.com>
 Date: Thu, 25 Oct 2012 00:02:27 -0500
-Subject: [PATCH 1/9] arm/dts: add am33xx mcasp1 dt node
+Subject: [PATCH 1/7] arm/dts: add am33xx mcasp0 dt node
 
-Add AM33xx McASP1 DT node. Device tree Data is split into SoC specific
+Add AM33xx McASP0 DT node. Device tree Data is split into SoC specific
 and Board specific.
 
-Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
+Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
 ---
  arch/arm/boot/dts/am335x-bonelt.dts |   14 ++++++++++++++
  arch/arm/boot/dts/am33xx.dtsi       |    9 +++++++++
@@ -35,7 +35,7 @@ index 87257ac..a97ee36 100644
 +	rx-num-evt = <1>;
 +};
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 8bddc9c..15e04d4 100644
+index 8bddc9c..3b582c5 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
 @@ -258,6 +258,15 @@
@@ -46,7 +46,7 @@ index 8bddc9c..15e04d4 100644
 +			compatible = "ti,omap2-mcasp-audio";
 +			#address-cells = <1>;
 +			#size-cells = <0>;
-+			ti,hwmods = "mcasp1";
++			ti,hwmods = "mcasp0";
 +			reg = <0x4803C000 0x2000>;
 +			interrupts = <82 83>;
 +		};
