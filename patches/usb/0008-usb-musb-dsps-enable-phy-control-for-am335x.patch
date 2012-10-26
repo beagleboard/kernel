@@ -1,7 +1,7 @@
-From 2e26c75212265e594a8a42857f043ed548a80a40 Mon Sep 17 00:00:00 2001
+From 30ac6cb95e45ac4af70b2d4155bf72db075679ae Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Thu, 5 Jul 2012 14:35:06 +0530
-Subject: [PATCH 09/10] usb: musb: dsps: enable phy control for am335x
+Subject: [PATCH 8/9] usb: musb: dsps: enable phy control for am335x
 
 Enabled the phy control logic for am335x also based on usbss
 revision register.
@@ -25,7 +25,7 @@ index 43052e7f..bb27e88 100644
  /* TI816X PHY controls bits */
  #define TI816X_USBPHY0_NORMAL_MODE	(1 << 0)
 diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 9b412b4..ba400dc 100644
+index 1151760..ed3b379 100644
 --- a/drivers/usb/musb/musb_dsps.c
 +++ b/drivers/usb/musb/musb_dsps.c
 @@ -149,16 +149,21 @@ static void musb_dsps_phy_control(struct dsps_glue *glue, u8 id, u8 on)

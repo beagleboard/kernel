@@ -1,7 +1,7 @@
-From f9b732772d9cb77363f215da6dbde89e0c310d1d Mon Sep 17 00:00:00 2001
+From 6d886dac627ff4fc5f02f6dd45fbac1d80b817ac Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Thu, 5 Jul 2012 14:06:42 +0530
-Subject: [PATCH 08/10] usb: musb: dsps: add phy control logic to glue
+Subject: [PATCH 7/9] usb: musb: dsps: add phy control logic to glue
 
 AM335x uses NOP transceiver driver and need to enable builtin PHY
 by writing into usb_ctrl register available in system control
@@ -95,7 +95,7 @@ index 87ee140..43052e7f 100644
  /* TI816X PHY controls bits */
  #define TI816X_USBPHY0_NORMAL_MODE	(1 << 0)
 diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 9c9f19b..9b412b4 100644
+index 6a14101..1151760 100644
 --- a/drivers/usb/musb/musb_dsps.c
 +++ b/drivers/usb/musb/musb_dsps.c
 @@ -124,9 +124,46 @@ struct dsps_glue {
@@ -208,7 +208,7 @@ index 9c9f19b..9b412b4 100644
 +	}
 +
  	/* get memory resource */
- 	sprintf(res_name, "musb%d", id);
+ 	snprintf(res_name, sizeof(res_name), "musb%d", id);
  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, res_name);
 @@ -579,6 +625,7 @@ static int __devinit dsps_probe(struct platform_device *pdev)
  	const struct dsps_musb_wrapper *wrp;

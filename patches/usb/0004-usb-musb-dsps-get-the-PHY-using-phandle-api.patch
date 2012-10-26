@@ -1,7 +1,7 @@
-From f23073e64580920d1f5da85b2acf202c6d966a53 Mon Sep 17 00:00:00 2001
+From 78030a9e8f8d8d5e83e7cbe66bf4c2b6e07a345b Mon Sep 17 00:00:00 2001
 From: Ravi Babu <ravibabu@ti.com>
 Date: Thu, 2 Aug 2012 16:13:32 +0530
-Subject: [PATCH 05/10] usb: musb: dsps: get the PHY using phandle api
+Subject: [PATCH 4/9] usb: musb: dsps: get the PHY using phandle api
 
 AM33xx has two PHY of same type used by each musb controller so
 use phandle of phy nodes to get the phy pointer.
@@ -27,7 +27,7 @@ index ca8fa56..e2702df 100644
 +NOP USB PHY
 + - compatible : Should be "nop-xceiv-usb"
 diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 425d893..9c9f19b 100644
+index ff5f112..6a14101 100644
 --- a/drivers/usb/musb/musb_dsps.c
 +++ b/drivers/usb/musb/musb_dsps.c
 @@ -367,10 +367,12 @@ static int dsps_musb_init(struct musb *musb)
