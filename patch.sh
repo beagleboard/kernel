@@ -18,7 +18,7 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="2ab3f29dddfb444c9fcc0a2f3a56ed4bdba41969"
+EXTERNAL_SHA="4864ccbb5a6f99e4c44dc816304007547a268b9f"
 
 #PATCHSET="pruss pwm2 fixes"
 # BAD: rtc
@@ -79,7 +79,7 @@ for patchset in ${PATCHSET} ; do
 	mkdir -p ${EXPORTPATH}/$patchset
 	for patch in $(ls -1 ${PATCHPATH}/$patchset/*.patch | sort -n) ; do
 		$ECHO -n "$patch: "
-		git am -3 -q $patch && echo applied || exit 1
+		git am -q $patch && echo applied || exit 1
 	done
 
 	NEWCOMMIT="$(git log --oneline --no-abbrev -1 | awk '{print $1}')"

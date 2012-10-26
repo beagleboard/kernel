@@ -1,0 +1,26 @@
+From 52bcb0bc00f7adebedf1f79b96363b1559545351 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 26 Oct 2012 15:48:00 +0300
+Subject: [PATCH 3/3] omap-hsmmc: Correct usage of of_find_node_by_name
+
+of_find_node_by_name expect to have the parent node reference taken.
+---
+ drivers/mmc/host/omap_hsmmc.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 7186f5c..d245789 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1859,7 +1859,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
+ 	/* Eventually we should get our max_segs limitation for EDMA by
+ 	 * querying the dmaengine API */
+ 	if (pdev->dev.of_node) {
+-		struct device_node *parent = pdev->dev.of_node->parent;
++		struct device_node *parent = of_node_get(pdev->dev.of_node->parent);
+ 		struct device_node *node;
+ 		node = of_find_node_by_name(parent, "edma");
+ 		if (node)
+-- 
+1.7.7.6
+

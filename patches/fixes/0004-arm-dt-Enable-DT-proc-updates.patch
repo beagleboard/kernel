@@ -1,0 +1,25 @@
+From bea61300365e3c3c1867246366d3ee840d7b207b Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 26 Oct 2012 16:11:46 +0300
+Subject: [PATCH 4/4] arm-dt: Enable DT proc updates.
+
+---
+ arch/arm/include/asm/prom.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/include/asm/prom.h b/arch/arm/include/asm/prom.h
+index aeae9c6..6d65ba2 100644
+--- a/arch/arm/include/asm/prom.h
++++ b/arch/arm/include/asm/prom.h
+@@ -11,6 +11,8 @@
+ #ifndef __ASMARM_PROM_H
+ #define __ASMARM_PROM_H
+ 
++#define HAVE_ARCH_DEVTREE_FIXUPS
++
+ #ifdef CONFIG_OF
+ 
+ extern struct machine_desc *setup_machine_fdt(unsigned int dt_phys);
+-- 
+1.7.7.6
+
