@@ -18,11 +18,11 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="4864ccbb5a6f99e4c44dc816304007547a268b9f"
+EXTERNAL_SHA="2ab3f29dddfb444c9fcc0a2f3a56ed4bdba41969"
 
 #PATCHSET="pruss pwm2 fixes"
 # BAD: rtc
-PATCHSET="dma cpsw pinctrl cpufreq adc pwm i2c usb da8xx-fb mmc capebus beaglebone f2fs fixes audio"
+PATCHSET="dma cpsw pinctrl cpufreq adc pwm i2c usb da8xx-fb mmc capebus beaglebone f2fs fixes"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
