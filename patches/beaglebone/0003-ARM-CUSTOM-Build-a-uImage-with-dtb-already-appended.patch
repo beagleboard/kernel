@@ -1,4 +1,4 @@
-From 664e8a2c33f5704d819369961e221f99d6e36dc4 Mon Sep 17 00:00:00 2001
+From 7b45d94233fcaac8bf899fece4c4498bced4a1f0 Mon Sep 17 00:00:00 2001
 From: Grant Likely <grant.likely@secretlab.ca>
 Date: Tue, 2 Aug 2011 15:30:09 +0100
 Subject: [PATCH 3/3] ARM: CUSTOM: Build a uImage with dtb already appended
@@ -7,20 +7,16 @@ Do not commit to mainline; this is a useful hack only for now.
 
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-
-Conflicts:
-
-	arch/arm/Makefile
 ---
  arch/arm/Makefile      |    3 +++
  arch/arm/boot/Makefile |    7 +++++++
- 2 files changed, 10 insertions(+), 0 deletions(-)
+ 2 files changed, 10 insertions(+)
 
 diff --git a/arch/arm/Makefile b/arch/arm/Makefile
-index f023e3a..5670d9f 100644
+index 5f914fc..05df486 100644
 --- a/arch/arm/Makefile
 +++ b/arch/arm/Makefile
-@@ -290,6 +290,9 @@ zImage Image xipImage bootpImage uImage: vmlinux
+@@ -291,6 +291,9 @@ zImage Image xipImage bootpImage uImage: vmlinux
  zinstall uinstall install: vmlinux
  	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $@
  
@@ -31,12 +27,12 @@ index f023e3a..5670d9f 100644
  	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
  
 diff --git a/arch/arm/boot/Makefile b/arch/arm/boot/Makefile
-index 3fdab01..a72439d 100644
+index f2aa09e..bdebcd1 100644
 --- a/arch/arm/boot/Makefile
 +++ b/arch/arm/boot/Makefile
 @@ -57,6 +57,9 @@ $(obj)/zImage:	$(obj)/compressed/vmlinux FORCE
  	$(call if_changed,objcopy)
- 	@echo '  Kernel: $@ is ready'
+ 	$(kecho) '  Kernel: $@ is ready'
  
 +$(obj)/zImage-dtb.%:	$(obj)/%.dtb $(obj)/zImage
 +	cat $(obj)/zImage $< > $@
@@ -46,7 +42,7 @@ index 3fdab01..a72439d 100644
  targets += $(dtb-y)
 @@ -92,6 +95,10 @@ $(obj)/uImage:	$(obj)/zImage FORCE
  	$(call if_changed,uimage)
- 	@echo '  Image $@ is ready'
+ 	$(kecho) '  Image $@ is ready'
  
 +$(obj)/uImage-dtb.%:	$(obj)/zImage-dtb.% FORCE
 +	$(call if_changed,uimage)
@@ -56,5 +52,5 @@ index 3fdab01..a72439d 100644
  	$(Q)$(MAKE) $(build)=$(obj)/bootp $@
  	@:
 -- 
-1.7.7.6
+1.7.9.5
 
