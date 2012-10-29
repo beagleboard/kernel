@@ -13,12 +13,12 @@ PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.7-rc2"
+TAG="v3.7-rc3"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="1d47091ac6bf1286d708ebcd3f2b69d7c682916b"
+EXTERNAL_SHA="8f0d8163b50e01f398b14bcd4dc039ac5ab18d64"
 
 #PATCHSET="pruss pwm2 fixes"
 # BAD: rtc

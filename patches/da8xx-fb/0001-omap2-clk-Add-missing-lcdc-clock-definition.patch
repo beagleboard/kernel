@@ -1,4 +1,4 @@
-From 77c8d8160da8b06feb02ec2165d691cc07b46394 Mon Sep 17 00:00:00 2001
+From aa7e2385676ab746c27543746584aab601ac8224 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Sat, 13 Oct 2012 16:12:22 +0300
 Subject: [PATCH 1/7] omap2-clk: Add missing lcdc clock definition
@@ -10,7 +10,7 @@ It is required for the LCD controller to work. Reintroduce.
  1 files changed, 11 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
-index 114ab4b..7b2b67f 100644
+index 1a45d6b..b7b7995 100644
 --- a/arch/arm/mach-omap2/clock33xx_data.c
 +++ b/arch/arm/mach-omap2/clock33xx_data.c
 @@ -867,6 +867,16 @@ static struct clk lcd_gclk = {
@@ -30,10 +30,10 @@ index 114ab4b..7b2b67f 100644
  static struct clk mmc_clk = {
  	.name		= "mmc_clk",
  	.clkdm_name	= "l4ls_clkdm",
-@@ -1073,6 +1083,7 @@ static struct omap_clk am33xx_clks[] = {
- 	CLK(NULL,	"gfx_fck_div_ck",	&gfx_fck_div_ck,	CK_AM33XX),
- 	CLK(NULL,	"sysclkout_pre_ck",	&sysclkout_pre_ck,	CK_AM33XX),
+@@ -1075,6 +1085,7 @@ static struct omap_clk am33xx_clks[] = {
  	CLK(NULL,	"clkout2_ck",		&clkout2_ck,	CK_AM33XX),
+ 	CLK(NULL,	"timer_32k_ck",		&clkdiv32k_ick,	CK_AM33XX),
+ 	CLK(NULL,	"timer_sys_ck",		&sys_clkin_ck,	CK_AM33XX),
 +	CLK("da8xx_lcdc.0",     NULL,           &lcdc_fck,      CK_AM33XX),
  };
  

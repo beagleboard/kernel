@@ -1,7 +1,7 @@
-From 81edb79e9e5983164670d28b7c91bf4dd7cf1bb2 Mon Sep 17 00:00:00 2001
+From d8ab92aa5ff3cc615a502938681ff53307223b7a Mon Sep 17 00:00:00 2001
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 Date: Wed, 17 Oct 2012 13:55:55 -0500
-Subject: [PATCH 1/2] ARM: AM33XX: Fix configuration of dmtimer parent clock
+Subject: [PATCH 1/4] ARM: AM33XX: Fix configuration of dmtimer parent clock
  by dmtimer driver
 
 Add dmtimer clock aliases for AM33XX devices so that the parent clock for
@@ -23,12 +23,12 @@ Tested-by: Jon Hunter <jon-hunter@ti.com>
  1 files changed, 2 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
-index 7b2b67f..f6cb2a8 100644
+index b7b7995..7a17311 100644
 --- a/arch/arm/mach-omap2/clock33xx_data.c
 +++ b/arch/arm/mach-omap2/clock33xx_data.c
-@@ -1084,6 +1084,8 @@ static struct omap_clk am33xx_clks[] = {
- 	CLK(NULL,	"sysclkout_pre_ck",	&sysclkout_pre_ck,	CK_AM33XX),
- 	CLK(NULL,	"clkout2_ck",		&clkout2_ck,	CK_AM33XX),
+@@ -1086,6 +1086,8 @@ static struct omap_clk am33xx_clks[] = {
+ 	CLK(NULL,	"timer_32k_ck",		&clkdiv32k_ick,	CK_AM33XX),
+ 	CLK(NULL,	"timer_sys_ck",		&sys_clkin_ck,	CK_AM33XX),
  	CLK("da8xx_lcdc.0",     NULL,           &lcdc_fck,      CK_AM33XX),
 +	CLK(NULL,	"timer_32k_ck",		&clkdiv32k_ick,	CK_AM33XX),
 +	CLK(NULL,	"timer_sys_ck",		&sys_clkin_ck,	CK_AM33XX),

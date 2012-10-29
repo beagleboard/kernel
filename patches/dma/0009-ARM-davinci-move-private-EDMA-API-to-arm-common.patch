@@ -1,4 +1,4 @@
-From 687b92b5f39215cb729bf67be8e8da60e41e61c7 Mon Sep 17 00:00:00 2001
+From 3e8e8bd63069a0b61ad7fd5e80f02663477ac065 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Wed, 22 Aug 2012 09:24:24 -0400
 Subject: [PATCH 09/31] ARM: davinci: move private EDMA API to arm/common
@@ -42,7 +42,7 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  create mode 100644 include/linux/platform_data/edma.h
 
 diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 73067ef..23c2343 100644
+index ade7e92..6737b69 100644
 --- a/arch/arm/Kconfig
 +++ b/arch/arm/Kconfig
 @@ -924,6 +924,7 @@ config ARCH_DAVINCI
@@ -3711,11 +3711,11 @@ index 7e84c90..0000000
 -
 -#endif
 diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 7cd56ed..153fab8 100644
+index 82fcb20..74ce024 100644
 --- a/arch/arm/plat-omap/Kconfig
 +++ b/arch/arm/plat-omap/Kconfig
-@@ -28,6 +28,7 @@ config ARCH_OMAP2PLUS
- 	select OMAP_DM_TIMER
+@@ -29,6 +29,7 @@ config ARCH_OMAP2PLUS
+ 	select PINCTRL
  	select PROC_DEVICETREE if PROC_FS
  	select SPARSE_IRQ
 +	select TI_PRIV_EDMA
