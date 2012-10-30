@@ -1,0 +1,57 @@
+From e5c9c226e1fbfe88a1c5486e3ddda12cd3c8877c Mon Sep 17 00:00:00 2001
+From: Alex Williamson <alex.williamson@redhat.com>
+Date: Fri, 11 Nov 2011 17:26:44 -0700
+Subject: [PATCH 031/146] intel-iommu: Default to non-coherent for domains
+ unattached to iommus
+
+commit 2e12bc29fc5a12242d68e11875db3dd58efad9ff upstream.
+
+domain_update_iommu_coherency() currently defaults to setting domains
+as coherent when the domain is not attached to any iommus.  This
+allows for a window in domain_context_mapping_one() where such a
+domain can update context entries non-coherently, and only after
+update the domain capability to clear iommu_coherency.
+
+This can be seen using KVM device assignment on VT-d systems that
+do not support coherency in the ecap register.  When a device is
+added to a guest, a domain is created (iommu_coherency = 0), the
+device is attached, and ranges are mapped.  If we then hot unplug
+the device, the coherency is updated and set to the default (1)
+since no iommus are attached to the domain.  A subsequent attach
+of a device makes use of the same dmar domain (now marked coherent)
+updates context entries with coherency enabled, and only disables
+coherency as the last step in the process.
+
+To fix this, switch domain_update_iommu_coherency() to use the
+safer, non-coherent default for domains not attached to iommus.
+
+Signed-off-by: Alex Williamson <alex.williamson@redhat.com>
+Tested-by: Donald Dutile <ddutile@redhat.com>
+Acked-by: Donald Dutile <ddutile@redhat.com>
+Acked-by: Chris Wright <chrisw@sous-sol.org>
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+[bwh: Backported to 3.2: dmar_domain::iommu_bmp is a single unsigned long
+ not an array, so add &]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/iommu/intel-iommu.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
+index ccf347f..b9062c0 100644
+--- a/drivers/iommu/intel-iommu.c
++++ b/drivers/iommu/intel-iommu.c
+@@ -563,7 +563,9 @@ static void domain_update_iommu_coherency(struct dmar_domain *domain)
+ {
+ 	int i;
+ 
+-	domain->iommu_coherency = 1;
++	i = find_first_bit(&domain->iommu_bmp, g_num_of_iommus);
++
++	domain->iommu_coherency = i < g_num_of_iommus ? 1 : 0;
+ 
+ 	for_each_set_bit(i, &domain->iommu_bmp, g_num_of_iommus) {
+ 		if (!ecap_coherent(g_iommus[i]->ecap)) {
+-- 
+1.7.10.4
+

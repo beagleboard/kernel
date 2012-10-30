@@ -1,0 +1,68 @@
+From 8c4b31575ff796b0fa5c3d1b9fb4ae2be7b63679 Mon Sep 17 00:00:00 2001
+From: Russ Gorby <russ.gorby@intel.com>
+Date: Mon, 13 Aug 2012 13:44:40 +0100
+Subject: [PATCH 011/146] n_gsm: added interlocking for gsm_data_lock for
+ certain code paths
+
+commit 5e44708f75b0f8712da715d6babb0c21089b2317 upstream.
+
+There were some locking holes in the management of the MUX's
+message queue for 2 code paths:
+1) gsmld_write_wakeup
+2) receipt of CMD_FCON flow-control message
+In both cases gsm_data_kick is called w/o locking so it can collide
+with other other instances of gsm_data_kick (pulling messages tx_tail)
+or potentially other instances of __gsm_data_queu (adding messages to tx_head)
+
+Changed to take the tx_lock in these 2 cases
+
+Signed-off-by: Russ Gorby <russ.gorby@intel.com>
+Tested-by: Yin, Fengwei <fengwei.yin@intel.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/tty/n_gsm.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/tty/n_gsm.c b/drivers/tty/n_gsm.c
+index 0c6995e..016f366 100644
+--- a/drivers/tty/n_gsm.c
++++ b/drivers/tty/n_gsm.c
+@@ -1205,6 +1205,8 @@ static void gsm_control_message(struct gsm_mux *gsm, unsigned int command,
+ 							u8 *data, int clen)
+ {
+ 	u8 buf[1];
++	unsigned long flags;
++
+ 	switch (command) {
+ 	case CMD_CLD: {
+ 		struct gsm_dlci *dlci = gsm->dlci[0];
+@@ -1225,7 +1227,9 @@ static void gsm_control_message(struct gsm_mux *gsm, unsigned int command,
+ 		gsm->constipated = 0;
+ 		gsm_control_reply(gsm, CMD_FCON, NULL, 0);
+ 		/* Kick the link in case it is idling */
++		spin_lock_irqsave(&gsm->tx_lock, flags);
+ 		gsm_data_kick(gsm);
++		spin_unlock_irqrestore(&gsm->tx_lock, flags);
+ 		break;
+ 	case CMD_FCOFF:
+ 		/* Modem wants us to STFU */
+@@ -2392,12 +2396,12 @@ static void gsmld_write_wakeup(struct tty_struct *tty)
+ 
+ 	/* Queue poll */
+ 	clear_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
++	spin_lock_irqsave(&gsm->tx_lock, flags);
+ 	gsm_data_kick(gsm);
+ 	if (gsm->tx_bytes < TX_THRESH_LO) {
+-		spin_lock_irqsave(&gsm->tx_lock, flags);
+ 		gsm_dlci_data_sweep(gsm);
+-		spin_unlock_irqrestore(&gsm->tx_lock, flags);
+ 	}
++	spin_unlock_irqrestore(&gsm->tx_lock, flags);
+ }
+ 
+ /**
+-- 
+1.7.10.4
+

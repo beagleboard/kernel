@@ -1,0 +1,66 @@
+From a3dd7864b98e08e39e3633c691af438a13ee4922 Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Thu, 12 Apr 2012 01:27:57 +0200
+Subject: [PATCH 145/146] drm/i915: clear fencing tracking state when retiring
+ requests
+
+commit 15a13bbdffb0d6288a5dd04aee9736267da1335f upstream.
+
+This fixes a resume regression introduced in
+
+commit 7dd4906586274f3945f2aeaaa5a33b451c3b4bba
+Author: Chris Wilson <chris@chris-wilson.co.uk>
+Date:   Wed Mar 21 10:48:18 2012 +0000
+
+    drm/i915: Mark untiled BLT commands as fenced on gen2/3
+
+which fixed fencing tracking for untiled blt commands.
+
+A side effect of that patch was that now also untiled objects have a
+non-zero obj->last_fenced_seqno to track when a fence can be set up
+after a pipelined tiling change. Unfortunately this was only cleared
+by the fence setup and teardown code, resulting in tons of untiled but
+inactive objects with non-zero last_fenced_seqno.
+
+Now after resume we completely reset the seqno tracking, both on the
+driver side (by setting dev_priv->next_seqno = 1) and on the hw side
+(by allocating a new hws page, which contains the seqnos). Hilarity
+and indefinite waits ensued from the stale seqnos in
+obj->last_fenced_seqno from before the suspend.
+
+The fix is to properly clear the fencing tracking state like we
+already do for the normal gpu rendering while moving objects off the
+active list.
+
+Reported-and-tested-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_gem.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index 2e55d1c..33e1555 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -1564,6 +1564,7 @@ i915_gem_object_move_off_active(struct drm_i915_gem_object *obj)
+ {
+ 	list_del_init(&obj->ring_list);
+ 	obj->last_rendering_seqno = 0;
++	obj->last_fenced_seqno = 0;
+ }
+ 
+ static void
+@@ -1592,6 +1593,7 @@ i915_gem_object_move_to_inactive(struct drm_i915_gem_object *obj)
+ 	BUG_ON(!list_empty(&obj->gpu_write_list));
+ 	BUG_ON(!obj->active);
+ 	obj->ring = NULL;
++	obj->last_fenced_ring = NULL;
+ 
+ 	i915_gem_object_move_off_active(obj);
+ 	obj->fenced_gpu_access = false;
+-- 
+1.7.10.4
+

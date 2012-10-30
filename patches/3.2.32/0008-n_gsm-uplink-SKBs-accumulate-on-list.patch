@@ -1,0 +1,51 @@
+From 6c9cd134539347fe32ca8585b52aa8822297e847 Mon Sep 17 00:00:00 2001
+From: Russ Gorby <russ.gorby@intel.com>
+Date: Mon, 13 Aug 2012 13:43:36 +0100
+Subject: [PATCH 008/146] n_gsm: uplink SKBs accumulate on list
+
+commit 192b6041e75bb4a2aae73834037038cea139a92d upstream.
+
+gsm_dlci_data_kick will not call any output function if tx_bytes > THRESH_LO
+furthermore it will call the output function only once if tx_bytes == 0
+If the size of the IP writes are on the order of THRESH_LO
+we can get into a situation where skbs accumulate on the outbound list
+being starved for events to call the output function.
+
+gsm_dlci_data_kick now calls the sweep function when tx_bytes==0
+
+Signed-off-by: Russ Gorby <russ.gorby@intel.com>
+Tested-by: Kappel, LaurentX <laurentx.kappel@intel.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/tty/n_gsm.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/tty/n_gsm.c b/drivers/tty/n_gsm.c
+index f29003b..1a793a7 100644
+--- a/drivers/tty/n_gsm.c
++++ b/drivers/tty/n_gsm.c
+@@ -971,15 +971,18 @@ static void gsm_dlci_data_sweep(struct gsm_mux *gsm)
+ static void gsm_dlci_data_kick(struct gsm_dlci *dlci)
+ {
+ 	unsigned long flags;
++	int sweep;
+ 
+ 	spin_lock_irqsave(&dlci->gsm->tx_lock, flags);
+ 	/* If we have nothing running then we need to fire up */
++	sweep = (dlci->gsm->tx_bytes < TX_THRESH_LO);
+ 	if (dlci->gsm->tx_bytes == 0) {
+ 		if (dlci->net)
+ 			gsm_dlci_data_output_framed(dlci->gsm, dlci);
+ 		else
+ 			gsm_dlci_data_output(dlci->gsm, dlci);
+-	} else if (dlci->gsm->tx_bytes < TX_THRESH_LO)
++	}
++	if (sweep)
+ 		gsm_dlci_data_sweep(dlci->gsm);
+ 	spin_unlock_irqrestore(&dlci->gsm->tx_lock, flags);
+ }
+-- 
+1.7.10.4
+

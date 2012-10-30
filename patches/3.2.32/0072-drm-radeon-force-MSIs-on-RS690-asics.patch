@@ -1,0 +1,35 @@
+From f5191f1d31764b8deb7d19d5fe9b9b04837f39a3 Mon Sep 17 00:00:00 2001
+From: Alex Deucher <alexander.deucher@amd.com>
+Date: Wed, 26 Sep 2012 12:40:45 -0400
+Subject: [PATCH 072/146] drm/radeon: force MSIs on RS690 asics
+
+commit fb6ca6d154cdcd53e7f27f8dbba513830372699b upstream.
+
+There are so many quirks, lets just try and force
+this for all RS690s.  See:
+https://bugs.freedesktop.org/show_bug.cgi?id=37679
+
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_irq_kms.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_irq_kms.c b/drivers/gpu/drm/radeon/radeon_irq_kms.c
+index 75c478f..4f9496e 100644
+--- a/drivers/gpu/drm/radeon/radeon_irq_kms.c
++++ b/drivers/gpu/drm/radeon/radeon_irq_kms.c
+@@ -149,6 +149,10 @@ static bool radeon_msi_ok(struct radeon_device *rdev)
+ 	    (rdev->pdev->subsystem_device == 0x0185))
+ 		return true;
+ 
++	/* try and enable MSIs by default on all RS690s */
++	if (rdev->family == CHIP_RS690)
++		return true;
++
+ 	/* RV515 seems to have MSI issues where it loses
+ 	 * MSI rearms occasionally. This leads to lockups and freezes.
+ 	 * disable it by default.
+-- 
+1.7.10.4
+

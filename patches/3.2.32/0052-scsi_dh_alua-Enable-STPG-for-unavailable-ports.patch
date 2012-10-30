@@ -1,0 +1,39 @@
+From ebc7119eca63d11e8d4f131b8fb5025b2bdcc7e9 Mon Sep 17 00:00:00 2001
+From: Bart Van Assche <bvanassche@acm.org>
+Date: Fri, 24 Aug 2012 09:08:41 +0000
+Subject: [PATCH 052/146] scsi_dh_alua: Enable STPG for unavailable ports
+
+commit e47f8976d8e573928824a06748f7bc82c58d747f upstream.
+
+A quote from SPC-4: "While in the unavailable primary target port
+asymmetric access state, the device server shall support those of
+the following commands that it supports while in the active/optimized
+state: [ ... ] d) SET TARGET PORT GROUPS; [ ... ]". Hence enable
+sending STPG to a target port group that is in the unavailable state.
+
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Reviewed-by: Mike Christie <michaelc@cs.wisc.edu>
+Acked-by: Hannes Reinecke <hare@suse.de>
+Signed-off-by: James Bottomley <JBottomley@Parallels.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/scsi/device_handler/scsi_dh_alua.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/scsi/device_handler/scsi_dh_alua.c b/drivers/scsi/device_handler/scsi_dh_alua.c
+index 4ef0212..e5a4423 100644
+--- a/drivers/scsi/device_handler/scsi_dh_alua.c
++++ b/drivers/scsi/device_handler/scsi_dh_alua.c
+@@ -578,8 +578,7 @@ static int alua_rtpg(struct scsi_device *sdev, struct alua_dh_data *h)
+ 		h->state = TPGS_STATE_STANDBY;
+ 		break;
+ 	case TPGS_STATE_OFFLINE:
+-	case TPGS_STATE_UNAVAILABLE:
+-		/* Path unusable for unavailable/offline */
++		/* Path unusable */
+ 		err = SCSI_DH_DEV_OFFLINED;
+ 		break;
+ 	default:
+-- 
+1.7.10.4
+

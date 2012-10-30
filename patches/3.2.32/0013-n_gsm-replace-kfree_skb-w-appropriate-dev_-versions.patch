@@ -1,0 +1,66 @@
+From 920f2d868ecbabec0c1d351768f3075e794cb8fc Mon Sep 17 00:00:00 2001
+From: Russ Gorby <russ.gorby@intel.com>
+Date: Mon, 13 Aug 2012 13:45:15 +0100
+Subject: [PATCH 013/146] n_gsm: replace kfree_skb w/ appropriate dev_*
+ versions
+
+commit 329e56780e514a7ab607bcb51a52ab0dc2669414 upstream.
+
+Drivers are supposed to use the dev_* versions of the kfree_skb
+interfaces. In a couple of cases we were called with IRQs
+disabled as well which kfree_skb() does not expect.
+
+Replaced kfree_skb calls w/ dev_kfree_skb and dev_kfree_skb_any
+
+Signed-off-by: Russ Gorby <russ.gorby@intel.com>
+Tested-by: Yin, Fengwei <fengwei.yin@intel.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/tty/n_gsm.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/tty/n_gsm.c b/drivers/tty/n_gsm.c
+index 604a2f9..0742f6e 100644
+--- a/drivers/tty/n_gsm.c
++++ b/drivers/tty/n_gsm.c
+@@ -879,7 +879,7 @@ static int gsm_dlci_data_output_framed(struct gsm_mux *gsm,
+ 	if (len > gsm->mtu) {
+ 		if (dlci->adaption == 3) {
+ 			/* Over long frame, bin it */
+-			kfree_skb(dlci->skb);
++			dev_kfree_skb_any(dlci->skb);
+ 			dlci->skb = NULL;
+ 			return 0;
+ 		}
+@@ -905,7 +905,7 @@ static int gsm_dlci_data_output_framed(struct gsm_mux *gsm,
+ 	skb_pull(dlci->skb, len);
+ 	__gsm_data_queue(dlci, msg);
+ 	if (last) {
+-		kfree_skb(dlci->skb);
++		dev_kfree_skb_any(dlci->skb);
+ 		dlci->skb = NULL;
+ 	}
+ 	return size;
+@@ -1674,7 +1674,7 @@ static void gsm_dlci_free(struct kref *ref)
+ 	dlci->gsm->dlci[dlci->addr] = NULL;
+ 	kfifo_free(dlci->fifo);
+ 	while ((dlci->skb = skb_dequeue(&dlci->skb_list)))
+-		kfree_skb(dlci->skb);
++		dev_kfree_skb(dlci->skb);
+ 	kfree(dlci);
+ }
+ 
+@@ -2013,7 +2013,7 @@ void gsm_cleanup_mux(struct gsm_mux *gsm)
+ {
+ 	int i;
+ 	struct gsm_dlci *dlci = gsm->dlci[0];
+-	struct gsm_msg *txq, *utxq;
++	struct gsm_msg *txq, *ntxq;
+ 	struct gsm_control *gc;
+ 
+ 	gsm->dead = 1;
+-- 
+1.7.10.4
+

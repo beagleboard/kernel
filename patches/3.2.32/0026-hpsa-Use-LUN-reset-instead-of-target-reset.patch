@@ -1,0 +1,55 @@
+From 813c47490151e9355ed04c4dbf7f23a3edc869e8 Mon Sep 17 00:00:00 2001
+From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
+Date: Thu, 26 Jul 2012 11:34:10 -0500
+Subject: [PATCH 026/146] hpsa: Use LUN reset instead of target reset
+
+commit 21e89afd325849eb38adccf382df16cc895911f9 upstream.
+
+It turns out Smart Array logical drives do not support target
+reset and when the target reset fails, the logical drive will
+be taken off line.  Symptoms look like this:
+
+hpsa 0000:03:00.0: Abort request on C1:B0:T0:L0
+hpsa 0000:03:00.0: resetting device 1:0:0:0
+hpsa 0000:03:00.0: cp ffff880037c56000 is reported invalid (probably means target device no longer present)
+hpsa 0000:03:00.0: resetting device failed.
+sd 1:0:0:0: Device offlined - not ready after error recovery
+sd 1:0:0:0: rejecting I/O to offline device
+EXT3-fs error (device sdb1): read_block_bitmap:
+
+LUN reset is supported though, and is what we should be using.
+Target reset is also disruptive in shared SAS situations,
+for example, an external MSA1210m which does support target
+reset attached to Smart Arrays in multiple hosts -- a target
+reset from one host is disruptive to other hosts as all LUNs
+on the target will be reset and will abort all outstanding i/os
+back to all the attached hosts.  So we should use LUN reset,
+not target reset.
+
+Tested this with Smart Array logical drives and with tape drives.
+Not sure how this bug survived since 2009, except it must be very
+rare for a Smart Array to require more than 30s to complete a request.
+
+Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Signed-off-by: James Bottomley <JBottomley@Parallels.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/scsi/hpsa.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/scsi/hpsa.c b/drivers/scsi/hpsa.c
+index be9aad8..a133724 100644
+--- a/drivers/scsi/hpsa.c
++++ b/drivers/scsi/hpsa.c
+@@ -2926,7 +2926,7 @@ static void fill_cmd(struct CommandList *c, u8 cmd, struct ctlr_info *h,
+ 			c->Request.Timeout = 0; /* Don't time out */
+ 			memset(&c->Request.CDB[0], 0, sizeof(c->Request.CDB));
+ 			c->Request.CDB[0] =  cmd;
+-			c->Request.CDB[1] = 0x03;  /* Reset target above */
++			c->Request.CDB[1] = HPSA_RESET_TYPE_LUN;
+ 			/* If bytes 4-7 are zero, it means reset the */
+ 			/* LunID device */
+ 			c->Request.CDB[4] = 0x00;
+-- 
+1.7.10.4
+

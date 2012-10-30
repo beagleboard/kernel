@@ -1,0 +1,63 @@
+From 377efb9c4240b04e99054939181893ceebe5d6e0 Mon Sep 17 00:00:00 2001
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Wed, 5 Sep 2012 14:37:36 -0700
+Subject: [PATCH 018/146] tools/hv: Fix exit() error code
+
+commit 6bb22fea25624ab593eee376fa5fb82d1b13f45a upstream.
+
+Linux native exit codes are 8-bit unsigned values.  exit(-1) results
+in an exit code of 255, which is usually reserved for shells reporting
+'command not found'.  Use the portable value EXIT_FAILURE.  (Not that
+this matters much for a daemon.)
+
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: K. Y. Srinivasan <kys@microsoft.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+[bwh: Backported to 3.2: drop changes to exit() calls not in this version]
+---
+ tools/hv/hv_kvp_daemon.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/tools/hv/hv_kvp_daemon.c b/tools/hv/hv_kvp_daemon.c
+index 323d4d9..0961d88 100644
+--- a/tools/hv/hv_kvp_daemon.c
++++ b/tools/hv/hv_kvp_daemon.c
+@@ -348,7 +348,7 @@ int main(void)
+ 	fd = socket(AF_NETLINK, SOCK_DGRAM, NETLINK_CONNECTOR);
+ 	if (fd < 0) {
+ 		syslog(LOG_ERR, "netlink socket creation failed; error:%d", fd);
+-		exit(-1);
++		exit(EXIT_FAILURE);
+ 	}
+ 	addr.nl_family = AF_NETLINK;
+ 	addr.nl_pad = 0;
+@@ -360,7 +360,7 @@ int main(void)
+ 	if (error < 0) {
+ 		syslog(LOG_ERR, "bind failed; error:%d", error);
+ 		close(fd);
+-		exit(-1);
++		exit(EXIT_FAILURE);
+ 	}
+ 	sock_opt = addr.nl_groups;
+ 	setsockopt(fd, 270, 1, &sock_opt, sizeof(sock_opt));
+@@ -378,7 +378,7 @@ int main(void)
+ 	if (len < 0) {
+ 		syslog(LOG_ERR, "netlink_send failed; error:%d", len);
+ 		close(fd);
+-		exit(-1);
++		exit(EXIT_FAILURE);
+ 	}
+ 
+ 	pfd.fd = fd;
+@@ -497,7 +497,7 @@ int main(void)
+ 		len = netlink_send(fd, incoming_cn_msg);
+ 		if (len < 0) {
+ 			syslog(LOG_ERR, "net_link send failed; error:%d", len);
+-			exit(-1);
++			exit(EXIT_FAILURE);
+ 		}
+ 	}
+ 
+-- 
+1.7.10.4
+

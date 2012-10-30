@@ -1,0 +1,36 @@
+From 0ff5675e4389597b72eb51e1ae4e6b3ed86f290f Mon Sep 17 00:00:00 2001
+From: Jaehoon Chung <jh80.chung@samsung.com>
+Date: Wed, 19 Sep 2012 14:43:33 +0800
+Subject: [PATCH 110/146] mmc: sdhci-s3c: fix the wrong number of max bus
+ clocks
+
+commit 5feb54a1ab91a237e247c013b8c4fb100ea347b1 upstream.
+
+We can use up to four bus-clocks; but on module remove, we didn't
+disable the fourth bus clock.
+
+Signed-off-by: Jaehoon Chung <jh80.chung@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Chris Ball <cjb@laptop.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/mmc/host/sdhci-s3c.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/mmc/host/sdhci-s3c.c b/drivers/mmc/host/sdhci-s3c.c
+index 0d33ff0..06af9e4 100644
+--- a/drivers/mmc/host/sdhci-s3c.c
++++ b/drivers/mmc/host/sdhci-s3c.c
+@@ -601,7 +601,7 @@ static int __devexit sdhci_s3c_remove(struct platform_device *pdev)
+ 
+ 	sdhci_remove_host(host, 1);
+ 
+-	for (ptr = 0; ptr < 3; ptr++) {
++	for (ptr = 0; ptr < MAX_BUS_CLK; ptr++) {
+ 		if (sc->clk_bus[ptr]) {
+ 			clk_disable(sc->clk_bus[ptr]);
+ 			clk_put(sc->clk_bus[ptr]);
+-- 
+1.7.10.4
+

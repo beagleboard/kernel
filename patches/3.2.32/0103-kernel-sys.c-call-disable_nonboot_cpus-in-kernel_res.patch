@@ -1,0 +1,41 @@
+From 854be75f6d1f4e70b3a61a815bf769b0244613a0 Mon Sep 17 00:00:00 2001
+From: Shawn Guo <shawn.guo@linaro.org>
+Date: Thu, 4 Oct 2012 17:12:23 -0700
+Subject: [PATCH 103/146] kernel/sys.c: call disable_nonboot_cpus() in
+ kernel_restart()
+
+commit f96972f2dc6365421cf2366ebd61ee4cf060c8d5 upstream.
+
+As kernel_power_off() calls disable_nonboot_cpus(), we may also want to
+have kernel_restart() call disable_nonboot_cpus().  Doing so can help
+machines that require boot cpu be the last alive cpu during reboot to
+survive with kernel restart.
+
+This fixes one reboot issue seen on imx6q (Cortex-A9 Quad).  The machine
+requires that the restart routine be run on the primary cpu rather than
+secondary ones.  Otherwise, the secondary core running the restart
+routine will fail to come to online after reboot.
+
+Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/sys.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/kernel/sys.c b/kernel/sys.c
+index 481611f..c504302 100644
+--- a/kernel/sys.c
++++ b/kernel/sys.c
+@@ -365,6 +365,7 @@ EXPORT_SYMBOL(unregister_reboot_notifier);
+ void kernel_restart(char *cmd)
+ {
+ 	kernel_restart_prepare(cmd);
++	disable_nonboot_cpus();
+ 	if (!cmd)
+ 		printk(KERN_EMERG "Restarting system.\n");
+ 	else
+-- 
+1.7.10.4
+

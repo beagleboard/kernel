@@ -1,0 +1,43 @@
+From c6965be16f7951b1c6819ee4fb339097a39b2987 Mon Sep 17 00:00:00 2001
+From: Jan Engelhardt <jengelh@inai.de>
+Date: Fri, 21 Sep 2012 22:26:52 +0000
+Subject: [PATCH 140/146] netfilter: xt_limit: have r->cost != 0 case work
+
+commit 82e6bfe2fbc4d48852114c4f979137cd5bf1d1a8 upstream.
+
+Commit v2.6.19-rc1~1272^2~41 tells us that r->cost != 0 can happen when
+a running state is saved to userspace and then reinstated from there.
+
+Make sure that private xt_limit area is initialized with correct values.
+Otherwise, random matchings due to use of uninitialized memory.
+
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/netfilter/xt_limit.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+index 5c22ce8..a4c1e45 100644
+--- a/net/netfilter/xt_limit.c
++++ b/net/netfilter/xt_limit.c
+@@ -117,11 +117,11 @@ static int limit_mt_check(const struct xt_mtchk_param *par)
+ 
+ 	/* For SMP, we only want to use one set of state. */
+ 	r->master = priv;
++	/* User avg in seconds * XT_LIMIT_SCALE: convert to jiffies *
++	   128. */
++	priv->prev = jiffies;
++	priv->credit = user2credits(r->avg * r->burst); /* Credits full. */
+ 	if (r->cost == 0) {
+-		/* User avg in seconds * XT_LIMIT_SCALE: convert to jiffies *
+-		   128. */
+-		priv->prev = jiffies;
+-		priv->credit = user2credits(r->avg * r->burst); /* Credits full. */
+ 		r->credit_cap = priv->credit; /* Credits full. */
+ 		r->cost = user2credits(r->avg);
+ 	}
+-- 
+1.7.10.4
+

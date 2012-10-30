@@ -1,0 +1,61 @@
+From 332ea822e81c2a7a0f183d5cbbf571c0426384d8 Mon Sep 17 00:00:00 2001
+From: Francois Romieu <romieu@fr.zoreil.com>
+Date: Tue, 17 Apr 2012 11:10:11 +0200
+Subject: [PATCH 130/146] r8169: Config1 is read-only on 8168c and later.
+
+commit 851e60221926a53344b4227879858bef841b0477 upstream.
+
+Suggested by Hayes.
+
+Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
+Cc: Hayes Wang <hayeswang@realtek.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/realtek/r8169.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/realtek/r8169.c b/drivers/net/ethernet/realtek/r8169.c
+index ed1be8a..ef4f60d 100644
+--- a/drivers/net/ethernet/realtek/r8169.c
++++ b/drivers/net/ethernet/realtek/r8169.c
+@@ -1360,7 +1360,6 @@ static void __rtl8169_set_wol(struct rtl8169_private *tp, u32 wolopts)
+ 		u16 reg;
+ 		u8  mask;
+ 	} cfg[] = {
+-		{ WAKE_ANY,   Config1, PMEnable },
+ 		{ WAKE_PHY,   Config3, LinkUp },
+ 		{ WAKE_MAGIC, Config3, MagicPacket },
+ 		{ WAKE_UCAST, Config5, UWF },
+@@ -1368,16 +1367,28 @@ static void __rtl8169_set_wol(struct rtl8169_private *tp, u32 wolopts)
+ 		{ WAKE_MCAST, Config5, MWF },
+ 		{ WAKE_ANY,   Config5, LanWake }
+ 	};
++	u8 options;
+ 
+ 	RTL_W8(Cfg9346, Cfg9346_Unlock);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(cfg); i++) {
+-		u8 options = RTL_R8(cfg[i].reg) & ~cfg[i].mask;
++		options = RTL_R8(cfg[i].reg) & ~cfg[i].mask;
+ 		if (wolopts & cfg[i].opt)
+ 			options |= cfg[i].mask;
+ 		RTL_W8(cfg[i].reg, options);
+ 	}
+ 
++	switch (tp->mac_version) {
++	case RTL_GIGA_MAC_VER_01 ... RTL_GIGA_MAC_VER_17:
++		options = RTL_R8(Config1) & ~PMEnable;
++		if (wolopts)
++			options |= PMEnable;
++		RTL_W8(Config1, options);
++		break;
++	default:
++		break;
++	}
++
+ 	RTL_W8(Cfg9346, Cfg9346_Lock);
+ }
+ 
+-- 
+1.7.10.4
+

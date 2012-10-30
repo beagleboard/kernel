@@ -1,0 +1,38 @@
+From 9f518678d9c2dcea7cdbbf66d0952ad88b663f0c Mon Sep 17 00:00:00 2001
+From: Nicholas Bellinger <nab@linux-iscsi.org>
+Date: Sat, 22 Sep 2012 17:21:06 -0700
+Subject: [PATCH 042/146] iscsi-target: Correctly set 0xffffffff field within
+ ISCSI_OP_REJECT PDU
+
+commit f25590f39d543272f7ae7b00d533359c8d7ff331 upstream.
+
+This patch adds a missing iscsi_reject->ffffffff assignment within
+iscsit_send_reject() code to properly follow RFC-3720 Section 10.17
+Bytes 16 -> 19 for the PDU format definition of ISCSI_OP_REJECT.
+
+We've not seen any initiators care about this bytes in practice, but
+as Ronnie reported this was causing trouble with wireshark packet
+decoding lets go ahead and fix this up now.
+
+Reported-by: Ronnie Sahlberg <ronniesahlberg@gmail.com>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/target/iscsi/iscsi_target.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/target/iscsi/iscsi_target.c b/drivers/target/iscsi/iscsi_target.c
+index 2ff1255..81cf25f 100644
+--- a/drivers/target/iscsi/iscsi_target.c
++++ b/drivers/target/iscsi/iscsi_target.c
+@@ -3357,6 +3357,7 @@ static int iscsit_send_reject(
+ 	hdr->opcode		= ISCSI_OP_REJECT;
+ 	hdr->flags		|= ISCSI_FLAG_CMD_FINAL;
+ 	hton24(hdr->dlength, ISCSI_HDR_LEN);
++	hdr->ffffffff		= 0xffffffff;
+ 	cmd->stat_sn		= conn->stat_sn++;
+ 	hdr->statsn		= cpu_to_be32(cmd->stat_sn);
+ 	hdr->exp_cmdsn	= cpu_to_be32(conn->sess->exp_cmd_sn);
+-- 
+1.7.10.4
+

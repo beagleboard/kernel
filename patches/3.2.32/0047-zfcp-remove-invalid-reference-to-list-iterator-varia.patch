@@ -1,0 +1,46 @@
+From 338b329f805f4d48cdb3a781b54e504623893605 Mon Sep 17 00:00:00 2001
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Date: Tue, 4 Sep 2012 15:23:33 +0200
+Subject: [PATCH 047/146] zfcp: remove invalid reference to list iterator
+ variable
+
+commit ca579c9f136af4274ccfd1bcaee7f38a29a0e2e9 upstream.
+
+If list_for_each_entry, etc complete a traversal of the list, the iterator
+variable ends up pointing to an address at an offset from the list head,
+and not a meaningful structure.  Thus this value should not be used after
+the end of the iterator.  Replace port->adapter->scsi_host by
+adapter->scsi_host.
+
+This problem was found using Coccinelle (http://coccinelle.lip6.fr/).
+
+Oversight in upsteam commit of v2.6.37
+a1ca48319a9aa1c5b57ce142f538e76050bb8972
+"[SCSI] zfcp: Move ACL/CFDC code to zfcp_cfdc.c"
+which merged the content of zfcp_erp_port_access_changed().
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Signed-off-by: Steffen Maier <maier@linux.vnet.ibm.com>
+Reviewed-by: Martin Peschke <mpeschke@linux.vnet.ibm.com>
+Signed-off-by: James Bottomley <JBottomley@Parallels.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/s390/scsi/zfcp_cfdc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/s390/scsi/zfcp_cfdc.c b/drivers/s390/scsi/zfcp_cfdc.c
+index fab2c25..8ed63aa 100644
+--- a/drivers/s390/scsi/zfcp_cfdc.c
++++ b/drivers/s390/scsi/zfcp_cfdc.c
+@@ -293,7 +293,7 @@ void zfcp_cfdc_adapter_access_changed(struct zfcp_adapter *adapter)
+ 	}
+ 	read_unlock_irqrestore(&adapter->port_list_lock, flags);
+ 
+-	shost_for_each_device(sdev, port->adapter->scsi_host) {
++	shost_for_each_device(sdev, adapter->scsi_host) {
+ 		zfcp_sdev = sdev_to_zfcp(sdev);
+ 		status = atomic_read(&zfcp_sdev->status);
+ 		if ((status & ZFCP_STATUS_COMMON_ACCESS_DENIED) ||
+-- 
+1.7.10.4
+

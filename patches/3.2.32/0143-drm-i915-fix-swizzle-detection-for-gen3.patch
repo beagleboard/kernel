@@ -1,0 +1,57 @@
+From 20547c023664ec0c84433afc050db92aa61fd469 Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Wed, 14 Dec 2011 13:57:15 +0100
+Subject: [PATCH 143/146] drm/i915: fix swizzle detection for gen3
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit c9c4b6f6c28354f1df9bd288dc33ba7ae0e66aaa upstream.
+
+It looks like the desktop variants of i915 and i945 also have the DCC
+register to control dram channel interleave and cpu side bit6
+swizzling.
+
+Unfortunately internal Cspec/ConfigDB documentation for these ancient chips
+have already been dropped and there seem to be no archives. Also
+somebody thought the swizzling behaviour is surely a worthy secret to
+keep and redacted any mention of these fields from the published Intel
+datasheets.
+
+I suspect the hw engineers were really proud of the page coloring
+they've achieved in their first dual channel dram controller with
+bit17 - after all Bspec explains in great length the optimal layout of
+page frame numbers modulo 4 for the color and depth buffers, too.
+Later on when they've started to work on VT-d they shamefully
+discoverd their stupidity and tried to cover the tracks ...
+
+Tested-by: Daniel Vetter <daniel.vetter@ffwll.ch> (i915g)
+Tested-by: Pavel Ondračka <pavel.ondracka@email.cz> (i945g)
+Tested-by: Chris Wilson <chris@chris-wilson.co.uk>
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=42625
+Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_gem_tiling.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_gem_tiling.c b/drivers/gpu/drm/i915/i915_gem_tiling.c
+index 31d334d..861223b 100644
+--- a/drivers/gpu/drm/i915/i915_gem_tiling.c
++++ b/drivers/gpu/drm/i915/i915_gem_tiling.c
+@@ -107,10 +107,10 @@ i915_gem_detect_bit_6_swizzle(struct drm_device *dev)
+ 		 */
+ 		swizzle_x = I915_BIT_6_SWIZZLE_NONE;
+ 		swizzle_y = I915_BIT_6_SWIZZLE_NONE;
+-	} else if (IS_MOBILE(dev)) {
++	} else if (IS_MOBILE(dev) || (IS_GEN3(dev) && !IS_G33(dev))) {
+ 		uint32_t dcc;
+ 
+-		/* On mobile 9xx chipsets, channel interleave by the CPU is
++		/* On 9xx chipsets, channel interleave by the CPU is
+ 		 * determined by DCC.  For single-channel, neither the CPU
+ 		 * nor the GPU do swizzling.  For dual channel interleaved,
+ 		 * the GPU's interleave is bit 9 and 10 for X tiled, and bit
+-- 
+1.7.10.4
+

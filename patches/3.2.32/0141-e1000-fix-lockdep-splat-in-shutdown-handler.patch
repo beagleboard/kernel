@@ -1,0 +1,69 @@
+From 7e9e94041b50868770aa447db610a8bb7ddc03f8 Mon Sep 17 00:00:00 2001
+From: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Date: Wed, 4 Jan 2012 20:23:33 +0000
+Subject: [PATCH 141/146] e1000: fix lockdep splat in shutdown handler
+
+commit 3a3847e007aae732d64d8fd1374126393e9879a3 upstream.
+
+As reported by Steven Rostedt, e1000 has a lockdep splat added
+during the recent merge window.  The issue is that
+cancel_delayed_work is called while holding our private mutex.
+
+There is no reason that I can see to hold the mutex during pci
+shutdown, it was more just paranoia that I put the mutex_lock
+around the call to e1000_down.
+
+In a quick survey lots of drivers handle locking differently when
+being called by the pci layer.  The assumption here is that we
+don't need the mutexes' protection in this function because
+the driver could not be unloaded while in the shutdown handler
+which is only called at reboot or poweroff.
+
+Reported-by: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Tested-by: Steven Rostedt <rostedt@goodmis.org>
+Tested-by: Aaron Brown <aaron.f.brown@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/intel/e1000/e1000_main.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
+
+diff --git a/drivers/net/ethernet/intel/e1000/e1000_main.c b/drivers/net/ethernet/intel/e1000/e1000_main.c
+index 0549261..c5f6b0e 100644
+--- a/drivers/net/ethernet/intel/e1000/e1000_main.c
++++ b/drivers/net/ethernet/intel/e1000/e1000_main.c
+@@ -4720,8 +4720,6 @@ static int __e1000_shutdown(struct pci_dev *pdev, bool *enable_wake)
+ 
+ 	netif_device_detach(netdev);
+ 
+-	mutex_lock(&adapter->mutex);
+-
+ 	if (netif_running(netdev)) {
+ 		WARN_ON(test_bit(__E1000_RESETTING, &adapter->flags));
+ 		e1000_down(adapter);
+@@ -4729,10 +4727,8 @@ static int __e1000_shutdown(struct pci_dev *pdev, bool *enable_wake)
+ 
+ #ifdef CONFIG_PM
+ 	retval = pci_save_state(pdev);
+-	if (retval) {
+-		mutex_unlock(&adapter->mutex);
++	if (retval)
+ 		return retval;
+-	}
+ #endif
+ 
+ 	status = er32(STATUS);
+@@ -4789,8 +4785,6 @@ static int __e1000_shutdown(struct pci_dev *pdev, bool *enable_wake)
+ 	if (netif_running(netdev))
+ 		e1000_free_irq(adapter);
+ 
+-	mutex_unlock(&adapter->mutex);
+-
+ 	pci_disable_device(pdev);
+ 
+ 	return 0;
+-- 
+1.7.10.4
+

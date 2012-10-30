@@ -1,0 +1,35 @@
+From 543137da5475355f9e996210e64807cd008ab513 Mon Sep 17 00:00:00 2001
+From: Ian Abbott <abbotti@mev.co.uk>
+Date: Mon, 24 Sep 2012 17:20:52 +0100
+Subject: [PATCH 063/146] staging: comedi: s626: don't dereference insn->data
+
+commit b655c2c4782ed3e2e71d2608154e295a3e860311 upstream.
+
+`s626_enc_insn_config()` is incorrectly dereferencing `insn->data` which
+is a pointer to user memory.  It should be dereferencing the separate
+`data` parameter that points to a copy of the data in kernel memory.
+
+Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
+Reviewed-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/comedi/drivers/s626.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/comedi/drivers/s626.c b/drivers/staging/comedi/drivers/s626.c
+index 23fc64b..c72128f 100644
+--- a/drivers/staging/comedi/drivers/s626.c
++++ b/drivers/staging/comedi/drivers/s626.c
+@@ -2370,7 +2370,7 @@ static int s626_enc_insn_config(struct comedi_device *dev,
+ 	/*   (data==NULL) ? (Preloadvalue=0) : (Preloadvalue=data[0]); */
+ 
+ 	k->SetMode(dev, k, Setup, TRUE);
+-	Preload(dev, k, *(insn->data));
++	Preload(dev, k, data[0]);
+ 	k->PulseIndex(dev, k);
+ 	SetLatchSource(dev, k, valueSrclatch);
+ 	k->SetEnable(dev, k, (uint16_t) (enab != 0));
+-- 
+1.7.10.4
+

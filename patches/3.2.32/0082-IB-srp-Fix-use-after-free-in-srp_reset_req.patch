@@ -1,0 +1,37 @@
+From 56ffae1cb54a56cf2b57191d05dd7c673f7c7106 Mon Sep 17 00:00:00 2001
+From: Bart Van Assche <bvanassche@acm.org>
+Date: Fri, 24 Aug 2012 10:27:54 +0000
+Subject: [PATCH 082/146] IB/srp: Fix use-after-free in srp_reset_req()
+
+commit 9b796d06d5d1b1e85ae2316a283ea11dd739ef96 upstream.
+
+srp_free_req() uses the scsi_cmnd structure contents to unmap
+buffers, so we must invoke srp_free_req() before we release
+ownership of that structure.
+
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Acked-by: David Dillow <dillowda@ornl.gov>
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index c76b051..b3ead13 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -620,9 +620,9 @@ static void srp_reset_req(struct srp_target_port *target, struct srp_request *re
+ 	struct scsi_cmnd *scmnd = srp_claim_req(target, req, NULL);
+ 
+ 	if (scmnd) {
++		srp_free_req(target, req, scmnd, 0);
+ 		scmnd->result = DID_RESET << 16;
+ 		scmnd->scsi_done(scmnd);
+-		srp_free_req(target, req, scmnd, 0);
+ 	}
+ }
+ 
+-- 
+1.7.10.4
+

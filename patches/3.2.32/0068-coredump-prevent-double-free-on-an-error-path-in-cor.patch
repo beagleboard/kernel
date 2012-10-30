@@ -1,0 +1,68 @@
+From 57e877088dac0f976a67bb0446470a7e3d76acce Mon Sep 17 00:00:00 2001
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Date: Wed, 26 Sep 2012 11:34:50 +1000
+Subject: [PATCH 068/146] coredump: prevent double-free on an error path in
+ core dumper
+
+commit f34f9d186df35e5c39163444c43b4fc6255e39c5 upstream.
+
+In !CORE_DUMP_USE_REGSET case, if elf_note_info_init fails to allocate
+memory for info->fields, it frees already allocated stuff and returns
+error to its caller, fill_note_info.  Which in turn returns error to its
+caller, elf_core_dump.  Which jumps to cleanup label and calls
+free_note_info, which will happily try to free all info->fields again.
+BOOM.
+
+This is the fix.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Venu Byravarasu <vbyravarasu@nvidia.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/binfmt_elf.c |   19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
+
+diff --git a/fs/binfmt_elf.c b/fs/binfmt_elf.c
+index 6ff96c6..8dd615c 100644
+--- a/fs/binfmt_elf.c
++++ b/fs/binfmt_elf.c
+@@ -1668,30 +1668,19 @@ static int elf_note_info_init(struct elf_note_info *info)
+ 		return 0;
+ 	info->psinfo = kmalloc(sizeof(*info->psinfo), GFP_KERNEL);
+ 	if (!info->psinfo)
+-		goto notes_free;
++		return 0;
+ 	info->prstatus = kmalloc(sizeof(*info->prstatus), GFP_KERNEL);
+ 	if (!info->prstatus)
+-		goto psinfo_free;
++		return 0;
+ 	info->fpu = kmalloc(sizeof(*info->fpu), GFP_KERNEL);
+ 	if (!info->fpu)
+-		goto prstatus_free;
++		return 0;
+ #ifdef ELF_CORE_COPY_XFPREGS
+ 	info->xfpu = kmalloc(sizeof(*info->xfpu), GFP_KERNEL);
+ 	if (!info->xfpu)
+-		goto fpu_free;
++		return 0;
+ #endif
+ 	return 1;
+-#ifdef ELF_CORE_COPY_XFPREGS
+- fpu_free:
+-	kfree(info->fpu);
+-#endif
+- prstatus_free:
+-	kfree(info->prstatus);
+- psinfo_free:
+-	kfree(info->psinfo);
+- notes_free:
+-	kfree(info->notes);
+-	return 0;
+ }
+ 
+ static int fill_note_info(struct elfhdr *elf, int phdrs,
+-- 
+1.7.10.4
+

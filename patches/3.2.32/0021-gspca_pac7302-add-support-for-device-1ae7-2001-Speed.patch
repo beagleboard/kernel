@@ -1,0 +1,35 @@
+From 0aa1fbe1ea9491339b40cbc2fd576a8739ceda25 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Date: Sun, 9 Sep 2012 15:02:19 -0300
+Subject: [PATCH 021/146] gspca_pac7302: add support for device 1ae7:2001
+ Speedlink Snappy Microphone SL-6825-SBK
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit 97d2fbf501e3cf105ac957086c7e40e62e15cdf8 upstream.
+
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+[bwh: Backported to 3.2: adjust filename]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/media/video/gspca/pac7302.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/video/gspca/pac7302.c b/drivers/media/video/gspca/pac7302.c
+index edbc04c..6ddc769 100644
+--- a/drivers/media/video/gspca/pac7302.c
++++ b/drivers/media/video/gspca/pac7302.c
+@@ -1198,6 +1198,7 @@ static const struct usb_device_id device_table[] = {
+ 	{USB_DEVICE(0x093a, 0x262a)},
+ 	{USB_DEVICE(0x093a, 0x262c)},
+ 	{USB_DEVICE(0x145f, 0x013c)},
++	{USB_DEVICE(0x1ae7, 0x2001)}, /* SpeedLink Snappy Mic SL-6825-SBK */
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(usb, device_table);
+-- 
+1.7.10.4
+

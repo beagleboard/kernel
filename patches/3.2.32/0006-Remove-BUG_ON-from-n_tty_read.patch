@@ -1,0 +1,35 @@
+From 2d4361077991e9f09ca4cf876afcd760af922fd7 Mon Sep 17 00:00:00 2001
+From: Stanislav Kozina <skozina@redhat.com>
+Date: Thu, 16 Aug 2012 12:01:47 +0100
+Subject: [PATCH 006/146] Remove BUG_ON from n_tty_read()
+
+commit e9490e93c1978b6669f3e993caa3189be13ce459 upstream.
+
+Change the BUG_ON to WARN_ON and return in case of tty->read_buf==NULL. We want to track a
+couple of long standing reports of this but at the same time we can avoid killing the box.
+
+Signed-off-by: Stanislav Kozina <skozina@redhat.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/tty/n_tty.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/tty/n_tty.c b/drivers/tty/n_tty.c
+index 39d6ab6..8481aae 100644
+--- a/drivers/tty/n_tty.c
++++ b/drivers/tty/n_tty.c
+@@ -1728,7 +1728,8 @@ static ssize_t n_tty_read(struct tty_struct *tty, struct file *file,
+ 
+ do_it_again:
+ 
+-	BUG_ON(!tty->read_buf);
++	if (WARN_ON(!tty->read_buf))
++		return -EAGAIN;
+ 
+ 	c = job_control(tty, file);
+ 	if (c < 0)
+-- 
+1.7.10.4
+

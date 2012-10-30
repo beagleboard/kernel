@@ -1,0 +1,58 @@
+From 20bb1780ef102a2ecc9aef6b9add469e74908f17 Mon Sep 17 00:00:00 2001
+From: Mel Gorman <mgorman@suse.de>
+Date: Tue, 9 Oct 2012 17:58:41 +0100
+Subject: [PATCH 129/146] mempolicy: fix a memory corruption by refcount
+ imbalance in alloc_pages_vma()
+
+commit 00442ad04a5eac08a98255697c510e708f6082e2 upstream.
+
+Commit cc9a6c877661 ("cpuset: mm: reduce large amounts of memory barrier
+related damage v3") introduced a potential memory corruption.
+shmem_alloc_page() uses a pseudo vma and it has one significant unique
+combination, vma->vm_ops=NULL and vma->policy->flags & MPOL_F_SHARED.
+
+get_vma_policy() does NOT increase a policy ref when vma->vm_ops=NULL
+and mpol_cond_put() DOES decrease a policy ref when a policy has
+MPOL_F_SHARED.  Therefore, when a cpuset update race occurs,
+alloc_pages_vma() falls in 'goto retry_cpuset' path, decrements the
+reference count and frees the policy prematurely.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Christoph Lameter <cl@linux.com>
+Cc: Josh Boyer <jwboyer@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/mempolicy.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/mm/mempolicy.c b/mm/mempolicy.c
+index 0c13a1b..4c82c21 100644
+--- a/mm/mempolicy.c
++++ b/mm/mempolicy.c
+@@ -1522,8 +1522,18 @@ struct mempolicy *get_vma_policy(struct task_struct *task,
+ 									addr);
+ 			if (vpol)
+ 				pol = vpol;
+-		} else if (vma->vm_policy)
++		} else if (vma->vm_policy) {
+ 			pol = vma->vm_policy;
++
++			/*
++			 * shmem_alloc_page() passes MPOL_F_SHARED policy with
++			 * a pseudo vma whose vma->vm_ops=NULL. Take a reference
++			 * count on these policies which will be dropped by
++			 * mpol_cond_put() later
++			 */
++			if (mpol_needs_cond_ref(pol))
++				mpol_get(pol);
++		}
+ 	}
+ 	if (!pol)
+ 		pol = &default_policy;
+-- 
+1.7.10.4
+

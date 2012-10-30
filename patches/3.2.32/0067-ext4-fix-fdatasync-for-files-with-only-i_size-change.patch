@@ -1,0 +1,60 @@
+From 8f4cab5118982bcaa2aa6d714987830785e5ed00 Mon Sep 17 00:00:00 2001
+From: Jan Kara <jack@suse.cz>
+Date: Wed, 26 Sep 2012 21:52:20 -0400
+Subject: [PATCH 067/146] ext4: fix fdatasync() for files with only i_size
+ changes
+
+commit b71fc079b5d8f42b2a52743c8d2f1d35d655b1c5 upstream.
+
+Code tracking when transaction needs to be committed on fdatasync(2) forgets
+to handle a situation when only inode's i_size is changed. Thus in such
+situations fdatasync(2) doesn't force transaction with new i_size to disk
+and that can result in wrong i_size after a crash.
+
+Fix the issue by updating inode's i_datasync_tid whenever its size is
+updated.
+
+Reported-by: Kristian Nielsen <knielsen@knielsen-hq.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ext4/inode.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 8d6aaca..50d50fe 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -4007,6 +4007,7 @@ static int ext4_do_update_inode(handle_t *handle,
+ 	struct ext4_inode_info *ei = EXT4_I(inode);
+ 	struct buffer_head *bh = iloc->bh;
+ 	int err = 0, rc, block;
++	int need_datasync = 0;
+ 
+ 	/* For fields not not tracking in the in-memory inode,
+ 	 * initialise them to zero for new inodes. */
+@@ -4055,7 +4056,10 @@ static int ext4_do_update_inode(handle_t *handle,
+ 		raw_inode->i_file_acl_high =
+ 			cpu_to_le16(ei->i_file_acl >> 32);
+ 	raw_inode->i_file_acl_lo = cpu_to_le32(ei->i_file_acl);
+-	ext4_isize_set(raw_inode, ei->i_disksize);
++	if (ei->i_disksize != ext4_isize(raw_inode)) {
++		ext4_isize_set(raw_inode, ei->i_disksize);
++		need_datasync = 1;
++	}
+ 	if (ei->i_disksize > 0x7fffffffULL) {
+ 		struct super_block *sb = inode->i_sb;
+ 		if (!EXT4_HAS_RO_COMPAT_FEATURE(sb,
+@@ -4108,7 +4112,7 @@ static int ext4_do_update_inode(handle_t *handle,
+ 		err = rc;
+ 	ext4_clear_inode_state(inode, EXT4_STATE_NEW);
+ 
+-	ext4_update_inode_fsync_trans(handle, inode, 0);
++	ext4_update_inode_fsync_trans(handle, inode, need_datasync);
+ out_brelse:
+ 	brelse(bh);
+ 	ext4_std_error(inode->i_sb, err);
+-- 
+1.7.10.4
+

@@ -1,0 +1,40 @@
+From 784d1f38fc05ebb9b1d252f5d75ea79d5efd94ed Mon Sep 17 00:00:00 2001
+From: Davidlohr Bueso <dave@gnu.org>
+Date: Thu, 4 Oct 2012 17:13:18 -0700
+Subject: [PATCH 104/146] lib/gcd.c: prevent possible div by 0
+
+commit e96875677fb2b7cb739c5d7769824dff7260d31d upstream.
+
+Account for all properties when a and/or b are 0:
+gcd(0, 0) = 0
+gcd(a, 0) = a
+gcd(0, b) = b
+
+Fixes no known problems in current kernels.
+
+Signed-off-by: Davidlohr Bueso <dave@gnu.org>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ lib/gcd.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/gcd.c b/lib/gcd.c
+index f879033..433d89b 100644
+--- a/lib/gcd.c
++++ b/lib/gcd.c
+@@ -9,6 +9,9 @@ unsigned long gcd(unsigned long a, unsigned long b)
+ 
+ 	if (a < b)
+ 		swap(a, b);
++
++	if (!b)
++		return a;
+ 	while ((r = a % b) != 0) {
+ 		a = b;
+ 		b = r;
+-- 
+1.7.10.4
+

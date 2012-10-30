@@ -1,0 +1,45 @@
+From 9f9505755c9350eed50b11ec29d89884a5b35b03 Mon Sep 17 00:00:00 2001
+From: Alex Deucher <alexander.deucher@amd.com>
+Date: Fri, 14 Sep 2012 10:59:26 -0400
+Subject: [PATCH 070/146] drm/radeon: only adjust default clocks on NI GPUs
+
+commit 2e3b3b105ab3bb5b6a37198da4f193cd13781d13 upstream.
+
+SI asics store voltage information differently so we
+don't have a way to deal with it properly yet.
+
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_pm.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_pm.c b/drivers/gpu/drm/radeon/radeon_pm.c
+index 78a665b..ebd6c51 100644
+--- a/drivers/gpu/drm/radeon/radeon_pm.c
++++ b/drivers/gpu/drm/radeon/radeon_pm.c
+@@ -553,7 +553,9 @@ void radeon_pm_suspend(struct radeon_device *rdev)
+ void radeon_pm_resume(struct radeon_device *rdev)
+ {
+ 	/* set up the default clocks if the MC ucode is loaded */
+-	if (ASIC_IS_DCE5(rdev) && rdev->mc_fw) {
++	if ((rdev->family >= CHIP_BARTS) &&
++	    (rdev->family <= CHIP_CAYMAN) &&
++	    rdev->mc_fw) {
+ 		if (rdev->pm.default_vddc)
+ 			radeon_atom_set_voltage(rdev, rdev->pm.default_vddc,
+ 						SET_VOLTAGE_TYPE_ASIC_VDDC);
+@@ -608,7 +610,9 @@ int radeon_pm_init(struct radeon_device *rdev)
+ 		radeon_pm_print_states(rdev);
+ 		radeon_pm_init_profile(rdev);
+ 		/* set up the default clocks if the MC ucode is loaded */
+-		if (ASIC_IS_DCE5(rdev) && rdev->mc_fw) {
++		if ((rdev->family >= CHIP_BARTS) &&
++		    (rdev->family <= CHIP_CAYMAN) &&
++		    rdev->mc_fw) {
+ 			if (rdev->pm.default_vddc)
+ 				radeon_atom_set_voltage(rdev, rdev->pm.default_vddc,
+ 							SET_VOLTAGE_TYPE_ASIC_VDDC);
+-- 
+1.7.10.4
+

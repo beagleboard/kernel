@@ -1,0 +1,48 @@
+From e0c0d5135646e1da4f854725e93296a19c1715df Mon Sep 17 00:00:00 2001
+From: Fabio Estevam <fabio.estevam@freescale.com>
+Date: Thu, 4 Oct 2012 17:11:16 -0700
+Subject: [PATCH 100/146] drivers/dma/dmaengine.c: lower the priority of
+ 'failed to get' dma channel message
+
+commit 0eb5a35801df3c438ce3fc91310a415ea4452c00 upstream.
+
+Do the same as commit a03a202e95fd ("dmaengine: failure to get a
+specific DMA channel is not critical") to get rid of the following
+messages during kernel boot:
+
+  dmaengine_get: failed to get dma1chan0: (-22)
+  dmaengine_get: failed to get dma1chan1: (-22)
+  dmaengine_get: failed to get dma1chan2: (-22)
+  dmaengine_get: failed to get dma1chan3: (-22)
+  ..
+
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: Vinod Koul <vinod.koul@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+[bwh: Backported to 3.2: also apply changes to this logging statement
+ from commit 634332502366 ('dmaengine: Cleanup logging messages')]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/dma/dmaengine.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
+index b48967b..5991114 100644
+--- a/drivers/dma/dmaengine.c
++++ b/drivers/dma/dmaengine.c
+@@ -564,8 +564,8 @@ void dmaengine_get(void)
+ 				list_del_rcu(&device->global_node);
+ 				break;
+ 			} else if (err)
+-				pr_err("dmaengine: failed to get %s: (%d)\n",
+-				       dma_chan_name(chan), err);
++				pr_debug("%s: failed to get %s: (%d)\n",
++				       __func__, dma_chan_name(chan), err);
+ 		}
+ 	}
+ 
+-- 
+1.7.10.4
+

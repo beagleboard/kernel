@@ -1,0 +1,47 @@
+From 4b035b26e51f16cdc2de915bb2c7e3740faa8114 Mon Sep 17 00:00:00 2001
+From: Tejun Heo <tj@kernel.org>
+Date: Fri, 3 Aug 2012 10:30:45 -0700
+Subject: [PATCH 004/146] workqueue: add missing smp_wmb() in
+ process_one_work()
+
+commit 959d1af8cffc8fd38ed53e8be1cf4ab8782f9c00 upstream.
+
+WORK_STRUCT_PENDING is used to claim ownership of a work item and
+process_one_work() releases it before starting execution.  When
+someone else grabs PENDING, all pre-release updates to the work item
+should be visible and all updates made by the new owner should happen
+afterwards.
+
+Grabbing PENDING uses test_and_set_bit() and thus has a full barrier;
+however, clearing doesn't have a matching wmb.  Given the preceding
+spin_unlock and use of clear_bit, I don't believe this can be a
+problem on an actual machine and there hasn't been any related report
+but it still is theretically possible for clear_pending to permeate
+upwards and happen before work->entry update.
+
+Add an explicit smp_wmb() before work_clear_pending().
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/workqueue.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/kernel/workqueue.c b/kernel/workqueue.c
+index b413138..9954392 100644
+--- a/kernel/workqueue.c
++++ b/kernel/workqueue.c
+@@ -1869,7 +1869,9 @@ __acquires(&gcwq->lock)
+ 
+ 	spin_unlock_irq(&gcwq->lock);
+ 
++	smp_wmb();	/* paired with test_and_set_bit(PENDING) */
+ 	work_clear_pending(work);
++
+ 	lock_map_acquire_read(&cwq->wq->lockdep_map);
+ 	lock_map_acquire(&lockdep_map);
+ 	trace_workqueue_execute_start(work);
+-- 
+1.7.10.4
+

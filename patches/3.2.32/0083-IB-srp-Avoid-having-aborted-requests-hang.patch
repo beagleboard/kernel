@@ -1,0 +1,32 @@
+From ed516bf6a2365e01394bf31867228c127b5ae569 Mon Sep 17 00:00:00 2001
+From: Bart Van Assche <bvanassche@acm.org>
+Date: Fri, 24 Aug 2012 10:29:11 +0000
+Subject: [PATCH 083/146] IB/srp: Avoid having aborted requests hang
+
+commit d8536670916a685df116b5c2cb256573fd25e4e3 upstream.
+
+We need to call scsi_done() for commands after we abort them.
+
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Acked-by: David Dillow <dillowda@ornl.gov>
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index b3ead13..4ec049d 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -1669,6 +1669,7 @@ static int srp_abort(struct scsi_cmnd *scmnd)
+ 			  SRP_TSK_ABORT_TASK);
+ 	srp_free_req(target, req, scmnd, 0);
+ 	scmnd->result = DID_ABORT << 16;
++	scmnd->scsi_done(scmnd);
+ 
+ 	return SUCCESS;
+ }
+-- 
+1.7.10.4
+

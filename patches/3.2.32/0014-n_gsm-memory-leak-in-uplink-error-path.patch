@@ -1,0 +1,53 @@
+From e57928ad52fdb92998a0c919d4ee32ce4b55ab11 Mon Sep 17 00:00:00 2001
+From: Russ Gorby <russ.gorby@intel.com>
+Date: Mon, 13 Aug 2012 13:45:30 +0100
+Subject: [PATCH 014/146] n_gsm: memory leak in uplink error path
+
+commit 88ed2a60610974443335c924d7cb8e5dcf9dbdc1 upstream.
+
+Uplink (TX) network data will go through gsm_dlci_data_output_framed
+there is a bug where if memory allocation fails, the skb which
+has already been pulled off the list will be lost.
+
+In addition TX skbs were being processed in LIFO order
+
+Fixed the memory leak, and changed to FIFO order processing
+
+Signed-off-by: Russ Gorby <russ.gorby@intel.com>
+Tested-by: Kappel, LaurentX <laurentx.kappel@intel.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/tty/n_gsm.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/tty/n_gsm.c b/drivers/tty/n_gsm.c
+index 0742f6e..373d598 100644
+--- a/drivers/tty/n_gsm.c
++++ b/drivers/tty/n_gsm.c
+@@ -868,7 +868,7 @@ static int gsm_dlci_data_output_framed(struct gsm_mux *gsm,
+ 
+ 	/* dlci->skb is locked by tx_lock */
+ 	if (dlci->skb == NULL) {
+-		dlci->skb = skb_dequeue(&dlci->skb_list);
++		dlci->skb = skb_dequeue_tail(&dlci->skb_list);
+ 		if (dlci->skb == NULL)
+ 			return 0;
+ 		first = 1;
+@@ -892,8 +892,11 @@ static int gsm_dlci_data_output_framed(struct gsm_mux *gsm,
+ 
+ 	/* FIXME: need a timer or something to kick this so it can't
+ 	   get stuck with no work outstanding and no buffer free */
+-	if (msg == NULL)
++	if (msg == NULL) {
++		skb_queue_tail(&dlci->skb_list, dlci->skb);
++		dlci->skb = NULL;
+ 		return -ENOMEM;
++	}
+ 	dp = msg->data;
+ 
+ 	if (dlci->adaption == 4) { /* Interruptible framed (Packetised Data) */
+-- 
+1.7.10.4
+

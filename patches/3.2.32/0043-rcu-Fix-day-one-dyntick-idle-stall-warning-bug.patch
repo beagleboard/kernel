@@ -1,0 +1,86 @@
+From b5563ed96c63985c0b7e564b81f176e45dd6336b Mon Sep 17 00:00:00 2001
+From: "Paul E. McKenney" <paul.mckenney@linaro.org>
+Date: Sat, 22 Sep 2012 13:55:30 -0700
+Subject: [PATCH 043/146] rcu: Fix day-one dyntick-idle stall-warning bug
+
+commit a10d206ef1a83121ab7430cb196e0376a7145b22 upstream.
+
+Each grace period is supposed to have at least one callback waiting
+for that grace period to complete.  However, if CONFIG_NO_HZ=n, an
+extra callback-free grace period is no big problem -- it will chew up
+a tiny bit of CPU time, but it will complete normally.  In contrast,
+CONFIG_NO_HZ=y kernels have the potential for all the CPUs to go to
+sleep indefinitely, in turn indefinitely delaying completion of the
+callback-free grace period.  Given that nothing is waiting on this grace
+period, this is also not a problem.
+
+That is, unless RCU CPU stall warnings are also enabled, as they are
+in recent kernels.  In this case, if a CPU wakes up after at least one
+minute of inactivity, an RCU CPU stall warning will result.  The reason
+that no one noticed until quite recently is that most systems have enough
+OS noise that they will never remain absolutely idle for a full minute.
+But there are some embedded systems with cut-down userspace configurations
+that consistently get into this situation.
+
+All this begs the question of exactly how a callback-free grace period
+gets started in the first place.  This can happen due to the fact that
+CPUs do not necessarily agree on which grace period is in progress.
+If a CPU still believes that the grace period that just completed is
+still ongoing, it will believe that it has callbacks that need to wait for
+another grace period, never mind the fact that the grace period that they
+were waiting for just completed.  This CPU can therefore erroneously
+decide to start a new grace period.  Note that this can happen in
+TREE_RCU and TREE_PREEMPT_RCU even on a single-CPU system:  Deadlock
+considerations mean that the CPU that detected the end of the grace
+period is not necessarily officially informed of this fact for some time.
+
+Once this CPU notices that the earlier grace period completed, it will
+invoke its callbacks.  It then won't have any callbacks left.  If no
+other CPU has any callbacks, we now have a callback-free grace period.
+
+This commit therefore makes CPUs check more carefully before starting a
+new grace period.  This new check relies on an array of tail pointers
+into each CPU's list of callbacks.  If the CPU is up to date on which
+grace periods have completed, it checks to see if any callbacks follow
+the RCU_DONE_TAIL segment, otherwise it checks to see if any callbacks
+follow the RCU_WAIT_TAIL segment.  The reason that this works is that
+the RCU_WAIT_TAIL segment will be promoted to the RCU_DONE_TAIL segment
+as soon as the CPU is officially notified that the old grace period
+has ended.
+
+This change is to cpu_needs_another_gp(), which is called in a number
+of places.  The only one that really matters is in rcu_start_gp(), where
+the root rcu_node structure's ->lock is held, which prevents any
+other CPU from starting or completing a grace period, so that the
+comparison that determines whether the CPU is missing the completion
+of a grace period is stable.
+
+Reported-by: Becky Bruce <bgillbruce@gmail.com>
+Reported-by: Subodh Nijsure <snijsure@grid-net.com>
+Reported-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Paul E. McKenney <paul.mckenney@linaro.org>
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Tested-by: Paul Walmsley <paul@pwsan.com>  # OMAP3730, OMAP4430
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/rcutree.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/rcutree.c b/kernel/rcutree.c
+index 6b76d81..a122196 100644
+--- a/kernel/rcutree.c
++++ b/kernel/rcutree.c
+@@ -292,7 +292,9 @@ cpu_has_callbacks_ready_to_invoke(struct rcu_data *rdp)
+ static int
+ cpu_needs_another_gp(struct rcu_state *rsp, struct rcu_data *rdp)
+ {
+-	return *rdp->nxttail[RCU_DONE_TAIL] && !rcu_gp_in_progress(rsp);
++	return *rdp->nxttail[RCU_DONE_TAIL +
++			     ACCESS_ONCE(rsp->completed) != rdp->completed] &&
++	       !rcu_gp_in_progress(rsp);
+ }
+ 
+ /*
+-- 
+1.7.10.4
+

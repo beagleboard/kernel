@@ -1,0 +1,93 @@
+From 218f030ec566e039f8878d577287aa166e04e78e Mon Sep 17 00:00:00 2001
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+Date: Mon, 17 Sep 2012 20:05:33 +0200
+Subject: [PATCH 029/146] target: fix return code in target_core_init_configfs
+ error path
+
+commit 37bb7899ca366dc212b71b150e78566d04808cc0 upstream.
+
+This patch fixes error cases within target_core_init_configfs() to
+properly set ret = -ENOMEM before jumping to the out_global exception
+path.
+
+This was originally discovered with the following Coccinelle semantic
+match information:
+
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.  A simplified version of the semantic match
+that finds this problem is as follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/target/target_core_configfs.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/target/target_core_configfs.c b/drivers/target/target_core_configfs.c
+index 93d4f6a..0b01bfc 100644
+--- a/drivers/target/target_core_configfs.c
++++ b/drivers/target/target_core_configfs.c
+@@ -3123,6 +3123,7 @@ static int __init target_core_init_configfs(void)
+ 				GFP_KERNEL);
+ 	if (!target_cg->default_groups) {
+ 		pr_err("Unable to allocate target_cg->default_groups\n");
++		ret = -ENOMEM;
+ 		goto out_global;
+ 	}
+ 
+@@ -3138,6 +3139,7 @@ static int __init target_core_init_configfs(void)
+ 				GFP_KERNEL);
+ 	if (!hba_cg->default_groups) {
+ 		pr_err("Unable to allocate hba_cg->default_groups\n");
++		ret = -ENOMEM;
+ 		goto out_global;
+ 	}
+ 	config_group_init_type_name(&alua_group,
+@@ -3153,6 +3155,7 @@ static int __init target_core_init_configfs(void)
+ 			GFP_KERNEL);
+ 	if (!alua_cg->default_groups) {
+ 		pr_err("Unable to allocate alua_cg->default_groups\n");
++		ret = -ENOMEM;
+ 		goto out_global;
+ 	}
+ 
+@@ -3164,14 +3167,17 @@ static int __init target_core_init_configfs(void)
+ 	 * Add core/alua/lu_gps/default_lu_gp
+ 	 */
+ 	lu_gp = core_alua_allocate_lu_gp("default_lu_gp", 1);
+-	if (IS_ERR(lu_gp))
++	if (IS_ERR(lu_gp)) {
++		ret = -ENOMEM;
+ 		goto out_global;
++	}
+ 
+ 	lu_gp_cg = &alua_lu_gps_group;
+ 	lu_gp_cg->default_groups = kzalloc(sizeof(struct config_group) * 2,
+ 			GFP_KERNEL);
+ 	if (!lu_gp_cg->default_groups) {
+ 		pr_err("Unable to allocate lu_gp_cg->default_groups\n");
++		ret = -ENOMEM;
+ 		goto out_global;
+ 	}
+ 
+-- 
+1.7.10.4
+

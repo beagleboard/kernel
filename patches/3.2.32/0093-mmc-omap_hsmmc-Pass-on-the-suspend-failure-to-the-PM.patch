@@ -1,0 +1,66 @@
+From 7f7dd0a7958c4cb12d7a5923ecd11b1f50dc4d7c Mon Sep 17 00:00:00 2001
+From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Date: Thu, 13 Sep 2012 06:31:03 +0000
+Subject: [PATCH 093/146] mmc: omap_hsmmc: Pass on the suspend failure to the
+ PM core
+
+commit c4c8eeb4df00aabb641553d6fbcd46f458e56cd9 upstream.
+
+In some cases mmc_suspend_host() is not able to claim the
+host and proceed with the suspend process. The core returns
+-EBUSY to the host controller driver. Unfortunately, the
+host controller driver does not pass on this information
+to the PM core and hence the system suspend process continues.
+
+	ret = mmc_suspend_host(host->mmc);
+	if (ret) {
+		host->suspended = 0;
+		if (host->pdata->resume) {
+			ret = host->pdata->resume(dev, host->slot_id);
+
+The return status from mmc_suspend_host() is overwritten by return
+status from host->pdata->resume. So the original return status is lost.
+
+In these cases the MMC core gets to an unexpected state
+during resume and multiple issues related to MMC crop up.
+1. Host controller driver starts accessing the device registers
+before the clocks are enabled which leads to a prefetch abort.
+2. A file copy thread which was launched before suspend gets
+stuck due to the host not being reclaimed during resume.
+
+To avoid such problems pass on the -EBUSY status to the PM core
+from the host controller driver. With this change, MMC core
+suspend might still fail but it does not end up making the
+system unusable. Suspend gets aborted and the user can try
+suspending the system again.
+
+Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
+Acked-by: Venkatraman S <svenkatr@ti.com>
+Signed-off-by: Chris Ball <cjb@laptop.org>
+[bwh: Backported to 3.2:
+ - Adjust context, indentation
+ - s/dev/\&pdev->dev/]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/mmc/host/omap_hsmmc.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 22da8f2..ba7f742 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2244,9 +2244,7 @@ static int omap_hsmmc_suspend(struct device *dev)
+ 		if (ret) {
+ 			host->suspended = 0;
+ 			if (host->pdata->resume) {
+-				ret = host->pdata->resume(&pdev->dev,
+-							  host->slot_id);
+-				if (ret)
++				if (host->pdata->resume(&pdev->dev, host->slot_id))
+ 					dev_dbg(mmc_dev(host->mmc),
+ 						"Unmask interrupt failed\n");
+ 			}
+-- 
+1.7.10.4
+

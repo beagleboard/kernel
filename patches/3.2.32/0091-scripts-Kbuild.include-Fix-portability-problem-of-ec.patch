@@ -1,0 +1,46 @@
+From c32ac9696726f8e1efd08fe7fb0312258b6c0d8b Mon Sep 17 00:00:00 2001
+From: Bernhard Walle <bernhard@bwalle.de>
+Date: Sun, 26 Feb 2012 18:35:18 +0100
+Subject: [PATCH 091/146] scripts/Kbuild.include: Fix portability problem of
+ "echo -e"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit 875de98623fa2b29f0cb19915fe3292ab6daa1cb upstream.
+
+"echo -e" is a GNU extension. When cross-compiling the kernel on a
+BSD-like operating system (Mac OS X in my case), this doesn't work.
+
+One could install a GNU version of echo, put that in the $PATH before
+the system echo and use "/usr/bin/env echo", but the solution with
+printf is simpler.
+
+Since it is no disadvantage on Linux, I hope that gets accepted even if
+cross-compiling the Linux kernel on another Unix operating system is
+quite a rare use case.
+
+Signed-off-by: Bernhard Walle <bernhard@bwalle.de>
+Andreas Bießmann <andreas@biessmann.de>
+Signed-off-by: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ scripts/Kbuild.include |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/Kbuild.include b/scripts/Kbuild.include
+index d897278..6a3ee98 100644
+--- a/scripts/Kbuild.include
++++ b/scripts/Kbuild.include
+@@ -104,7 +104,7 @@ as-option = $(call try-run,\
+ # Usage: cflags-y += $(call as-instr,instr,option1,option2)
+ 
+ as-instr = $(call try-run,\
+-	/bin/echo -e "$(1)" | $(CC) $(KBUILD_AFLAGS) -c -xassembler -o "$$TMP" -,$(2),$(3))
++	printf "%b\n" "$(1)" | $(CC) $(KBUILD_AFLAGS) -c -xassembler -o "$$TMP" -,$(2),$(3))
+ 
+ # cc-option
+ # Usage: cflags-y += $(call cc-option,-march=winchip-c6,-march=i586)
+-- 
+1.7.10.4
+

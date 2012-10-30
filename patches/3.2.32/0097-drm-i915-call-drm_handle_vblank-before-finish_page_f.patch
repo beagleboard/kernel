@@ -1,0 +1,88 @@
+From 16150bafaf9d3ed0ca27493b7f9c94f61027f57f Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Tue, 2 Oct 2012 17:54:35 +0200
+Subject: [PATCH 097/146] drm/i915: call drm_handle_vblank before
+ finish_page_flip
+
+commit 74d44445afb9f50126eba052adeb89827cee88f3 upstream.
+
+... since finish_page_flip needs the vblank timestamp generated
+in drm_handle_vblank. Somehow all the gmch platforms get it right,
+but all the pch platform irq handlers get is wrong. Hooray for copy&
+pasting!
+
+Currently this gets papered over by a gross hack in finish_page_flip.
+A second patch will remove that.
+
+Note that without this, the new timestamp sanity checks in flip_test
+occasionally get tripped up, hence the cc: stable tag.
+
+Reviewed-by: mario.kleiner@tuebingen.mpg.de
+Tested-by: Imre Deak <imre.deak@intel.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+[bwh: Backported to 3.2: no loop over pipes in ivybridge_irq_handler(),
+ so make a similar change to that in ironlake_irq_handler()]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_irq.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_irq.c b/drivers/gpu/drm/i915/i915_irq.c
+index c8b5bc1..2812d7b 100644
+--- a/drivers/gpu/drm/i915/i915_irq.c
++++ b/drivers/gpu/drm/i915/i915_irq.c
+@@ -530,6 +530,12 @@ static irqreturn_t ivybridge_irq_handler(DRM_IRQ_ARGS)
+ 	if (de_iir & DE_GSE_IVB)
+ 		intel_opregion_gse_intr(dev);
+ 
++	if (de_iir & DE_PIPEA_VBLANK_IVB)
++		drm_handle_vblank(dev, 0);
++
++	if (de_iir & DE_PIPEB_VBLANK_IVB)
++		drm_handle_vblank(dev, 1);
++
+ 	if (de_iir & DE_PLANEA_FLIP_DONE_IVB) {
+ 		intel_prepare_page_flip(dev, 0);
+ 		intel_finish_page_flip_plane(dev, 0);
+@@ -540,12 +546,6 @@ static irqreturn_t ivybridge_irq_handler(DRM_IRQ_ARGS)
+ 		intel_finish_page_flip_plane(dev, 1);
+ 	}
+ 
+-	if (de_iir & DE_PIPEA_VBLANK_IVB)
+-		drm_handle_vblank(dev, 0);
+-
+-	if (de_iir & DE_PIPEB_VBLANK_IVB)
+-		drm_handle_vblank(dev, 1);
+-
+ 	/* check event from PCH */
+ 	if (de_iir & DE_PCH_EVENT_IVB) {
+ 		if (pch_iir & SDE_HOTPLUG_MASK_CPT)
+@@ -622,6 +622,12 @@ static irqreturn_t ironlake_irq_handler(DRM_IRQ_ARGS)
+ 	if (de_iir & DE_GSE)
+ 		intel_opregion_gse_intr(dev);
+ 
++	if (de_iir & DE_PIPEA_VBLANK)
++		drm_handle_vblank(dev, 0);
++
++	if (de_iir & DE_PIPEB_VBLANK)
++		drm_handle_vblank(dev, 1);
++
+ 	if (de_iir & DE_PLANEA_FLIP_DONE) {
+ 		intel_prepare_page_flip(dev, 0);
+ 		intel_finish_page_flip_plane(dev, 0);
+@@ -632,12 +638,6 @@ static irqreturn_t ironlake_irq_handler(DRM_IRQ_ARGS)
+ 		intel_finish_page_flip_plane(dev, 1);
+ 	}
+ 
+-	if (de_iir & DE_PIPEA_VBLANK)
+-		drm_handle_vblank(dev, 0);
+-
+-	if (de_iir & DE_PIPEB_VBLANK)
+-		drm_handle_vblank(dev, 1);
+-
+ 	/* check event from PCH */
+ 	if (de_iir & DE_PCH_EVENT) {
+ 		if (pch_iir & hotplug_mask)
+-- 
+1.7.10.4
+

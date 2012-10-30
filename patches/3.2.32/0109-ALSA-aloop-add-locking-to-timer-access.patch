@@ -1,0 +1,71 @@
+From ab2058f3d70eb684e0dd44cc690b7b3d19183912 Mon Sep 17 00:00:00 2001
+From: Omair Mohammed Abdullah <omair.m.abdullah@linux.intel.com>
+Date: Sat, 29 Sep 2012 12:24:05 +0530
+Subject: [PATCH 109/146] ALSA: aloop - add locking to timer access
+
+commit d4f1e48bd11e3df6a26811f7a1f06c4225d92f7d upstream.
+
+When the loopback timer handler is running, calling del_timer() (for STOP
+trigger) will not wait for the handler to complete before deactivating the
+timer. The timer gets rescheduled in the handler as usual. Then a subsequent
+START trigger will try to start the timer using add_timer() with a timer pending
+leading to a kernel panic.
+
+Serialize the calls to add_timer() and del_timer() using a spin lock to avoid
+this.
+
+Signed-off-by: Omair Mohammed Abdullah <omair.m.abdullah@linux.intel.com>
+Signed-off-by: Vinod Koul <vinod.koul@linux.intel.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/drivers/aloop.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/sound/drivers/aloop.c b/sound/drivers/aloop.c
+index d83bafc..193ce81 100644
+--- a/sound/drivers/aloop.c
++++ b/sound/drivers/aloop.c
+@@ -119,6 +119,7 @@ struct loopback_pcm {
+ 	unsigned int period_size_frac;
+ 	unsigned long last_jiffies;
+ 	struct timer_list timer;
++	spinlock_t timer_lock;
+ };
+ 
+ static struct platform_device *devices[SNDRV_CARDS];
+@@ -169,6 +170,7 @@ static void loopback_timer_start(struct loopback_pcm *dpcm)
+ 	unsigned long tick;
+ 	unsigned int rate_shift = get_rate_shift(dpcm);
+ 
++	spin_lock(&dpcm->timer_lock);
+ 	if (rate_shift != dpcm->pcm_rate_shift) {
+ 		dpcm->pcm_rate_shift = rate_shift;
+ 		dpcm->period_size_frac = frac_pos(dpcm, dpcm->pcm_period_size);
+@@ -181,12 +183,15 @@ static void loopback_timer_start(struct loopback_pcm *dpcm)
+ 	tick = (tick + dpcm->pcm_bps - 1) / dpcm->pcm_bps;
+ 	dpcm->timer.expires = jiffies + tick;
+ 	add_timer(&dpcm->timer);
++	spin_unlock(&dpcm->timer_lock);
+ }
+ 
+ static inline void loopback_timer_stop(struct loopback_pcm *dpcm)
+ {
++	spin_lock(&dpcm->timer_lock);
+ 	del_timer(&dpcm->timer);
+ 	dpcm->timer.expires = 0;
++	spin_unlock(&dpcm->timer_lock);
+ }
+ 
+ #define CABLE_VALID_PLAYBACK	(1 << SNDRV_PCM_STREAM_PLAYBACK)
+@@ -659,6 +664,7 @@ static int loopback_open(struct snd_pcm_substream *substream)
+ 	dpcm->substream = substream;
+ 	setup_timer(&dpcm->timer, loopback_timer_function,
+ 		    (unsigned long)dpcm);
++	spin_lock_init(&dpcm->timer_lock);
+ 
+ 	cable = loopback->cables[substream->number][dev];
+ 	if (!cable) {
+-- 
+1.7.10.4
+

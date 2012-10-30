@@ -1,0 +1,55 @@
+From 9465f568893ef6ede851e6ad9b3f0c98e098bd75 Mon Sep 17 00:00:00 2001
+From: Yinghai Lu <yinghai@kernel.org>
+Date: Mon, 10 Sep 2012 17:19:33 -0700
+Subject: [PATCH 033/146] PCI: Check P2P bridge for invalid
+ secondary/subordinate range
+
+commit 1965f66e7db08d1ebccd24a59043eba826cc1ce8 upstream.
+
+For bridges with "secondary > subordinate", i.e., invalid bus number
+apertures, we don't enumerate anything behind the bridge unless the
+user specified "pci=assign-busses".
+
+This patch makes us automatically try to reassign the downstream bus
+numbers in this case (just for that bridge, not for all bridges as
+"pci=assign-busses" does).
+
+We don't discover all the devices on the Intel DP43BF motherboard
+without this change (or "pci=assign-busses") because its BIOS configures
+a bridge as:
+
+    pci 0000:00:1e.0: PCI bridge to [bus 20-08] (subtractive decode)
+
+[bhelgaas: changelog, change message to dev_info]
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=18412
+Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=625754
+Reported-by: Brian C. Huffman <bhuffman@graze.net>
+Reported-by: VL <vl.homutov@gmail.com>
+Tested-by: VL <vl.homutov@gmail.com>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/pci/probe.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index dfee1b3..9005380 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -658,8 +658,10 @@ int __devinit pci_scan_bridge(struct pci_bus *bus, struct pci_dev *dev, int max,
+ 
+ 	/* Check if setup is sensible at all */
+ 	if (!pass &&
+-	    (primary != bus->number || secondary <= bus->number)) {
+-		dev_dbg(&dev->dev, "bus configuration invalid, reconfiguring\n");
++	    (primary != bus->number || secondary <= bus->number ||
++	     secondary > subordinate)) {
++		dev_info(&dev->dev, "bridge configuration invalid ([bus %02x-%02x]), reconfiguring\n",
++			 secondary, subordinate);
+ 		broken = 1;
+ 	}
+ 
+-- 
+1.7.10.4
+

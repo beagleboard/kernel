@@ -1,0 +1,41 @@
+From 3a19d4d702db25a2e343927f36e148b61f43713a Mon Sep 17 00:00:00 2001
+From: Sujith Manoharan <c_manoha@qualcomm.com>
+Date: Sat, 22 Sep 2012 00:14:28 +0530
+Subject: [PATCH 057/146] ath9k: Disable ASPM only for AR9285
+
+commit 046b6802c8d3c8a57448485513bf7291633e0fa3 upstream.
+
+Currently, ASPM is disabled for all WLAN+BT combo chipsets
+when BTCOEX is enabled. This is incorrect since the workaround
+is required only for WB195, which is a AR9285+AR3011 combo
+solution. Fix this by checking for the HW version when enabling
+the workaround.
+
+Signed-off-by: Sujith Manoharan <c_manoha@qca.qualcomm.com>
+Tested-by: Paul Stewart <pstew@chromium.org>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+[bwh: Backported to 3.2: ath9k_hw_get_btcoex_scheme() function is missing]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/ath/ath9k/pci.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/wireless/ath/ath9k/pci.c b/drivers/net/wireless/ath/ath9k/pci.c
+index 1883d39..f7e17a0 100644
+--- a/drivers/net/wireless/ath/ath9k/pci.c
++++ b/drivers/net/wireless/ath/ath9k/pci.c
+@@ -122,8 +122,9 @@ static void ath_pci_aspm_init(struct ath_common *common)
+ 	if (!parent)
+ 		return;
+ 
+-	if (ah->btcoex_hw.scheme != ATH_BTCOEX_CFG_NONE) {
+-		/* Bluetooth coexistance requires disabling ASPM. */
++	if ((ah->btcoex_hw.scheme != ATH_BTCOEX_CFG_NONE) &&
++	    (AR_SREV_9285(ah))) {
++		/* Bluetooth coexistance requires disabling ASPM for AR9285. */
+ 		pci_read_config_byte(pdev, pos + PCI_EXP_LNKCTL, &aspm);
+ 		aspm &= ~(PCIE_LINK_STATE_L0S | PCIE_LINK_STATE_L1);
+ 		pci_write_config_byte(pdev, pos + PCI_EXP_LNKCTL, aspm);
+-- 
+1.7.10.4
+

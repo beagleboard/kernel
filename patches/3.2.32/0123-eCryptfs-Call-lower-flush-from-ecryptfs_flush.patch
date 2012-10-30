@@ -1,0 +1,47 @@
+From 71148234e1511fe5025af49172140af404a9a731 Mon Sep 17 00:00:00 2001
+From: Tyler Hicks <tyhicks@canonical.com>
+Date: Wed, 12 Sep 2012 18:38:00 -0700
+Subject: [PATCH 123/146] eCryptfs: Call lower ->flush() from ecryptfs_flush()
+
+commit 64e6651dcc10e9d2cc6230208a8e6c2cfd19ae18 upstream.
+
+Since eCryptfs only calls fput() on the lower file in
+ecryptfs_release(), eCryptfs should call the lower filesystem's
+->flush() from ecryptfs_flush().
+
+If the lower filesystem implements ->flush(), then eCryptfs should try
+to flush out any dirty pages prior to calling the lower ->flush(). If
+the lower filesystem does not implement ->flush(), then eCryptfs has no
+need to do anything in ecryptfs_flush() since dirty pages are now
+written out to the lower filesystem in ecryptfs_release().
+
+Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ecryptfs/file.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
+index 0747a43..841f24f 100644
+--- a/fs/ecryptfs/file.c
++++ b/fs/ecryptfs/file.c
+@@ -276,8 +276,14 @@ out:
+ 
+ static int ecryptfs_flush(struct file *file, fl_owner_t td)
+ {
+-	return file->f_mode & FMODE_WRITE
+-	       ? filemap_write_and_wait(file->f_mapping) : 0;
++	struct file *lower_file = ecryptfs_file_to_lower(file);
++
++	if (lower_file->f_op && lower_file->f_op->flush) {
++		filemap_write_and_wait(file->f_mapping);
++		return lower_file->f_op->flush(lower_file, td);
++	}
++
++	return 0;
+ }
+ 
+ static int ecryptfs_release(struct inode *inode, struct file *file)
+-- 
+1.7.10.4
+

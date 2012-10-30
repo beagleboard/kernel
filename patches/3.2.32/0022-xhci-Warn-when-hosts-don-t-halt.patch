@@ -1,0 +1,40 @@
+From c3c473d8618b8cb027ada73375593cbf859071b9 Mon Sep 17 00:00:00 2001
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Date: Fri, 16 Mar 2012 12:58:20 -0700
+Subject: [PATCH 022/146] xhci: Warn when hosts don't halt.
+
+commit 5af98bb06dee79d28c805f9fd0805ce791121784 upstream.
+
+Eric Fu reports a problem with his VIA host controller fetching a zeroed
+event ring pointer on resume from suspend.  The host should have been
+halted, but we can't be sure because that code ignores the return value
+from xhci_halt().  Print a warning when the host controller refuses to
+halt within XHCI_MAX_HALT_USEC (currently 16 seconds).
+
+(Update: it turns out that the VIA host controller is reporting a halted
+state when it fetches the zeroed event ring pointer.  However, we still
+need this warning for other host controllers.)
+
+Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/host/xhci.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
+index 09872ee..48b048f 100644
+--- a/drivers/usb/host/xhci.c
++++ b/drivers/usb/host/xhci.c
+@@ -107,6 +107,9 @@ int xhci_halt(struct xhci_hcd *xhci)
+ 			STS_HALT, STS_HALT, XHCI_MAX_HALT_USEC);
+ 	if (!ret)
+ 		xhci->xhc_state |= XHCI_STATE_HALTED;
++	else
++		xhci_warn(xhci, "Host not halted after %u microseconds.\n",
++				XHCI_MAX_HALT_USEC);
+ 	return ret;
+ }
+ 
+-- 
+1.7.10.4
+

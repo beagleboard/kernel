@@ -1,0 +1,36 @@
+From 505cc5f4a69ac4266cf3bb11976f5670b84ebd6b Mon Sep 17 00:00:00 2001
+From: Ian Abbott <abbotti@mev.co.uk>
+Date: Tue, 18 Sep 2012 19:46:58 +0100
+Subject: [PATCH 035/146] staging: comedi: don't dereference user memory for
+ INSN_INTTRIG
+
+commit 5d06e3df280bd230e2eadc16372e62818c63e894 upstream.
+
+`parse_insn()` is dereferencing the user-space pointer `insn->data`
+directly when handling the `INSN_INTTRIG` comedi instruction.  It
+shouldn't be using `insn->data` at all; it should be using the separate
+`data` pointer passed to the function.  Fix it.
+
+Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/comedi/comedi_fops.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/comedi/comedi_fops.c b/drivers/staging/comedi/comedi_fops.c
+index 4ad2c0e..c08c719 100644
+--- a/drivers/staging/comedi/comedi_fops.c
++++ b/drivers/staging/comedi/comedi_fops.c
+@@ -843,7 +843,7 @@ static int parse_insn(struct comedi_device *dev, struct comedi_insn *insn,
+ 				ret = -EAGAIN;
+ 				break;
+ 			}
+-			ret = s->async->inttrig(dev, s, insn->data[0]);
++			ret = s->async->inttrig(dev, s, data[0]);
+ 			if (ret >= 0)
+ 				ret = 1;
+ 			break;
+-- 
+1.7.10.4
+

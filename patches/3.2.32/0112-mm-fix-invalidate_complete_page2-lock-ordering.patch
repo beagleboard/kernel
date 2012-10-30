@@ -1,0 +1,65 @@
+From 2c773e43b835d97da5907fa91c71f9546d65a481 Mon Sep 17 00:00:00 2001
+From: Hugh Dickins <hughd@google.com>
+Date: Mon, 8 Oct 2012 16:33:14 -0700
+Subject: [PATCH 112/146] mm: fix invalidate_complete_page2() lock ordering
+
+commit ec4d9f626d5908b6052c2973f37992f1db52e967 upstream.
+
+In fuzzing with trinity, lockdep protested "possible irq lock inversion
+dependency detected" when isolate_lru_page() reenabled interrupts while
+still holding the supposedly irq-safe tree_lock:
+
+invalidate_inode_pages2
+  invalidate_complete_page2
+    spin_lock_irq(&mapping->tree_lock)
+    clear_page_mlock
+      isolate_lru_page
+        spin_unlock_irq(&zone->lru_lock)
+
+isolate_lru_page() is correct to enable interrupts unconditionally:
+invalidate_complete_page2() is incorrect to call clear_page_mlock() while
+holding tree_lock, which is supposed to nest inside lru_lock.
+
+Both truncate_complete_page() and invalidate_complete_page() call
+clear_page_mlock() before taking tree_lock to remove page from radix_tree.
+ I guess invalidate_complete_page2() preferred to test PageDirty (again)
+under tree_lock before committing to the munlock; but since the page has
+already been unmapped, its state is already somewhat inconsistent, and no
+worse if clear_page_mlock() moved up.
+
+Reported-by: Sasha Levin <levinsasha928@gmail.com>
+Deciphered-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Ying Han <yinghan@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/truncate.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/mm/truncate.c b/mm/truncate.c
+index 632b15e..00fb58a 100644
+--- a/mm/truncate.c
++++ b/mm/truncate.c
+@@ -394,11 +394,12 @@ invalidate_complete_page2(struct address_space *mapping, struct page *page)
+ 	if (page_has_private(page) && !try_to_release_page(page, GFP_KERNEL))
+ 		return 0;
+ 
++	clear_page_mlock(page);
++
+ 	spin_lock_irq(&mapping->tree_lock);
+ 	if (PageDirty(page))
+ 		goto failed;
+ 
+-	clear_page_mlock(page);
+ 	BUG_ON(page_has_private(page));
+ 	__delete_from_page_cache(page);
+ 	spin_unlock_irq(&mapping->tree_lock);
+-- 
+1.7.10.4
+

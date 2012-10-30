@@ -1,0 +1,49 @@
+From 9b5e69b6d376a9a142b7636e1594a074d63c8dce Mon Sep 17 00:00:00 2001
+From: Steffen Maier <maier@linux.vnet.ibm.com>
+Date: Tue, 4 Sep 2012 15:23:30 +0200
+Subject: [PATCH 044/146] zfcp: Make trace record tags unique
+
+commit 0100998dbfe6dfcd90a6e912ca7ed6f255d48f25 upstream.
+
+Duplicate fssrh_2 from a54ca0f62f953898b05549391ac2a8a4dad6482b
+"[SCSI] zfcp: Redesign of the debug tracing for HBA records."
+complicates distinction of generic status read response from
+local link up.
+Duplicate fsscth1 from 2c55b750a884b86dea8b4cc5f15e1484cc47a25c
+"[SCSI] zfcp: Redesign of the debug tracing for SAN records."
+complicates distinction of good common transport response from
+invalid port handle.
+
+Signed-off-by: Steffen Maier <maier@linux.vnet.ibm.com>
+Reviewed-by: Martin Peschke <mpeschke@linux.vnet.ibm.com>
+Signed-off-by: James Bottomley <JBottomley@Parallels.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/s390/scsi/zfcp_fsf.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/s390/scsi/zfcp_fsf.c b/drivers/s390/scsi/zfcp_fsf.c
+index e9a787e..dfe8790 100644
+--- a/drivers/s390/scsi/zfcp_fsf.c
++++ b/drivers/s390/scsi/zfcp_fsf.c
+@@ -219,7 +219,7 @@ static void zfcp_fsf_status_read_handler(struct zfcp_fsf_req *req)
+ 		return;
+ 	}
+ 
+-	zfcp_dbf_hba_fsf_uss("fssrh_2", req);
++	zfcp_dbf_hba_fsf_uss("fssrh_4", req);
+ 
+ 	switch (sr_buf->status_type) {
+ 	case FSF_STATUS_READ_PORT_CLOSED:
+@@ -885,7 +885,7 @@ static void zfcp_fsf_send_ct_handler(struct zfcp_fsf_req *req)
+ 
+ 	switch (header->fsf_status) {
+         case FSF_GOOD:
+-		zfcp_dbf_san_res("fsscth1", req);
++		zfcp_dbf_san_res("fsscth2", req);
+ 		ct->status = 0;
+ 		break;
+         case FSF_SERVICE_CLASS_NOT_SUPPORTED:
+-- 
+1.7.10.4
+

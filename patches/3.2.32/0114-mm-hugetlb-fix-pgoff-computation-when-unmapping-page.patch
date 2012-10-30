@@ -1,0 +1,48 @@
+From 764207350007ac16d12de9c07638a20879bd833e Mon Sep 17 00:00:00 2001
+From: Hillf Danton <dhillf@gmail.com>
+Date: Tue, 10 Jan 2012 15:08:19 -0800
+Subject: [PATCH 114/146] mm: hugetlb: fix pgoff computation when unmapping
+ page from vma
+
+commit 0c176d52b0b2619f231b2bbf329b90c028134f58 upstream.
+
+The computation for pgoff is incorrect, at least with
+
+	(vma->vm_pgoff >> PAGE_SHIFT)
+
+involved.  It is fixed with the available method if HPAGE_SIZE is
+concerned in page cache lookup.
+
+[akpm@linux-foundation.org: use vma_hugecache_offset() directly, per Michal]
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/hugetlb.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index 0f897b8..31a1a26 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -2429,8 +2429,7 @@ static int unmap_ref_private(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	 * from page cache lookup which is in HPAGE_SIZE units.
+ 	 */
+ 	address = address & huge_page_mask(h);
+-	pgoff = ((address - vma->vm_start) >> PAGE_SHIFT)
+-		+ (vma->vm_pgoff >> PAGE_SHIFT);
++	pgoff = vma_hugecache_offset(h, vma, address);
+ 	mapping = vma->vm_file->f_dentry->d_inode->i_mapping;
+ 
+ 	/*
+-- 
+1.7.10.4
+

@@ -1,0 +1,56 @@
+From 6283bed43b16191bbdbc7b307b93ee4cb1f642b5 Mon Sep 17 00:00:00 2001
+From: Ben Widawsky <ben@bwidawsk.net>
+Date: Wed, 3 Oct 2012 19:34:24 -0700
+Subject: [PATCH 098/146] drm/i915: Fix GT_MODE default value
+
+commit f8f2ac9a76b0f80a6763ca316116a7bab8486997 upstream.
+
+I can't even find how I figured this might be needed anymore. But sure
+enough, the value I'm reading back on platforms doesn't match what the
+docs recommends.
+
+It seemed to fix Chris' GT1 in limited testing as well.
+
+Tested-by: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-off-by: Ben Widawsky <ben@bwidawsk.net>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+[bwh: Backported to 3.2: open-code _MASKED_BIT_{ENABLE,DISABLE}]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_reg.h      |    3 +++
+ drivers/gpu/drm/i915/intel_display.c |    5 +++++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/i915_reg.h b/drivers/gpu/drm/i915/i915_reg.h
+index fec8df0..a294a32 100644
+--- a/drivers/gpu/drm/i915/i915_reg.h
++++ b/drivers/gpu/drm/i915/i915_reg.h
+@@ -401,6 +401,9 @@
+ # define VS_TIMER_DISPATCH				(1 << 6)
+ # define MI_FLUSH_ENABLE				(1 << 11)
+ 
++#define GEN6_GT_MODE	0x20d0
++#define   GEN6_GT_MODE_HI	(1 << 9)
++
+ #define GFX_MODE	0x02520
+ #define GFX_MODE_GEN7	0x0229c
+ #define   GFX_RUN_LIST_ENABLE		(1<<15)
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index 8d5087e..adac0dd 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -8298,6 +8298,11 @@ static void gen6_init_clock_gating(struct drm_device *dev)
+ 			   DISPPLANE_TRICKLE_FEED_DISABLE);
+ 		intel_flush_display_plane(dev_priv, pipe);
+ 	}
++
++	/* The default value should be 0x200 according to docs, but the two
++	 * platforms I checked have a 0 for this. (Maybe BIOS overrides?) */
++	I915_WRITE(GEN6_GT_MODE, 0xffff << 16);
++	I915_WRITE(GEN6_GT_MODE, GEN6_GT_MODE_HI << 16 | GEN6_GT_MODE_HI);
+ }
+ 
+ static void gen7_setup_fixed_func_scheduler(struct drm_i915_private *dev_priv)
+-- 
+1.7.10.4
+

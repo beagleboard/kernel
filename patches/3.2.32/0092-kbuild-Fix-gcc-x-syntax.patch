@@ -1,0 +1,214 @@
+From f848ae90fc8a59ce0ec9b355b2699dc6c70d4785 Mon Sep 17 00:00:00 2001
+From: Jean Delvare <jdelvare@suse.de>
+Date: Tue, 2 Oct 2012 16:42:36 +0200
+Subject: [PATCH 092/146] kbuild: Fix gcc -x syntax
+
+commit b1e0d8b70fa31821ebca3965f2ef8619d7c5e316 upstream.
+
+The correct syntax for gcc -x is "gcc -x assembler", not
+"gcc -xassembler". Even though the latter happens to work, the former
+is what is documented in the manual page and thus what gcc wrappers
+such as icecream do expect.
+
+This isn't a cosmetic change. The missing space prevents icecream from
+recognizing compilation tasks it can't handle, leading to silent kernel
+miscompilations.
+
+Besides me, credits go to Michael Matz and Dirk Mueller for
+investigating the miscompilation issue and tracking it down to this
+incorrect -x parameter syntax.
+
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+Cc: Bernhard Walle <bernhard@bwalle.de>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Michal Marek <mmarek@suse.cz>
+[bwh: Backported to 3.2: drop unneeded change to arch/x86/Makefile]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/mips/Makefile                         |    2 +-
+ arch/mips/kernel/Makefile                  |    2 +-
+ scripts/Kbuild.include                     |   12 ++++++------
+ scripts/gcc-version.sh                     |    6 +++---
+ scripts/gcc-x86_32-has-stack-protector.sh  |    2 +-
+ scripts/gcc-x86_64-has-stack-protector.sh  |    2 +-
+ scripts/kconfig/check.sh                   |    2 +-
+ scripts/kconfig/lxdialog/check-lxdialog.sh |    2 +-
+ tools/perf/Makefile                        |    2 +-
+ tools/power/cpupower/Makefile              |    2 +-
+ 10 files changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/arch/mips/Makefile b/arch/mips/Makefile
+index 0be3186..aaf7444 100644
+--- a/arch/mips/Makefile
++++ b/arch/mips/Makefile
+@@ -224,7 +224,7 @@ KBUILD_CPPFLAGS += -D"DATAOFFSET=$(if $(dataoffset-y),$(dataoffset-y),0)"
+ LDFLAGS			+= -m $(ld-emul)
+ 
+ ifdef CONFIG_MIPS
+-CHECKFLAGS += $(shell $(CC) $(KBUILD_CFLAGS) -dM -E -xc /dev/null | \
++CHECKFLAGS += $(shell $(CC) $(KBUILD_CFLAGS) -dM -E -x c /dev/null | \
+ 	egrep -vw '__GNUC_(|MINOR_|PATCHLEVEL_)_' | \
+ 	sed -e "s/^\#define /-D'/" -e "s/ /'='/" -e "s/$$/'/")
+ ifdef CONFIG_64BIT
+diff --git a/arch/mips/kernel/Makefile b/arch/mips/kernel/Makefile
+index 1a96618..ce7dd99 100644
+--- a/arch/mips/kernel/Makefile
++++ b/arch/mips/kernel/Makefile
+@@ -102,7 +102,7 @@ obj-$(CONFIG_MIPS_MACHINE)	+= mips_machine.o
+ 
+ obj-$(CONFIG_OF)		+= prom.o
+ 
+-CFLAGS_cpu-bugs64.o	= $(shell if $(CC) $(KBUILD_CFLAGS) -Wa,-mdaddi -c -o /dev/null -xc /dev/null >/dev/null 2>&1; then echo "-DHAVE_AS_SET_DADDI"; fi)
++CFLAGS_cpu-bugs64.o	= $(shell if $(CC) $(KBUILD_CFLAGS) -Wa,-mdaddi -c -o /dev/null -x c /dev/null >/dev/null 2>&1; then echo "-DHAVE_AS_SET_DADDI"; fi)
+ 
+ obj-$(CONFIG_HAVE_STD_PC_SERIAL_PORT)	+= 8250-platform.o
+ 
+diff --git a/scripts/Kbuild.include b/scripts/Kbuild.include
+index 6a3ee98..8bb8d3a 100644
+--- a/scripts/Kbuild.include
++++ b/scripts/Kbuild.include
+@@ -98,24 +98,24 @@ try-run = $(shell set -e;		\
+ # Usage: cflags-y += $(call as-option,-Wa$(comma)-isa=foo,)
+ 
+ as-option = $(call try-run,\
+-	$(CC) $(KBUILD_CFLAGS) $(1) -c -xassembler /dev/null -o "$$TMP",$(1),$(2))
++	$(CC) $(KBUILD_CFLAGS) $(1) -c -x assembler /dev/null -o "$$TMP",$(1),$(2))
+ 
+ # as-instr
+ # Usage: cflags-y += $(call as-instr,instr,option1,option2)
+ 
+ as-instr = $(call try-run,\
+-	printf "%b\n" "$(1)" | $(CC) $(KBUILD_AFLAGS) -c -xassembler -o "$$TMP" -,$(2),$(3))
++	printf "%b\n" "$(1)" | $(CC) $(KBUILD_AFLAGS) -c -x assembler -o "$$TMP" -,$(2),$(3))
+ 
+ # cc-option
+ # Usage: cflags-y += $(call cc-option,-march=winchip-c6,-march=i586)
+ 
+ cc-option = $(call try-run,\
+-	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) $(1) -c -xc /dev/null -o "$$TMP",$(1),$(2))
++	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) $(1) -c -x c /dev/null -o "$$TMP",$(1),$(2))
+ 
+ # cc-option-yn
+ # Usage: flag := $(call cc-option-yn,-march=winchip-c6)
+ cc-option-yn = $(call try-run,\
+-	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) $(1) -c -xc /dev/null -o "$$TMP",y,n)
++	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) $(1) -c -x c /dev/null -o "$$TMP",y,n)
+ 
+ # cc-option-align
+ # Prefix align with either -falign or -malign
+@@ -125,7 +125,7 @@ cc-option-align = $(subst -functions=0,,\
+ # cc-disable-warning
+ # Usage: cflags-y += $(call cc-disable-warning,unused-but-set-variable)
+ cc-disable-warning = $(call try-run,\
+-	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) -W$(strip $(1)) -c -xc /dev/null -o "$$TMP",-Wno-$(strip $(1)))
++	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) -W$(strip $(1)) -c -x c /dev/null -o "$$TMP",-Wno-$(strip $(1)))
+ 
+ # cc-version
+ # Usage gcc-ver := $(call cc-version)
+@@ -143,7 +143,7 @@ cc-ifversion = $(shell [ $(call cc-version, $(CC)) $(1) $(2) ] && echo $(3))
+ # cc-ldoption
+ # Usage: ldflags += $(call cc-ldoption, -Wl$(comma)--hash-style=both)
+ cc-ldoption = $(call try-run,\
+-	$(CC) $(1) -nostdlib -xc /dev/null -o "$$TMP",$(1),$(2))
++	$(CC) $(1) -nostdlib -x c /dev/null -o "$$TMP",$(1),$(2))
+ 
+ # ld-option
+ # Usage: LDFLAGS += $(call ld-option, -X)
+diff --git a/scripts/gcc-version.sh b/scripts/gcc-version.sh
+index debecb5..7f2126d 100644
+--- a/scripts/gcc-version.sh
++++ b/scripts/gcc-version.sh
+@@ -22,10 +22,10 @@ if [ ${#compiler} -eq 0 ]; then
+ 	exit 1
+ fi
+ 
+-MAJOR=$(echo __GNUC__ | $compiler -E -xc - | tail -n 1)
+-MINOR=$(echo __GNUC_MINOR__ | $compiler -E -xc - | tail -n 1)
++MAJOR=$(echo __GNUC__ | $compiler -E -x c - | tail -n 1)
++MINOR=$(echo __GNUC_MINOR__ | $compiler -E -x c - | tail -n 1)
+ if [ "x$with_patchlevel" != "x" ] ; then
+-	PATCHLEVEL=$(echo __GNUC_PATCHLEVEL__ | $compiler -E -xc - | tail -n 1)
++	PATCHLEVEL=$(echo __GNUC_PATCHLEVEL__ | $compiler -E -x c - | tail -n 1)
+ 	printf "%02d%02d%02d\\n" $MAJOR $MINOR $PATCHLEVEL
+ else
+ 	printf "%02d%02d\\n" $MAJOR $MINOR
+diff --git a/scripts/gcc-x86_32-has-stack-protector.sh b/scripts/gcc-x86_32-has-stack-protector.sh
+index 29493dc..12dbd0b 100644
+--- a/scripts/gcc-x86_32-has-stack-protector.sh
++++ b/scripts/gcc-x86_32-has-stack-protector.sh
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ 
+-echo "int foo(void) { char X[200]; return 3; }" | $* -S -xc -c -O0 -fstack-protector - -o - 2> /dev/null | grep -q "%gs"
++echo "int foo(void) { char X[200]; return 3; }" | $* -S -x c -c -O0 -fstack-protector - -o - 2> /dev/null | grep -q "%gs"
+ if [ "$?" -eq "0" ] ; then
+ 	echo y
+ else
+diff --git a/scripts/gcc-x86_64-has-stack-protector.sh b/scripts/gcc-x86_64-has-stack-protector.sh
+index afaec61..973e8c1 100644
+--- a/scripts/gcc-x86_64-has-stack-protector.sh
++++ b/scripts/gcc-x86_64-has-stack-protector.sh
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ 
+-echo "int foo(void) { char X[200]; return 3; }" | $* -S -xc -c -O0 -mcmodel=kernel -fstack-protector - -o - 2> /dev/null | grep -q "%gs"
++echo "int foo(void) { char X[200]; return 3; }" | $* -S -x c -c -O0 -mcmodel=kernel -fstack-protector - -o - 2> /dev/null | grep -q "%gs"
+ if [ "$?" -eq "0" ] ; then
+ 	echo y
+ else
+diff --git a/scripts/kconfig/check.sh b/scripts/kconfig/check.sh
+index fa59cbf..854d9c7 100755
+--- a/scripts/kconfig/check.sh
++++ b/scripts/kconfig/check.sh
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ # Needed for systems without gettext
+-$* -xc -o /dev/null - > /dev/null 2>&1 << EOF
++$* -x c -o /dev/null - > /dev/null 2>&1 << EOF
+ #include <libintl.h>
+ int main()
+ {
+diff --git a/scripts/kconfig/lxdialog/check-lxdialog.sh b/scripts/kconfig/lxdialog/check-lxdialog.sh
+index 82cc3a8..50df490 100644
+--- a/scripts/kconfig/lxdialog/check-lxdialog.sh
++++ b/scripts/kconfig/lxdialog/check-lxdialog.sh
+@@ -38,7 +38,7 @@ trap "rm -f $tmp" 0 1 2 3 15
+ 
+ # Check if we can link to ncurses
+ check() {
+-        $cc -xc - -o $tmp 2>/dev/null <<'EOF'
++        $cc -x c - -o $tmp 2>/dev/null <<'EOF'
+ #include CURSES_LOC
+ main() {}
+ EOF
+diff --git a/tools/perf/Makefile b/tools/perf/Makefile
+index b98e307..e45d2b1 100644
+--- a/tools/perf/Makefile
++++ b/tools/perf/Makefile
+@@ -56,7 +56,7 @@ ifeq ($(ARCH),x86_64)
+ 	ARCH := x86
+ 	IS_X86_64 := 0
+ 	ifeq (, $(findstring m32,$(EXTRA_CFLAGS)))
+-		IS_X86_64 := $(shell echo __x86_64__ | ${CC} -E -xc - | tail -n 1)
++		IS_X86_64 := $(shell echo __x86_64__ | ${CC} -E -x c - | tail -n 1)
+ 	endif
+ 	ifeq (${IS_X86_64}, 1)
+ 		RAW_ARCH := x86_64
+diff --git a/tools/power/cpupower/Makefile b/tools/power/cpupower/Makefile
+index e8a03ac..7db8da5 100644
+--- a/tools/power/cpupower/Makefile
++++ b/tools/power/cpupower/Makefile
+@@ -100,7 +100,7 @@ GMO_FILES = ${shell for HLANG in ${LANGUAGES}; do echo po/$$HLANG.gmo; done;}
+ export CROSS CC AR STRIP RANLIB CFLAGS LDFLAGS LIB_OBJS
+ 
+ # check if compiler option is supported
+-cc-supports = ${shell if $(CC) ${1} -S -o /dev/null -xc /dev/null > /dev/null 2>&1; then echo "$(1)"; fi;}
++cc-supports = ${shell if $(CC) ${1} -S -o /dev/null -x c /dev/null > /dev/null 2>&1; then echo "$(1)"; fi;}
+ 
+ # use '-Os' optimization if available, else use -O2
+ OPTIMIZATION := $(call cc-supports,-Os,-O2)
+-- 
+1.7.10.4
+

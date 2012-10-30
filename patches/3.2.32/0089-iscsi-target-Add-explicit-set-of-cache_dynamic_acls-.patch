@@ -1,0 +1,60 @@
+From d03391bd45d4b89f5fde682fd6f1fb4d1fd01945 Mon Sep 17 00:00:00 2001
+From: Nicholas Bellinger <nab@linux-iscsi.org>
+Date: Sun, 30 Sep 2012 12:20:02 -0700
+Subject: [PATCH 089/146] iscsi-target: Add explicit set of
+ cache_dynamic_acls=1 for TPG demo-mode
+
+commit 38b11bae6ba02da352340aff12ee25755977b222 upstream.
+
+We've had reports in the past about this specific case, so it's time to
+go ahead and explicitly set cache_dynamic_acls=1 for generate_node_acls=1
+(TPG demo-mode) operation.
+
+During normal generate_node_acls=0 operation with explicit NodeACLs ->
+se_node_acl memory is persistent to the configfs group located at
+/sys/kernel/config/target/$TARGETNAME/$TPGT/acls/$INITIATORNAME, so in
+the generate_node_acls=1 case we want the reservation logic to reference
+existing per initiator IQN se_node_acl memory (not to generate a new
+se_node_acl), so go ahead and always set cache_dynamic_acls=1 when
+TPG demo-mode is enabled.
+
+Reported-by: Ronnie Sahlberg <ronniesahlberg@gmail.com>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/target/iscsi/iscsi_target_tpg.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/drivers/target/iscsi/iscsi_target_tpg.c b/drivers/target/iscsi/iscsi_target_tpg.c
+index d4cf2cd..309f14c 100644
+--- a/drivers/target/iscsi/iscsi_target_tpg.c
++++ b/drivers/target/iscsi/iscsi_target_tpg.c
+@@ -674,6 +674,12 @@ int iscsit_ta_generate_node_acls(
+ 	pr_debug("iSCSI_TPG[%hu] - Generate Initiator Portal Group ACLs: %s\n",
+ 		tpg->tpgt, (a->generate_node_acls) ? "Enabled" : "Disabled");
+ 
++	if (flag == 1 && a->cache_dynamic_acls == 0) {
++		pr_debug("Explicitly setting cache_dynamic_acls=1 when "
++			"generate_node_acls=1\n");
++		a->cache_dynamic_acls = 1;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -713,6 +719,12 @@ int iscsit_ta_cache_dynamic_acls(
+ 		return -EINVAL;
+ 	}
+ 
++	if (a->generate_node_acls == 1 && flag == 0) {
++		pr_debug("Skipping cache_dynamic_acls=0 when"
++			" generate_node_acls=1\n");
++		return 0;
++	}
++
+ 	a->cache_dynamic_acls = flag;
+ 	pr_debug("iSCSI_TPG[%hu] - Cache Dynamic Initiator Portal Group"
+ 		" ACLs %s\n", tpg->tpgt, (a->cache_dynamic_acls) ?
+-- 
+1.7.10.4
+

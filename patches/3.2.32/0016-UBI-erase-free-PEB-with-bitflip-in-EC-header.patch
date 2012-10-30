@@ -1,0 +1,35 @@
+From ecbd4eaaf0c2d28542e17239548e89741e979762 Mon Sep 17 00:00:00 2001
+From: Matthieu CASTET <matthieu.castet@parrot.com>
+Date: Wed, 22 Aug 2012 16:03:46 +0200
+Subject: [PATCH 016/146] UBI: erase free PEB with bitflip in EC header
+
+commit 193819cf2e6e395b1e1be2d36785dc5563a6edca upstream.
+
+Without this patch, these PEB are not scrubbed until we put data in them.
+Bitflip can accumulate latter and we can loose the EC header (but VID header
+should be intact and allow to recover data).
+
+Signed-off-by: Matthieu Castet <matthieu.castet@parrot.com>
+Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+[bwh: Backported to 3.2: adjust filename, context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/mtd/ubi/scan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/mtd/ubi/scan.c b/drivers/mtd/ubi/scan.c
+index b99318e..b2b62de 100644
+--- a/drivers/mtd/ubi/scan.c
++++ b/drivers/mtd/ubi/scan.c
+@@ -997,7 +997,7 @@ static int process_eb(struct ubi_device *ubi, struct ubi_scan_info *si,
+ 			return err;
+ 		goto adjust_mean_ec;
+ 	case UBI_IO_FF:
+-		if (ec_err)
++		if (ec_err || bitflips)
+ 			err = add_to_list(si, pnum, ec, 1, &si->erase);
+ 		else
+ 			err = add_to_list(si, pnum, ec, 0, &si->free);
+-- 
+1.7.10.4
+

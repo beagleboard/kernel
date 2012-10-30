@@ -1,0 +1,40 @@
+From 306470d70d863552e4d0b00a0cd37da6151707e2 Mon Sep 17 00:00:00 2001
+From: Michael Spang <spang@chromium.org>
+Date: Fri, 14 Sep 2012 13:05:49 -0400
+Subject: [PATCH 053/146] Increase XHCI suspend timeout to 16ms
+
+commit a6e097dfdfd189b6929af6efa1d289af61858386 upstream.
+
+The Intel XHCI specification says that after clearing the run/stop bit
+the controller may take up to 16ms to halt. We've seen a device take
+14ms, which with the current timeout of 10ms causes the kernel to
+abort the suspend. Increasing the timeout to the recommended value
+fixes the problem.
+
+This patch should be backported to kernels as old as 2.6.37, that
+contain the commit 5535b1d5f8885695c6ded783c692e3c0d0eda8ca "USB: xHCI:
+PCI power management implementation".
+
+Signed-off-by: Michael Spang <spang@chromium.org>
+Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/host/xhci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
+index a179bcb..9322aae 100644
+--- a/drivers/usb/host/xhci.c
++++ b/drivers/usb/host/xhci.c
+@@ -879,7 +879,7 @@ int xhci_suspend(struct xhci_hcd *xhci)
+ 	command &= ~CMD_RUN;
+ 	xhci_writel(xhci, command, &xhci->op_regs->command);
+ 	if (handshake(xhci, &xhci->op_regs->status,
+-		      STS_HALT, STS_HALT, 100*100)) {
++		      STS_HALT, STS_HALT, XHCI_MAX_HALT_USEC)) {
+ 		xhci_warn(xhci, "WARN: xHC CMD_RUN timeout\n");
+ 		spin_unlock_irq(&xhci->lock);
+ 		return -ETIMEDOUT;
+-- 
+1.7.10.4
+

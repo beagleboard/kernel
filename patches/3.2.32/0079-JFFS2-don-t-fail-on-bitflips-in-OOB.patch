@@ -1,0 +1,58 @@
+From 23320f4326d57febda361f427362af675103f8d7 Mon Sep 17 00:00:00 2001
+From: Brian Norris <computersforpeace@gmail.com>
+Date: Fri, 31 Aug 2012 15:01:19 -0700
+Subject: [PATCH 079/146] JFFS2: don't fail on bitflips in OOB
+
+commit 74d83beaa229aac7d126ac1ed9414658ff1a89d2 upstream.
+
+JFFS2 was designed without thought for OOB bitflips, it seems, but they
+can occur and will be reported to JFFS2 via mtd_read_oob()[1]. We don't
+want to fail on these transactions, since the data was corrected.
+
+[1] Few drivers report bitflips for OOB-only transactions. With such
+    drivers, this patch should have no effect.
+
+Signed-off-by: Brian Norris <computersforpeace@gmail.com>
+Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Signed-off-by: David Woodhouse <David.Woodhouse@intel.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/jffs2/wbuf.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/fs/jffs2/wbuf.c b/fs/jffs2/wbuf.c
+index b09e51d..464cd76 100644
+--- a/fs/jffs2/wbuf.c
++++ b/fs/jffs2/wbuf.c
+@@ -1032,11 +1032,11 @@ int jffs2_check_oob_empty(struct jffs2_sb_info *c,
+ 	ops.datbuf = NULL;
+ 
+ 	ret = c->mtd->read_oob(c->mtd, jeb->offset, &ops);
+-	if (ret || ops.oobretlen != ops.ooblen) {
++	if ((ret && !mtd_is_bitflip(ret)) || ops.oobretlen != ops.ooblen) {
+ 		printk(KERN_ERR "cannot read OOB for EB at %08x, requested %zd"
+ 				" bytes, read %zd bytes, error %d\n",
+ 				jeb->offset, ops.ooblen, ops.oobretlen, ret);
+-		if (!ret)
++		if (!ret || mtd_is_bitflip(ret))
+ 			ret = -EIO;
+ 		return ret;
+ 	}
+@@ -1075,11 +1075,11 @@ int jffs2_check_nand_cleanmarker(struct jffs2_sb_info *c,
+ 	ops.datbuf = NULL;
+ 
+ 	ret = c->mtd->read_oob(c->mtd, jeb->offset, &ops);
+-	if (ret || ops.oobretlen != ops.ooblen) {
++	if ((ret && !mtd_is_bitflip(ret)) || ops.oobretlen != ops.ooblen) {
+ 		printk(KERN_ERR "cannot read OOB for EB at %08x, requested %zd"
+ 				" bytes, read %zd bytes, error %d\n",
+ 				jeb->offset, ops.ooblen, ops.oobretlen, ret);
+-		if (!ret)
++		if (!ret || mtd_is_bitflip(ret))
+ 			ret = -EIO;
+ 		return ret;
+ 	}
+-- 
+1.7.10.4
+

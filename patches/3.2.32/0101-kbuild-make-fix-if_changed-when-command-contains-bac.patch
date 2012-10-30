@@ -1,0 +1,46 @@
+From 7bfb878621d53115360371d05f2d59de92cd2b0c Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Thu, 4 Oct 2012 17:11:17 -0700
+Subject: [PATCH 101/146] kbuild: make: fix if_changed when command contains
+ backslashes
+
+commit c353acba28fb3fa1fd05fd6b85a9fc7938330f9c upstream.
+
+The call if_changed mechanism does not work when the command contains
+backslashes.  This basically is an issue with lzo and bzip2 compressed
+kernels.  The compressed binaries do not contain the uncompressed image
+size, so these use size_append to append the size.  This results in
+backslashes in the executed command.  With this if_changed always
+detects a change in the command and rebuilds the compressed image even
+if nothing has changed.
+
+Fix this by escaping backslashes in make-cmd
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Bernhard Walle <bernhard@bwalle.de>
+Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ scripts/Kbuild.include |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/Kbuild.include b/scripts/Kbuild.include
+index 8bb8d3a..978416d 100644
+--- a/scripts/Kbuild.include
++++ b/scripts/Kbuild.include
+@@ -209,7 +209,7 @@ endif
+ # >$< substitution to preserve $ when reloading .cmd file
+ # note: when using inline perl scripts [perl -e '...$$t=1;...']
+ # in $(cmd_xxx) double $$ your perl vars
+-make-cmd = $(subst \#,\\\#,$(subst $$,$$$$,$(call escsq,$(cmd_$(1)))))
++make-cmd = $(subst \\,\\\\,$(subst \#,\\\#,$(subst $$,$$$$,$(call escsq,$(cmd_$(1))))))
+ 
+ # Find any prerequisites that is newer than target or that does not exist.
+ # PHONY targets skipped in both cases.
+-- 
+1.7.10.4
+

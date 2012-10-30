@@ -1,0 +1,70 @@
+From 84620bc1c6a2ee2a9f7a4e991fd623a2813e7bc2 Mon Sep 17 00:00:00 2001
+From: Jani Nikula <jani.nikula@intel.com>
+Date: Wed, 26 Sep 2012 18:43:10 +0300
+Subject: [PATCH 069/146] drm/i915: use adjusted_mode instead of mode for
+ checking the 6bpc force flag
+
+commit 0c96c65b48fba3ffe9822a554cbc0cd610765cd5 upstream.
+
+The dithering introduced in
+
+commit 3b5c78a35cf7511c15e09a9b0ffab290a42d9bcf
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Tue Dec 13 15:41:00 2011 -0800
+
+    drm/i915/dp: Dither down to 6bpc if it makes the mode fit
+
+stores the INTEL_MODE_DP_FORCE_6BPC flag in the private_flags of the
+adjusted mode, while i9xx_crtc_mode_set() and ironlake_crtc_mode_set() use
+the original mode, without the flag, so it would never have any
+effect. However, the BPC was clamped by VBT settings, making things work by
+coincidence, until that part was removed in
+
+commit 4344b813f105a19f793f1fd93ad775b784648b95
+Author: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date:   Fri Aug 10 11:10:20 2012 +0200
+
+Use adjusted_mode instead of mode when checking for
+INTEL_MODE_DP_FORCE_6BPC to make the flag have effect.
+
+v2: Don't forget to fix this in i9xx_crtc_mode_set() also, pointed out by
+Daniel both before and after sending the first patch.
+
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=47621
+CC: Adam Jackson <ajax@redhat.com>
+Signed-off-by: Jani Nikula <jani.nikula@intel.com>
+Reviewed-by: Adam Jackson <ajax@redhat.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+[bwh: Backported to 3.2:
+ - Adjust context
+ - intel_choose_pipe_bpp_dither() doesn't take a drm_framebuffer argument]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_display.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index b65afe3..ea4503e 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -5027,7 +5027,7 @@ static int i9xx_crtc_mode_set(struct drm_crtc *crtc,
+ 	/* default to 8bpc */
+ 	pipeconf &= ~(PIPECONF_BPP_MASK | PIPECONF_DITHER_EN);
+ 	if (is_dp) {
+-		if (mode->private_flags & INTEL_MODE_DP_FORCE_6BPC) {
++		if (adjusted_mode->private_flags & INTEL_MODE_DP_FORCE_6BPC) {
+ 			pipeconf |= PIPECONF_BPP_6 |
+ 				    PIPECONF_DITHER_EN |
+ 				    PIPECONF_DITHER_TYPE_SP;
+@@ -5495,7 +5495,7 @@ static int ironlake_crtc_mode_set(struct drm_crtc *crtc,
+ 	/* determine panel color depth */
+ 	temp = I915_READ(PIPECONF(pipe));
+ 	temp &= ~PIPE_BPC_MASK;
+-	dither = intel_choose_pipe_bpp_dither(crtc, &pipe_bpp, mode);
++	dither = intel_choose_pipe_bpp_dither(crtc, &pipe_bpp, adjusted_mode);
+ 	switch (pipe_bpp) {
+ 	case 18:
+ 		temp |= PIPE_6BPC;
+-- 
+1.7.10.4
+

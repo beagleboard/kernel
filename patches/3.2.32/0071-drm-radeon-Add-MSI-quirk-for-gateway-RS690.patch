@@ -1,0 +1,36 @@
+From e796518226e7ddb886da00e48994889bb314be76 Mon Sep 17 00:00:00 2001
+From: Alex Deucher <alexander.deucher@amd.com>
+Date: Wed, 26 Sep 2012 12:31:45 -0400
+Subject: [PATCH 071/146] drm/radeon: Add MSI quirk for gateway RS690
+
+commit 3a6d59df80897cc87812b6826d70085905bed013 upstream.
+
+Fixes another system on:
+https://bugs.freedesktop.org/show_bug.cgi?id=37679
+
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_irq_kms.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_irq_kms.c b/drivers/gpu/drm/radeon/radeon_irq_kms.c
+index baa019e..75c478f 100644
+--- a/drivers/gpu/drm/radeon/radeon_irq_kms.c
++++ b/drivers/gpu/drm/radeon/radeon_irq_kms.c
+@@ -143,6 +143,12 @@ static bool radeon_msi_ok(struct radeon_device *rdev)
+ 	    (rdev->pdev->subsystem_device == 0x01fd))
+ 		return true;
+ 
++	/* Gateway RS690 only seems to work with MSIs. */
++	if ((rdev->pdev->device == 0x791f) &&
++	    (rdev->pdev->subsystem_vendor == 0x107b) &&
++	    (rdev->pdev->subsystem_device == 0x0185))
++		return true;
++
+ 	/* RV515 seems to have MSI issues where it loses
+ 	 * MSI rearms occasionally. This leads to lockups and freezes.
+ 	 * disable it by default.
+-- 
+1.7.10.4
+
