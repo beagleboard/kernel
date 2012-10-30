@@ -22,7 +22,7 @@ EXTERNAL_SHA="8f0d8163b50e01f398b14bcd4dc039ac5ab18d64"
 
 #PATCHSET="pruss pwm2 fixes"
 # BAD: rtc
-PATCHSET="dma cpsw pinctrl cpufreq adc pwm i2c usb da8xx-fb mmc capebus beaglebone f2fs fixes"
+PATCHSET="dma cpsw pinctrl cpufreq adc pwm i2c usb da8xx-fb mmc fixes f2fs capebus"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true

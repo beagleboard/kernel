@@ -1,0 +1,1386 @@
+From 4bdde7d4ca2d4d5b698df273636a1a22dc28258a Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Tue, 30 Oct 2012 21:06:06 +0200
+Subject: [PATCH 15/20] capebus: Core capebus support
+
+---
+ drivers/Kconfig                  |    2 +
+ drivers/Makefile                 |    3 +
+ drivers/capebus/Kconfig          |   17 +
+ drivers/capebus/Makefile         |    8 +
+ drivers/capebus/capebus-driver.c |  608 ++++++++++++++++++++++++++++++++++++++
+ drivers/capebus/capebus-probe.c  |  320 ++++++++++++++++++++
+ drivers/capebus/capebus-sysfs.c  |   52 ++++
+ include/linux/capebus.h          |  298 +++++++++++++++++++
+ 8 files changed, 1308 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/capebus/Kconfig
+ create mode 100644 drivers/capebus/Makefile
+ create mode 100644 drivers/capebus/capebus-driver.c
+ create mode 100644 drivers/capebus/capebus-probe.c
+ create mode 100644 drivers/capebus/capebus-sysfs.c
+ create mode 100644 include/linux/capebus.h
+
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index dbdefa3..bfbe1d1 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -156,4 +156,6 @@ source "drivers/pwm/Kconfig"
+ 
+ source "drivers/irqchip/Kconfig"
+ 
++source "drivers/capebus/Kconfig"
++
+ endmenu
+diff --git a/drivers/Makefile b/drivers/Makefile
+index a16a8d0..d7a103b 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -145,3 +145,6 @@ obj-$(CONFIG_EXTCON)		+= extcon/
+ obj-$(CONFIG_MEMORY)		+= memory/
+ obj-$(CONFIG_IIO)		+= iio/
+ obj-$(CONFIG_VME_BUS)		+= vme/
++
++# Capebus
++obj-$(CONFIG_CAPEBUS)		+= capebus/
+diff --git a/drivers/capebus/Kconfig b/drivers/capebus/Kconfig
+new file mode 100644
+index 0000000..cea1b68
+--- /dev/null
++++ b/drivers/capebus/Kconfig
+@@ -0,0 +1,17 @@
++#
++# Capebus core support
++#
++
++menu "CAPEBUS support"
++
++config CAPEBUS
++	bool "Capebus support"
++	default n
++	help
++	  Enable to support capebus devices.
++
++source "drivers/capebus/boards/Kconfig"
++
++source "drivers/capebus/capes/Kconfig"
++
++endmenu
+diff --git a/drivers/capebus/Makefile b/drivers/capebus/Makefile
+new file mode 100644
+index 0000000..45aa303
+--- /dev/null
++++ b/drivers/capebus/Makefile
+@@ -0,0 +1,8 @@
++#
++# Makefile for CAPEBUS devices
++#
++
++obj-$(CONFIG_CAPEBUS)		+= capebus-probe.o \
++					   capebus-driver.o capebus-sysfs.o
++obj-$(CONFIG_CAPEBUS)		+= boards/
++obj-$(CONFIG_CAPEBUS)		+= capes/
+diff --git a/drivers/capebus/capebus-driver.c b/drivers/capebus/capebus-driver.c
+new file mode 100644
+index 0000000..82b1d1b
+--- /dev/null
++++ b/drivers/capebus/capebus-driver.c
+@@ -0,0 +1,608 @@
++/*
++ * Capebus driver infrastructure
++ *
++ * Copyright (C) 2012 Pantelis Antoniou <panto@antoniou-consulting.com>
++ * Copyright (C) 2012 Texas Instruments Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/device.h>
++#include <linux/mempolicy.h>
++#include <linux/string.h>
++#include <linux/slab.h>
++#include <linux/cpu.h>
++#include <linux/pm_runtime.h>
++#include <linux/suspend.h>
++
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/of_platform.h>
++
++#include <linux/capebus.h>
++
++/**
++ * capebus_match_device - Tell if a cape device structure has a
++ *                        matching cape device id structure
++ * @drv: the cape driver to match against
++ * @dev: the cape device structure to match against
++ *
++ * Used by a driver to check whether a cape device present in the
++ * system is in its list of supported devices.  Returns the matching
++ * cape_device_id structure or %NULL if there is no match.
++ */
++static const struct cape_device_id *capebus_match_device(
++		struct cape_driver *drv, struct cape_dev *dev)
++{
++	struct cape_bus *bus = dev->bus;
++	struct cape_slot *slot = dev->slot;
++
++	BUG_ON(bus == NULL);
++	BUG_ON(slot == NULL);
++	BUG_ON(bus->ops == NULL);
++	BUG_ON(bus->ops->get_dev_id == NULL);
++
++	return bus->ops->get_dev_id(slot);
++}
++
++/**
++ * capebus_device_probe - check if a driver wants to claim a
++ *                          specific cape device
++ * @dev: cape device being probed
++ *
++ * returns 0 on success, else error.
++ * side-effect: cape_dev->driver is set to drv when drv claims cape_dev.
++ */
++static int capebus_device_probe(struct device *dev)
++{
++	const struct cape_device_id *id;
++	int error = 0;
++	struct cape_driver *drv;
++	struct cape_dev *cape_dev;
++	struct device *parent;
++
++	drv = to_cape_driver(dev->driver);
++	cape_dev = to_cape_dev(dev);
++	cape_dev = capebus_dev_get(cape_dev);
++
++	/* sanity checks */
++	if (cape_dev == NULL ||
++		cape_dev->bus == NULL || cape_dev->bus->ops == NULL ||
++		cape_dev->driver != NULL || drv->probe == NULL) {
++		error = -EINVAL;
++		goto err_no_sanity;
++	}
++
++	id = capebus_match_device(drv, cape_dev);
++	if (!id) {
++		error = -ENODEV;
++		goto err_no_match;
++	}
++
++	/* The parent device must be in active state when probing */
++	parent = cape_dev->dev.parent;
++	if (parent)
++		pm_runtime_get_sync(parent);
++
++	/* Unbound cape devices are always set to disabled and suspended.
++	 * During probe, the device is set to enabled and active and the
++	 * usage count is incremented.  If the driver supports runtime PM,
++	 * it should call pm_runtime_put_noidle() in its probe routine and
++	 * pm_runtime_get_noresume() in its remove routine.
++	 */
++	pm_runtime_get_noresume(&cape_dev->dev);
++	pm_runtime_set_active(&cape_dev->dev);
++	pm_runtime_enable(&cape_dev->dev);
++
++	/* call the driver's probe method */
++	error = drv->probe(cape_dev, id);
++
++	/* release the parent no matter what */
++	if (parent)
++		pm_runtime_put(parent);
++
++	if (error != 0)
++		goto err_probe_fail;
++
++	/* call the probed bus method */
++	if (cape_dev->bus->ops->dev_probed != NULL) {
++		error = cape_dev->bus->ops->dev_probed(cape_dev);
++		if (error != 0)
++			goto err_dev_probed_fail;
++	}
++
++	/* all is fine... */
++	cape_dev->driver = drv;
++	cape_dev->added = 1;
++
++	return 0;
++
++err_dev_probed_fail:
++	if (drv->remove) {
++		pm_runtime_get_sync(&cape_dev->dev);
++		drv->remove(cape_dev);
++		pm_runtime_put_noidle(&cape_dev->dev);
++	}
++err_probe_fail:
++	pm_runtime_disable(&cape_dev->dev);
++	pm_runtime_set_suspended(&cape_dev->dev);
++	pm_runtime_put_noidle(&cape_dev->dev);
++err_no_match:
++	/* nothing */
++err_no_sanity:
++	capebus_dev_put(cape_dev);
++	return error;
++}
++
++static int capebus_device_remove(struct device *dev)
++{
++	struct cape_dev *cape_dev = to_cape_dev(dev);
++	struct cape_driver *drv = cape_dev->driver;
++
++	if (drv) {
++		/* call the removed bus method (if added prev.) */
++		if (cape_dev->added) {
++			BUG_ON(cape_dev->bus == NULL);
++			BUG_ON(cape_dev->bus->ops == NULL);
++			if (cape_dev->bus->ops->dev_removed)
++				cape_dev->bus->ops->dev_removed(cape_dev);
++			cape_dev->added = 0;
++		}
++		if (drv->remove) {
++			pm_runtime_get_sync(dev);
++			drv->remove(cape_dev);
++			pm_runtime_put_noidle(dev);
++		}
++		cape_dev->driver = NULL;
++	}
++
++	/* Undo the runtime PM settings in local_capebus_probe() */
++	pm_runtime_disable(dev);
++	pm_runtime_set_suspended(dev);
++	pm_runtime_put_noidle(dev);
++
++	capebus_dev_put(cape_dev);
++	return 0;
++}
++
++static void capebus_device_shutdown(struct device *dev)
++{
++	struct cape_dev *cape_dev = to_cape_dev(dev);
++	struct cape_driver *drv = cape_dev->driver;
++
++	if (drv && drv->shutdown)
++		drv->shutdown(cape_dev);
++
++	capebus_disable_device(cape_dev);
++
++	if (!device_may_wakeup(dev))
++		capebus_enable_wake(cape_dev, false);
++}
++
++static int capebus_bus_match(struct device *dev, struct device_driver *drv);
++static int capebus_device_probe(struct device *dev);
++static int capebus_device_remove(struct device *dev);
++static void capebus_device_shutdown(struct device *dev);
++
++struct bus_type capebus_bus_type = {
++	.name		= "capebus",
++	.match		= capebus_bus_match,
++	.probe		= capebus_device_probe,
++	.remove		= capebus_device_remove,
++	.shutdown	= capebus_device_shutdown,
++	.dev_attrs	= capebus_dev_attrs,
++	.bus_attrs	= capebus_bus_attrs,
++	.pm		= NULL,	/* No PM for now */
++};
++EXPORT_SYMBOL(capebus_bus_type);
++
++/**
++ * __capebus_register_driver - register a new capebus driver
++ * @drv: the driver structure to register
++ * @owner: owner module of drv
++ * @mod_name: module name string
++ *
++ * Adds the driver structure to the list of registered drivers.
++ * Returns a negative value on error, otherwise 0.
++ * If no error occurred, the driver remains registered even if
++ * no device was claimed during registration.
++ */
++int __capebus_register_driver(struct cape_driver *drv, struct module *owner,
++			  const char *mod_name)
++{
++	/* initialize common driver fields */
++	drv->driver.bus = &capebus_bus_type;
++	drv->driver.owner = owner;
++	drv->driver.mod_name = mod_name;
++
++	/* register with core */
++	return driver_register(&drv->driver);
++}
++EXPORT_SYMBOL(__capebus_register_driver);
++
++/**
++ * capebus_unregister_driver - unregister a capebus driver
++ * @drv: the driver structure to unregister
++ *
++ * Deletes the driver structure from the list of registered cape drivers,
++ * gives it a chance to clean up by calling its remove() function for
++ * each device it was responsible for, and marks those devices as
++ * driverless.
++ */
++
++void
++capebus_unregister_driver(struct cape_driver *drv)
++{
++	/* TODO: not really working properly */
++	driver_unregister(&drv->driver);
++}
++EXPORT_SYMBOL(capebus_unregister_driver);
++
++/**
++ * capebus_bus_match - Tell if a cape device structure has a matching
++ *                     cape device id structure
++ * @dev: the cape device structure to match against
++ * @drv: the device driver to search for matching cape device id structures
++ *
++ * Used by a driver to check whether a cape device present in the
++ * system is in its list of supported devices. Returns the matching
++ * cape_device_id structure or %NULL if there is no match.
++ */
++static int capebus_bus_match(struct device *dev, struct device_driver *drv)
++{
++	struct cape_dev *cape_dev = to_cape_dev(dev);
++	struct cape_driver *cape_drv = to_cape_driver(drv);
++	const struct cape_device_id *found_id;
++
++	found_id = capebus_match_device(cape_drv, cape_dev);
++	if (found_id)
++		return 1;
++
++	return 0;
++}
++
++/**
++ * capebus_dev_get - increments the reference count of the capebus
++ *                   device structure
++ * @dev: the device being referenced
++ *
++ * Each live reference to a device should be refcounted.
++ *
++ * Drivers for cape devices should normally record such references in
++ * their probe() methods, when they bind to a device, and release
++ * them by calling capebus_dev_put(), in their disconnect() methods.
++ *
++ * A pointer to the device with the incremented reference counter is returned.
++ */
++struct cape_dev *capebus_dev_get(struct cape_dev *dev)
++{
++	if (dev)
++		get_device(&dev->dev);
++	return dev;
++}
++EXPORT_SYMBOL(capebus_dev_get);
++
++/**
++ * capebus_dev_put - release a use of the capebus device structure
++ * @dev: device that's been disconnected
++ *
++ * Must be called when a user of a device is finished with it.  When the last
++ * user of the device calls this function, the memory of the device is freed.
++ */
++void capebus_dev_put(struct cape_dev *dev)
++{
++	if (dev)
++		put_device(&dev->dev);
++}
++EXPORT_SYMBOL(capebus_dev_put);
++
++static int __init capebus_driver_init(void)
++{
++	return bus_register(&capebus_bus_type);
++}
++
++postcore_initcall(capebus_driver_init);
++
++const struct of_device_id *
++capebus_of_match_device(struct cape_dev *cdev,
++		const char *property, const char *value)
++{
++	struct cape_bus *bus = cdev->bus;
++	struct device *dev = &cdev->dev;
++	struct device_node *pnode = cape_bus_to_parent_of_node(bus);
++	struct device_node *node;
++	const struct of_device_id *match;
++	const char* cp;
++	int cplen, l;
++
++	dev_dbg(dev, "Iterating on parent of node "
++			"name='%s' type='%s' full_name='%s'\n",
++			pnode->name, pnode->type, pnode->full_name);
++
++	match = NULL;
++	for_each_child_of_node(pnode, node) {
++
++		dev->of_node = node;
++		match = of_match_device(dev->driver->of_match_table, dev);
++		if (!match)
++			goto next_node;
++
++		cp = of_get_property(node, property, &cplen);
++		if (cp == NULL)
++			goto next_node;
++
++		while (cplen > 0) {
++			if (of_compat_cmp(cp, value, strlen(value)) == 0)
++				break;
++			l = strlen(cp) + 1;
++			cp += l;
++			cplen -= l;
++		}
++
++		/* matched */
++		if (cplen > 0)
++			break;
++next_node:
++		match = NULL;
++		dev->of_node = NULL;
++	}
++
++	if (match == NULL) {
++		dev_dbg(dev, "Failed to find matching child-node\n");
++		return NULL;
++	}
++
++	dev_dbg(dev, "Found matching child node "
++			"name='%s' type='%s' "
++			"full_name='%s' (compatible='%s')\n",
++		node->name, node->type, node->full_name,
++		match->compatible);
++
++	return match;
++}
++EXPORT_SYMBOL(capebus_of_match_device);
++
++struct device_node *
++capebus_of_compatible_device_property_match(struct cape_dev *dev,
++		const struct of_device_id *matches,
++		const char *prop, const char *prop_value)
++{
++	const struct of_device_id *match;
++	struct device_node *node, *cnode;
++	const char* cp;
++	int cplen, l;
++
++	if (prop == NULL || prop_value == NULL)
++		goto try_non_property;
++
++	/* at first try secondary match */
++	for_each_child_of_node(dev->dev.of_node, node) {
++
++		cp = of_get_property(node, prop, &cplen);
++		if (cp == NULL)
++			continue;
++
++		while (cplen > 0) {
++			if (of_compat_cmp(cp, prop_value,
++						strlen(prop_value)) == 0)
++				break;
++			l = strlen(cp) + 1;
++			cp += l;
++			cplen -= l;
++		}
++
++		/* not matched */
++		if (cplen <= 0)
++			continue;
++
++		/* now iterate in the children nodes */
++		for_each_child_of_node(node, cnode) {
++
++			match = of_match_node(matches, cnode);
++			if (match) {
++				/* release reference to parent, keep this one */
++				of_node_put(node);
++				return cnode;
++			}
++		}
++	}
++
++try_non_property:
++	for_each_child_of_node(dev->dev.of_node, node) {
++
++		match = of_match_node(matches, node);
++		if (match)
++			return node;
++	}
++
++	return NULL;
++}
++EXPORT_SYMBOL(capebus_of_compatible_device_property_match);
++
++struct platform_device *
++capebus_of_platform_compatible_device_create(struct cape_dev *dev,
++		const struct of_device_id *matches,
++		const char *pdev_name,
++		const char *prop, const char *prop_value)
++{
++	struct device_node *node;
++	struct platform_device *pdev;
++
++	node = capebus_of_compatible_device_property_match(dev, matches, prop,
++			prop_value);
++	if (node == NULL)
++		return ERR_PTR(-ENXIO);
++
++	pdev = of_platform_device_create(node, pdev_name, dev->bus->dev.parent);
++
++	/* release the reference to the node */
++	of_node_put(node);
++	node = NULL;
++
++	if (pdev == NULL) {
++		dev_err(&dev->dev, "Failed to create platform device '%s'\n",
++				pdev_name);
++		return ERR_PTR(-ENODEV);
++	}
++
++	return pdev;
++}
++EXPORT_SYMBOL(capebus_of_platform_compatible_device_create);
++
++struct device_node *
++capebus_of_find_property_node(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name)
++{
++	struct device_node *node;
++	const char* cp;
++	int cplen, l;
++	struct property *pp;
++
++	node = NULL;
++	if (prop == NULL || prop_value == NULL)
++		goto find_direct;
++
++	/* at first try secondary match */
++	for_each_child_of_node(dev->dev.of_node, node) {
++
++		cp = of_get_property(node, prop, &cplen);
++		if (cp == NULL)
++			continue;
++
++		while (cplen > 0) {
++			if (of_compat_cmp(cp, prop_value,
++						strlen(prop_value)) == 0)
++				break;
++			l = strlen(cp) + 1;
++			cp += l;
++			cplen -= l;
++		}
++
++		/* not matched */
++		if (cplen <= 0)
++			continue;
++
++		/* found ? */
++		pp = of_find_property(node, name, NULL);
++		if (pp != NULL)
++			return node;
++	}
++find_direct:
++	pp = of_find_property(dev->dev.of_node, name, NULL);
++	if (pp == NULL)
++		return NULL;
++
++	return of_node_get(dev->dev.of_node);
++}
++EXPORT_SYMBOL_GPL(capebus_of_find_property_node);
++
++struct property *
++capebus_of_find_property(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, int *lenp)
++{
++	struct device_node *node;
++	struct property *pp;
++
++	node = capebus_of_find_property_node(dev, prop, prop_value, name);
++	if (node == NULL)
++		return NULL;
++
++	pp = of_find_property(node, name, lenp);
++
++	of_node_put(node);
++
++	return pp;
++}
++EXPORT_SYMBOL_GPL(capebus_of_find_property);
++
++const void *capebus_of_get_property(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, int *lenp)
++{
++	struct property *pp;
++
++	pp = capebus_of_find_property(dev, prop, prop_value, name, lenp);
++	return pp ? pp->value : NULL;
++}
++EXPORT_SYMBOL_GPL(capebus_of_get_property);
++
++/* node exists, but it's not available? make it so */
++int capebus_of_device_node_enable(struct device_node *node)
++{
++	struct property *prop;
++	int ret;
++
++	prop = kzalloc(sizeof(*prop), GFP_KERNEL);
++	if (prop == NULL)
++		goto err_no_prop_mem;
++
++	prop->name = kstrdup("status", GFP_KERNEL);
++	if (prop->name == NULL)
++		goto err_no_name_mem;
++
++	prop->value = kstrdup("okay", GFP_KERNEL);
++	if (prop->value == NULL)
++		goto err_no_value_mem;
++
++	prop->length = strlen(prop->value) + 1;
++	set_bit(OF_DYNAMIC, &prop->_flags);
++
++	ret = prom_update_property(node, prop);
++	if (ret != 0)
++		goto err_update_failed;
++
++	return 0;
++
++err_update_failed:
++	kfree(prop->value);
++err_no_value_mem:
++	kfree(prop->name);
++err_no_name_mem:
++	kfree(prop);
++err_no_prop_mem:
++	return -ENOMEM;
++}
++EXPORT_SYMBOL_GPL(capebus_of_device_node_enable);
++
++/* Make sure this node is activated (even if it was disabled) */
++int capebus_of_platform_device_enable(struct device_node *node)
++{
++	struct platform_device *pdev, *ppdev;
++	int ret;
++
++	if (of_device_is_available(node))
++		return 0;
++
++	ret = capebus_of_device_node_enable(node);
++	if (ret != 0)
++		return ret;
++
++	/* now we need to find the parent of the node */
++	ppdev = of_find_device_by_node(node->parent);
++
++	pdev = of_platform_device_create(node, NULL,
++			ppdev ? &ppdev->dev : NULL);
++	if (IS_ERR_OR_NULL(pdev)) {
++		ret = pdev ? PTR_ERR(pdev) : -ENODEV;
++		return ret;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(capebus_of_platform_device_enable);
+diff --git a/drivers/capebus/capebus-probe.c b/drivers/capebus/capebus-probe.c
+new file mode 100644
+index 0000000..b46e915
+--- /dev/null
++++ b/drivers/capebus/capebus-probe.c
+@@ -0,0 +1,320 @@
++/*
++ * Capebus bus infrastructure
++ *
++ * Copyright (C) 2012 Pantelis Antoniou <panto@antoniou-consulting.com>
++ * Copyright (C) 2012 Texas Instruments Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/err.h>
++#include <linux/io.h>
++#include <linux/of.h>
++#include <linux/of_i2c.h>
++#include <linux/of_device.h>
++#include <linux/pm_runtime.h>
++#include <linux/err.h>
++#include <linux/list.h>
++#include <linux/mutex.h>
++#include <linux/slab.h>
++
++#include <linux/capebus.h>
++
++LIST_HEAD(cape_buses);
++EXPORT_SYMBOL(cape_buses);
++
++DEFINE_MUTEX(cape_buses_mutex);
++EXPORT_SYMBOL(cape_buses_mutex);
++
++/*
++ * Cape Bus Class
++ */
++static void release_capebus_dev(struct device *dev)
++{
++	struct cape_dev *cape_dev = to_cape_dev(dev);
++
++	kfree(cape_dev);
++}
++
++static struct class capebus_class = {
++	.name		= "capebus",
++	.dev_release	= &release_capebus_dev,
++};
++
++static int __init capebus_class_init(void)
++{
++	return class_register(&capebus_class);
++}
++postcore_initcall(capebus_class_init);
++
++static struct cape_bus *cape_bus_find(const char *name, int busno)
++{
++	struct cape_bus *bus;
++	int found;
++
++	if (busno < 0)
++		return NULL;
++
++	found = 0;
++	cape_bus_for_each(bus) {
++		if (strcmp(name, bus->name) == 0 && bus->busno == busno) {
++			found = 1;
++			break;
++		}
++	}
++	return found ? bus : NULL;
++}
++
++static int cape_bus_pick_busno(const char *name, int busno)
++{
++	struct cape_bus *bus;
++
++	BUG_ON(name == NULL);
++
++	/* fixed id */
++	if (busno >= 0)
++		return busno;
++
++	/* dynamic id */
++	busno = -1;
++	cape_bus_for_each(bus) {
++		/* name must match */
++		if (strcmp(name, bus->name) != 0)
++			continue;
++		busno = max(busno, bus->busno);
++	}
++	return busno + 1;
++}
++
++int cape_bus_register(struct cape_bus *bus, const char *name, int busno,
++		struct device *parent, struct cape_bus_ops *ops)
++{
++	struct cape_bus *b2;
++	int r;
++
++	if (name == NULL)
++		return -EINVAL;
++
++	INIT_LIST_HEAD(&bus->node);
++	INIT_LIST_HEAD(&bus->devices);
++	INIT_LIST_HEAD(&bus->slots);
++
++	/* do everything under lock */
++	mutex_lock(&cape_buses_mutex);
++
++	b2 = cape_bus_find(name, busno);
++	if (b2 != NULL) {
++		if (parent != NULL)
++			dev_err(parent, "capebus %s:%d in use\n", name, busno);
++		else
++			pr_err("capebus %s:%d in use\n", name, busno);
++		r = -EBUSY;
++		goto err_unlock;
++	}
++	bus->name = name;
++	bus->busno = cape_bus_pick_busno(name, busno);
++	bus->ops = ops;
++
++	bus->dev.class = &capebus_class;
++	bus->dev.parent = parent;
++	dev_set_name(&bus->dev, "%s:%d", bus->name, bus->busno);
++	r = device_register(&bus->dev);
++	if (r != 0) {
++		if (parent != NULL)
++			dev_err(parent, "capebus #%d failed to register dev\n",
++					bus->busno);
++		else
++			pr_err("capebus #%d failed to register dev\n",
++					bus->busno);
++		goto err_unlock;
++	}
++
++	list_add_tail(&bus->node, &cape_buses);
++	mutex_unlock(&cape_buses_mutex);
++
++	dev_info(&bus->dev, "Registered\n");
++
++	return 0;
++err_unlock:
++	mutex_unlock(&cape_buses_mutex);
++	return r;
++}
++
++int cape_bus_deregister(struct cape_bus *bus)
++{
++	return -EINVAL;	/* not yet supported */
++}
++
++/* must have cape_buses_mutex */
++struct cape_slot *cape_slot_find(struct cape_bus *bus, int slotno)
++{
++	struct cape_slot *slot;
++	int found;
++
++	found = 0;
++	cape_slot_for_each(bus, slot) {
++		if (slot->slotno == slotno) {
++			found = 1;
++			break;
++		}
++	}
++	return found ? slot : NULL;
++}
++
++/**
++ * cape_bus_release_dev - free a cape device structure when all users
++ *                        of it are finished.
++ * @dev: device that's been disconnected
++ *
++ * Will be called only by the device core when all users of this cape device are
++ * done.
++ */
++static void cape_bus_release_dev(struct device *dev)
++{
++	struct cape_dev *cdev;
++
++	cdev = to_cape_dev(dev);
++	/* cape_release_capabilities(cdev); TODO */
++	/* cape_release_of_node(cdev); TODO */
++	kfree(cdev);
++}
++
++/* mutex lock must be held */
++static struct cape_dev *cape_bus_scan_slot(struct cape_slot *slot)
++{
++	struct cape_bus *bus = slot->bus;
++	struct cape_dev *dev;
++	const struct cape_device_id *id;
++
++	/* get the ID (if a device exists) */
++	id = bus->ops->get_dev_id(slot);
++	if (id == NULL)
++		return ERR_PTR(-ENODEV);
++
++	/* slot must not have a device yet */
++	dev = slot->dev;
++	if (dev == NULL) {
++		dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++		if (dev == NULL) {
++			dev_info(&bus->dev, "Failed to allocate cape device "
++					"for slot #%d\n", slot->slotno);
++			return ERR_PTR(-ENOMEM);
++		}
++
++		INIT_LIST_HEAD(&dev->bus_list);
++		dev->bus = bus;
++		dev->slot = slot;
++	}
++
++	dev->id = id;
++	dev->text_id = bus->ops->get_text_dev_id(slot);
++
++	/* capebus_set_of_node(dev); TODO */
++
++	return dev;
++}
++
++int cape_bus_scan_one_slot(struct cape_bus *bus, struct cape_slot *slot)
++{
++	struct cape_dev *dev;
++	int r;
++
++	mutex_lock(&cape_buses_mutex);
++
++	dev = slot->dev;
++	if (dev == NULL) {
++
++		dev = cape_bus_scan_slot(slot);
++		if (IS_ERR(dev)) {
++			r = PTR_ERR(dev);
++			goto err_out;
++		}
++
++		dev_info(&bus->dev, "Slot #%d id='%s'\n", slot->slotno,
++				dev->text_id ? dev->text_id : "");
++
++		slot->dev = dev;
++
++		dev->dev.release = cape_bus_release_dev;
++		dev->dev.parent = &dev->bus->dev;
++		dev->dev.bus = &capebus_bus_type;
++		dev_set_name(&dev->dev, "%s-%d:%d",
++			     dev->bus->name, dev->bus->busno,
++			     dev->slot->slotno);
++
++		list_add_tail(&dev->bus_list, &bus->devices);
++
++	} else {
++		dev_info(&bus->dev, "Slot #%d id='%s' - rescan\n", slot->slotno,
++				dev->text_id ? dev->text_id : "");
++
++		if (dev->added) {
++			r = -EEXIST;
++			goto err_out;
++		}
++	}
++
++	r = device_register(&dev->dev);
++	if (r != 0) {
++		dev_info(&bus->dev, "Slot #%d id='%s' - "
++				"Failed to register\n",
++				slot->slotno,
++				dev->text_id ? dev->text_id : "");
++		r = 0;
++	} else {
++		if (dev->bus->ops->dev_registered)
++			dev->bus->ops->dev_registered(dev);
++	}
++
++err_out:
++	mutex_unlock(&cape_buses_mutex);
++
++	return r;
++}
++
++int cape_bus_register_slot(struct cape_bus *bus, struct cape_slot *slot,
++		int slotno)
++{
++	struct cape_slot *s2;
++	int r;
++
++	r = 0;
++
++	/* invalid (slot must always be numbered - no hotplug) */
++	if (slotno < 0) {
++		dev_err(&bus->dev, "Slot registration #%d failed\n", slotno);
++		return -EINVAL;
++	}
++
++	mutex_lock(&cape_buses_mutex);
++	s2 = cape_slot_find(bus, slotno);
++	if (s2 != NULL) {
++		dev_err(&bus->dev, "Slot #%d already exists\n", slotno);
++		mutex_unlock(&cape_buses_mutex);
++		return -EINVAL;
++	}
++
++	INIT_LIST_HEAD(&slot->node);
++	slot->bus = bus;
++	list_add(&slot->node, &bus->slots);
++	slot->slotno = slotno;
++	slot->dev = NULL;
++	mutex_unlock(&cape_buses_mutex);
++
++	dev_info(&bus->dev, "Slot #%d registered\n", slot->slotno);
++
++	return cape_bus_scan_one_slot(bus, slot);
++}
+diff --git a/drivers/capebus/capebus-sysfs.c b/drivers/capebus/capebus-sysfs.c
+new file mode 100644
+index 0000000..81c21fe
+--- /dev/null
++++ b/drivers/capebus/capebus-sysfs.c
+@@ -0,0 +1,52 @@
++/*
++ * drivers/capebus/capebus-sysfs.c
++ *
++ * sysfs for capebus devices
++ *
++ * Copyright (C) 2012 Pantelis Antoniou <panto@antoniou-consulting.com>
++ * Copyright (C) 2012 Texas Instruments Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *
++ * Modeled after PCI's pci-sysfs.c
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/stat.h>
++#include <linux/export.h>
++#include <linux/fs.h>
++#include <linux/slab.h>
++#include <linux/pm_runtime.h>
++
++#include <linux/capebus.h>
++
++static ssize_t id_show(struct device *dev,
++			       struct device_attribute *attr, char *buf)
++{
++	struct cape_dev *cdev;
++
++	cdev = to_cape_dev(dev);
++	return sprintf(buf, "%s\n", cdev->text_id);
++}
++
++struct device_attribute capebus_dev_attrs[] = {
++	__ATTR_RO(id),
++	__ATTR_NULL,
++};
++
++struct bus_attribute capebus_bus_attrs[] = {
++	__ATTR_NULL
++};
+diff --git a/include/linux/capebus.h b/include/linux/capebus.h
+new file mode 100644
+index 0000000..7524401
+--- /dev/null
++++ b/include/linux/capebus.h
+@@ -0,0 +1,298 @@
++/*
++ * capebus.h
++ *
++ * Cape bus defines and function prototypes
++ *
++ * Copyright (C) 2012 Pantelis Antoniou <panto@antoniou-consulting.com>
++ * Copyright (C) 2012 Texas Instruments Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++#ifndef LINUX_CAPEBUS_H
++#define LINUX_CAPEBUS_H
++
++#include <linux/list.h>
++#include <linux/device.h>
++#include <linux/spinlock.h>
++#include <linux/types.h>
++#include <linux/atomic.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++
++struct cape_device_id {
++	const char *cntrlboard;	/* controlling board; i.e. "beaglebone" */
++	int len;		/* opaque addressing data */
++	const void *data;
++};
++
++struct cape_dev;
++struct cape_bus;
++struct cape_slot;
++
++struct cape_slot {
++	struct list_head	node;
++	struct cape_bus 	*bus;	/* the bus this slot is on */
++	int 			slotno;	/* index of this slot */
++	struct cape_dev		*dev;	/* the device (if found) */
++};
++
++struct cape_driver {
++	struct list_head node;
++	int (*probe)(struct cape_dev *dev, const struct cape_device_id *id);
++	void (*remove)(struct cape_dev *dev);
++	int  (*suspend) (struct cape_dev *dev, pm_message_t state);
++	int  (*suspend_late) (struct cape_dev *dev, pm_message_t state);
++	int  (*resume_early) (struct cape_dev *dev);
++	int  (*resume) (struct cape_dev *dev);
++	void (*shutdown) (struct cape_dev *dev);
++	struct device_driver driver;
++};
++
++/*
++ * capebus_register_driver must be a macro so that
++ * KBUILD_MODNAME can be expanded
++ */
++#define capebus_register_driver(driver)		\
++	__capebus_register_driver(driver, THIS_MODULE, KBUILD_MODNAME)
++
++int __capebus_register_driver(struct cape_driver *drv, struct module *owner,
++			  const char *mod_name);
++
++void capebus_unregister_driver(struct cape_driver *dev);
++
++/**
++ * module_capebus_driver() - Helper macro for registering a capebus driver
++ * @__capebus_driver: capebus_driver struct
++ *
++ * Helper macro for capebus drivers which do not do anything special in module
++ * init/exit. This eliminates a lot of boilerplate. Each module may only
++ * use this macro once, and calling it replaces module_init() and module_exit()
++ */
++#define module_capebus_driver(__capebus_driver) \
++	module_driver(__capebus_driver, capebus_register_driver, \
++		       capebus_unregister_driver)
++
++#define	to_cape_driver(n) container_of(n, struct cape_driver, driver)
++
++struct cape_bus_ops {
++	const struct cape_device_id *(*get_dev_id)(struct cape_slot *slot);
++	const char *(*get_text_dev_id)(struct cape_slot *slot);
++	int (*dev_probed)(struct cape_dev *dev);	/* probed succesfully */
++	void (*dev_removed)(struct cape_dev *dev);	/* removed */
++	int (*dev_registered)(struct cape_dev *dev);	/* registered OK */
++};
++
++struct cape_bus {
++	struct list_head	node;
++	const char		*name;
++	struct list_head	devices;
++	struct cape_dev		*self;
++	struct list_head	slots;
++	struct cape_bus_ops	*ops;
++	int			busno;
++	struct device		dev;
++	/* TODO: resources.... */
++};
++
++#define	to_cape_bus(n) container_of(n, struct cape_bus, dev)
++
++#define cape_bus_to_parent_of_node(n) ((n)->dev.parent->of_node)
++
++struct cape_dev {
++	struct list_head	bus_list;	/* node in per-bus list     */
++	struct cape_bus		*bus;		/* bus this device is on    */
++	struct cape_slot	*slot;		/* cape slot of this device */
++	struct cape_driver	*driver;	/* driver of this device    */
++	struct device		dev;
++	atomic_t		enable_cnt;	/* capebus_enable_device    */
++						/* has been called          */
++	const struct cape_device_id *id;
++	const char 		*text_id;
++	unsigned int		added : 1;	/* device has been added    */
++	void			*drv_priv;	/* driver private data      */
++};
++
++#define	to_cape_dev(n) container_of(n, struct cape_dev, dev)
++
++struct cape_dev *capebus_dev_get(struct cape_dev *dev);
++void capebus_dev_put(struct cape_dev *dev);
++
++/* must have cape_buses_mutex */
++#define cape_bus_for_each(_bus) \
++	list_for_each_entry(_bus, &cape_buses, node)
++
++#define cape_bus_for_each_safe(_bus, _busn) \
++	list_for_each_entry_safe(_bus, _busn, &cape_buses, node)
++
++int cape_bus_register(struct cape_bus *bus, const char *name, int busno,
++		struct device *parent, struct cape_bus_ops *ops);
++
++/* must have cape_buses_mutex */
++#define cape_slot_for_each(_bus, _slot) \
++	list_for_each_entry(_slot, &(_bus)->slots, node)
++
++#define cape_slot_for_each_safe(_bus, _slot, _slotn) \
++	list_for_each_entry_safe(_slot, _slotn, &(_bus)->slots, node)
++
++int cape_bus_register_slot(struct cape_bus *bus,
++		struct cape_slot *slot, int slotno);
++
++int cape_bus_scan_one_slot(struct cape_bus *bus, struct cape_slot *slot);
++int cape_bus_scan(struct cape_bus *bus);
++
++extern struct list_head cape_buses;
++extern struct mutex cape_buses_mutex;
++
++static inline int capebus_is_enabled(struct cape_dev *cdev)
++{
++	return atomic_read(&cdev->enable_cnt) > 0;
++}
++
++static inline int capebus_enable_device(struct cape_dev *cdev)
++{
++	if (atomic_add_return(1, &cdev->enable_cnt) > 1)
++		return 0;		/* already enabled */
++
++	/* XXX do enable */
++
++	return 0;
++}
++
++static inline void capebus_disable_device(struct cape_dev *cdev)
++{
++	if (atomic_sub_return(1, &cdev->enable_cnt) != 0)
++		return;
++
++	/* callback to disable device? */
++}
++
++static inline int capebus_enable_wake(struct cape_dev *dev, int what)
++{
++	return 0;
++}
++
++extern struct device_attribute capebus_dev_attrs[];
++extern struct bus_attribute capebus_bus_attrs[];
++
++extern struct bus_type capebus_bus_type;
++
++const struct of_device_id *
++capebus_of_match_device(struct cape_dev *cdev,
++		const char *property, const char *value);
++
++struct device_node *
++capebus_of_compatible_device_property_match(struct cape_dev *dev,
++		const struct of_device_id *matches,
++		const char *prop, const char *prop_value);
++
++struct platform_device *
++capebus_of_platform_compatible_device_create(struct cape_dev *dev,
++		const struct of_device_id *matches,
++		const char *pdev_name,
++		const char *prop, const char *prop_value);
++
++/* of tree support */
++
++struct device_node *
++capebus_of_find_property_node(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name);
++
++struct property *
++capebus_of_find_property(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, int *lenp);
++
++const void *capebus_of_get_property(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, int *lenp);
++
++static inline int capebus_of_property_read_u32_array(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, u32 *out_values, size_t sz)
++{
++	struct device_node *node;
++	int ret;
++
++	node = capebus_of_find_property_node(dev, prop, prop_value, name);
++	ret = of_property_read_u32_array(node, name, out_values, sz);
++	of_node_put(node);
++	return ret;
++}
++
++static inline int capebus_of_property_read_u32(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++	       const char *name, u32 *out_value)
++{
++	return capebus_of_property_read_u32_array(dev, prop,
++			prop_value, name, out_value, 1);
++}
++
++static inline bool capebus_of_property_read_bool(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name)
++{
++	struct device_node *node;
++	bool ret;
++
++	node = capebus_of_find_property_node(dev, prop, prop_value, name);
++	ret = of_property_read_bool(node, name);
++	of_node_put(node);
++	return ret;
++}
++
++static inline int capebus_of_property_read_string(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, const char **out_string)
++{
++	struct device_node *node;
++	int ret;
++
++	node = capebus_of_find_property_node(dev, prop, prop_value, name);
++	ret = of_property_read_string(node, name, out_string);
++	of_node_put(node);
++	return ret;
++}
++
++static inline int capebus_of_property_read_string_index(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, int index, const char **out_string)
++{
++	struct device_node *node;
++	int ret;
++
++	node = capebus_of_find_property_node(dev, prop, prop_value, name);
++	ret = of_property_read_string_index(node, name, index, out_string);
++	of_node_put(node);
++	return ret;
++}
++
++static inline int capebus_of_property_read_u64(struct cape_dev *dev,
++		const char *prop, const char *prop_value,
++		const char *name, u64 *out_value)
++{
++	struct device_node *node;
++	int ret;
++
++	node = capebus_of_find_property_node(dev, prop, prop_value, name);
++	ret = of_property_read_u64(node, name, out_value);
++	of_node_put(node);
++	return ret;
++}
++
++int capebus_of_device_node_enable(struct device_node *node);
++int capebus_of_platform_device_enable(struct device_node *node);
++
++#endif
+-- 
+1.7.7.6
+
