@@ -18,7 +18,7 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="8f0d8163b50e01f398b14bcd4dc039ac5ab18d64"
+EXTERNAL_SHA="08f05c49749ee655bef921d12160960a273aad47"
 
 #PATCHSET="pruss pwm2 fixes"
 # BAD: rtc
