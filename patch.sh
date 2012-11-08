@@ -12,6 +12,10 @@ DIR="$PWD"
 PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
+RECIPEDIR="linux-mainline-3.7"
+RECIPENAME="linux-mainline_3.7.bb"
+RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
+
 #For TAG, use mainline Kernel tags
 TAG="v3.7-rc4"
 EXTRATAG=""
@@ -70,6 +74,7 @@ git describe
 
 if [ -d ${EXPORTPATH} ] ; then
 	rm -rf ${EXPORTPATH} || true
+	rm -rf ${EXPORTPATH}-oe || true
 fi
 
 # apply patches
@@ -90,8 +95,12 @@ for patchset in ${PATCHSET} ; do
 	git commit --allow-empty -a -m "${TAG}-${patchset}${EXTRATAG}"
 done
 
-if [ -f ${DIR}/src-uri.txt ] ; then
-	rm -rf ${DIR}/src-uri.txt || true
+mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux
+cp ${RECIPEFILE} ${EXPORTPATH}-oe/recipes-kernel/linux/
+
+if [ "${EXTERNAL_TREE}" ] ; then
+	echo 'SRCREV_pn-${PN} = "${EXTERNAL_SHA}"' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+	echo >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 fi
 
 if [ -f ${DIR}/patch_script.sh ] ; then
@@ -102,8 +111,14 @@ fi
 for patchset in ${PATCHSET} ; do
 	for patch in $(ls -1 ${EXPORTPATH}/$patchset/*.patch | sort -n) ; do
 		patch=${patch##*/}
-		echo -e "\tfile://${patchset}/$patch \\" >> ${DIR}/src-uri.txt
+		echo -e "\tfile://${patchset}/$patch \\" >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 		echo "	git am \"\${DIR}/patches/${patchset}/$patch\"" >> ${DIR}/patch_script.sh
 	done
 done
 
+mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}
+cp -a ${EXPORTPATH}/* ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
+
+if [ -e ${DIR}/kernel/.config ] ; then
+	cp ${DIR}/kernel/.config ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/defconfig
+fi
