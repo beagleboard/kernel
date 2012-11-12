@@ -17,12 +17,12 @@ RECIPENAME="linux-mainline_3.7.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.7-rc4"
+TAG="v3.7-rc5"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="0e4a43ed08e2f44aa7b96aa95d0a540d675483e1"
+EXTERNAL_SHA="77b67063bb6bce6d475e910d3b886a606d0d91f7"
 
 #PATCHSET="pruss pwm2 fixes"
 # BAD: rtc
