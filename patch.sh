@@ -22,7 +22,7 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="77b67063bb6bce6d475e910d3b886a606d0d91f7"
+EXTERNAL_SHA="9924a1992a86ebdb7ca36ef790d2ba0da506296c"
 
 #PATCHSET="pruss pwm2 fixes"
 # BAD: rtc
@@ -99,8 +99,10 @@ mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux
 cp ${RECIPEFILE} ${EXPORTPATH}-oe/recipes-kernel/linux/
 
 if [ "${EXTERNAL_TREE}" ] ; then
-	echo 'SRCREV_pn-${PN} = "${EXTERNAL_SHA}"' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+	echo 'SRCREV_pn-${PN}' \= \"${EXTERNAL_SHA}\" >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 	echo >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+	echo 'SRC_URI = " \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+	echo "	${EXTERNAL_TREE};branch=${EXTERNAL_BRANCH}"' \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 fi
 
 if [ -f ${DIR}/patch_script.sh ] ; then
@@ -115,6 +117,9 @@ for patchset in ${PATCHSET} ; do
 		echo "	git am \"\${DIR}/patches/${patchset}/$patch\"" >> ${DIR}/patch_script.sh
 	done
 done
+
+echo '	file://defconfig \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+echo "\"" >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 
 mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}
 cp -a ${EXPORTPATH}/* ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
