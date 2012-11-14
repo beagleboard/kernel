@@ -1,0 +1,27 @@
+From e9715ef39f717806fb8871aed9d07464b5ec2860 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Wed, 14 Nov 2012 12:00:16 +0100
+Subject: [PATCH 99/99] beaglebone: fix DOWN button on LCD4
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/board-am335xevm.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
+index e9b1733..d75b9b3 100644
+--- a/arch/arm/mach-omap2/board-am335xevm.c
++++ b/arch/arm/mach-omap2/board-am335xevm.c
+@@ -3324,6 +3324,9 @@ static void beaglebone_cape_setup(struct memory_accessor *mem_acc, void *context
+ 		beaglebone_tsadcpins_free = 0;
+ 		
+ 		if (!strncmp("00A1", cape_config.version, 4)) {
++			// gpio3_16 is used as DOWN
++			beaglebone_spi1_free = 0;
++
+ 			setup_pin_mux(bbtoys43a1_pin_mux);
+ 			platform_device_register(&beaglebone_lcd43_keys);
+ 
+-- 
+1.7.7.6
+
