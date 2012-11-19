@@ -1,7 +1,7 @@
-From f26f6a9f1c19a823a3f51a35ec2a362acb620f2d Mon Sep 17 00:00:00 2001
+From 91b32a07485b593eee468d9c4f9dd5e28024c0dd Mon Sep 17 00:00:00 2001
 From: Grant Likely <grant.likely@secretlab.ca>
 Date: Tue, 2 Aug 2011 15:30:09 +0100
-Subject: [PATCH 12/20] ARM: CUSTOM: Build a uImage with dtb already appended
+Subject: [PATCH 12/21] ARM: CUSTOM: Build a uImage with dtb already appended
 
 Do not commit to mainline; this is a useful hack only for now.
 
@@ -31,12 +31,12 @@ index 5f914fc..05df486 100644
  	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
  
 diff --git a/arch/arm/boot/Makefile b/arch/arm/boot/Makefile
-index f2aa09e..bdebcd1 100644
+index 9137df5..416fbe9 100644
 --- a/arch/arm/boot/Makefile
 +++ b/arch/arm/boot/Makefile
 @@ -57,6 +57,9 @@ $(obj)/zImage:	$(obj)/compressed/vmlinux FORCE
  	$(call if_changed,objcopy)
- 	$(kecho) '  Kernel: $@ is ready'
+ 	@$(kecho) '  Kernel: $@ is ready'
  
 +$(obj)/zImage-dtb.%:	$(obj)/%.dtb $(obj)/zImage
 +	cat $(obj)/zImage $< > $@
@@ -46,7 +46,7 @@ index f2aa09e..bdebcd1 100644
  targets += $(dtb-y)
 @@ -92,6 +95,10 @@ $(obj)/uImage:	$(obj)/zImage FORCE
  	$(call if_changed,uimage)
- 	$(kecho) '  Image $@ is ready'
+ 	@$(kecho) '  Image $@ is ready'
  
 +$(obj)/uImage-dtb.%:	$(obj)/zImage-dtb.% FORCE
 +	$(call if_changed,uimage)

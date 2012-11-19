@@ -1,7 +1,7 @@
-From 61223d5e92d0c00f2cd32da98e20c3e0bb8d564f Mon Sep 17 00:00:00 2001
+From 402e0aa80c64c2ddc0b39adf733fda3105a9ebb5 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Sat, 13 Oct 2012 16:34:44 +0300
-Subject: [PATCH 02/20] omap: Export
+Subject: [PATCH 02/21] omap: Export
  omap_hwmod_lookup/omap_device_build/omap_device_build_ss
 
 These functions can be used just fine by modules, there's no need not
@@ -12,7 +12,7 @@ to have them exported.
  2 files changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index b969ab1..5b8b6ec 100644
+index 87cc6d0..f3c0947 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
 @@ -138,6 +138,7 @@
@@ -23,7 +23,7 @@ index b969ab1..5b8b6ec 100644
  
  #include <plat/clock.h>
  #include <plat/omap_hwmod.h>
-@@ -3041,6 +3042,7 @@ struct omap_hwmod *omap_hwmod_lookup(const char *name)
+@@ -3076,6 +3077,7 @@ struct omap_hwmod *omap_hwmod_lookup(const char *name)
  
  	return oh;
  }
