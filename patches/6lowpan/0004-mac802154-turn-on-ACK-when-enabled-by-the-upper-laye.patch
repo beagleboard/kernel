@@ -1,0 +1,27 @@
+From b3e21fb5c8dcd8b6184128b6c0b50488279ed4da Mon Sep 17 00:00:00 2001
+From: Tony Cheneau <tony.cheneau@amnesiak.org>
+Date: Tue, 17 Jul 2012 17:59:39 -0400
+Subject: [PATCH 04/16] mac802154: turn on ACK when enabled by the upper
+ layers
+
+Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
+---
+ net/mac802154/wpan.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/net/mac802154/wpan.c b/net/mac802154/wpan.c
+index f30f6d4..d6aea7f 100644
+--- a/net/mac802154/wpan.c
++++ b/net/mac802154/wpan.c
+@@ -149,6 +149,8 @@ static int mac802154_header_create(struct sk_buff *skb,
+ 
+ 	head[pos++] = mac_cb(skb)->seq; /* DSN/BSN */
+ 	fc = mac_cb_type(skb);
++	if (mac_cb_is_ackreq(skb))
++		fc |= IEEE802154_FC_ACK_REQ;
+ 
+ 	if (!saddr) {
+ 		spin_lock_bh(&priv->mib_lock);
+-- 
+1.7.7.6
+

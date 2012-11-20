@@ -1,0 +1,29 @@
+From 0f7e132fa8f99c464e17ad7cfef58576a25fffba Mon Sep 17 00:00:00 2001
+From: Tony Cheneau <tony.cheneau@amnesiak.org>
+Date: Tue, 10 Jul 2012 11:36:28 -0400
+Subject: [PATCH 13/16] mac802154: make mem alloc ATOMIC to prevent
+ "scheduling while atomic" crashes
+
+These crashes occur mainly with the serial driver (not yet in the tree).
+
+Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
+---
+ net/mac802154/wpan.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/mac802154/wpan.c b/net/mac802154/wpan.c
+index d6aea7f..49ba8df 100644
+--- a/net/mac802154/wpan.c
++++ b/net/mac802154/wpan.c
+@@ -143,7 +143,7 @@ static int mac802154_header_create(struct sk_buff *skb,
+ 	if (!daddr)
+ 		return -EINVAL;
+ 
+-	head = kzalloc(MAC802154_FRAME_HARD_HEADER_LEN, GFP_KERNEL);
++	head = kzalloc(MAC802154_FRAME_HARD_HEADER_LEN, GFP_ATOMIC);
+ 	if (head == NULL)
+ 		return -ENOMEM;
+ 
+-- 
+1.7.7.6
+

@@ -1,0 +1,34 @@
+From 28f7c6d2f5f1090db50d7941b4908816d847aa86 Mon Sep 17 00:00:00 2001
+From: Tony Cheneau <tony.cheneau@amnesiak.org>
+Date: Mon, 25 Jun 2012 19:45:45 +0000
+Subject: [PATCH 02/16] 6lowpan: next header is not properly set upon
+ decompression of a UDP header.
+
+This causes a drop of the UDP packet.
+
+Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
+---
+ net/ieee802154/6lowpan.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
+index 6d42c17..b53a71a4 100644
+--- a/net/ieee802154/6lowpan.c
++++ b/net/ieee802154/6lowpan.c
+@@ -913,9 +913,12 @@ lowpan_process_data(struct sk_buff *skb)
+ 	}
+ 
+ 	/* UDP data uncompression */
+-	if (iphc0 & LOWPAN_IPHC_NH_C)
++	if (iphc0 & LOWPAN_IPHC_NH_C) {
+ 		if (lowpan_uncompress_udp_header(skb))
+ 			goto drop;
++		hdr.nexthdr = UIP_PROTO_UDP;
++	}
++
+ 
+ 	/* Not fragmented package */
+ 	hdr.payload_len = htons(skb->len);
+-- 
+1.7.7.6
+

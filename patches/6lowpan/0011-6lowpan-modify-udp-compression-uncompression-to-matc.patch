@@ -1,0 +1,93 @@
+From 6e460723464a7edf3b0a970d3e0f389f4247ea8d Mon Sep 17 00:00:00 2001
+From: Tony Cheneau <tony.cheneau@amnesiak.org>
+Date: Mon, 24 Sep 2012 22:56:51 -0400
+Subject: [PATCH 11/16] 6lowpan: modify udp compression/uncompression to match
+ the standard
+
+The previous code would just compress the UDP header and send the compressed
+UDP header along with the uncompressed one.
+
+Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
+---
+ net/ieee802154/6lowpan.c |   36 +++++++++++++++++++++++++++++++++---
+ 1 files changed, 33 insertions(+), 3 deletions(-)
+
+diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
+index 9711038..9c7ac2e 100644
+--- a/net/ieee802154/6lowpan.c
++++ b/net/ieee802154/6lowpan.c
+@@ -286,6 +286,9 @@ lowpan_compress_udp_header(u8 **hc06_ptr, struct sk_buff *skb)
+ 	/* checksum is always inline */
+ 	memcpy(*hc06_ptr, &uh->check, 2);
+ 	*hc06_ptr += 2;
++
++	/* skip the UDP header */
++	skb_pull(skb, sizeof(struct udphdr));
+ }
+ 
+ static inline int lowpan_fetch_skb_u8(struct sk_buff *skb, u8 *val)
+@@ -311,9 +314,8 @@ static inline int lowpan_fetch_skb_u16(struct sk_buff *skb, u16 *val)
+ }
+ 
+ static int
+-lowpan_uncompress_udp_header(struct sk_buff *skb)
++lowpan_uncompress_udp_header(struct sk_buff *skb, struct udphdr *uh)
+ {
+-	struct udphdr *uh = udp_hdr(skb);
+ 	u8 tmp;
+ 
+ 	if (!uh)
+@@ -354,12 +356,19 @@ lowpan_uncompress_udp_header(struct sk_buff *skb)
+ 			break;
+ 		}
+ 
++
+ 		pr_debug("uncompressed UDP ports: src = %d, dst = %d\n",
+ 			 uh->source, uh->dest);
+ 
+ 		/* copy checksum */
+ 		memcpy(&uh->check, &skb->data[0], 2);
+ 		skb_pull(skb, 2);
++
++		/* UDP lenght needs to be infered from the lower layers
++		   here, we obtain the hint from the remaining size of the
++		   frame */
++		uh->len = htons(skb->len + sizeof(struct udphdr));
++		pr_debug("uncompressed UDP length: src = %d", uh->len);
+ 	} else {
+ 		pr_debug("ERROR: unsupported NH format\n");
+ 		goto err;
+@@ -941,8 +950,29 @@ lowpan_process_data(struct sk_buff *skb)
+ 
+ 	/* UDP data uncompression */
+ 	if (iphc0 & LOWPAN_IPHC_NH_C) {
+-		if (lowpan_uncompress_udp_header(skb))
++		struct udphdr uh;
++		struct sk_buff *new;
++		if (lowpan_uncompress_udp_header(skb, &uh))
+ 			goto drop;
++
++		/* place the real UDP header instead of the
++		   compressed UDP header */
++		new = skb_copy_expand(skb, sizeof(struct udphdr),
++				      skb_tailroom(skb), GFP_ATOMIC);
++		kfree_skb(skb);
++
++		if (!new)
++			return -ENOMEM;
++
++		skb = new ;
++
++		skb_push(skb, sizeof(struct udphdr));
++		skb_reset_transport_header(skb);
++		skb_copy_to_linear_data(skb, &uh, sizeof(struct udphdr));
++
++		lowpan_raw_dump_table(__func__, "raw UDP header dump",
++				      (u8 *)&uh, sizeof(uh));
++
+ 		hdr.nexthdr = UIP_PROTO_UDP;
+ 	}
+ 
+-- 
+1.7.7.6
+
