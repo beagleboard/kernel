@@ -1,13 +1,20 @@
-From eb706504605d4d679b0f0dd4a37083041baa22a7 Mon Sep 17 00:00:00 2001
+From dd37cb30d99f6feccf0aabaddf08f6595b30f0dd Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 30 Oct 2012 21:12:20 +0200
-Subject: [PATCH 18/21] capebus: Add beaglebone geiger cape
+Subject: [PATCH 20/25] capebus: Beaglebone geiger cape support
 
+Support beaglebone's geiger cape.
+
+The geiger cape allows you to measure the amount of
+ionising radiation in your area, and as an example
+of how to create a complex non-generic cape driver.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
  drivers/capebus/capes/Kconfig            |    7 +
  drivers/capebus/capes/Makefile           |    1 +
- drivers/capebus/capes/bone-geiger-cape.c |  506 ++++++++++++++++++++++++++++++
- 3 files changed, 514 insertions(+), 0 deletions(-)
+ drivers/capebus/capes/bone-geiger-cape.c |  517 ++++++++++++++++++++++++++++++
+ 3 files changed, 525 insertions(+), 0 deletions(-)
  create mode 100644 drivers/capebus/capes/bone-geiger-cape.c
 
 diff --git a/drivers/capebus/capes/Kconfig b/drivers/capebus/capes/Kconfig
@@ -34,13 +41,28 @@ index 83da381..d6f94ce 100644
 +obj-$(CONFIG_CAPEBUS_BONE_GEIGER)	+= bone-geiger-cape.o
 diff --git a/drivers/capebus/capes/bone-geiger-cape.c b/drivers/capebus/capes/bone-geiger-cape.c
 new file mode 100644
-index 0000000..880eaae
+index 0000000..9b3a83d
 --- /dev/null
 +++ b/drivers/capebus/capes/bone-geiger-cape.c
-@@ -0,0 +1,506 @@
+@@ -0,0 +1,517 @@
 +/*
 + * Driver for beaglebone Geiger cape
 + *
++ * Copyright (C) 2012 Pantelis Antoniou <panto@antoniou-consulting.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 + */
 +
 +#include <linux/module.h>
@@ -61,9 +83,6 @@ index 0000000..880eaae
 +#include <linux/atomic.h>
 +#include <linux/clk.h>
 +#include <linux/interrupt.h>
-+#include <asm/barrier.h>
-+#include <plat/clock.h>
-+#include <plat/omap_device.h>
 +#include <linux/clkdev.h>
 +#include <linux/pwm.h>
 +#include <linux/math64.h>
@@ -72,7 +91,6 @@ index 0000000..880eaae
 +#include <linux/input/ti_am335x_tsc.h>
 +#include <linux/platform_data/ti_am335x_adc.h>
 +#include <linux/mfd/ti_am335x_tscadc.h>
-+#include <plat/omap_device.h>
 +#include <linux/iio/iio.h>
 +#include <linux/iio/machine.h>
 +#include <linux/iio/consumer.h>

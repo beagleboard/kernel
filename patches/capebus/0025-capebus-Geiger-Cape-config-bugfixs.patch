@@ -1,7 +1,7 @@
-From 5eb644e8069dbd6a10d157c1d0df8859af9d6ff2 Mon Sep 17 00:00:00 2001
+From 7d9c00e7aa6bd921a53571d67414906a6b3b1cda Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
 Date: Sun, 18 Nov 2012 23:26:20 +0000
-Subject: [PATCH 21/21] capebus: Geiger Cape config bugfixs
+Subject: [PATCH 25/25] capebus: Geiger Cape config bugfixs
 
 The display of 'vsense-name' default is incorrect.
 
@@ -11,10 +11,10 @@ Signed-off-by: Matt Ranostay <mranostay@gmail.com>
  1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/capebus/capes/bone-geiger-cape.c b/drivers/capebus/capes/bone-geiger-cape.c
-index 880eaae..9e53d8d 100644
+index 9b3a83d..d972622 100644
 --- a/drivers/capebus/capes/bone-geiger-cape.c
 +++ b/drivers/capebus/capes/bone-geiger-cape.c
-@@ -417,8 +417,8 @@ static int bonegeiger_probe(struct cape_dev *dev, const struct cape_device_id *i
+@@ -428,8 +428,8 @@ static int bonegeiger_probe(struct cape_dev *dev, const struct cape_device_id *i
  				"vsense-name", &info->vsense_name) != 0) {
  		info->vsense_name = "AIN5";
  		dev_warn(&dev->dev, "Could not read vsense-name property; "

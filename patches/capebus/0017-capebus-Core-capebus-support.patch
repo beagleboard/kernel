@@ -1,8 +1,21 @@
-From efd9c414580e3630fbb98ac84321a4805da46832 Mon Sep 17 00:00:00 2001
+From df681e9d2dd10a61aa5832da2da69b546c8e0b4c Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 30 Oct 2012 21:06:06 +0200
-Subject: [PATCH 15/21] capebus: Core capebus support
+Subject: [PATCH 17/25] capebus: Core capebus support
 
+Introducing capebus; a bus that allows small boards (capes) to connect
+to a complex SoC using simple expansion connectors.
+
+Up to now to support these kind of boards, one had to hack the board files,
+and do all sort of gymnastics to handle all the different cases of
+conflict resolution.
+
+Capebus provides abstractions that keep the pain to a minimum.
+
+This part of the series is introducing the core capebus functionality
+dealing with the basic bus & driver probe functions.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
  drivers/Kconfig                  |    2 +
  drivers/Makefile                 |    3 +

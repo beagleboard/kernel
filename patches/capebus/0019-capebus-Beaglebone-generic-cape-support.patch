@@ -1,13 +1,23 @@
-From 9a0f821c5b5909a1f97dbd117f3246d08334f591 Mon Sep 17 00:00:00 2001
+From 4335d37bc1c8217f692065799f9cdc266640396c Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 30 Oct 2012 21:09:49 +0200
-Subject: [PATCH 17/21] capebus: Beaglebone generic board
+Subject: [PATCH 19/25] capebus: Beaglebone generic cape support
 
+Introducing beaglebone generic cape support.
+
+With this you can create almost any kind of cape driver
+that doesn't require complex interconnection of the parts.
+
+Most beaglebone capes can be created with this, including
+all the display capes (DVI/VGA/LCD) with touchscreen or not,
+capes that only use i2c or spi devices, gpio-keys, leds etc.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
  drivers/capebus/capes/Kconfig             |    6 ++
  drivers/capebus/capes/Makefile            |    1 +
- drivers/capebus/capes/bone-generic-cape.c |   96 +++++++++++++++++++++++++++++
- 3 files changed, 103 insertions(+), 0 deletions(-)
+ drivers/capebus/capes/bone-generic-cape.c |   75 +++++++++++++++++++++++++++++
+ 3 files changed, 82 insertions(+), 0 deletions(-)
  create mode 100644 drivers/capebus/capes/Kconfig
  create mode 100644 drivers/capebus/capes/Makefile
  create mode 100644 drivers/capebus/capes/bone-generic-cape.c
@@ -33,10 +43,10 @@ index 0000000..83da381
 +obj-$(CONFIG_CAPEBUS_BONE_GENERIC)	+= bone-generic-cape.o
 diff --git a/drivers/capebus/capes/bone-generic-cape.c b/drivers/capebus/capes/bone-generic-cape.c
 new file mode 100644
-index 0000000..70be50a
+index 0000000..b364614
 --- /dev/null
 +++ b/drivers/capebus/capes/bone-generic-cape.c
-@@ -0,0 +1,96 @@
+@@ -0,0 +1,75 @@
 +/*
 + * Generic cape support
 + *
@@ -60,28 +70,7 @@ index 0000000..70be50a
 +
 +#include <linux/module.h>
 +#include <linux/kernel.h>
-+#include <linux/string.h>
-+#include <linux/timer.h>
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/bitops.h>
 +#include <linux/err.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
-+#include <linux/of_gpio.h>
-+#include <linux/pinctrl/pinctrl.h>
-+#include <linux/pinctrl/pinmux.h>
-+#include <linux/pinctrl/consumer.h>
-+#include <linux/atomic.h>
-+#include <linux/clk.h>
-+#include <asm/barrier.h>
-+#include <plat/clock.h>
-+#include <plat/omap_device.h>
-+#include <linux/clkdev.h>
-+#include <linux/input/ti_am335x_tsc.h>
-+#include <linux/platform_data/ti_am335x_adc.h>
-+#include <linux/mfd/ti_am335x_tscadc.h>
 +
 +#include <linux/capebus/capebus-bone.h>
 +
