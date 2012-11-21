@@ -1,0 +1,44 @@
+From 99b160fb82e0ec546e7ac7a87e43cf4c3c073fe9 Mon Sep 17 00:00:00 2001
+From: Ian Abbott <abbotti@mev.co.uk>
+Date: Wed, 3 Oct 2012 16:25:17 +0100
+Subject: [PATCH 022/105] staging: comedi: amplc_pc236: fix invalid register
+ access during detach
+
+commit aaeb61a97b7159ebe30b18a422d04eeabfa8790b upstream.
+
+`pc236_detach()` is called by the comedi core if it attempted to attach
+a device and failed.  `pc236_detach()` calls `pc236_intr_disable()` if
+the comedi device private data pointer (`devpriv`) is non-null.  This
+test is insufficient as `pc236_intr_disable()` accesses hardware
+registers and the attach routine may have failed before it has saved
+their I/O base addresses.
+
+Fix it by checking `dev->iobase` is non-zero before calling
+`pc236_intr_disable()` as that means the I/O base addresses have been
+saved and the hardware registers can be accessed.  It also implies the
+comedi device private data pointer is valid, so there is no need to
+check it.
+
+Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
+[Ian Abbott: This patch is for the stable 3.0 kernel.]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/comedi/drivers/amplc_pc236.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/staging/comedi/drivers/amplc_pc236.c b/drivers/staging/comedi/drivers/amplc_pc236.c
+index 48246cd..b4311bf 100644
+--- a/drivers/staging/comedi/drivers/amplc_pc236.c
++++ b/drivers/staging/comedi/drivers/amplc_pc236.c
+@@ -470,7 +470,7 @@ static int pc236_detach(struct comedi_device *dev)
+ {
+ 	printk(KERN_DEBUG "comedi%d: %s: detach\n", dev->minor,
+ 	       PC236_DRIVER_NAME);
+-	if (devpriv)
++	if (dev->iobase)
+ 		pc236_intr_disable(dev);
+ 
+ 	if (dev->irq)
+-- 
+1.7.7.6
+

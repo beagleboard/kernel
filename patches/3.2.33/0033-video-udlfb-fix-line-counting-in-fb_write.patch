@@ -1,0 +1,35 @@
+From cf227268476b1c911a92ebdef5365a4d159c2614 Mon Sep 17 00:00:00 2001
+From: Alexander Holler <holler@ahsoftware.de>
+Date: Tue, 14 Aug 2012 09:11:09 +0200
+Subject: [PATCH 033/105] video/udlfb: fix line counting in fb_write
+
+commit b8c4321f3d194469007f5f5f2b34ec278c264a04 upstream.
+
+Line 0 and 1 were both written to line 0 (on the display) and all subsequent
+lines had an offset of -1. The result was that the last line on the display
+was never overwritten by writes to /dev/fbN.
+
+Signed-off-by: Alexander Holler <holler@ahsoftware.de>
+Acked-by: Bernie Thompson <bernie@plugable.com>
+Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/video/udlfb.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/video/udlfb.c b/drivers/video/udlfb.c
+index 41746bb..cb5988f 100644
+--- a/drivers/video/udlfb.c
++++ b/drivers/video/udlfb.c
+@@ -646,7 +646,7 @@ static ssize_t dlfb_ops_write(struct fb_info *info, const char __user *buf,
+ 	result = fb_sys_write(info, buf, count, ppos);
+ 
+ 	if (result > 0) {
+-		int start = max((int)(offset / info->fix.line_length) - 1, 0);
++		int start = max((int)(offset / info->fix.line_length), 0);
+ 		int lines = min((u32)((result / info->fix.line_length) + 1),
+ 				(u32)info->var.yres);
+ 
+-- 
+1.7.7.6
+

@@ -1,0 +1,43 @@
+From 7e7ec2afa31c858a36ea71891b28d53cf3c98deb Mon Sep 17 00:00:00 2001
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Date: Tue, 6 Nov 2012 16:18:41 +0000
+Subject: [PATCH 75/83] ipv6: send unsolicited neighbour advertisements to
+ all-nodes
+
+[ Upstream commit 60713a0ca7fd6651b951cc1b4dbd528d1fc0281b ]
+
+As documented in RFC4861 (Neighbor Discovery for IP version 6) 7.2.6.,
+unsolicited neighbour advertisements should be sent to the all-nodes
+multicast address.
+
+Signed-off-by: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv6/ndisc.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv6/ndisc.c b/net/ipv6/ndisc.c
+index 0cb78d7..9ffc37f 100644
+--- a/net/ipv6/ndisc.c
++++ b/net/ipv6/ndisc.c
+@@ -606,7 +606,7 @@ static void ndisc_send_unsol_na(struct net_device *dev)
+ {
+ 	struct inet6_dev *idev;
+ 	struct inet6_ifaddr *ifa;
+-	struct in6_addr mcaddr;
++	struct in6_addr mcaddr = IN6ADDR_LINKLOCAL_ALLNODES_INIT;
+ 
+ 	idev = in6_dev_get(dev);
+ 	if (!idev)
+@@ -614,7 +614,6 @@ static void ndisc_send_unsol_na(struct net_device *dev)
+ 
+ 	read_lock_bh(&idev->lock);
+ 	list_for_each_entry(ifa, &idev->addr_list, if_list) {
+-		addrconf_addr_solict_mult(&ifa->addr, &mcaddr);
+ 		ndisc_send_na(dev, NULL, &mcaddr, &ifa->addr,
+ 			      /*router=*/ !!idev->cnf.forwarding,
+ 			      /*solicited=*/ false, /*override=*/ true,
+-- 
+1.7.7.6
+

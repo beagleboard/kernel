@@ -1,0 +1,43 @@
+From 9b9e28fb64cb583823e2d50b3f533bd8bc6d326d Mon Sep 17 00:00:00 2001
+From: Cyril Brulebois <kibi@debian.org>
+Date: Wed, 31 Oct 2012 14:00:46 +0000
+Subject: [PATCH 79/83] r8169: Fix WoL on RTL8168d/8111d.
+
+commit b00e69dee4ccbb3a19989e3d4f1385bc2e3406cd upstream.
+
+This regression was spotted between Debian squeeze and Debian wheezy
+kernels (respectively based on 2.6.32 and 3.2). More info about
+Wake-on-LAN issues with Realtek's 816x chipsets can be found in the
+following thread: http://marc.info/?t=132079219400004
+
+Probable regression from d4ed95d796e5126bba51466dc07e287cebc8bd19;
+more chipsets are likely affected.
+
+Tested on top of a 3.2.23 kernel.
+
+Reported-by: Florent Fourcot <florent.fourcot@enst-bretagne.fr>
+Tested-by: Florent Fourcot <florent.fourcot@enst-bretagne.fr>
+Hinted-by: Francois Romieu <romieu@fr.zoreil.com>
+Signed-off-by: Cyril Brulebois <kibi@debian.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/realtek/r8169.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/net/ethernet/realtek/r8169.c b/drivers/net/ethernet/realtek/r8169.c
+index f0704b3..0f3fea5 100644
+--- a/drivers/net/ethernet/realtek/r8169.c
++++ b/drivers/net/ethernet/realtek/r8169.c
+@@ -3521,6 +3521,8 @@ static void rtl_wol_suspend_quirk(struct rtl8169_private *tp)
+ 	void __iomem *ioaddr = tp->mmio_addr;
+ 
+ 	switch (tp->mac_version) {
++	case RTL_GIGA_MAC_VER_25:
++	case RTL_GIGA_MAC_VER_26:
+ 	case RTL_GIGA_MAC_VER_29:
+ 	case RTL_GIGA_MAC_VER_30:
+ 	case RTL_GIGA_MAC_VER_32:
+-- 
+1.7.7.6
+

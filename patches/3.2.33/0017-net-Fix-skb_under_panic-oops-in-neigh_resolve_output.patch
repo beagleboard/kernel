@@ -1,0 +1,58 @@
+From 824a51b52ac3545df30cf652c09646dfdcf72c0e Mon Sep 17 00:00:00 2001
+From: "ramesh.nagappa@gmail.com" <ramesh.nagappa@gmail.com>
+Date: Fri, 5 Oct 2012 19:10:15 +0000
+Subject: [PATCH 017/105] net: Fix skb_under_panic oops in
+ neigh_resolve_output
+
+[ Upstream commit e1f165032c8bade3a6bdf546f8faf61fda4dd01c ]
+
+The retry loop in neigh_resolve_output() and neigh_connected_output()
+call dev_hard_header() with out reseting the skb to network_header.
+This causes the retry to fail with skb_under_panic. The fix is to
+reset the network_header within the retry loop.
+
+Signed-off-by: Ramesh Nagappa <ramesh.nagappa@ericsson.com>
+Reviewed-by: Shawn Lu <shawn.lu@ericsson.com>
+Reviewed-by: Robert Coulson <robert.coulson@ericsson.com>
+Reviewed-by: Billie Alsup <billie.alsup@ericsson.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/core/neighbour.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/net/core/neighbour.c b/net/core/neighbour.c
+index 7aafaed..5b9709f 100644
+--- a/net/core/neighbour.c
++++ b/net/core/neighbour.c
+@@ -1254,8 +1254,6 @@ int neigh_resolve_output(struct neighbour *neigh, struct sk_buff *skb)
+ 	if (!dst)
+ 		goto discard;
+ 
+-	__skb_pull(skb, skb_network_offset(skb));
+-
+ 	if (!neigh_event_send(neigh, skb)) {
+ 		int err;
+ 		struct net_device *dev = neigh->dev;
+@@ -1265,6 +1263,7 @@ int neigh_resolve_output(struct neighbour *neigh, struct sk_buff *skb)
+ 			neigh_hh_init(neigh, dst);
+ 
+ 		do {
++			__skb_pull(skb, skb_network_offset(skb));
+ 			seq = read_seqbegin(&neigh->ha_lock);
+ 			err = dev_hard_header(skb, dev, ntohs(skb->protocol),
+ 					      neigh->ha, NULL, skb->len);
+@@ -1295,9 +1294,8 @@ int neigh_connected_output(struct neighbour *neigh, struct sk_buff *skb)
+ 	unsigned int seq;
+ 	int err;
+ 
+-	__skb_pull(skb, skb_network_offset(skb));
+-
+ 	do {
++		__skb_pull(skb, skb_network_offset(skb));
+ 		seq = read_seqbegin(&neigh->ha_lock);
+ 		err = dev_hard_header(skb, dev, ntohs(skb->protocol),
+ 				      neigh->ha, NULL, skb->len);
+-- 
+1.7.7.6
+

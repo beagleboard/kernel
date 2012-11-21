@@ -1,0 +1,31 @@
+From 5a45fab65d7b0cee0727dae83fa05feb1327e8d7 Mon Sep 17 00:00:00 2001
+From: Egbert Eich <eich@suse.de>
+Date: Wed, 24 Oct 2012 18:29:49 +0200
+Subject: [PATCH 51/83] DRM/Radeon: Fix Load Detection on legacy primary DAC.
+
+commit 83325d072185899b706de2956170b246585aaec9 upstream.
+
+An uninitialized variable led to broken load detection.
+
+Signed-off-by: Egbert Eich <eich@suse.de>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_legacy_encoders.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c b/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+index 3ad3cc6..8165953 100644
+--- a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
++++ b/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+@@ -650,6 +650,7 @@ static enum drm_connector_status radeon_legacy_primary_dac_detect(struct drm_enc
+ 	tmp |= RADEON_DAC_RANGE_CNTL_PS2 | RADEON_DAC_CMP_EN;
+ 	WREG32(RADEON_DAC_CNTL, tmp);
+ 
++	tmp = dac_macro_cntl;
+ 	tmp &= ~(RADEON_DAC_PDWN_R |
+ 		 RADEON_DAC_PDWN_G |
+ 		 RADEON_DAC_PDWN_B);
+-- 
+1.7.7.6
+

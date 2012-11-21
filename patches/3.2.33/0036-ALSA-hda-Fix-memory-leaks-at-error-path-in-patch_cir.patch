@@ -1,0 +1,42 @@
+From 319a278c3b464bcfa580b489925a519db34c1b77 Mon Sep 17 00:00:00 2001
+From: Takashi Iwai <tiwai@suse.de>
+Date: Wed, 10 Oct 2012 08:50:35 +0200
+Subject: [PATCH 036/105] ALSA: hda - Fix memory leaks at error path in
+ patch_cirrus.c
+
+commit c5e0b6dbad9b4d18c561af90b384d02373f1c994 upstream.
+
+The proper destructor should be called at the error path.
+
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+[bwh: Backported to 3.2: drop the change to nonexistent patch_cs4213()]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/pci/hda/patch_cirrus.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/sound/pci/hda/patch_cirrus.c b/sound/pci/hda/patch_cirrus.c
+index ec0518e..e449278 100644
+--- a/sound/pci/hda/patch_cirrus.c
++++ b/sound/pci/hda/patch_cirrus.c
+@@ -1404,7 +1404,7 @@ static int patch_cs420x(struct hda_codec *codec)
+ 	return 0;
+ 
+  error:
+-	kfree(codec->spec);
++	cs_free(codec);
+ 	codec->spec = NULL;
+ 	return err;
+ }
+@@ -1949,7 +1949,7 @@ static int patch_cs421x(struct hda_codec *codec)
+ 	return 0;
+ 
+  error:
+-	kfree(codec->spec);
++	cs_free(codec);
+ 	codec->spec = NULL;
+ 	return err;
+ }
+-- 
+1.7.7.6
+

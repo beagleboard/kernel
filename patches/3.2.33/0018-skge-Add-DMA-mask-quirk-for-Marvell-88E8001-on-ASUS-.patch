@@ -1,0 +1,49 @@
+From 88f467ccf9c371de3bd7d07a220ea77b68060874 Mon Sep 17 00:00:00 2001
+From: Graham Gower <graham.gower@gmail.com>
+Date: Mon, 8 Oct 2012 08:34:50 +0000
+Subject: [PATCH 018/105] skge: Add DMA mask quirk for Marvell 88E8001 on ASUS
+ P5NSLI motherboard
+
+[ Upstream commit a2af139ff1cd85df586690ff626619ab1ee88b0a ]
+
+Marvell 88E8001 on an ASUS P5NSLI motherboard is unable to send/receive
+packets on a system with >4gb ram unless a 32bit DMA mask is used.
+
+This issue has been around for years and a fix was sent 3.5 years ago, but
+there was some debate as to whether it should instead be fixed as a PCI quirk.
+http://www.spinics.net/lists/netdev/msg88670.html
+
+However, 18 months later a similar workaround was introduced for another
+chipset exhibiting the same problem.
+http://www.spinics.net/lists/netdev/msg142287.html
+
+Signed-off-by: Graham Gower <graham.gower@gmail.com>
+Signed-off-by: Jan Ceuleers <jan.ceuleers@computer.org>
+Acked-by: Stephen Hemminger <shemminger@vyatta.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/marvell/skge.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/net/ethernet/marvell/skge.c b/drivers/net/ethernet/marvell/skge.c
+index dea0cb4..57be855 100644
+--- a/drivers/net/ethernet/marvell/skge.c
++++ b/drivers/net/ethernet/marvell/skge.c
+@@ -4143,6 +4143,13 @@ static struct dmi_system_id skge_32bit_dma_boards[] = {
+ 			DMI_MATCH(DMI_BOARD_NAME, "nForce"),
+ 		},
+ 	},
++	{
++		.ident = "ASUS P5NSLI",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
++			DMI_MATCH(DMI_BOARD_NAME, "P5NSLI")
++		},
++	},
+ 	{}
+ };
+ 
+-- 
+1.7.7.6
+

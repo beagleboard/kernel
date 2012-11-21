@@ -1,0 +1,31 @@
+From 5826ae954077de357dc0cb332e29e10303c94eee Mon Sep 17 00:00:00 2001
+From: Alexander Stein <alexander.stein@systec-electronic.com>
+Date: Thu, 1 Nov 2012 13:42:37 +0100
+Subject: [PATCH 53/83] ALSA: hda: Cirrus: Fix coefficient index for beep
+ configuration
+
+commit 5a83b4b5a391f07141b157ac9daa51c409e71ab5 upstream.
+
+Signed-off-by: Alexander Stein <alexander.stein@systec-electronic.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/pci/hda/patch_cirrus.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/sound/pci/hda/patch_cirrus.c b/sound/pci/hda/patch_cirrus.c
+index e449278..15ed726 100644
+--- a/sound/pci/hda/patch_cirrus.c
++++ b/sound/pci/hda/patch_cirrus.c
+@@ -1109,7 +1109,7 @@ static const struct hda_verb cs_coef_init_verbs[] = {
+ 	  | 0x0400 /* Disable Coefficient Auto increment */
+ 	  )},
+ 	/* Beep */
+-	{0x11, AC_VERB_SET_COEF_INDEX, IDX_DAC_CFG},
++	{0x11, AC_VERB_SET_COEF_INDEX, IDX_BEEP_CFG},
+ 	{0x11, AC_VERB_SET_PROC_COEF, 0x0007}, /* Enable Beep thru DAC1/2/3 */
+ 
+ 	{} /* terminator */
+-- 
+1.7.7.6
+

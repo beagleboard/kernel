@@ -1,0 +1,43 @@
+From 2c752c68dba989b5471f3921a913bbca6fbb4cf2 Mon Sep 17 00:00:00 2001
+From: Maxim Kachur <mcdebugger@duganet.ru>
+Date: Wed, 17 Oct 2012 18:18:10 +0200
+Subject: [PATCH 103/105] ALSA: emu10k1: add chip details for E-mu 1010 PCIe
+ card
+
+commit 10f571d09106c3eb85951896522c9650596eff2e upstream.
+
+Add chip details for E-mu 1010 PCIe card. It has the same
+chip as found in E-mu 1010b but it uses different PCI id.
+
+Signed-off-by: Maxim Kachur <mcdebugger@duganet.ru>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/pci/emu10k1/emu10k1_main.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+
+diff --git a/sound/pci/emu10k1/emu10k1_main.c b/sound/pci/emu10k1/emu10k1_main.c
+index 6a3e567..d37b946 100644
+--- a/sound/pci/emu10k1/emu10k1_main.c
++++ b/sound/pci/emu10k1/emu10k1_main.c
+@@ -1416,6 +1416,15 @@ static struct snd_emu_chip_details emu_chip_details[] = {
+ 	 .ca0108_chip = 1,
+ 	 .spk71 = 1,
+ 	 .emu_model = EMU_MODEL_EMU1010B}, /* EMU 1010 new revision */
++	/* Tested by Maxim Kachur <mcdebugger@duganet.ru> 17th Oct 2012. */
++	/* This is MAEM8986, 0202 is MAEM8980 */
++	{.vendor = 0x1102, .device = 0x0008, .subsystem = 0x40071102,
++	 .driver = "Audigy2", .name = "E-mu 1010 PCIe [MAEM8986]",
++	 .id = "EMU1010",
++	 .emu10k2_chip = 1,
++	 .ca0108_chip = 1,
++	 .spk71 = 1,
++	 .emu_model = EMU_MODEL_EMU1010B}, /* EMU 1010 PCIe */
+ 	/* Tested by James@superbug.co.uk 8th July 2005. */
+ 	/* This is MAEM8810, 0202 is MAEM8820 */
+ 	{.vendor = 0x1102, .device = 0x0004, .subsystem = 0x40011102,
+-- 
+1.7.7.6
+

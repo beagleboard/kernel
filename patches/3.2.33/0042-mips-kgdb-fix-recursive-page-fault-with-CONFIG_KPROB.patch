@@ -1,0 +1,54 @@
+From 2b2f45a27435b7c2dab6eda723fad3d11e349701 Mon Sep 17 00:00:00 2001
+From: Jason Wessel <jason.wessel@windriver.com>
+Date: Fri, 10 Aug 2012 12:21:15 -0500
+Subject: [PATCH 042/105] mips,kgdb: fix recursive page fault with
+ CONFIG_KPROBES
+
+commit f0a996eeeda214f4293e234df33b29bec003b536 upstream.
+
+This fault was detected using the kgdb test suite on boot and it
+crashes recursively due to the fact that CONFIG_KPROBES on mips adds
+an extra die notifier in the page fault handler.  The crash signature
+looks like this:
+
+kgdbts:RUN bad memory access test
+KGDB: re-enter exception: ALL breakpoints killed
+Call Trace:
+[<807b7548>] dump_stack+0x20/0x54
+[<807b7548>] dump_stack+0x20/0x54
+
+The fix for now is to have kgdb return immediately if the fault type
+is DIE_PAGE_FAULT and allow the kprobe code to decide what is supposed
+to happen.
+
+Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Cc: David S. Miller <davem@davemloft.net>
+Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/mips/kernel/kgdb.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+
+diff --git a/arch/mips/kernel/kgdb.c b/arch/mips/kernel/kgdb.c
+index f4546e9..23817a6 100644
+--- a/arch/mips/kernel/kgdb.c
++++ b/arch/mips/kernel/kgdb.c
+@@ -283,6 +283,15 @@ static int kgdb_mips_notify(struct notifier_block *self, unsigned long cmd,
+ 	struct pt_regs *regs = args->regs;
+ 	int trap = (regs->cp0_cause & 0x7c) >> 2;
+ 
++#ifdef CONFIG_KPROBES
++	/*
++	 * Return immediately if the kprobes fault notifier has set
++	 * DIE_PAGE_FAULT.
++	 */
++	if (cmd == DIE_PAGE_FAULT)
++		return NOTIFY_DONE;
++#endif /* CONFIG_KPROBES */
++
+ 	/* Userspace events, ignore. */
+ 	if (user_mode(regs))
+ 		return NOTIFY_DONE;
+-- 
+1.7.7.6
+

@@ -1,0 +1,34 @@
+From 7a92ce7da280cba3d9469885322424d88a2c6de2 Mon Sep 17 00:00:00 2001
+From: Anisse Astier <anisse@astier.eu>
+Date: Tue, 9 Oct 2012 12:22:36 +0200
+Subject: [PATCH 090/105] ehci: fix Lucid nohandoff pci quirk to be more
+ generic with BIOS versions
+
+commit c323dc023b9501e5d09582ec7efd1d40a9001d99 upstream.
+
+BIOS vendors keep changing the BIOS versions. Only match the beginning
+of the string to match all Lucid tablets with board name M11JB.
+
+Signed-off-by: Anisse Astier <anisse@astier.eu>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/host/pci-quirks.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/usb/host/pci-quirks.c b/drivers/usb/host/pci-quirks.c
+index d0ec2f0..c05a623 100644
+--- a/drivers/usb/host/pci-quirks.c
++++ b/drivers/usb/host/pci-quirks.c
+@@ -545,7 +545,7 @@ static const struct dmi_system_id __devinitconst ehci_dmi_nohandoff_table[] = {
+ 		/*  Pegatron Lucid (Ordissimo AIRIS) */
+ 		.matches = {
+ 			DMI_MATCH(DMI_BOARD_NAME, "M11JB"),
+-			DMI_MATCH(DMI_BIOS_VERSION, "Lucid-GE-133"),
++			DMI_MATCH(DMI_BIOS_VERSION, "Lucid-"),
+ 		},
+ 	},
+ 	{ }
+-- 
+1.7.7.6
+

@@ -1,0 +1,99 @@
+From 9882fd3c165d058cd07b07dcda172287a88ee784 Mon Sep 17 00:00:00 2001
+From: Peter Huewe <peter.huewe@infineon.com>
+Date: Thu, 27 Sep 2012 16:09:33 +0200
+Subject: [PATCH 101/105] tpm: Propagate error from tpm_transmit to fix a
+ timeout hang
+
+commit abce9ac292e13da367bbd22c1f7669f988d931ac upstream.
+
+tpm_write calls tpm_transmit without checking the return value and
+assigns the return value unconditionally to chip->pending_data, even if
+it's an error value.
+This causes three bugs.
+
+So if we write to /dev/tpm0 with a tpm_param_size bigger than
+TPM_BUFSIZE=0x1000 (e.g. 0x100a)
+and a bufsize also bigger than TPM_BUFSIZE (e.g. 0x100a)
+tpm_transmit returns -E2BIG which is assigned to chip->pending_data as
+-7, but tpm_write returns that TPM_BUFSIZE bytes have been successfully
+been written to the TPM, altough this is not true (bug #1).
+
+As we did write more than than TPM_BUFSIZE bytes but tpm_write reports
+that only TPM_BUFSIZE bytes have been written the vfs tries to write
+the remaining bytes (in this case 10 bytes) to the tpm device driver via
+tpm_write which then blocks at
+
+ /* cannot perform a write until the read has cleared
+ either via tpm_read or a user_read_timer timeout */
+ while (atomic_read(&chip->data_pending) != 0)
+	 msleep(TPM_TIMEOUT);
+
+for 60 seconds, since data_pending is -7 and nobody is able to
+read it (since tpm_read luckily checks if data_pending is greater than
+0) (#bug 2).
+
+After that the remaining bytes are written to the TPM which are
+interpreted by the tpm as a normal command. (bug #3)
+So if the last bytes of the command stream happen to be a e.g.
+tpm_force_clear this gets accidentally sent to the TPM.
+
+This patch fixes all three bugs, by propagating the error code of
+tpm_write and returning -E2BIG if the input buffer is too big,
+since the response from the tpm for a truncated value is bogus anyway.
+Moreover it returns -EBUSY to userspace if there is a response ready to be
+read.
+
+Signed-off-by: Peter Huewe <peter.huewe@infineon.com>
+Signed-off-by: Kent Yoder <key@linux.vnet.ibm.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/char/tpm/tpm.c |   21 ++++++++++++++-------
+ 1 files changed, 14 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/char/tpm/tpm.c b/drivers/char/tpm/tpm.c
+index b366b34..0d91655 100644
+--- a/drivers/char/tpm/tpm.c
++++ b/drivers/char/tpm/tpm.c
+@@ -1072,17 +1072,20 @@ ssize_t tpm_write(struct file *file, const char __user *buf,
+ 		  size_t size, loff_t *off)
+ {
+ 	struct tpm_chip *chip = file->private_data;
+-	size_t in_size = size, out_size;
++	size_t in_size = size;
++	ssize_t out_size;
+ 
+ 	/* cannot perform a write until the read has cleared
+-	   either via tpm_read or a user_read_timer timeout */
+-	while (atomic_read(&chip->data_pending) != 0)
+-		msleep(TPM_TIMEOUT);
+-
+-	mutex_lock(&chip->buffer_mutex);
++	   either via tpm_read or a user_read_timer timeout.
++	   This also prevents splitted buffered writes from blocking here.
++	*/
++	if (atomic_read(&chip->data_pending) != 0)
++		return -EBUSY;
+ 
+ 	if (in_size > TPM_BUFSIZE)
+-		in_size = TPM_BUFSIZE;
++		return -E2BIG;
++
++	mutex_lock(&chip->buffer_mutex);
+ 
+ 	if (copy_from_user
+ 	    (chip->data_buffer, (void __user *) buf, in_size)) {
+@@ -1092,6 +1095,10 @@ ssize_t tpm_write(struct file *file, const char __user *buf,
+ 
+ 	/* atomic tpm command send and result receive */
+ 	out_size = tpm_transmit(chip, chip->data_buffer, TPM_BUFSIZE);
++	if (out_size < 0) {
++		mutex_unlock(&chip->buffer_mutex);
++		return out_size;
++	}
+ 
+ 	atomic_set(&chip->data_pending, out_size);
+ 	mutex_unlock(&chip->buffer_mutex);
+-- 
+1.7.7.6
+

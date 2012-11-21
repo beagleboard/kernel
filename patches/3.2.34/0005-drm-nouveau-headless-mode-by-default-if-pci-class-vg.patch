@@ -1,0 +1,57 @@
+From 758a564c981d3aecf22c74517b3102e69b0642bf Mon Sep 17 00:00:00 2001
+From: Ben Skeggs <bskeggs@redhat.com>
+Date: Wed, 31 Oct 2012 12:16:06 +1000
+Subject: [PATCH 05/83] drm/nouveau: headless mode by default if pci class !=
+ vga display
+
+commit e412e95a268fa8544858ebfe066826b290430d51 upstream.
+
+This is to prevent nouveau from taking over the console on headless boards
+such as Tesla.
+
+Signed-off-by: Ben Skeggs <bskeggs@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/nouveau/nouveau_drv.c   |    2 --
+ drivers/gpu/drm/nouveau/nouveau_state.c |    4 +++-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/nouveau/nouveau_drv.c b/drivers/gpu/drm/nouveau/nouveau_drv.c
+index 4ab35b5..8c084c0 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_drv.c
++++ b/drivers/gpu/drm/nouveau/nouveau_drv.c
+@@ -474,9 +474,7 @@ static int __init nouveau_init(void)
+ #ifdef CONFIG_VGA_CONSOLE
+ 		if (vgacon_text_force())
+ 			nouveau_modeset = 0;
+-		else
+ #endif
+-			nouveau_modeset = 1;
+ 	}
+ 
+ 	if (!nouveau_modeset)
+diff --git a/drivers/gpu/drm/nouveau/nouveau_state.c b/drivers/gpu/drm/nouveau/nouveau_state.c
+index d8831ab..01adcfb 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_state.c
++++ b/drivers/gpu/drm/nouveau/nouveau_state.c
+@@ -46,6 +46,7 @@ static int nouveau_init_engine_ptrs(struct drm_device *dev)
+ {
+ 	struct drm_nouveau_private *dev_priv = dev->dev_private;
+ 	struct nouveau_engine *engine = &dev_priv->engine;
++	u32 pclass = dev->pdev->class >> 8;
+ 
+ 	switch (dev_priv->chipset & 0xf0) {
+ 	case 0x00:
+@@ -481,7 +482,8 @@ static int nouveau_init_engine_ptrs(struct drm_device *dev)
+ 	}
+ 
+ 	/* headless mode */
+-	if (nouveau_modeset == 2) {
++	if (nouveau_modeset == 2 ||
++	    (nouveau_modeset < 0 && pclass != PCI_CLASS_DISPLAY_VGA)) {
+ 		engine->display.early_init = nouveau_stub_init;
+ 		engine->display.late_takedown = nouveau_stub_takedown;
+ 		engine->display.create = nouveau_stub_init;
+-- 
+1.7.7.6
+

@@ -1,0 +1,99 @@
+From ff1afb4bb88a919dc122b6615047c5d4686845c2 Mon Sep 17 00:00:00 2001
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
+Date: Mon, 29 Oct 2012 18:37:40 -0400
+Subject: [PATCH 43/83] NFSv4.1: We must release the sequence id when we fail
+ to get a session slot
+
+commit 2240a9e2d013d8269ea425b73e1d7a54c7bc141f upstream.
+
+If we do not release the sequence id in cases where we fail to get a
+session slot, then we can deadlock if we hit a recovery scenario.
+
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+[bwh: Backported to 3.2:
+ - Adjust context
+ - nfs4_setup_sequence() has an additional 'cache_reply' parameter]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/nfs4proc.c |   36 +++++++++++++++++++++++-------------
+ 1 files changed, 23 insertions(+), 13 deletions(-)
+
+diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
+index 2468fac..4f07b56 100644
+--- a/fs/nfs/nfs4proc.c
++++ b/fs/nfs/nfs4proc.c
+@@ -1463,9 +1463,11 @@ static void nfs4_open_prepare(struct rpc_task *task, void *calldata)
+ 	data->timestamp = jiffies;
+ 	if (nfs4_setup_sequence(data->o_arg.server,
+ 				&data->o_arg.seq_args,
+-				&data->o_res.seq_res, 1, task))
+-		return;
+-	rpc_call_start(task);
++				&data->o_res.seq_res,
++				1, task) != 0)
++		nfs_release_seqid(data->o_arg.seqid);
++	else
++		rpc_call_start(task);
+ 	return;
+ unlock_no_action:
+ 	rcu_read_unlock();
+@@ -2045,9 +2047,10 @@ static void nfs4_close_prepare(struct rpc_task *task, void *data)
+ 	calldata->timestamp = jiffies;
+ 	if (nfs4_setup_sequence(NFS_SERVER(calldata->inode),
+ 				&calldata->arg.seq_args, &calldata->res.seq_res,
+-				1, task))
+-		return;
+-	rpc_call_start(task);
++				1, task) != 0)
++		nfs_release_seqid(calldata->arg.seqid);
++	else
++		rpc_call_start(task);
+ }
+ 
+ static const struct rpc_call_ops nfs4_close_ops = {
+@@ -4163,9 +4166,11 @@ static void nfs4_locku_prepare(struct rpc_task *task, void *data)
+ 	calldata->timestamp = jiffies;
+ 	if (nfs4_setup_sequence(calldata->server,
+ 				&calldata->arg.seq_args,
+-				&calldata->res.seq_res, 1, task))
+-		return;
+-	rpc_call_start(task);
++				&calldata->res.seq_res,
++				1, task) != 0)
++		nfs_release_seqid(calldata->arg.seqid);
++	else
++		rpc_call_start(task);
+ }
+ 
+ static const struct rpc_call_ops nfs4_locku_ops = {
+@@ -4309,7 +4314,7 @@ static void nfs4_lock_prepare(struct rpc_task *task, void *calldata)
+ 	/* Do we need to do an open_to_lock_owner? */
+ 	if (!(data->arg.lock_seqid->sequence->flags & NFS_SEQID_CONFIRMED)) {
+ 		if (nfs_wait_on_sequence(data->arg.open_seqid, task) != 0)
+-			return;
++			goto out_release_lock_seqid;
+ 		data->arg.open_stateid = &state->stateid;
+ 		data->arg.new_lock_owner = 1;
+ 		data->res.open_seqid = data->arg.open_seqid;
+@@ -4318,10 +4323,15 @@ static void nfs4_lock_prepare(struct rpc_task *task, void *calldata)
+ 	data->timestamp = jiffies;
+ 	if (nfs4_setup_sequence(data->server,
+ 				&data->arg.seq_args,
+-				&data->res.seq_res, 1, task))
++				&data->res.seq_res,
++				1, task) == 0) {
++		rpc_call_start(task);
+ 		return;
+-	rpc_call_start(task);
+-	dprintk("%s: done!, ret = %d\n", __func__, data->rpc_status);
++	}
++	nfs_release_seqid(data->arg.open_seqid);
++out_release_lock_seqid:
++	nfs_release_seqid(data->arg.lock_seqid);
++	dprintk("%s: done!, ret = %d\n", __func__, task->tk_status);
+ }
+ 
+ static void nfs4_recover_lock_prepare(struct rpc_task *task, void *calldata)
+-- 
+1.7.7.6
+

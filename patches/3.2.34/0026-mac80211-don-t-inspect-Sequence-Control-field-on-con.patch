@@ -1,0 +1,38 @@
+From 6d7bb397f0ef08aa103bc7333f8af88c6914c078 Mon Sep 17 00:00:00 2001
+From: Javier Cardona <javier@cozybit.com>
+Date: Thu, 25 Oct 2012 11:10:18 -0700
+Subject: [PATCH 26/83] mac80211: don't inspect Sequence Control field on
+ control frames
+
+commit f7fbf70ee9db6da6033ae50d100e017ac1f26555 upstream.
+
+Per IEEE Std. 802.11-2012, Sec 8.2.4.4.1, the sequence Control field is
+not present in control frames.  We noticed this problem when processing
+Block Ack Requests.
+
+Signed-off-by: Javier Cardona <javier@cozybit.com>
+Signed-off-by: Javier Lopez <jlopex@cozybit.com>
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/mac80211/rx.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/net/mac80211/rx.c b/net/mac80211/rx.c
+index c217274..8c6f337 100644
+--- a/net/mac80211/rx.c
++++ b/net/mac80211/rx.c
+@@ -1449,6 +1449,10 @@ ieee80211_rx_h_defragment(struct ieee80211_rx_data *rx)
+ 
+ 	hdr = (struct ieee80211_hdr *)rx->skb->data;
+ 	fc = hdr->frame_control;
++
++	if (ieee80211_is_ctl(fc))
++		return RX_CONTINUE;
++
+ 	sc = le16_to_cpu(hdr->seq_ctrl);
+ 	frag = sc & IEEE80211_SCTL_FRAG;
+ 
+-- 
+1.7.7.6
+

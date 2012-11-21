@@ -1,0 +1,69 @@
+From 1696d5f88c3089a7ee6fc1396ed8d6f8bad39817 Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Wed, 10 Oct 2012 13:25:48 -0400
+Subject: [PATCH 044/105] xen/bootup: allow {read|write}_cr8 pvops call.
+
+commit 1a7bbda5b1ab0e02622761305a32dc38735b90b2 upstream.
+
+We actually do not do anything about it. Just return a default
+value of zero and if the kernel tries to write anything but 0
+we BUG_ON.
+
+This fixes the case when an user tries to suspend the machine
+and it blows up in save_processor_state b/c 'read_cr8' is set
+to NULL and we get:
+
+kernel BUG at /home/konrad/ssd/linux/arch/x86/include/asm/paravirt.h:100!
+invalid opcode: 0000 [#1] SMP
+Pid: 2687, comm: init.late Tainted: G           O 3.6.0upstream-00002-gac264ac-dirty #4 Bochs Bochs
+RIP: e030:[<ffffffff814d5f42>]  [<ffffffff814d5f42>] save_processor_state+0x212/0x270
+
+.. snip..
+Call Trace:
+ [<ffffffff810733bf>] do_suspend_lowlevel+0xf/0xac
+ [<ffffffff8107330c>] ? x86_acpi_suspend_lowlevel+0x10c/0x150
+ [<ffffffff81342ee2>] acpi_suspend_enter+0x57/0xd5
+
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/xen/enlighten.c |   16 +++++++++++++++-
+ 1 files changed, 15 insertions(+), 1 deletions(-)
+
+diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
+index 16378b4..69b9ef6 100644
+--- a/arch/x86/xen/enlighten.c
++++ b/arch/x86/xen/enlighten.c
+@@ -818,7 +818,16 @@ static void xen_write_cr4(unsigned long cr4)
+ 
+ 	native_write_cr4(cr4);
+ }
+-
++#ifdef CONFIG_X86_64
++static inline unsigned long xen_read_cr8(void)
++{
++	return 0;
++}
++static inline void xen_write_cr8(unsigned long val)
++{
++	BUG_ON(val);
++}
++#endif
+ static int xen_write_msr_safe(unsigned int msr, unsigned low, unsigned high)
+ {
+ 	int ret;
+@@ -987,6 +996,11 @@ static const struct pv_cpu_ops xen_cpu_ops __initconst = {
+ 	.read_cr4_safe = native_read_cr4_safe,
+ 	.write_cr4 = xen_write_cr4,
+ 
++#ifdef CONFIG_X86_64
++	.read_cr8 = xen_read_cr8,
++	.write_cr8 = xen_write_cr8,
++#endif
++
+ 	.wbinvd = native_wbinvd,
+ 
+ 	.read_msr = native_read_msr_safe,
+-- 
+1.7.7.6
+

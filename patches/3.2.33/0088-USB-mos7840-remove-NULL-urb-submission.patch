@@ -1,0 +1,69 @@
+From 92ee9d734f68b755783c9a3b40fb70e2cfa983fa Mon Sep 17 00:00:00 2001
+From: Johan Hovold <jhovold@gmail.com>
+Date: Thu, 25 Oct 2012 18:56:32 +0200
+Subject: [PATCH 088/105] USB: mos7840: remove NULL-urb submission
+
+commit 28c3ae9a8cf45f439c9a0779ebd0256e2ae72813 upstream.
+
+The private int_urb is never allocated so the submission from the
+control completion handler will always fail. Remove this odd piece of
+broken code.
+
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/mos7840.c |   15 +--------------
+ 1 files changed, 1 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/usb/serial/mos7840.c b/drivers/usb/serial/mos7840.c
+index feae34e..7b862df 100644
+--- a/drivers/usb/serial/mos7840.c
++++ b/drivers/usb/serial/mos7840.c
+@@ -235,7 +235,6 @@ struct moschip_port {
+ 	int port_num;		/*Actual port number in the device(1,2,etc) */
+ 	struct urb *write_urb;	/* write URB for this port */
+ 	struct urb *read_urb;	/* read URB for this port */
+-	struct urb *int_urb;
+ 	__u8 shadowLCR;		/* last LCR value received */
+ 	__u8 shadowMCR;		/* last MCR value received */
+ 	char open;
+@@ -505,7 +504,6 @@ static void mos7840_control_callback(struct urb *urb)
+ 	unsigned char *data;
+ 	struct moschip_port *mos7840_port;
+ 	__u8 regval = 0x0;
+-	int result = 0;
+ 	int status = urb->status;
+ 
+ 	mos7840_port = urb->context;
+@@ -524,7 +522,7 @@ static void mos7840_control_callback(struct urb *urb)
+ 	default:
+ 		dbg("%s - nonzero urb status received: %d", __func__,
+ 		    status);
+-		goto exit;
++		return;
+ 	}
+ 
+ 	dbg("%s urb buffer size is %d", __func__, urb->actual_length);
+@@ -537,17 +535,6 @@ static void mos7840_control_callback(struct urb *urb)
+ 		mos7840_handle_new_msr(mos7840_port, regval);
+ 	else if (mos7840_port->MsrLsr == 1)
+ 		mos7840_handle_new_lsr(mos7840_port, regval);
+-
+-exit:
+-	spin_lock(&mos7840_port->pool_lock);
+-	if (!mos7840_port->zombie)
+-		result = usb_submit_urb(mos7840_port->int_urb, GFP_ATOMIC);
+-	spin_unlock(&mos7840_port->pool_lock);
+-	if (result) {
+-		dev_err(&urb->dev->dev,
+-			"%s - Error %d submitting interrupt urb\n",
+-			__func__, result);
+-	}
+ }
+ 
+ static int mos7840_get_reg(struct moschip_port *mcs, __u16 Wval, __u16 reg,
+-- 
+1.7.7.6
+

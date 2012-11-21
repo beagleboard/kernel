@@ -1,0 +1,34 @@
+From 0466e89e418383528324dba42fe9580c6d684931 Mon Sep 17 00:00:00 2001
+From: Thomas Hellstrom <thellstrom@vmware.com>
+Date: Fri, 9 Nov 2012 10:45:14 +0100
+Subject: [PATCH 66/83] drm/vmwgfx: Fix a case where the code would BUG when
+ trying to pin GMR memory
+
+commit afcc87aa6a233e52df73552dc1dc9ae3881b7cc8 upstream.
+
+Signed-off-by: Thomas Hellstrom <thellstrom@vmware.com>
+Reviewed-by: Brian Paul <brianp@vmware.com>
+Reviewed-by: Dmitry Torokhov <dtor@vmware.com>
+Cc: linux-graphics-maintainer@vmware.com
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/vmwgfx/vmwgfx_dmabuf.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_dmabuf.c b/drivers/gpu/drm/vmwgfx/vmwgfx_dmabuf.c
+index 3fa884d..27151f7 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_dmabuf.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_dmabuf.c
+@@ -306,7 +306,7 @@ void vmw_bo_pin(struct ttm_buffer_object *bo, bool pin)
+ 
+ 	BUG_ON(!atomic_read(&bo->reserved));
+ 	BUG_ON(old_mem_type != TTM_PL_VRAM &&
+-	       old_mem_type != VMW_PL_FLAG_GMR);
++	       old_mem_type != VMW_PL_GMR);
+ 
+ 	pl_flags = TTM_PL_FLAG_VRAM | VMW_PL_FLAG_GMR | TTM_PL_FLAG_CACHED;
+ 	if (pin)
+-- 
+1.7.7.6
+

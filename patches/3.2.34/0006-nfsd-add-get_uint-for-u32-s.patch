@@ -1,0 +1,78 @@
+From 1d603a3461ae56444e01f6f35a4464304e1a5dc5 Mon Sep 17 00:00:00 2001
+From: "J. Bruce Fields" <bfields@redhat.com>
+Date: Tue, 12 Jun 2012 16:54:16 -0400
+Subject: [PATCH 06/83] nfsd: add get_uint for u32's
+
+commit a007c4c3e943ecc054a806c259d95420a188754b upstream.
+
+I don't think there's a practical difference for the range of values
+these interfaces should see, but it would be safer to be unambiguous.
+
+Signed-off-by: J. Bruce Fields <bfields@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfsd/export.c             |    6 +++---
+ include/linux/sunrpc/cache.h |   16 ++++++++++++++++
+ 2 files changed, 19 insertions(+), 3 deletions(-)
+
+diff --git a/fs/nfsd/export.c b/fs/nfsd/export.c
+index 5f312ab..a0205fc 100644
+--- a/fs/nfsd/export.c
++++ b/fs/nfsd/export.c
+@@ -401,7 +401,7 @@ fsloc_parse(char **mesg, char *buf, struct nfsd4_fs_locations *fsloc)
+ 	int migrated, i, err;
+ 
+ 	/* listsize */
+-	err = get_int(mesg, &fsloc->locations_count);
++	err = get_uint(mesg, &fsloc->locations_count);
+ 	if (err)
+ 		return err;
+ 	if (fsloc->locations_count > MAX_FS_LOCATIONS)
+@@ -459,7 +459,7 @@ static int secinfo_parse(char **mesg, char *buf, struct svc_export *exp)
+ 		return -EINVAL;
+ 
+ 	for (f = exp->ex_flavors; f < exp->ex_flavors + listsize; f++) {
+-		err = get_int(mesg, &f->pseudoflavor);
++		err = get_uint(mesg, &f->pseudoflavor);
+ 		if (err)
+ 			return err;
+ 		/*
+@@ -468,7 +468,7 @@ static int secinfo_parse(char **mesg, char *buf, struct svc_export *exp)
+ 		 * problem at export time instead of when a client fails
+ 		 * to authenticate.
+ 		 */
+-		err = get_int(mesg, &f->flags);
++		err = get_uint(mesg, &f->flags);
+ 		if (err)
+ 			return err;
+ 		/* Only some flags are allowed to differ between flavors: */
+diff --git a/include/linux/sunrpc/cache.h b/include/linux/sunrpc/cache.h
+index 5efd8ce..f0c6ab5 100644
+--- a/include/linux/sunrpc/cache.h
++++ b/include/linux/sunrpc/cache.h
+@@ -224,6 +224,22 @@ static inline int get_int(char **bpp, int *anint)
+ 	return 0;
+ }
+ 
++static inline int get_uint(char **bpp, unsigned int *anint)
++{
++	char buf[50];
++	int len = qword_get(bpp, buf, sizeof(buf));
++
++	if (len < 0)
++		return -EINVAL;
++	if (len == 0)
++		return -ENOENT;
++
++	if (kstrtouint(buf, 0, anint))
++		return -EINVAL;
++
++	return 0;
++}
++
+ /*
+  * timestamps kept in the cache are expressed in seconds
+  * since boot.  This is the best for measuring differences in
+-- 
+1.7.7.6
+

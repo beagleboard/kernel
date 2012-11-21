@@ -1,0 +1,39 @@
+From 9aaa177f0067e75bbc963749e841cf7d57dbb5d2 Mon Sep 17 00:00:00 2001
+From: Ilija Hadzic <ilijahadzic@gmail.com>
+Date: Mon, 29 Oct 2012 17:35:00 +0000
+Subject: [PATCH 57/83] drm: restore open_count if drm_setup fails
+
+commit 0f1cb1bd94a9c967cd4ad3de51cfdabe61eb5dcc upstream.
+
+If drm_setup (called at first open) fails, the whole
+open call has failed, so we should not keep the
+open_count incremented.
+
+Signed-off-by: Ilija Hadzic <ihadzic@research.bell-labs.com>
+Reviewed-by: Thomas Hellstrom <thellstrom@vmware.com>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/drm_fops.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/gpu/drm/drm_fops.c b/drivers/gpu/drm/drm_fops.c
+index 828bf65..020b103 100644
+--- a/drivers/gpu/drm/drm_fops.c
++++ b/drivers/gpu/drm/drm_fops.c
+@@ -136,8 +136,11 @@ int drm_open(struct inode *inode, struct file *filp)
+ 	retcode = drm_open_helper(inode, filp, dev);
+ 	if (!retcode) {
+ 		atomic_inc(&dev->counts[_DRM_STAT_OPENS]);
+-		if (!dev->open_count++)
++		if (!dev->open_count++) {
+ 			retcode = drm_setup(dev);
++			if (retcode)
++				dev->open_count--;
++		}
+ 	}
+ 	if (!retcode) {
+ 		mutex_lock(&dev->struct_mutex);
+-- 
+1.7.7.6
+

@@ -1,0 +1,33 @@
+From c72897c66f135661ccbecf9c351e08c0413db22d Mon Sep 17 00:00:00 2001
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Wed, 10 Oct 2012 10:18:35 +0300
+Subject: [PATCH 046/105] oprofile, x86: Fix wrapping bug in op_x86_get_ctrl()
+
+commit 44009105081b51417f311f4c3be0061870b6b8ed upstream.
+
+The "event" variable is a u16 so the shift will always wrap to zero
+making the line a no-op.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Robert Richter <robert.richter@amd.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/oprofile/nmi_int.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/x86/oprofile/nmi_int.c b/arch/x86/oprofile/nmi_int.c
+index 75f9528..6bc0899 100644
+--- a/arch/x86/oprofile/nmi_int.c
++++ b/arch/x86/oprofile/nmi_int.c
+@@ -55,7 +55,7 @@ u64 op_x86_get_ctrl(struct op_x86_model_spec const *model,
+ 	val |= counter_config->extra;
+ 	event &= model->event_mask ? model->event_mask : 0xFF;
+ 	val |= event & 0xFF;
+-	val |= (event & 0x0F00) << 24;
++	val |= (u64)(event & 0x0F00) << 24;
+ 
+ 	return val;
+ }
+-- 
+1.7.7.6
+

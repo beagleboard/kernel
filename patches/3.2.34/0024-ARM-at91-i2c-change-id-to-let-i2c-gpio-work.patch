@@ -1,0 +1,98 @@
+From 5662ad7195ee69c68e12d6f6f890e051c252aafd Mon Sep 17 00:00:00 2001
+From: Bo Shen <voice.shen@atmel.com>
+Date: Mon, 15 Oct 2012 17:30:27 +0800
+Subject: [PATCH 24/83] ARM: at91/i2c: change id to let i2c-gpio work
+
+commit 7840487cd6298f9f931103b558290d8d98d41c49 upstream.
+
+The i2c core driver will turn the platform device ID to busnum
+When using platfrom device ID as -1, it means dynamically assigned
+the busnum. When writing code, we need to make sure the busnum,
+and call i2c_register_board_info(int busnum, ...) to register device
+if using -1, we do not know the value of busnum
+
+In order to solve this issue, set the platform device ID as a fix number
+Here using 0 to match the busnum used in i2c_regsiter_board_info()
+
+Signed-off-by: Bo Shen <voice.shen@atmel.com>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Acked-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Acked-by: Ludovic Desroches <ludovic.desroches@atmel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/arm/mach-at91/at91rm9200_devices.c  |    2 +-
+ arch/arm/mach-at91/at91sam9260_devices.c |    2 +-
+ arch/arm/mach-at91/at91sam9261_devices.c |    2 +-
+ arch/arm/mach-at91/at91sam9263_devices.c |    2 +-
+ arch/arm/mach-at91/at91sam9rl_devices.c  |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-at91/at91rm9200_devices.c b/arch/arm/mach-at91/at91rm9200_devices.c
+index 143eebb..929fd91 100644
+--- a/arch/arm/mach-at91/at91rm9200_devices.c
++++ b/arch/arm/mach-at91/at91rm9200_devices.c
+@@ -462,7 +462,7 @@ static struct i2c_gpio_platform_data pdata = {
+ 
+ static struct platform_device at91rm9200_twi_device = {
+ 	.name			= "i2c-gpio",
+-	.id			= -1,
++	.id			= 0,
+ 	.dev.platform_data	= &pdata,
+ };
+ 
+diff --git a/arch/arm/mach-at91/at91sam9260_devices.c b/arch/arm/mach-at91/at91sam9260_devices.c
+index 2590988..465e026 100644
+--- a/arch/arm/mach-at91/at91sam9260_devices.c
++++ b/arch/arm/mach-at91/at91sam9260_devices.c
+@@ -467,7 +467,7 @@ static struct i2c_gpio_platform_data pdata = {
+ 
+ static struct platform_device at91sam9260_twi_device = {
+ 	.name			= "i2c-gpio",
+-	.id			= -1,
++	.id			= 0,
+ 	.dev.platform_data	= &pdata,
+ };
+ 
+diff --git a/arch/arm/mach-at91/at91sam9261_devices.c b/arch/arm/mach-at91/at91sam9261_devices.c
+index daf3e66..d6d1e76 100644
+--- a/arch/arm/mach-at91/at91sam9261_devices.c
++++ b/arch/arm/mach-at91/at91sam9261_devices.c
+@@ -284,7 +284,7 @@ static struct i2c_gpio_platform_data pdata = {
+ 
+ static struct platform_device at91sam9261_twi_device = {
+ 	.name			= "i2c-gpio",
+-	.id			= -1,
++	.id			= 0,
+ 	.dev.platform_data	= &pdata,
+ };
+ 
+diff --git a/arch/arm/mach-at91/at91sam9263_devices.c b/arch/arm/mach-at91/at91sam9263_devices.c
+index 32a7e43..e051376e 100644
+--- a/arch/arm/mach-at91/at91sam9263_devices.c
++++ b/arch/arm/mach-at91/at91sam9263_devices.c
+@@ -540,7 +540,7 @@ static struct i2c_gpio_platform_data pdata = {
+ 
+ static struct platform_device at91sam9263_twi_device = {
+ 	.name			= "i2c-gpio",
+-	.id			= -1,
++	.id			= 0,
+ 	.dev.platform_data	= &pdata,
+ };
+ 
+diff --git a/arch/arm/mach-at91/at91sam9rl_devices.c b/arch/arm/mach-at91/at91sam9rl_devices.c
+index 628eb56..4862b23 100644
+--- a/arch/arm/mach-at91/at91sam9rl_devices.c
++++ b/arch/arm/mach-at91/at91sam9rl_devices.c
+@@ -319,7 +319,7 @@ static struct i2c_gpio_platform_data pdata = {
+ 
+ static struct platform_device at91sam9rl_twi_device = {
+ 	.name			= "i2c-gpio",
+-	.id			= -1,
++	.id			= 0,
+ 	.dev.platform_data	= &pdata,
+ };
+ 
+-- 
+1.7.7.6
+

@@ -1,0 +1,38 @@
+From 1450e4d27706ac5f9ecb7c414b1c8d8936728159 Mon Sep 17 00:00:00 2001
+From: Zijie Pan <zijie.pan@6wind.com>
+Date: Mon, 15 Oct 2012 03:56:39 +0000
+Subject: [PATCH 67/83] sctp: fix call to SCTP_CMD_PROCESS_SACK in
+ sctp_cmd_interpreter()
+
+[ Upstream commit f6e80abeab928b7c47cc1fbf53df13b4398a2bec ]
+
+Bug introduced by commit edfee0339e681a784ebacec7e8c2dc97dc6d2839
+(sctp: check src addr when processing SACK to update transport state)
+
+Signed-off-by: Zijie Pan <zijie.pan@6wind.com>
+Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Acked-by: Vlad Yasevich <vyasevich@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/sctp/sm_sideeffect.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/net/sctp/sm_sideeffect.c b/net/sctp/sm_sideeffect.c
+index 76388b0..9032d50 100644
+--- a/net/sctp/sm_sideeffect.c
++++ b/net/sctp/sm_sideeffect.c
+@@ -1604,8 +1604,9 @@ static int sctp_cmd_interpreter(sctp_event_t event_type,
+ 					asoc->outqueue.outstanding_bytes;
+ 			sackh.num_gap_ack_blocks = 0;
+ 			sackh.num_dup_tsns = 0;
++			chunk->subh.sack_hdr = &sackh;
+ 			sctp_add_cmd_sf(commands, SCTP_CMD_PROCESS_SACK,
+-					SCTP_SACKH(&sackh));
++					SCTP_CHUNK(chunk));
+ 			break;
+ 
+ 		case SCTP_CMD_DISCARD_PACKET:
+-- 
+1.7.7.6
+

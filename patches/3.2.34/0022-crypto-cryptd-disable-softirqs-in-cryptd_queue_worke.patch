@@ -1,0 +1,56 @@
+From 7fed7057d85eaea47b9868a07966f8d4a5377920 Mon Sep 17 00:00:00 2001
+From: Jussi Kivilinna <jussi.kivilinna@mbnet.fi>
+Date: Sun, 21 Oct 2012 20:42:28 +0300
+Subject: [PATCH 22/83] crypto: cryptd - disable softirqs in
+ cryptd_queue_worker to prevent data corruption
+
+commit 9efade1b3e981f5064f9db9ca971b4dc7557ae42 upstream.
+
+cryptd_queue_worker attempts to prevent simultaneous accesses to crypto
+workqueue by cryptd_enqueue_request using preempt_disable/preempt_enable.
+However cryptd_enqueue_request might be called from softirq context,
+so add local_bh_disable/local_bh_enable to prevent data corruption and
+panics.
+
+Bug report at http://marc.info/?l=linux-crypto-vger&m=134858649616319&w=2
+
+v2:
+ - Disable software interrupts instead of hardware interrupts
+
+Reported-by: Gurucharan Shetty <gurucharan.shetty@gmail.com>
+Signed-off-by: Jussi Kivilinna <jussi.kivilinna@mbnet.fi>
+Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ crypto/cryptd.c |   11 ++++++++---
+ 1 files changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/crypto/cryptd.c b/crypto/cryptd.c
+index 671d4d6..7bdd61b 100644
+--- a/crypto/cryptd.c
++++ b/crypto/cryptd.c
+@@ -137,13 +137,18 @@ static void cryptd_queue_worker(struct work_struct *work)
+ 	struct crypto_async_request *req, *backlog;
+ 
+ 	cpu_queue = container_of(work, struct cryptd_cpu_queue, work);
+-	/* Only handle one request at a time to avoid hogging crypto
+-	 * workqueue. preempt_disable/enable is used to prevent
+-	 * being preempted by cryptd_enqueue_request() */
++	/*
++	 * Only handle one request at a time to avoid hogging crypto workqueue.
++	 * preempt_disable/enable is used to prevent being preempted by
++	 * cryptd_enqueue_request(). local_bh_disable/enable is used to prevent
++	 * cryptd_enqueue_request() being accessed from software interrupts.
++	 */
++	local_bh_disable();
+ 	preempt_disable();
+ 	backlog = crypto_get_backlog(&cpu_queue->queue);
+ 	req = crypto_dequeue_request(&cpu_queue->queue);
+ 	preempt_enable();
++	local_bh_enable();
+ 
+ 	if (!req)
+ 		return;
+-- 
+1.7.7.6
+

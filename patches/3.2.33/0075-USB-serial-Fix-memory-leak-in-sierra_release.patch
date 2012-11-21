@@ -1,0 +1,33 @@
+From 1e59d09d1beb90d9777c49d059ff98d2f9394ea8 Mon Sep 17 00:00:00 2001
+From: Lennart Sorensen <lsorense@csclub.uwaterloo.ca>
+Date: Wed, 24 Oct 2012 10:23:09 -0400
+Subject: [PATCH 075/105] USB: serial: Fix memory leak in sierra_release()
+
+commit f7bc5051667b74c3861f79eed98c60d5c3b883f7 upstream.
+
+I found a memory leak in sierra_release() (well sierra_probe() I guess)
+that looses 8 bytes each time the driver releases a device.
+
+Signed-off-by: Len Sorensen <lsorense@csclub.uwaterloo.ca>
+Acked-by: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/sierra.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/usb/serial/sierra.c b/drivers/usb/serial/sierra.c
+index 535d087..7041d77 100644
+--- a/drivers/usb/serial/sierra.c
++++ b/drivers/usb/serial/sierra.c
+@@ -993,6 +993,7 @@ static void sierra_release(struct usb_serial *serial)
+ 			continue;
+ 		kfree(portdata);
+ 	}
++	kfree(serial->private);
+ }
+ 
+ #ifdef CONFIG_PM
+-- 
+1.7.7.6
+

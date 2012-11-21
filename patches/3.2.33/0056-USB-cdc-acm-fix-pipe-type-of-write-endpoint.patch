@@ -1,0 +1,34 @@
+From 119e9f297e039ff4d2b82f1c88fa66984d4dd4b6 Mon Sep 17 00:00:00 2001
+From: Ming Lei <ming.lei@canonical.com>
+Date: Tue, 16 Oct 2012 21:21:21 +0800
+Subject: [PATCH 056/105] USB: cdc-acm: fix pipe type of write endpoint
+
+commit c5211187f7ff8e8dbff4ebf7c011ac4c0ffe319c upstream.
+
+If the write endpoint is interrupt type, usb_sndintpipe() should
+be passed to usb_fill_int_urb() instead of usb_sndbulkpipe().
+
+Cc: Oliver Neukum <oneukum@suse.de>
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/class/cdc-acm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/usb/class/cdc-acm.c b/drivers/usb/class/cdc-acm.c
+index dbf7d20..7881832 100644
+--- a/drivers/usb/class/cdc-acm.c
++++ b/drivers/usb/class/cdc-acm.c
+@@ -1172,7 +1172,7 @@ made_compressed_probe:
+ 
+ 		if (usb_endpoint_xfer_int(epwrite))
+ 			usb_fill_int_urb(snd->urb, usb_dev,
+-				usb_sndbulkpipe(usb_dev, epwrite->bEndpointAddress),
++				usb_sndintpipe(usb_dev, epwrite->bEndpointAddress),
+ 				NULL, acm->writesize, acm_write_bulk, snd, epwrite->bInterval);
+ 		else
+ 			usb_fill_bulk_urb(snd->urb, usb_dev,
+-- 
+1.7.7.6
+

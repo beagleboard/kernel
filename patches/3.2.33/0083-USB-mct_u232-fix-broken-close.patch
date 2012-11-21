@@ -1,0 +1,54 @@
+From d69b1e5ea39dbe31721c5d1851bbffb22f08ae24 Mon Sep 17 00:00:00 2001
+From: Johan Hovold <jhovold@gmail.com>
+Date: Thu, 25 Oct 2012 10:29:14 +0200
+Subject: [PATCH 083/105] USB: mct_u232: fix broken close
+
+commit 5260e458f5eff269a43e4f1e9c47186c57b88ddb upstream.
+
+Make sure generic close is called at close.
+
+The driver relies on the generic write implementation but did not call
+generic close.
+
+Note that the call to kill the read urb is not redundant, as mct_u232
+uses an interrupt urb from the second port as the read urb and that
+generic close therefore fails to kill it.
+
+Compile-only tested.
+
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/mct_u232.c |   14 ++++++++------
+ 1 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/usb/serial/mct_u232.c b/drivers/usb/serial/mct_u232.c
+index 42de17b..d3addb2 100644
+--- a/drivers/usb/serial/mct_u232.c
++++ b/drivers/usb/serial/mct_u232.c
+@@ -577,12 +577,14 @@ static void mct_u232_close(struct usb_serial_port *port)
+ {
+ 	dbg("%s port %d", __func__, port->number);
+ 
+-	if (port->serial->dev) {
+-		/* shutdown our urbs */
+-		usb_kill_urb(port->write_urb);
+-		usb_kill_urb(port->read_urb);
+-		usb_kill_urb(port->interrupt_in_urb);
+-	}
++	/*
++	 * Must kill the read urb as it is actually an interrupt urb, which
++	 * generic close thus fails to kill.
++	 */
++	usb_kill_urb(port->read_urb);
++	usb_kill_urb(port->interrupt_in_urb);
++
++	usb_serial_generic_close(port);
+ } /* mct_u232_close */
+ 
+ 
+-- 
+1.7.7.6
+

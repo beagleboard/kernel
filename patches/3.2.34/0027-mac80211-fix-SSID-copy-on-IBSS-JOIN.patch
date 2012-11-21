@@ -1,0 +1,38 @@
+From 90764549be1489e6046381146e025e3b0ea148d4 Mon Sep 17 00:00:00 2001
+From: Antonio Quartulli <ordex@autistici.org>
+Date: Fri, 26 Oct 2012 18:54:25 +0200
+Subject: [PATCH 27/83] mac80211: fix SSID copy on IBSS JOIN
+
+commit badecb001a310408d3473b1fc2ed5aefd0bc92a9 upstream.
+
+The 'ssid' field of the cfg80211_ibss_params is a u8 pointer and
+its length is likely to be less than IEEE80211_MAX_SSID_LEN most
+of the time.
+
+This patch fixes the ssid copy in ieee80211_ibss_join() by using
+the SSID length to prevent it from reading beyond the string.
+
+Signed-off-by: Antonio Quartulli <ordex@autistici.org>
+[rewrapped commit message, small rewording]
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/mac80211/ibss.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/mac80211/ibss.c b/net/mac80211/ibss.c
+index 3ece106..8c7364b 100644
+--- a/net/mac80211/ibss.c
++++ b/net/mac80211/ibss.c
+@@ -940,7 +940,7 @@ int ieee80211_ibss_join(struct ieee80211_sub_if_data *sdata,
+ 	sdata->u.ibss.state = IEEE80211_IBSS_MLME_SEARCH;
+ 	sdata->u.ibss.ibss_join_req = jiffies;
+ 
+-	memcpy(sdata->u.ibss.ssid, params->ssid, IEEE80211_MAX_SSID_LEN);
++	memcpy(sdata->u.ibss.ssid, params->ssid, params->ssid_len);
+ 	sdata->u.ibss.ssid_len = params->ssid_len;
+ 
+ 	mutex_unlock(&sdata->u.ibss.mtx);
+-- 
+1.7.7.6
+

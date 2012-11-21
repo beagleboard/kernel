@@ -1,0 +1,50 @@
+From bf31776599fe93adc218247d07d3993f23471475 Mon Sep 17 00:00:00 2001
+From: Bryan Schumaker <bjschuma@netapp.com>
+Date: Tue, 30 Oct 2012 16:06:35 -0400
+Subject: [PATCH 42/83] NFS: Wait for session recovery to finish before
+ returning
+
+commit 399f11c3d872bd748e1575574de265a6304c7c43 upstream.
+
+Currently, we will schedule session recovery and then return to the
+caller of nfs4_handle_exception.  This works for most cases, but causes
+a hang on the following test case:
+
+	Client				Server
+	------				------
+	Open file over NFS v4.1
+	Write to file
+					Expire client
+	Try to lock file
+
+The server will return NFS4ERR_BADSESSION, prompting the client to
+schedule recovery.  However, the client will continue placing lock
+attempts and the open recovery never seems to be scheduled.  The
+simplest solution is to wait for session recovery to run before retrying
+the lock.
+
+Signed-off-by: Bryan Schumaker <bjschuma@netapp.com>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/nfs4proc.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
+index 61796a40..2468fac 100644
+--- a/fs/nfs/nfs4proc.c
++++ b/fs/nfs/nfs4proc.c
+@@ -303,8 +303,7 @@ static int nfs4_handle_exception(struct nfs_server *server, int errorcode, struc
+ 			dprintk("%s ERROR: %d Reset session\n", __func__,
+ 				errorcode);
+ 			nfs4_schedule_session_recovery(clp->cl_session);
+-			exception->retry = 1;
+-			break;
++			goto wait_on_recovery;
+ #endif /* defined(CONFIG_NFS_V4_1) */
+ 		case -NFS4ERR_FILE_OPEN:
+ 			if (exception->timeout > HZ) {
+-- 
+1.7.7.6
+

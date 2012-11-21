@@ -1,0 +1,51 @@
+From e5ba4a971eacb6633fd2e1febdab1a3a27fc6c6e Mon Sep 17 00:00:00 2001
+From: Bryan Schumaker <bjschuma@netapp.com>
+Date: Mon, 24 Sep 2012 13:39:01 -0400
+Subject: [PATCH 008/105] SUNRPC: Set alloc_slot for backchannel tcp ops
+
+commit 84e28a307e376f271505af65a7b7e212dd6f61f4 upstream.
+
+f39c1bfb5a03e2d255451bff05be0d7255298fa4 (SUNRPC: Fix a UDP transport
+regression) introduced the "alloc_slot" function for xprt operations,
+but never created one for the backchannel operations.  This patch fixes
+a null pointer dereference when mounting NFS over v4.1.
+
+Call Trace:
+ [<ffffffffa0207957>] ? xprt_reserve+0x47/0x50 [sunrpc]
+ [<ffffffffa02023a4>] call_reserve+0x34/0x60 [sunrpc]
+ [<ffffffffa020e280>] __rpc_execute+0x90/0x400 [sunrpc]
+ [<ffffffffa020e61a>] rpc_async_schedule+0x2a/0x40 [sunrpc]
+ [<ffffffff81073589>] process_one_work+0x139/0x500
+ [<ffffffff81070e70>] ? alloc_worker+0x70/0x70
+ [<ffffffffa020e5f0>] ? __rpc_execute+0x400/0x400 [sunrpc]
+ [<ffffffff81073d1e>] worker_thread+0x15e/0x460
+ [<ffffffff8145c839>] ? preempt_schedule+0x49/0x70
+ [<ffffffff81073bc0>] ? rescuer_thread+0x230/0x230
+ [<ffffffff81079603>] kthread+0x93/0xa0
+ [<ffffffff81465d04>] kernel_thread_helper+0x4/0x10
+ [<ffffffff81079570>] ? kthread_freezable_should_stop+0x70/0x70
+ [<ffffffff81465d00>] ? gs_change+0x13/0x13
+
+Signed-off-by: Bryan Schumaker <bjschuma@netapp.com>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/sunrpc/xprtsock.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/net/sunrpc/xprtsock.c b/net/sunrpc/xprtsock.c
+index 10a385b..d68b653 100644
+--- a/net/sunrpc/xprtsock.c
++++ b/net/sunrpc/xprtsock.c
+@@ -2488,6 +2488,7 @@ static struct rpc_xprt_ops xs_tcp_ops = {
+ static struct rpc_xprt_ops bc_tcp_ops = {
+ 	.reserve_xprt		= xprt_reserve_xprt,
+ 	.release_xprt		= xprt_release_xprt,
++	.alloc_slot		= xprt_alloc_slot,
+ 	.buf_alloc		= bc_malloc,
+ 	.buf_free		= bc_free,
+ 	.send_request		= bc_send_request,
+-- 
+1.7.7.6
+

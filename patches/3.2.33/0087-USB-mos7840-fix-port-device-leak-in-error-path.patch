@@ -1,0 +1,33 @@
+From cf6df54ec35ccff1746c3b828eb6ea823d218cbb Mon Sep 17 00:00:00 2001
+From: Johan Hovold <jhovold@gmail.com>
+Date: Thu, 25 Oct 2012 13:35:10 +0200
+Subject: [PATCH 087/105] USB: mos7840: fix port-device leak in error path
+
+commit 3eb55cc4ed88eee3b5230f66abcdbd2a91639eda upstream.
+
+The driver set the usb-serial port pointers to NULL on errors in attach,
+effectively preventing usb-serial core from decrementing the port ref
+counters and releasing the port devices and associated data.
+
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/mos7840.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/usb/serial/mos7840.c b/drivers/usb/serial/mos7840.c
+index e0667a9..feae34e 100644
+--- a/drivers/usb/serial/mos7840.c
++++ b/drivers/usb/serial/mos7840.c
+@@ -2594,7 +2594,6 @@ error:
+ 		kfree(mos7840_port->ctrl_buf);
+ 		usb_free_urb(mos7840_port->control_urb);
+ 		kfree(mos7840_port);
+-		serial->port[i] = NULL;
+ 	}
+ 	return status;
+ }
+-- 
+1.7.7.6
+

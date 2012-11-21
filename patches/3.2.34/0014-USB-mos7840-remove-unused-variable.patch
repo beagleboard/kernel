@@ -1,0 +1,33 @@
+From e4795e8fe0e24477814c7443152626580d5551c8 Mon Sep 17 00:00:00 2001
+From: Johan Hovold <jhovold@gmail.com>
+Date: Thu, 8 Nov 2012 18:28:59 +0100
+Subject: [PATCH 14/83] USB: mos7840: remove unused variable
+
+Fix warning about unused variable introduced by commit e681b66f2e19fa
+("USB: mos7840: remove invalid disconnect handling") upstream.
+
+A subsequent fix which removed the disconnect function got rid of the
+warning but that one was only backported to v3.6.
+
+Reported-by: Jiri Slaby <jslaby@suse.cz>
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/mos7840.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/usb/serial/mos7840.c b/drivers/usb/serial/mos7840.c
+index d481f80..43a38aa 100644
+--- a/drivers/usb/serial/mos7840.c
++++ b/drivers/usb/serial/mos7840.c
+@@ -2585,7 +2585,6 @@ error:
+ static void mos7840_disconnect(struct usb_serial *serial)
+ {
+ 	int i;
+-	unsigned long flags;
+ 	struct moschip_port *mos7840_port;
+ 	dbg("%s", " disconnect :entering..........");
+ 
+-- 
+1.7.7.6
+

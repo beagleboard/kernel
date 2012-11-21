@@ -1,0 +1,39 @@
+From 4d053229742af0bcceeb0973bd8934ae5b1207e8 Mon Sep 17 00:00:00 2001
+From: Piotr Haber <phaber@broadcom.com>
+Date: Thu, 11 Oct 2012 14:05:15 +0200
+Subject: [PATCH 049/105] bcma: fix unregistration of cores
+
+commit 1fffa905adffbf0d3767fc978ef09afb830275eb upstream.
+
+When cores are unregistered, entries
+need to be removed from cores list in a safe manner.
+
+Reported-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Reviewed-by: Arend Van Spriel <arend@broadcom.com>
+Signed-off-by: Piotr Haber <phaber@broadcom.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/bcma/main.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/bcma/main.c b/drivers/bcma/main.c
+index 10f92b3..7a987a7 100644
+--- a/drivers/bcma/main.c
++++ b/drivers/bcma/main.c
+@@ -124,9 +124,10 @@ static int bcma_register_cores(struct bcma_bus *bus)
+ 
+ static void bcma_unregister_cores(struct bcma_bus *bus)
+ {
+-	struct bcma_device *core;
++	struct bcma_device *core, *tmp;
+ 
+-	list_for_each_entry(core, &bus->cores, list) {
++	list_for_each_entry_safe(core, tmp, &bus->cores, list) {
++		list_del(&core->list);
+ 		if (core->dev_registered)
+ 			device_unregister(&core->dev);
+ 	}
+-- 
+1.7.7.6
+

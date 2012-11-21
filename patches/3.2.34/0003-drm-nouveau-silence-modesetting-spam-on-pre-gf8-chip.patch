@@ -1,0 +1,112 @@
+From 018b67c7631e3f78f659d32277ee0d8945e0db13 Mon Sep 17 00:00:00 2001
+From: Ben Skeggs <bskeggs@redhat.com>
+Date: Mon, 29 Oct 2012 09:03:07 +1000
+Subject: [PATCH 03/83] drm/nouveau: silence modesetting spam on pre-gf8
+ chipsets
+
+commit cee59f15a60cc6269a25e3f6fbf1a577d6ab8115 upstream.
+
+Signed-off-by: Ben Skeggs <bskeggs@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/nouveau/nv04_dac.c |    8 ++++----
+ drivers/gpu/drm/nouveau/nv04_dfp.c |    6 +++---
+ drivers/gpu/drm/nouveau/nv04_tv.c  |    4 ++--
+ 3 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/gpu/drm/nouveau/nv04_dac.c b/drivers/gpu/drm/nouveau/nv04_dac.c
+index e000455..2d6bfd0 100644
+--- a/drivers/gpu/drm/nouveau/nv04_dac.c
++++ b/drivers/gpu/drm/nouveau/nv04_dac.c
+@@ -209,7 +209,7 @@ out:
+ 	NVWriteVgaCrtc(dev, 0, NV_CIO_CR_MODE_INDEX, saved_cr_mode);
+ 
+ 	if (blue == 0x18) {
+-		NV_INFO(dev, "Load detected on head A\n");
++		NV_DEBUG(dev, "Load detected on head A\n");
+ 		return connector_status_connected;
+ 	}
+ 
+@@ -323,7 +323,7 @@ nv17_dac_detect(struct drm_encoder *encoder, struct drm_connector *connector)
+ 
+ 	if (nv17_dac_sample_load(encoder) &
+ 	    NV_PRAMDAC_TEST_CONTROL_SENSEB_ALLHI) {
+-		NV_INFO(dev, "Load detected on output %c\n",
++		NV_DEBUG(dev, "Load detected on output %c\n",
+ 			'@' + ffs(dcb->or));
+ 		return connector_status_connected;
+ 	} else {
+@@ -398,7 +398,7 @@ static void nv04_dac_commit(struct drm_encoder *encoder)
+ 
+ 	helper->dpms(encoder, DRM_MODE_DPMS_ON);
+ 
+-	NV_INFO(dev, "Output %s is running on CRTC %d using output %c\n",
++	NV_DEBUG(dev, "Output %s is running on CRTC %d using output %c\n",
+ 		drm_get_connector_name(&nouveau_encoder_connector_get(nv_encoder)->base),
+ 		nv_crtc->index, '@' + ffs(nv_encoder->dcb->or));
+ }
+@@ -447,7 +447,7 @@ static void nv04_dac_dpms(struct drm_encoder *encoder, int mode)
+ 		return;
+ 	nv_encoder->last_dpms = mode;
+ 
+-	NV_INFO(dev, "Setting dpms mode %d on vga encoder (output %d)\n",
++	NV_DEBUG(dev, "Setting dpms mode %d on vga encoder (output %d)\n",
+ 		     mode, nv_encoder->dcb->index);
+ 
+ 	nv04_dac_update_dacclk(encoder, mode == DRM_MODE_DPMS_ON);
+diff --git a/drivers/gpu/drm/nouveau/nv04_dfp.c b/drivers/gpu/drm/nouveau/nv04_dfp.c
+index 12098bf..752440c 100644
+--- a/drivers/gpu/drm/nouveau/nv04_dfp.c
++++ b/drivers/gpu/drm/nouveau/nv04_dfp.c
+@@ -468,7 +468,7 @@ static void nv04_dfp_commit(struct drm_encoder *encoder)
+ 
+ 	helper->dpms(encoder, DRM_MODE_DPMS_ON);
+ 
+-	NV_INFO(dev, "Output %s is running on CRTC %d using output %c\n",
++	NV_DEBUG(dev, "Output %s is running on CRTC %d using output %c\n",
+ 		drm_get_connector_name(&nouveau_encoder_connector_get(nv_encoder)->base),
+ 		nv_crtc->index, '@' + ffs(nv_encoder->dcb->or));
+ }
+@@ -511,7 +511,7 @@ static void nv04_lvds_dpms(struct drm_encoder *encoder, int mode)
+ 		return;
+ 	nv_encoder->last_dpms = mode;
+ 
+-	NV_INFO(dev, "Setting dpms mode %d on lvds encoder (output %d)\n",
++	NV_DEBUG(dev, "Setting dpms mode %d on lvds encoder (output %d)\n",
+ 		     mode, nv_encoder->dcb->index);
+ 
+ 	if (was_powersaving && is_powersaving_dpms(mode))
+@@ -556,7 +556,7 @@ static void nv04_tmds_dpms(struct drm_encoder *encoder, int mode)
+ 		return;
+ 	nv_encoder->last_dpms = mode;
+ 
+-	NV_INFO(dev, "Setting dpms mode %d on tmds encoder (output %d)\n",
++	NV_DEBUG(dev, "Setting dpms mode %d on tmds encoder (output %d)\n",
+ 		     mode, nv_encoder->dcb->index);
+ 
+ 	nv04_dfp_update_backlight(encoder, mode);
+diff --git a/drivers/gpu/drm/nouveau/nv04_tv.c b/drivers/gpu/drm/nouveau/nv04_tv.c
+index 3eb605d..4de1fbe 100644
+--- a/drivers/gpu/drm/nouveau/nv04_tv.c
++++ b/drivers/gpu/drm/nouveau/nv04_tv.c
+@@ -69,7 +69,7 @@ static void nv04_tv_dpms(struct drm_encoder *encoder, int mode)
+ 	struct nv04_mode_state *state = &dev_priv->mode_reg;
+ 	uint8_t crtc1A;
+ 
+-	NV_INFO(dev, "Setting dpms mode %d on TV encoder (output %d)\n",
++	NV_DEBUG(dev, "Setting dpms mode %d on TV encoder (output %d)\n",
+ 		mode, nv_encoder->dcb->index);
+ 
+ 	state->pllsel &= ~(PLLSEL_TV_CRTC1_MASK | PLLSEL_TV_CRTC2_MASK);
+@@ -162,7 +162,7 @@ static void nv04_tv_commit(struct drm_encoder *encoder)
+ 
+ 	helper->dpms(encoder, DRM_MODE_DPMS_ON);
+ 
+-	NV_INFO(dev, "Output %s is running on CRTC %d using output %c\n",
++	NV_DEBUG(dev, "Output %s is running on CRTC %d using output %c\n",
+ 		      drm_get_connector_name(&nouveau_encoder_connector_get(nv_encoder)->base), nv_crtc->index,
+ 		      '@' + ffs(nv_encoder->dcb->or));
+ }
+-- 
+1.7.7.6
+

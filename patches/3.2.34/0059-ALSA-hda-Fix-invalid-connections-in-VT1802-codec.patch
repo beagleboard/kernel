@@ -1,0 +1,54 @@
+From f9768075e021d1c894059a2e41bd41f30e3a4b10 Mon Sep 17 00:00:00 2001
+From: Takashi Iwai <tiwai@suse.de>
+Date: Wed, 7 Nov 2012 10:37:48 +0100
+Subject: [PATCH 59/83] ALSA: hda - Fix invalid connections in VT1802 codec
+
+commit ef4da45828603df57e5e21b8aa21a66ce309f79b upstream.
+
+VT1802 codec provides the invalid connection lists of NID 0x24 and
+0x33 containing the routes to a non-exist widget 0x3e.  This confuses
+the auto-parser.  Fix it up in the driver by overriding these
+connections.
+
+Reported-by: Massimo Del Fedele <max@veneto.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/pci/hda/patch_via.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/sound/pci/hda/patch_via.c b/sound/pci/hda/patch_via.c
+index dd9fc20..9e0c889 100644
+--- a/sound/pci/hda/patch_via.c
++++ b/sound/pci/hda/patch_via.c
+@@ -3686,6 +3686,18 @@ static void set_widgets_power_state_vt2002P(struct hda_codec *codec)
+ 				    AC_VERB_SET_POWER_STATE, AC_PWRST_D3);
+ }
+ 
++/* NIDs 0x24 and 0x33 on VT1802 have connections to non-existing NID 0x3e
++ * Replace this with mixer NID 0x1c
++ */
++static void fix_vt1802_connections(struct hda_codec *codec)
++{
++	static hda_nid_t conn_24[] = { 0x14, 0x1c };
++	static hda_nid_t conn_33[] = { 0x1c };
++
++	snd_hda_override_conn_list(codec, 0x24, ARRAY_SIZE(conn_24), conn_24);
++	snd_hda_override_conn_list(codec, 0x33, ARRAY_SIZE(conn_33), conn_33);
++}
++
+ /* patch for vt2002P */
+ static int patch_vt2002P(struct hda_codec *codec)
+ {
+@@ -3700,6 +3712,8 @@ static int patch_vt2002P(struct hda_codec *codec)
+ 	spec->aa_mix_nid = 0x21;
+ 	override_mic_boost(codec, 0x2b, 0, 3, 40);
+ 	override_mic_boost(codec, 0x29, 0, 3, 40);
++	if (spec->codec_type == VT1802)
++		fix_vt1802_connections(codec);
+ 	add_secret_dac_path(codec);
+ 
+ 	/* automatic parse from the BIOS config */
+-- 
+1.7.7.6
+

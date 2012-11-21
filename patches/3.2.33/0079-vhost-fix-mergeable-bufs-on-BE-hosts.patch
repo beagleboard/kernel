@@ -1,0 +1,35 @@
+From bb9a95a901946b9de68260b32ec6f24b797f01e7 Mon Sep 17 00:00:00 2001
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Wed, 24 Oct 2012 20:37:51 +0200
+Subject: [PATCH 079/105] vhost: fix mergeable bufs on BE hosts
+
+commit 910a578f7e9400a78a3b13aba0b4d2df16a2cb05 upstream.
+
+We copy head count to a 16 bit field, this works by chance on LE but on
+BE guest gets 0. Fix it up.
+
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Tested-by: Alexander Graf <agraf@suse.de>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/vhost/net.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/vhost/net.c b/drivers/vhost/net.c
+index 882a51f..b76071e 100644
+--- a/drivers/vhost/net.c
++++ b/drivers/vhost/net.c
+@@ -371,7 +371,8 @@ static void handle_rx(struct vhost_net *net)
+ 		.hdr.gso_type = VIRTIO_NET_HDR_GSO_NONE
+ 	};
+ 	size_t total_len = 0;
+-	int err, headcount, mergeable;
++	int err, mergeable;
++	s16 headcount;
+ 	size_t vhost_hlen, sock_hlen;
+ 	size_t vhost_len, sock_len;
+ 	/* TODO: check that we are running from vhost_worker? */
+-- 
+1.7.7.6
+

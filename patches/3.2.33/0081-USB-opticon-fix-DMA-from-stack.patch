@@ -1,0 +1,47 @@
+From 7c603f7404fd0fe69bafab4ac5cc2249a8a9b761 Mon Sep 17 00:00:00 2001
+From: Johan Hovold <jhovold@gmail.com>
+Date: Thu, 25 Oct 2012 10:29:11 +0200
+Subject: [PATCH 081/105] USB: opticon: fix DMA from stack
+
+commit ea0dbebffe118724cd4df7d9b071ea8ee48d48f0 upstream.
+
+Make sure to allocate the control-message buffer dynamically as some
+platforms cannot do DMA from stack.
+
+Note that only the first byte of the old buffer was used.
+
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/opticon.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/usb/serial/opticon.c b/drivers/usb/serial/opticon.c
+index c248a91..5b83e10 100644
+--- a/drivers/usb/serial/opticon.c
++++ b/drivers/usb/serial/opticon.c
+@@ -160,7 +160,11 @@ static int send_control_msg(struct usb_serial_port *port, u8 requesttype,
+ {
+ 	struct usb_serial *serial = port->serial;
+ 	int retval;
+-	u8 buffer[2];
++	u8 *buffer;
++
++	buffer = kzalloc(1, GFP_KERNEL);
++	if (!buffer)
++		return -ENOMEM;
+ 
+ 	buffer[0] = val;
+ 	/* Send the message to the vendor control endpoint
+@@ -169,6 +173,7 @@ static int send_control_msg(struct usb_serial_port *port, u8 requesttype,
+ 				requesttype,
+ 				USB_DIR_OUT|USB_TYPE_VENDOR|USB_RECIP_INTERFACE,
+ 				0, 0, buffer, 1, 0);
++	kfree(buffer);
+ 
+ 	return retval;
+ }
+-- 
+1.7.7.6
+

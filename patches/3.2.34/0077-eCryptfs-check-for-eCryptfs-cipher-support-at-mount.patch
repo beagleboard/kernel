@@ -1,0 +1,56 @@
+From 483f1c3e380c14973b86da3cee830c1217dbcd25 Mon Sep 17 00:00:00 2001
+From: Tim Sally <tsally@atomicpeace.com>
+Date: Thu, 12 Jul 2012 19:10:24 -0400
+Subject: [PATCH 77/83] eCryptfs: check for eCryptfs cipher support at mount
+
+commit 5f5b331d5c21228a6519dcb793fc1629646c51a6 upstream.
+
+The issue occurs when eCryptfs is mounted with a cipher supported by
+the crypto subsystem but not by eCryptfs. The mount succeeds and an
+error does not occur until a write. This change checks for eCryptfs
+cipher support at mount time.
+
+Resolves Launchpad issue #338914, reported by Tyler Hicks in 03/2009.
+https://bugs.launchpad.net/ecryptfs/+bug/338914
+
+Signed-off-by: Tim Sally <tsally@atomicpeace.com>
+Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ecryptfs/main.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
+
+diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
+index bf96109..94afdfd 100644
+--- a/fs/ecryptfs/main.c
++++ b/fs/ecryptfs/main.c
+@@ -280,6 +280,7 @@ static int ecryptfs_parse_options(struct ecryptfs_sb_info *sbi, char *options,
+ 	char *fnek_src;
+ 	char *cipher_key_bytes_src;
+ 	char *fn_cipher_key_bytes_src;
++	u8 cipher_code;
+ 
+ 	*check_ruid = 0;
+ 
+@@ -421,6 +422,18 @@ static int ecryptfs_parse_options(struct ecryptfs_sb_info *sbi, char *options,
+ 	    && !fn_cipher_key_bytes_set)
+ 		mount_crypt_stat->global_default_fn_cipher_key_bytes =
+ 			mount_crypt_stat->global_default_cipher_key_size;
++
++	cipher_code = ecryptfs_code_for_cipher_string(
++		mount_crypt_stat->global_default_cipher_name,
++		mount_crypt_stat->global_default_cipher_key_size);
++	if (!cipher_code) {
++		ecryptfs_printk(KERN_ERR,
++				"eCryptfs doesn't support cipher: %s",
++				mount_crypt_stat->global_default_cipher_name);
++		rc = -EINVAL;
++		goto out;
++	}
++
+ 	mutex_lock(&key_tfm_list_mutex);
+ 	if (!ecryptfs_tfm_exists(mount_crypt_stat->global_default_cipher_name,
+ 				 NULL)) {
+-- 
+1.7.7.6
+

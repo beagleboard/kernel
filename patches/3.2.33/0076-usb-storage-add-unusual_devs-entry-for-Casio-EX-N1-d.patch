@@ -1,0 +1,43 @@
+From 28e3bbb5c6d13ec90c6fdf822204a9029097e30b Mon Sep 17 00:00:00 2001
+From: Michael Shigorin <mike@osdn.org.ua>
+Date: Mon, 22 Oct 2012 12:18:56 +0300
+Subject: [PATCH 076/105] usb-storage: add unusual_devs entry for Casio EX-N1
+ digital camera
+
+commit d7870af7e2e3a91b462075ec1ca669b482215187 upstream.
+
+This commit sets removable subclass for Casio EX-N1 digital camera.
+
+The patch has been tested within an ALT Linux kernel:
+http://git.altlinux.org/people/led/packages/?p=kernel-image-3.0.git;a=commitdiff;h=c0fd891836e89fe0c93a4d536a59216d90e4e3e7
+
+See also https://bugzilla.kernel.org/show_bug.cgi?id=49221
+
+Signed-off-by: Oleksandr Chumachenko <ledest@gmail.com>
+Signed-off-by: Michael Shigorin <mike@osdn.org.ua>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/storage/unusual_devs.h |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/usb/storage/unusual_devs.h b/drivers/usb/storage/unusual_devs.h
+index 591f57f..fa8a1b2 100644
+--- a/drivers/usb/storage/unusual_devs.h
++++ b/drivers/usb/storage/unusual_devs.h
+@@ -1004,6 +1004,12 @@ UNUSUAL_DEV( 0x07cf, 0x1001, 0x1000, 0x9999,
+ 		USB_SC_8070, USB_PR_CB, NULL,
+ 		US_FL_NEED_OVERRIDE | US_FL_FIX_INQUIRY ),
+ 
++/* Submitted by Oleksandr Chumachenko <ledest@gmail.com> */
++UNUSUAL_DEV( 0x07cf, 0x1167, 0x0100, 0x0100,
++		"Casio",
++		"EX-N1 DigitalCamera",
++		USB_SC_8070, USB_PR_DEVICE, NULL, 0),
++
+ /* Submitted by Hartmut Wahl <hwahl@hwahl.de>*/
+ UNUSUAL_DEV( 0x0839, 0x000a, 0x0001, 0x0001,
+ 		"Samsung",
+-- 
+1.7.7.6
+

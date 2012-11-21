@@ -1,0 +1,47 @@
+From 880b1b339a209d4041a8e8589c0390d3cded60df Mon Sep 17 00:00:00 2001
+From: Egbert Eich <eich@suse.de>
+Date: Mon, 15 Oct 2012 08:21:39 +0200
+Subject: [PATCH 047/105] drm/radeon: Don't destroy I2C Bus Rec in
+ radeon_ext_tmds_enc_destroy().
+
+commit 082918471139b07964967cfe5f70230909c82ae1 upstream.
+
+radeon_i2c_fini() walks thru the list of I2C bus recs rdev->i2c_bus[]
+to destroy each of them.
+radeon_ext_tmds_enc_destroy() however also has code to destroy it's
+associated I2C bus rec which has been obtained by radeon_i2c_lookup()
+and is therefore also in the i2c_bus[] list.
+This causes a double free resulting in a kernel panic when unloading
+the radeon driver.
+Removing destroy code from radeon_ext_tmds_enc_destroy() fixes this
+problem.
+
+agd5f: fix compiler warning
+
+Signed-off-by: Egbert Eich <eich@suse.de>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_legacy_encoders.c |    6 +-----
+ 1 files changed, 1 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c b/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+index 2f46e0c..3ad3cc6 100644
+--- a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
++++ b/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+@@ -973,11 +973,7 @@ static void radeon_legacy_tmds_ext_mode_set(struct drm_encoder *encoder,
+ static void radeon_ext_tmds_enc_destroy(struct drm_encoder *encoder)
+ {
+ 	struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
+-	struct radeon_encoder_ext_tmds *tmds = radeon_encoder->enc_priv;
+-	if (tmds) {
+-		if (tmds->i2c_bus)
+-			radeon_i2c_destroy(tmds->i2c_bus);
+-	}
++	/* don't destroy the i2c bus record here, this will be done in radeon_i2c_fini */
+ 	kfree(radeon_encoder->enc_priv);
+ 	drm_encoder_cleanup(encoder);
+ 	kfree(radeon_encoder);
+-- 
+1.7.7.6
+

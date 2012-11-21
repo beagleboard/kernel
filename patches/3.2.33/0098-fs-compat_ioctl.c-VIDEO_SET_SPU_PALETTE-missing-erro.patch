@@ -1,0 +1,41 @@
+From 829332aa385ce94933a6450ca91e58cb22a06bb2 Mon Sep 17 00:00:00 2001
+From: Kees Cook <keescook@chromium.org>
+Date: Thu, 25 Oct 2012 13:38:16 -0700
+Subject: [PATCH 098/105] fs/compat_ioctl.c: VIDEO_SET_SPU_PALETTE missing
+ error check
+
+commit 12176503366885edd542389eed3aaf94be163fdb upstream.
+
+The compat ioctl for VIDEO_SET_SPU_PALETTE was missing an error check
+while converting ioctl arguments.  This could lead to leaking kernel
+stack contents into userspace.
+
+Patch extracted from existing fix in grsecurity.
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: David Miller <davem@davemloft.net>
+Cc: Brad Spengler <spender@grsecurity.net>
+Cc: PaX Team <pageexec@freemail.hu>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/compat_ioctl.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
+index 51352de..f854cf9 100644
+--- a/fs/compat_ioctl.c
++++ b/fs/compat_ioctl.c
+@@ -210,6 +210,8 @@ static int do_video_set_spu_palette(unsigned int fd, unsigned int cmd,
+ 
+ 	err  = get_user(palp, &up->palette);
+ 	err |= get_user(length, &up->length);
++	if (err)
++		return -EFAULT;
+ 
+ 	up_native = compat_alloc_user_space(sizeof(struct video_spu_palette));
+ 	err  = put_user(compat_ptr(palp), &up_native->palette);
+-- 
+1.7.7.6
+

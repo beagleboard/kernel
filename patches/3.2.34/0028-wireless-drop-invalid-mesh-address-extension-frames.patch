@@ -1,0 +1,65 @@
+From ac6c6b76947283c4eb1d7f6d1c68f85df0af4f63 Mon Sep 17 00:00:00 2001
+From: Johannes Berg <johannes.berg@intel.com>
+Date: Thu, 25 Oct 2012 21:51:59 +0200
+Subject: [PATCH 28/83] wireless: drop invalid mesh address extension frames
+
+commit 7dd111e8ee10cc6816669eabcad3334447673236 upstream.
+
+The mesh header can have address extension by a 4th
+or a 5th and 6th address, but never both. Drop such
+frames in 802.11 -> 802.3 conversion along with any
+frames that have the wrong extension.
+
+Reviewed-by: Javier Cardona <javier@cozybit.com>
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/wireless/util.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/net/wireless/util.c b/net/wireless/util.c
+index 22fb802..61a09e3 100644
+--- a/net/wireless/util.c
++++ b/net/wireless/util.c
+@@ -304,18 +304,15 @@ EXPORT_SYMBOL(ieee80211_get_hdrlen_from_skb);
+ static int ieee80211_get_mesh_hdrlen(struct ieee80211s_hdr *meshhdr)
+ {
+ 	int ae = meshhdr->flags & MESH_FLAGS_AE;
+-	/* 7.1.3.5a.2 */
++	/* 802.11-2012, 8.2.4.7.3 */
+ 	switch (ae) {
++	default:
+ 	case 0:
+ 		return 6;
+ 	case MESH_FLAGS_AE_A4:
+ 		return 12;
+ 	case MESH_FLAGS_AE_A5_A6:
+ 		return 18;
+-	case (MESH_FLAGS_AE_A4 | MESH_FLAGS_AE_A5_A6):
+-		return 24;
+-	default:
+-		return 6;
+ 	}
+ }
+ 
+@@ -365,6 +362,8 @@ int ieee80211_data_to_8023(struct sk_buff *skb, const u8 *addr,
+ 			/* make sure meshdr->flags is on the linear part */
+ 			if (!pskb_may_pull(skb, hdrlen + 1))
+ 				return -1;
++			if (meshdr->flags & MESH_FLAGS_AE_A4)
++				return -1;
+ 			if (meshdr->flags & MESH_FLAGS_AE_A5_A6) {
+ 				skb_copy_bits(skb, hdrlen +
+ 					offsetof(struct ieee80211s_hdr, eaddr1),
+@@ -389,6 +388,8 @@ int ieee80211_data_to_8023(struct sk_buff *skb, const u8 *addr,
+ 			/* make sure meshdr->flags is on the linear part */
+ 			if (!pskb_may_pull(skb, hdrlen + 1))
+ 				return -1;
++			if (meshdr->flags & MESH_FLAGS_AE_A5_A6)
++				return -1;
+ 			if (meshdr->flags & MESH_FLAGS_AE_A4)
+ 				skb_copy_bits(skb, hdrlen +
+ 					offsetof(struct ieee80211s_hdr, eaddr1),
+-- 
+1.7.7.6
+

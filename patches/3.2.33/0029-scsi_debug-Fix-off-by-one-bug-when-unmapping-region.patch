@@ -1,0 +1,51 @@
+From 4da22b76d9915268ef8a458d63594632cb251fac Mon Sep 17 00:00:00 2001
+From: Lukas Czerner <lczerner@redhat.com>
+Date: Thu, 16 Aug 2012 16:38:45 +0200
+Subject: [PATCH 029/105] scsi_debug: Fix off-by-one bug when unmapping region
+
+commit bc977749e967daa56de1922cf4cb38525631c51c upstream.
+
+Currently it is possible to unmap one more block than user requested to
+due to the off-by-one error in unmap_region(). This is probably due to
+the fact that the end variable despite its name actually points to the
+last block to unmap + 1. However in the condition it is handled as the
+last block of the region to unmap.
+
+The bug was not previously spotted probably due to the fact that the
+region was not zeroed, which has changed with commit
+be1dd78de5686c062bb3103f9e86d444a10ed783. With that commit we were able
+to corrupt the ext4 file system on 256M scsi_debug device with LBPRZ
+enabled using fstrim.
+
+Since the 'end' semantic is the same in several functions there this
+commit just fixes the condition to use the 'end' variable correctly in
+that context.
+
+Reported-by: Paolo Bonzini <pbonzini@redhat.com>
+Signed-off-by: Lukas Czerner <lczerner@redhat.com>
+Reviewed-by: Martin K. Petersen <martin.petersen@oracle.com>
+Acked-by: Douglas Gilbert <dgilbert@interlog.com>
+Signed-off-by: James Bottomley <JBottomley@Parallels.com>
+[bwh: Backported to 3.2: adjust context; unwrap the if-statement]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/scsi/scsi_debug.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/scsi/scsi_debug.c b/drivers/scsi/scsi_debug.c
+index 6888b2c..b3a729c 100644
+--- a/drivers/scsi/scsi_debug.c
++++ b/drivers/scsi/scsi_debug.c
+@@ -2045,8 +2045,7 @@ static void unmap_region(sector_t lba, unsigned int len)
+ 		block = lba + alignment;
+ 		rem = do_div(block, granularity);
+ 
+-		if (rem == 0 && lba + granularity <= end &&
+-		    block < map_size)
++		if (rem == 0 && lba + granularity < end && block < map_size)
+ 			clear_bit(block, map_storep);
+ 
+ 		lba += granularity - rem;
+-- 
+1.7.7.6
+

@@ -1,0 +1,42 @@
+From b804ba6b4c3fa772fffaea48900138e10a4b07f2 Mon Sep 17 00:00:00 2001
+From: "K. Y. Srinivasan" <kys@microsoft.com>
+Date: Tue, 2 Oct 2012 11:03:31 -0700
+Subject: [PATCH 030/105] storvsc: Account for in-transit packets in the RESET
+ path
+
+commit 5c1b10ab7f93d24f29b5630286e323d1c5802d5c upstream.
+
+Properly account for I/O in transit before returning from the RESET call.
+In the absense of this patch, we could have a situation where the host may
+respond to a command that was issued prior to the issuance of the RESET
+command at some arbitrary time after responding to the RESET command.
+Currently, the host does not do anything with the RESET command.
+
+Signed-off-by: K. Y. Srinivasan <kys@microsoft.com>
+Signed-off-by: James Bottomley <JBottomley@Parallels.com>
+[bwh: Backported to 3.2: adjust filename, context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/hv/storvsc_drv.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/staging/hv/storvsc_drv.c b/drivers/staging/hv/storvsc_drv.c
+index ae8c33e..abc5ac5 100644
+--- a/drivers/staging/hv/storvsc_drv.c
++++ b/drivers/staging/hv/storvsc_drv.c
+@@ -1043,7 +1043,12 @@ static int storvsc_host_reset(struct hv_device *device)
+ 	/*
+ 	 * At this point, all outstanding requests in the adapter
+ 	 * should have been flushed out and return to us
++	 * There is a potential race here where the host may be in
++	 * the process of responding when we return from here.
++	 * Just wait for all in-transit packets to be accounted for
++	 * before we return from here.
+ 	 */
++	storvsc_wait_to_drain(stor_device);
+ 
+ cleanup:
+ 	return ret;
+-- 
+1.7.7.6
+

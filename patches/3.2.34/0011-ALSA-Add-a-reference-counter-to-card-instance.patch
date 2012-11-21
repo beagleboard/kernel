@@ -1,0 +1,398 @@
+From 5dde3800d90394ac3b69b3d810c82d04686984f7 Mon Sep 17 00:00:00 2001
+From: Takashi Iwai <tiwai@suse.de>
+Date: Tue, 16 Oct 2012 13:05:59 +0200
+Subject: [PATCH 11/83] ALSA: Add a reference counter to card instance
+
+commit a0830dbd4e42b38aefdf3fb61ba5019a1a99ea85 upstream.
+
+For more strict protection for wild disconnections, a refcount is
+introduced to the card instance, and let it up/down when an object is
+referred via snd_lookup_*() in the open ops.
+
+The free-after-last-close check is also changed to check this refcount
+instead of the empty list, too.
+
+Reported-by: Matthieu CASTET <matthieu.castet@parrot.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ include/sound/core.h       |    3 ++
+ sound/core/control.c       |    3 ++
+ sound/core/hwdep.c         |    5 +++-
+ sound/core/init.c          |   50 ++++++++++++++++++++++++++-----------------
+ sound/core/oss/mixer_oss.c |   10 +++++++-
+ sound/core/oss/pcm_oss.c   |    2 +
+ sound/core/pcm_native.c    |    9 ++++++-
+ sound/core/rawmidi.c       |    6 ++++-
+ sound/core/sound.c         |   11 ++++++++-
+ sound/core/sound_oss.c     |   10 +++++++-
+ 10 files changed, 79 insertions(+), 30 deletions(-)
+
+diff --git a/include/sound/core.h b/include/sound/core.h
+index 3be5ab7..222f11e 100644
+--- a/include/sound/core.h
++++ b/include/sound/core.h
+@@ -132,6 +132,7 @@ struct snd_card {
+ 	int shutdown;			/* this card is going down */
+ 	int free_on_last_close;		/* free in context of file_release */
+ 	wait_queue_head_t shutdown_sleep;
++	atomic_t refcount;		/* refcount for disconnection */
+ 	struct device *dev;		/* device assigned to this card */
+ 	struct device *card_dev;	/* cardX object for sysfs */
+ 
+@@ -189,6 +190,7 @@ struct snd_minor {
+ 	const struct file_operations *f_ops;	/* file operations */
+ 	void *private_data;		/* private data for f_ops->open */
+ 	struct device *dev;		/* device for sysfs */
++	struct snd_card *card_ptr;	/* assigned card instance */
+ };
+ 
+ /* return a device pointer linked to each sound device as a parent */
+@@ -295,6 +297,7 @@ int snd_card_info_done(void);
+ int snd_component_add(struct snd_card *card, const char *component);
+ int snd_card_file_add(struct snd_card *card, struct file *file);
+ int snd_card_file_remove(struct snd_card *card, struct file *file);
++void snd_card_unref(struct snd_card *card);
+ 
+ #define snd_card_set_dev(card, devptr) ((card)->dev = (devptr))
+ 
+diff --git a/sound/core/control.c b/sound/core/control.c
+index 819a5c5..699ccf5 100644
+--- a/sound/core/control.c
++++ b/sound/core/control.c
+@@ -86,6 +86,7 @@ static int snd_ctl_open(struct inode *inode, struct file *file)
+ 	write_lock_irqsave(&card->ctl_files_rwlock, flags);
+ 	list_add_tail(&ctl->list, &card->ctl_files);
+ 	write_unlock_irqrestore(&card->ctl_files_rwlock, flags);
++	snd_card_unref(card);
+ 	return 0;
+ 
+       __error:
+@@ -93,6 +94,8 @@ static int snd_ctl_open(struct inode *inode, struct file *file)
+       __error2:
+ 	snd_card_file_remove(card, file);
+       __error1:
++	if (card)
++		snd_card_unref(card);
+       	return err;
+ }
+ 
+diff --git a/sound/core/hwdep.c b/sound/core/hwdep.c
+index 75ea16f..53a6ba5 100644
+--- a/sound/core/hwdep.c
++++ b/sound/core/hwdep.c
+@@ -100,8 +100,10 @@ static int snd_hwdep_open(struct inode *inode, struct file * file)
+ 	if (hw == NULL)
+ 		return -ENODEV;
+ 
+-	if (!try_module_get(hw->card->module))
++	if (!try_module_get(hw->card->module)) {
++		snd_card_unref(hw->card);
+ 		return -EFAULT;
++	}
+ 
+ 	init_waitqueue_entry(&wait, current);
+ 	add_wait_queue(&hw->open_wait, &wait);
+@@ -148,6 +150,7 @@ static int snd_hwdep_open(struct inode *inode, struct file * file)
+ 	mutex_unlock(&hw->open_mutex);
+ 	if (err < 0)
+ 		module_put(hw->card->module);
++	snd_card_unref(hw->card);
+ 	return err;
+ }
+ 
+diff --git a/sound/core/init.c b/sound/core/init.c
+index 3ac49b1..fa0f35b 100644
+--- a/sound/core/init.c
++++ b/sound/core/init.c
+@@ -212,6 +212,7 @@ int snd_card_create(int idx, const char *xid,
+ 	spin_lock_init(&card->files_lock);
+ 	INIT_LIST_HEAD(&card->files_list);
+ 	init_waitqueue_head(&card->shutdown_sleep);
++	atomic_set(&card->refcount, 0);
+ #ifdef CONFIG_PM
+ 	mutex_init(&card->power_lock);
+ 	init_waitqueue_head(&card->power_sleep);
+@@ -445,21 +446,36 @@ static int snd_card_do_free(struct snd_card *card)
+ 	return 0;
+ }
+ 
++/**
++ * snd_card_unref - release the reference counter
++ * @card: the card instance
++ *
++ * Decrements the reference counter.  When it reaches to zero, wake up
++ * the sleeper and call the destructor if needed.
++ */
++void snd_card_unref(struct snd_card *card)
++{
++	if (atomic_dec_and_test(&card->refcount)) {
++		wake_up(&card->shutdown_sleep);
++		if (card->free_on_last_close)
++			snd_card_do_free(card);
++	}
++}
++EXPORT_SYMBOL(snd_card_unref);
++
+ int snd_card_free_when_closed(struct snd_card *card)
+ {
+-	int free_now = 0;
+-	int ret = snd_card_disconnect(card);
+-	if (ret)
+-		return ret;
++	int ret;
+ 
+-	spin_lock(&card->files_lock);
+-	if (list_empty(&card->files_list))
+-		free_now = 1;
+-	else
+-		card->free_on_last_close = 1;
+-	spin_unlock(&card->files_lock);
++	atomic_inc(&card->refcount);
++	ret = snd_card_disconnect(card);
++	if (ret) {
++		atomic_dec(&card->refcount);
++		return ret;
++	}
+ 
+-	if (free_now)
++	card->free_on_last_close = 1;
++	if (atomic_dec_and_test(&card->refcount))
+ 		snd_card_do_free(card);
+ 	return 0;
+ }
+@@ -473,7 +489,7 @@ int snd_card_free(struct snd_card *card)
+ 		return ret;
+ 
+ 	/* wait, until all devices are ready for the free operation */
+-	wait_event(card->shutdown_sleep, list_empty(&card->files_list));
++	wait_event(card->shutdown_sleep, !atomic_read(&card->refcount));
+ 	snd_card_do_free(card);
+ 	return 0;
+ }
+@@ -854,6 +870,7 @@ int snd_card_file_add(struct snd_card *card, struct file *file)
+ 		return -ENODEV;
+ 	}
+ 	list_add(&mfile->list, &card->files_list);
++	atomic_inc(&card->refcount);
+ 	spin_unlock(&card->files_lock);
+ 	return 0;
+ }
+@@ -876,7 +893,6 @@ EXPORT_SYMBOL(snd_card_file_add);
+ int snd_card_file_remove(struct snd_card *card, struct file *file)
+ {
+ 	struct snd_monitor_file *mfile, *found = NULL;
+-	int last_close = 0;
+ 
+ 	spin_lock(&card->files_lock);
+ 	list_for_each_entry(mfile, &card->files_list, list) {
+@@ -891,19 +907,13 @@ int snd_card_file_remove(struct snd_card *card, struct file *file)
+ 			break;
+ 		}
+ 	}
+-	if (list_empty(&card->files_list))
+-		last_close = 1;
+ 	spin_unlock(&card->files_lock);
+-	if (last_close) {
+-		wake_up(&card->shutdown_sleep);
+-		if (card->free_on_last_close)
+-			snd_card_do_free(card);
+-	}
+ 	if (!found) {
+ 		snd_printk(KERN_ERR "ALSA card file remove problem (%p)\n", file);
+ 		return -ENOENT;
+ 	}
+ 	kfree(found);
++	snd_card_unref(card);
+ 	return 0;
+ }
+ 
+diff --git a/sound/core/oss/mixer_oss.c b/sound/core/oss/mixer_oss.c
+index 18297f7..05395aa 100644
+--- a/sound/core/oss/mixer_oss.c
++++ b/sound/core/oss/mixer_oss.c
+@@ -52,14 +52,19 @@ static int snd_mixer_oss_open(struct inode *inode, struct file *file)
+ 					 SNDRV_OSS_DEVICE_TYPE_MIXER);
+ 	if (card == NULL)
+ 		return -ENODEV;
+-	if (card->mixer_oss == NULL)
++	if (card->mixer_oss == NULL) {
++		snd_card_unref(card);
+ 		return -ENODEV;
++	}
+ 	err = snd_card_file_add(card, file);
+-	if (err < 0)
++	if (err < 0) {
++		snd_card_unref(card);
+ 		return err;
++	}
+ 	fmixer = kzalloc(sizeof(*fmixer), GFP_KERNEL);
+ 	if (fmixer == NULL) {
+ 		snd_card_file_remove(card, file);
++		snd_card_unref(card);
+ 		return -ENOMEM;
+ 	}
+ 	fmixer->card = card;
+@@ -68,6 +73,7 @@ static int snd_mixer_oss_open(struct inode *inode, struct file *file)
+ 	if (!try_module_get(card->module)) {
+ 		kfree(fmixer);
+ 		snd_card_file_remove(card, file);
++		snd_card_unref(card);
+ 		return -EFAULT;
+ 	}
+ 	return 0;
+diff --git a/sound/core/oss/pcm_oss.c b/sound/core/oss/pcm_oss.c
+index 3cc4b86..f3cf781 100644
+--- a/sound/core/oss/pcm_oss.c
++++ b/sound/core/oss/pcm_oss.c
+@@ -2457,6 +2457,8 @@ static int snd_pcm_oss_open(struct inode *inode, struct file *file)
+       __error2:
+       	snd_card_file_remove(pcm->card, file);
+       __error1:
++	if (pcm)
++		snd_card_unref(pcm->card);
+ 	return err;
+ }
+ 
+diff --git a/sound/core/pcm_native.c b/sound/core/pcm_native.c
+index e62da93..c67994d 100644
+--- a/sound/core/pcm_native.c
++++ b/sound/core/pcm_native.c
+@@ -1628,6 +1628,7 @@ static int snd_pcm_link(struct snd_pcm_substream *substream, int fd)
+  _end:
+ 	write_unlock_irq(&snd_pcm_link_rwlock);
+ 	up_write(&snd_pcm_link_rwsem);
++	snd_card_unref(substream1->pcm->card);
+ 	fput(file);
+ 	return res;
+ }
+@@ -2100,7 +2101,9 @@ static int snd_pcm_playback_open(struct inode *inode, struct file *file)
+ 		return err;
+ 	pcm = snd_lookup_minor_data(iminor(inode),
+ 				    SNDRV_DEVICE_TYPE_PCM_PLAYBACK);
+-	return snd_pcm_open(file, pcm, SNDRV_PCM_STREAM_PLAYBACK);
++	err = snd_pcm_open(file, pcm, SNDRV_PCM_STREAM_PLAYBACK);
++	snd_card_unref(pcm->card);
++	return err;
+ }
+ 
+ static int snd_pcm_capture_open(struct inode *inode, struct file *file)
+@@ -2111,7 +2114,9 @@ static int snd_pcm_capture_open(struct inode *inode, struct file *file)
+ 		return err;
+ 	pcm = snd_lookup_minor_data(iminor(inode),
+ 				    SNDRV_DEVICE_TYPE_PCM_CAPTURE);
+-	return snd_pcm_open(file, pcm, SNDRV_PCM_STREAM_CAPTURE);
++	err = snd_pcm_open(file, pcm, SNDRV_PCM_STREAM_CAPTURE);
++	snd_card_unref(pcm->card);
++	return err;
+ }
+ 
+ static int snd_pcm_open(struct file *file, struct snd_pcm *pcm, int stream)
+diff --git a/sound/core/rawmidi.c b/sound/core/rawmidi.c
+index ebf6e49..7d4f62a 100644
+--- a/sound/core/rawmidi.c
++++ b/sound/core/rawmidi.c
+@@ -379,8 +379,10 @@ static int snd_rawmidi_open(struct inode *inode, struct file *file)
+ 	if (rmidi == NULL)
+ 		return -ENODEV;
+ 
+-	if (!try_module_get(rmidi->card->module))
++	if (!try_module_get(rmidi->card->module)) {
++		snd_card_unref(rmidi->card);
+ 		return -ENXIO;
++	}
+ 
+ 	mutex_lock(&rmidi->open_mutex);
+ 	card = rmidi->card;
+@@ -440,6 +442,7 @@ static int snd_rawmidi_open(struct inode *inode, struct file *file)
+ #endif
+ 	file->private_data = rawmidi_file;
+ 	mutex_unlock(&rmidi->open_mutex);
++	snd_card_unref(rmidi->card);
+ 	return 0;
+ 
+  __error:
+@@ -447,6 +450,7 @@ static int snd_rawmidi_open(struct inode *inode, struct file *file)
+  __error_card:
+ 	mutex_unlock(&rmidi->open_mutex);
+ 	module_put(rmidi->card->module);
++	snd_card_unref(rmidi->card);
+ 	return err;
+ }
+ 
+diff --git a/sound/core/sound.c b/sound/core/sound.c
+index 828af35..f188976 100644
+--- a/sound/core/sound.c
++++ b/sound/core/sound.c
+@@ -99,6 +99,10 @@ static void snd_request_other(int minor)
+  *
+  * Checks that a minor device with the specified type is registered, and returns
+  * its user data pointer.
++ *
++ * This function increments the reference counter of the card instance
++ * if an associated instance with the given minor number and type is found.
++ * The caller must call snd_card_unref() appropriately later.
+  */
+ void *snd_lookup_minor_data(unsigned int minor, int type)
+ {
+@@ -109,9 +113,11 @@ void *snd_lookup_minor_data(unsigned int minor, int type)
+ 		return NULL;
+ 	mutex_lock(&sound_mutex);
+ 	mreg = snd_minors[minor];
+-	if (mreg && mreg->type == type)
++	if (mreg && mreg->type == type) {
+ 		private_data = mreg->private_data;
+-	else
++		if (mreg->card_ptr)
++			atomic_inc(&mreg->card_ptr->refcount);
++	} else
+ 		private_data = NULL;
+ 	mutex_unlock(&sound_mutex);
+ 	return private_data;
+@@ -275,6 +281,7 @@ int snd_register_device_for_dev(int type, struct snd_card *card, int dev,
+ 	preg->device = dev;
+ 	preg->f_ops = f_ops;
+ 	preg->private_data = private_data;
++	preg->card_ptr = card;
+ 	mutex_lock(&sound_mutex);
+ #ifdef CONFIG_SND_DYNAMIC_MINORS
+ 	minor = snd_find_free_minor(type);
+diff --git a/sound/core/sound_oss.c b/sound/core/sound_oss.c
+index c700920..7442c7a 100644
+--- a/sound/core/sound_oss.c
++++ b/sound/core/sound_oss.c
+@@ -40,6 +40,9 @@
+ static struct snd_minor *snd_oss_minors[SNDRV_OSS_MINORS];
+ static DEFINE_MUTEX(sound_oss_mutex);
+ 
++/* NOTE: This function increments the refcount of the associated card like
++ * snd_lookup_minor_data(); the caller must call snd_card_unref() appropriately
++ */
+ void *snd_lookup_oss_minor_data(unsigned int minor, int type)
+ {
+ 	struct snd_minor *mreg;
+@@ -49,9 +52,11 @@ void *snd_lookup_oss_minor_data(unsigned int minor, int type)
+ 		return NULL;
+ 	mutex_lock(&sound_oss_mutex);
+ 	mreg = snd_oss_minors[minor];
+-	if (mreg && mreg->type == type)
++	if (mreg && mreg->type == type) {
+ 		private_data = mreg->private_data;
+-	else
++		if (mreg->card_ptr)
++			atomic_inc(&mreg->card_ptr->refcount);
++	} else
+ 		private_data = NULL;
+ 	mutex_unlock(&sound_oss_mutex);
+ 	return private_data;
+@@ -123,6 +128,7 @@ int snd_register_oss_device(int type, struct snd_card *card, int dev,
+ 	preg->device = dev;
+ 	preg->f_ops = f_ops;
+ 	preg->private_data = private_data;
++	preg->card_ptr = card;
+ 	mutex_lock(&sound_oss_mutex);
+ 	snd_oss_minors[minor] = preg;
+ 	minor_unit = SNDRV_MINOR_OSS_DEVICE(minor);
+-- 
+1.7.7.6
+

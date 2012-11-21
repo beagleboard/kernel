@@ -1,0 +1,40 @@
+From 5e27a9ab64444e26656eb6d9efd885b49055eeaa Mon Sep 17 00:00:00 2001
+From: Chris Metcalf <cmetcalf@tilera.com>
+Date: Fri, 19 Oct 2012 11:43:11 -0400
+Subject: [PATCH 068/105] arch/tile: avoid generating .eh_frame information in
+ modules
+
+commit 627072b06c362bbe7dc256f618aaa63351f0cfe6 upstream.
+
+The tile tool chain uses the .eh_frame information for backtracing.
+The vmlinux build drops any .eh_frame sections at link time, but when
+present in kernel modules, it causes a module load failure due to the
+presence of unsupported pc-relative relocations.  When compiling to
+use compiler feedback support, the compiler by default omits .eh_frame
+information, so we don't see this problem.  But when not using feedback,
+we need to explicitly suppress the .eh_frame.
+
+Signed-off-by: Chris Metcalf <cmetcalf@tilera.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/tile/Makefile |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/arch/tile/Makefile b/arch/tile/Makefile
+index 17acce7..04c637c 100644
+--- a/arch/tile/Makefile
++++ b/arch/tile/Makefile
+@@ -26,6 +26,10 @@ $(error Set TILERA_ROOT or CROSS_COMPILE when building $(ARCH) on $(HOST_ARCH))
+   endif
+ endif
+ 
++# The tile compiler may emit .eh_frame information for backtracing.
++# In kernel modules, this causes load failures due to unsupported relocations.
++KBUILD_CFLAGS   += -fno-asynchronous-unwind-tables
++
+ ifneq ($(CONFIG_DEBUG_EXTRA_FLAGS),"")
+ KBUILD_CFLAGS   += $(CONFIG_DEBUG_EXTRA_FLAGS)
+ endif
+-- 
+1.7.7.6
+

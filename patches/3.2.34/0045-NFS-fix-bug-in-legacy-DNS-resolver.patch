@@ -1,0 +1,58 @@
+From ff86c75d7b1b2271507d337206e2bf1763d1f0d3 Mon Sep 17 00:00:00 2001
+From: NeilBrown <neilb@suse.de>
+Date: Wed, 31 Oct 2012 12:16:01 +1100
+Subject: [PATCH 45/83] NFS: fix bug in legacy DNS resolver.
+
+commit 8d96b10639fb402357b75b055b1e82a65ff95050 upstream.
+
+The DNS resolver's use of the sunrpc cache involves a 'ttl' number
+(relative) rather that a timeout (absolute).  This confused me when
+I wrote
+  commit c5b29f885afe890f953f7f23424045cdad31d3e4
+     "sunrpc: use seconds since boot in expiry cache"
+
+and I managed to break it.  The effect is that any TTL is interpreted
+as 0, and nothing useful gets into the cache.
+
+This patch removes the use of get_expiry() - which really expects an
+expiry time - and uses get_uint() instead, treating the int correctly
+as a ttl.
+
+This fixes a regression that has been present since 2.6.37, causing
+certain NFS accesses in certain environments to incorrectly fail.
+
+Reported-by: Chuck Lever <chuck.lever@oracle.com>
+Tested-by: Chuck Lever <chuck.lever@oracle.com>
+Signed-off-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/dns_resolve.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/fs/nfs/dns_resolve.c b/fs/nfs/dns_resolve.c
+index a6e711a..ee02db5 100644
+--- a/fs/nfs/dns_resolve.c
++++ b/fs/nfs/dns_resolve.c
+@@ -213,7 +213,7 @@ static int nfs_dns_parse(struct cache_detail *cd, char *buf, int buflen)
+ {
+ 	char buf1[NFS_DNS_HOSTNAME_MAXLEN+1];
+ 	struct nfs_dns_ent key, *item;
+-	unsigned long ttl;
++	unsigned int ttl;
+ 	ssize_t len;
+ 	int ret = -EINVAL;
+ 
+@@ -236,7 +236,8 @@ static int nfs_dns_parse(struct cache_detail *cd, char *buf, int buflen)
+ 	key.namelen = len;
+ 	memset(&key.h, 0, sizeof(key.h));
+ 
+-	ttl = get_expiry(&buf);
++	if (get_uint(&buf, &ttl) < 0)
++		goto out;
+ 	if (ttl == 0)
+ 		goto out;
+ 	key.h.expiry_time = ttl + seconds_since_boot();
+-- 
+1.7.7.6
+

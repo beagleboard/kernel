@@ -1,0 +1,39 @@
+From fa633fe59ea01523299ac69741f8111689d8889b Mon Sep 17 00:00:00 2001
+From: Sjoerd Simons <sjoerd.simons@collabora.co.uk>
+Date: Fri, 22 Jun 2012 09:43:07 +0200
+Subject: [PATCH 010/105] drm/i915: no lvds quirk for Zotac ZDBOX SD ID12/ID13
+
+commit 9756fe38d10b2bf90c81dc4d2f17d5632e135364 upstream.
+
+This box claims to have an LVDS interface but doesn't
+actually have one.
+
+Signed-off-by: Sjoerd Simons <sjoerd.simons@collabora.co.uk>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_lvds.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
+index f07bde2..57152a7 100644
+--- a/drivers/gpu/drm/i915/intel_lvds.c
++++ b/drivers/gpu/drm/i915/intel_lvds.c
+@@ -771,6 +771,14 @@ static const struct dmi_system_id intel_no_lvds[] = {
+ 			DMI_MATCH(DMI_BOARD_NAME, "MS-7469"),
+ 		},
+ 	},
++	{
++		.callback = intel_no_lvds_dmi_callback,
++		.ident = "ZOTAC ZBOXSD-ID12/ID13",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ZOTAC"),
++			DMI_MATCH(DMI_BOARD_NAME, "ZBOXSD-ID12/ID13"),
++		},
++	},
+ 
+ 	{ }	/* terminating entry */
+ };
+-- 
+1.7.7.6
+

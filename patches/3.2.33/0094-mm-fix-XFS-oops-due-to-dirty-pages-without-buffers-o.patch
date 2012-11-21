@@ -1,0 +1,113 @@
+From b5156280e46667bd70c5e64ae87ad877d96c3f16 Mon Sep 17 00:00:00 2001
+From: Jan Kara <jack@suse.cz>
+Date: Thu, 25 Oct 2012 13:37:31 -0700
+Subject: [PATCH 094/105] mm: fix XFS oops due to dirty pages without buffers
+ on s390
+
+commit ef5d437f71afdf4afdbab99213add99f4b1318fd upstream.
+
+On s390 any write to a page (even from kernel itself) sets architecture
+specific page dirty bit.  Thus when a page is written to via buffered
+write, HW dirty bit gets set and when we later map and unmap the page,
+page_remove_rmap() finds the dirty bit and calls set_page_dirty().
+
+Dirtying of a page which shouldn't be dirty can cause all sorts of
+problems to filesystems.  The bug we observed in practice is that
+buffers from the page get freed, so when the page gets later marked as
+dirty and writeback writes it, XFS crashes due to an assertion
+BUG_ON(!PagePrivate(page)) in page_buffers() called from
+xfs_count_page_state().
+
+Similar problem can also happen when zero_user_segment() call from
+xfs_vm_writepage() (or block_write_full_page() for that matter) set the
+hardware dirty bit during writeback, later buffers get freed, and then
+page unmapped.
+
+Fix the issue by ignoring s390 HW dirty bit for page cache pages of
+mappings with mapping_cap_account_dirty().  This is safe because for
+such mappings when a page gets marked as writeable in PTE it is also
+marked dirty in do_wp_page() or do_page_fault().  When the dirty bit is
+cleared by clear_page_dirty_for_io(), the page gets writeprotected in
+page_mkclean().  So pagecache page is writeable if and only if it is
+dirty.
+
+Thanks to Hugh Dickins for pointing out mapping has to have
+mapping_cap_account_dirty() for things to work and proposing a cleaned
+up variant of the patch.
+
+The patch has survived about two hours of running fsx-linux on tmpfs
+while heavily swapping and several days of running on out build machines
+where the original problem was triggered.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+[bwh: Backported to 3.2: adjust context; in particular there is no local
+ 'anon' in page_remove_rmap()]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/rmap.c |   21 ++++++++++++++++-----
+ 1 files changed, 16 insertions(+), 5 deletions(-)
+
+diff --git a/mm/rmap.c b/mm/rmap.c
+index a4fd368..8685697 100644
+--- a/mm/rmap.c
++++ b/mm/rmap.c
+@@ -56,6 +56,7 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/migrate.h>
+ #include <linux/hugetlb.h>
++#include <linux/backing-dev.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -935,11 +936,8 @@ int page_mkclean(struct page *page)
+ 
+ 	if (page_mapped(page)) {
+ 		struct address_space *mapping = page_mapping(page);
+-		if (mapping) {
++		if (mapping)
+ 			ret = page_mkclean_file(mapping, page);
+-			if (page_test_and_clear_dirty(page_to_pfn(page), 1))
+-				ret = 1;
+-		}
+ 	}
+ 
+ 	return ret;
+@@ -1120,6 +1118,8 @@ void page_add_file_rmap(struct page *page)
+  */
+ void page_remove_rmap(struct page *page)
+ {
++	struct address_space *mapping = page_mapping(page);
++
+ 	/* page still mapped by someone else? */
+ 	if (!atomic_add_negative(-1, &page->_mapcount))
+ 		return;
+@@ -1130,8 +1130,19 @@ void page_remove_rmap(struct page *page)
+ 	 * this if the page is anon, so about to be freed; but perhaps
+ 	 * not if it's in swapcache - there might be another pte slot
+ 	 * containing the swap entry, but page not yet written to swap.
++	 *
++	 * And we can skip it on file pages, so long as the filesystem
++	 * participates in dirty tracking; but need to catch shm and tmpfs
++	 * and ramfs pages which have been modified since creation by read
++	 * fault.
++	 *
++	 * Note that mapping must be decided above, before decrementing
++	 * mapcount (which luckily provides a barrier): once page is unmapped,
++	 * it could be truncated and page->mapping reset to NULL at any moment.
++	 * Note also that we are relying on page_mapping(page) to set mapping
++	 * to &swapper_space when PageSwapCache(page).
+ 	 */
+-	if ((!PageAnon(page) || PageSwapCache(page)) &&
++	if (mapping && !mapping_cap_account_dirty(mapping) &&
+ 	    page_test_and_clear_dirty(page_to_pfn(page), 1))
+ 		set_page_dirty(page);
+ 	/*
+-- 
+1.7.7.6
+

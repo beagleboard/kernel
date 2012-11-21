@@ -1,0 +1,61 @@
+From de4ec75619e987c5b4de8329eced6c68321ce0aa Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Date: Sun, 4 Mar 2012 12:32:10 +0000
+Subject: [PATCH 16/83] rtnetlink: fix rtnl_calcit() and rtnl_dump_ifinfo()
+
+commit a4b64fbe482c7766f7925f03067fc637716bfa3f upstream.
+
+nlmsg_parse() might return an error, so test its return value before
+potential random memory accesses.
+
+Errors introduced in commit 115c9b81928 (rtnetlink: Fix problem with
+buffer allocation)
+
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Greg Rose <gregory.v.rose@intel.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/core/rtnetlink.c |   18 ++++++++++--------
+ 1 files changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
+index 4dfcb39..5229c7f 100644
+--- a/net/core/rtnetlink.c
++++ b/net/core/rtnetlink.c
+@@ -1063,11 +1063,12 @@ static int rtnl_dump_ifinfo(struct sk_buff *skb, struct netlink_callback *cb)
+ 	rcu_read_lock();
+ 	cb->seq = net->dev_base_seq;
+ 
+-	nlmsg_parse(cb->nlh, sizeof(struct rtgenmsg), tb, IFLA_MAX,
+-		    ifla_policy);
++	if (nlmsg_parse(cb->nlh, sizeof(struct rtgenmsg), tb, IFLA_MAX,
++			ifla_policy) >= 0) {
+ 
+-	if (tb[IFLA_EXT_MASK])
+-		ext_filter_mask = nla_get_u32(tb[IFLA_EXT_MASK]);
++		if (tb[IFLA_EXT_MASK])
++			ext_filter_mask = nla_get_u32(tb[IFLA_EXT_MASK]);
++	}
+ 
+ 	for (h = s_h; h < NETDEV_HASHENTRIES; h++, s_idx = 0) {
+ 		idx = 0;
+@@ -1905,10 +1906,11 @@ static u16 rtnl_calcit(struct sk_buff *skb, struct nlmsghdr *nlh)
+ 	u32 ext_filter_mask = 0;
+ 	u16 min_ifinfo_dump_size = 0;
+ 
+-	nlmsg_parse(nlh, sizeof(struct rtgenmsg), tb, IFLA_MAX, ifla_policy);
+-
+-	if (tb[IFLA_EXT_MASK])
+-		ext_filter_mask = nla_get_u32(tb[IFLA_EXT_MASK]);
++	if (nlmsg_parse(nlh, sizeof(struct rtgenmsg), tb, IFLA_MAX,
++			ifla_policy) >= 0) {
++		if (tb[IFLA_EXT_MASK])
++			ext_filter_mask = nla_get_u32(tb[IFLA_EXT_MASK]);
++	}
+ 
+ 	if (!ext_filter_mask)
+ 		return NLMSG_GOODSIZE;
+-- 
+1.7.7.6
+

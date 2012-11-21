@@ -1,0 +1,59 @@
+From d173727d5d784510aae75a60906135e0bf69826a Mon Sep 17 00:00:00 2001
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Date: Thu, 18 Oct 2012 11:11:01 +0200
+Subject: [PATCH 061/105] s390: fix linker script for 31 bit builds
+
+commit c985cb37f1b39c2c8035af741a2a0b79f1fbaca7 upstream.
+
+Because of a change in the s390 arch backend of binutils (commit 23ecd77
+"Pick the default arch depending on the target size" in binutils repo)
+31 bit builds will fail since the linker would now try to create 64 bit
+binary output.
+Fix this by setting OUTPUT_ARCH to s390:31-bit instead of s390.
+Thanks to Andreas Krebbel for figuring out the issue.
+
+Fixes this build error:
+
+  LD      init/built-in.o
+s390x-4.7.2-ld: s390:31-bit architecture of input file
+ `arch/s390/kernel/head.o' is incompatible with s390:64-bit output
+
+Cc: Andreas Krebbel <Andreas.Krebbel@de.ibm.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/s390/boot/compressed/vmlinux.lds.S |    2 +-
+ arch/s390/kernel/vmlinux.lds.S          |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/s390/boot/compressed/vmlinux.lds.S b/arch/s390/boot/compressed/vmlinux.lds.S
+index d80f79d..8e1fb82 100644
+--- a/arch/s390/boot/compressed/vmlinux.lds.S
++++ b/arch/s390/boot/compressed/vmlinux.lds.S
+@@ -5,7 +5,7 @@ OUTPUT_FORMAT("elf64-s390", "elf64-s390", "elf64-s390")
+ OUTPUT_ARCH(s390:64-bit)
+ #else
+ OUTPUT_FORMAT("elf32-s390", "elf32-s390", "elf32-s390")
+-OUTPUT_ARCH(s390)
++OUTPUT_ARCH(s390:31-bit)
+ #endif
+ 
+ ENTRY(startup)
+diff --git a/arch/s390/kernel/vmlinux.lds.S b/arch/s390/kernel/vmlinux.lds.S
+index e4c79eb..e43d21e 100644
+--- a/arch/s390/kernel/vmlinux.lds.S
++++ b/arch/s390/kernel/vmlinux.lds.S
+@@ -8,7 +8,7 @@
+ 
+ #ifndef CONFIG_64BIT
+ OUTPUT_FORMAT("elf32-s390", "elf32-s390", "elf32-s390")
+-OUTPUT_ARCH(s390)
++OUTPUT_ARCH(s390:31-bit)
+ ENTRY(_start)
+ jiffies = jiffies_64 + 4;
+ #else
+-- 
+1.7.7.6
+

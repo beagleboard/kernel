@@ -1,0 +1,33 @@
+From cc43e3f0e02e15f84e72239fd4dce91e31a31313 Mon Sep 17 00:00:00 2001
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 5 Nov 2012 21:54:39 +0100
+Subject: [PATCH 56/83] hwmon: (w83627ehf) Force initial bank selection
+
+commit 3300fb4f88688029fff8dfb9ec0734f6e4cba3e7 upstream.
+
+Don't assume bank 0 is selected at device probe time. This may not be
+the case. Force bank selection at first register access to guarantee
+that we read the right registers upon driver loading.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Reviewed-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/hwmon/w83627ehf.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index ceaec92..b6a3ce3 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -2015,6 +2015,7 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 	mutex_init(&data->lock);
+ 	mutex_init(&data->update_lock);
+ 	data->name = w83627ehf_device_names[sio_data->kind];
++	data->bank = 0xff;		/* Force initial bank selection */
+ 	platform_set_drvdata(pdev, data);
+ 
+ 	/* 627EHG and 627EHF have 10 voltage inputs; 627DHG and 667HG have 9 */
+-- 
+1.7.7.6
+

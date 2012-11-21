@@ -1,0 +1,32 @@
+From 15f0222c53f9805ecf943381c4ab0e0484c84e7a Mon Sep 17 00:00:00 2001
+From: Johan Hovold <jhovold@gmail.com>
+Date: Thu, 25 Oct 2012 13:35:09 +0200
+Subject: [PATCH 086/105] USB: mos7840: fix urb leak at release
+
+commit 65a4cdbb170e4ec1a7fa0e94936d47e24a17b0e8 upstream.
+
+Make sure control urb is freed at release.
+
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/mos7840.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/usb/serial/mos7840.c b/drivers/usb/serial/mos7840.c
+index b150ed9..e0667a9 100644
+--- a/drivers/usb/serial/mos7840.c
++++ b/drivers/usb/serial/mos7840.c
+@@ -2661,6 +2661,7 @@ static void mos7840_release(struct usb_serial *serial)
+ 		mos7840_port = mos7840_get_port_private(serial->port[i]);
+ 		dbg("mos7840_port %d = %p", i, mos7840_port);
+ 		if (mos7840_port) {
++			usb_free_urb(mos7840_port->control_urb);
+ 			kfree(mos7840_port->ctrl_buf);
+ 			kfree(mos7840_port->dr);
+ 			kfree(mos7840_port);
+-- 
+1.7.7.6
+

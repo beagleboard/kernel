@@ -1,0 +1,47 @@
+From d2f2e04909822de2da09c1ae5669824d646ddb5c Mon Sep 17 00:00:00 2001
+From: Amerigo Wang <amwang@redhat.com>
+Date: Tue, 9 Oct 2012 17:48:16 +0000
+Subject: [PATCH 039/105] pktgen: fix crash when generating IPv6 packets
+
+commit 5aa8b572007c4bca1e6d3dd4c4820f1ae49d6bb2 upstream.
+
+For IPv6, sizeof(struct ipv6hdr) = 40, thus the following
+expression will result negative:
+
+        datalen = pkt_dev->cur_pkt_size - 14 -
+                  sizeof(struct ipv6hdr) - sizeof(struct udphdr) -
+                  pkt_dev->pkt_overhead;
+
+And,  the check "if (datalen < sizeof(struct pktgen_hdr))" will be
+passed as "datalen" is promoted to unsigned, therefore will cause
+a crash later.
+
+This is a quick fix by checking if "datalen" is negative. The following
+patch will increase the default value of 'min_pkt_size' for IPv6.
+
+This bug should exist for a long time, so Cc -stable too.
+
+Cc: David S. Miller <davem@davemloft.net>
+Signed-off-by: Cong Wang <amwang@redhat.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/core/pktgen.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/core/pktgen.c b/net/core/pktgen.c
+index df878de..7bc9991 100644
+--- a/net/core/pktgen.c
++++ b/net/core/pktgen.c
+@@ -2935,7 +2935,7 @@ static struct sk_buff *fill_packet_ipv6(struct net_device *odev,
+ 		  sizeof(struct ipv6hdr) - sizeof(struct udphdr) -
+ 		  pkt_dev->pkt_overhead;
+ 
+-	if (datalen < sizeof(struct pktgen_hdr)) {
++	if (datalen < 0 || datalen < sizeof(struct pktgen_hdr)) {
+ 		datalen = sizeof(struct pktgen_hdr);
+ 		if (net_ratelimit())
+ 			pr_info("increased datalen to %d\n", datalen);
+-- 
+1.7.7.6
+

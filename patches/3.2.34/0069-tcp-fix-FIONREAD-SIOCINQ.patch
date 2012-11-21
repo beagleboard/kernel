@@ -1,0 +1,50 @@
+From 7c9deda8626f3a9054c953b329c792ea0b96091a Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Thu, 18 Oct 2012 09:14:12 +0000
+Subject: [PATCH 69/83] tcp: fix FIONREAD/SIOCINQ
+
+[ Upstream commit a3374c42aa5f7237e87ff3b0622018636b0c847e ]
+
+tcp_ioctl() tries to take into account if tcp socket received a FIN
+to report correct number bytes in receive queue.
+
+But its flaky because if the application ate the last skb,
+we return 1 instead of 0.
+
+Correct way to detect that FIN was received is to test SOCK_DONE.
+
+Reported-by: Elliot Hughes <enh@google.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Neal Cardwell <ncardwell@google.com>
+Cc: Tom Herbert <therbert@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv4/tcp.c |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
+index 7397ad8..52edbb8 100644
+--- a/net/ipv4/tcp.c
++++ b/net/ipv4/tcp.c
+@@ -481,14 +481,12 @@ int tcp_ioctl(struct sock *sk, int cmd, unsigned long arg)
+ 			 !tp->urg_data ||
+ 			 before(tp->urg_seq, tp->copied_seq) ||
+ 			 !before(tp->urg_seq, tp->rcv_nxt)) {
+-			struct sk_buff *skb;
+ 
+ 			answ = tp->rcv_nxt - tp->copied_seq;
+ 
+-			/* Subtract 1, if FIN is in queue. */
+-			skb = skb_peek_tail(&sk->sk_receive_queue);
+-			if (answ && skb)
+-				answ -= tcp_hdr(skb)->fin;
++			/* Subtract 1, if FIN was received */
++			if (answ && sock_flag(sk, SOCK_DONE))
++				answ--;
+ 		} else
+ 			answ = tp->urg_seq - tp->copied_seq;
+ 		release_sock(sk);
+-- 
+1.7.7.6
+

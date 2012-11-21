@@ -1,0 +1,40 @@
+From e16714e0ed9ebe70460126ed2a87cacb4e960c8a Mon Sep 17 00:00:00 2001
+From: Jean-Christian de Rivaz <jc@eclis.ch>
+Date: Wed, 10 Oct 2012 12:49:02 +0000
+Subject: [PATCH 104/105] Add CDC-ACM support for the CX93010-2x UCMxx USB
+ Modem
+
+commit e7d491a19d3e3aac544070293891a2542ae0c565 upstream.
+
+This USB V.92/V.32bis Controllered Modem have the USB vendor ID 0x0572
+and device ID 0x1340. It need the NO_UNION_NORMAL quirk to be recognized.
+
+Reference:
+http://www.conexant.com/servlets/DownloadServlet/DSH-201723-005.pdf?docid=1725&revid=5
+See idVendor and idProduct in table 6-1. Device Descriptors
+
+Signed-off-by: Jean-Christian de Rivaz <jc@eclis.ch>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/class/cdc-acm.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/usb/class/cdc-acm.c b/drivers/usb/class/cdc-acm.c
+index b10dc4f..df7f15d 100644
+--- a/drivers/usb/class/cdc-acm.c
++++ b/drivers/usb/class/cdc-acm.c
+@@ -1506,6 +1506,9 @@ static const struct usb_device_id acm_ids[] = {
+ 					   Maybe we should define a new
+ 					   quirk for this. */
+ 	},
++	{ USB_DEVICE(0x0572, 0x1340), /* Conexant CX93010-2x UCMxx */
++	.driver_info = NO_UNION_NORMAL,
++	},
+ 	{ USB_DEVICE(0x1bbb, 0x0003), /* Alcatel OT-I650 */
+ 	.driver_info = NO_UNION_NORMAL, /* reports zero length descriptor */
+ 	},
+-- 
+1.7.7.6
+

@@ -1,0 +1,87 @@
+From 6b87986472b6c6d4400cc0a9b90f6324ff737f8d Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Mon, 22 Oct 2012 12:55:55 +0200
+Subject: [PATCH 19/83] drm/i915: fix overlay on i830M
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit a9193983f4f292a82a00c72971c17ec0ee8c6c15 upstream.
+
+The overlay on the i830M has a peculiar failure mode: It works the
+first time around after boot-up, but consistenly hangs the second time
+it's used.
+
+Chris Wilson has dug out a nice errata:
+
+"1.5.12 Clock Gating Disable for Display Register
+Address Offset:	06200h–06203h
+
+"Bit 3
+Ovrunit Clock Gating Disable.
+0 = Clock gating controlled by unit enabling logic
+1 = Disable clock gating function
+DevALM Errata ALM049: Overlay Clock Gating Must be Disabled:  Overlay
+& L2 Cache clock gating must be disabled in order to prevent device
+hangs when turning off overlay.SW must turn off Ovrunit clock gating
+(6200h) and L2 Cache clock gating (C8h)."
+
+Now I've nowhere found that 0xc8 register and hence couldn't apply the
+l2 cache workaround. But I've remembered that part of the magic that
+the OVERLAY_ON/OFF commands are supposed to do is to rearrange cache
+allocations so that the overlay scaler has some scratch space.
+
+And while pondering how that could explain the hang the 2nd time we
+enable the overlay, I've remembered that the old ums overlay code did
+_not_ issue the OVERLAY_OFF cmd.
+
+And indeed, disabling the OFF cmd results in the overlay working
+flawlessly, so I guess we can workaround the lack of the above
+workaround by simply never disabling the overlay engine once it's
+enabled.
+
+Note that we have the first part of the above w/a already implemented
+in i830_init_clock_gating - leave that as-is to avoid surprises.
+
+v2: Add a comment in the code.
+
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=47827
+Tested-by: Rhys <rhyspuk@gmail.com>
+Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+[bwh: Backported to 3.2:
+ - Adjust context
+ - s/intel_ring_emit(ring, /OUT_RING(/]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_overlay.c |   14 +++++++++++---
+ 1 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_overlay.c b/drivers/gpu/drm/i915/intel_overlay.c
+index cdf17d4..478b51f 100644
+--- a/drivers/gpu/drm/i915/intel_overlay.c
++++ b/drivers/gpu/drm/i915/intel_overlay.c
+@@ -428,9 +428,17 @@ static int intel_overlay_off(struct intel_overlay *overlay)
+ 	OUT_RING(flip_addr);
+ 	OUT_RING(MI_WAIT_FOR_EVENT | MI_WAIT_FOR_OVERLAY_FLIP);
+ 	/* turn overlay off */
+-	OUT_RING(MI_OVERLAY_FLIP | MI_OVERLAY_OFF);
+-	OUT_RING(flip_addr);
+-	OUT_RING(MI_WAIT_FOR_EVENT | MI_WAIT_FOR_OVERLAY_FLIP);
++	if (IS_I830(dev)) {
++		/* Workaround: Don't disable the overlay fully, since otherwise
++		 * it dies on the next OVERLAY_ON cmd. */
++		OUT_RING(MI_NOOP);
++		OUT_RING(MI_NOOP);
++		OUT_RING(MI_NOOP);
++	} else {
++		OUT_RING(MI_OVERLAY_FLIP | MI_OVERLAY_OFF);
++		OUT_RING(flip_addr);
++		OUT_RING(MI_WAIT_FOR_EVENT | MI_WAIT_FOR_OVERLAY_FLIP);
++	}
+ 	ADVANCE_LP_RING();
+ 
+ 	return intel_overlay_do_wait_request(overlay, request,
+-- 
+1.7.7.6
+

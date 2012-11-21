@@ -1,0 +1,63 @@
+From 0507a2e5e62a9c8f6d4aec9d2b3a6298d2bef7d9 Mon Sep 17 00:00:00 2001
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+Date: Tue, 9 Oct 2012 11:13:26 +0100
+Subject: [PATCH 028/105] ARM: vfp: fix saving d16-d31 vfp registers on v6+
+ kernels
+
+commit 846a136881b8f73c1f74250bf6acfaa309cab1f2 upstream.
+
+Michael Olbrich reported that his test program fails when built with
+-O2 -mcpu=cortex-a8 -mfpu=neon, and a kernel which supports v6 and v7
+CPUs:
+
+volatile int x = 2;
+volatile int64_t y = 2;
+
+int main() {
+	volatile int a = 0;
+	volatile int64_t b = 0;
+	while (1) {
+		a = (a + x) % (1 << 30);
+		b = (b + y) % (1 << 30);
+		assert(a == b);
+	}
+}
+
+and two instances are run.  When built for just v7 CPUs, this program
+works fine.  It uses the "vadd.i64 d19, d18, d16" VFP instruction.
+
+It appears that we do not save the high-16 double VFP registers across
+context switches when the kernel is built for v6 CPUs.  Fix that.
+
+Tested-By: Michael Olbrich <m.olbrich@pengutronix.de>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/arm/include/asm/vfpmacros.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/include/asm/vfpmacros.h b/arch/arm/include/asm/vfpmacros.h
+index 3d5fc41..bf53047 100644
+--- a/arch/arm/include/asm/vfpmacros.h
++++ b/arch/arm/include/asm/vfpmacros.h
+@@ -28,7 +28,7 @@
+ 	ldr	\tmp, =elf_hwcap		    @ may not have MVFR regs
+ 	ldr	\tmp, [\tmp, #0]
+ 	tst	\tmp, #HWCAP_VFPv3D16
+-	ldceq	p11, cr0, [\base],#32*4		    @ FLDMIAD \base!, {d16-d31}
++	ldceql	p11, cr0, [\base],#32*4		    @ FLDMIAD \base!, {d16-d31}
+ 	addne	\base, \base, #32*4		    @ step over unused register space
+ #else
+ 	VFPFMRX	\tmp, MVFR0			    @ Media and VFP Feature Register 0
+@@ -52,7 +52,7 @@
+ 	ldr	\tmp, =elf_hwcap		    @ may not have MVFR regs
+ 	ldr	\tmp, [\tmp, #0]
+ 	tst	\tmp, #HWCAP_VFPv3D16
+-	stceq	p11, cr0, [\base],#32*4		    @ FSTMIAD \base!, {d16-d31}
++	stceql	p11, cr0, [\base],#32*4		    @ FSTMIAD \base!, {d16-d31}
+ 	addne	\base, \base, #32*4		    @ step over unused register space
+ #else
+ 	VFPFMRX	\tmp, MVFR0			    @ Media and VFP Feature Register 0
+-- 
+1.7.7.6
+

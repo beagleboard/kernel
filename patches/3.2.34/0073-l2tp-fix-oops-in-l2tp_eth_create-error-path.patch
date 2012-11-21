@@ -1,0 +1,38 @@
+From 133bc3b6e7b8dea0d4fdc86278a71d2de54c1cb7 Mon Sep 17 00:00:00 2001
+From: Tom Parkin <tparkin@katalix.com>
+Date: Mon, 29 Oct 2012 23:41:48 +0000
+Subject: [PATCH 73/83] l2tp: fix oops in l2tp_eth_create() error path
+
+[ Upstream commit 789336360e0a2aeb9750c16ab704a02cbe035e9e ]
+
+When creating an L2TPv3 Ethernet session, if register_netdev() should fail for
+any reason (for example, automatic naming for "l2tpeth%d" interfaces hits the
+32k-interface limit), the netdev is freed in the error path.  However, the
+l2tp_eth_sess structure's dev pointer is left uncleared, and this results in
+l2tp_eth_delete() then attempting to unregister the same netdev later in the
+session teardown.  This results in an oops.
+
+To avoid this, clear the session dev pointer in the error path.
+
+Signed-off-by: Tom Parkin <tparkin@katalix.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/l2tp/l2tp_eth.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/net/l2tp/l2tp_eth.c b/net/l2tp/l2tp_eth.c
+index 2cef50b..64164fb 100644
+--- a/net/l2tp/l2tp_eth.c
++++ b/net/l2tp/l2tp_eth.c
+@@ -269,6 +269,7 @@ static int l2tp_eth_create(struct net *net, u32 tunnel_id, u32 session_id, u32 p
+ 
+ out_del_dev:
+ 	free_netdev(dev);
++	spriv->dev = NULL;
+ out_del_session:
+ 	l2tp_session_delete(session);
+ out:
+-- 
+1.7.7.6
+

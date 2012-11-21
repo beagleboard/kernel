@@ -1,0 +1,41 @@
+From 2cc9340529fc07f37b905a1da1e3ce408a54c7d5 Mon Sep 17 00:00:00 2001
+From: Johan Hovold <jhovold@gmail.com>
+Date: Thu, 25 Oct 2012 10:29:12 +0200
+Subject: [PATCH 082/105] USB: opticon: fix memory leak in error path
+
+commit acbf0e5263de563e25f7c104868e4490b9e72b13 upstream.
+
+Fix memory leak in write error path.
+
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/opticon.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/usb/serial/opticon.c b/drivers/usb/serial/opticon.c
+index 5b83e10..d6c5ed6 100644
+--- a/drivers/usb/serial/opticon.c
++++ b/drivers/usb/serial/opticon.c
+@@ -297,7 +297,7 @@ static int opticon_write(struct tty_struct *tty, struct usb_serial_port *port,
+ 	if (!dr) {
+ 		dev_err(&port->dev, "out of memory\n");
+ 		count = -ENOMEM;
+-		goto error;
++		goto error_no_dr;
+ 	}
+ 
+ 	dr->bRequestType = USB_TYPE_VENDOR | USB_RECIP_INTERFACE | USB_DIR_OUT;
+@@ -327,6 +327,8 @@ static int opticon_write(struct tty_struct *tty, struct usb_serial_port *port,
+ 
+ 	return count;
+ error:
++	kfree(dr);
++error_no_dr:
+ 	usb_free_urb(urb);
+ error_no_urb:
+ 	kfree(buffer);
+-- 
+1.7.7.6
+

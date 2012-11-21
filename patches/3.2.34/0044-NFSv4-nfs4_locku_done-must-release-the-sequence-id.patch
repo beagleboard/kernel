@@ -1,0 +1,31 @@
+From 62ed5e95c267d32426153e1ea470e7f88fa7bca1 Mon Sep 17 00:00:00 2001
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
+Date: Mon, 29 Oct 2012 18:53:23 -0400
+Subject: [PATCH 44/83] NFSv4: nfs4_locku_done must release the sequence id
+
+commit 2b1bc308f492589f7d49012ed24561534ea2be8c upstream.
+
+If the state recovery machinery is triggered by the call to
+nfs4_async_handle_error() then we can deadlock.
+
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/nfs4proc.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
+index 4f07b56..864b831 100644
+--- a/fs/nfs/nfs4proc.c
++++ b/fs/nfs/nfs4proc.c
+@@ -4150,6 +4150,7 @@ static void nfs4_locku_done(struct rpc_task *task, void *data)
+ 			if (nfs4_async_handle_error(task, calldata->server, NULL) == -EAGAIN)
+ 				rpc_restart_call_prepare(task);
+ 	}
++	nfs_release_seqid(calldata->arg.seqid);
+ }
+ 
+ static void nfs4_locku_prepare(struct rpc_task *task, void *data)
+-- 
+1.7.7.6
+

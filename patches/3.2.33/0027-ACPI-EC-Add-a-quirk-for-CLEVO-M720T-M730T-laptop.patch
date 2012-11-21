@@ -1,0 +1,60 @@
+From cdda6549606f2a018c279585bf96b22101917a68 Mon Sep 17 00:00:00 2001
+From: Feng Tang <feng.tang@intel.com>
+Date: Fri, 28 Sep 2012 15:22:01 +0800
+Subject: [PATCH 027/105] ACPI: EC: Add a quirk for CLEVO M720T/M730T laptop
+
+commit 67bfa9b60bd689601554526d144b21d529f78a09 upstream.
+
+By enlarging the GPE storm threshold back to 20, that laptop's
+EC works fine with interrupt mode instead of polling mode.
+
+https://bugzilla.kernel.org/show_bug.cgi?id=45151
+
+Reported-and-Tested-by: Francesco <trentini@dei.unipd.it>
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/acpi/ec.c |   16 +++++++++++++++-
+ 1 files changed, 15 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 05b3331..d2519b2 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -920,6 +920,17 @@ static int ec_flag_msi(const struct dmi_system_id *id)
+ 	return 0;
+ }
+ 
++/*
++ * Clevo M720 notebook actually works ok with IRQ mode, if we lifted
++ * the GPE storm threshold back to 20
++ */
++static int ec_enlarge_storm_threshold(const struct dmi_system_id *id)
++{
++	pr_debug("Setting the EC GPE storm threshold to 20\n");
++	ec_storm_threshold  = 20;
++	return 0;
++}
++
+ static struct dmi_system_id __initdata ec_dmi_table[] = {
+ 	{
+ 	ec_skip_dsdt_scan, "Compal JFL92", {
+@@ -951,10 +962,13 @@ static struct dmi_system_id __initdata ec_dmi_table[] = {
+ 	{
+ 	ec_validate_ecdt, "ASUS hardware", {
+ 	DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer Inc.") }, NULL},
++	{
++	ec_enlarge_storm_threshold, "CLEVO hardware", {
++	DMI_MATCH(DMI_SYS_VENDOR, "CLEVO Co."),
++	DMI_MATCH(DMI_PRODUCT_NAME, "M720T/M730T"),}, NULL},
+ 	{},
+ };
+ 
+-
+ int __init acpi_ec_ecdt_probe(void)
+ {
+ 	acpi_status status;
+-- 
+1.7.7.6
+

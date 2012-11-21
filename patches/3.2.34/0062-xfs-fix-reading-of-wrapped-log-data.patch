@@ -1,0 +1,41 @@
+From 1da8dfde77ccc7975a50f8b16fa0926895f1da1b Mon Sep 17 00:00:00 2001
+From: Dave Chinner <dchinner@redhat.com>
+Date: Fri, 2 Nov 2012 11:38:44 +1100
+Subject: [PATCH 62/83] xfs: fix reading of wrapped log data
+
+commit 6ce377afd1755eae5c93410ca9a1121dfead7b87 upstream.
+
+Commit 4439647 ("xfs: reset buffer pointers before freeing them") in
+3.0-rc1 introduced a regression when recovering log buffers that
+wrapped around the end of log. The second part of the log buffer at
+the start of the physical log was being read into the header buffer
+rather than the data buffer, and hence recovery was seeing garbage
+in the data buffer when it got to the region of the log buffer that
+was incorrectly read.
+
+Reported-by: Torsten Kaiser <just.for.lkml@googlemail.com>
+Signed-off-by: Dave Chinner <dchinner@redhat.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Mark Tinguely <tinguely@sgi.com>
+Signed-off-by: Ben Myers <bpm@sgi.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/xfs/xfs_log_recover.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/fs/xfs/xfs_log_recover.c b/fs/xfs/xfs_log_recover.c
+index 4f5d0ce..86ca506 100644
+--- a/fs/xfs/xfs_log_recover.c
++++ b/fs/xfs/xfs_log_recover.c
+@@ -3514,7 +3514,7 @@ xlog_do_recovery_pass(
+ 				 *   - order is important.
+ 				 */
+ 				error = xlog_bread_offset(log, 0,
+-						bblks - split_bblks, hbp,
++						bblks - split_bblks, dbp,
+ 						offset + BBTOB(split_bblks));
+ 				if (error)
+ 					goto bread_err2;
+-- 
+1.7.7.6
+

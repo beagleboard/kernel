@@ -1,0 +1,35 @@
+From 8e13ab1d0fd933c9012c7eacf895dfaf8a8e1d25 Mon Sep 17 00:00:00 2001
+From: Mirko Lindner <mlindner@marvell.com>
+Date: Tue, 3 Jul 2012 23:38:46 +0000
+Subject: [PATCH 81/83] sky2: Fix for interrupt handler
+
+commit d663d181b9e92d80c2455e460e932d34e7a2a7ae upstream.
+
+Re-enable interrupts if it is not our interrupt
+
+Signed-off-by: Mirko Lindner <mlindner@marvell.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/marvell/sky2.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/net/ethernet/marvell/sky2.c b/drivers/net/ethernet/marvell/sky2.c
+index 11ddd838..69fc888 100644
+--- a/drivers/net/ethernet/marvell/sky2.c
++++ b/drivers/net/ethernet/marvell/sky2.c
+@@ -3060,8 +3060,10 @@ static irqreturn_t sky2_intr(int irq, void *dev_id)
+ 
+ 	/* Reading this mask interrupts as side effect */
+ 	status = sky2_read32(hw, B0_Y2_SP_ISRC2);
+-	if (status == 0 || status == ~0)
++	if (status == 0 || status == ~0) {
++		sky2_write32(hw, B0_Y2_SP_ICR, 2);
+ 		return IRQ_NONE;
++	}
+ 
+ 	prefetch(&hw->st_le[hw->st_idx]);
+ 
+-- 
+1.7.7.6
+

@@ -1,0 +1,36 @@
+From bd036acf44e760cbdc4108821ddfa5c68c69e345 Mon Sep 17 00:00:00 2001
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Thu, 11 Oct 2012 14:20:58 +1100
+Subject: [PATCH 040/105] md/raid10: use correct limit variable
+
+commit 91502f099dfc5a1e8812898e26ee280713e1d002 upstream.
+
+Clang complains that we are assigning a variable to itself.  This should
+be using bad_sectors like the similar earlier check does.
+
+Bug has been present since 3.1-rc1.  It is minor but could
+conceivably cause corruption or other bad behaviour.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/md/raid10.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/md/raid10.c b/drivers/md/raid10.c
+index 0634ee5..8f67c4d 100644
+--- a/drivers/md/raid10.c
++++ b/drivers/md/raid10.c
+@@ -2641,7 +2641,7 @@ static sector_t sync_request(struct mddev *mddev, sector_t sector_nr,
+ 				else {
+ 					bad_sectors -= (sector - first_bad);
+ 					if (max_sync > bad_sectors)
+-						max_sync = max_sync;
++						max_sync = bad_sectors;
+ 					continue;
+ 				}
+ 			}
+-- 
+1.7.7.6
+

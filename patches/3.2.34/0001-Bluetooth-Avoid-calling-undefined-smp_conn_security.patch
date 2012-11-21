@@ -1,0 +1,38 @@
+From effdabd05d69ebf538577cfb353557f68bae43ce Mon Sep 17 00:00:00 2001
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Fri, 16 Nov 2012 16:46:46 +0000
+Subject: [PATCH 01/83] Bluetooth: Avoid calling undefined smp_conn_security()
+
+Commit ff03261adc8b4bdd8291f1783c079b53a892b429 ('Bluetooth: Fix
+sending a HCI Authorization Request over LE links', commit
+d8343f125710fb596f7a88cd756679f14f4e77b9 upstream) added an
+call to smp_conn_security() from hci_conn_security().  The
+former is only defined if CONFIG_BT_L2CAP=y.
+
+This is not required in mainline since commit
+f1e91e1640d808d332498a6b09b2bcd01462eff9 ('Bluetooth: Always compile
+SCO and L2CAP in Bluetooth Core') removed that option.
+
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/bluetooth/hci_conn.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/net/bluetooth/hci_conn.c b/net/bluetooth/hci_conn.c
+index 1fb1aec..aa12649 100644
+--- a/net/bluetooth/hci_conn.c
++++ b/net/bluetooth/hci_conn.c
+@@ -642,8 +642,10 @@ int hci_conn_security(struct hci_conn *conn, __u8 sec_level, __u8 auth_type)
+ {
+ 	BT_DBG("conn %p", conn);
+ 
++#ifdef CONFIG_BT_L2CAP
+ 	if (conn->type == LE_LINK)
+ 		return smp_conn_security(conn, sec_level);
++#endif
+ 
+ 	/* For sdp we don't need the link key. */
+ 	if (sec_level == BT_SECURITY_SDP)
+-- 
+1.7.7.6
+

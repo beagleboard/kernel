@@ -1,0 +1,41 @@
+From 7543885f4f4f17b556314ec9a41affaf38a39a03 Mon Sep 17 00:00:00 2001
+From: Takamori Yamaguchi <takamori.yamaguchi@jp.sony.com>
+Date: Thu, 8 Nov 2012 15:53:39 -0800
+Subject: [PATCH 64/83] mm: bugfix: set current->reclaim_state to NULL while
+ returning from kswapd()
+
+commit b0a8cc58e6b9aaae3045752059e5e6260c0b94bc upstream.
+
+In kswapd(), set current->reclaim_state to NULL before returning, as
+current->reclaim_state holds reference to variable on kswapd()'s stack.
+
+In rare cases, while returning from kswapd() during memory offlining,
+__free_slab() and freepages() can access the dangling pointer of
+current->reclaim_state.
+
+Signed-off-by: Takamori Yamaguchi <takamori.yamaguchi@jp.sony.com>
+Signed-off-by: Aaditya Kumar <aaditya.kumar@ap.sony.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/vmscan.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 86eb848..313381c 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -3015,6 +3015,8 @@ static int kswapd(void *p)
+ 						&balanced_classzone_idx);
+ 		}
+ 	}
++
++	current->reclaim_state = NULL;
+ 	return 0;
+ }
+ 
+-- 
+1.7.7.6
+

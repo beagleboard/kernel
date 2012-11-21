@@ -1,0 +1,41 @@
+From a10492a315a2efdf2f66ae105985ff2b0a3d6874 Mon Sep 17 00:00:00 2001
+From: Felix Fietkau <nbd@openwrt.org>
+Date: Wed, 17 Oct 2012 13:56:19 +0200
+Subject: [PATCH 18/83] cfg80211: fix antenna gain handling
+
+commit c4a9fafc77a5318f5ed26c509bbcddf03e18c201 upstream.
+
+No driver initializes chan->max_antenna_gain to something sensible, and
+the only place where it is being used right now is inside ath9k. This
+leads to ath9k potentially using less tx power than it can use, which can
+decrease performance/range in some rare cases.
+
+Rather than going through every single driver, this patch initializes
+chan->orig_mag in wiphy_register(), ignoring whatever value the driver
+left in there. If a driver for some reason wishes to limit it independent
+from regulatory rulesets, it can do so internally.
+
+Signed-off-by: Felix Fietkau <nbd@openwrt.org>
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/wireless/core.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/net/wireless/core.c b/net/wireless/core.c
+index 8f5042d..ea93f4b 100644
+--- a/net/wireless/core.c
++++ b/net/wireless/core.c
+@@ -548,8 +548,7 @@ int wiphy_register(struct wiphy *wiphy)
+ 		for (i = 0; i < sband->n_channels; i++) {
+ 			sband->channels[i].orig_flags =
+ 				sband->channels[i].flags;
+-			sband->channels[i].orig_mag =
+-				sband->channels[i].max_antenna_gain;
++			sband->channels[i].orig_mag = INT_MAX;
+ 			sband->channels[i].orig_mpwr =
+ 				sband->channels[i].max_power;
+ 			sband->channels[i].band = band;
+-- 
+1.7.7.6
+

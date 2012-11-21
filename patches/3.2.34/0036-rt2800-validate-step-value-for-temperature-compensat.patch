@@ -1,0 +1,37 @@
+From b266e2f040b25f4b39074dc1bc5e9fe4273a109f Mon Sep 17 00:00:00 2001
+From: Stanislaw Gruszka <sgruszka@redhat.com>
+Date: Thu, 25 Oct 2012 09:51:39 +0200
+Subject: [PATCH 36/83] rt2800: validate step value for temperature
+ compensation
+
+commit bf7e1abe434ba9e22e8dc04a4cba4ab504b788b8 upstream.
+
+Some hardware has correct (!= 0xff) value of tssi_bounds[4] in the
+EEPROM, but step is equal to 0xff. This results on ridiculous delta
+calculations and completely broke TX power settings.
+
+Reported-and-tested-by: Pavel Lucik <pavel.lucik@gmail.com>
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Acked-by: Ivo van Doorn <IvDoorn@gmail.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/rt2x00/rt2800lib.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/net/wireless/rt2x00/rt2800lib.c b/drivers/net/wireless/rt2x00/rt2800lib.c
+index 1ba079d..fb19447 100644
+--- a/drivers/net/wireless/rt2x00/rt2800lib.c
++++ b/drivers/net/wireless/rt2x00/rt2800lib.c
+@@ -2141,7 +2141,7 @@ static int rt2800_get_gain_calibration_delta(struct rt2x00_dev *rt2x00dev)
+ 	/*
+ 	 * Check if temperature compensation is supported.
+ 	 */
+-	if (tssi_bounds[4] == 0xff)
++	if (tssi_bounds[4] == 0xff || step == 0xff)
+ 		return 0;
+ 
+ 	/*
+-- 
+1.7.7.6
+

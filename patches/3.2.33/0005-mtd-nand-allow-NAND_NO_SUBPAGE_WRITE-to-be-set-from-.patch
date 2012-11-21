@@ -1,0 +1,76 @@
+From e300dba3801a9e4d8ca691d440c068fdff6b01e4 Mon Sep 17 00:00:00 2001
+From: Brian Norris <computersforpeace@gmail.com>
+Date: Fri, 13 Jul 2012 09:28:24 -0700
+Subject: [PATCH 005/105] mtd: nand: allow NAND_NO_SUBPAGE_WRITE to be set
+ from driver
+
+commit bf7a01bf7987b63b121d572b240c132ec44129c4 upstream.
+
+The NAND_CHIPOPTIONS_MSK has limited utility and is causing real bugs. It
+silently masks off at least one flag that might be set by the driver
+(NAND_NO_SUBPAGE_WRITE). This breaks the GPMI NAND driver and possibly
+others.
+
+Really, as long as driver writers exercise a small amount of care with
+NAND_* options, this mask is not necessary at all; it was only here to
+prevent certain options from accidentally being set by the driver. But the
+original thought turns out to be a bad idea occasionally. Thus, kill it.
+
+Note, this patch fixes some major gpmi-nand breakage.
+
+Signed-off-by: Brian Norris <computersforpeace@gmail.com>
+Tested-by: Huang Shijie <shijie8@gmail.com>
+Cc: stable@vger.kernel.org
+Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Signed-off-by: David Woodhouse <David.Woodhouse@intel.com>
+[Brian Norris: This is a backport for v3.2 stable.]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/mtd/nand/nand_base.c |    9 +++------
+ include/linux/mtd/nand.h     |    3 ---
+ 2 files changed, 3 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/mtd/nand/nand_base.c b/drivers/mtd/nand/nand_base.c
+index a5df3ec..45a3b84 100644
+--- a/drivers/mtd/nand/nand_base.c
++++ b/drivers/mtd/nand/nand_base.c
+@@ -2906,9 +2906,7 @@ static int nand_flash_detect_onfi(struct mtd_info *mtd, struct nand_chip *chip,
+ 	if (le16_to_cpu(p->features) & 1)
+ 		*busw = NAND_BUSWIDTH_16;
+ 
+-	chip->options &= ~NAND_CHIPOPTIONS_MSK;
+-	chip->options |= (NAND_NO_READRDY |
+-			NAND_NO_AUTOINCR) & NAND_CHIPOPTIONS_MSK;
++	chip->options |= NAND_NO_READRDY | NAND_NO_AUTOINCR;
+ 
+ 	return 1;
+ }
+@@ -3072,9 +3070,8 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
+ 			mtd->erasesize <<= ((id_data[3] & 0x03) << 1);
+ 		}
+ 	}
+-	/* Get chip options, preserve non chip based options */
+-	chip->options &= ~NAND_CHIPOPTIONS_MSK;
+-	chip->options |= type->options & NAND_CHIPOPTIONS_MSK;
++	/* Get chip options */
++	chip->options |= type->options;
+ 
+ 	/*
+ 	 * Check if chip is not a Samsung device. Do not clear the
+diff --git a/include/linux/mtd/nand.h b/include/linux/mtd/nand.h
+index 904131b..b25b09b 100644
+--- a/include/linux/mtd/nand.h
++++ b/include/linux/mtd/nand.h
+@@ -215,9 +215,6 @@ typedef enum {
+ #define NAND_SUBPAGE_READ(chip) ((chip->ecc.mode == NAND_ECC_SOFT) \
+ 					&& (chip->page_shift > 9))
+ 
+-/* Mask to zero out the chip options, which come from the id table */
+-#define NAND_CHIPOPTIONS_MSK	(0x0000ffff & ~NAND_NO_AUTOINCR)
+-
+ /* Non chip related options */
+ /* This option skips the bbt scan during initialization. */
+ #define NAND_SKIP_BBTSCAN	0x00010000
+-- 
+1.7.7.6
+

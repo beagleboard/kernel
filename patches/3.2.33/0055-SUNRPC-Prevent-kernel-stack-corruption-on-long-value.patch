@@ -1,0 +1,57 @@
+From d2fa270385cbc6adccc0e966f86297796905da64 Mon Sep 17 00:00:00 2001
+From: Sasha Levin <levinsasha928@gmail.com>
+Date: Tue, 17 Jul 2012 00:01:26 +0200
+Subject: [PATCH 055/105] SUNRPC: Prevent kernel stack corruption on long
+ values of flush
+
+commit 212ba90696ab4884e2025b0b13726d67aadc2cd4 upstream.
+
+The buffer size in read_flush() is too small for the longest possible values
+for it. This can lead to a kernel stack corruption:
+
+[   43.047329] Kernel panic - not syncing: stack-protector: Kernel stack is corrupted in: ffffffff833e64b4
+[   43.047329]
+[   43.049030] Pid: 6015, comm: trinity-child18 Tainted: G        W    3.5.0-rc7-next-20120716-sasha #221
+[   43.050038] Call Trace:
+[   43.050435]  [<ffffffff836c60c2>] panic+0xcd/0x1f4
+[   43.050931]  [<ffffffff833e64b4>] ? read_flush.isra.7+0xe4/0x100
+[   43.051602]  [<ffffffff810e94e6>] __stack_chk_fail+0x16/0x20
+[   43.052206]  [<ffffffff833e64b4>] read_flush.isra.7+0xe4/0x100
+[   43.052951]  [<ffffffff833e6500>] ? read_flush_pipefs+0x30/0x30
+[   43.053594]  [<ffffffff833e652c>] read_flush_procfs+0x2c/0x30
+[   43.053596]  [<ffffffff812b9a8c>] proc_reg_read+0x9c/0xd0
+[   43.053596]  [<ffffffff812b99f0>] ? proc_reg_write+0xd0/0xd0
+[   43.053596]  [<ffffffff81250d5b>] do_loop_readv_writev+0x4b/0x90
+[   43.053596]  [<ffffffff81250fd6>] do_readv_writev+0xf6/0x1d0
+[   43.053596]  [<ffffffff812510ee>] vfs_readv+0x3e/0x60
+[   43.053596]  [<ffffffff812511b8>] sys_readv+0x48/0xb0
+[   43.053596]  [<ffffffff8378167d>] system_call_fastpath+0x1a/0x1f
+
+Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
+Signed-off-by: J. Bruce Fields <bfields@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/sunrpc/cache.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/sunrpc/cache.c b/net/sunrpc/cache.c
+index 4530a91..237a2ee 100644
+--- a/net/sunrpc/cache.c
++++ b/net/sunrpc/cache.c
+@@ -1404,11 +1404,11 @@ static ssize_t read_flush(struct file *file, char __user *buf,
+ 			  size_t count, loff_t *ppos,
+ 			  struct cache_detail *cd)
+ {
+-	char tbuf[20];
++	char tbuf[22];
+ 	unsigned long p = *ppos;
+ 	size_t len;
+ 
+-	sprintf(tbuf, "%lu\n", convert_to_wallclock(cd->flush_time));
++	snprintf(tbuf, sizeof(tbuf), "%lu\n", convert_to_wallclock(cd->flush_time));
+ 	len = strlen(tbuf);
+ 	if (p >= len)
+ 		return 0;
+-- 
+1.7.7.6
+
