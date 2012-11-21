@@ -1,0 +1,38 @@
+From 0ed6ee529e8423093eeb649dab65e36cb30ff8d2 Mon Sep 17 00:00:00 2001
+From: Joel A Fernandes <joelagnel@ti.com>
+Date: Thu, 15 Nov 2012 16:45:47 -0600
+Subject: [PATCH 2/6] Added DT binding to NXP driver
+
+Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+---
+ drivers/video/nxp/tda998x.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/video/nxp/tda998x.c b/drivers/video/nxp/tda998x.c
+index 4b45e41..2864221 100755
+--- a/drivers/video/nxp/tda998x.c
++++ b/drivers/video/nxp/tda998x.c
+@@ -1911,6 +1911,12 @@ static int this_i2c_remove(struct i2c_client *client)
+  *  I2C client driver (backend)
+  *  -----------------
+  */
++static const struct of_device_id tda988x_of_match[] = {
++	{ .compatible = "nxp,tda988x", },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, tda988x_of_match);
++
+ static const struct i2c_device_id this_i2c_id[] = {
+    { TX_NAME, 0 },
+    { },
+@@ -1922,6 +1928,7 @@ static struct i2c_driver this_i2c_driver = {
+    .driver = {
+       .owner = THIS_MODULE,
+       .name = TX_NAME,
++      .of_match_table = tda988x_of_match
+    },
+    .probe = this_i2c_probe,
+    .remove = this_i2c_remove,
+-- 
+1.7.9.5
+
