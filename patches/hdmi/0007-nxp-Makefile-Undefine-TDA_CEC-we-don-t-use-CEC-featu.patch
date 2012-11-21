@@ -1,0 +1,29 @@
+From 1eeaa7d920fe69d50c938e9618c5c1fce9cb6224 Mon Sep 17 00:00:00 2001
+From: Joel A Fernandes <joelagnel@ti.com>
+Date: Wed, 21 Nov 2012 13:59:09 -0600
+Subject: [PATCH] nxp:Makefile Undefine TDA_CEC, we don't use CEC features
+
+CEC code is forced as a module, lets exclude it from build because its
+based on a prehistoric kernel and will break our build.
+
+Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+---
+ drivers/video/nxp/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/video/nxp/Makefile b/drivers/video/nxp/Makefile
+index f583226..05dc816 100755
+--- a/drivers/video/nxp/Makefile
++++ b/drivers/video/nxp/Makefile
+@@ -14,7 +14,7 @@ TDA_PLATFORM := ZOOMII
+ 
+ #TDA_HDCP := 0
+ TDA_HDCP := TMFL_HDCP_SUPPORT
+-TDA_CEC := TDA9950
++#TDA_CEC := TDA9950
+ 
+ # add this if INTERRUPT is wired, otherwise polling with timer is used
+ #EXTRA_CFLAGS += -DIRQ
+-- 
+1.7.9.5
+
