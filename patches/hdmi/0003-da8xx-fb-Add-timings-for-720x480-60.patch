@@ -1,0 +1,38 @@
+From 12a7cc22cb1fc8c85dfcbdde843dc40db4103d1b Mon Sep 17 00:00:00 2001
+From: Joel A Fernandes <joelagnel@ti.com>
+Date: Tue, 20 Nov 2012 11:17:33 -0600
+Subject: [PATCH 3/6] da8xx-fb: Add timings for 720x480@60
+
+Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+---
+ drivers/video/da8xx-fb.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+index 6d98184..91061e6 100644
+--- a/drivers/video/da8xx-fb.c
++++ b/drivers/video/da8xx-fb.c
+@@ -312,6 +312,20 @@ static struct da8xx_panel known_lcd_panels[] = {
+ 		.pxl_clk = 30000000,
+ 		.invert_pxl_clk = 0,
+ 	},
++        [6] = {
++                 /* 1024 x 768 @ 60 Hz  Reduced blanking VESA CVT 0.79M3-R */ 
++                .name = "nxp-720x480@60",
++                .width = 720,
++                .height = 480,
++                .hfp = 15,
++                .hbp = 59,
++                .hsw = 61,
++                .vfp = 9,
++                .vbp = 30,
++                .vsw = 5,
++                .pxl_clk = 27027000,
++                .invert_pxl_clk = 0,
++        },
+ };
+ 
+ /* Enable the Raster Engine of the LCD Controller */
+-- 
+1.7.9.5
+
