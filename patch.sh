@@ -17,12 +17,12 @@ RECIPENAME="linux-mainline_3.7.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.7-rc6"
+TAG="v3.7-rc7"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="99b6e1e7233073a23a20824db8c5260a723ed192"
+EXTERNAL_SHA="9489e9dcae718d5fde988e4a684a0f55b5f94d17"
 
 #PATCHSET="pruss pwm2 fixes"
 # BAD: rtc
@@ -84,7 +84,7 @@ for patchset in ${PATCHSET} ; do
 	mkdir -p ${EXPORTPATH}/$patchset
 	for patch in $(ls -1 ${PATCHPATH}/$patchset/*.patch | sort -n) ; do
 		$ECHO -n "$patch: "
-		git am -q $patch && echo applied || exit 1
+		git am  -q $patch && echo applied || exit 1
 	done
 
 	NEWCOMMIT="$(git log --oneline --no-abbrev -1 | awk '{print $1}')"

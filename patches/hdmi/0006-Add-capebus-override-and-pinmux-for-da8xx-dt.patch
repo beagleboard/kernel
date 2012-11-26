@@ -1,7 +1,7 @@
-From 746ac312478efb531dc368d08eeaf496782273ca Mon Sep 17 00:00:00 2001
+From 8dc8c9075c40f1f239f917f902afad61a30418a5 Mon Sep 17 00:00:00 2001
 From: Joel A Fernandes <joelagnel@ti.com>
 Date: Wed, 21 Nov 2012 12:19:29 -0600
-Subject: [PATCH 6/6] Add capebus override and pinmux for da8xx-dt
+Subject: [PATCH 6/7] Add capebus override and pinmux for da8xx-dt
 
 Capebus override is left for LT only, rest is kept in common
 as there is an HDMI cape as well that could reuse in future.
@@ -10,13 +10,13 @@ Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
 ---
  arch/arm/boot/dts/am335x-bone-common.dtsi |   48 +++++++++++++++++++++++++++++
  arch/arm/boot/dts/am335x-bonelt.dts       |   10 ++++++
- 2 files changed, 58 insertions(+)
+ 2 files changed, 58 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 46d5f27..4bd1604 100644
+index 0378046..543365d 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -119,6 +119,32 @@
+@@ -127,6 +127,32 @@
  			>;
  		};
  
@@ -49,7 +49,7 @@ index 46d5f27..4bd1604 100644
  		bone_geiger_cape_led_pins: pinmux_bone_geiger_cape_led_pins {
  			pinctrl-single,pins = <
  				0xe4 0x07	/* lcd_hsync.gpio2_23, OUTPUT | MODE7 */
-@@ -267,6 +293,10 @@
+@@ -275,6 +301,10 @@
  				compatible = "bone-generic-cape";
  			};
  
@@ -60,7 +60,7 @@ index 46d5f27..4bd1604 100644
  			/* overrides; no EEPROM (prototyping) */
  //			override@3 {
  //				compatible = "bone-capebus-slot-override";
-@@ -426,6 +456,24 @@
+@@ -439,6 +469,24 @@
  	slots = <&cape_eeprom_0 &cape_eeprom_1 &cape_eeprom_2 &cape_eeprom_3>;
  };
  
@@ -104,5 +104,5 @@ index 037594d..44814b4 100644
 +	};
 +};
 -- 
-1.7.9.5
+1.7.7.6
 
