@@ -1,0 +1,67 @@
+From 1abd0711f76a5176d7584338bec51af11dad0fc5 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Thu, 15 Nov 2012 13:06:40 -0600
+Subject: [PATCH 6/6] ARM: OMAP: Beagle C4: fix reboot problem
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |   36 +++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index abef28a..6f8a7dc 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -667,6 +667,41 @@ static struct regulator_init_data beagle_vaux4 = {
+ 	.consumer_supplies	= &beagle_vaux4_supply,
+ };
+ 
++static struct twl4030_ins wrst_seq[] __initdata = {
++	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2},
++	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
++	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2},
++};
++
++static struct twl4030_script wrst_script __initdata = {
++	.script = wrst_seq,
++	.size   = ARRAY_SIZE(wrst_seq),
++	.flags  = TWL4030_WRST_SCRIPT,
++};
++
++static struct twl4030_script *twl4030_scripts[] __initdata = {
++	&wrst_script,
++};
++
++static struct twl4030_resconfig twl4030_rconfig[] = {
++	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3, .type = -1,
++		.type2 = -1 },
++	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1, .type = -1,
++		.type2 = -1 },
++	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1, .type = -1,
++		.type2 = -1 },
++	{ 0, 0},
++};
++
++static struct twl4030_power_data beagle_twl4030_power_data = {
++	.scripts	= twl4030_scripts,
++	.num		= ARRAY_SIZE(twl4030_scripts),
++	.resource_config = twl4030_rconfig,
++};
++
+ static struct twl4030_platform_data beagle_twldata = {
+ 	/* platform_data for children goes here */
+ 	.gpio		= &beagle_gpio_data,
+@@ -674,6 +709,7 @@ static struct twl4030_platform_data beagle_twldata = {
+ 	.vsim		= &beagle_vsim,
+ 	.vaux3		= &beagle_vaux3,
+ 	.vaux4		= &beagle_vaux4,
++	.power		= &beagle_twl4030_power_data,
+ };
+ 
+ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
+-- 
+1.7.10.4
+
