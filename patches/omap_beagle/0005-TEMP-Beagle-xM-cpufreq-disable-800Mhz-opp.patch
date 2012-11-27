@@ -1,0 +1,27 @@
+From e7a68a11c24e04e5403f407f9442e75d61e7b70f Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Fri, 14 Sep 2012 09:40:45 -0500
+Subject: [PATCH 5/6] TEMP: Beagle xM: cpufreq: disable 800Mhz opp
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index c370d72..abef28a 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -957,7 +957,8 @@ static int __init beagle_opp_init(void)
+ 	}
+ 
+ 	/* Custom OPP enabled for all xM versions */
+-	if (cpu_is_omap3630()) {
++	//if (cpu_is_omap3630()) {
++	if (0) {
+ 		struct device *mpu_dev, *iva_dev;
+ 
+ 		mpu_dev = get_cpu_device(0);
+-- 
+1.7.10.4
+
