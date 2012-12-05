@@ -1,0 +1,39 @@
+From 3d396413bdd0bbba814ff7b10b989eb37c4efb39 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Wed, 5 Dec 2012 11:12:21 -0600
+Subject: [PATCH 31/31] ARM: HSMMC: fix error path when no gpio_reset
+
+fixes: https://github.com/beagleboard/kernel/issues/12
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ drivers/mmc/host/omap_hsmmc.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 8a15610..ec73df7 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -421,7 +421,7 @@ static int omap_hsmmc_gpio_init(struct omap_mmc_platform_data *pdata)
+ 		ret = gpio_request_one(pdata->slots[0].gpio_reset, flags,
+ 				"mmc_reset");
+ 		if (ret)
+-			goto err_free_wp;
++			goto err_free_reset;
+ 
+ 		/* hold reset */
+ 		udelay(pdata->slots[0].gpio_reset_hold_us);
+@@ -442,6 +442,10 @@ err_free_cd:
+ err_free_sp:
+ 		gpio_free(pdata->slots[0].switch_pin);
+ 	return ret;
++err_free_reset:
++	gpio_free(pdata->slots[0].gpio_reset);
++	pdata->slots[0].gpio_reset = -EINVAL;
++	return 0;
+ }
+ 
+ static void omap_hsmmc_gpio_free(struct omap_mmc_platform_data *pdata)
+-- 
+1.7.10.4
+
