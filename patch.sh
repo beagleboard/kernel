@@ -26,7 +26,7 @@ EXTERNAL_SHA="df2fc246c8ee8b6067af1fa55d3bc23107457f61"
 
 #PATCHSET="pruss pwm2 fixes"
 # BAD: rtc
-PATCHSET="dma cpsw pinctrl cpufreq adc pwm i2c usb da8xx-fb mmc fixes f2fs 6lowpan capebus hdmi arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda omap_sgx omap_fixes omap_thermal net"
+PATCHSET="dma cpsw pinctrl cpufreq adc pwm i2c usb da8xx-fb mmc fixes f2fs 6lowpan capebus hdmi pruss arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda omap_sgx omap_fixes omap_thermal net"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
