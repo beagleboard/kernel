@@ -1,18 +1,20 @@
-From dd6a7e89930e18f5c776c7708d5d964a9d6cc356 Mon Sep 17 00:00:00 2001
+From c242a9a36af2f76755d878c3f41547ee3657b07e Mon Sep 17 00:00:00 2001
 From: Joel A Fernandes <joelagnel@ti.com>
 Date: Tue, 20 Nov 2012 11:17:33 -0600
-Subject: [PATCH 3/7] da8xx-fb: Add timings for 720x480@60
+Subject: [PATCH 3/8] da8xx-fb: Add timings for 720x480@60
+
+Also add timings for 1080p, 720p and 480p
 
 Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
 ---
- drivers/video/da8xx-fb.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ drivers/video/da8xx-fb.c |   56 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 6d98184..91061e6 100644
+index 6d98184..d6b228f 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -312,6 +312,20 @@ static struct da8xx_panel known_lcd_panels[] = {
+@@ -312,6 +312,62 @@ static struct da8xx_panel known_lcd_panels[] = {
  		.pxl_clk = 30000000,
  		.invert_pxl_clk = 0,
  	},
@@ -30,9 +32,51 @@ index 6d98184..91061e6 100644
 +                .pxl_clk = 27027000,
 +                .invert_pxl_clk = 0,
 +        },
++	[7] = {
++		 /* 1024 x 768 @ 60 Hz  Reduced blanking VESA CVT 0.79M3-R */ 
++		.name = "nxp-1280x720@60",
++		.width = 1280,
++		.height = 720,
++		.hfp = 109, // 20
++		.hbp = 219, // 54
++		.hsw = 39,
++		.vfp = 5,
++		.vbp = 19,
++		.vsw = 5,
++		.pxl_clk = 74250000,
++		.invert_pxl_clk = 0,
++	},
++	[8] = {
++		 /* 1024 x 768 @ 60 Hz  Reduced blanking VESA CVT 0.79M3-R */ 
++		.name = "nxp-640x480@60",
++		.width = 640,
++		.height = 480,
++		.hfp = 19, // 20 /* Need more changes later */
++		.hbp = 79, // 54
++		.hsw = 59,
++		.vfp = 9,
++		.vbp = 30,
++		.vsw = 6,
++		.pxl_clk = 25200000,
++		.invert_pxl_clk = 0,
++	},
++	[9] = {
++		 /* 1024 x 768 @ 60 Hz  Reduced blanking VESA CVT 0.79M3-R */ 
++		.name = "nxp-1920x1080@24",
++		.width = 1920,
++		.height = 1080,
++		.hfp = 103, // 20
++		.hbp = 311, // 54
++		.hsw = 31,
++		.vfp = 37,
++		.vbp = 60,
++		.vsw = 8,
++		.pxl_clk = 96000000,
++		.invert_pxl_clk = 0,
++	},
  };
  
  /* Enable the Raster Engine of the LCD Controller */
 -- 
-1.7.7.6
+1.7.9.5
 

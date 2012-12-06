@@ -1,22 +1,21 @@
-From 8dc8c9075c40f1f239f917f902afad61a30418a5 Mon Sep 17 00:00:00 2001
+From ad5d61fec15720d63330c3611d43900d8b27df74 Mon Sep 17 00:00:00 2001
 From: Joel A Fernandes <joelagnel@ti.com>
-Date: Wed, 21 Nov 2012 12:19:29 -0600
-Subject: [PATCH 6/7] Add capebus override and pinmux for da8xx-dt
+Date: Thu, 6 Dec 2012 02:57:00 -0600
+Subject: [PATCH 4/8] Add capebus override and pinmux for da8xx-dt
 
-Capebus override is left for LT only, rest is kept in common
-as there is an HDMI cape as well that could reuse in future.
+Config da8xx-fb for 1280x720 with disp-pll settings
+Add commented disp-pll settings for other freqs
 
 Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
 ---
- arch/arm/boot/dts/am335x-bone-common.dtsi |   48 +++++++++++++++++++++++++++++
- arch/arm/boot/dts/am335x-bonelt.dts       |   10 ++++++
- 2 files changed, 58 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/am335x-bone-common.dtsi |   54 +++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 0378046..543365d 100644
+index 46d5f27..69c6ce0 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -127,6 +127,32 @@
+@@ -119,6 +119,32 @@
  			>;
  		};
  
@@ -49,7 +48,7 @@ index 0378046..543365d 100644
  		bone_geiger_cape_led_pins: pinmux_bone_geiger_cape_led_pins {
  			pinctrl-single,pins = <
  				0xe4 0x07	/* lcd_hsync.gpio2_23, OUTPUT | MODE7 */
-@@ -275,6 +301,10 @@
+@@ -267,6 +293,10 @@
  				compatible = "bone-generic-cape";
  			};
  
@@ -60,7 +59,7 @@ index 0378046..543365d 100644
  			/* overrides; no EEPROM (prototyping) */
  //			override@3 {
  //				compatible = "bone-capebus-slot-override";
-@@ -439,6 +469,24 @@
+@@ -426,6 +456,30 @@
  	slots = <&cape_eeprom_0 &cape_eeprom_1 &cape_eeprom_2 &cape_eeprom_3>;
  };
  
@@ -76,8 +75,14 @@ index 0378046..543365d 100644
 +			pinctrl-0 = <&nxp_hdmi_cape_pins>;
 +
 +			ti,hwmods = "lcdc";
-+			disp-pll = <135000000>;
-+			panel-type = "nxp-720x480@60";
++/*
++       126000000 - 640x480
++       135000000 - 720x480
++       371000000 - 1280x720
++       192000000 - 1920x1080
++*/
++			disp-pll = <371000000>;
++			panel-type = "nxp-1280x720@60";
 +		};
 +	};
 +};
@@ -85,24 +90,6 @@ index 0378046..543365d 100644
  &bone_dvi_cape {
  	board-name = "BeagleBone DVI-D CAPE";
  
-diff --git a/arch/arm/boot/dts/am335x-bonelt.dts b/arch/arm/boot/dts/am335x-bonelt.dts
-index 037594d..44814b4 100644
---- a/arch/arm/boot/dts/am335x-bonelt.dts
-+++ b/arch/arm/boot/dts/am335x-bonelt.dts
-@@ -37,3 +37,13 @@
- 	 	reg = <0x34>;
- 	};
- };
-+
-+&capebus {
-+	override@0 {
-+		board-name = "NXP HDMI on CapeBus";
-+		compatible = "bone-capebus-slot-override";
-+		slot = <1>;
-+		version = "00A1";
-+		manufacturer = "Beagleboardtoys";
-+	};
-+};
 -- 
-1.7.7.6
+1.7.9.5
 

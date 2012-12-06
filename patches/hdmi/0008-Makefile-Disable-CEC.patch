@@ -1,15 +1,12 @@
-From 728be73967a74447dccc54c29723640ea9c6879d Mon Sep 17 00:00:00 2001
+From ef496dda5c4c3f07f571ddcfaa3814a7c7047177 Mon Sep 17 00:00:00 2001
 From: Joel A Fernandes <joelagnel@ti.com>
-Date: Wed, 21 Nov 2012 13:59:09 -0600
-Subject: [PATCH 7/7] nxp:Makefile Undefine TDA_CEC, we don't use CEC features
-
-CEC code is forced as a module, lets exclude it from build because its
-based on a prehistoric kernel and will break our build.
+Date: Mon, 3 Dec 2012 11:09:29 -0600
+Subject: [PATCH 8/8] Makefile: Disable CEC
 
 Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
 ---
  drivers/video/nxp/Makefile |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/video/nxp/Makefile b/drivers/video/nxp/Makefile
 index f583226..05dc816 100755
@@ -25,5 +22,5 @@ index f583226..05dc816 100755
  # add this if INTERRUPT is wired, otherwise polling with timer is used
  #EXTRA_CFLAGS += -DIRQ
 -- 
-1.7.7.6
+1.7.9.5
 
