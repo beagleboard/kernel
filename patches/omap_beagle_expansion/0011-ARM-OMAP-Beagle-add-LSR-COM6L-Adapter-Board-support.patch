@@ -1,0 +1,58 @@
+From 7aeada7b70159d455b875958d6235c750c673b39 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Mon, 10 Dec 2012 13:39:26 -0600
+Subject: [PATCH 11/11] ARM: OMAP: Beagle: add LSR COM6L Adapter Board support
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |   25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index b039a0c..02e3049 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -1079,8 +1079,28 @@ static void __init omap3_beagle_init(void)
+ 	}
+ 
+ #if defined(CONFIG_WL12XX) || defined(CONFIG_WL12XX_MODULE)
+-	if (!strcmp(expansionboard_name, "bbtoys-wifi"))
++	if ((!strcmp(expansionboard_name, "bbtoys-wifi")) || (!strcmp(expansionboard_name, "lsr-com6l-adpt")))
+ 	{
++		pr_info("Beagle expansion: wl12xx: setting up gpio pinmux\n");
++
++		omap_mux_init_gpio(OMAP_BEAGLE_FM_EN_BT_WU, OMAP_PIN_OUTPUT);
++		omap_mux_init_gpio(OMAP_BEAGLE_BT_EN_GPIO, OMAP_PIN_OUTPUT);
++		omap_mux_init_gpio(OMAP_BEAGLE_WLAN_EN_GPIO, OMAP_PIN_OUTPUT);
++
++		omap_mux_init_gpio(OMAP_BEAGLE_WLAN_IRQ_GPIO, OMAP_PIN_INPUT_PULLUP);
++
++		/* WLAN SDIO: MMC2 CLK */
++		omap_mux_init_signal("sdmmc2_clk.sdmmc2_clk", OMAP_PIN_INPUT_PULLUP);
++
++		/* WLAN SDIO: MMC2 CMD */
++		omap_mux_init_signal("sdmmc2_cmd.sdmmc2_cmd", OMAP_PIN_INPUT_PULLUP);
++
++		/* WLAN SDIO: MMC2 DAT[0-3] */
++		omap_mux_init_signal("sdmmc2_dat0.sdmmc2_dat0", OMAP_PIN_INPUT_PULLUP);
++		omap_mux_init_signal("sdmmc2_dat1.sdmmc2_dat1", OMAP_PIN_INPUT_PULLUP);
++		omap_mux_init_signal("sdmmc2_dat2.sdmmc2_dat2", OMAP_PIN_INPUT_PULLUP);
++		omap_mux_init_signal("sdmmc2_dat3.sdmmc2_dat3", OMAP_PIN_INPUT_PULLUP);
++
+ 		expansion_config.mmc_settings = EXPANSION_MMC_WIFI;
+ 	}
+ #endif
+@@ -1174,8 +1194,9 @@ static void __init omap3_beagle_init(void)
+ 	}
+ 
+ #if defined(CONFIG_WL12XX) || defined(CONFIG_WL12XX_MODULE)
+-	if (!strcmp(expansionboard_name, "bbtoys-wifi"))
++	if ((!strcmp(expansionboard_name, "bbtoys-wifi")) || (!strcmp(expansionboard_name, "lsr-com6l-adpt")))
+ 	{
++		pr_info("Beagle expansionboard: initializing wl12xx platform\n");
+ 		omap_beagle_wlan_data.irq = gpio_to_irq(OMAP_BEAGLE_WLAN_IRQ_GPIO);
+ 		if (wl12xx_set_platform_data(&omap_beagle_wlan_data))
+ 			pr_err("error setting wl12xx data\n");
+-- 
+1.7.10.4
+
