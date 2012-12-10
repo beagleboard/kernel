@@ -22,11 +22,11 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="18a2f371f5edf41810f6469cb9be39931ef9deb9"
+EXTERNAL_SHA="1b3c393cd43f22ead8a6a2f839efc6df8ebd7465"
 
 #PATCHSET="pruss pwm2 fixes"
 # BAD: rtc
-PATCHSET="dma cpsw pinctrl cpufreq adc pwm i2c usb da8xx-fb mmc fixes f2fs 6lowpan capebus hdmi pruss arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda omap_sgx omap_fixes omap_thermal net"
+PATCHSET="dma cpsw pinctrl cpufreq adc pwm i2c usb da8xx-fb mmc fixes f2fs 6lowpan capebus hdmi pruss arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda omap_sgx omap_fixes omap_thermal net spi"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
