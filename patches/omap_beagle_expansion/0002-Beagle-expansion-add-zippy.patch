@@ -1,7 +1,7 @@
-From dcd2b0dd5a01a3075f7bb2c78b96b2d90c2774f5 Mon Sep 17 00:00:00 2001
+From 13d38f2563874b93649ea79411a6f49145d60779 Mon Sep 17 00:00:00 2001
 From: Robert Nelson <robertcnelson@gmail.com>
-Date: Tue, 22 May 2012 15:04:46 -0500
-Subject: [PATCH 2/9] Beagle: expansion: add zippy
+Date: Tue, 11 Dec 2012 06:30:06 -0600
+Subject: [PATCH 02/10] Beagle: expansion: add zippy
 
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
@@ -9,7 +9,7 @@ Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
  1 file changed, 157 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index c1c6332..3ce1f93d 100644
+index dd282d5..35ad593 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
 @@ -162,6 +162,86 @@ static void __init omap3_beagle_init_rev(void)
@@ -46,7 +46,7 @@ index c1c6332..3ce1f93d 100644
 +};
 +
 +static struct platform_device omap_zippy_device = {
-+	.name		= "reg-fixed-voltage",
++	.name	= "reg-fixed-voltage",
 +	.id		= 1,
 +	.dev = {
 +		.platform_data = &beagle_vzippy,
@@ -70,8 +70,8 @@ index c1c6332..3ce1f93d 100644
 +	{
 +		.modalias		= "enc28j60",
 +		.bus_num		= 4,
-+		.chip_select		= 0,
-+		.max_speed_hz		= 20000000,
++		.chip_select	= 0,
++		.max_speed_hz	= 20000000,
 +		.controller_data	= &enc28j60_spi_chip_info,
 +	},
 +};
@@ -84,7 +84,7 @@ index c1c6332..3ce1f93d 100644
 +		omap3beagle_zippy_spi_board_info[0].irq = gpio_to_irq(OMAP3BEAGLE_GPIO_ENC28J60_IRQ);
 +		irq_set_irq_type(omap3beagle_zippy_spi_board_info[0].irq, IRQ_TYPE_EDGE_FALLING);
 +	} else {
-+		printk(KERN_ERR "could not obtain gpio for ENC28J60_IRQ\n");
++		pr_err("Beagle expansionboard: could not obtain gpio for ENC28J60_IRQ\n");
 +		return;
 +	}
 +
@@ -180,13 +180,13 @@ index c1c6332..3ce1f93d 100644
  	/* Bus 3 is attached to the DVI port where devices like the pico DLP
  	 * projector don't work reliably with 400kHz */
  	omap_register_i2c_bus(3, 100, beagle_i2c_eeprom, ARRAY_SIZE(beagle_i2c_eeprom));
-@@ -510,10 +635,30 @@ static void __init omap3_beagle_init(void)
+@@ -513,10 +638,30 @@ static void __init omap3_beagle_init(void)
  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
  	omap3_beagle_init_rev();
  
 +	if (!strcmp(expansionboard_name, "zippy"))
 +	{
-+		printk(KERN_INFO "Beagle expansionboard: initializing zippy mmc\n");
++		pr_info("Beagle expansionboard: initializing zippy mmc\n");
 +		platform_device_register(&omap_zippy_device);
 +
 +		expansion_config.i2c_settings = EXPANSION_I2C_ZIPPY;
@@ -213,13 +213,13 @@ index c1c6332..3ce1f93d 100644
  
  	omap3_beagle_i2c_init();
  
-@@ -528,6 +673,12 @@ static void __init omap3_beagle_init(void)
+@@ -531,6 +676,12 @@ static void __init omap3_beagle_init(void)
  	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
  				  mt46h32m32lf6_sdrc_params);
  
 +	if (!strcmp(expansionboard_name, "zippy"))
 +	{
-+		printk(KERN_INFO "Beagle expansionboard: initializing enc28j60\n");
++		pr_info("Beagle expansionboard: initializing enc28j60\n");
 +		omap3beagle_enc28j60_init();
 +	}
 +
