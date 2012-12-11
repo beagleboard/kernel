@@ -6,10 +6,10 @@ Kernel for the beagleboard.org boards
 usage
 ======
 
-3.7 patchset:
+3.8 patchset:
 
 ```
-git checkout origin/3.7 -b 3.7
+git checkout origin/3.8 -b 3.8
 ./patch.sh
 ```
 
