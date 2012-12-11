@@ -1,7 +1,7 @@
-From 318973b8f9534c1be923b36bdf19036490fb7192 Mon Sep 17 00:00:00 2001
+From f5100a34d79b64837b494bb5085cbb3c15499fdb Mon Sep 17 00:00:00 2001
 From: Robert Nelson <robertcnelson@gmail.com>
-Date: Tue, 22 May 2012 15:09:04 -0500
-Subject: [PATCH 3/9] Beagle: expansion: add zippy2
+Date: Tue, 11 Dec 2012 06:32:15 -0600
+Subject: [PATCH 03/10] Beagle: expansion: add zippy2
 
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
@@ -9,7 +9,7 @@ Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
  1 file changed, 47 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 3ce1f93d..74554ce 100644
+index 35ad593..c762083 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
 @@ -242,6 +242,46 @@ static void __init omap3beagle_enc28j60_init(void)
@@ -30,8 +30,8 @@ index 3ce1f93d..74554ce 100644
 +	{
 +		.modalias		= "ks8851",
 +		.bus_num		= 4,
-+		.chip_select		= 0,
-+		.max_speed_hz		= 36000000,
++		.chip_select	= 0,
++		.max_speed_hz	= 36000000,
 +		.controller_data	= &ks8851_spi_chip_info,
 +	},
 +};
@@ -44,7 +44,7 @@ index 3ce1f93d..74554ce 100644
 +		omap3beagle_zippy2_spi_board_info[0].irq = gpio_to_irq(OMAP3BEAGLE_GPIO_KS8851_IRQ);
 +		irq_set_irq_type(omap3beagle_zippy2_spi_board_info[0].irq, IRQ_TYPE_EDGE_FALLING);
 +	} else {
-+		printk(KERN_ERR "could not obtain gpio for KS8851_IRQ\n");
++		pr_err("Beagle expansionboard: could not obtain gpio for KS8851_IRQ\n");
 +		return;
 +	}
 +
@@ -59,22 +59,22 @@ index 3ce1f93d..74554ce 100644
  static struct mtd_partition omap3beagle_nand_partitions[] = {
  	/* All the partition sizes are listed in terms of NAND block size */
  	{
-@@ -635,7 +675,7 @@ static void __init omap3_beagle_init(void)
+@@ -638,7 +678,7 @@ static void __init omap3_beagle_init(void)
  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
  	omap3_beagle_init_rev();
  
 -	if (!strcmp(expansionboard_name, "zippy"))
 +	if ((!strcmp(expansionboard_name, "zippy")) || (!strcmp(expansionboard_name, "zippy2")))
  	{
- 		printk(KERN_INFO "Beagle expansionboard: initializing zippy mmc\n");
+ 		pr_info("Beagle expansionboard: initializing zippy mmc\n");
  		platform_device_register(&omap_zippy_device);
-@@ -679,6 +719,12 @@ static void __init omap3_beagle_init(void)
+@@ -682,6 +722,12 @@ static void __init omap3_beagle_init(void)
  		omap3beagle_enc28j60_init();
  	}
  
 +	if (!strcmp(expansionboard_name, "zippy2"))
 +	{
-+		printk(KERN_INFO "Beagle expansionboard: initializing ks_8851\n");
++		pr_info("Beagle expansionboard: initializing ks_8851\n");
 +		omap3beagle_ks8851_init();
 +	}
 +

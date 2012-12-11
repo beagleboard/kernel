@@ -1,7 +1,7 @@
-From eec1ce47687846258fcf416993a2137ede41062a Mon Sep 17 00:00:00 2001
+From a53e7913a95faefde1ee87a7ea048c04b0850066 Mon Sep 17 00:00:00 2001
 From: Robert Nelson <robertcnelson@gmail.com>
-Date: Tue, 22 May 2012 15:18:27 -0500
-Subject: [PATCH 5/9] Beagle: expansion: add CircuitCo ulcd Support
+Date: Tue, 11 Dec 2012 06:42:03 -0600
+Subject: [PATCH 05/10] Beagle: expansion: add CircuitCo ulcd Support
 
 This of a cleanup, squashed both ulcd commits into one:
 
@@ -19,12 +19,12 @@ Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c          |  134 ++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3beagle.c          |  138 ++++++++++++++++++++++
  drivers/video/omap2/displays/panel-generic-dpi.c |   27 +++++
- 2 files changed, 161 insertions(+)
+ 2 files changed, 165 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 9809479..b9d4904 100644
+index c6b33e7..6cb7815 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
 @@ -42,6 +42,7 @@
@@ -75,10 +75,10 @@ index 9809479..b9d4904 100644
 +static int beagle_enable_lcd(struct omap_dss_device *dssdev)
 +{
 +	if (gpio_is_valid(beagle_config.lcd_pwren)) {
-+		printk(KERN_INFO "%s: Enabling LCD\n", __FUNCTION__);
++		pr_info("%s: Enabling LCD\n", __FUNCTION__);
 +		gpio_set_value(beagle_config.lcd_pwren, 0);
 +	} else {
-+		printk(KERN_INFO "%s: Invalid LCD enable GPIO: %d\n",
++		pr_info("%s: Invalid LCD enable GPIO: %d\n",
 +			__FUNCTION__, beagle_config.lcd_pwren);
 +	}
 +
@@ -88,10 +88,10 @@ index 9809479..b9d4904 100644
 +static void beagle_disable_lcd(struct omap_dss_device *dssdev)
 +{
 +	if (gpio_is_valid(beagle_config.lcd_pwren)) {
-+		printk(KERN_INFO "%s: Disabling LCD\n", __FUNCTION__);
++		pr_info("%s: Disabling LCD\n", __FUNCTION__);
 +		gpio_set_value(beagle_config.lcd_pwren, 1);
 +	} else {
-+		printk(KERN_INFO "%s: Invalid LCD enable GPIO: %d\n",
++		pr_info("%s: Invalid LCD enable GPIO: %d\n",
 +			__FUNCTION__, beagle_config.lcd_pwren);
 +	}
 +
@@ -161,7 +161,7 @@ index 9809479..b9d4904 100644
 +
 +	r = gpio_request_one(OMAP3BEAGLE_TSC2007_GPIO, GPIOF_IN, "tsc2007_pen_down");
 +	if (r < 0) {
-+		printk(KERN_ERR "failed to request GPIO#%d for "
++		pr_err("Beagle expansionboard: failed to request GPIO#%d for "
 +		"tsc2007 pen down IRQ\n", OMAP3BEAGLE_TSC2007_GPIO);
 +		return;
 +	}
@@ -188,23 +188,26 @@ index 9809479..b9d4904 100644
  	case EXPANSION_I2C_ZIPPY:
  		omap_register_i2c_bus(2, 400, zippy_i2c2_rtc, ARRAY_SIZE(zippy_i2c2_rtc));
  		break;
-@@ -622,6 +725,15 @@ static int __init expansionboard_setup(char *str)
+@@ -625,6 +728,18 @@ static int __init expansionboard_setup(char *str)
  	return 0;
  }
  
 +static int __init expansionboard2_setup(char *str)
 +{
++	if (!machine_is_omap3_beagle())
++		return 0;
++
 +	if (!str)
 +		return -EINVAL;
 +	strncpy(expansionboard2_name, str, 16);
-+	printk(KERN_INFO "Beagle second expansionboard: %s\n", expansionboard2_name);
++	pr_info("Beagle expansionboard2: %s\n", expansionboard2_name);
 +	return 0;
 +}
 +
  static int __init beagle_opp_init(void)
  {
  	int r = 0;
-@@ -687,6 +799,21 @@ static void __init omap3_beagle_init(void)
+@@ -690,6 +805,20 @@ static void __init omap3_beagle_init(void)
  		omap_mux_init_gpio(OMAP3BEAGLE_GPIO_ZIPPY_MMC_CD, OMAP_PIN_INPUT);
  	}
  
@@ -219,27 +222,28 @@ index 9809479..b9d4904 100644
 +
 +		r = gpio_request_one(beagle_config.lcd_pwren, GPIOF_OUT_INIT_LOW, "LCD power");
 +		if (r < 0)
-+			printk(KERN_ERR "Unable to get LCD power enable GPIO\n");
-+
++			pr_err("Beagle expansionboard: Unable to get LCD power enable GPIO\n");
 +	}
 +
  	if (gpio_is_valid(beagle_config.mmc1_gpio_wp))
  		omap_mux_init_gpio(beagle_config.mmc1_gpio_wp, OMAP_PIN_INPUT);
  
-@@ -756,6 +883,12 @@ static void __init omap3_beagle_init(void)
+@@ -759,6 +888,14 @@ static void __init omap3_beagle_init(void)
  		gpio_export(162, 1);
  	}
  
 +	if (!strcmp(expansionboard2_name, "bbtoys-ulcd"))
 +	{
-+		printk(KERN_INFO "Beagle second expansionboard: initializing touchscreen: tsc2007\n");
++	#if defined(CONFIG_TOUCHSCREEN_TSC2007) || defined(CONFIG_TOUCHSCREEN_TSC2007_MODULE)
++		pr_info("Beagle expansionboard: initializing touchscreen: tsc2007\n");
 +		omap3beagle_tsc2007_init();
++	#endif
 +	}
 +
  	usb_musb_init(NULL);
  	usbhs_init(&usbhs_bdata);
  	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3beagle_nand_partitions,
-@@ -771,6 +904,7 @@ static void __init omap3_beagle_init(void)
+@@ -774,6 +911,7 @@ static void __init omap3_beagle_init(void)
  }
  
  early_param("buddy", expansionboard_setup);

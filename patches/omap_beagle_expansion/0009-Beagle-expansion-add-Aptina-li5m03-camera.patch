@@ -1,7 +1,7 @@
-From 674afad1e5b8e79c656ee30dbca6aac5dee5157f Mon Sep 17 00:00:00 2001
+From cc6ced0a1cbaea65a507ec3fe543a5b98d760d23 Mon Sep 17 00:00:00 2001
 From: Robert Nelson <robertcnelson@gmail.com>
-Date: Tue, 9 Oct 2012 16:18:13 -0500
-Subject: [PATCH 9/9] Beagle: Camera: add MT9P031 Aptina image sensor driver
+Date: Tue, 11 Dec 2012 06:58:15 -0600
+Subject: [PATCH 09/10] Beagle: expansion: add Aptina li5m03 camera
 
 Based on:
 https://github.com/Aptina/BeagleBoard-xM/blob/master/tools/0266-Adding-MT9P031-Support-files.patch
@@ -14,11 +14,11 @@ https://github.com/beagleboard/kernel/blob/beagleboard-3.2/patches/camera/0003-b
 
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |  149 +++++++++++++++++++++++++++++++
- 1 file changed, 149 insertions(+)
+ arch/arm/mach-omap2/board-omap3beagle.c |  152 +++++++++++++++++++++++++++++++
+ 1 file changed, 152 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 9829fb5..c370d72 100644
+index 64b3444..c64ea55 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
 @@ -168,6 +168,7 @@ static void __init omap3_beagle_init_rev(void)
@@ -160,23 +160,26 @@ index 9829fb5..c370d72 100644
  static int __init omap3_beagle_i2c_init(void)
  {
  	omap3_pmic_get_config(&beagle_twldata,
-@@ -827,6 +933,15 @@ static int __init expansionboard2_setup(char *str)
+@@ -833,6 +939,18 @@ static int __init expansionboard2_setup(char *str)
  	return 0;
  }
  
 +static int __init camera_setup(char *str)
 +{
++	if (!machine_is_omap3_beagle())
++		return 0;
++
 +	if (!str)
 +		return -EINVAL;
 +	strncpy(camera_name, str, 16);
-+	printk(KERN_INFO "Beagle camera: %s\n", camera_name);
++	pr_info("Beagle camera: %s\n", camera_name);
 +	return 0;
 +}
 +
  static int __init beagle_opp_init(void)
  {
  	int r = 0;
-@@ -1102,8 +1217,42 @@ static void __init omap3_beagle_init(void)
+@@ -1109,8 +1227,42 @@ static void __init omap3_beagle_init(void)
  	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
  }
  
@@ -191,7 +194,7 @@ index 9829fb5..c370d72 100644
 +#if defined(CONFIG_VIDEO_MT9P031)
 +	if ((!strcmp(camera_name, "lbcm5m1")) || (!strcmp(camera_name, "li5m03")))
 +	{
-+		pr_info("Beagle camera: MT9P031 init");
++		pr_info("Beagle camera: MT9P031 init\n");
 +
 +		reg_1v8 = regulator_get(NULL, "cam_1v8");
 +		if (IS_ERR(reg_1v8))

@@ -1,7 +1,7 @@
-From 6eca38ab28d63300e2935141522000635cd01ec0 Mon Sep 17 00:00:00 2001
+From 6f3a87d64383591c816d760fc65bf4221ea6a21f Mon Sep 17 00:00:00 2001
 From: Robert Nelson <robertcnelson@gmail.com>
-Date: Tue, 22 May 2012 15:11:30 -0500
-Subject: [PATCH 4/9] Beagle: expansion: add trainer
+Date: Tue, 11 Dec 2012 06:33:24 -0600
+Subject: [PATCH 04/10] Beagle: expansion: add trainer
 
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
@@ -9,16 +9,16 @@ Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
  1 file changed, 31 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 74554ce..9809479 100644
+index c762083..c6b33e7 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -725,6 +725,37 @@ static void __init omap3_beagle_init(void)
+@@ -728,6 +728,37 @@ static void __init omap3_beagle_init(void)
  		omap3beagle_ks8851_init();
  	}
  
 +	if (!strcmp(expansionboard_name, "trainer"))
 +	{
-+		printk(KERN_INFO "Beagle expansionboard: exporting GPIOs 130-141,162 to userspace\n");
++		pr_info("Beagle expansionboard: exporting GPIOs 130-141,162 to userspace\n");
 +		gpio_request(130, "sysfs");
 +		gpio_export(130, 1);
 +		gpio_request(131, "sysfs");
