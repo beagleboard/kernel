@@ -1,4 +1,4 @@
-From c8ac12442e3daff4dd96f8447654518aa7fc08e9 Mon Sep 17 00:00:00 2001
+From b1e1b4cc5424a647bf17637c40bb0000a3705764 Mon Sep 17 00:00:00 2001
 From: "Patil, Rachna" <rachna@ti.com>
 Date: Tue, 16 Oct 2012 07:25:43 +0000
 Subject: [PATCH 06/13] MFD: ti_tscadc: Add support for TI's TSC/ADC MFDevice
@@ -19,10 +19,10 @@ Signed-off-by: Patil, Rachna <rachna@ti.com>
  create mode 100644 include/linux/mfd/ti_am335x_tscadc.h
 
 diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index acab3ef..9bba7f7 100644
+index 94bdf83..3dcbf06 100644
 --- a/drivers/mfd/Kconfig
 +++ b/drivers/mfd/Kconfig
-@@ -94,6 +94,17 @@ config MFD_TI_SSP
+@@ -104,6 +104,17 @@ config MFD_TI_SSP
  	  To compile this driver as a module, choose M here: the
  	  module will be called ti-ssp.
  
@@ -41,10 +41,10 @@ index acab3ef..9bba7f7 100644
  	bool "HTC EGPIO support"
  	depends on GENERIC_HARDIRQS && GPIOLIB && ARM
 diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index d8ccb63..442c17e 100644
+index 69f260a..7d99e8d 100644
 --- a/drivers/mfd/Makefile
 +++ b/drivers/mfd/Makefile
-@@ -16,6 +16,7 @@ obj-$(CONFIG_HTC_I2CPLD)	+= htc-i2cpld.o
+@@ -19,6 +19,7 @@ obj-$(CONFIG_HTC_I2CPLD)	+= htc-i2cpld.o
  obj-$(CONFIG_MFD_DAVINCI_VOICECODEC)	+= davinci_voicecodec.o
  obj-$(CONFIG_MFD_DM355EVM_MSP)	+= dm355evm_msp.o
  obj-$(CONFIG_MFD_TI_SSP)	+= ti-ssp.o

@@ -1,4 +1,4 @@
-From eec5290503d142000a38a4dfa264401ad51b0749 Mon Sep 17 00:00:00 2001
+From 5ea37dd4f1cd6f3605e379803937a1d276c808f4 Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
 Date: Mon, 3 Sep 2012 23:26:27 -0400
 Subject: [PATCH 12/16] 6lowpan: make memory allocation atomic during 6lowpan
@@ -13,7 +13,7 @@ Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
  1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
-index 9c7ac2e..70ff171 100644
+index ed01c39..bf6548e 100644
 --- a/net/ieee802154/6lowpan.c
 +++ b/net/ieee802154/6lowpan.c
 @@ -396,7 +396,7 @@ static int lowpan_header_create(struct sk_buff *skb,

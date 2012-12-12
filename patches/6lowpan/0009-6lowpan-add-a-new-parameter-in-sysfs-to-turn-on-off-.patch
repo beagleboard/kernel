@@ -1,4 +1,4 @@
-From fa1512a1df6ec0ae27659843dcc927117b71fde6 Mon Sep 17 00:00:00 2001
+From c7e3d4a3b7731bc6e86a045449d8bdc5016f5a91 Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
 Date: Thu, 12 Jul 2012 17:47:39 -0400
 Subject: [PATCH 09/16] 6lowpan: add a new parameter in sysfs to turn on/off
@@ -10,7 +10,7 @@ Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
  1 files changed, 8 insertions(+), 1 deletions(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
-index 24b83fa..f8fcdae 100644
+index f1bb24f..abf514e 100644
 --- a/net/ieee802154/6lowpan.c
 +++ b/net/ieee802154/6lowpan.c
 @@ -62,6 +62,8 @@
@@ -32,7 +32,7 @@ index 24b83fa..f8fcdae 100644
  		}
  
  		return dev_hard_header(skb, lowpan_dev_info(dev)->real_dev,
-@@ -1366,6 +1369,10 @@ static void __exit lowpan_cleanup_module(void)
+@@ -1367,6 +1370,10 @@ static void __exit lowpan_cleanup_module(void)
  }
  
  module_init(lowpan_init_module);

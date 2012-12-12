@@ -1,4 +1,4 @@
-From 9699bb347da6e65ba071ed422bb965fe0f0e57dc Mon Sep 17 00:00:00 2001
+From 43462fb9378bf9b6e8d5cd801ba7b91a5e6fe27d Mon Sep 17 00:00:00 2001
 From: Robert Nelson <robertcnelson@gmail.com>
 Date: Thu, 15 Nov 2012 13:06:40 -0600
 Subject: [PATCH 5/5] ARM: OMAP: Beagle C4: fix reboot problem
@@ -6,13 +6,13 @@ Subject: [PATCH 5/5] ARM: OMAP: Beagle C4: fix reboot problem
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
  arch/arm/mach-omap2/board-omap3beagle.c |   36 +++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ 1 files changed, 36 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 4fa880a..f5b7f77 100644
+index 7f8e2fa..22eeb17 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -672,6 +672,41 @@ static struct regulator_init_data beagle_vaux4 = {
+@@ -675,6 +675,41 @@ static struct regulator_init_data beagle_vaux4 = {
  	.consumer_supplies	= &beagle_vaux4_supply,
  };
  
@@ -54,7 +54,7 @@ index 4fa880a..f5b7f77 100644
  static struct twl4030_platform_data beagle_twldata = {
  	/* platform_data for children goes here */
  	.gpio		= &beagle_gpio_data,
-@@ -679,6 +714,7 @@ static struct twl4030_platform_data beagle_twldata = {
+@@ -682,6 +717,7 @@ static struct twl4030_platform_data beagle_twldata = {
  	.vsim		= &beagle_vsim,
  	.vaux3		= &beagle_vaux3,
  	.vaux4		= &beagle_vaux4,
@@ -63,5 +63,5 @@ index 4fa880a..f5b7f77 100644
  
  static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
 -- 
-1.7.10.4
+1.7.7.6
 

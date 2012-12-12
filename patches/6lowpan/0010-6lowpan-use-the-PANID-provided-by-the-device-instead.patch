@@ -1,4 +1,4 @@
-From 6f72dec4d20f20dacf57af704a0fa612293b0af3 Mon Sep 17 00:00:00 2001
+From 6985fa00ccfb6bd1e95d790029ce1a7223ff9548 Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
 Date: Mon, 24 Sep 2012 23:11:46 -0400
 Subject: [PATCH 10/16] 6lowpan: use the PANID provided by the device instead
@@ -10,7 +10,7 @@ Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
  1 files changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
-index f8fcdae..9711038 100644
+index abf514e..b6c732e 100644
 --- a/net/ieee802154/6lowpan.c
 +++ b/net/ieee802154/6lowpan.c
 @@ -584,10 +584,12 @@ static int lowpan_header_create(struct sk_buff *skb,

@@ -1,7 +1,7 @@
-From 46deb4b07e66cd3e29a70573be7dade642a90c80 Mon Sep 17 00:00:00 2001
+From fa94c48b5b5955dbf92598d7cef2cb531968d9c3 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 20 Sep 2012 07:47:47 -0400
-Subject: [PATCH 19/31] mmc: omap_hsmmc: add generic DMA request support to
+Subject: [PATCH 19/29] mmc: omap_hsmmc: add generic DMA request support to
  the DT binding
 
 The binding definition is based on the generic DMA request binding.
@@ -12,13 +12,13 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  1 files changed, 24 insertions(+), 1 deletions(-)
 
 diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-index be76a23..d1b8932 100644
+index ed271fc..826cc51 100644
 --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
 +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-@@ -19,8 +19,28 @@ ti,dual-volt: boolean, supports dual voltage cards
- "supply-name" examples are "vmmc", "vmmc_aux" etc
+@@ -20,8 +20,28 @@ ti,dual-volt: boolean, supports dual voltage cards
  ti,non-removable: non-removable slot (like eMMC)
  ti,needs-special-reset: Requires a special softreset sequence
+ ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
 +dmas: DMA controller phandle and DMA request value ordered pair
 +One tx and one rx pair is required.
 +dma-names: DMA request names. These strings correspond 1:1 with
@@ -45,7 +45,7 @@ index be76a23..d1b8932 100644
  	mmc1: mmc@0x4809c000 {
  		compatible = "ti,omap4-hsmmc";
  		reg = <0x4809c000 0x400>;
-@@ -29,4 +49,7 @@ Example:
+@@ -30,4 +50,7 @@ Example:
  		bus-width = <4>;
  		vmmc-supply = <&vmmc>; /* phandle to regulator node */
  		ti,non-removable;

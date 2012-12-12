@@ -1,4 +1,4 @@
-From aa13e19e1467bae81bd9b57686aadfa287302c77 Mon Sep 17 00:00:00 2001
+From 0c361e9db10f9ec3598bf062a605a451857ee06e Mon Sep 17 00:00:00 2001
 From: Bas van der Doorn <bas@doornvd.com>
 Date: Tue, 11 Dec 2012 06:52:22 -0600
 Subject: [PATCH 07/10] Beagle: expansion: add beaglefpga
@@ -9,10 +9,10 @@ Signed-off-by: Bas van der Doorn <bas@doornvd.com>
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
  arch/arm/mach-omap2/board-omap3beagle.c |   74 +++++++++++++++++++++++++++++++
- 1 file changed, 74 insertions(+)
+ 1 files changed, 74 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 03773cb..e6000f4 100644
+index 130a2fd..b46850b 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
 @@ -39,6 +39,7 @@
@@ -21,9 +21,9 @@ index 03773cb..e6000f4 100644
  #include <asm/mach/flash.h>
 +#include <linux/spi/spi.h>
  
- #include "common.h"
  #include <video/omapdss.h>
-@@ -880,6 +881,68 @@ static int __init beagle_opp_init(void)
+ #include <video/omap-panel-generic-dpi.h>
+@@ -883,6 +884,68 @@ static int __init beagle_opp_init(void)
  }
  device_initcall(beagle_opp_init);
  
@@ -92,7 +92,7 @@ index 03773cb..e6000f4 100644
  static void __init omap3_beagle_init(void)
  {
  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-@@ -1005,6 +1068,17 @@ static void __init omap3_beagle_init(void)
+@@ -1008,6 +1071,17 @@ static void __init omap3_beagle_init(void)
  	#endif
  	}
  
@@ -111,5 +111,5 @@ index 03773cb..e6000f4 100644
  	{
  	#if defined(CONFIG_TOUCHSCREEN_TSC2007) || defined(CONFIG_TOUCHSCREEN_TSC2007_MODULE)
 -- 
-1.7.10.4
+1.7.7.6
 

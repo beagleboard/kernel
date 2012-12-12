@@ -1,7 +1,7 @@
-From 8a47173be064140d178cb45ee36e5f5c3f815917 Mon Sep 17 00:00:00 2001
+From 6f0337ad76fe8f184dc2d87ace212f0d036f848f Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Sat, 20 Oct 2012 14:08:17 +0300
-Subject: [PATCH 06/26] i2c: Export capability to probe devices
+Subject: [PATCH 06/15] i2c: Export capability to probe devices
 
 Probe devices for a node other that the adapter node.
 ---
@@ -10,7 +10,7 @@ Probe devices for a node other that the adapter node.
  2 files changed, 13 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/of/of_i2c.c b/drivers/of/of_i2c.c
-index 3550f3b..7f36b05 100644
+index b667264..9499a0c 100644
 --- a/drivers/of/of_i2c.c
 +++ b/drivers/of/of_i2c.c
 @@ -18,18 +18,18 @@
@@ -31,8 +31,8 @@ index 3550f3b..7f36b05 100644
  
  	dev_dbg(&adap->dev, "of_i2c: walking child nodes\n");
  
--	for_each_child_of_node(adap->dev.of_node, node) {
-+	for_each_child_of_node(parent_node, node) {
+-	for_each_available_child_of_node(adap->dev.of_node, node) {
++	for_each_available_child_of_node(parent_node, node) {
  		struct i2c_board_info info = {};
  		struct dev_archdata dev_ad = {};
  		const __be32 *addr;

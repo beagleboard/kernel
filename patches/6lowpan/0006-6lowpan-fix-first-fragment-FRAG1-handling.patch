@@ -1,4 +1,4 @@
-From 059c943044d018069885b9723c84a4a301ab408c Mon Sep 17 00:00:00 2001
+From fc59047082dc813fa545a7c55c0cdcab20cb5743 Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
 Date: Sat, 8 Sep 2012 00:15:54 -0400
 Subject: [PATCH 06/16] 6lowpan: fix first fragment (FRAG1) handling
@@ -17,7 +17,7 @@ Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
  1 files changed, 42 insertions(+), 12 deletions(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
-index 8a2ee95..38cecaf 100644
+index 1b3bfd2..c35449f 100644
 --- a/net/ieee802154/6lowpan.c
 +++ b/net/ieee802154/6lowpan.c
 @@ -654,7 +654,7 @@ static void lowpan_fragment_timer_expired(unsigned long entry_addr)

@@ -1,7 +1,7 @@
-From 807ea5b1d363e04f1a976e93597b857a9b3239dd Mon Sep 17 00:00:00 2001
+From 87640a6aa36124861e1b7d16ede0ec7a6af3aeff Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 6 Sep 2012 17:47:21 -0400
-Subject: [PATCH 17/31] mmc: omap_hsmmc: convert to
+Subject: [PATCH 17/29] mmc: omap_hsmmc: convert to
  dma_request_slave_channel_compat()
 
 Convert dmaengine channel requests to use
@@ -17,10 +17,10 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  1 files changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index fedd258..f74141e 100644
+index bc58078..e79b12d 100644
 --- a/drivers/mmc/host/omap_hsmmc.c
 +++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1871,14 +1871,20 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
+@@ -1915,14 +1915,20 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
  	dma_cap_zero(mask);
  	dma_cap_set(DMA_SLAVE, mask);
  

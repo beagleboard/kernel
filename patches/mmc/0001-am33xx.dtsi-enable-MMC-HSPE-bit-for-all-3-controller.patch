@@ -1,7 +1,7 @@
-From cf1e28fd1208096ffce68dc288d837b2df4ba511 Mon Sep 17 00:00:00 2001
+From a1b428e82add06ecbc9ac24541deb1159e6c64a7 Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Thu, 18 Oct 2012 10:11:48 +0200
-Subject: [PATCH 2/3] am33xx.dtsi: enable MMC HSPE bit for all 3 controllers
+Subject: [PATCH 1/2] am33xx.dtsi: enable MMC HSPE bit for all 3 controllers
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
  1 files changed, 3 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 9bb71cb..8bddc9c 100644
+index 58f1a4d..5695af4 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -263,6 +263,7 @@
+@@ -255,6 +255,7 @@
  			ti,hwmods = "mmc1";
  			ti,dual-volt;
  			ti,needs-special-reset;
@@ -20,7 +20,7 @@ index 9bb71cb..8bddc9c 100644
  			dmas = <&edma 24
  				&edma 25>;
  			dma-names = "tx", "rx";
-@@ -272,6 +273,7 @@
+@@ -264,6 +265,7 @@
  			compatible = "ti,omap3-hsmmc";
  			ti,hwmods = "mmc2";
  			ti,needs-special-reset;
@@ -28,7 +28,7 @@ index 9bb71cb..8bddc9c 100644
  			dmas = <&edma 2
  				&edma 3>;
  			dma-names = "tx", "rx";
-@@ -282,6 +284,7 @@
+@@ -274,6 +276,7 @@
  			compatible = "ti,omap3-hsmmc";
  			ti,hwmods = "mmc3";
  			ti,needs-special-reset;

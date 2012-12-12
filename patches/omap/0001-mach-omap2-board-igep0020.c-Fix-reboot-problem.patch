@@ -1,7 +1,7 @@
-From 2428bb29f299b34b7798c9ee10be7a193b085c7c Mon Sep 17 00:00:00 2001
+From e25ef224518254bea8aed45645abb6169b3a923d Mon Sep 17 00:00:00 2001
 From: Matthias Brugger <matthias.bgg@googlemail.com>
 Date: Thu, 15 Nov 2012 17:06:53 +0100
-Subject: [PATCH] mach-omap2/board-igep0020.c: Fix reboot problem
+Subject: [PATCH 1/2] mach-omap2/board-igep0020.c: Fix reboot problem
 
 When rebooting an OMAP3530 at 125 MHz, the reboot hangs.
 This patch adds a generic power save script, which resets the TWL4030 when a
@@ -10,13 +10,13 @@ warm reset occures. This way the OMAP3530 does not hang on reboot.
 Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
 ---
  arch/arm/mach-omap2/board-igep0020.c |   36 ++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ 1 files changed, 36 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 3785906..3a7f295 100644
+index 0f24cb8..51f3b9f 100644
 --- a/arch/arm/mach-omap2/board-igep0020.c
 +++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -487,11 +487,47 @@ static struct twl4030_keypad_data igep2_keypad_pdata = {
+@@ -486,11 +486,47 @@ static struct twl4030_keypad_data igep2_keypad_pdata = {
  	.rep		= 1,
  };
  
@@ -65,5 +65,5 @@ index 3785906..3a7f295 100644
  
  static struct i2c_board_info __initdata igep2_i2c3_boardinfo[] = {
 -- 
-1.7.10.4
+1.7.7.6
 

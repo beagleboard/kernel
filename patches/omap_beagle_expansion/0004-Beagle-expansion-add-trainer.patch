@@ -1,4 +1,4 @@
-From 6f3a87d64383591c816d760fc65bf4221ea6a21f Mon Sep 17 00:00:00 2001
+From 4d9b4e5795e322ed3efed9b8402f604e2e53cc6f Mon Sep 17 00:00:00 2001
 From: Robert Nelson <robertcnelson@gmail.com>
 Date: Tue, 11 Dec 2012 06:33:24 -0600
 Subject: [PATCH 04/10] Beagle: expansion: add trainer
@@ -6,13 +6,13 @@ Subject: [PATCH 04/10] Beagle: expansion: add trainer
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
  arch/arm/mach-omap2/board-omap3beagle.c |   31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ 1 files changed, 31 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index c762083..c6b33e7 100644
+index f37d86a..2d431c2 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -728,6 +728,37 @@ static void __init omap3_beagle_init(void)
+@@ -731,6 +731,37 @@ static void __init omap3_beagle_init(void)
  		omap3beagle_ks8851_init();
  	}
  
@@ -49,7 +49,7 @@ index c762083..c6b33e7 100644
 +
  	usb_musb_init(NULL);
  	usbhs_init(&usbhs_bdata);
- 	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3beagle_nand_partitions,
+ 	board_nand_init(omap3beagle_nand_partitions,
 -- 
-1.7.10.4
+1.7.7.6
 

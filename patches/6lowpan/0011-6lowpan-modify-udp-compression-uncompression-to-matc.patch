@@ -1,4 +1,4 @@
-From 2034d3808dc616b5585a7d8f2281381221eced15 Mon Sep 17 00:00:00 2001
+From 64840c23e69ab9ff5efbe15aa94573f2211a2de0 Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
 Date: Mon, 24 Sep 2012 22:56:51 -0400
 Subject: [PATCH 11/16] 6lowpan: modify udp compression/uncompression to match
@@ -13,7 +13,7 @@ Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
  1 files changed, 33 insertions(+), 3 deletions(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
-index 9711038..9c7ac2e 100644
+index b6c732e..ed01c39 100644
 --- a/net/ieee802154/6lowpan.c
 +++ b/net/ieee802154/6lowpan.c
 @@ -286,6 +286,9 @@ lowpan_compress_udp_header(u8 **hc06_ptr, struct sk_buff *skb)

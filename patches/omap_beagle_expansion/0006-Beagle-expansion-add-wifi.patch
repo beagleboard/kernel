@@ -1,4 +1,4 @@
-From f78cd93d767cd75969c4661723cfce46071e5b1b Mon Sep 17 00:00:00 2001
+From 163e31022b5ed683236f04197fcac9e514bf32a4 Mon Sep 17 00:00:00 2001
 From: Robert Nelson <robertcnelson@gmail.com>
 Date: Tue, 11 Dec 2012 06:48:52 -0600
 Subject: [PATCH 06/10] Beagle: expansion: add wifi
@@ -6,13 +6,13 @@ Subject: [PATCH 06/10] Beagle: expansion: add wifi
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
  arch/arm/mach-omap2/board-omap3beagle.c |  117 +++++++++++++++++++++++++++++++
- 1 file changed, 117 insertions(+)
+ 1 files changed, 117 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 6cb7815..03773cb 100644
+index e2510c9..130a2fd 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -188,6 +188,71 @@ static struct {
+@@ -191,6 +191,71 @@ static struct {
  	.i2c_settings = EXPANSION_I2C_NONE,
  };
  
@@ -84,7 +84,7 @@ index 6cb7815..03773cb 100644
  //rcn-ee: this is just a fake regulator, the zippy hardware provides 3.3/1.8 with jumper..
  static struct fixed_voltage_config beagle_vzippy = {
  	.supply_name = "vzippy",
-@@ -426,6 +491,26 @@ static struct omap2_hsmmc_info mmc_zippy[] = {
+@@ -429,6 +494,26 @@ static struct omap2_hsmmc_info mmc_zippy[] = {
  	},
  	{}	/* Terminator */
  };
@@ -111,7 +111,7 @@ index 6cb7815..03773cb 100644
  static struct regulator_consumer_supply beagle_vmmc1_supply[] = {
  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
  };
-@@ -442,6 +527,13 @@ static int beagle_twl_gpio_setup(struct device *dev,
+@@ -445,6 +530,13 @@ static int beagle_twl_gpio_setup(struct device *dev,
  	int r;
  
  	switch (expansion_config.mmc_settings) {
@@ -125,7 +125,7 @@ index 6cb7815..03773cb 100644
  	case EXPANSION_MMC_ZIPPY:
  		mmc_zippy[0].gpio_wp = beagle_config.mmc1_gpio_wp;
  		/* gpio + 0 is "mmc0_cd" (input/IRQ) */
-@@ -805,6 +897,13 @@ static void __init omap3_beagle_init(void)
+@@ -808,6 +900,13 @@ static void __init omap3_beagle_init(void)
  		omap_mux_init_gpio(OMAP3BEAGLE_GPIO_ZIPPY_MMC_CD, OMAP_PIN_INPUT);
  	}
  
@@ -139,7 +139,7 @@ index 6cb7815..03773cb 100644
  	if (!strcmp(expansionboard2_name, "bbtoys-ulcd"))
  	{
  		int r;
-@@ -823,6 +922,10 @@ static void __init omap3_beagle_init(void)
+@@ -826,6 +925,10 @@ static void __init omap3_beagle_init(void)
  		omap_mux_init_gpio(beagle_config.mmc1_gpio_wp, OMAP_PIN_INPUT);
  
  	switch (expansion_config.mmc_settings) {
@@ -150,7 +150,7 @@ index 6cb7815..03773cb 100644
  	case EXPANSION_MMC_ZIPPY:
  		mmc_zippy[0].caps = beagle_config.mmc_caps;
  		omap_hsmmc_init(mmc_zippy);
-@@ -888,6 +991,20 @@ static void __init omap3_beagle_init(void)
+@@ -891,6 +994,20 @@ static void __init omap3_beagle_init(void)
  		gpio_export(162, 1);
  	}
  
@@ -172,5 +172,5 @@ index 6cb7815..03773cb 100644
  	{
  	#if defined(CONFIG_TOUCHSCREEN_TSC2007) || defined(CONFIG_TOUCHSCREEN_TSC2007_MODULE)
 -- 
-1.7.10.4
+1.7.7.6
 

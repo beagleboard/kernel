@@ -1,4 +1,4 @@
-From ec665d439f244fb56c4cf1fe1b8374eedeaa59de Mon Sep 17 00:00:00 2001
+From bb466cec424bb28bc981b9d763d0a82b4be74a12 Mon Sep 17 00:00:00 2001
 From: Paolo Pisati <paolo.pisati@canonical.com>
 Date: Wed, 12 Dec 2012 12:45:53 +0100
 Subject: [PATCH 2/2] regulator: core: if voltage scaling fails, restore
@@ -6,11 +6,11 @@ Subject: [PATCH 2/2] regulator: core: if voltage scaling fails, restore
 
 Signed-off-by: Paolo Pisati <paolo.pisati@canonical.com>
 ---
- drivers/regulator/core.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ drivers/regulator/core.c |   14 +++++++++++++-
+ 1 files changed, 13 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-index e872c8b..c347fd0 100644
+index e872c8b..564ef9f 100644
 --- a/drivers/regulator/core.c
 +++ b/drivers/regulator/core.c
 @@ -2250,6 +2250,7 @@ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV)
@@ -38,10 +38,9 @@ index e872c8b..c347fd0 100644
 +		goto out2;
  
  	ret = _regulator_do_set_voltage(rdev, min_uV, max_uV);
--
 +	if (ret < 0)
 +		goto out2;
-+
+ 
  out:
  	mutex_unlock(&rdev->mutex);
  	return ret;
@@ -54,5 +53,5 @@ index e872c8b..c347fd0 100644
  EXPORT_SYMBOL_GPL(regulator_set_voltage);
  
 -- 
-1.7.10.4
+1.7.7.6
 

@@ -1,7 +1,7 @@
-From ee021ee8a763c52402793c118790ee8891005576 Mon Sep 17 00:00:00 2001
+From 5b6fd3e36ac5772099401de37db5dd1c8d37facf Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 23 Oct 2012 13:23:14 +0300
-Subject: [PATCH 08/26] spi: Export OF interfaces for capebus use.
+Subject: [PATCH 08/15] spi: Export OF interfaces for capebus use.
 
 ---
  drivers/spi/spi.c       |   31 +++++++++++++++++++++++--------
@@ -9,10 +9,10 @@ Subject: [PATCH 08/26] spi: Export OF interfaces for capebus use.
  2 files changed, 41 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-index 84c2861..f8de2f2 100644
+index 718cc1f..cd77316 100644
 --- a/drivers/spi/spi.c
 +++ b/drivers/spi/spi.c
-@@ -801,14 +801,17 @@ err_init_queue:
+@@ -807,14 +807,17 @@ err_init_queue:
  /*-------------------------------------------------------------------------*/
  
  #if defined(CONFIG_OF) && !defined(CONFIG_SPARC)
@@ -32,7 +32,7 @@ index 84c2861..f8de2f2 100644
  {
  	struct spi_device *spi;
  	struct device_node *nc;
-@@ -816,10 +819,10 @@ static void of_register_spi_devices(struct spi_master *master)
+@@ -822,10 +825,10 @@ static void of_register_spi_devices(struct spi_master *master)
  	int rc;
  	int len;
  
@@ -40,12 +40,12 @@ index 84c2861..f8de2f2 100644
 +	if (!parent_node)
  		return;
  
--	for_each_child_of_node(master->dev.of_node, nc) {
-+	for_each_child_of_node(parent_node, nc) {
+-	for_each_available_child_of_node(master->dev.of_node, nc) {
++	for_each_available_child_of_node(parent_node, nc) {
  		/* Alloc an spi_device */
  		spi = spi_alloc_device(master);
  		if (!spi) {
-@@ -884,8 +887,20 @@ static void of_register_spi_devices(struct spi_master *master)
+@@ -890,8 +893,20 @@ static void of_register_spi_devices(struct spi_master *master)
  
  	}
  }
@@ -67,8 +67,8 @@ index 84c2861..f8de2f2 100644
 +EXPORT_SYMBOL_GPL(of_register_spi_devices);
  #endif
  
- static void spi_master_release(struct device *dev)
-@@ -896,12 +911,12 @@ static void spi_master_release(struct device *dev)
+ #ifdef CONFIG_ACPI
+@@ -996,12 +1011,12 @@ static void spi_master_release(struct device *dev)
  	kfree(master);
  }
  

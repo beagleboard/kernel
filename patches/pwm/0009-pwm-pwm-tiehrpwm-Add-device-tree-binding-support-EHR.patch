@@ -1,7 +1,7 @@
-From e689ba844bfa02b89c5634e266afbc5feafac790 Mon Sep 17 00:00:00 2001
+From 5bceb11258c68c1f73fc1c9436d17a02783bb5b7 Mon Sep 17 00:00:00 2001
 From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Mon, 2 Jul 2012 14:03:53 +0530
-Subject: [PATCH 9/9] pwm: pwm-tiehrpwm: Add device-tree binding support
+Subject: [PATCH 09/10] pwm: pwm-tiehrpwm: Add device-tree binding support
  EHRPWM driver
 
 Adds device-tree binding support in EHRWPM driver and custom of_xlate
@@ -12,9 +12,6 @@ Also size of pwm-cells set to 3 to support polarity configuration from
 device tree.
 
 Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
-
-Conflicts:
-	drivers/pwm/pwm-tiehrpwm.c
 ---
  .../devicetree/bindings/pwm/ehrpwm-pwm.txt         |   24 ++++++++++++++
  drivers/pwm/pwm-tiehrpwm.c                         |   34 ++++++++++++++++++++
@@ -52,7 +49,7 @@ index 0000000..a11543c
 +		#pwm-cells = <3>;
 +	};
 diff --git a/drivers/pwm/pwm-tiehrpwm.c b/drivers/pwm/pwm-tiehrpwm.c
-index 288f93e..4f1e467 100644
+index 24d1830..7bedb0b 100644
 --- a/drivers/pwm/pwm-tiehrpwm.c
 +++ b/drivers/pwm/pwm-tiehrpwm.c
 @@ -108,6 +108,7 @@
@@ -87,10 +84,10 @@ index 288f93e..4f1e467 100644
 +	return pwm;
 +}
 +
- static int __devinit ehrpwm_pwm_probe(struct platform_device *pdev)
+ static int ehrpwm_pwm_probe(struct platform_device *pdev)
  {
  	int ret;
-@@ -420,6 +441,8 @@ static int __devinit ehrpwm_pwm_probe(struct platform_device *pdev)
+@@ -420,6 +441,8 @@ static int ehrpwm_pwm_probe(struct platform_device *pdev)
  
  	pc->chip.dev = &pdev->dev;
  	pc->chip.ops = &ehrpwm_pwm_ops;
@@ -99,7 +96,7 @@ index 288f93e..4f1e467 100644
  	pc->chip.base = -1;
  	pc->chip.npwm = NUM_PWM_CHANNEL;
  
-@@ -453,9 +476,20 @@ static int __devexit ehrpwm_pwm_remove(struct platform_device *pdev)
+@@ -453,9 +476,20 @@ static int ehrpwm_pwm_remove(struct platform_device *pdev)
  	return pwmchip_remove(&pc->chip);
  }
  
@@ -119,7 +116,7 @@ index 288f93e..4f1e467 100644
 +#endif
  	},
  	.probe = ehrpwm_pwm_probe,
- 	.remove = __devexit_p(ehrpwm_pwm_remove),
+ 	.remove = ehrpwm_pwm_remove,
 -- 
 1.7.7.6
 

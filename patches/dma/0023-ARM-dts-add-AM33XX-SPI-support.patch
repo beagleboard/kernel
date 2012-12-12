@@ -1,26 +1,26 @@
-From ef71ebf6e10c7ce6ea94644c51842b0aa986d771 Mon Sep 17 00:00:00 2001
+From b62c6a82d917bd76b2602663087abc070cd1e6b9 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 11 Oct 2012 08:51:46 -0400
-Subject: [PATCH 23/31] ARM: dts: add AM33XX SPI support
+Subject: [PATCH 23/29] ARM: dts: add AM33XX SPI support
 
 Adds AM33XX SPI support for am335x-bone and am335x-evm.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- arch/arm/boot/dts/am335x-bone.dts |   17 ++++++++++++++
- arch/arm/boot/dts/am335x-evm.dts  |    9 +++++++
- arch/arm/boot/dts/am33xx.dtsi     |   43 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 69 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/am335x-bone.dts |   15 +++++++++++++++
+ arch/arm/boot/dts/am335x-evm.dts  |    9 +++++++++
+ arch/arm/boot/dts/am33xx.dtsi     |   34 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 58 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 5510979..23edfd8 100644
+index 0948ffc..6732ccb 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -18,6 +18,17 @@
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
- 	};
- 
-+	am3358_pinmux: pinmux@44e10800 {
+@@ -36,6 +36,15 @@
+ 				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
+ 			>;
+ 		};
++
 +		spi1_pins: pinmux_spi1_pins {
 +			pinctrl-single,pins = <
 +				0x190 0x13	/* mcasp0_aclkx.spi1_sclk, OUTPUT_PULLUP | MODE3 */
@@ -29,12 +29,10 @@ index 5510979..23edfd8 100644
 +				0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
 +			>;
 +		};
-+	};
-+
+ 	};
+ 
  	ocp {
- 		uart1: serial@44e09000 {
- 			status = "okay";
-@@ -84,3 +95,9 @@
+@@ -142,3 +151,9 @@
  &mmc1 {
  	vmmc-supply = <&ldo3_reg>;
  };
@@ -45,10 +43,10 @@ index 5510979..23edfd8 100644
 +	pinctrl-0 = <&spi1_pins>;
 +};
 diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index d63fce8..8d5f660 100644
+index cb928cf..70ac496 100644
 --- a/arch/arm/boot/dts/am335x-evm.dts
 +++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -124,3 +124,12 @@
+@@ -250,3 +250,12 @@
  &mmc1 {
  	vmmc-supply = <&vmmc_reg>;
  };
@@ -62,26 +60,10 @@ index d63fce8..8d5f660 100644
 +	};
 +};
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 26a6af7..063ecea 100644
+index 409d167..f04e708 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -40,6 +40,15 @@
- 		};
- 	};
- 
-+	am3358_pinmux: pinmux@44e10800 {
-+		compatible = "pinctrl-single";
-+		reg = <0x44e10800 0x0238>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		pinctrl-single,register-width = <32>;
-+		pinctrl-single,function-mask = <0x7f>;
-+	};
-+
- 	/*
- 	 * XXX: Use a flat representation of the AM33XX interconnect.
- 	 * The real AM33XX interconnect network is quite complex.Since
-@@ -261,6 +270,40 @@
+@@ -273,6 +273,40 @@
  			status = "disabled";
  		};
  

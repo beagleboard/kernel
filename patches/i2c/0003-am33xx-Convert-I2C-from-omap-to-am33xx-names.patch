@@ -1,4 +1,4 @@
-From 3447494d05a10df3266ae1fd1d14ef7f3c3028f4 Mon Sep 17 00:00:00 2001
+From abd8fa22fa782b21796e88c7095e1de8354be65a Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Sat, 15 Sep 2012 14:49:11 +0300
 Subject: [PATCH 3/4] am33xx: Convert I2C from omap to am33xx names
@@ -14,10 +14,10 @@ Use am33xx naming everywhere, beside the hwmod name.
  3 files changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index d1c21ba..1daf1af 100644
+index 00d0eb5..57600b5 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -52,7 +52,7 @@
+@@ -64,7 +64,7 @@
  				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
  			>;
  		};
@@ -26,7 +26,7 @@ index d1c21ba..1daf1af 100644
  			pinctrl-single,pins = <
  				0x178 0x73 	/* uart1_ctsn.i2c2_sda, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
  				0x17c 0x73	/* uart1_rtsn.i2c2_scl, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
-@@ -109,7 +109,7 @@
+@@ -151,7 +151,7 @@
  	};
  };
  
@@ -35,7 +35,7 @@ index d1c21ba..1daf1af 100644
  	status = "okay";
  	clock-frequency = <400000>;
  
-@@ -124,10 +124,10 @@
+@@ -166,10 +166,10 @@
         
  };
  
@@ -49,10 +49,10 @@ index d1c21ba..1daf1af 100644
  	clock-frequency = <100000>;
  
 diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 43e23a8..6032648 100644
+index 70ac496..2083dfa 100644
 --- a/arch/arm/boot/dts/am335x-evm.dts
 +++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -29,7 +29,7 @@
+@@ -51,7 +51,7 @@
  			status = "okay";
  		};
  
@@ -62,10 +62,10 @@ index 43e23a8..6032648 100644
  			clock-frequency = <400000>;
  
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 433065e..535a66c 100644
+index e67beb0..58f1a4d 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -225,33 +225,33 @@
+@@ -220,31 +220,31 @@
  			status = "disabled";
  		};
  
@@ -77,7 +77,6 @@ index 433065e..535a66c 100644
 -			ti,hwmods = "i2c1";
 +			ti,hwmods = "i2c1";	/* TODO: Fix hwmod */
  			reg = <0x44e0b000 0x1000>;
- 			interrupt-parent = <&intc>;
  			interrupts = <70>;
  			status = "disabled";
  		};
@@ -90,7 +89,6 @@ index 433065e..535a66c 100644
 -			ti,hwmods = "i2c2";
 +			ti,hwmods = "i2c2";	/* TODO: Fix hwmod */
  			reg = <0x4802a000 0x1000>;
- 			interrupt-parent = <&intc>;
  			interrupts = <71>;
  			status = "disabled";
  		};
@@ -103,8 +101,8 @@ index 433065e..535a66c 100644
 -			ti,hwmods = "i2c3";
 +			ti,hwmods = "i2c3";	/* TODO: Fix hwmod */
  			reg = <0x4819c000 0x1000>;
- 			interrupt-parent = <&intc>;
  			interrupts = <30>;
+ 			status = "disabled";
 -- 
 1.7.7.6
 

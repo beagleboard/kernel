@@ -1,4 +1,4 @@
-From dfdf3cec2e8cface0851d9f2d9b86e3f087130ce Mon Sep 17 00:00:00 2001
+From d3563f89fe0b084a1f4369eaabdb125e6dd113be Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
 Date: Fri, 6 Jul 2012 17:39:22 -0400
 Subject: [PATCH 07/16] 6lowpan: store fragment tag values per device instead
@@ -10,7 +10,7 @@ Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
  1 files changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
-index 38cecaf..eb8003b 100644
+index c35449f..4db5f2c 100644
 --- a/net/ieee802154/6lowpan.c
 +++ b/net/ieee802154/6lowpan.c
 @@ -104,6 +104,7 @@ static const u8 lowpan_llprefix[] = {0xfe, 0x80};
@@ -46,7 +46,7 @@ index 38cecaf..eb8003b 100644
  
  	/* first fragment header */
  	head[0] = LOWPAN_DISPATCH_FRAG1 | ((payload_length >> 8) & 0x7);
-@@ -1095,7 +1095,7 @@ static netdev_tx_t lowpan_xmit(struct sk_buff *skb, struct net_device *dev)
+@@ -1096,7 +1096,7 @@ static netdev_tx_t lowpan_xmit(struct sk_buff *skb, struct net_device *dev)
  	}
  
  	pr_debug("frame is too big, fragmentation is needed\n");
@@ -55,7 +55,7 @@ index 38cecaf..eb8003b 100644
  error:
  	dev_kfree_skb(skb);
  out:
-@@ -1216,6 +1216,7 @@ static int lowpan_newlink(struct net *src_net, struct net_device *dev,
+@@ -1217,6 +1217,7 @@ static int lowpan_newlink(struct net *src_net, struct net_device *dev,
  		return -ENODEV;
  
  	lowpan_dev_info(dev)->real_dev = real_dev;

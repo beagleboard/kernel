@@ -1,7 +1,7 @@
-From b441c109d547a1680c5de8ba194895cbde130431 Mon Sep 17 00:00:00 2001
+From 732fb4e05a6349a5c8b6b081dbf2c2d6aa64d9ac Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Wed, 22 Aug 2012 09:24:24 -0400
-Subject: [PATCH 09/31] ARM: davinci: move private EDMA API to arm/common
+Subject: [PATCH 09/29] ARM: davinci: move private EDMA API to arm/common
 
 Move mach-davinci/dma.c to common/edma.c so it can be used
 by OMAP (specifically AM33xx) as well. This just moves the
@@ -42,13 +42,13 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  create mode 100644 include/linux/platform_data/edma.h
 
 diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index ade7e92..6737b69 100644
+index 08330d9..9c8fb75 100644
 --- a/arch/arm/Kconfig
 +++ b/arch/arm/Kconfig
-@@ -924,6 +924,7 @@ config ARCH_DAVINCI
- 	select GENERIC_IRQ_CHIP
+@@ -928,6 +928,7 @@ config ARCH_DAVINCI
  	select HAVE_IDE
  	select NEED_MACH_GPIO_H
+ 	select USE_OF
 +	select TI_PRIV_EDMA
  	select ZONE_DMA
  	help
@@ -1668,7 +1668,7 @@ index 0000000..4411087
 +arch_initcall(edma_init);
 +
 diff --git a/arch/arm/mach-davinci/Makefile b/arch/arm/mach-davinci/Makefile
-index 2227eff..97c639e 100644
+index fb5c1aa..493a36b 100644
 --- a/arch/arm/mach-davinci/Makefile
 +++ b/arch/arm/mach-davinci/Makefile
 @@ -5,7 +5,7 @@
@@ -1714,7 +1714,7 @@ index 12d544b..d26a6bc 100644
  #include <media/davinci/vpfe_capture.h>
  #include <media/davinci/vpif_types.h>
 diff --git a/arch/arm/mach-davinci/devices-tnetv107x.c b/arch/arm/mach-davinci/devices-tnetv107x.c
-index 29b17f7..59efd7f 100644
+index 773ab07..ba37760 100644
 --- a/arch/arm/mach-davinci/devices-tnetv107x.c
 +++ b/arch/arm/mach-davinci/devices-tnetv107x.c
 @@ -18,10 +18,10 @@
@@ -1759,7 +1759,7 @@ index 4c48a36..f45d591 100644
  	},
  };
 diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
-index a255434..b165c27 100644
+index b49c3b7..53998d8 100644
 --- a/arch/arm/mach-davinci/dm355.c
 +++ b/arch/arm/mach-davinci/dm355.c
 @@ -19,7 +19,6 @@
@@ -1779,7 +1779,7 @@ index a255434..b165c27 100644
  #include "davinci.h"
  #include "clock.h"
 diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
-index b680c83..a611716 100644
+index 6c39805..9b41d33 100644
 --- a/arch/arm/mach-davinci/dm365.c
 +++ b/arch/arm/mach-davinci/dm365.c
 @@ -18,11 +18,11 @@
@@ -1796,7 +1796,7 @@ index b680c83..a611716 100644
  #include <mach/mux.h>
  #include <mach/irqs.h>
 diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index 14e9947b..5b0a263 100644
+index 11c79a3..a08910e 100644
 --- a/arch/arm/mach-davinci/dm644x.c
 +++ b/arch/arm/mach-davinci/dm644x.c
 @@ -12,11 +12,11 @@
@@ -1813,7 +1813,7 @@ index 14e9947b..5b0a263 100644
  #include <mach/psc.h>
  #include <mach/mux.h>
 diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
-index 97c0f8e..08f9dab 100644
+index ac7b431..6d52a32 100644
 --- a/arch/arm/mach-davinci/dm646x.c
 +++ b/arch/arm/mach-davinci/dm646x.c
 @@ -13,11 +13,11 @@
@@ -3424,7 +3424,7 @@ index a685e97..0000000
 -arch_initcall(edma_init);
 -
 diff --git a/arch/arm/mach-davinci/include/mach/da8xx.h b/arch/arm/mach-davinci/include/mach/da8xx.h
-index aaccdc4..4380691 100644
+index 700d311..9d77f9b 100644
 --- a/arch/arm/mach-davinci/include/mach/da8xx.h
 +++ b/arch/arm/mach-davinci/include/mach/da8xx.h
 @@ -20,8 +20,8 @@
@@ -3711,7 +3711,7 @@ index 7e84c90..0000000
 -
 -#endif
 diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 82fcb20..74ce024 100644
+index 665870d..0b81d6c 100644
 --- a/arch/arm/plat-omap/Kconfig
 +++ b/arch/arm/plat-omap/Kconfig
 @@ -29,6 +29,7 @@ config ARCH_OMAP2PLUS
@@ -3723,7 +3723,7 @@ index 82fcb20..74ce024 100644
  	help
  	  "Systems based on OMAP2, OMAP3, OMAP4 or OMAP5"
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index fdcf079..47ba7bf 100644
+index 82c8672..7653974 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
 @@ -24,7 +24,7 @@

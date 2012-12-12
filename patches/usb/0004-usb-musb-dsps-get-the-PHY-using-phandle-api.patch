@@ -1,7 +1,7 @@
-From 341604e3085a5032b4a9a3d5397f0447d3592ef6 Mon Sep 17 00:00:00 2001
+From 53615e2e53309bfec5d883a397f7d21ea15fe52f Mon Sep 17 00:00:00 2001
 From: Ravi Babu <ravibabu@ti.com>
 Date: Thu, 2 Aug 2012 16:13:32 +0530
-Subject: [PATCH 4/9] usb: musb: dsps: get the PHY using phandle api
+Subject: [PATCH] usb: musb: dsps: get the PHY using phandle api
 
 AM33xx has two PHY of same type used by each musb controller so
 use phandle of phy nodes to get the phy pointer.
@@ -14,7 +14,7 @@ Signed-off-by: Ravi Babu <ravibabu@ti.com>
  2 files changed, 9 insertions(+), 1 deletions(-)
 
 diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-index ca8fa56..e2702df 100644
+index a922505..084c661 100644
 --- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
 +++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
 @@ -12,3 +12,8 @@ AM33XX MUSB GLUE
@@ -27,26 +27,25 @@ index ca8fa56..e2702df 100644
 +NOP USB PHY
 + - compatible : Should be "nop-xceiv-usb"
 diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index ff5f112..6a14101 100644
+index 9a975aa..83c3887 100644
 --- a/drivers/usb/musb/musb_dsps.c
 +++ b/drivers/usb/musb/musb_dsps.c
-@@ -367,10 +367,12 @@ static int dsps_musb_init(struct musb *musb)
+@@ -402,9 +402,11 @@ static int dsps_musb_init(struct musb *musb)
+ {
  	struct device *dev = musb->controller;
- 	struct musb_hdrc_platform_data *plat = dev->platform_data;
  	struct platform_device *pdev = to_platform_device(dev);
 +	struct platform_device *parent_pdev = to_platform_device(dev->parent);
  	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
  	const struct dsps_musb_wrapper *wrp = glue->wrp;
- 	struct omap_musb_board_data *data = plat->board_data;
  	void __iomem *reg_base = musb->ctrl_base;
 +	char name[10];
  	u32 rev, val;
  	int status;
  
-@@ -378,7 +380,8 @@ static int dsps_musb_init(struct musb *musb)
- 	musb->mregs += wrp->musb_core_offset;
+@@ -413,7 +415,8 @@ static int dsps_musb_init(struct musb *musb)
  
- 	/* Get the NOP PHY */
+ 	/* NOP driver needs change if supporting dual instance */
+ 	usb_nop_xceiv_register();
 -	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
 +	sprintf(name, "usb%d-phy", pdev->id);
 +	musb->xceiv = devm_usb_get_phy_by_phandle(&parent_pdev->dev, name);

@@ -1,4 +1,4 @@
-From 5eeba31e295977f813ea955f76e5da8cc9b3fcad Mon Sep 17 00:00:00 2001
+From f8452aef60fa9785ddc7c3bb07a63f43b5948fa8 Mon Sep 17 00:00:00 2001
 From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Date: Thu, 29 Nov 2012 11:17:05 +0100
 Subject: [PATCH] Attempted SMC911x BQL patch
@@ -11,7 +11,7 @@ Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
  1 files changed, 6 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/net/ethernet/smsc/smsc911x.c b/drivers/net/ethernet/smsc/smsc911x.c
-index c53c0f4..f5bedac 100644
+index 4616bf2..e044181 100644
 --- a/drivers/net/ethernet/smsc/smsc911x.c
 +++ b/drivers/net/ethernet/smsc/smsc911x.c
 @@ -1107,6 +1107,7 @@ static void smsc911x_tx_update_txcounters(struct net_device *dev)
@@ -39,7 +39,7 @@ index c53c0f4..f5bedac 100644
  }
  
  /* Increments the Rx error counters */
-@@ -1607,6 +1611,7 @@ static int smsc911x_stop(struct net_device *dev)
+@@ -1602,6 +1606,7 @@ static int smsc911x_stop(struct net_device *dev)
  	/* At this point all Rx and Tx activity is stopped */
  	dev->stats.rx_dropped += smsc911x_reg_read(pdata, RX_DROP);
  	smsc911x_tx_update_txcounters(dev);
@@ -47,7 +47,7 @@ index c53c0f4..f5bedac 100644
  
  	/* Bring the PHY down */
  	if (pdata->phy_dev)
-@@ -1650,6 +1655,7 @@ static int smsc911x_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
+@@ -1645,6 +1650,7 @@ static int smsc911x_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
  	wrsz >>= 2;
  
  	pdata->ops->tx_writefifo(pdata, (unsigned int *)bufp, wrsz);

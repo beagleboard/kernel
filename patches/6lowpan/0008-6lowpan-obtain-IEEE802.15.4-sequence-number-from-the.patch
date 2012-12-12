@@ -1,4 +1,4 @@
-From f03668c7149df24721242906e85c71774ca49188 Mon Sep 17 00:00:00 2001
+From 153d573260b70501dacf74d501d691e2f0db0e29 Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
 Date: Fri, 6 Jul 2012 17:46:37 -0400
 Subject: [PATCH 08/16] 6lowpan: obtain IEEE802.15.4 sequence number from the
@@ -14,7 +14,7 @@ Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
  1 files changed, 8 insertions(+), 0 deletions(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
-index eb8003b..24b83fa 100644
+index 4db5f2c..f1bb24f 100644
 --- a/net/ieee802154/6lowpan.c
 +++ b/net/ieee802154/6lowpan.c
 @@ -578,6 +578,7 @@ static int lowpan_header_create(struct sk_buff *skb,
@@ -25,7 +25,7 @@ index eb8003b..24b83fa 100644
  
  		/* prepare wpan address data */
  		sa.addr_type = IEEE802154_ADDR_LONG;
-@@ -1123,6 +1124,12 @@ static u16 lowpan_get_short_addr(const struct net_device *dev)
+@@ -1124,6 +1125,12 @@ static u16 lowpan_get_short_addr(const struct net_device *dev)
  	return ieee802154_mlme_ops(real_dev)->get_short_addr(real_dev);
  }
  
@@ -38,7 +38,7 @@ index eb8003b..24b83fa 100644
  static struct header_ops lowpan_header_ops = {
  	.create	= lowpan_header_create,
  };
-@@ -1136,6 +1143,7 @@ static struct ieee802154_mlme_ops lowpan_mlme = {
+@@ -1137,6 +1144,7 @@ static struct ieee802154_mlme_ops lowpan_mlme = {
  	.get_pan_id = lowpan_get_pan_id,
  	.get_phy = lowpan_get_phy,
  	.get_short_addr = lowpan_get_short_addr,

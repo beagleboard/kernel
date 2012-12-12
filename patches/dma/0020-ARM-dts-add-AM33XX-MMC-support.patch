@@ -1,7 +1,7 @@
-From b7f7c021fe3bb50b43bef2025259f67bbe57b4fa Mon Sep 17 00:00:00 2001
+From 7f07b559dd05d0f163ae3a88e8b7f87e6770f79b Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Wed, 10 Oct 2012 15:14:03 -0400
-Subject: [PATCH 20/31] ARM: dts: add AM33XX MMC support
+Subject: [PATCH 20/29] ARM: dts: add AM33XX MMC support
 
 Adds AM33XX MMC support for am335x-bone and am335x-evm.
 
@@ -13,10 +13,10 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  3 files changed, 39 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index c634f87..5510979 100644
+index 11b240c..0948ffc 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -70,6 +70,8 @@
+@@ -120,6 +120,8 @@
  		};
  
  		ldo3_reg: regulator@5 {
@@ -25,19 +25,19 @@ index c634f87..5510979 100644
  			regulator-always-on;
  		};
  
-@@ -78,3 +80,7 @@
- 		};
- 	};
+@@ -136,3 +138,7 @@
+ &cpsw_emac1 {
+ 	phy_id = <&davinci_mdio>, <1>;
  };
 +
 +&mmc1 {
 +	vmmc-supply = <&ldo3_reg>;
 +};
 diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 185d632..d63fce8 100644
+index d649644..cb928cf 100644
 --- a/arch/arm/boot/dts/am335x-evm.dts
 +++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -114,7 +114,13 @@
+@@ -232,6 +232,8 @@
  		};
  
  		vmmc_reg: regulator@12 {
@@ -46,16 +46,19 @@ index 185d632..d63fce8 100644
  			regulator-always-on;
  		};
  	};
+@@ -244,3 +246,7 @@
+ &cpsw_emac1 {
+ 	phy_id = <&davinci_mdio>, <1>;
  };
 +
 +&mmc1 {
 +	vmmc-supply = <&vmmc_reg>;
 +};
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index ab9c78f..26a6af7 100644
+index 8e81e2a..409d167 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -234,6 +234,33 @@
+@@ -246,6 +246,33 @@
  			status = "disabled";
  		};
  

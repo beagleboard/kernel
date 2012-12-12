@@ -1,7 +1,7 @@
-From 39c129bd66484a34bc104da7232cf801e752d765 Mon Sep 17 00:00:00 2001
+From 941ecd5d336f4ef9dc245ec253c0732e4ef61b9d Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 6 Sep 2012 17:40:42 -0400
-Subject: [PATCH 11/31] ARM: edma: add DT and runtime PM support for AM33XX
+Subject: [PATCH 11/29] ARM: edma: add DT and runtime PM support for AM33XX
 
 Adds support for parsing the TI EDMA DT data into the required
 EDMA private API platform data.
@@ -361,10 +361,10 @@ index 95b5e10..ffcbec1 100644
  	{ 8,  2},
  	{12,  2},
 diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
-index 32ee3f8..f207965 100644
+index d4f4dbf..bd308f3 100644
 --- a/arch/arm/mach-davinci/board-da850-evm.c
 +++ b/arch/arm/mach-davinci/board-da850-evm.c
-@@ -1097,7 +1097,7 @@ device_initcall(da850_evm_config_emac);
+@@ -1098,7 +1098,7 @@ device_initcall(da850_evm_config_emac);
   * example: Timer, GPIO, UART events etc) on da850/omap-l138 EVM, hence
   * they are being reserved for codecs on the DSP side.
   */
@@ -373,7 +373,7 @@ index 32ee3f8..f207965 100644
  	/* (offset, number) */
  	{ 8,  6},
  	{24,  4},
-@@ -1105,7 +1105,7 @@ static const s16 da850_dma0_rsv_chans[][2] = {
+@@ -1106,7 +1106,7 @@ static const s16 da850_dma0_rsv_chans[][2] = {
  	{-1, -1}
  };
  
@@ -382,7 +382,7 @@ index 32ee3f8..f207965 100644
  	/* (offset, number) */
  	{ 8,  6},
  	{24,  4},
-@@ -1113,14 +1113,14 @@ static const s16 da850_dma0_rsv_slots[][2] = {
+@@ -1114,14 +1114,14 @@ static const s16 da850_dma0_rsv_slots[][2] = {
  	{-1, -1}
  };
  
@@ -400,7 +400,7 @@ index 32ee3f8..f207965 100644
  	{ 0, 28},
  	{30, 90},
 diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
-index 1dbf85b..6c5b814 100644
+index 9211e88..27e5771 100644
 --- a/arch/arm/mach-davinci/board-dm646x-evm.c
 +++ b/arch/arm/mach-davinci/board-dm646x-evm.c
 @@ -764,7 +764,7 @@ static struct davinci_uart_config uart_config __initdata = {
@@ -461,10 +461,10 @@ index dc1208e..09c34f8 100644
  	{ 0, 28},
  	{30, 90},
 diff --git a/arch/arm/mach-davinci/devices-da8xx.c b/arch/arm/mach-davinci/devices-da8xx.c
-index bd2f72b..1f9c6ff 100644
+index 46c9a0c..620d21b 100644
 --- a/arch/arm/mach-davinci/devices-da8xx.c
 +++ b/arch/arm/mach-davinci/devices-da8xx.c
-@@ -103,27 +103,27 @@ struct platform_device da8xx_serial_device = {
+@@ -105,27 +105,27 @@ struct platform_device da8xx_serial_device = {
  	},
  };
  
@@ -497,7 +497,7 @@ index bd2f72b..1f9c6ff 100644
  	{0, 3},
  	{-1, -1}
 diff --git a/arch/arm/mach-davinci/devices-tnetv107x.c b/arch/arm/mach-davinci/devices-tnetv107x.c
-index 59efd7f..d2453c9 100644
+index ba37760..25cab43 100644
 --- a/arch/arm/mach-davinci/devices-tnetv107x.c
 +++ b/arch/arm/mach-davinci/devices-tnetv107x.c
 @@ -58,14 +58,14 @@
@@ -518,7 +518,7 @@ index 59efd7f..d2453c9 100644
  	{	 0,		 3	},
  	{	 1,		 7	},
 diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
-index b165c27..cdefef3 100644
+index 53998d8..e50777c 100644
 --- a/arch/arm/mach-davinci/dm355.c
 +++ b/arch/arm/mach-davinci/dm355.c
 @@ -567,7 +567,7 @@ static u8 dm355_default_priorities[DAVINCI_N_AINTC_IRQ] = {
@@ -540,7 +540,7 @@ index b165c27..cdefef3 100644
  	/* {event queue no, Priority} */
  	{0, 3},
 diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
-index a611716..801e162 100644
+index 9b41d33..ff17da6 100644
 --- a/arch/arm/mach-davinci/dm365.c
 +++ b/arch/arm/mach-davinci/dm365.c
 @@ -822,7 +822,7 @@ static u8 dm365_default_priorities[DAVINCI_N_AINTC_IRQ] = {
@@ -562,7 +562,7 @@ index a611716..801e162 100644
  	/* {event queue no, Priority} */
  	{0, 7},
 diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index 5b0a263..d4e04c5 100644
+index a08910e..7935be9 100644
 --- a/arch/arm/mach-davinci/dm644x.c
 +++ b/arch/arm/mach-davinci/dm644x.c
 @@ -497,7 +497,7 @@ static u8 dm644x_default_priorities[DAVINCI_N_AINTC_IRQ] = {
@@ -584,7 +584,7 @@ index 5b0a263..d4e04c5 100644
  	/* {event queue no, Priority} */
  	{0, 3},
 diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
-index 08f9dab..b4a4da6 100644
+index 6d52a32..d1259e8 100644
 --- a/arch/arm/mach-davinci/dm646x.c
 +++ b/arch/arm/mach-davinci/dm646x.c
 @@ -531,7 +531,7 @@ static u8 dm646x_default_priorities[DAVINCI_N_AINTC_IRQ] = {

@@ -1,4 +1,4 @@
-From 5163daf6b8d08eb17d481498bd007efe7647c1ea Mon Sep 17 00:00:00 2001
+From de59e668233be732e6c208ef697b7a65a2a349e6 Mon Sep 17 00:00:00 2001
 From: "Patil, Rachna" <rachna@ti.com>
 Date: Tue, 16 Oct 2012 07:25:45 +0000
 Subject: [PATCH 08/13] IIO : ADC: tiadc: Add support of TI's ADC driver
@@ -23,12 +23,12 @@ Acked-by: Jonathan Cameron <jic23@kernel.org>
  create mode 100644 include/linux/platform_data/ti_am335x_adc.h
 
 diff --git a/drivers/iio/adc/Kconfig b/drivers/iio/adc/Kconfig
-index 4927581..1401ed1 100644
+index 961b8d0..927c8b4 100644
 --- a/drivers/iio/adc/Kconfig
 +++ b/drivers/iio/adc/Kconfig
-@@ -60,4 +60,11 @@ config LP8788_ADC
- 	help
- 	  Say yes here to build support for TI LP8788 ADC.
+@@ -125,4 +125,11 @@ config TI_ADC081C
+ 	  This driver can also be built as a module. If so, the module will be
+ 	  called ti-adc081c.
  
 +config TI_AM335X_ADC
 +	tristate "TI's ADC driver"
@@ -39,14 +39,15 @@ index 4927581..1401ed1 100644
 +
  endmenu
 diff --git a/drivers/iio/adc/Makefile b/drivers/iio/adc/Makefile
-index 900995d..4410a90 100644
+index 472fd7c..dbcd638 100644
 --- a/drivers/iio/adc/Makefile
 +++ b/drivers/iio/adc/Makefile
-@@ -8,3 +8,4 @@ obj-$(CONFIG_AD7476) += ad7476.o
- obj-$(CONFIG_AD7791) += ad7791.o
- obj-$(CONFIG_AT91_ADC) += at91_adc.o
+@@ -13,4 +13,5 @@ obj-$(CONFIG_AT91_ADC) += at91_adc.o
  obj-$(CONFIG_LP8788_ADC) += lp8788_adc.o
+ obj-$(CONFIG_MAX1363) += max1363.o
+ obj-$(CONFIG_TI_ADC081C) += ti-adc081c.o
 +obj-$(CONFIG_TI_AM335X_ADC) += ti_am335x_adc.o
+ 
 diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
 new file mode 100644
 index 0000000..02a43c8

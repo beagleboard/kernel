@@ -1,7 +1,7 @@
-From b9a36ca8c04c5b29101032cd733f534f5d57879f Mon Sep 17 00:00:00 2001
+From e84461e2aac5e45abcee02e12c223da56591fe63 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Wed, 17 Oct 2012 17:12:45 -0400
-Subject: [PATCH 27/31] ARM: dts: add BeagleBone gpevt support
+Subject: [PATCH 27/29] ARM: dts: add BeagleBone gpevt support
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  1 files changed, 18 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 290408c..2ad3914 100644
+index 37e624e..1169213 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -33,6 +33,11 @@
+@@ -51,6 +51,11 @@
  				0x1ac 0x17	/* mcasp0_ahclkx.gpio3_21, OUTPUT_PULLUP | MODE7 */
  			>;
  		};
@@ -24,7 +24,7 @@ index 290408c..2ad3914 100644
  	};
  
  	ocp {
-@@ -49,6 +54,15 @@
+@@ -67,6 +72,15 @@
  			};
  
  		};
@@ -38,9 +38,9 @@ index 290408c..2ad3914 100644
 +			gpio-evt = <&gpio3 2 0>;
 +		};
  	};
- };
  
-@@ -119,3 +133,7 @@
+ 	leds {
+@@ -175,3 +189,7 @@
  		st7735-dc = <&gpio4 21 0>;
  	};
  };
