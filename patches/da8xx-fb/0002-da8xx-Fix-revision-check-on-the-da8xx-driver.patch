@@ -1,0 +1,25 @@
+From 001d294b14d87ada9d641ad601a1653802a5d5e6 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Sat, 13 Oct 2012 16:21:05 +0300
+Subject: [PATCH 2/8] da8xx: Fix revision check on the da8xx driver
+
+The revision check fails for the beaglebone; Add new revision ID.
+---
+ drivers/video/da8xx-fb.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+index 80665f6..866d804 100644
+--- a/drivers/video/da8xx-fb.c
++++ b/drivers/video/da8xx-fb.c
+@@ -1283,6 +1283,7 @@ static int __devinit fb_probe(struct platform_device *device)
+ 		lcd_revision = LCD_VERSION_1;
+ 		break;
+ 	case 0x4F200800:
++	case 0x4F201000:
+ 		lcd_revision = LCD_VERSION_2;
+ 		break;
+ 	default:
+-- 
+1.7.7.6
+

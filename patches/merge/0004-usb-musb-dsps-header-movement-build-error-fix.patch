@@ -1,0 +1,41 @@
+From d87571a2317c82d0975e92d23094375763d9634d Mon Sep 17 00:00:00 2001
+From: Afzal Mohammed <afzal@ti.com>
+Date: Tue, 27 Nov 2012 20:15:22 +0530
+Subject: [PATCH 4/4] usb: musb: dsps: header movement build error fix
+
+"54db6ee ARM: OMAP2+: Introduce local usb.h" moved control module bit
+definitions from plat/usb.h (which dsps glue was using) to a local
+header in mach-omap2. And in parallel,
+"c68bb4c usb: musb: dsps: control module handling (quirk)" added
+control module handling capability to dsps glue driver that used
+those control module bit definitions.
+
+Integration of above two changes would cause build error in musb dsps
+glue driver (they go through different trees upstream) as is seen now
+in linux-next. Fix it by adding necessary definitions in dsps glue
+driver.
+
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ drivers/usb/musb/musb_dsps.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index e6f2ae8..f7d764d 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -134,6 +134,11 @@ static const resource_size_t dsps_control_module_phys[] = {
+ 	DSPS_AM33XX_CONTROL_MODULE_PHYS_1,
+ };
+ 
++#define USBPHY_CM_PWRDN		(1 << 0)
++#define USBPHY_OTG_PWRDN	(1 << 1)
++#define USBPHY_OTGVDET_EN	(1 << 19)
++#define USBPHY_OTGSESSEND_EN	(1 << 20)
++
+ /**
+  * musb_dsps_phy_control - phy on/off
+  * @glue: struct dsps_glue *
+-- 
+1.7.7.6
+

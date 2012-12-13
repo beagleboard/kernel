@@ -1,0 +1,46 @@
+From ce91bd0deb0aa3c51741b27a0e968a72cec5cfb8 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Thu, 13 Dec 2012 14:06:35 +0100
+Subject: [PATCH 29/29] am33xx: remove duplicate SPI nodes
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am33xx.dtsi |   22 ----------------------
+ 1 files changed, 0 insertions(+), 22 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index f04e708..c02ade7 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -392,28 +392,6 @@
+ 			ti,hwmods = "rtc";
+ 		};
+ 
+-		spi0: spi@48030000 {
+-			compatible = "ti,omap4-mcspi";
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-			reg = <0x48030000 0x400>;
+-			interrupt = <65>;
+-			ti,spi-num-cs = <2>;
+-			ti,hwmods = "spi0";
+-			status = "disabled";
+-		};
+-
+-		spi1: spi@481a0000 {
+-			compatible = "ti,omap4-mcspi";
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-			reg = <0x481a0000 0x400>;
+-			interrupt = <125>;
+-			ti,spi-num-cs = <2>;
+-			ti,hwmods = "spi1";
+-			status = "disabled";
+-		};
+-
+ 		usb@47400000 {
+ 			compatible = "ti,musb-am33xx";
+ 			reg = <0x47400000 0x1000	/* usbss */
+-- 
+1.7.7.6
+

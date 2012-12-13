@@ -1,0 +1,26 @@
+From 38a27a766f4b4c11c8dad73c144db48ca3c95efe Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Sat, 13 Oct 2012 16:18:37 +0300
+Subject: [PATCH 1/8] da8xx: Allow use by am33xx based devices
+
+This driver can be used for AM33xx devices, like the popular beaglebone.
+---
+ drivers/video/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index 9791d10..e7868d8 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -2202,7 +2202,7 @@ config FB_SH7760
+ 
+ config FB_DA8XX
+ 	tristate "DA8xx/OMAP-L1xx Framebuffer support"
+-	depends on FB && ARCH_DAVINCI_DA8XX
++	depends on FB && (ARCH_DAVINCI_DA8XX || SOC_AM33XX)
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+-- 
+1.7.7.6
+

@@ -1,0 +1,25 @@
+From b18ef85609c6ac5da027928e6d33a57fb5f7fee4 Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Thu, 18 Oct 2012 10:29:57 -0400
+Subject: [PATCH 27/29] misc: gpevt: null terminate the of_match_table
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ drivers/misc/gpevt.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/misc/gpevt.c b/drivers/misc/gpevt.c
+index 4fe256c..c0cc1a2 100644
+--- a/drivers/misc/gpevt.c
++++ b/drivers/misc/gpevt.c
+@@ -139,6 +139,7 @@ static int __devexit gpevt_remove(struct platform_device *pdev)
+ 
+ static const struct of_device_id gpevt_dt_ids[] = {
+ 	{ .compatible = "gpevt", .data = (void *) NULL, },
++	{ },
+ };
+ MODULE_DEVICE_TABLE(of, gpevt_dt_ids);
+ 
+-- 
+1.7.7.6
+
