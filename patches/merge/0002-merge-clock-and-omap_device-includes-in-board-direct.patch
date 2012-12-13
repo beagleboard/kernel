@@ -1,0 +1,45 @@
+From b6b54ac7d67c3b9fdf5e88689d1a748afb4267a2 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Thu, 13 Dec 2012 10:08:48 -0600
+Subject: [PATCH 2/2] merge: clock and omap_device includes in board directory
+ now
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/da8xx-dt.c     |    4 ++--
+ arch/arm/mach-omap2/ti-tscadc-dt.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/da8xx-dt.c b/arch/arm/mach-omap2/da8xx-dt.c
+index d3c6f48..60535fd 100644
+--- a/arch/arm/mach-omap2/da8xx-dt.c
++++ b/arch/arm/mach-omap2/da8xx-dt.c
+@@ -32,8 +32,8 @@
+ #include <linux/pinctrl/pinmux.h>
+ #include <linux/pinctrl/consumer.h>
+ #include <linux/clk.h>
+-#include <plat/clock.h>
+-#include <plat/omap_device.h>
++#include "clock.h"
++#include "omap_device.h"
+ 
+ struct da8xx_priv {
+ 	struct da8xx_lcdc_platform_data lcd_pdata;
+diff --git a/arch/arm/mach-omap2/ti-tscadc-dt.c b/arch/arm/mach-omap2/ti-tscadc-dt.c
+index 0a1a17a..76d9e76 100644
+--- a/arch/arm/mach-omap2/ti-tscadc-dt.c
++++ b/arch/arm/mach-omap2/ti-tscadc-dt.c
+@@ -33,8 +33,8 @@
+ #include <linux/input/ti_am335x_tsc.h>
+ #include <linux/platform_data/ti_am335x_adc.h>
+ #include <linux/mfd/ti_am335x_tscadc.h>
+-#include <plat/clock.h>
+-#include <plat/omap_device.h>
++#include "clock.h"
++#include "omap_device.h"
+ 
+ struct ti_tscadc_priv {
+ 	struct omap_hwmod *tsc_oh;
+-- 
+1.7.10.4
+

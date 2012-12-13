@@ -24,7 +24,7 @@ EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
 EXTERNAL_SHA="6be35c700f742e911ecedd07fcc43d4439922334"
 
-PATCHSET="dma pinctrl cpufreq adc pwm i2c da8xx-fb mmc f2fs 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda  net spi"
+PATCHSET="dma pinctrl cpufreq adc pwm i2c da8xx-fb mmc f2fs 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net spi merge"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
