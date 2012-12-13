@@ -1,0 +1,40 @@
+From 37295fb6e07b40296cd20b2722de46321be51732 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Thu, 13 Dec 2012 14:13:31 +0100
+Subject: [PATCH 5/5] am335x-evm*: hack around i2c node names
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am335x-evm.dts   |    2 +-
+ arch/arm/boot/dts/am335x-evmsk.dts |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 2083dfa..de036a5 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -60,7 +60,7 @@
+ 			};
+ 		};
+ 
+-		i2c2: i2c@4802a000 {
++		i2c20: i2c@4802a000 {
+ 			status = "okay";
+ 			clock-frequency = <100000>;
+ 
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index f5a6162..b946be8 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -58,7 +58,7 @@
+ 			status = "okay";
+ 		};
+ 
+-		i2c1: i2c@44e0b000 {
++		i2c10: i2c@44e0b000 {
+ 			status = "okay";
+ 			clock-frequency = <400000>;
+ 
+-- 
+1.7.7.6
+
