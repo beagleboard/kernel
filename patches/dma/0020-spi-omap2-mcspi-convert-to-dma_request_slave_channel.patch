@@ -1,4 +1,4 @@
-From 2387f204f198002e72f44b640892c935fe4ccf53 Mon Sep 17 00:00:00 2001
+From 669478654719fff6178c1074f6a184684a3a5a13 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 20 Sep 2012 00:37:54 -0400
 Subject: [PATCH 20/29] spi: omap2-mcspi: convert to
@@ -17,10 +17,10 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  1 files changed, 45 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 3542fdc..793ae8c 100644
+index b610f52..2c02c02 100644
 --- a/drivers/spi/spi-omap2-mcspi.c
 +++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -103,6 +103,9 @@ struct omap2_mcspi_dma {
+@@ -102,6 +102,9 @@ struct omap2_mcspi_dma {
  
  	struct completion dma_tx_completion;
  	struct completion dma_rx_completion;
@@ -30,7 +30,7 @@ index 3542fdc..793ae8c 100644
  };
  
  /* use PIO for small transfers, avoiding DMA setup/teardown overhead and
-@@ -819,14 +822,23 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
+@@ -822,14 +825,23 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
  	dma_cap_zero(mask);
  	dma_cap_set(DMA_SLAVE, mask);
  	sig = mcspi_dma->dma_rx_sync_dev;
@@ -56,7 +56,7 @@ index 3542fdc..793ae8c 100644
  	if (!mcspi_dma->dma_tx) {
  		dev_err(&spi->dev, "no TX DMA engine channel for McSPI\n");
  		dma_release_channel(mcspi_dma->dma_rx);
-@@ -1217,29 +1229,42 @@ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
+@@ -1223,29 +1235,42 @@ static int omap2_mcspi_probe(struct platform_device *pdev)
  		goto free_master;
  
  	for (i = 0; i < master->num_chipselect; i++) {

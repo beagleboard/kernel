@@ -1,4 +1,4 @@
-From e761909741106a0b203428f6540d2cc924a27199 Mon Sep 17 00:00:00 2001
+From 281b2f82ee9c7542ac82d9bab5f43b540ceeadb2 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 23 Oct 2012 13:23:14 +0300
 Subject: [PATCH 08/15] spi: Export OF interfaces for capebus use.
@@ -9,13 +9,13 @@ Subject: [PATCH 08/15] spi: Export OF interfaces for capebus use.
  2 files changed, 41 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-index 718cc1f..cd77316 100644
+index ab095ac..6478663 100644
 --- a/drivers/spi/spi.c
 +++ b/drivers/spi/spi.c
-@@ -807,14 +807,17 @@ err_init_queue:
+@@ -812,14 +812,17 @@ err_init_queue:
  /*-------------------------------------------------------------------------*/
  
- #if defined(CONFIG_OF) && !defined(CONFIG_SPARC)
+ #if defined(CONFIG_OF)
 +
  /**
 - * of_register_spi_devices() - Register child devices onto the SPI bus
@@ -32,7 +32,7 @@ index 718cc1f..cd77316 100644
  {
  	struct spi_device *spi;
  	struct device_node *nc;
-@@ -822,10 +825,10 @@ static void of_register_spi_devices(struct spi_master *master)
+@@ -827,10 +830,10 @@ static void of_register_spi_devices(struct spi_master *master)
  	int rc;
  	int len;
  
@@ -45,7 +45,7 @@ index 718cc1f..cd77316 100644
  		/* Alloc an spi_device */
  		spi = spi_alloc_device(master);
  		if (!spi) {
-@@ -890,8 +893,20 @@ static void of_register_spi_devices(struct spi_master *master)
+@@ -897,8 +900,20 @@ static void of_register_spi_devices(struct spi_master *master)
  
  	}
  }
@@ -68,7 +68,7 @@ index 718cc1f..cd77316 100644
  #endif
  
  #ifdef CONFIG_ACPI
-@@ -996,12 +1011,12 @@ static void spi_master_release(struct device *dev)
+@@ -1003,12 +1018,12 @@ static void spi_master_release(struct device *dev)
  	kfree(master);
  }
  
@@ -84,7 +84,7 @@ index 718cc1f..cd77316 100644
  
  /**
 diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
-index fa702ae..618aa5e 100644
+index f629189..ccdde0e 100644
 --- a/include/linux/spi/spi.h
 +++ b/include/linux/spi/spi.h
 @@ -30,6 +30,8 @@
@@ -96,7 +96,7 @@ index fa702ae..618aa5e 100644
  /**
   * struct spi_device - Master side proxy for an SPI slave device
   * @dev: Driver model representation of the device.
-@@ -856,4 +858,20 @@ spi_unregister_device(struct spi_device *spi)
+@@ -859,4 +861,20 @@ spi_unregister_device(struct spi_device *spi)
  extern const struct spi_device_id *
  spi_get_device_id(const struct spi_device *sdev);
  

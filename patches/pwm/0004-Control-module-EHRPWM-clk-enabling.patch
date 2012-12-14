@@ -1,4 +1,4 @@
-From 0a9fd460a63d5f8e5028857efd8c0627f26fc11b Mon Sep 17 00:00:00 2001
+From 880c5b471fa6e53fa12f4ce644d6e76344aa9e67 Mon Sep 17 00:00:00 2001
 From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Tue, 22 May 2012 11:34:58 +0530
 Subject: [PATCH 04/10] Control module : EHRPWM clk enabling
@@ -9,10 +9,10 @@ Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
  1 files changed, 15 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index c67a731..13e9c24 100644
+index 4abb8b5..9870fbe 100644
 --- a/arch/arm/mach-omap2/devices.c
 +++ b/arch/arm/mach-omap2/devices.c
-@@ -436,6 +436,20 @@ static void omap_init_mcspi(void)
+@@ -446,6 +446,20 @@ static void omap_init_mcspi(void)
  static inline void omap_init_mcspi(void) {}
  #endif
  
@@ -33,7 +33,7 @@ index c67a731..13e9c24 100644
  /**
   * omap_init_rng - bind the RNG hwmod to the RNG omap_device
   *
-@@ -722,6 +736,7 @@ static int __init omap2_init_devices(void)
+@@ -732,6 +746,7 @@ static int __init omap2_init_devices(void)
  	omap_init_vout();
  	omap_init_ocp2scp();
  
