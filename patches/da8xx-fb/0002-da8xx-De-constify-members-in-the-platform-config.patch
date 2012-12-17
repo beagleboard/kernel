@@ -1,7 +1,7 @@
-From cbac4873b8ad25bea434ddc03c7001c430189522 Mon Sep 17 00:00:00 2001
+From 86055aa449cb80463432795a586ceb67b3cd7a82 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Sat, 13 Oct 2012 16:22:47 +0300
-Subject: [PATCH 3/8] da8xx: De-constify members in the platform config.
+Subject: [PATCH 2/6] da8xx: De-constify members in the platform config.
 
 There's no need for this to be const. It interferes with
 creating the platform data dynamically.
@@ -12,10 +12,10 @@ Remove const.
  1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/include/video/da8xx-fb.h b/include/video/da8xx-fb.h
-index 5a0e4f9..a512d6b 100644
+index f888259..62b1535 100644
 --- a/include/video/da8xx-fb.h
 +++ b/include/video/da8xx-fb.h
-@@ -35,9 +35,9 @@ struct display_panel {
+@@ -24,9 +24,9 @@ enum raster_load_mode {
  };
  
  struct da8xx_lcdc_platform_data {

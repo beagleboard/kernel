@@ -1,7 +1,7 @@
-From d534f5d7896b1880e4201eafa9ead251391823ca Mon Sep 17 00:00:00 2001
+From 145b81b008891f55917123b2214be85ee4784f2a Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Sat, 13 Oct 2012 16:37:24 +0300
-Subject: [PATCH 12/13] ti_tscadc: Update with IIO map interface & deal with
+Subject: [PATCH 4/5] ti_tscadc: Update with IIO map interface & deal with
  partial activation
 
 Add an IIO map interface that consumers can use.
@@ -104,10 +104,10 @@ index 02a43c8..d48fd79 100644
  }
  
 diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index e947dd8..cbb8b70c 100644
+index 8ca3bf0..84ec284 100644
 --- a/drivers/mfd/ti_am335x_tscadc.c
 +++ b/drivers/mfd/ti_am335x_tscadc.c
-@@ -176,26 +176,38 @@ static	int __devinit ti_tscadc_probe(struct platform_device *pdev)
+@@ -173,26 +173,38 @@ static	int __devinit ti_tscadc_probe(struct platform_device *pdev)
  	ctrl |= CNTRLREG_TSCSSENB;
  	tscadc_writel(tscadc, REG_CTRL, ctrl);
  

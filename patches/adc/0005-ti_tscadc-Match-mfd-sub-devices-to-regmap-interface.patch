@@ -1,7 +1,7 @@
-From 181e740c67cbf5d8c5d0dfefe963a522635fa621 Mon Sep 17 00:00:00 2001
+From 2419f01a316ff270b5794ee11c81633ca1628991 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 26 Oct 2012 14:01:05 +0300
-Subject: [PATCH 13/13] ti_tscadc: Match mfd sub devices to regmap interface
+Subject: [PATCH 5/5] ti_tscadc: Match mfd sub devices to regmap interface
 
 ---
  drivers/iio/adc/ti_am335x_adc.c           |   27 +++++++++++++++++++--------
@@ -102,7 +102,7 @@ index d48fd79..5f325c1 100644
  
  err_free_channels:
 diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index 7a26810..d09e1a7 100644
+index 7a268109..d09e1a7 100644
 --- a/drivers/input/touchscreen/ti_am335x_tsc.c
 +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
 @@ -26,6 +26,7 @@
@@ -151,7 +151,7 @@ index 7a26810..d09e1a7 100644
  
  err_free_irq:
 diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index cbb8b70c..4a7041c 100644
+index 84ec284..b15e94c 100644
 --- a/drivers/mfd/ti_am335x_tscadc.c
 +++ b/drivers/mfd/ti_am335x_tscadc.c
 @@ -31,6 +31,7 @@ static unsigned int tscadc_readl(struct ti_tscadc_dev *tsadc, unsigned int reg)
@@ -162,8 +162,8 @@ index cbb8b70c..4a7041c 100644
  	regmap_read(tsadc->regmap_tscadc, reg, &val);
  	return val;
  }
-@@ -68,7 +69,7 @@ static	int __devinit ti_tscadc_probe(struct platform_device *pdev)
- 	int			irq;
+@@ -67,7 +68,7 @@ static	int __devinit ti_tscadc_probe(struct platform_device *pdev)
+ 	struct mfd_cell		*cell;
  	int			err, ctrl;
  	int			clk_value, clock_rate;
 -	int			tsc_wires, adc_channels = 0, total_channels;
@@ -171,7 +171,7 @@ index cbb8b70c..4a7041c 100644
  
  	if (!pdata) {
  		dev_err(&pdev->dev, "Could not find platform data\n");
-@@ -78,7 +79,9 @@ static	int __devinit ti_tscadc_probe(struct platform_device *pdev)
+@@ -77,7 +78,9 @@ static	int __devinit ti_tscadc_probe(struct platform_device *pdev)
  	if (pdata->adc_init)
  		adc_channels = pdata->adc_init->adc_channels;
  

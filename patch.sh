@@ -22,7 +22,7 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="7313264b899bbf3988841296265a6e0e8a7b6521"
+EXTERNAL_SHA="a4f1de176614f634c367e5994a7bcc428c940df0"
 
 PATCHSET="dma pinctrl cpufreq adc pwm i2c da8xx-fb mmc f2fs 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net merge"
 
