@@ -1,0 +1,40 @@
+From 88f40e4a55601f90c99ad837b74e1ae9c537528f Mon Sep 17 00:00:00 2001
+From: Rob Clark <robdclark@gmail.com>
+Date: Tue, 11 Dec 2012 18:38:23 -0600
+Subject: [PATCH 4/5] add devicetree entry for lcdc
+
+---
+ arch/arm/boot/dts/am33xx.dtsi |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 4fdaef7..9a0e875 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -522,5 +522,23 @@
+ 			#pwm-cells = <3>;
+ 			status = "disabled";
+ 		};
++
++		fb: fb@4830e000 {
++			compatible = "ti,am33xx-lcdc";
++			reg = <0x4830e000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <36>;
++			ti,hwmods = "lcdc";
++		};
++
++		/* TODO: where to put this?? */
++		tfp410 {
++			compatible = "tfp410";
++			i2c = <&i2c2>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&bone_dvi_cape_dvi_00A1_pins>;
++			powerdn-gpio = <&gpio2 31 0>;
++		};
++
+ 	};
+ };
+-- 
+1.7.7.6
+

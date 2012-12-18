@@ -1,0 +1,32 @@
+From 440d78ad25380944c8acdc3952e42e00c26f93f6 Mon Sep 17 00:00:00 2001
+From: Rob Clark <robdclark@gmail.com>
+Date: Tue, 11 Dec 2012 18:40:41 -0600
+Subject: [PATCH 5/5] HACK: fix lcdc device name
+
+hack until I can figure out how to make hwmod clk names match
+devicetree..  otherwise device name ends up "4830e000.fb" and
+clk_get() fails
+---
+ drivers/gpu/drm/lcdc/lcdc_drv.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/gpu/drm/lcdc/lcdc_drv.c b/drivers/gpu/drm/lcdc/lcdc_drv.c
+index 4f694a9..2660fe5 100644
+--- a/drivers/gpu/drm/lcdc/lcdc_drv.c
++++ b/drivers/gpu/drm/lcdc/lcdc_drv.c
+@@ -555,6 +555,12 @@ static int __devinit lcdc_pdev_probe(struct platform_device *pdev)
+ 		return -ENXIO;
+ 	}
+ 
++	/* XXX hack until I can figure out how to make hwmod clk names
++	 * match devicetree..  otherwise device name ends up "4830e000.fb"
++	 * and clk_get() fails:
++	 */
++	pdev->dev.kobj.name = "da8xx_lcdc.0";
++
+ 	return drm_platform_init(&lcdc_driver, pdev);
+ }
+ 
+-- 
+1.7.7.6
+
