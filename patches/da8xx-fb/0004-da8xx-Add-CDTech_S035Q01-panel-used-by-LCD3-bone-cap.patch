@@ -1,33 +1,34 @@
-From 133d7829cda3a297fec1242ba4250de6d8efd16a Mon Sep 17 00:00:00 2001
+From 5e2dfb44f5f13fd1b0c14f8841619b39d21d9587 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 17 Oct 2012 15:43:55 +0300
-Subject: [PATCH 4/6] da8xx: Add CDTech_S035Q01 panel (used by LCD3 bone cape)
+Subject: [PATCH 4/7] da8xx: Add CDTech_S035Q01 panel (used by LCD3 bone cape)
 
 ---
- drivers/video/da8xx-fb.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ drivers/video/da8xx-fb.c |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index c5d2883..8909545 100644
+index 5d16494..4713b83 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -273,6 +273,20 @@ static struct fb_videomode known_lcd_panels[] = {
- 		.pxl_clk = 56000000,
- 		.invert_pxl_clk = 0,
+@@ -274,6 +274,21 @@ static struct fb_videomode known_lcd_panels[] = {
+ 		.sync           = FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+ 		.flag           = 0,
  	},
 +	[4] = {
 +		/* CDTech S035Q01 */
-+		.name = "CDTech_S035Q01",
-+		.width = 320,
-+		.height = 240,
-+		.hfp = 58,
-+		.hbp = 21,
-+		.hsw = 47,
-+		.vfp = 23,
-+		.vbp = 11,
-+		.vsw = 2,
-+		.pxl_clk = 8000000,
-+		.invert_pxl_clk = 0,
++		.name 		= "CDTech_S035Q01",
++		.xres 		= 320,
++		.yres		= 240,
++		.pixclock	= 8000000,
++		.left_margin    = 21,
++		.right_margin   = 58,
++		.upper_margin   = 11,
++		.lower_margin   = 23,
++		.hsync_len      = 47,
++		.vsync_len      = 2,
++		.sync           = FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
++		.flag           = 0,
 +	},
  };
  

@@ -1,7 +1,7 @@
-From 22b643656dccaae68ffeed71dcf9060f6a66db50 Mon Sep 17 00:00:00 2001
+From 8f4614f056c6d829fec0d084fcb4c6095540b9b1 Mon Sep 17 00:00:00 2001
 From: Afzal Mohammed <afzal@ti.com>
 Date: Wed, 28 Nov 2012 19:21:51 +0530
-Subject: [PATCH 6/6] video: da8xx-fb: fb_check_var enhancement
+Subject: [PATCH 6/7] video: da8xx-fb: fb_check_var enhancement
 
 Check whether "struct fb_var_screeninfo" fields are sane, if not
 update it to be within allowed limits.
@@ -16,10 +16,10 @@ Signed-off-by: Afzal Mohammed <afzal@ti.com>
  1 files changed, 18 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 0780c08..1b74f37 100644
+index 0e8211f..c39844c 100644
 --- a/drivers/video/da8xx-fb.c
 +++ b/drivers/video/da8xx-fb.c
-@@ -930,6 +930,9 @@ static int fb_check_var(struct fb_var_screeninfo *var,
+@@ -933,6 +933,9 @@ static int fb_check_var(struct fb_var_screeninfo *var,
  			struct fb_info *info)
  {
  	int err = 0;
@@ -29,7 +29,7 @@ index 0780c08..1b74f37 100644
  
  	if (var->bits_per_pixel > 16 && lcd_revision == LCD_VERSION_1)
  		return -EINVAL;
-@@ -997,6 +1000,21 @@ static int fb_check_var(struct fb_var_screeninfo *var,
+@@ -1000,6 +1003,21 @@ static int fb_check_var(struct fb_var_screeninfo *var,
  	var->green.msb_right = 0;
  	var->blue.msb_right = 0;
  	var->transp.msb_right = 0;
