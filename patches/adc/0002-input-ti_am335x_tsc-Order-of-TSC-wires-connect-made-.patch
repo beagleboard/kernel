@@ -1,4 +1,4 @@
-From 47f742e9a90d6e097455fafdbe0d13d7f5ded380 Mon Sep 17 00:00:00 2001
+From 23551b38d5fe983e3329d3af760e565097a9983a Mon Sep 17 00:00:00 2001
 From: "Patil, Rachna" <rachna@ti.com>
 Date: Mon, 22 Oct 2012 10:15:17 +0000
 Subject: [PATCH 2/5] input: ti_am335x_tsc: Order of TSC wires connect, made
@@ -16,7 +16,7 @@ Signed-off-by: Patil, Rachna <rachna@ti.com>
  3 files changed, 159 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index 4369224..6a817a8 100644
+index da652e0..0c460f9 100644
 --- a/drivers/input/touchscreen/ti_am335x_tsc.c
 +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
 @@ -33,6 +33,17 @@
@@ -234,7 +234,7 @@ index 4369224..6a817a8 100644
  	titsc_writel(ts_dev, REG_STEPCONFIG(total_steps + 2), config);
  	titsc_writel(ts_dev, REG_STEPDELAY(total_steps + 2),
  			STEPCONFIG_OPENDLY);
-@@ -295,6 +411,8 @@ static int __devinit titsc_probe(struct platform_device *pdev)
+@@ -295,6 +411,8 @@ static int titsc_probe(struct platform_device *pdev)
  	ts_dev->wires = pdata->tsc_init->wires;
  	ts_dev->x_plate_resistance = pdata->tsc_init->x_plate_resistance;
  	ts_dev->steps_to_configure = pdata->tsc_init->steps_to_configure;
@@ -243,7 +243,7 @@ index 4369224..6a817a8 100644
  
  	err = request_irq(ts_dev->irq, titsc_irq,
  			  0, pdev->dev.driver->name, ts_dev);
-@@ -304,6 +422,11 @@ static int __devinit titsc_probe(struct platform_device *pdev)
+@@ -304,6 +422,11 @@ static int titsc_probe(struct platform_device *pdev)
  	}
  
  	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_FIFO0THRES);

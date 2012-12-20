@@ -1,4 +1,4 @@
-From 87cc74dddea5607acce4209dd675f887da9af23e Mon Sep 17 00:00:00 2001
+From 0486b453a9e5e45ac7fec0007a0c1dbda667bc91 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 26 Oct 2012 14:01:05 +0300
 Subject: [PATCH 5/5] ti_tscadc: Match mfd sub devices to regmap interface
@@ -102,7 +102,7 @@ index d48fd79..5f325c1 100644
  
  err_free_channels:
 diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index 7a268109..d09e1a7 100644
+index 3fbc9a0..5fbcaae 100644
 --- a/drivers/input/touchscreen/ti_am335x_tsc.c
 +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
 @@ -26,6 +26,7 @@
@@ -133,7 +133,7 @@ index 7a268109..d09e1a7 100644
  }
  
  /*
-@@ -455,10 +460,15 @@ static int __devinit titsc_probe(struct platform_device *pdev)
+@@ -455,10 +460,15 @@ static int titsc_probe(struct platform_device *pdev)
  
  	/* register to the input system */
  	err = input_register_device(input_dev);

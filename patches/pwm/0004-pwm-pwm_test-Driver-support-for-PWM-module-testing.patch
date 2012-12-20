@@ -1,7 +1,7 @@
-From 5a10fdc3ee0de8c37093adce1bf9027a04ecf4b0 Mon Sep 17 00:00:00 2001
+From 99d8966725a1b884fefda336ed0a75d4f66feef7 Mon Sep 17 00:00:00 2001
 From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Tue, 17 Jul 2012 21:35:11 +0530
-Subject: [PATCH 07/10] pwm: pwm_test: Driver support for PWM module testing
+Subject: [PATCH 4/5] pwm: pwm_test: Driver support for PWM module testing
 
 Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
 ---
@@ -12,10 +12,10 @@ Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
  create mode 100644 drivers/pwm/pwm_test.c
 
 diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
-index ed81720..f1a0721 100644
+index e513cd9..74f5084 100644
 --- a/drivers/pwm/Kconfig
 +++ b/drivers/pwm/Kconfig
-@@ -160,4 +160,15 @@ config PWM_VT8500
+@@ -191,4 +191,15 @@ config PWM_VT8500
  	  To compile this driver as a module, choose M here: the module
  	  will be called pwm-vt8500.
  
@@ -32,12 +32,12 @@ index ed81720..f1a0721 100644
 +
  endif
 diff --git a/drivers/pwm/Makefile b/drivers/pwm/Makefile
-index acfe482..e2c6277 100644
+index 62a2963..8ddb432 100644
 --- a/drivers/pwm/Makefile
 +++ b/drivers/pwm/Makefile
-@@ -13,3 +13,4 @@ obj-$(CONFIG_PWM_TIECAP)	+= pwm-tiecap.o
- obj-$(CONFIG_PWM_TIEHRPWM)	+= pwm-tiehrpwm.o
- obj-$(CONFIG_PWM_TWL6030)	+= pwm-twl6030.o
+@@ -16,3 +16,4 @@ obj-$(CONFIG_PWM_TIPWMSS)	+= pwm-tipwmss.o
+ obj-$(CONFIG_PWM_TWL)		+= pwm-twl.o
+ obj-$(CONFIG_PWM_TWL_LED)	+= pwm-twl-led.o
  obj-$(CONFIG_PWM_VT8500)	+= pwm-vt8500.o
 +obj-$(CONFIG_EHRPWM_TEST)	+= pwm_test.o
 diff --git a/drivers/pwm/pwm_test.c b/drivers/pwm/pwm_test.c

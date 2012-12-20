@@ -1,14 +1,14 @@
-From 1fd737b3c718af7a1808a7b887c1bae3ab66c4b6 Mon Sep 17 00:00:00 2001
+From 0761568c68877ea2c0b604a6acc4f151ffa1cfb8 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 17 Oct 2012 20:17:36 +0300
-Subject: [PATCH 03/15] gpio-keys: Pinctrl-fy
+Subject: [PATCH 03/13] gpio-keys: Pinctrl-fy
 
 ---
- drivers/input/keyboard/gpio_keys.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ drivers/input/keyboard/gpio_keys.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/input/keyboard/gpio_keys.c b/drivers/input/keyboard/gpio_keys.c
-index 6a68041..e421082 100644
+index d327f5a..355d224 100644
 --- a/drivers/input/keyboard/gpio_keys.c
 +++ b/drivers/input/keyboard/gpio_keys.c
 @@ -29,6 +29,7 @@
@@ -19,7 +19,7 @@ index 6a68041..e421082 100644
  
  struct gpio_button_data {
  	const struct gpio_keys_button *button;
-@@ -666,6 +667,7 @@ static int __devinit gpio_keys_probe(struct platform_device *pdev)
+@@ -681,6 +682,7 @@ static int gpio_keys_probe(struct platform_device *pdev)
  	struct input_dev *input;
  	int i, error;
  	int wakeup = 0;
@@ -27,7 +27,7 @@ index 6a68041..e421082 100644
  
  	if (!pdata) {
  		pdata = gpio_keys_get_devtree_pdata(dev);
-@@ -731,6 +733,10 @@ static int __devinit gpio_keys_probe(struct platform_device *pdev)
+@@ -746,6 +748,18 @@ static int gpio_keys_probe(struct platform_device *pdev)
  		goto fail3;
  	}
  
@@ -35,9 +35,17 @@ index 6a68041..e421082 100644
 +	if (IS_ERR(pinctrl))
 +		dev_warn(&pdev->dev, "unable to select pin group\n");
 +
- 	/* get current state of buttons that are connected to GPIOs */
- 	for (i = 0; i < pdata->nbuttons; i++) {
- 		struct gpio_button_data *bdata = &ddata->data[i];
++	/* get current state of buttons that are connected to GPIOs */
++	for (i = 0; i < pdata->nbuttons; i++) {
++		struct gpio_button_data *bdata = &ddata->data[i];
++		if (gpio_is_valid(bdata->button->gpio))
++			gpio_keys_gpio_report_event(bdata);
++	}
++	input_sync(input);
++
+ 	device_init_wakeup(&pdev->dev, wakeup);
+ 
+ 	return 0;
 -- 
 1.7.7.6
 

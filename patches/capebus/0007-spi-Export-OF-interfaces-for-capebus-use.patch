@@ -1,7 +1,7 @@
-From 6c7326b7c8d0224c24dffe5cc81a862e1ba1f088 Mon Sep 17 00:00:00 2001
+From b7cf11150e28342edb4eb9dc6360c8483c505395 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 23 Oct 2012 13:23:14 +0300
-Subject: [PATCH 08/15] spi: Export OF interfaces for capebus use.
+Subject: [PATCH 07/13] spi: Export OF interfaces for capebus use.
 
 ---
  drivers/spi/spi.c       |   31 +++++++++++++++++++++++--------
@@ -9,7 +9,7 @@ Subject: [PATCH 08/15] spi: Export OF interfaces for capebus use.
  2 files changed, 41 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-index ab095ac..6478663 100644
+index 19ee901..8f1e4cc 100644
 --- a/drivers/spi/spi.c
 +++ b/drivers/spi/spi.c
 @@ -812,14 +812,17 @@ err_init_queue:
@@ -32,7 +32,7 @@ index ab095ac..6478663 100644
  {
  	struct spi_device *spi;
  	struct device_node *nc;
-@@ -827,10 +830,10 @@ static void of_register_spi_devices(struct spi_master *master)
+@@ -828,10 +831,10 @@ static void of_register_spi_devices(struct spi_master *master)
  	int rc;
  	int len;
  
@@ -45,7 +45,7 @@ index ab095ac..6478663 100644
  		/* Alloc an spi_device */
  		spi = spi_alloc_device(master);
  		if (!spi) {
-@@ -897,8 +900,20 @@ static void of_register_spi_devices(struct spi_master *master)
+@@ -900,8 +903,20 @@ static void of_register_spi_devices(struct spi_master *master)
  
  	}
  }
@@ -68,7 +68,7 @@ index ab095ac..6478663 100644
  #endif
  
  #ifdef CONFIG_ACPI
-@@ -1003,12 +1018,12 @@ static void spi_master_release(struct device *dev)
+@@ -1006,12 +1021,12 @@ static void spi_master_release(struct device *dev)
  	kfree(master);
  }
  

@@ -1,4 +1,4 @@
-From 533f39d1e602ee483725baafc68cfe27f4d16932 Mon Sep 17 00:00:00 2001
+From ff49789048b6ebc83a094516f329af595481b116 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 14 Sep 2012 17:51:11 +0300
 Subject: [PATCH 1/4] i2c: pinctrl-ify i2c-omap.c
@@ -6,31 +6,30 @@ Subject: [PATCH 1/4] i2c: pinctrl-ify i2c-omap.c
 Conflicts:
 	drivers/i2c/busses/i2c-omap.c
 ---
- drivers/i2c/busses/i2c-omap.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 3525c9e..b4952b7 100644
+index 7a62acb..5625d87 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -43,6 +43,8 @@
- #include <linux/slab.h>
+@@ -44,6 +44,7 @@
  #include <linux/i2c-omap.h>
  #include <linux/pm_runtime.h>
-+#include <linux/pinctrl/consumer.h>
+ #include <linux/pinctrl/consumer.h>
 +#include <linux/err.h>
  
  /* I2C controller revisions */
  #define OMAP_I2C_OMAP1_REV_2		0x20
-@@ -1060,6 +1062,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	const struct of_device_id *match;
- 	int irq;
+@@ -1083,6 +1084,7 @@ omap_i2c_probe(struct platform_device *pdev)
  	int r;
+ 	u32 rev;
+ 	u16 minor, major, scheme;
 +	struct pinctrl *pinctrl;
  
  	/* NOTE: driver uses the static register mapping */
  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-@@ -1200,6 +1203,13 @@ omap_i2c_probe(struct platform_device *pdev)
+@@ -1252,6 +1254,13 @@ omap_i2c_probe(struct platform_device *pdev)
  
  	of_i2c_register_devices(adap);
  

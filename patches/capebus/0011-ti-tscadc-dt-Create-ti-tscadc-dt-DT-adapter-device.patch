@@ -1,7 +1,7 @@
-From 49464c47a965e93c83c9e6fbd44cb7049a03fe06 Mon Sep 17 00:00:00 2001
+From 0e8827b0f29934bca3a948aaf6a34d0833c52d6e Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 1 Nov 2012 15:44:39 +0200
-Subject: [PATCH 13/15] ti-tscadc-dt: Create ti-tscadc-dt DT adapter device
+Subject: [PATCH 11/13] ti-tscadc-dt: Create ti-tscadc-dt DT adapter device
 
 omap_device is going private.
 
@@ -9,23 +9,25 @@ Move the ti-tscadc-dt adapter device to arch/arm/mach-omap2.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- arch/arm/mach-omap2/Makefile       |    1 +
+ arch/arm/mach-omap2/Makefile       |    3 +
  arch/arm/mach-omap2/ti-tscadc-dt.c |  155 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 156 insertions(+), 0 deletions(-)
+ 2 files changed, 158 insertions(+), 0 deletions(-)
  create mode 100644 arch/arm/mach-omap2/ti-tscadc-dt.c
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 4a79a45..0ca3bd1 100644
+index a8004f3..06211c7 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -218,6 +218,7 @@ endif
+@@ -216,6 +216,9 @@ ifneq ($(CONFIG_DRM_OMAP),)
+ obj-y					+= drm.o
+ endif
  
- # AM3XX Device Tree adapters for legacy drivers
- obj-$(CONFIG_SOC_AM33XX)		+= da8xx-dt.o
++# AM3XX Device Tree adapters for legacy drivers
 +obj-$(CONFIG_SOC_AM33XX)		+= ti-tscadc-dt.o
- 
++
  # Specific board support
  obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+ obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
 diff --git a/arch/arm/mach-omap2/ti-tscadc-dt.c b/arch/arm/mach-omap2/ti-tscadc-dt.c
 new file mode 100644
 index 0000000..0a1a17a
