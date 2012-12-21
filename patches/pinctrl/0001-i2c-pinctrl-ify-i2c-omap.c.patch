@@ -1,4 +1,4 @@
-From c35d3c303cfdbe8c330cad7b8431ff9612e961ed Mon Sep 17 00:00:00 2001
+From f8be4d909f3fdd71c6858d0d29bc799f711e5a20 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 14 Sep 2012 17:51:11 +0300
 Subject: [PATCH 1/4] i2c: pinctrl-ify i2c-omap.c
@@ -10,7 +10,7 @@ Conflicts:
  1 files changed, 9 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 7a62acb..5625d87 100644
+index 7a62acb..727ca2c 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
 @@ -44,6 +44,7 @@
@@ -37,8 +37,8 @@ index 7a62acb..5625d87 100644
 +	if (IS_ERR(pinctrl))
 +		dev_warn(dev->dev, "unable to select pin group\n");
 +
-+	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", adap->nr,
-+		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
++	/* dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", adap->nr,
++		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed); */
 +
  	pm_runtime_mark_last_busy(dev->dev);
  	pm_runtime_put_autosuspend(dev->dev);
