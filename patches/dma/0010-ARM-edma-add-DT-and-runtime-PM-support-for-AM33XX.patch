@@ -1,4 +1,4 @@
-From 6dc1e0d487bebeeafa818d24aa270cdc56f078e4 Mon Sep 17 00:00:00 2001
+From 7d52d400c77128928a0ef90241e51744a55bb9b3 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 6 Sep 2012 17:40:42 -0400
 Subject: [PATCH 10/29] ARM: edma: add DT and runtime PM support for AM33XX
@@ -361,10 +361,10 @@ index 95b5e10..ffcbec1 100644
  	{ 8,  2},
  	{12,  2},
 diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
-index 7211772..9bb3fd7 100644
+index 0299915..ffba95d 100644
 --- a/arch/arm/mach-davinci/board-da850-evm.c
 +++ b/arch/arm/mach-davinci/board-da850-evm.c
-@@ -1101,7 +1101,7 @@ device_initcall(da850_evm_config_emac);
+@@ -1102,7 +1102,7 @@ device_initcall(da850_evm_config_emac);
   * example: Timer, GPIO, UART events etc) on da850/omap-l138 EVM, hence
   * they are being reserved for codecs on the DSP side.
   */
@@ -373,7 +373,7 @@ index 7211772..9bb3fd7 100644
  	/* (offset, number) */
  	{ 8,  6},
  	{24,  4},
-@@ -1109,7 +1109,7 @@ static const s16 da850_dma0_rsv_chans[][2] = {
+@@ -1110,7 +1110,7 @@ static const s16 da850_dma0_rsv_chans[][2] = {
  	{-1, -1}
  };
  
@@ -382,7 +382,7 @@ index 7211772..9bb3fd7 100644
  	/* (offset, number) */
  	{ 8,  6},
  	{24,  4},
-@@ -1117,14 +1117,14 @@ static const s16 da850_dma0_rsv_slots[][2] = {
+@@ -1118,14 +1118,14 @@ static const s16 da850_dma0_rsv_slots[][2] = {
  	{-1, -1}
  };
  
