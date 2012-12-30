@@ -1,0 +1,40 @@
+From 5b97c40742e4f503a916a7faec961542f939e5f8 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Sun, 30 Dec 2012 14:53:19 +0100
+Subject: [PATCH 14/14] Fix appended dtb rule
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/Makefile      |    2 +-
+ arch/arm/boot/Makefile |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/Makefile b/arch/arm/Makefile
+index cab6681..da4434d 100644
+--- a/arch/arm/Makefile
++++ b/arch/arm/Makefile
+@@ -291,7 +291,7 @@ zImage Image xipImage bootpImage uImage: vmlinux
+ zinstall uinstall install: vmlinux
+ 	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $@
+ 
+-uImage-dtb.%:
++uImage-dtb.%: scripts
+ 	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
+ 
+ %.dtb: scripts
+diff --git a/arch/arm/boot/Makefile b/arch/arm/boot/Makefile
+index 131558f..e37ebb5 100644
+--- a/arch/arm/boot/Makefile
++++ b/arch/arm/boot/Makefile
+@@ -55,7 +55,7 @@ $(obj)/zImage:	$(obj)/compressed/vmlinux FORCE
+ 	$(call if_changed,objcopy)
+ 	@$(kecho) '  Kernel: $@ is ready'
+ 
+-$(obj)/zImage-dtb.%:	$(obj)/%.dtb $(obj)/zImage
++$(obj)/zImage-dtb.%:	$(obj)/dts/%.dtb $(obj)/zImage
+ 	cat $(obj)/zImage $< > $@
+ 
+ endif
+-- 
+1.7.7.6
+
