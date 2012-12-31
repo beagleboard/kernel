@@ -1,7 +1,7 @@
-From ee2b020c37fb7984120d0ac462683459dfd01c4f Mon Sep 17 00:00:00 2001
+From 66b639f0da908dde1c34425b192f6bd792d49a6c Mon Sep 17 00:00:00 2001
 From: Rob Clark <robdclark@gmail.com>
 Date: Tue, 11 Dec 2012 18:40:41 -0600
-Subject: [PATCH 6/6] HACK: fix lcdc device name
+Subject: [PATCH 06/10] HACK: fix lcdc device name
 
 hack until I can figure out how to make hwmod clk names match
 devicetree..  otherwise device name ends up "4830e000.fb" and
@@ -11,10 +11,10 @@ clk_get() fails
  1 files changed, 6 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/gpu/drm/lcdc/lcdc_drv.c b/drivers/gpu/drm/lcdc/lcdc_drv.c
-index 4f694a9..2660fe5 100644
+index d6f9cc8..372054e 100644
 --- a/drivers/gpu/drm/lcdc/lcdc_drv.c
 +++ b/drivers/gpu/drm/lcdc/lcdc_drv.c
-@@ -555,6 +555,12 @@ static int __devinit lcdc_pdev_probe(struct platform_device *pdev)
+@@ -556,6 +556,12 @@ static int __devinit lcdc_pdev_probe(struct platform_device *pdev)
  		return -ENXIO;
  	}
  
