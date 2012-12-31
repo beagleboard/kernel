@@ -1,0 +1,84 @@
+From 4789e4d44e46a46a0e08080e208ef6f6acc8da3e Mon Sep 17 00:00:00 2001
+From: Jason Kridner <jdk@ti.com>
+Date: Mon, 31 Dec 2012 13:39:57 -0500
+Subject: [PATCH] da8xx-fb: add Chalk Electronics LVDS cape and 10in display
+
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi |   21 +++++++++++++++++++++
+ drivers/video/da8xx-fb.c                  |   14 ++++++++++++++
+ 2 files changed, 35 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 5bb6a1c..224869b 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -305,6 +305,10 @@
+ 				compatible = "bone-generic-cape";
+ 			};
+ 
++			bone_lvds_cape: cape@7 {
++				compatible = "bone-generic-cape";
++			};
++
+ 			/* overrides; no EEPROM (prototyping) */
+ //			override@3 {
+ //				compatible = "bone-capebus-slot-override";
+@@ -708,6 +712,23 @@
+ 	};
+ };
+ 
++&bone_lvds_cape {
++	board-name = "BeagleBone LVDS LCD CAPE";
++
++	/* hacky, since this is not a proper DT platform device */
++	/* but until we have DT bindings... */
++	lvds {
++		compatible = "da8xx-dt";
++		pinctrl-names = "default";
++		pinctrl-0 = <&bone_lcd3_cape_lcd_pins>;
++
++		ti,hwmods = "lcdc";
++
++		disp-pll = <371000000>;
++		panel-type = "chalkelec-lvds-10in";
++	};
++};
++
+ &bone_lcd7_cape {
+ 	board-name = "BeagleBone LCD7 CAPE";
+ 
+diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+index d6b228f..cd19748 100644
+--- a/drivers/video/da8xx-fb.c
++++ b/drivers/video/da8xx-fb.c
+@@ -368,6 +368,19 @@ static struct da8xx_panel known_lcd_panels[] = {
+ 		.pxl_clk = 96000000,
+ 		.invert_pxl_clk = 0,
+ 	},
++	[10] = {
++		.name = "chalkelec-lvds-10in",
++		.width = 1280,
++		.height = 800,
++		.hfp = 109,
++		.hbp = 139,
++		.hsw = 39,
++		.vfp = 5,
++		.vbp = 19,
++		.vsw = 5,
++		.pxl_clk = 74250000,
++		.invert_pxl_clk = 0,
++	},
+ };
+ 
+ /* Enable the Raster Engine of the LCD Controller */
+@@ -1320,6 +1333,7 @@ static unsigned int da8xxfb_pixel_clk_period(struct da8xx_fb_par *par)
+ 	unsigned long long pix_clk_period_picosec = 1000000000000ULL;
+ 
+ 	lcd_clk = clk_get_rate(par->lcdc_clk);
++	printk("lcd_clk = %d, pxl_clk = %d\n", lcd_clk, par->pxl_clk);
+ 	div = lcd_clk / par->pxl_clk;
+ 	configured_pix_clk = (lcd_clk / div);
+ 
+-- 
+1.7.9.5
+
