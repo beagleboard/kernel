@@ -1,0 +1,30 @@
+From 7c8e11c48ecb301a549ba2c7134bfb7ee6d7cfca Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Thu, 8 Nov 2012 17:44:00 +0000
+Subject: [PATCH 5/5] pinctrl: pinctrl-single: Fix the pins debug output
+
+The offset parameter is in fact the pin index. The printed
+value is then most of the time wrong.
+Multiply that value by the width to get the proper offset.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+---
+ drivers/pinctrl/pinctrl-single.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index 726a729..aeca3bd 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -251,7 +251,7 @@ static void pcs_pin_dbg_show(struct pinctrl_dev *pctldev,
+ 
+ 	pcs = pinctrl_dev_get_drvdata(pctldev);
+ 
+-	val = pcs->read(pcs->base + offset);
++	val = pcs->read(pcs->base + offset * (pcs->width / BITS_PER_BYTE));
+ 	val &= pcs->fmask;
+ 
+ 	seq_printf(s, "%08x %s " , val, DRIVER_NAME);
+-- 
+1.7.9.5
+
