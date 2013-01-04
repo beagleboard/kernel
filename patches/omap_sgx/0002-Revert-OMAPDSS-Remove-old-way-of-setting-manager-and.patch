@@ -1,0 +1,134 @@
+From 439a865bbdade6a13957e32d6ac0fb43ad8cff2c Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Thu, 3 Jan 2013 10:27:56 -0600
+Subject: [PATCH 2/2] Revert "OMAPDSS: Remove old way of setting manager and
+ device links"
+
+This reverts commit 3c2995ac34eb559106504be962b162aef215895b.
+---
+ drivers/video/omap2/dss/apply.c   |   64 +++++++++++++++++++++++++++++++++++++
+ drivers/video/omap2/dss/manager.c |    2 ++
+ include/video/omapdss.h           |    5 +++
+ 3 files changed, 71 insertions(+)
+
+diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+index 19d66f4..a810117 100644
+--- a/drivers/video/omap2/dss/apply.c
++++ b/drivers/video/omap2/dss/apply.c
+@@ -1110,6 +1110,70 @@ void dss_mgr_get_info(struct omap_overlay_manager *mgr,
+ 	spin_unlock_irqrestore(&data_lock, flags);
+ }
+ 
++int dss_mgr_set_device(struct omap_overlay_manager *mgr,
++		struct omap_dss_device *dssdev)
++{
++	int r;
++
++	mutex_lock(&apply_lock);
++
++	if (dssdev->manager) {
++		DSSERR("display '%s' already has a manager '%s'\n",
++			       dssdev->name, dssdev->manager->name);
++		r = -EINVAL;
++		goto err;
++	}
++
++	if ((mgr->supported_displays & dssdev->type) == 0) {
++		DSSERR("display '%s' does not support manager '%s'\n",
++			       dssdev->name, mgr->name);
++		r = -EINVAL;
++		goto err;
++	}
++
++	dssdev->manager = mgr;
++	mgr->device = dssdev;
++
++	mutex_unlock(&apply_lock);
++
++	return 0;
++err:
++	mutex_unlock(&apply_lock);
++	return r;
++}
++
++int dss_mgr_unset_device(struct omap_overlay_manager *mgr)
++{
++	int r;
++
++	mutex_lock(&apply_lock);
++
++	if (!mgr->device) {
++		DSSERR("failed to unset display, display not set.\n");
++		r = -EINVAL;
++		goto err;
++	}
++
++	/*
++	 * Don't allow currently enabled displays to have the overlay manager
++	 * pulled out from underneath them
++	 */
++	if (mgr->device->state != OMAP_DSS_DISPLAY_DISABLED) {
++		r = -EINVAL;
++		goto err;
++	}
++
++	mgr->device->manager = NULL;
++	mgr->device = NULL;
++
++	mutex_unlock(&apply_lock);
++
++	return 0;
++err:
++	mutex_unlock(&apply_lock);
++	return r;
++}
++
+ int dss_mgr_set_output(struct omap_overlay_manager *mgr,
+ 		struct omap_dss_output *output)
+ {
+diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
+index c54d2f6..f662eb5 100644
+--- a/drivers/video/omap2/dss/manager.c
++++ b/drivers/video/omap2/dss/manager.c
+@@ -99,6 +99,8 @@ int dss_init_overlay_managers(struct platform_device *pdev)
+ 			break;
+ 		}
+ 
++		mgr->set_device = &dss_mgr_set_device;
++		mgr->unset_device = &dss_mgr_unset_device;
+ 		mgr->set_output = &dss_mgr_set_output;
+ 		mgr->unset_output = &dss_mgr_unset_output;
+ 		mgr->apply = &omap_dss_mgr_apply;
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 3729173..26d35b9 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -466,6 +466,7 @@ struct omap_overlay_manager {
+ 	enum omap_dss_output_id supported_outputs;
+ 
+ 	/* dynamic fields */
++	struct omap_dss_device *device;
+ 	struct omap_dss_output *output;
+ 
+ 	/*
+@@ -479,6 +480,9 @@ struct omap_overlay_manager {
+ 	 * interrupt context
+ 	 */
+ 
++	int (*set_device)(struct omap_overlay_manager *mgr,
++		struct omap_dss_device *dssdev);
++	int (*unset_device)(struct omap_overlay_manager *mgr);
+ 	int (*set_output)(struct omap_overlay_manager *mgr,
+ 		struct omap_dss_output *output);
+ 	int (*unset_output)(struct omap_overlay_manager *mgr);
+@@ -639,6 +643,7 @@ struct omap_dss_device {
+ 
+ 	enum omap_display_caps caps;
+ 
++	struct omap_overlay_manager *manager;
+ 	struct omap_dss_output *output;
+ 
+ 	enum omap_dss_display_state state;
+-- 
+1.7.10.4
+
