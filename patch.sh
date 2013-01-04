@@ -20,9 +20,14 @@ RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 TAG="v3.7"
 EXTRATAG=""
 
-EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
-EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="29594404d7fe73cd80eaa4ee8c43dcc53970c60e"
+#EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
+#EXTERNAL_BRANCH="master"
+#EXTERNAL_SHA="29594404d7fe73cd80eaa4ee8c43dcc53970c60e"
+
+EXTERNAL_TAG="v3.7.1"
+EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git"
+EXTERNAL_BRANCH="linux-3.7.y"
+EXTERNAL_SHA="cc8605070a58f12b79c62f369a0446d89a7ca337"
 
 #PATCHSET="pruss pwm2 fixes"
 # BAD: rtc
@@ -99,10 +104,15 @@ mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux
 cp ${RECIPEFILE} ${EXPORTPATH}-oe/recipes-kernel/linux/
 
 if [ "${EXTERNAL_TREE}" ] ; then
+	echo "PV = \"${EXTERNAL_TAG}\"" >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+	echo >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 	echo 'SRCREV_pn-${PN}' \= \"${EXTERNAL_SHA}\" >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 	echo >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 	echo 'SRC_URI = " \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 	echo "	${EXTERNAL_TREE};branch=${EXTERNAL_BRANCH}"' \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+else
+	echo "PV = \"3.7.0\"" >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+	echo >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 fi
 
 if [ -f ${DIR}/patch_script.sh ] ; then
