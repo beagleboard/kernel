@@ -1,13 +1,17 @@
-From 87c753d8bd84a82de02311ccf91969164110f272 Mon Sep 17 00:00:00 2001
+From 238183fa50ad7f7766216dc00bca1e448176b2e0 Mon Sep 17 00:00:00 2001
 From: Rob Clark <robdclark@gmail.com>
 Date: Tue, 18 Dec 2012 17:34:16 -0600
-Subject: [PATCH 05/10] RFC: drm/lcdc: add support for LCD panels
+Subject: [PATCH 7/9] RFC: drm/lcdc: add support for LCD panels (v2)
 
 Add an output panel driver for LCD panels.  Tested with LCD3 cape on
 beaglebone.
 
 TODO: need some way to control the appropriate backlight device
 TODO: probably want to make the DT bindings more generic for panel-info
+
+v1: original
+v2: s/of_find_node_by_name()/of_get_child_by_name()/ from Pantelis
+    Antoniou
 
 Signed-off-by: Rob Clark <robdclark@gmail.com>
 ---
@@ -21,7 +25,7 @@ Signed-off-by: Rob Clark <robdclark@gmail.com>
  create mode 100644 drivers/gpu/drm/lcdc/lcdc_panel.h
 
 diff --git a/drivers/gpu/drm/lcdc/Kconfig b/drivers/gpu/drm/lcdc/Kconfig
-index 084b0a0..a786abd 100644
+index 58806d4..7806184 100644
 --- a/drivers/gpu/drm/lcdc/Kconfig
 +++ b/drivers/gpu/drm/lcdc/Kconfig
 @@ -4,6 +4,8 @@ config DRM_LCDC
@@ -46,7 +50,7 @@ index db32161..27d19ce 100644
  
  obj-$(CONFIG_DRM_LCDC)	+= lcdc.o
 diff --git a/drivers/gpu/drm/lcdc/lcdc_drv.c b/drivers/gpu/drm/lcdc/lcdc_drv.c
-index 4f694a9..d6f9cc8 100644
+index 5e6d218..ee892cb 100644
 --- a/drivers/gpu/drm/lcdc/lcdc_drv.c
 +++ b/drivers/gpu/drm/lcdc/lcdc_drv.c
 @@ -20,6 +20,7 @@
@@ -57,7 +61,7 @@ index 4f694a9..d6f9cc8 100644
  
  #include "drm_fb_helper.h"
  
-@@ -586,6 +587,7 @@ static int __init lcdc_drm_init(void)
+@@ -584,6 +585,7 @@ static int __init lcdc_drm_init(void)
  {
  	DBG("init");
  	lcdc_tfp410_init();
@@ -65,7 +69,7 @@ index 4f694a9..d6f9cc8 100644
  	return platform_driver_register(&lcdc_platform_driver);
  }
  
-@@ -593,6 +595,7 @@ static void __exit lcdc_drm_fini(void)
+@@ -591,6 +593,7 @@ static void __exit lcdc_drm_fini(void)
  {
  	DBG("fini");
  	lcdc_tfp410_fini();
@@ -75,7 +79,7 @@ index 4f694a9..d6f9cc8 100644
  
 diff --git a/drivers/gpu/drm/lcdc/lcdc_panel.c b/drivers/gpu/drm/lcdc/lcdc_panel.c
 new file mode 100644
-index 0000000..29a0952
+index 0000000..037e2d2
 --- /dev/null
 +++ b/drivers/gpu/drm/lcdc/lcdc_panel.c
 @@ -0,0 +1,458 @@
@@ -415,7 +419,7 @@ index 0000000..29a0952
 +		return NULL;
 +	}
 +
-+	info_np = of_find_node_by_name(np, "panel-info");
++	info_np = of_get_child_by_name(np, "panel-info");
 +	if (!info_np) {
 +		pr_err("%s: could not find panel-info node\n", __func__);
 +		return NULL;

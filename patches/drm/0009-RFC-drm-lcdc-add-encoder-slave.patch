@@ -1,26 +1,30 @@
-From d11bbb50267970991bb13c0d874835030ec076fe Mon Sep 17 00:00:00 2001
+From 1f9b07726ebb08b52631c077d86baae555b8be17 Mon Sep 17 00:00:00 2001
 From: Rob Clark <robdclark@gmail.com>
-Date: Wed, 19 Dec 2012 21:37:34 -0600
-Subject: [PATCH 10/10] WIP: drm/lcdc: add encoder slave..
+Date: Tue, 8 Jan 2013 15:11:27 -0600
+Subject: [PATCH 9/9] RFC: drm/lcdc: add encoder slave
 
+Add output panel driver for i2c encoder slaves.
+
+Signed-off-by: Rob Clark <robdclark@gmail.com>
 ---
- drivers/gpu/drm/lcdc/Kconfig      |   10 +
+ drivers/gpu/drm/lcdc/Kconfig      |   12 ++
  drivers/gpu/drm/lcdc/Makefile     |    1 +
  drivers/gpu/drm/lcdc/lcdc_drv.c   |    5 +-
  drivers/gpu/drm/lcdc/lcdc_slave.c |  384 +++++++++++++++++++++++++++++++++++++
  drivers/gpu/drm/lcdc/lcdc_slave.h |   26 +++
- 5 files changed, 425 insertions(+), 1 deletions(-)
+ 5 files changed, 427 insertions(+), 1 deletions(-)
  create mode 100644 drivers/gpu/drm/lcdc/lcdc_slave.c
  create mode 100644 drivers/gpu/drm/lcdc/lcdc_slave.h
 
 diff --git a/drivers/gpu/drm/lcdc/Kconfig b/drivers/gpu/drm/lcdc/Kconfig
-index a786abd..dd2d4bc 100644
+index 7806184..e88809c 100644
 --- a/drivers/gpu/drm/lcdc/Kconfig
 +++ b/drivers/gpu/drm/lcdc/Kconfig
-@@ -11,3 +11,13 @@ config DRM_LCDC
+@@ -10,3 +10,15 @@ config DRM_LCDC
+ 	  Choose this option if you have an TI SoC with LCDC display
  	  controller, for example AM33xx in beagle-bone, DA8xx, or
  	  OMAP-L1xx.  This driver replaces the FB_DA8XX fbdev driver.
- 
++
 +menu "I2C encoder or helper chips"
 +	depends on DRM && DRM_KMS_HELPER && I2C
 +
@@ -31,6 +35,7 @@ index a786abd..dd2d4bc 100644
 +	  Support for NXP Semiconductors TDA998X HDMI encoders.
 +
 +endmenu
++
 diff --git a/drivers/gpu/drm/lcdc/Makefile b/drivers/gpu/drm/lcdc/Makefile
 index 27d19ce..337e22f 100644
 --- a/drivers/gpu/drm/lcdc/Makefile
@@ -44,7 +49,7 @@ index 27d19ce..337e22f 100644
  
  obj-$(CONFIG_DRM_LCDC)	+= lcdc.o
 diff --git a/drivers/gpu/drm/lcdc/lcdc_drv.c b/drivers/gpu/drm/lcdc/lcdc_drv.c
-index 372054e..20a91f4 100644
+index ee892cb..643664f 100644
 --- a/drivers/gpu/drm/lcdc/lcdc_drv.c
 +++ b/drivers/gpu/drm/lcdc/lcdc_drv.c
 @@ -21,6 +21,7 @@
@@ -55,7 +60,7 @@ index 372054e..20a91f4 100644
  
  #include "drm_fb_helper.h"
  
-@@ -594,6 +595,7 @@ static int __init lcdc_drm_init(void)
+@@ -586,6 +587,7 @@ static int __init lcdc_drm_init(void)
  	DBG("init");
  	lcdc_tfp410_init();
  	lcdc_panel_init();
@@ -63,7 +68,7 @@ index 372054e..20a91f4 100644
  	return platform_driver_register(&lcdc_platform_driver);
  }
  
-@@ -602,10 +604,11 @@ static void __exit lcdc_drm_fini(void)
+@@ -594,10 +596,11 @@ static void __exit lcdc_drm_fini(void)
  	DBG("fini");
  	lcdc_tfp410_fini();
  	lcdc_panel_fini();

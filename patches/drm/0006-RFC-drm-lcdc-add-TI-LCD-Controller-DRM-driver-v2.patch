@@ -1,7 +1,7 @@
-From 4ad3dae85dc625216028901ce5303c8413533521 Mon Sep 17 00:00:00 2001
+From 68b99e0451119edd9d4f78e9e4e12a07cc2249c3 Mon Sep 17 00:00:00 2001
 From: Rob Clark <robdclark@gmail.com>
-Date: Thu, 13 Dec 2012 16:30:34 -0600
-Subject: [PATCH 04/10] RFC: drm/lcdc: add TI LCD Controller DRM driver
+Date: Tue, 8 Jan 2013 15:04:28 -0600
+Subject: [PATCH 6/9] RFC: drm/lcdc: add TI LCD Controller DRM driver (v2)
 
 A simple DRM/KMS driver for the TI LCD Controller found in various
 smaller TI parts (AM33xx, OMAPL138, etc).  This driver uses the
@@ -15,19 +15,22 @@ connector are split out into sub-devices.  Depending on which LCD
 or external encoder is actually present, the appropriate output
 module(s) will be loaded.
 
+v1: original
+v2: fix fb refcnting and few other cleanups
+
 Signed-off-by: Rob Clark <robdclark@gmail.com>
 ---
  drivers/gpu/drm/Kconfig            |    2 +
  drivers/gpu/drm/Makefile           |    1 +
- drivers/gpu/drm/lcdc/Kconfig       |   11 +
+ drivers/gpu/drm/lcdc/Kconfig       |   10 +
  drivers/gpu/drm/lcdc/Makefile      |    8 +
- drivers/gpu/drm/lcdc/lcdc_crtc.c   |  544 ++++++++++++++++++++++++++++++++
- drivers/gpu/drm/lcdc/lcdc_drv.c    |  604 ++++++++++++++++++++++++++++++++++++
- drivers/gpu/drm/lcdc/lcdc_drv.h    |  162 ++++++++++
+ drivers/gpu/drm/lcdc/lcdc_crtc.c   |  598 +++++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/lcdc/lcdc_drv.c    |  602 ++++++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/lcdc/lcdc_drv.h    |  164 ++++++++++
  drivers/gpu/drm/lcdc/lcdc_regs.h   |  154 +++++++++
- drivers/gpu/drm/lcdc/lcdc_tfp410.c |  424 +++++++++++++++++++++++++
+ drivers/gpu/drm/lcdc/lcdc_tfp410.c |  425 +++++++++++++++++++++++++
  drivers/gpu/drm/lcdc/lcdc_tfp410.h |   26 ++
- 10 files changed, 1936 insertions(+), 0 deletions(-)
+ 10 files changed, 1990 insertions(+), 0 deletions(-)
  create mode 100644 drivers/gpu/drm/lcdc/Kconfig
  create mode 100644 drivers/gpu/drm/lcdc/Makefile
  create mode 100644 drivers/gpu/drm/lcdc/lcdc_crtc.c
@@ -59,10 +62,10 @@ index 6f58c81..8e0a19a 100644
  obj-y			+= i2c/
 diff --git a/drivers/gpu/drm/lcdc/Kconfig b/drivers/gpu/drm/lcdc/Kconfig
 new file mode 100644
-index 0000000..084b0a0
+index 0000000..58806d4
 --- /dev/null
 +++ b/drivers/gpu/drm/lcdc/Kconfig
-@@ -0,0 +1,11 @@
+@@ -0,0 +1,10 @@
 +config DRM_LCDC
 +	tristate "DRM Support for TI LCDC Display Controller"
 +	depends on DRM && OF
@@ -73,7 +76,6 @@ index 0000000..084b0a0
 +	  Choose this option if you have an TI SoC with LCDC display
 +	  controller, for example AM33xx in beagle-bone, DA8xx, or
 +	  OMAP-L1xx.  This driver replaces the FB_DA8XX fbdev driver.
-+
 diff --git a/drivers/gpu/drm/lcdc/Makefile b/drivers/gpu/drm/lcdc/Makefile
 new file mode 100644
 index 0000000..db32161
@@ -90,10 +92,10 @@ index 0000000..db32161
 +obj-$(CONFIG_DRM_LCDC)	+= lcdc.o
 diff --git a/drivers/gpu/drm/lcdc/lcdc_crtc.c b/drivers/gpu/drm/lcdc/lcdc_crtc.c
 new file mode 100644
-index 0000000..052c2c1
+index 0000000..c956748
 --- /dev/null
 +++ b/drivers/gpu/drm/lcdc/lcdc_crtc.c
-@@ -0,0 +1,544 @@
+@@ -0,0 +1,598 @@
 +/*
 + * Copyright (C) 2012 Texas Instruments
 + * Author: Rob Clark <robdclark@gmail.com>
@@ -111,6 +113,8 @@ index 0000000..052c2c1
 + * this program.  If not, see <http://www.gnu.org/licenses/>.
 + */
 +
++#include <linux/kfifo.h>
++
 +#include "lcdc_drv.h"
 +#include "lcdc_regs.h"
 +
@@ -124,30 +128,58 @@ index 0000000..052c2c1
 +	int dpms;
 +	wait_queue_head_t frame_done_wq;
 +	bool frame_done;
++
++	/* fb currently set to scanout 0/1: */
++	struct drm_framebuffer *scanout[2];
++
++	/* for deferred fb unref's: */
++	DECLARE_KFIFO_PTR(unref_fifo, struct drm_framebuffer *);
++	struct work_struct work;
 +};
 +#define to_lcdc_crtc(x) container_of(x, struct lcdc_crtc, base)
 +
-+static void set_scanout(struct drm_crtc *crtc, uint32_t stat)
++static void unref_worker(struct work_struct *work)
 +{
++	struct lcdc_crtc *lcdc_crtc = container_of(work, struct lcdc_crtc, work);
++	struct drm_device *dev = lcdc_crtc->base.dev;
++	struct drm_framebuffer *fb;
++
++	mutex_lock(&dev->mode_config.mutex);
++	while (kfifo_get(&lcdc_crtc->unref_fifo, &fb))
++		drm_framebuffer_unreference(fb);
++	mutex_unlock(&dev->mode_config.mutex);
++}
++
++static void set_scanout(struct drm_crtc *crtc, int n)
++{
++	static const uint32_t base_reg[] = {
++			LCDC_DMA_FB_BASE_ADDR_0_REG, LCDC_DMA_FB_BASE_ADDR_1_REG,
++	};
++	static const uint32_t ceil_reg[] = {
++			LCDC_DMA_FB_CEILING_ADDR_0_REG, LCDC_DMA_FB_CEILING_ADDR_1_REG,
++	};
++	static const uint32_t stat[] = {
++			LCDC_END_OF_FRAME0, LCDC_END_OF_FRAME1,
++	};
 +	struct lcdc_crtc *lcdc_crtc = to_lcdc_crtc(crtc);
 +	struct drm_device *dev = crtc->dev;
 +
 +	pm_runtime_get_sync(dev->dev);
-+	if (stat & LCDC_END_OF_FRAME0) {
-+		lcdc_write(dev, LCDC_DMA_FRM_BUF_BASE_ADDR_0_REG,
-+				lcdc_crtc->start);
-+		lcdc_write(dev, LCDC_DMA_FRM_BUF_CEILING_ADDR_0_REG,
-+				lcdc_crtc->end);
-+		lcdc_crtc->dirty &= ~LCDC_END_OF_FRAME0;
++	lcdc_write(dev, base_reg[n], lcdc_crtc->start);
++	lcdc_write(dev, ceil_reg[n], lcdc_crtc->end);
++	if (lcdc_crtc->scanout[n]) {
++		if (kfifo_put(&lcdc_crtc->unref_fifo,
++				(const struct drm_framebuffer **)&lcdc_crtc->scanout[n])) {
++			struct lcdc_drm_private *priv = dev->dev_private;
++			queue_work(priv->wq, &lcdc_crtc->work);
++		} else {
++			dev_err(dev->dev, "unref fifo full!\n");
++			drm_framebuffer_unreference(lcdc_crtc->scanout[n]);
++		}
 +	}
-+
-+	if (stat & LCDC_END_OF_FRAME1) {
-+		lcdc_write(dev, LCDC_DMA_FRM_BUF_BASE_ADDR_1_REG,
-+				lcdc_crtc->start);
-+		lcdc_write(dev, LCDC_DMA_FRM_BUF_CEILING_ADDR_1_REG,
-+				lcdc_crtc->end);
-+		lcdc_crtc->dirty &= ~LCDC_END_OF_FRAME1;
-+	}
++	lcdc_crtc->scanout[n] = crtc->fb;
++	drm_framebuffer_reference(lcdc_crtc->scanout[n]);
++	lcdc_crtc->dirty &= ~stat[n];
 +	pm_runtime_put_sync(dev->dev);
 +}
 +
@@ -176,7 +208,8 @@ index 0000000..052c2c1
 +		drm_vblank_get(dev, 0);
 +	} else {
 +		/* not enabled yet, so update registers immediately: */
-+		set_scanout(crtc, LCDC_END_OF_FRAME0 | LCDC_END_OF_FRAME1);
++		set_scanout(crtc, 0);
++		set_scanout(crtc, 1);
 +	}
 +}
 +
@@ -211,6 +244,8 @@ index 0000000..052c2c1
 +	WARN_ON(lcdc_crtc->dpms == DRM_MODE_DPMS_ON);
 +
 +	drm_crtc_cleanup(crtc);
++	WARN_ON(!kfifo_is_empty(&lcdc_crtc->unref_fifo));
++	kfifo_free(&lcdc_crtc->unref_fifo);
 +	kfree(lcdc_crtc);
 +}
 +
@@ -226,7 +261,6 @@ index 0000000..052c2c1
 +		return -EBUSY;
 +	}
 +
-+	// TODO we should hold a ref to the fb somewhere..
 +	crtc->fb = fb;
 +	lcdc_crtc->event = event;
 +	update_scanout(crtc);
@@ -240,13 +274,19 @@ index 0000000..052c2c1
 +	struct drm_device *dev = crtc->dev;
 +	struct lcdc_drm_private *priv = dev->dev_private;
 +
++	/* we really only care about on or off: */
++	if (mode != DRM_MODE_DPMS_ON)
++		mode = DRM_MODE_DPMS_OFF;
++
 +	if (lcdc_crtc->dpms == mode)
 +		return;
 +
 +	lcdc_crtc->dpms = mode;
 +
++	pm_runtime_get_sync(dev->dev);
++
 +	if (mode == DRM_MODE_DPMS_ON) {
-+		pm_runtime_get_sync(dev->dev);
++		pm_runtime_forbid(dev->dev);
 +		start(crtc);
 +	} else {
 +		lcdc_crtc->frame_done = false;
@@ -263,9 +303,10 @@ index 0000000..052c2c1
 +			if (ret == 0)
 +				dev_err(dev->dev, "timeout waiting for framedone\n");
 +		}
-+
-+		pm_runtime_put_sync(dev->dev);
++		pm_runtime_allow(dev->dev);
 +	}
++
++	pm_runtime_put_sync(dev->dev);
 +}
 +
 +static bool lcdc_crtc_mode_fixup(struct drm_crtc *crtc,
@@ -346,6 +387,10 @@ index 0000000..052c2c1
 +	vbp = mode->vtotal - mode->vsync_end;
 +	vfp = mode->vsync_start - mode->vdisplay;
 +	vsw = mode->vsync_end - mode->vsync_start;
++
++	DBG("%dx%d, hbp=%u, hfp=%u, hsw=%u, vbp=%u, vfp=%u, vsw=%u",
++			mode->hdisplay, mode->vdisplay, hbp, hfp, hsw, vbp, vfp, vsw);
++
 +	reg = (((mode->hdisplay >> 4) - 1) << 4) |
 +		((hbp & 0xff) << 24) |
 +		((hfp & 0xff) << 16) |
@@ -562,8 +607,11 @@ index 0000000..052c2c1
 +
 +		lcdc_clear_irqstatus(dev, stat);
 +
-+		if (dirty)
-+			set_scanout(crtc, dirty);
++		if (dirty & LCDC_END_OF_FRAME0)
++			set_scanout(crtc, 0);
++
++		if (dirty & LCDC_END_OF_FRAME1)
++			set_scanout(crtc, 1);
 +
 +		drm_handle_vblank(dev, 0);
 +
@@ -621,10 +669,18 @@ index 0000000..052c2c1
 +		return NULL;
 +	}
 +
++	crtc = &lcdc_crtc->base;
++
 +	lcdc_crtc->dpms = DRM_MODE_DPMS_OFF;
 +	init_waitqueue_head(&lcdc_crtc->frame_done_wq);
 +
-+	crtc = &lcdc_crtc->base;
++	ret = kfifo_alloc(&lcdc_crtc->unref_fifo, 16, GFP_KERNEL);
++	if (ret) {
++		dev_err(dev->dev, "could not allocate unref FIFO\n");
++		goto fail;
++	}
++
++	INIT_WORK(&lcdc_crtc->work, unref_worker);
 +
 +	ret = drm_crtc_init(dev, crtc, &lcdc_crtc_funcs);
 +	if (ret < 0)
@@ -640,10 +696,10 @@ index 0000000..052c2c1
 +}
 diff --git a/drivers/gpu/drm/lcdc/lcdc_drv.c b/drivers/gpu/drm/lcdc/lcdc_drv.c
 new file mode 100644
-index 0000000..4f694a9
+index 0000000..5e6d218
 --- /dev/null
 +++ b/drivers/gpu/drm/lcdc/lcdc_drv.c
-@@ -0,0 +1,604 @@
+@@ -0,0 +1,602 @@
 +/*
 + * Copyright (C) 2012 Texas Instruments
 + * Author: Rob Clark <robdclark@gmail.com>
@@ -759,7 +815,7 @@ index 0000000..4f694a9
 +static int lcdc_unload(struct drm_device *dev)
 +{
 +	struct lcdc_drm_private *priv = dev->dev_private;
-+	struct lcdc_module *mod;
++	struct lcdc_module *mod, *cur;
 +
 +	drm_kms_helper_poll_fini(dev);
 +	drm_mode_config_cleanup(dev);
@@ -780,11 +836,14 @@ index 0000000..4f694a9
 +	if (priv->mmio)
 +		iounmap(priv->mmio);
 +
++	flush_workqueue(priv->wq);
++	destroy_workqueue(priv->wq);
++
 +	dev->dev_private = NULL;
 +
 +	pm_runtime_disable(dev->dev);
 +
-+	list_for_each_entry(mod, &module_list, list) {
++	list_for_each_entry_safe(mod, cur, &module_list, list) {
 +		DBG("destroying module: %s", mod->name);
 +		mod->funcs->destroy(mod);
 +	}
@@ -808,6 +867,8 @@ index 0000000..4f694a9
 +	}
 +
 +	dev->dev_private = priv;
++
++	priv->wq = alloc_ordered_workqueue("lcdc", 0);
 +
 +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 +	if (!res) {
@@ -847,8 +908,6 @@ index 0000000..4f694a9
 +		goto fail;
 +	}
 +#endif
-+
-+	spin_lock_init(&priv->irq_lock);
 +
 +	pm_runtime_enable(dev->dev);
 +
@@ -967,7 +1026,6 @@ index 0000000..4f694a9
 +static void enable_vblank(struct drm_device *dev, bool enable)
 +{
 +	struct lcdc_drm_private *priv = dev->dev_private;
-+	unsigned long flags;
 +	u32 reg, mask;
 +
 +	if (priv->rev == 1) {
@@ -979,14 +1037,10 @@ index 0000000..4f694a9
 +			LCDC_V2_END_OF_FRAME1_INT_ENA | LCDC_FRAME_DONE;
 +	}
 +
-+	spin_lock_irqsave(&priv->irq_lock, flags);
-+
 +	if (enable)
 +		lcdc_set(dev, reg, mask);
 +	else
 +		lcdc_clear(dev, reg, mask);
-+
-+	spin_unlock_irqrestore(&priv->irq_lock, flags);
 +}
 +
 +static int lcdc_enable_vblank(struct drm_device *dev, int crtc)
@@ -1017,10 +1071,10 @@ index 0000000..4f694a9
 +		REG(1, true,  LCDC_RASTER_TIMING_1_REG),
 +		REG(1, true,  LCDC_RASTER_TIMING_2_REG),
 +		REG(1, true,  LCDC_DMA_CTRL_REG),
-+		REG(1, true,  LCDC_DMA_FRM_BUF_BASE_ADDR_0_REG),
-+		REG(1, true,  LCDC_DMA_FRM_BUF_CEILING_ADDR_0_REG),
-+		REG(1, true,  LCDC_DMA_FRM_BUF_BASE_ADDR_1_REG),
-+		REG(1, true,  LCDC_DMA_FRM_BUF_CEILING_ADDR_1_REG),
++		REG(1, true,  LCDC_DMA_FB_BASE_ADDR_0_REG),
++		REG(1, true,  LCDC_DMA_FB_CEILING_ADDR_0_REG),
++		REG(1, true,  LCDC_DMA_FB_BASE_ADDR_1_REG),
++		REG(1, true,  LCDC_DMA_FB_CEILING_ADDR_1_REG),
 +		/* new in revision 2: */
 +		REG(2, false, LCDC_RAW_STAT_REG),
 +		REG(2, false, LCDC_MASKED_STAT_REG),
@@ -1250,10 +1304,10 @@ index 0000000..4f694a9
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/gpu/drm/lcdc/lcdc_drv.h b/drivers/gpu/drm/lcdc/lcdc_drv.h
 new file mode 100644
-index 0000000..14b93a2c
+index 0000000..1746041
 --- /dev/null
 +++ b/drivers/gpu/drm/lcdc/lcdc_drv.h
-@@ -0,0 +1,162 @@
+@@ -0,0 +1,164 @@
 +/*
 + * Copyright (C) 2012 Texas Instruments
 + * Author: Rob Clark <robdclark@gmail.com>
@@ -1300,12 +1354,12 @@ index 0000000..14b93a2c
 +	/* register contents saved across suspend/resume: */
 +	u32 saved_register[12];
 +
-+	spinlock_t irq_lock; // TODO do we need this?
-+
 +#ifdef CONFIG_CPU_FREQ
 +	struct notifier_block freq_transition;
 +	unsigned int lcd_fck_rate;
 +#endif
++
++	struct workqueue_struct *wq;
 +
 +	struct drm_fbdev_cma *fbdev;
 +
@@ -1355,53 +1409,55 @@ index 0000000..14b93a2c
 + */
 +struct lcdc_panel_info {
 +
-+	int max_bpp;
-+	int min_bpp;
++	uint32_t max_bpp;
++	uint32_t min_bpp;
 +
 +	/* AC Bias Pin Frequency */
-+	int ac_bias;
++	uint32_t ac_bias;
 +
 +	/* AC Bias Pin Transitions per Interrupt */
-+	int ac_bias_intrpt;
++	uint32_t ac_bias_intrpt;
 +
 +	/* DMA burst size */
-+	int dma_burst_sz;
++	uint32_t dma_burst_sz;
 +
 +	/* Bits per pixel */
-+	int bpp;
++	uint32_t bpp;
 +
 +	/* FIFO DMA Request Delay */
-+	int fdd;
++	uint32_t fdd;
 +
 +	/* TFT Alternative Signal Mapping (Only for active) */
-+	unsigned char tft_alt_mode;
++	bool tft_alt_mode;
 +
 +	/* 12 Bit Per Pixel (5-6-5) Mode (Only for passive) */
-+	unsigned char stn_565_mode;
++	bool stn_565_mode;
 +
 +	/* Mono 8-bit Mode: 1=D0-D7 or 0=D0-D3 */
-+	unsigned char mono_8bit_mode;
++	bool mono_8bit_mode;
++
++	// TODO Invert*clock we can prob get from mode timings..
 +
 +	/* Invert line clock */
-+	unsigned char invert_line_clock;
++	bool invert_line_clock;
 +
 +	/* Invert frame clock  */
-+	unsigned char invert_frm_clock;
++	bool invert_frm_clock;
 +
 +	/* Invert pixel clock */
-+	unsigned char invert_pxl_clk;
++	bool invert_pxl_clk;
 +
 +	/* Horizontal and Vertical Sync Edge: 0=rising 1=falling */
-+	unsigned char sync_edge;
++	uint32_t sync_edge;
 +
 +	/* Horizontal and Vertical Sync: Control: 0=ignore */
-+	unsigned char sync_ctrl;
++	uint32_t sync_ctrl;
 +
 +	/* Raster Data Order Select: 1=Most-to-least 0=Least-to-most */
-+	unsigned char raster_order;
++	uint32_t raster_order;
 +
 +	/* DMA FIFO threshold */
-+	int fifo_th;
++	uint32_t fifo_th;
 +};
 +
 +#define DBG(fmt, ...) DRM_DEBUG(fmt"\n", ##__VA_ARGS__)
@@ -1418,7 +1474,7 @@ index 0000000..14b93a2c
 +#endif /* __LCDC_DRV_H__ */
 diff --git a/drivers/gpu/drm/lcdc/lcdc_regs.h b/drivers/gpu/drm/lcdc/lcdc_regs.h
 new file mode 100644
-index 0000000..1ae0442
+index 0000000..076cb88
 --- /dev/null
 +++ b/drivers/gpu/drm/lcdc/lcdc_regs.h
 @@ -0,0 +1,154 @@
@@ -1514,10 +1570,10 @@ index 0000000..1ae0442
 +#define LCDC_RASTER_TIMING_1_REG                 0x30
 +#define LCDC_RASTER_TIMING_2_REG                 0x34
 +#define LCDC_DMA_CTRL_REG                        0x40
-+#define LCDC_DMA_FRM_BUF_BASE_ADDR_0_REG         0x44
-+#define LCDC_DMA_FRM_BUF_CEILING_ADDR_0_REG      0x48
-+#define LCDC_DMA_FRM_BUF_BASE_ADDR_1_REG         0x4c
-+#define LCDC_DMA_FRM_BUF_CEILING_ADDR_1_REG      0x50
++#define LCDC_DMA_FB_BASE_ADDR_0_REG              0x44
++#define LCDC_DMA_FB_CEILING_ADDR_0_REG           0x48
++#define LCDC_DMA_FB_BASE_ADDR_1_REG              0x4c
++#define LCDC_DMA_FB_CEILING_ADDR_1_REG           0x50
 +
 +/* Interrupt Registers available only in Version 2 */
 +#define LCDC_RAW_STAT_REG                        0x58
@@ -1578,10 +1634,10 @@ index 0000000..1ae0442
 +#endif /* __LCDC_REGS_H__ */
 diff --git a/drivers/gpu/drm/lcdc/lcdc_tfp410.c b/drivers/gpu/drm/lcdc/lcdc_tfp410.c
 new file mode 100644
-index 0000000..84f90a8
+index 0000000..cd29148
 --- /dev/null
 +++ b/drivers/gpu/drm/lcdc/lcdc_tfp410.c
-@@ -0,0 +1,424 @@
+@@ -0,0 +1,425 @@
 +/*
 + * Copyright (C) 2012 Texas Instruments
 + * Author: Rob Clark <robdclark@gmail.com>
@@ -1617,21 +1673,21 @@ index 0000000..84f90a8
 +
 +
 +static const struct lcdc_panel_info dvi_info = {
-+        .min_bpp                = 16,
-+        .max_bpp                = 16,
-+        .ac_bias                = 255,
-+        .ac_bias_intrpt         = 0,
-+        .dma_burst_sz           = 16,
-+        .bpp                    = 16,
-+        .fdd                    = 0x80,
-+        .tft_alt_mode           = 0,
-+        .stn_565_mode           = 0,
-+        .mono_8bit_mode         = 0,
-+        .invert_line_clock      = 1,
-+        .invert_frm_clock       = 1,
-+        .sync_edge              = 0,
-+        .sync_ctrl              = 1,
-+        .raster_order           = 0,
++		.min_bpp                = 16,
++		.max_bpp                = 16,
++		.ac_bias                = 255,
++		.ac_bias_intrpt         = 0,
++		.dma_burst_sz           = 16,
++		.bpp                    = 16,
++		.fdd                    = 0x80,
++		.tft_alt_mode           = 0,
++		.stn_565_mode           = 0,
++		.mono_8bit_mode         = 0,
++		.invert_line_clock      = 1,
++		.invert_frm_clock       = 1,
++		.sync_edge              = 0,
++		.sync_ctrl              = 1,
++		.raster_order           = 0,
 +};
 +
 +/*
@@ -1897,6 +1953,7 @@ index 0000000..84f90a8
 +		gpio_free(tfp410_mod->gpio);
 +
 +	lcdc_module_cleanup(mod);
++	kfree(tfp410_mod);
 +}
 +
 +static const struct lcdc_module_ops tfp410_module_ops = {
@@ -1982,7 +2039,7 @@ index 0000000..84f90a8
 +}
 +
 +static struct of_device_id tfp410_of_match[] = {
-+		{ .compatible = "tfp410", },
++		{ .compatible = "lcdc,tfp410", },
 +		{ },
 +};
 +MODULE_DEVICE_TABLE(of, tfp410_of_match);
