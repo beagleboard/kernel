@@ -1,4 +1,4 @@
-From d4eeb0c79dfe318653980cf945b55e8e7bff047b Mon Sep 17 00:00:00 2001
+From 4ba116e6eac2e9573227368b09a0740e9df33b32 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 17 Oct 2012 20:17:36 +0300
 Subject: [PATCH 03/14] gpio-keys: Pinctrl-fy
@@ -8,7 +8,7 @@ Subject: [PATCH 03/14] gpio-keys: Pinctrl-fy
  1 files changed, 14 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/input/keyboard/gpio_keys.c b/drivers/input/keyboard/gpio_keys.c
-index d327f5a..355d224 100644
+index b29ca65..97d7e05 100644
 --- a/drivers/input/keyboard/gpio_keys.c
 +++ b/drivers/input/keyboard/gpio_keys.c
 @@ -29,6 +29,7 @@
@@ -19,7 +19,7 @@ index d327f5a..355d224 100644
  
  struct gpio_button_data {
  	const struct gpio_keys_button *button;
-@@ -681,6 +682,7 @@ static int gpio_keys_probe(struct platform_device *pdev)
+@@ -692,6 +693,7 @@ static int gpio_keys_probe(struct platform_device *pdev)
  	struct input_dev *input;
  	int i, error;
  	int wakeup = 0;
@@ -27,7 +27,7 @@ index d327f5a..355d224 100644
  
  	if (!pdata) {
  		pdata = gpio_keys_get_devtree_pdata(dev);
-@@ -746,6 +748,18 @@ static int gpio_keys_probe(struct platform_device *pdev)
+@@ -757,6 +759,18 @@ static int gpio_keys_probe(struct platform_device *pdev)
  		goto fail3;
  	}
  

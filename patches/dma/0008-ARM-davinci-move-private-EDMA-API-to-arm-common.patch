@@ -1,4 +1,4 @@
-From 673f2fc0f168cf202130c94144ea60095494259f Mon Sep 17 00:00:00 2001
+From d4e0a5e2a58f7810e1b947db56c4adb1e0c14654 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Wed, 22 Aug 2012 09:24:24 -0400
 Subject: [PATCH 08/29] ARM: davinci: move private EDMA API to arm/common
@@ -42,10 +42,10 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  create mode 100644 include/linux/platform_data/edma.h
 
 diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index f95ba14..5ada5b8 100644
+index ab864d9..508af46 100644
 --- a/arch/arm/Kconfig
 +++ b/arch/arm/Kconfig
-@@ -934,6 +934,7 @@ config ARCH_DAVINCI
+@@ -933,6 +933,7 @@ config ARCH_DAVINCI
  	select HAVE_IDE
  	select NEED_MACH_GPIO_H
  	select USE_OF
@@ -3723,7 +3723,7 @@ index 665870d..0b81d6c 100644
  	help
  	  "Systems based on OMAP2, OMAP3, OMAP4 or OMAP5"
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 82c8672..7653974 100644
+index 06ea4b8..9c7d16b 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
 @@ -24,7 +24,7 @@

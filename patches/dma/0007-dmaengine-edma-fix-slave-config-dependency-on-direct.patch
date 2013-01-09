@@ -1,4 +1,4 @@
-From 359ffb22eee870034bed54a3aed5a07d7eeda6a5 Mon Sep 17 00:00:00 2001
+From f1070cd1590256643a5928363e5010650e8d71bc Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Tue, 18 Sep 2012 18:57:15 +0000
 Subject: [PATCH 07/29] dmaengine: edma: fix slave config dependency on
@@ -21,7 +21,7 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  1 files changed, 27 insertions(+), 28 deletions(-)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 232b458..82c8672 100644
+index f424298..06ea4b8 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
 @@ -69,9 +69,7 @@ struct edma_chan {

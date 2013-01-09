@@ -1,0 +1,27 @@
+From 218cfd284454ce96227b6062b934fa68ec9e7b84 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Tue, 8 Jan 2013 20:01:09 +0200
+Subject: [PATCH 46/54] am33xx: Add clock for the lcdc DRM driver
+
+Update the clocks with the lcdc DRM's driver definition.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/mach-omap2/cclock33xx_data.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
+index ea64ad6..d72d3a7 100644
+--- a/arch/arm/mach-omap2/cclock33xx_data.c
++++ b/arch/arm/mach-omap2/cclock33xx_data.c
+@@ -910,6 +910,7 @@ static struct omap_clk am33xx_clks[] = {
+ 	CLK(NULL,	"clkout2_div_ck",	&clkout2_div_ck,	CK_AM33XX),
+ 	CLK(NULL,	"timer_32k_ck",		&clkdiv32k_ick,	CK_AM33XX),
+ 	CLK(NULL,	"timer_sys_ck",		&sys_clkin_ck,	CK_AM33XX),
++	CLK("4830e000.fb", 	"fck",		&lcd_gclk,	CK_AM33XX),
+ };
+ 
+ 
+-- 
+1.7.7.6
+

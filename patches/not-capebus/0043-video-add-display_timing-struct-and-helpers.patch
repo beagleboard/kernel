@@ -1,0 +1,157 @@
+From 522b09dcc1ec970bf4c07849c8823b99df409fa1 Mon Sep 17 00:00:00 2001
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Date: Wed, 31 Oct 2012 08:28:01 +0000
+Subject: [PATCH 43/54] video: add display_timing struct and helpers
+
+Add display_timing structure and the according helper functions. This allows
+the description of a display via its supported timing parameters.
+
+Every timing parameter can be specified as a single value or a range
+<min typ max>.
+
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+
+Conflicts:
+	drivers/video/Makefile
+---
+ drivers/video/Kconfig          |    5 +++
+ drivers/video/Makefile         |    1 +
+ drivers/video/display_timing.c |   24 ++++++++++++++
+ include/linux/display_timing.h |   69 ++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 99 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/display_timing.c
+ create mode 100644 include/linux/display_timing.h
+
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index 3a249bb..c85095f 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -33,6 +33,11 @@ config VIDEO_OUTPUT_CONTROL
+ 	  This framework adds support for low-level control of the video 
+ 	  output switch.
+ 
++config DISPLAY_TIMING
++       bool "Enable display timings helpers"
++       help
++         Say Y here, to use the display timing helpers.
++
+ menuconfig FB
+ 	tristate "Support for frame buffer devices"
+ 	---help---
+diff --git a/drivers/video/Makefile b/drivers/video/Makefile
+index 58dbeaf..5511c85 100644
+--- a/drivers/video/Makefile
++++ b/drivers/video/Makefile
+@@ -169,3 +169,4 @@ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
+ 
+ #video output switch sysfs driver
+ obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
++obj-$(CONFIG_DISPLAY_TIMING) += display_timing.o
+diff --git a/drivers/video/display_timing.c b/drivers/video/display_timing.c
+new file mode 100644
+index 0000000..9ccfdb3
+--- /dev/null
++++ b/drivers/video/display_timing.c
+@@ -0,0 +1,24 @@
++/*
++ * generic display timing functions
++ *
++ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
++ *
++ * This file is released under the GPLv2
++ */
++
++#include <linux/slab.h>
++#include <linux/display_timing.h>
++
++void timings_release(struct display_timings *disp)
++{
++	int i;
++
++	for (i = 0; i < disp->num_timings; i++)
++		kfree(disp->timings[i]);
++}
++
++void display_timings_release(struct display_timings *disp)
++{
++	timings_release(disp);
++	kfree(disp->timings);
++}
+diff --git a/include/linux/display_timing.h b/include/linux/display_timing.h
+new file mode 100644
+index 0000000..aa02a12
+--- /dev/null
++++ b/include/linux/display_timing.h
+@@ -0,0 +1,69 @@
++/*
++ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
++ *
++ * description of display timings
++ *
++ * This file is released under the GPLv2
++ */
++
++#ifndef __LINUX_DISPLAY_TIMINGS_H
++#define __LINUX_DISPLAY_TIMINGS_H
++
++#include <linux/types.h>
++
++struct timing_entry {
++	u32 min;
++	u32 typ;
++	u32 max;
++};
++
++struct display_timing {
++	struct timing_entry pixelclock;
++
++	struct timing_entry hactive;
++	struct timing_entry hfront_porch;
++	struct timing_entry hback_porch;
++	struct timing_entry hsync_len;
++
++	struct timing_entry vactive;
++	struct timing_entry vfront_porch;
++	struct timing_entry vback_porch;
++	struct timing_entry vsync_len;
++
++	unsigned int vsync_pol_active;
++	unsigned int hsync_pol_active;
++	unsigned int de_pol_active;
++	unsigned int pixelclk_pol;
++	bool interlaced;
++	bool doublescan;
++};
++
++struct display_timings {
++	unsigned int num_timings;
++	unsigned int native_mode;
++
++	struct display_timing **timings;
++};
++
++/* placeholder function until ranges are really needed */
++static inline u32 display_timing_get_value(struct timing_entry *te, int index)
++{
++	return te->typ;
++}
++
++static inline struct display_timing *display_timings_get(struct display_timings *disp,
++							 int index)
++{
++	struct display_timing *dt;
++
++	if (disp->num_timings > index) {
++		dt = disp->timings[index];
++		return dt;
++	} else
++		return NULL;
++}
++
++void timings_release(struct display_timings *disp);
++void display_timings_release(struct display_timings *disp);
++
++#endif
+-- 
+1.7.7.6
+

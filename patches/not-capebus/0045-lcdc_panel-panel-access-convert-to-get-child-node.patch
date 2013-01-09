@@ -1,0 +1,31 @@
+From 2bc3521229ea0af25ece75630bf48cf8bda25a42 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Tue, 8 Jan 2013 20:43:29 +0200
+Subject: [PATCH 45/54] lcdc_panel: panel access convert to get child node
+
+of_find_node_by_name() is not what should be used here.
+It does a global name search which is not what we want to do here.
+
+Convert to the use the correct of_get_child_by_name() function.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/gpu/drm/lcdc/lcdc_panel.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/gpu/drm/lcdc/lcdc_panel.c b/drivers/gpu/drm/lcdc/lcdc_panel.c
+index 29a0952..037e2d2 100644
+--- a/drivers/gpu/drm/lcdc/lcdc_panel.c
++++ b/drivers/gpu/drm/lcdc/lcdc_panel.c
+@@ -334,7 +334,7 @@ static struct lcdc_panel_info * of_get_panel_info(struct device_node *np)
+ 		return NULL;
+ 	}
+ 
+-	info_np = of_find_node_by_name(np, "panel-info");
++	info_np = of_get_child_by_name(np, "panel-info");
+ 	if (!info_np) {
+ 		pr_err("%s: could not find panel-info node\n", __func__);
+ 		return NULL;
+-- 
+1.7.7.6
+

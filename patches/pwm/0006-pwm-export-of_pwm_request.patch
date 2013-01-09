@@ -1,0 +1,75 @@
+From 40a213840a3885a99bbda5862f8213e7c00c4bf4 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 19 Oct 2012 10:38:00 +0300
+Subject: [PATCH 6/6] pwm: export of_pwm_request
+
+No need to hide of_pwm_request, it's useful to other in-kernel users.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+
+Conflicts:
+	include/linux/pwm.h
+---
+ drivers/pwm/core.c  |    6 +++++-
+ include/linux/pwm.h |    7 +++++++
+ 2 files changed, 12 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
+index 903138b..0478442 100644
+--- a/drivers/pwm/core.c
++++ b/drivers/pwm/core.c
+@@ -486,7 +486,7 @@ static struct pwm_chip *of_node_to_pwmchip(struct device_node *np)
+  * becomes mandatory for devices that look up the PWM device via the con_id
+  * parameter.
+  */
+-static struct pwm_device *of_pwm_request(struct device_node *np,
++struct pwm_device *of_pwm_request(struct device_node *np,
+ 					 const char *con_id)
+ {
+ 	struct pwm_device *pwm = NULL;
+@@ -495,6 +495,9 @@ static struct pwm_device *of_pwm_request(struct device_node *np,
+ 	int index = 0;
+ 	int err;
+ 
++	if (!np)
++		return ERR_PTR(-ENODEV);
++
+ 	if (con_id) {
+ 		index = of_property_match_string(np, "pwm-names", con_id);
+ 		if (index < 0)
+@@ -545,6 +548,7 @@ put:
+ 
+ 	return pwm;
+ }
++EXPORT_SYMBOL(of_pwm_request);
+ 
+ /**
+  * pwm_add_table() - register PWM device consumers
+diff --git a/include/linux/pwm.h b/include/linux/pwm.h
+index 6d661f3..b21c020 100644
+--- a/include/linux/pwm.h
++++ b/include/linux/pwm.h
+@@ -174,6 +174,7 @@ struct pwm_device *pwm_request_from_chip(struct pwm_chip *chip,
+ struct pwm_device *of_pwm_xlate_with_flags(struct pwm_chip *pc,
+ 		const struct of_phandle_args *args);
+ 
++struct pwm_device *of_pwm_request(struct device_node *np, const char *consumer);
+ struct pwm_device *pwm_get(struct device *dev, const char *consumer);
+ void pwm_put(struct pwm_device *pwm);
+ 
+@@ -207,6 +208,12 @@ static inline struct pwm_device *pwm_request_from_chip(struct pwm_chip *chip,
+ 	return ERR_PTR(-ENODEV);
+ }
+ 
++static inline struct pwm_device *of_pwm_request(struct device_node *np,
++					 const char *consumer)
++{
++	return ERR_PTR(-ENODEV);
++}
++
+ static inline struct pwm_device *pwm_get(struct device *dev,
+ 					 const char *consumer)
+ {
+-- 
+1.7.7.6
+
