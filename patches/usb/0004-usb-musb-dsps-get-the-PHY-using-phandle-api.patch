@@ -1,4 +1,4 @@
-From 341604e3085a5032b4a9a3d5397f0447d3592ef6 Mon Sep 17 00:00:00 2001
+From 2f53983974451798990a2eb03d2829ae38a66607 Mon Sep 17 00:00:00 2001
 From: Ravi Babu <ravibabu@ti.com>
 Date: Thu, 2 Aug 2012 16:13:32 +0530
 Subject: [PATCH 4/9] usb: musb: dsps: get the PHY using phandle api
@@ -6,12 +6,14 @@ Subject: [PATCH 4/9] usb: musb: dsps: get the PHY using phandle api
 AM33xx has two PHY of same type used by each musb controller so
 use phandle of phy nodes to get the phy pointer.
 
+Conflict with v3.7.2
+
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Signed-off-by: Ravi Babu <ravibabu@ti.com>
 ---
- .../devicetree/bindings/usb/am33xx-usb.txt         |    5 +++++
- drivers/usb/musb/musb_dsps.c                       |    5 ++++-
- 2 files changed, 9 insertions(+), 1 deletions(-)
+ Documentation/devicetree/bindings/usb/am33xx-usb.txt |    5 +++++
+ drivers/usb/musb/musb_dsps.c                         |    5 ++++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
 index ca8fa56..e2702df 100644
@@ -27,7 +29,7 @@ index ca8fa56..e2702df 100644
 +NOP USB PHY
 + - compatible : Should be "nop-xceiv-usb"
 diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index ff5f112..6a14101 100644
+index 72b9239..7e4c374 100644
 --- a/drivers/usb/musb/musb_dsps.c
 +++ b/drivers/usb/musb/musb_dsps.c
 @@ -367,10 +367,12 @@ static int dsps_musb_init(struct musb *musb)
@@ -43,10 +45,10 @@ index ff5f112..6a14101 100644
  	u32 rev, val;
  	int status;
  
-@@ -378,7 +380,8 @@ static int dsps_musb_init(struct musb *musb)
- 	musb->mregs += wrp->musb_core_offset;
+@@ -379,7 +381,8 @@ static int dsps_musb_init(struct musb *musb)
  
- 	/* Get the NOP PHY */
+ 	/* NOP driver needs change if supporting dual instance */
+ 	usb_nop_xceiv_register();
 -	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
 +	sprintf(name, "usb%d-phy", pdev->id);
 +	musb->xceiv = devm_usb_get_phy_by_phandle(&parent_pdev->dev, name);
@@ -54,5 +56,5 @@ index ff5f112..6a14101 100644
  		return -ENODEV;
  
 -- 
-1.7.7.6
+1.7.10.4
 

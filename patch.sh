@@ -24,10 +24,10 @@ EXTRATAG=""
 #EXTERNAL_BRANCH="master"
 #EXTERNAL_SHA="29594404d7fe73cd80eaa4ee8c43dcc53970c60e"
 
-EXTERNAL_TAG="v3.7.1"
+EXTERNAL_TAG="v3.7.2"
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git"
 EXTERNAL_BRANCH="linux-3.7.y"
-EXTERNAL_SHA="cc8605070a58f12b79c62f369a0446d89a7ca337"
+EXTERNAL_SHA="e6577f3189d82a729b13e38f3d135f1becd6d294"
 
 #PATCHSET="pruss pwm2 fixes"
 # BAD: rtc
