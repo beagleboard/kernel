@@ -87,7 +87,7 @@ for patchset in ${PATCHSET} ; do
 
 	NEWCOMMIT="$(git log --oneline --no-abbrev -1 | awk '{print $1}')"
 
-	git format-patch ${CURRENTCOMMIT}..${NEWCOMMIT} --quiet -o ${EXPORTPATH}/$patchset
+	git format-patch ${CURRENTCOMMIT}..${NEWCOMMIT} -o ${EXPORTPATH}/$patchset
 	rm -rf ${PATCHPATH}/$patchset && cp -a ${EXPORTPATH}/$patchset ${PATCHPATH}
 
 	git commit --allow-empty -a -m "${TAG}-${patchset}${EXTRATAG}"
