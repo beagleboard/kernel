@@ -1,4 +1,4 @@
-From cc982b0bcd132b3d6659fb2cf80b27ea392b8c5f Mon Sep 17 00:00:00 2001
+From 4251a351eeda96854f2b09397fdedf4e78505e7d Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 6 Sep 2012 17:40:42 -0400
 Subject: [PATCH 17/36] ARM: edma: add AM33XX support to the private EDMA API
@@ -15,7 +15,7 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  2 files changed, 306 insertions(+), 9 deletions(-)
 
 diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index a3d189d..1951d63 100644
+index 2dce245..beeb1d2 100644
 --- a/arch/arm/common/edma.c
 +++ b/arch/arm/common/edma.c
 @@ -24,6 +24,13 @@
@@ -270,7 +270,7 @@ index a3d189d..1951d63 100644
 +	.filter_fn = edma_filter_fn,
 +};
  
- static int __init edma_probe(struct platform_device *pdev)
+ static int edma_probe(struct platform_device *pdev)
  {
  	struct edma_soc_info	**info = pdev->dev.platform_data;
 +	struct edma_soc_info	*ninfo[EDMA_MAX_CC] = {NULL, NULL};
@@ -338,7 +338,7 @@ index a3d189d..1951d63 100644
  			if (found)
  				break;
  			else
-@@ -1465,8 +1735,22 @@ static int __init edma_probe(struct platform_device *pdev)
+@@ -1465,8 +1735,22 @@ static int edma_probe(struct platform_device *pdev)
  			}
  		}
  
@@ -363,7 +363,7 @@ index a3d189d..1951d63 100644
  		edma_cc[j]->irq_res_start = irq[j];
  		status = request_irq(irq[j], dma_irq_handler, 0, "edma",
  					&pdev->dev);
-@@ -1476,8 +1760,12 @@ static int __init edma_probe(struct platform_device *pdev)
+@@ -1476,8 +1760,12 @@ static int edma_probe(struct platform_device *pdev)
  			goto fail;
  		}
  

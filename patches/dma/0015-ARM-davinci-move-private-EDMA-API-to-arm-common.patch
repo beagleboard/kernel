@@ -1,4 +1,4 @@
-From c645b4114174b2ee37fa145ce7080244b517c22e Mon Sep 17 00:00:00 2001
+From 1b01bd6a355686103e3016b697eb87945d410ccd Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Wed, 22 Aug 2012 09:24:24 -0400
 Subject: [PATCH 15/36] ARM: davinci: move private EDMA API to arm/common
@@ -75,7 +75,7 @@ index e8a4e58..d09a39b 100644
 +obj-$(CONFIG_TI_PRIV_EDMA)	+= edma.o
 diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
 new file mode 100644
-index 0000000..4411087
+index 0000000..be3c04a
 --- /dev/null
 +++ b/arch/arm/common/edma.c
 @@ -0,0 +1,1588 @@
@@ -1468,7 +1468,7 @@ index 0000000..4411087
 +
 +/*-----------------------------------------------------------------------*/
 +
-+static int __init edma_probe(struct platform_device *pdev)
++static int edma_probe(struct platform_device *pdev)
 +{
 +	struct edma_soc_info	**info = pdev->dev.platform_data;
 +	const s8		(*queue_priority_mapping)[2];
