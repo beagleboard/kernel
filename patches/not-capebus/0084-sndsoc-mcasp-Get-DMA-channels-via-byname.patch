@@ -1,0 +1,44 @@
+From 92035afd1cd1786b3cdef2e5ddf506d131d757e2 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Mon, 14 Jan 2013 19:57:10 +0200
+Subject: [PATCH 84/93] sndsoc: mcasp: Get DMA channels via byname
+
+Use get resource by name for DMA channels. Note that even for the
+case where we're booting with DT, they still come out of hwmod data.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ sound/soc/davinci/davinci-mcasp.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
+index 621ce30..ea292f6 100644
+--- a/sound/soc/davinci/davinci-mcasp.c
++++ b/sound/soc/davinci/davinci-mcasp.c
+@@ -1170,9 +1170,9 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
+ 							mem->start);
+ 
+ 	/* first TX, then RX */
+-	res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
++	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
+ 	if (!res) {
+-		dev_err(&pdev->dev, "no DMA resource\n");
++		dev_err(&pdev->dev, "Failed to get tx dma resource\n");
+ 		ret = -ENODEV;
+ 		goto err_release_clk;
+ 	}
+@@ -1190,9 +1190,9 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
+ 		dma_data->dma_addr = (dma_addr_t)(pdata->rx_dma_offset +
+ 							mem->start);
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
++	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
+ 	if (!res) {
+-		dev_err(&pdev->dev, "no DMA resource\n");
++		dev_err(&pdev->dev, "Failed to get rx dma resource\n");
+ 		ret = -ENODEV;
+ 		goto err_release_clk;
+ 	}
+-- 
+1.7.7.6
+

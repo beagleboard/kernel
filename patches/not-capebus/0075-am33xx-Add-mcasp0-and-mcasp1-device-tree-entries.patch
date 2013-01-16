@@ -1,0 +1,46 @@
+From 783693f711c122d2b2191d279a5a4ded9fce0c4c Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 10 Jan 2013 20:37:45 +0200
+Subject: [PATCH 75/93] am33xx: Add mcasp0 and mcasp1 device tree entries
+
+Add missing mcasp entries in teh am33xx.dtsi include file.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 751fa0b..9f35ecb 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -545,5 +545,26 @@
+ 				mac-address = [ 00 00 00 00 00 00 ];
+ 			};
+ 		};
++
++		mcasp0: mcasp@48038000 {
++			compatible = "ti,omap2-mcasp-audio";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "mcasp0";
++			reg = <0x48038000 0x2000>;
++			interrupts = <80 81>;
++			status = "disabled";
++		};
++
++		mcasp1: mcasp@4803C000 {
++			compatible = "ti,omap2-mcasp-audio";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "mcasp1";
++			reg = <0x4803C000 0x2000>;
++			interrupts = <82 83>;
++			status = "disabled";
++		};
++
+ 	};
+ };
+-- 
+1.7.7.6
+
