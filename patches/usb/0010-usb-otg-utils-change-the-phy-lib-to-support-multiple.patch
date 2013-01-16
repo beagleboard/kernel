@@ -1,0 +1,859 @@
+From 39a8f24936bb643bc9090b17c99ca22437b3079d Mon Sep 17 00:00:00 2001
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Date: Wed, 16 Jan 2013 15:00:59 +0000
+Subject: [PATCH 10/13] usb: otg: utils: change the phy lib to support
+ multiple PHYs of same type
+
+In order to add support for multipe PHY's of the same type, the API's
+for adding PHY and getting PHY has been changed. Now the binding
+information of the PHY and controller should be done in platform file
+using usb_bind_phy API. And for getting a PHY, the device pointer of the
+USB controller and an index should be passed. Based on the binding
+information that is added in the platform file, get_phy will return the
+approappropriate PHY.
+
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/mach-shmobile/board-marzen.c |    2 +-
+ drivers/power/ab8500_charger.c        |    2 +-
+ drivers/power/isp1704_charger.c       |    2 +-
+ drivers/power/pda_power.c             |    2 +-
+ drivers/power/twl4030_charger.c       |    2 +-
+ drivers/usb/chipidea/udc.c            |    2 +-
+ drivers/usb/dwc3/core.c               |    4 +-
+ drivers/usb/gadget/fsl_udc_core.c     |    2 +-
+ drivers/usb/gadget/mv_udc_core.c      |    2 +-
+ drivers/usb/gadget/omap_udc.c         |    2 +-
+ drivers/usb/gadget/pxa25x_udc.c       |    2 +-
+ drivers/usb/gadget/pxa27x_udc.c       |    2 +-
+ drivers/usb/gadget/s3c-hsudc.c        |    2 +-
+ drivers/usb/host/ehci-fsl.c           |    2 +-
+ drivers/usb/host/ehci-msm.c           |    2 +-
+ drivers/usb/host/ehci-mv.c            |    2 +-
+ drivers/usb/host/ehci-tegra.c         |    2 +-
+ drivers/usb/host/ohci-omap.c          |    2 +-
+ drivers/usb/musb/am35x.c              |    2 +-
+ drivers/usb/musb/blackfin.c           |    2 +-
+ drivers/usb/musb/da8xx.c              |    2 +-
+ drivers/usb/musb/davinci.c            |    2 +-
+ drivers/usb/musb/musb_dsps.c          |    2 +-
+ drivers/usb/musb/omap2430.c           |    2 +-
+ drivers/usb/musb/tusb6010.c           |    2 +-
+ drivers/usb/musb/ux500.c              |    2 +-
+ drivers/usb/otg/ab8500-usb.c          |    3 +-
+ drivers/usb/otg/fsl_otg.c             |    5 +-
+ drivers/usb/otg/gpio_vbus.c           |    3 +-
+ drivers/usb/otg/isp1301_omap.c        |    3 +-
+ drivers/usb/otg/msm_otg.c             |    3 +-
+ drivers/usb/otg/mv_otg.c              |    3 +-
+ drivers/usb/otg/nop-usb-xceiv.c       |    3 +-
+ drivers/usb/otg/otg.c                 |   67 +++++++++++++++------------------
+ drivers/usb/otg/twl4030-usb.c         |    3 +-
+ drivers/usb/phy/mv_u3d_phy.c          |    3 +-
+ drivers/usb/phy/omap-usb2.c           |   11 ++---
+ drivers/usb/phy/rcar-phy.c            |    3 +-
+ include/linux/usb/phy.h               |   12 ++---
+ 39 files changed, 87 insertions(+), 89 deletions(-)
+
+diff --git a/arch/arm/mach-shmobile/board-marzen.c b/arch/arm/mach-shmobile/board-marzen.c
+index 449f928..abe482d 100644
+--- a/arch/arm/mach-shmobile/board-marzen.c
++++ b/arch/arm/mach-shmobile/board-marzen.c
+@@ -320,7 +320,7 @@ static struct platform_device *marzen_late_devices[] __initdata = {
+ void __init marzen_init_late(void)
+ {
+ 	/* get usb phy */
+-	phy = usb_get_phy(USB_PHY_TYPE_USB2);
++	phy = usb_get_phy(&ehci0_device.dev, 0);
+ 
+ 	shmobile_init_late();
+ 	platform_add_devices(marzen_late_devices,
+diff --git a/drivers/power/ab8500_charger.c b/drivers/power/ab8500_charger.c
+index 3be9c0e..d20561a 100644
+--- a/drivers/power/ab8500_charger.c
++++ b/drivers/power/ab8500_charger.c
+@@ -2694,7 +2694,7 @@ static int ab8500_charger_probe(struct platform_device *pdev)
+ 		goto free_ac;
+ 	}
+ 
+-	di->usb_phy = usb_get_phy(USB_PHY_TYPE_USB2);
++	di->usb_phy = usb_get_phy(di->dev, 0);
+ 	if (IS_ERR_OR_NULL(di->usb_phy)) {
+ 		dev_err(di->dev, "failed to get usb transceiver\n");
+ 		ret = -EINVAL;
+diff --git a/drivers/power/isp1704_charger.c b/drivers/power/isp1704_charger.c
+index 176ad59..dfbe597 100644
+--- a/drivers/power/isp1704_charger.c
++++ b/drivers/power/isp1704_charger.c
+@@ -415,7 +415,7 @@ static int isp1704_charger_probe(struct platform_device *pdev)
+ 	if (!isp)
+ 		return -ENOMEM;
+ 
+-	isp->phy = usb_get_phy(USB_PHY_TYPE_USB2);
++	isp->phy = usb_get_phy(&pdev->dev, 0);
+ 	if (IS_ERR_OR_NULL(isp->phy))
+ 		goto fail0;
+ 
+diff --git a/drivers/power/pda_power.c b/drivers/power/pda_power.c
+index 7df7c5f..64d79f7 100644
+--- a/drivers/power/pda_power.c
++++ b/drivers/power/pda_power.c
+@@ -316,7 +316,7 @@ static int pda_power_probe(struct platform_device *pdev)
+ 	}
+ 
+ #ifdef CONFIG_USB_OTG_UTILS
+-	transceiver = usb_get_phy(USB_PHY_TYPE_USB2);
++	transceiver = usb_get_phy(&pdev->dev, 0);
+ 	if (!IS_ERR_OR_NULL(transceiver)) {
+ 		if (!pdata->is_usb_online)
+ 			pdata->is_usb_online = otg_is_usb_online;
+diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
+index a69d0d1..f53b417 100644
+--- a/drivers/power/twl4030_charger.c
++++ b/drivers/power/twl4030_charger.c
+@@ -552,7 +552,7 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
+ 
+ 	INIT_WORK(&bci->work, twl4030_bci_usb_work);
+ 
+-	bci->transceiver = usb_get_phy(USB_PHY_TYPE_USB2);
++	bci->transceiver = usb_get_phy(&pdev->dev, 0);
+ 	if (!IS_ERR_OR_NULL(bci->transceiver)) {
+ 		bci->usb_nb.notifier_call = twl4030_bci_usb_ncb;
+ 		usb_register_notifier(bci->transceiver, &bci->usb_nb);
+diff --git a/drivers/usb/chipidea/udc.c b/drivers/usb/chipidea/udc.c
+index 2f45bba..ea6a109 100644
+--- a/drivers/usb/chipidea/udc.c
++++ b/drivers/usb/chipidea/udc.c
+@@ -1745,7 +1745,7 @@ static int udc_start(struct ci13xxx *ci)
+ 	ci->gadget.ep0 = &ci->ep0in->ep;
+ 
+ 	if (ci->global_phy)
+-		ci->transceiver = usb_get_phy(USB_PHY_TYPE_USB2);
++		ci->transceiver = usb_get_phy(dev, 0);
+ 
+ 	if (ci->platdata->flags & CI13XXX_REQUIRE_TRANSCEIVER) {
+ 		if (ci->transceiver == NULL) {
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 3a4004a..574d4b7 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -420,13 +420,13 @@ static int dwc3_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 
+-	dwc->usb2_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
++	dwc->usb2_phy = devm_usb_get_phy(dev, 0);
+ 	if (IS_ERR_OR_NULL(dwc->usb2_phy)) {
+ 		dev_err(dev, "no usb2 phy configured\n");
+ 		return -EPROBE_DEFER;
+ 	}
+ 
+-	dwc->usb3_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
++	dwc->usb3_phy = devm_usb_get_phy(dev, 1);
+ 	if (IS_ERR_OR_NULL(dwc->usb3_phy)) {
+ 		dev_err(dev, "no usb3 phy configured\n");
+ 		return -EPROBE_DEFER;
+diff --git a/drivers/usb/gadget/fsl_udc_core.c b/drivers/usb/gadget/fsl_udc_core.c
+index c19f7f1..9c1a7a6 100644
+--- a/drivers/usb/gadget/fsl_udc_core.c
++++ b/drivers/usb/gadget/fsl_udc_core.c
+@@ -2456,7 +2456,7 @@ static int __init fsl_udc_probe(struct platform_device *pdev)
+ 
+ #ifdef CONFIG_USB_OTG
+ 	if (pdata->operating_mode == FSL_USB2_DR_OTG) {
+-		udc_controller->transceiver = usb_get_phy(USB_PHY_TYPE_USB2);
++		udc_controller->transceiver = usb_get_phy(&pdev->dev, 0);
+ 		if (IS_ERR_OR_NULL(udc_controller->transceiver)) {
+ 			ERR("Can't find OTG driver!\n");
+ 			ret = -ENODEV;
+diff --git a/drivers/usb/gadget/mv_udc_core.c b/drivers/usb/gadget/mv_udc_core.c
+index 6e8b127..6fc212a 100644
+--- a/drivers/usb/gadget/mv_udc_core.c
++++ b/drivers/usb/gadget/mv_udc_core.c
+@@ -2218,7 +2218,7 @@ static int mv_udc_probe(struct platform_device *dev)
+ 
+ #ifdef CONFIG_USB_OTG_UTILS
+ 	if (pdata->mode == MV_USB_MODE_OTG)
+-		udc->transceiver = usb_get_phy(USB_PHY_TYPE_USB2);
++		udc->transceiver = usb_get_phy(&dev->dev, 0);
+ #endif
+ 
+ 	udc->clknum = pdata->clknum;
+diff --git a/drivers/usb/gadget/omap_udc.c b/drivers/usb/gadget/omap_udc.c
+index 8bfe990..5352ede 100644
+--- a/drivers/usb/gadget/omap_udc.c
++++ b/drivers/usb/gadget/omap_udc.c
+@@ -2833,7 +2833,7 @@ static int omap_udc_probe(struct platform_device *pdev)
+ 		 * use it.  Except for OTG, we don't _need_ to talk to one;
+ 		 * but not having one probably means no VBUS detection.
+ 		 */
+-		xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
++		xceiv = usb_get_phy(&pdev->dev, 0);
+ 		if (!IS_ERR_OR_NULL(xceiv))
+ 			type = xceiv->label;
+ 		else if (config->otg) {
+diff --git a/drivers/usb/gadget/pxa25x_udc.c b/drivers/usb/gadget/pxa25x_udc.c
+index d4ca9f1..666f2c0c 100644
+--- a/drivers/usb/gadget/pxa25x_udc.c
++++ b/drivers/usb/gadget/pxa25x_udc.c
+@@ -2157,7 +2157,7 @@ static int __init pxa25x_udc_probe(struct platform_device *pdev)
+ 	dev->dev = &pdev->dev;
+ 	dev->mach = pdev->dev.platform_data;
+ 
+-	dev->transceiver = usb_get_phy(USB_PHY_TYPE_USB2);
++	dev->transceiver = usb_get_phy(dev->dev, 0);
+ 
+ 	if (gpio_is_valid(dev->mach->gpio_pullup)) {
+ 		if ((retval = gpio_request(dev->mach->gpio_pullup,
+diff --git a/drivers/usb/gadget/pxa27x_udc.c b/drivers/usb/gadget/pxa27x_udc.c
+index 2b3b01d..844138c 100644
+--- a/drivers/usb/gadget/pxa27x_udc.c
++++ b/drivers/usb/gadget/pxa27x_udc.c
+@@ -2465,7 +2465,7 @@ static int __init pxa_udc_probe(struct platform_device *pdev)
+ 
+ 	udc->dev = &pdev->dev;
+ 	udc->mach = pdev->dev.platform_data;
+-	udc->transceiver = usb_get_phy(USB_PHY_TYPE_USB2);
++	udc->transceiver = usb_get_phy(udc->dev, 0);
+ 
+ 	gpio = udc->mach->gpio_pullup;
+ 	if (gpio_is_valid(gpio)) {
+diff --git a/drivers/usb/gadget/s3c-hsudc.c b/drivers/usb/gadget/s3c-hsudc.c
+index 52379b1..c1ca9f4 100644
+--- a/drivers/usb/gadget/s3c-hsudc.c
++++ b/drivers/usb/gadget/s3c-hsudc.c
+@@ -1281,7 +1281,7 @@ static int s3c_hsudc_probe(struct platform_device *pdev)
+ 	hsudc->dev = dev;
+ 	hsudc->pd = pdev->dev.platform_data;
+ 
+-	hsudc->transceiver = usb_get_phy(USB_PHY_TYPE_USB2);
++	hsudc->transceiver = usb_get_phy(hsudc->dev, 0);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(hsudc->supplies); i++)
+ 		hsudc->supplies[i].supply = s3c_hsudc_supply_names[i];
+diff --git a/drivers/usb/host/ehci-fsl.c b/drivers/usb/host/ehci-fsl.c
+index d81d2fc..08fdb07 100644
+--- a/drivers/usb/host/ehci-fsl.c
++++ b/drivers/usb/host/ehci-fsl.c
+@@ -143,7 +143,7 @@ static int usb_hcd_fsl_probe(const struct hc_driver *driver,
+ 	if (pdata->operating_mode == FSL_USB2_DR_OTG) {
+ 		struct ehci_hcd *ehci = hcd_to_ehci(hcd);
+ 
+-		hcd->phy = usb_get_phy(USB_PHY_TYPE_USB2);
++		hcd->phy = usb_get_phy(&pdev->dev, 0);
+ 		dev_dbg(&pdev->dev, "hcd=0x%p  ehci=0x%p, phy=0x%p\n",
+ 			hcd, ehci, hcd->phy);
+ 
+diff --git a/drivers/usb/host/ehci-msm.c b/drivers/usb/host/ehci-msm.c
+index 88a49c8..39abbdb 100644
+--- a/drivers/usb/host/ehci-msm.c
++++ b/drivers/usb/host/ehci-msm.c
+@@ -144,7 +144,7 @@ static int ehci_msm_probe(struct platform_device *pdev)
+ 	 * powering up VBUS, mapping of registers address space and power
+ 	 * management.
+ 	 */
+-	phy = devm_usb_get_phy(&pdev->dev, USB_PHY_TYPE_USB2);
++	phy = devm_usb_get_phy(&pdev->dev, 0);
+ 	if (IS_ERR_OR_NULL(phy)) {
+ 		dev_err(&pdev->dev, "unable to find transceiver\n");
+ 		ret = -ENODEV;
+diff --git a/drivers/usb/host/ehci-mv.c b/drivers/usb/host/ehci-mv.c
+index 6c56297..62876cb 100644
+--- a/drivers/usb/host/ehci-mv.c
++++ b/drivers/usb/host/ehci-mv.c
+@@ -241,7 +241,7 @@ static int mv_ehci_probe(struct platform_device *pdev)
+ 	ehci_mv->mode = pdata->mode;
+ 	if (ehci_mv->mode == MV_USB_MODE_OTG) {
+ #ifdef CONFIG_USB_OTG_UTILS
+-		ehci_mv->otg = devm_usb_get_phy(&pdev->dev, USB_PHY_TYPE_USB2);
++		ehci_mv->otg = devm_usb_get_phy(&pdev->dev, 0);
+ 		if (IS_ERR_OR_NULL(ehci_mv->otg)) {
+ 			dev_err(&pdev->dev,
+ 				"unable to find transceiver\n");
+diff --git a/drivers/usb/host/ehci-tegra.c b/drivers/usb/host/ehci-tegra.c
+index acf1755..7a081df 100644
+--- a/drivers/usb/host/ehci-tegra.c
++++ b/drivers/usb/host/ehci-tegra.c
+@@ -733,7 +733,7 @@ static int tegra_ehci_probe(struct platform_device *pdev)
+ #ifdef CONFIG_USB_OTG_UTILS
+ 	if (pdata->operating_mode == TEGRA_USB_OTG) {
+ 		tegra->transceiver =
+-			devm_usb_get_phy(&pdev->dev, USB_PHY_TYPE_USB2);
++			devm_usb_get_phy(&pdev->dev, 0);
+ 		if (!IS_ERR_OR_NULL(tegra->transceiver))
+ 			otg_set_host(tegra->transceiver->otg, &hcd->self);
+ 	}
+diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
+index b1d32fb..bd823d2 100644
+--- a/drivers/usb/host/ohci-omap.c
++++ b/drivers/usb/host/ohci-omap.c
+@@ -213,7 +213,7 @@ static int ohci_omap_init(struct usb_hcd *hcd)
+ 
+ #ifdef	CONFIG_USB_OTG
+ 	if (need_transceiver) {
+-		hcd->phy = usb_get_phy(USB_PHY_TYPE_USB2);
++		hcd->phy = usb_get_phy(hcd->self.controller, 0);
+ 		if (!IS_ERR_OR_NULL(hcd->phy)) {
+ 			int	status = otg_set_host(hcd->phy->otg,
+ 						&ohci_to_hcd(ohci)->self);
+diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+index c107d7c..b7a8c94 100644
+--- a/drivers/usb/musb/am35x.c
++++ b/drivers/usb/musb/am35x.c
+@@ -363,7 +363,7 @@ static int am35x_musb_init(struct musb *musb)
+ 		return -ENODEV;
+ 
+ 	usb_nop_xceiv_register();
+-	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
++	musb->xceiv = usb_get_phy(dev, 0);
+ 	if (IS_ERR_OR_NULL(musb->xceiv))
+ 		return -ENODEV;
+ 
+diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
+index 14dab9f..596bc5b 100644
+--- a/drivers/usb/musb/blackfin.c
++++ b/drivers/usb/musb/blackfin.c
+@@ -403,7 +403,7 @@ static int bfin_musb_init(struct musb *musb)
+ 	gpio_direction_output(musb->config->gpio_vrsel, 0);
+ 
+ 	usb_nop_xceiv_register();
+-	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
++	musb->xceiv = usb_get_phy(musb->controller, 0);
+ 	if (IS_ERR_OR_NULL(musb->xceiv)) {
+ 		gpio_free(musb->config->gpio_vrsel);
+ 		return -ENODEV;
+diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+index 97996af..a01844e 100644
+--- a/drivers/usb/musb/da8xx.c
++++ b/drivers/usb/musb/da8xx.c
+@@ -419,7 +419,7 @@ static int da8xx_musb_init(struct musb *musb)
+ 		goto fail;
+ 
+ 	usb_nop_xceiv_register();
+-	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
++	musb->xceiv = usb_get_phy(musb->controller, 0);
+ 	if (IS_ERR_OR_NULL(musb->xceiv))
+ 		goto fail;
+ 
+diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
+index b1c01ca..66aa3f0 100644
+--- a/drivers/usb/musb/davinci.c
++++ b/drivers/usb/musb/davinci.c
+@@ -382,7 +382,7 @@ static int davinci_musb_init(struct musb *musb)
+ 	u32		revision;
+ 
+ 	usb_nop_xceiv_register();
+-	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
++	musb->xceiv = usb_get_phy(musb->controller, 0);
+ 	if (IS_ERR_OR_NULL(musb->xceiv))
+ 		goto unregister;
+ 
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index f7d764d..278ab08 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -417,7 +417,7 @@ static int dsps_musb_init(struct musb *musb)
+ 
+ 	/* NOP driver needs change if supporting dual instance */
+ 	usb_nop_xceiv_register();
+-	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
++	musb->xceiv = usb_get_phy(dev, 0);
+ 	if (IS_ERR_OR_NULL(musb->xceiv))
+ 		return -ENODEV;
+ 
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 3e7ceef..3628a50 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -346,7 +346,7 @@ static int omap2430_musb_init(struct musb *musb)
+ 	 * up through ULPI.  TWL4030-family PMICs include one,
+ 	 * which needs a driver, drivers aren't always needed.
+ 	 */
+-	musb->xceiv = devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
++	musb->xceiv = devm_usb_get_phy(dev, 0);
+ 	if (IS_ERR_OR_NULL(musb->xceiv)) {
+ 		pr_err("HS USB OTG: no transceiver configured\n");
+ 		return -ENODEV;
+diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
+index 3969813..02338f6 100644
+--- a/drivers/usb/musb/tusb6010.c
++++ b/drivers/usb/musb/tusb6010.c
+@@ -1067,7 +1067,7 @@ static int tusb_musb_init(struct musb *musb)
+ 	int			ret;
+ 
+ 	usb_nop_xceiv_register();
+-	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
++	musb->xceiv = usb_get_phy(musb->controller, 0);
+ 	if (IS_ERR_OR_NULL(musb->xceiv))
+ 		return -ENODEV;
+ 
+diff --git a/drivers/usb/musb/ux500.c b/drivers/usb/musb/ux500.c
+index a27ca1a..5affcf7 100644
+--- a/drivers/usb/musb/ux500.c
++++ b/drivers/usb/musb/ux500.c
+@@ -58,7 +58,7 @@ static irqreturn_t ux500_musb_interrupt(int irq, void *__hci)
+ 
+ static int ux500_musb_init(struct musb *musb)
+ {
+-	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
++	musb->xceiv = usb_get_phy(musb->controller, 0);
+ 	if (IS_ERR_OR_NULL(musb->xceiv)) {
+ 		pr_err("HS USB OTG: no transceiver configured\n");
+ 		return -ENODEV;
+diff --git a/drivers/usb/otg/ab8500-usb.c b/drivers/usb/otg/ab8500-usb.c
+index 2d86f26..07aeb8c 100644
+--- a/drivers/usb/otg/ab8500-usb.c
++++ b/drivers/usb/otg/ab8500-usb.c
+@@ -502,6 +502,7 @@ static int ab8500_usb_probe(struct platform_device *pdev)
+ 	ab->phy.set_suspend	= ab8500_usb_set_suspend;
+ 	ab->phy.set_power	= ab8500_usb_set_power;
+ 	ab->phy.state		= OTG_STATE_UNDEFINED;
++	ab->phy.type		= USB_PHY_TYPE_USB2;
+ 
+ 	otg->phy		= &ab->phy;
+ 	otg->set_host		= ab8500_usb_set_host;
+@@ -529,7 +530,7 @@ static int ab8500_usb_probe(struct platform_device *pdev)
+ 	if (err < 0)
+ 		goto fail0;
+ 
+-	err = usb_add_phy(&ab->phy, USB_PHY_TYPE_USB2);
++	err = usb_add_phy(&ab->phy);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "Can't register transceiver\n");
+ 		goto fail1;
+diff --git a/drivers/usb/otg/fsl_otg.c b/drivers/usb/otg/fsl_otg.c
+index d16adb4..ae6d3f5 100644
+--- a/drivers/usb/otg/fsl_otg.c
++++ b/drivers/usb/otg/fsl_otg.c
+@@ -810,6 +810,7 @@ static int fsl_otg_conf(struct platform_device *pdev)
+ 	/* initialize the otg structure */
+ 	fsl_otg_tc->phy.label = DRIVER_DESC;
+ 	fsl_otg_tc->phy.set_power = fsl_otg_set_power;
++	fsl_otg_tc->phy.type = USB_PHY_TYPE_USB2;
+ 
+ 	fsl_otg_tc->phy.otg->phy = &fsl_otg_tc->phy;
+ 	fsl_otg_tc->phy.otg->set_host = fsl_otg_set_host;
+@@ -820,7 +821,7 @@ static int fsl_otg_conf(struct platform_device *pdev)
+ 	fsl_otg_dev = fsl_otg_tc;
+ 
+ 	/* Store the otg transceiver */
+-	status = usb_add_phy(&fsl_otg_tc->phy, USB_PHY_TYPE_USB2);
++	status = usb_add_phy(&fsl_otg_tc->phy);
+ 	if (status) {
+ 		pr_warn(FSL_OTG_NAME ": unable to register OTG transceiver.\n");
+ 		goto err;
+@@ -838,7 +839,7 @@ err:
+ int usb_otg_start(struct platform_device *pdev)
+ {
+ 	struct fsl_otg *p_otg;
+-	struct usb_phy *otg_trans = usb_get_phy(USB_PHY_TYPE_USB2);
++	struct usb_phy *otg_trans = usb_get_phy(&pdev->dev, 0);
+ 	struct otg_fsm *fsm;
+ 	int status;
+ 	struct resource *res;
+diff --git a/drivers/usb/otg/gpio_vbus.c b/drivers/usb/otg/gpio_vbus.c
+index a67ffe2..815e8dc 100644
+--- a/drivers/usb/otg/gpio_vbus.c
++++ b/drivers/usb/otg/gpio_vbus.c
+@@ -264,6 +264,7 @@ static int __init gpio_vbus_probe(struct platform_device *pdev)
+ 	gpio_vbus->phy.set_power = gpio_vbus_set_power;
+ 	gpio_vbus->phy.set_suspend = gpio_vbus_set_suspend;
+ 	gpio_vbus->phy.state = OTG_STATE_UNDEFINED;
++	gpio_vbus->phy.type = USB_PHY_TYPE_USB2;
+ 
+ 	gpio_vbus->phy.otg->phy = &gpio_vbus->phy;
+ 	gpio_vbus->phy.otg->set_peripheral = gpio_vbus_set_peripheral;
+@@ -320,7 +321,7 @@ static int __init gpio_vbus_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	/* only active when a gadget is registered */
+-	err = usb_add_phy(&gpio_vbus->phy, USB_PHY_TYPE_USB2);
++	err = usb_add_phy(&gpio_vbus->phy);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "can't register transceiver, err: %d\n",
+ 			err);
+diff --git a/drivers/usb/otg/isp1301_omap.c b/drivers/usb/otg/isp1301_omap.c
+index af9cb11..c85b309 100644
+--- a/drivers/usb/otg/isp1301_omap.c
++++ b/drivers/usb/otg/isp1301_omap.c
+@@ -1587,6 +1587,7 @@ isp1301_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
+ 	isp->phy.dev = &i2c->dev;
+ 	isp->phy.label = DRIVER_NAME;
+ 	isp->phy.set_power = isp1301_set_power,
++	isp->phy.type = USB_PHY_TYPE_USB2,
+ 
+ 	isp->phy.otg->phy = &isp->phy;
+ 	isp->phy.otg->set_host = isp1301_set_host,
+@@ -1610,7 +1611,7 @@ isp1301_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
+ 	dev_dbg(&i2c->dev, "scheduled timer, %d min\n", TIMER_MINUTES);
+ #endif
+ 
+-	status = usb_add_phy(&isp->phy, USB_PHY_TYPE_USB2);
++	status = usb_add_phy(&isp->phy);
+ 	if (status < 0)
+ 		dev_err(&i2c->dev, "can't register transceiver, %d\n",
+ 			status);
+diff --git a/drivers/usb/otg/msm_otg.c b/drivers/usb/otg/msm_otg.c
+index 3b9f0d9..5376d84 100644
+--- a/drivers/usb/otg/msm_otg.c
++++ b/drivers/usb/otg/msm_otg.c
+@@ -1548,6 +1548,7 @@ static int __init msm_otg_probe(struct platform_device *pdev)
+ 
+ 	phy->init = msm_otg_reset;
+ 	phy->set_power = msm_otg_set_power;
++	phy->phy_type = USB_PHY_TYPE_USB2;
+ 
+ 	phy->io_ops = &msm_otg_io_ops;
+ 
+@@ -1555,7 +1556,7 @@ static int __init msm_otg_probe(struct platform_device *pdev)
+ 	phy->otg->set_host = msm_otg_set_host;
+ 	phy->otg->set_peripheral = msm_otg_set_peripheral;
+ 
+-	ret = usb_add_phy(&motg->phy, USB_PHY_TYPE_USB2);
++	ret = usb_add_phy(&motg->phy);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "usb_add_phy failed\n");
+ 		goto free_irq;
+diff --git a/drivers/usb/otg/mv_otg.c b/drivers/usb/otg/mv_otg.c
+index eace975..503df14 100644
+--- a/drivers/usb/otg/mv_otg.c
++++ b/drivers/usb/otg/mv_otg.c
+@@ -755,6 +755,7 @@ static int mv_otg_probe(struct platform_device *pdev)
+ 	mvotg->phy.otg = otg;
+ 	mvotg->phy.label = driver_name;
+ 	mvotg->phy.state = OTG_STATE_UNDEFINED;
++	mvotg->phy.type = USB_PHY_TYPE_USB2;
+ 
+ 	otg->phy = &mvotg->phy;
+ 	otg->set_host = mv_otg_set_host;
+@@ -853,7 +854,7 @@ static int mv_otg_probe(struct platform_device *pdev)
+ 		goto err_disable_clk;
+ 	}
+ 
+-	retval = usb_add_phy(&mvotg->phy, USB_PHY_TYPE_USB2);
++	retval = usb_add_phy(&mvotg->phy);
+ 	if (retval < 0) {
+ 		dev_err(&pdev->dev, "can't register transceiver, %d\n",
+ 			retval);
+diff --git a/drivers/usb/otg/nop-usb-xceiv.c b/drivers/usb/otg/nop-usb-xceiv.c
+index a3ce24b..d8d72f6 100644
+--- a/drivers/usb/otg/nop-usb-xceiv.c
++++ b/drivers/usb/otg/nop-usb-xceiv.c
+@@ -118,12 +118,13 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+ 	nop->phy.label		= "nop-xceiv";
+ 	nop->phy.set_suspend	= nop_set_suspend;
+ 	nop->phy.state		= OTG_STATE_UNDEFINED;
++	nop->phy.type		= type;
+ 
+ 	nop->phy.otg->phy		= &nop->phy;
+ 	nop->phy.otg->set_host		= nop_set_host;
+ 	nop->phy.otg->set_peripheral	= nop_set_peripheral;
+ 
+-	err = usb_add_phy(&nop->phy, type);
++	err = usb_add_phy(&nop->phy);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "can't register transceiver, err: %d\n",
+ 			err);
+diff --git a/drivers/usb/otg/otg.c b/drivers/usb/otg/otg.c
+index 492ba2f..dbf2043 100644
+--- a/drivers/usb/otg/otg.c
++++ b/drivers/usb/otg/otg.c
+@@ -21,16 +21,14 @@ static LIST_HEAD(phy_list);
+ static LIST_HEAD(phy_bind_list);
+ static DEFINE_SPINLOCK(phy_lock);
+ 
+-static struct usb_phy *__usb_find_phy(struct list_head *list,
+-	enum usb_phy_type type)
++static struct usb_phy *__usb_find_phy(struct device *dev, u8 index)
+ {
+-	struct usb_phy  *phy = NULL;
++	struct usb_phy_bind *phy_bind = NULL;
+ 
+-	list_for_each_entry(phy, list, head) {
+-		if (phy->type != type)
+-			continue;
+-
+-		return phy;
++	list_for_each_entry(phy_bind, &phy_bind_list, list) {
++		if (!(strcmp(phy_bind->dev_name, dev_name(dev))) &&
++				phy_bind->index == index)
++			return phy_bind->phy;
+ 	}
+ 
+ 	return ERR_PTR(-ENODEV);
+@@ -51,7 +49,7 @@ static int devm_usb_phy_match(struct device *dev, void *res, void *match_data)
+ /**
+  * devm_usb_get_phy - find the USB PHY
+  * @dev - device that requests this phy
+- * @type - the type of the phy the controller requires
++ * @index - the index of the phy
+  *
+  * Gets the phy using usb_get_phy(), and associates a device with it using
+  * devres. On driver detach, release function is invoked on the devres data,
+@@ -59,7 +57,7 @@ static int devm_usb_phy_match(struct device *dev, void *res, void *match_data)
+  *
+  * For use by USB host and peripheral drivers.
+  */
+-struct usb_phy *devm_usb_get_phy(struct device *dev, enum usb_phy_type type)
++struct usb_phy *devm_usb_get_phy(struct device *dev, u8 index)
+ {
+ 	struct usb_phy **ptr, *phy;
+ 
+@@ -67,7 +65,7 @@ struct usb_phy *devm_usb_get_phy(struct device *dev, enum usb_phy_type type)
+ 	if (!ptr)
+ 		return NULL;
+ 
+-	phy = usb_get_phy(type);
++	phy = usb_get_phy(dev, index);
+ 	if (!IS_ERR(phy)) {
+ 		*ptr = phy;
+ 		devres_add(dev, ptr);
+@@ -80,7 +78,8 @@ EXPORT_SYMBOL(devm_usb_get_phy);
+ 
+ /**
+  * usb_get_phy - find the USB PHY
+- * @type - the type of the phy the controller requires
++ * @dev - device that requests this phy
++ * @index - the index of the phy
+  *
+  * Returns the phy driver, after getting a refcount to it; or
+  * -ENODEV if there is no such phy.  The caller is responsible for
+@@ -88,17 +87,16 @@ EXPORT_SYMBOL(devm_usb_get_phy);
+  *
+  * For use by USB host and peripheral drivers.
+  */
+-struct usb_phy *usb_get_phy(enum usb_phy_type type)
++struct usb_phy *usb_get_phy(struct device *dev, u8 index)
+ {
+ 	struct usb_phy	*phy = NULL;
+ 	unsigned long	flags;
+ 
+ 	spin_lock_irqsave(&phy_lock, flags);
+ 
+-	phy = __usb_find_phy(&phy_list, type);
++	phy = __usb_find_phy(dev, index);
+ 	if (IS_ERR(phy)) {
+-		pr_err("unable to find transceiver of type %s\n",
+-			usb_phy_type_string(type));
++		pr_err("unable to find phy\n");
+ 		goto err0;
+ 	}
+ 
+@@ -148,40 +146,30 @@ EXPORT_SYMBOL(usb_put_phy);
+ /**
+  * usb_add_phy - declare the USB PHY
+  * @x: the USB phy to be used; or NULL
+- * @type - the type of this PHY
+  *
+  * This call is exclusively for use by phy drivers, which
+  * coordinate the activities of drivers for host and peripheral
+  * controllers, and in some cases for VBUS current regulation.
+  */
+-int usb_add_phy(struct usb_phy *x, enum usb_phy_type type)
++int usb_add_phy(struct usb_phy *x)
+ {
+-	int		ret = 0;
+-	unsigned long	flags;
+-	struct usb_phy	*phy;
++	struct usb_phy_bind *phy_bind;
++	unsigned long flags;
+ 
+-	if (x->type != USB_PHY_TYPE_UNDEFINED) {
+-		dev_err(x->dev, "not accepting initialized PHY %s\n", x->label);
++	if (!x->dev) {
++		dev_err(x->dev, "no device provided for PHY\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	spin_lock_irqsave(&phy_lock, flags);
++	list_for_each_entry(phy_bind, &phy_bind_list, list)
++		if (!(strcmp(phy_bind->phy_dev_name, dev_name(x->dev))))
++			phy_bind->phy = x;
+ 
+-	list_for_each_entry(phy, &phy_list, head) {
+-		if (phy->type == type) {
+-			ret = -EBUSY;
+-			dev_err(x->dev, "transceiver type %s already exists\n",
+-						usb_phy_type_string(type));
+-			goto out;
+-		}
+-	}
+-
+-	x->type = type;
+ 	list_add_tail(&x->head, &phy_list);
+-
+-out:
+ 	spin_unlock_irqrestore(&phy_lock, flags);
+-	return ret;
++
++	return 0;
+ }
+ EXPORT_SYMBOL(usb_add_phy);
+ 
+@@ -194,10 +182,15 @@ EXPORT_SYMBOL(usb_add_phy);
+ void usb_remove_phy(struct usb_phy *x)
+ {
+ 	unsigned long	flags;
++	struct usb_phy_bind *phy_bind;
+ 
+ 	spin_lock_irqsave(&phy_lock, flags);
+-	if (x)
++	if (x) {
++		list_for_each_entry(phy_bind, &phy_bind_list, list)
++			if (phy_bind->phy == x)
++				phy_bind->phy = NULL;
+ 		list_del(&x->head);
++	}
+ 	spin_unlock_irqrestore(&phy_lock, flags);
+ }
+ EXPORT_SYMBOL(usb_remove_phy);
+diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+index 0a70193..f6bdd75 100644
+--- a/drivers/usb/otg/twl4030-usb.c
++++ b/drivers/usb/otg/twl4030-usb.c
+@@ -611,6 +611,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+ 	twl->phy.label		= "twl4030";
+ 	twl->phy.otg		= otg;
+ 	twl->phy.set_suspend	= twl4030_set_suspend;
++	twl->phy.type		= USB_PHY_TYPE_USB2;
+ 
+ 	otg->phy		= &twl->phy;
+ 	otg->set_host		= twl4030_set_host;
+@@ -624,7 +625,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "ldo init failed\n");
+ 		return err;
+ 	}
+-	usb_add_phy(&twl->phy, USB_PHY_TYPE_USB2);
++	usb_add_phy(&twl->phy);
+ 
+ 	platform_set_drvdata(pdev, twl);
+ 	if (device_create_file(&pdev->dev, &dev_attr_vbus))
+diff --git a/drivers/usb/phy/mv_u3d_phy.c b/drivers/usb/phy/mv_u3d_phy.c
+index eaddbe3..31a19a3 100644
+--- a/drivers/usb/phy/mv_u3d_phy.c
++++ b/drivers/usb/phy/mv_u3d_phy.c
+@@ -298,10 +298,11 @@ static int mv_u3d_phy_probe(struct platform_device *pdev)
+ 	mv_u3d_phy->base		= phy_base;
+ 	mv_u3d_phy->phy.dev		= mv_u3d_phy->dev;
+ 	mv_u3d_phy->phy.label		= "mv-u3d-phy";
++	mv_u3d_phy->phy.type		= USB_PHY_TYPE_USB3;
+ 	mv_u3d_phy->phy.init		= mv_u3d_phy_init;
+ 	mv_u3d_phy->phy.shutdown	= mv_u3d_phy_shutdown;
+ 
+-	ret = usb_add_phy(&mv_u3d_phy->phy, USB_PHY_TYPE_USB3);
++	ret = usb_add_phy(&mv_u3d_phy->phy);
+ 	if (ret)
+ 		goto err;
+ 
+diff --git a/drivers/usb/phy/omap-usb2.c b/drivers/usb/phy/omap-usb2.c
+index 2152ce4..0e7636f 100644
+--- a/drivers/usb/phy/omap-usb2.c
++++ b/drivers/usb/phy/omap-usb2.c
+@@ -29,6 +29,7 @@
+ #include <linux/delay.h>
+ #include <linux/usb/omap_control_usb.h>
+ 
++static struct omap_usb	*phy;
+ /**
+  * omap_usb2_set_comparator - links the comparator present in the sytem with
+  *	this phy
+@@ -41,13 +42,9 @@
+  */
+ int omap_usb2_set_comparator(struct phy_companion *comparator)
+ {
+-	struct omap_usb	*phy;
+-	struct usb_phy	*x = usb_get_phy(USB_PHY_TYPE_USB2);
+-
+-	if (IS_ERR(x))
++	if (!phy)
+ 		return -ENODEV;
+ 
+-	phy = phy_to_omapusb(x);
+ 	phy->comparator = comparator;
+ 	return 0;
+ }
+@@ -121,7 +118,6 @@ static int omap_usb2_suspend(struct usb_phy *x, int suspend)
+ 
+ static int omap_usb2_probe(struct platform_device *pdev)
+ {
+-	struct omap_usb			*phy;
+ 	struct usb_otg			*otg;
+ 	struct resource			*res;
+ 
+@@ -141,6 +137,7 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 
+ 	phy->phy.dev		= phy->dev;
+ 	phy->phy.label		= "omap-usb2";
++	phy->phy.type		= USB_PHY_TYPE_USB2;
+ 	phy->phy.set_suspend	= omap_usb2_suspend;
+ 	phy->phy.otg		= otg;
+ 
+@@ -168,7 +165,7 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 	}
+ 	clk_prepare(phy->wkupclk);
+ 
+-	usb_add_phy(&phy->phy, USB_PHY_TYPE_USB2);
++	usb_add_phy(&phy->phy);
+ 
+ 	platform_set_drvdata(pdev, phy);
+ 
+diff --git a/drivers/usb/phy/rcar-phy.c b/drivers/usb/phy/rcar-phy.c
+index a35681b..bd00fd9 100644
+--- a/drivers/usb/phy/rcar-phy.c
++++ b/drivers/usb/phy/rcar-phy.c
+@@ -181,11 +181,12 @@ static int rcar_usb_phy_probe(struct platform_device *pdev)
+ 	priv->counter		= 0;
+ 	priv->phy.dev		= dev;
+ 	priv->phy.label		= dev_name(dev);
++	priv->phy.type		= USB_PHY_TYPE_USB2;
+ 	priv->phy.init		= rcar_usb_phy_init;
+ 	priv->phy.shutdown	= rcar_usb_phy_shutdown;
+ 	spin_lock_init(&priv->lock);
+ 
+-	ret = usb_add_phy(&priv->phy, USB_PHY_TYPE_USB2);
++	ret = usb_add_phy(&priv->phy);
+ 	if (ret < 0) {
+ 		dev_err(dev, "usb phy addition error\n");
+ 		return ret;
+diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
+index fbeab1a..d133c8b 100644
+--- a/include/linux/usb/phy.h
++++ b/include/linux/usb/phy.h
+@@ -123,7 +123,7 @@ struct usb_phy_bind {
+ };
+ 
+ /* for board-specific init logic */
+-extern int usb_add_phy(struct usb_phy *, enum usb_phy_type type);
++extern int usb_add_phy(struct usb_phy *);
+ extern void usb_remove_phy(struct usb_phy *);
+ 
+ /* helpers for direct access thru low-level io interface */
+@@ -161,21 +161,19 @@ usb_phy_shutdown(struct usb_phy *x)
+ 
+ /* for usb host and peripheral controller drivers */
+ #ifdef CONFIG_USB_OTG_UTILS
+-extern struct usb_phy *usb_get_phy(enum usb_phy_type type);
+-extern struct usb_phy *devm_usb_get_phy(struct device *dev,
+-	enum usb_phy_type type);
++extern struct usb_phy *usb_get_phy(struct device *dev, u8 index);
++extern struct usb_phy *devm_usb_get_phy(struct device *dev, u8 index);
+ extern void usb_put_phy(struct usb_phy *);
+ extern void devm_usb_put_phy(struct device *dev, struct usb_phy *x);
+ extern struct usb_phy_bind *usb_bind_phy(const char *dev_name, u8 index,
+ 				const char *phy_dev_name);
+ #else
+-static inline struct usb_phy *usb_get_phy(enum usb_phy_type type)
++static inline struct usb_phy *usb_get_phy(struct device *dev, u8 index)
+ {
+ 	return NULL;
+ }
+ 
+-static inline struct usb_phy *devm_usb_get_phy(struct device *dev,
+-	enum usb_phy_type type)
++static inline struct usb_phy *devm_usb_get_phy(struct device *dev, u8 index)
+ {
+ 	return NULL;
+ }
+-- 
+1.7.7.6
+

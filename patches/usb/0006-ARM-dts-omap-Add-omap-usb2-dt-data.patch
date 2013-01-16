@@ -1,0 +1,33 @@
+From 5e4e8926ee206085e6cbf755ba13eaddbce5c327 Mon Sep 17 00:00:00 2001
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Date: Tue, 15 Jan 2013 08:42:57 +0000
+Subject: [PATCH 06/13] ARM: dts: omap: Add omap-usb2 dt data
+
+Add omap-usb2 data node in omap4 device tree file. Since omap-usb2 is
+connected to ocp2scp, omap-usb2 dt data is added as a child node
+of ocp2scp.
+
+Acked-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/boot/dts/omap4.dtsi |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 7bbf1fb..b7e2ba3 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -438,6 +438,10 @@
+ 			#size-cells = <1>;
+ 			ranges;
+ 			ti,hwmods = "ocp2scp_usb_phy";
++			usb2phy@4a0ad080 {
++				compatible = "ti,omap-usb2";
++				reg = <0x4a0ad080 0x58>;
++			};
+ 		};
+ 
+ 		timer1: timer@4a318000 {
+-- 
+1.7.7.6
+
