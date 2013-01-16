@@ -1,4 +1,4 @@
-From dfeaf5742bfc6376c3b3da1c8299228395acced1 Mon Sep 17 00:00:00 2001
+From 01fa6a44ccfe38c64d67f28861b4afbecb3ebdd3 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Sat, 15 Sep 2012 14:49:11 +0300
 Subject: [PATCH 3/4] am33xx: Convert I2C from omap to am33xx names
@@ -14,10 +14,10 @@ Use am33xx naming everywhere, beside the hwmod name.
  3 files changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 00d0eb5..57600b5 100644
+index d093a48..2162099 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -64,7 +64,7 @@
+@@ -66,7 +66,7 @@
  				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
  			>;
  		};
@@ -26,7 +26,7 @@ index 00d0eb5..57600b5 100644
  			pinctrl-single,pins = <
  				0x178 0x73 	/* uart1_ctsn.i2c2_sda, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
  				0x17c 0x73	/* uart1_rtsn.i2c2_scl, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
-@@ -151,7 +151,7 @@
+@@ -155,7 +155,7 @@
  	};
  };
  
@@ -35,7 +35,7 @@ index 00d0eb5..57600b5 100644
  	status = "okay";
  	clock-frequency = <400000>;
  
-@@ -166,10 +166,10 @@
+@@ -170,10 +170,10 @@
         
  };
  
@@ -49,10 +49,10 @@ index 00d0eb5..57600b5 100644
  	clock-frequency = <100000>;
  
 diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 70ac496..2083dfa 100644
+index 0dda333..cd799dc 100644
 --- a/arch/arm/boot/dts/am335x-evm.dts
 +++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -51,7 +51,7 @@
+@@ -61,7 +61,7 @@
  			status = "okay";
  		};
  
@@ -62,10 +62,10 @@ index 70ac496..2083dfa 100644
  			clock-frequency = <400000>;
  
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index ee7a8ca..0f53366 100644
+index 9059cfc..57e2a83 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -220,31 +220,31 @@
+@@ -209,31 +209,31 @@
  			status = "disabled";
  		};
  

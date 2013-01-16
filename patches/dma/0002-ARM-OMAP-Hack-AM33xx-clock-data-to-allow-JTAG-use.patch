@@ -1,0 +1,29 @@
+From ac582e0dbe6a66750e359e695cdb78a40d5e4271 Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Mon, 7 Jan 2013 11:55:00 -0500
+Subject: [PATCH 02/36] ARM: OMAP: Hack AM33xx clock data to allow JTAG use
+
+The debugss interface clock must remain enabled at init
+in order to prevent an attached JTAG probe from hanging.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ arch/arm/mach-omap2/cclock33xx_data.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
+index ea64ad6..a09d6d7 100644
+--- a/arch/arm/mach-omap2/cclock33xx_data.c
++++ b/arch/arm/mach-omap2/cclock33xx_data.c
+@@ -428,7 +428,7 @@ DEFINE_STRUCT_CLK(smartreflex1_fck, dpll_core_ck_parents, clk_ops_null);
+  *     - usbotg_fck (its additional clock and not really a modulemode)
+  *     - ieee5000
+  */
+-DEFINE_CLK_GATE(debugss_ick, "dpll_core_m4_ck", &dpll_core_m4_ck, 0x0,
++DEFINE_CLK_GATE(debugss_ick, "dpll_core_m4_ck", &dpll_core_m4_ck, ENABLE_ON_INIT,
+ 		AM33XX_CM_WKUP_DEBUGSS_CLKCTRL, AM33XX_MODULEMODE_SWCTRL_SHIFT,
+ 		0x0, NULL);
+ 
+-- 
+1.7.7.6
+

@@ -1,0 +1,48 @@
+From 97f42d15305195ce50d06e4672a3b39fbef46343 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Tue, 8 Jan 2013 13:35:02 +0200
+Subject: [PATCH 18/93] omap: DT node Timer iteration fix
+
+The iterator correctly handles of_node_put() calls.
+Remove it before continue'ing the loop.
+Without this patch you get:
+
+ERROR: Bad of_node_put() on /ocp/timer@44e31000!
+[<c001329c>] (unwind_backtrace+0x0/0xe0) from [<c03dd8f0>] (of_node_release+0x2c/0xa0)!
+[<c03dd8f0>] (of_node_release+0x2c/0xa0) from [<c03ddea0>] (of_find_matching_node_and_match+0x78/0x90)!
+[<c03ddea0>] (of_find_matching_node_and_match+0x78/0x90) from [<c06d349c>] (omap_get_timer_dt+0x78/0x90)!
+[<c06d349c>] (omap_get_timer_dt+0x78/0x90) from [<c06d3664>] (omap_dm_timer_init_one.clone.2+0x34/0x2bc)!
+[<c06d3664>] (omap_dm_timer_init_one.clone.2+0x34/0x2bc) from [<c06d3a2c>] (omap2_gptimer_clocksource_init.clone.4+0x24/0xa8)!
+[<c06d3a2c>] (omap2_gptimer_clocksource_init.clone.4+0x24/0xa8) from [<c06cca58>] (time_init+0x20/0x30)!
+[<c06cca58>] (time_init+0x20/0x30) from [<c06c9690>] (start_kernel+0x1a8/0x2fc)!
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/mach-omap2/timer.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 691aa67..b8ad6e6 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -165,15 +165,11 @@ static struct device_node * __init omap_get_timer_dt(struct of_device_id *match,
+ 	struct device_node *np;
+ 
+ 	for_each_matching_node(np, match) {
+-		if (!of_device_is_available(np)) {
+-			of_node_put(np);
++		if (!of_device_is_available(np))
+ 			continue;
+-		}
+ 
+-		if (property && !of_get_property(np, property, NULL)) {
+-			of_node_put(np);
++		if (property && !of_get_property(np, property, NULL))
+ 			continue;
+-		}
+ 
+ 		of_add_property(np, &device_disabled);
+ 		return np;
+-- 
+1.7.7.6
+

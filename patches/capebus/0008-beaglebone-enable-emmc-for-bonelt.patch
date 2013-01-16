@@ -1,0 +1,52 @@
+From 04af1cfc61354006e5459f913bc6cce2e6afc472 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Wed, 24 Oct 2012 11:47:13 +0200
+Subject: [PATCH 08/12] beaglebone: enable emmc for bonelt
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi |    1 +
+ arch/arm/boot/dts/am335x-bonelt.dts       |   15 +++++++++++++++
+ 2 files changed, 16 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index bc86bea..b22300a 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -112,6 +112,7 @@
+ 				label = "beaglebone:green:usr3";
+ 				gpios = <&gpio2 24 0>;
+ 				default-state = "off";
++				linux,default-trigger = "mmc1";
+ 			};
+ 		};
+ 
+diff --git a/arch/arm/boot/dts/am335x-bonelt.dts b/arch/arm/boot/dts/am335x-bonelt.dts
+index cdc3dd0..6cb2a51 100644
+--- a/arch/arm/boot/dts/am335x-bonelt.dts
++++ b/arch/arm/boot/dts/am335x-bonelt.dts
+@@ -11,6 +11,21 @@
+ 
+ /include/ "am335x-bone-common.dtsi"
+ 
++&userled_pins {
++	pinctrl-single,pins = <
++		0x54 0x7	/* gpmc_a5.gpio1_21, OUTPUT | MODE7 */
++		0x58 0x17	/* gpmc_a6.gpio1_22, OUTPUT_PULLUP | MODE7 */
++		0x5c 0x7	/* gpmc_a7.gpio1_23, OUTPUT | MODE7 */
++		0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
++		0x00c 0x31 /* P8_6 gpmc_ad3.mmc1_dat1 PIN_INPUT_PULLUP | OMAP_MUX_MODE1 */
++		0x008 0x31 /* P8_5 gpmc_ad2.mmc1_dat2 PIN_INPUT_PULLUP | OMAP_MUX_MODE1 */
++		0x004 0x31 /* P8_24 gpmc_ad1.mmc1_dat1 PIN_INPUT_PULLUP | OMAP_MUX_MODE1 */
++		0x000 0x31 /* P8_25 gpmc_ad0.mmc1_dat0 PIN_INPUT_PULLUP | OMAP_MUX_MODE1 */
++		0x084 0x32 /* P8_20 gpmc_csn2.mmc1_cmd OMAP_MUX_MODE2 | AM33XX_PIN_INPUT_PULLUP} */
++		0x080 0x32 /* P8_21 gpmc_csn1.immc1_clk OMAP_MUX_MODE2 | AM33XX_PIN_INPUT_PULLUP} */
++	>;
++};
++
+ &mmc2 {
+ 	vmmc-supply = <&ldo3_reg>;
+ 	bus-width = <4>;
+-- 
+1.7.7.6
+

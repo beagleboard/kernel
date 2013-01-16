@@ -1,0 +1,33 @@
+From e10007b746b2a45796694f1ad1d0726ee124e465 Mon Sep 17 00:00:00 2001
+From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Date: Mon, 26 Sep 2011 18:16:19 +0530
+Subject: [PATCH 78/93] ASoC: Davinci: McASP: remove unused header include
+
+Defines or parameters from <mach/mux.h> isn't used anywhere. Hence
+remove the header include.
+
+Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
+
+Conflicts:
+	sound/soc/davinci/davinci-evm.c
+---
+ sound/soc/davinci/davinci-evm.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/davinci/davinci-evm.c
+index a39dbee..d0fad7e 100644
+--- a/sound/soc/davinci/davinci-evm.c
++++ b/sound/soc/davinci/davinci-evm.c
+@@ -24,6 +24,9 @@
+ #include <asm/dma.h>
+ #include <asm/mach-types.h>
+ 
++#include <mach/asp.h>
++#include <mach/edma.h>
++
+ #include "davinci-pcm.h"
+ #include "davinci-i2s.h"
+ #include "davinci-mcasp.h"
+-- 
+1.7.7.6
+

@@ -1,0 +1,148 @@
+From b72f1cc79cf68e079097ce30d91109912e667bfe Mon Sep 17 00:00:00 2001
+From: Rob Clark <robdclark@gmail.com>
+Date: Mon, 10 Dec 2012 10:46:43 -0600
+Subject: [PATCH 01/93] drm/cma: add debugfs helpers
+
+Add helper to display fb's which can be used directly in drm_info_list:
+
+static struct drm_info_list foo_debugfs_list[] = {
+		...
+		{ "fb",   drm_fb_cma_debugfs_show, 0 },
+};
+
+to display information about CMA fb objects, as well as a
+drm_gem_cma_describe() which can be used if the driver bothers to keep
+a list of CMA GEM objects.
+
+Signed-off-by: Rob Clark <robdclark@gmail.com>
+---
+ drivers/gpu/drm/drm_fb_cma_helper.c  |   53 ++++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/drm_gem_cma_helper.c |   21 +++++++++++++
+ include/drm/drm_fb_cma_helper.h      |    5 +++
+ include/drm/drm_gem_cma_helper.h     |    4 ++
+ 4 files changed, 83 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/gpu/drm/drm_fb_cma_helper.c b/drivers/gpu/drm/drm_fb_cma_helper.c
+index fd9d0af..18866ee 100644
+--- a/drivers/gpu/drm/drm_fb_cma_helper.c
++++ b/drivers/gpu/drm/drm_fb_cma_helper.c
+@@ -180,6 +180,59 @@ struct drm_gem_cma_object *drm_fb_cma_get_gem_obj(struct drm_framebuffer *fb,
+ }
+ EXPORT_SYMBOL_GPL(drm_fb_cma_get_gem_obj);
+ 
++#ifdef CONFIG_DEBUG_FS
++/**
++ * drm_fb_cma_describe() - Helper to dump information about a single
++ * CMA framebuffer object
++ */
++void drm_fb_cma_describe(struct drm_framebuffer *fb, struct seq_file *m)
++{
++	struct drm_fb_cma *fb_cma = to_fb_cma(fb);
++	int i, n = drm_format_num_planes(fb->pixel_format);
++
++	seq_printf(m, "fb: %dx%d@%4.4s\n", fb->width, fb->height,
++			(char *)&fb->pixel_format);
++
++	for (i = 0; i < n; i++) {
++		seq_printf(m, "   %d: offset=%d pitch=%d, obj: ",
++				i, fb->offsets[i], fb->pitches[i]);
++		drm_gem_cma_describe(fb_cma->obj[i], m);
++	}
++}
++EXPORT_SYMBOL_GPL(drm_fb_cma_describe);
++
++/**
++ * drm_fb_cma_debugfs_show() - Helper to list CMA framebuffer objects
++ * in debugfs.
++ */
++int drm_fb_cma_debugfs_show(struct seq_file *m, void *arg)
++{
++	struct drm_info_node *node = (struct drm_info_node *) m->private;
++	struct drm_device *dev = node->minor->dev;
++	struct drm_framebuffer *fb;
++	int ret;
++
++	ret = mutex_lock_interruptible(&dev->mode_config.mutex);
++	if (ret)
++		return ret;
++
++	ret = mutex_lock_interruptible(&dev->struct_mutex);
++	if (ret) {
++		mutex_unlock(&dev->mode_config.mutex);
++		return ret;
++	}
++
++	list_for_each_entry(fb, &dev->mode_config.fb_list, head)
++		drm_fb_cma_describe(fb, m);
++
++	mutex_unlock(&dev->struct_mutex);
++	mutex_unlock(&dev->mode_config.mutex);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(drm_fb_cma_debugfs_show);
++#endif
++
+ static struct fb_ops drm_fbdev_cma_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.fb_fillrect	= sys_fillrect,
+diff --git a/drivers/gpu/drm/drm_gem_cma_helper.c b/drivers/gpu/drm/drm_gem_cma_helper.c
+index 1aa8fee..0a7e011 100644
+--- a/drivers/gpu/drm/drm_gem_cma_helper.c
++++ b/drivers/gpu/drm/drm_gem_cma_helper.c
+@@ -249,3 +249,24 @@ int drm_gem_cma_dumb_destroy(struct drm_file *file_priv,
+ 	return drm_gem_handle_delete(file_priv, handle);
+ }
+ EXPORT_SYMBOL_GPL(drm_gem_cma_dumb_destroy);
++
++#ifdef CONFIG_DEBUG_FS
++void drm_gem_cma_describe(struct drm_gem_cma_object *cma_obj, struct seq_file *m)
++{
++	struct drm_gem_object *obj = &cma_obj->base;
++	struct drm_device *dev = obj->dev;
++	uint64_t off = 0;
++
++	WARN_ON(!mutex_is_locked(&dev->struct_mutex));
++
++	if (obj->map_list.map)
++		off = (uint64_t)obj->map_list.hash.key;
++
++	seq_printf(m, "%2d (%2d) %08llx %08Zx %p %d",
++			obj->name, obj->refcount.refcount.counter,
++			off, cma_obj->paddr, cma_obj->vaddr, obj->size);
++
++	seq_printf(m, "\n");
++}
++EXPORT_SYMBOL_GPL(drm_gem_cma_describe);
++#endif
+diff --git a/include/drm/drm_fb_cma_helper.h b/include/drm/drm_fb_cma_helper.h
+index 76c7098..4a3fc24 100644
+--- a/include/drm/drm_fb_cma_helper.h
++++ b/include/drm/drm_fb_cma_helper.h
+@@ -23,5 +23,10 @@ struct drm_framebuffer *drm_fb_cma_create(struct drm_device *dev,
+ struct drm_gem_cma_object *drm_fb_cma_get_gem_obj(struct drm_framebuffer *fb,
+ 	unsigned int plane);
+ 
++#ifdef CONFIG_DEBUG_FS
++void drm_fb_cma_describe(struct drm_framebuffer *fb, struct seq_file *m);
++int drm_fb_cma_debugfs_show(struct seq_file *m, void *arg);
++#endif
++
+ #endif
+ 
+diff --git a/include/drm/drm_gem_cma_helper.h b/include/drm/drm_gem_cma_helper.h
+index f0f6b1a..63397ce 100644
+--- a/include/drm/drm_gem_cma_helper.h
++++ b/include/drm/drm_gem_cma_helper.h
+@@ -41,4 +41,8 @@ struct drm_gem_cma_object *drm_gem_cma_create(struct drm_device *drm,
+ 
+ extern const struct vm_operations_struct drm_gem_cma_vm_ops;
+ 
++#ifdef CONFIG_DEBUG_FS
++void drm_gem_cma_describe(struct drm_gem_cma_object *obj, struct seq_file *m);
++#endif
++
+ #endif /* __DRM_GEM_CMA_HELPER_H__ */
+-- 
+1.7.7.6
+

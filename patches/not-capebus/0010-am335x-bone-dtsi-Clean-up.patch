@@ -1,0 +1,141 @@
+From 22fea86f0dd0462146a7c15391de154f15ce62f6 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 14 Dec 2012 14:34:08 +0200
+Subject: [PATCH 10/93] am335x-bone-dtsi: Clean up
+
+Clean up the common dtsi.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+
+Conflicts:
+	arch/arm/boot/dts/am335x-bone-common.dtsi
+	arch/arm/boot/dts/am335x-bone.dts
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi |   80 +----------------------------
+ arch/arm/boot/dts/am335x-bone.dts         |    1 -
+ 2 files changed, 1 insertions(+), 80 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index b22300a..3d98bad 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -73,7 +73,7 @@
+ 		};
+ 	};
+ 
+-	ocp {
++	ocp: ocp {
+ 		uart1: serial@44e09000 {
+ 			status = "okay";
+ 		};
+@@ -124,35 +124,6 @@
+ 		};
+ 	};
+ 
+-	leds {
+-		compatible = "gpio-leds";
+-
+-		led@2 {
+-			label = "beaglebone:green:heartbeat";
+-			gpios = <&gpio2 21 0>;
+-			linux,default-trigger = "heartbeat";
+-			default-state = "off";
+-		};
+-
+-		led@3 {
+-			label = "beaglebone:green:mmc0";
+-			gpios = <&gpio2 22 0>;
+-			linux,default-trigger = "mmc0";
+-			default-state = "off";
+-		};
+-
+-		led@4 {
+-			label = "beaglebone:green:usr2";
+-			gpios = <&gpio2 23 0>;
+-			default-state = "off";
+-		};
+-
+-		led@5 {
+-			label = "beaglebone:green:usr3";
+-			gpios = <&gpio2 24 0>;
+-			default-state = "off";
+-		};
+-	};
+ };
+ 
+ &i2c0 {
+@@ -162,41 +133,6 @@
+ 	tps: tps@24 {
+ 		reg = <0x24>;
+ 	};
+-
+-	baseboard_eeprom: baseboard_eeprom@50 {
+-		compatible = "at,24c256";
+-		reg = <0x50>;
+-	};
+-       
+-};
+-
+-&i2c2 {
+-	status = "okay";
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&i2c2_pins>;
+-
+-	clock-frequency = <100000>;
+-
+-	/* OK, I know these are cape but for now it will do */
+-	cape_eeprom_0: cape_eeprom_0@54 {
+-		compatible = "at,24c256";
+-		reg = <0x54>;
+-	};
+-
+-	cape_eeprom_1: cape_eeprom_1@55 {
+-		compatible = "at,24c256";
+-		reg = <0x55>;
+-	};
+-
+-	cape_eeprom_2: cape_eeprom_2@56 {
+-		compatible = "at,24c256";
+-		reg = <0x56>;
+-	};
+-
+-	cape_eeprom_3: cape_eeprom_3@57 {
+-		compatible = "at,24c256";
+-		reg = <0x57>;
+-	};
+ };
+ 
+ /include/ "tps65217.dtsi"
+@@ -258,20 +194,6 @@
+ 	vmmc-supply = <&ldo3_reg>;
+ };
+ 
+-&spi1 {
+-	status = "okay";
+-
+-	lcd@0 {
+-		compatible = "adafruit,tft-lcd-1.8-green", "sitronix,st7735";
+-		spi-max-frequency = <8000000>;
+-		reg = <0>;
+-		spi-cpol;
+-		spi-cpha;
+-		st7735-rst = <&gpio4 19 0>;
+-		st7735-dc = <&gpio4 21 0>;
+-	};
+-};
+-
+ &edma {
+ 	ti,edma-xbar-event-map = <32 12>;
+ };
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 9fcc3d4..9abc1f3 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -10,4 +10,3 @@
+ /include/ "am33xx.dtsi"
+ 
+ /include/ "am335x-bone-common.dtsi"
+-
+-- 
+1.7.7.6
+

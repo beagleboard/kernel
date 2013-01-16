@@ -1,0 +1,61 @@
+From d85beb93a3f186fc46b317111b9603b0377201c9 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 14 Dec 2012 13:05:34 +0200
+Subject: [PATCH 25/93] OF: Compile Device Tree sources with resolve option
+
+If the resolve config option has been enabled compile
+the device tree sources with the appropriate flag to generate
+the required for resolution __symbols__ node.
+
+Note that both arch/arm/Makefile & arch/arm/boot/Makefile need
+the DTC_FLAGS definition, because when issuing make dtbs the
+boot Makefile doesn't seem to pick it.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/Makefile      |    6 +++++-
+ arch/arm/boot/Makefile |    4 ++++
+ 2 files changed, 9 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/Makefile b/arch/arm/Makefile
+index da4434d..e9729a4 100644
+--- a/arch/arm/Makefile
++++ b/arch/arm/Makefile
+@@ -275,6 +275,10 @@ ifeq ($(CONFIG_USE_OF),y)
+ KBUILD_DTBS := dtbs
+ endif
+ 
++ifeq ($(CONFIG_OF_RESOLVE),y)
++DTC_FLAGS += -@
++endif
++
+ all:	$(KBUILD_IMAGE) $(KBUILD_DTBS)
+ 
+ boot := arch/arm/boot
+@@ -298,7 +302,7 @@ uImage-dtb.%: scripts
+ 	$(Q)$(MAKE) $(build)=$(boot)/dts MACHINE=$(MACHINE) $(boot)/dts/$@
+ 
+ dtbs: scripts
+-	$(Q)$(MAKE) $(build)=$(boot)/dts MACHINE=$(MACHINE) dtbs
++	$(Q)$(MAKE) $(build)=$(boot)/dts MACHINE=$(MACHINE) DTC_FLAGS=$(DTC_FLAGS) dtbs
+ 
+ # We use MRPROPER_FILES and CLEAN_FILES now
+ archclean:
+diff --git a/arch/arm/boot/Makefile b/arch/arm/boot/Makefile
+index e37ebb5..bedc651 100644
+--- a/arch/arm/boot/Makefile
++++ b/arch/arm/boot/Makefile
+@@ -60,6 +60,10 @@ $(obj)/zImage-dtb.%:	$(obj)/dts/%.dtb $(obj)/zImage
+ 
+ endif
+ 
++ifeq ($(CONFIG_OF_RESOLVE),y)
++DTC_FLAGS += -@
++endif
++
+ ifneq ($(LOADADDR),)
+   UIMAGE_LOADADDR=$(LOADADDR)
+ else
+-- 
+1.7.7.6
+

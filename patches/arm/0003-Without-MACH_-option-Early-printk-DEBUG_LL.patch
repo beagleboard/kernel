@@ -1,4 +1,4 @@
-From deeb801491fb40015345d956ecf7c44ec5e0dd9d Mon Sep 17 00:00:00 2001
+From 6591f61c01a2724d41f012cf04f9d89e5b7f2172 Mon Sep 17 00:00:00 2001
 From: "hvaibhav@ti.com" <hvaibhav@ti.com>
 Date: Fri, 31 Aug 2012 16:47:12 +0000
 Subject: [PATCH 3/3] Without MACH_ option Early printk (DEBUG_LL)
@@ -87,14 +87,14 @@ Conflicts:
 
 	arch/arm/mach-omap2/Kconfig
 ---
- arch/arm/mach-omap2/Kconfig |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Kconfig |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 41b581f..a6a5525 100644
+index ce05b87..9cbbd2b 100644
 --- a/arch/arm/mach-omap2/Kconfig
 +++ b/arch/arm/mach-omap2/Kconfig
-@@ -117,6 +117,9 @@ config SOC_AM33XX
+@@ -120,6 +120,9 @@ config SOC_AM33XX
  	select CPU_V7
  	select MULTI_IRQ_HANDLER
  	select COMMON_CLK
@@ -104,22 +104,6 @@ index 41b581f..a6a5525 100644
  
  config OMAP_PACKAGE_ZAF
         bool
-@@ -153,6 +156,15 @@ config MACH_OMAP_GENERIC
- 	  Support for generic TI OMAP2+ boards using Flattened Device Tree.
- 	  More information at Documentation/devicetree
- 
-+config MACH_AM335XEVM
-+       bool
-+
-+config MACH_AM335XIAEVM
-+       bool
-+
-+config MACH_TAM335X
-+       bool
-+
- config MACH_OMAP2_TUSB6010
- 	bool
- 	depends on ARCH_OMAP2 && SOC_OMAP2420
 -- 
 1.7.7.6
 

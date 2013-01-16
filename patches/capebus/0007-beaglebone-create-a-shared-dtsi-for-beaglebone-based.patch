@@ -1,0 +1,616 @@
+From d2f5adcedd3ab3ecc9adedbb7fe01732b094b1cd Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Wed, 16 Jan 2013 08:17:05 +0100
+Subject: [PATCH 07/12] beaglebone: create a shared dtsi for beaglebone based
+ boards and add a new dts for bonelt
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/Makefile                |    3 +-
+ arch/arm/boot/dts/am335x-bone-common.dtsi |  276 +++++++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts         |  266 +---------------------------
+ arch/arm/boot/dts/am335x-bonelt.dts       |   20 ++
+ 4 files changed, 299 insertions(+), 266 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am335x-bone-common.dtsi
+ create mode 100644 arch/arm/boot/dts/am335x-bonelt.dts
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 5ebb44f..5c0789d 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -113,7 +113,8 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+ 	omap5-evm.dtb \
+ 	am335x-evm.dtb \
+ 	am335x-evmsk.dtb \
+-	am335x-bone.dtb
++	am335x-bone.dtb \
++	am335x-bonelt.dtb
+ dtb-$(CONFIG_ARCH_ORION5X) += orion5x-lacie-ethernet-disk-mini-v2.dtb
+ dtb-$(CONFIG_ARCH_PRIMA2) += prima2-evb.dtb
+ dtb-$(CONFIG_ARCH_U8500) += snowball.dtb \
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+new file mode 100644
+index 0000000..bc86bea
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -0,0 +1,276 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/include/ "am33xx.dtsi"
++
++/ {
++	model = "TI AM335x BeagleBone";
++	compatible = "ti,am335x-bone", "ti,am33xx";
++
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&dcdc2_reg>;
++		};
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x10000000>; /* 256 MB */
++	};
++
++	am33xx_pinmux: pinmux@44e10800 {
++		pinctrl-names = "default";
++		pinctrl-0 = <&user_leds_s0 &spi1_pins_s0 &lcd_pins_s0 &gpevt_pins_s0>;
++
++		user_leds_s0: user_leds_s0 {
++			pinctrl-single,pins = <
++				0x54 0x7	/* gpmc_a5.gpio1_21, OUTPUT | MODE7 */
++				0x58 0x17	/* gpmc_a6.gpio1_22, OUTPUT_PULLUP | MODE7 */
++				0x5c 0x7	/* gpmc_a7.gpio1_23, OUTPUT | MODE7 */
++				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
++			>;
++		};
++
++		spi1_pins_s0: spi1_pins_s0 {
++			pinctrl-single,pins = <
++				0x190 0x33	/* mcasp0_aclkx.spi1_sclk, INPUT_PULLUP | MODE3 */
++				0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
++				0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
++				0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
++			>;
++		};
++
++		lcd_pins_s0: lcd_pins_s0 {
++			pinctrl-single,pins = <
++				0x1a4 0x17	/* mcasp0_fsr.gpio3_19, OUTPUT_PULLUP | MODE7 */
++				0x1ac 0x17	/* mcasp0_ahclkx.gpio3_21, OUTPUT_PULLUP | MODE7 */
++			>;
++		};
++
++		gpevt_pins_s0: gpevt_pins_s0 {
++			pinctrl-single,pins = <
++				0x090 0x37	/* gpmc_advn_ale.gpio2_2, INPUT_PULLUP | MODE7 */
++			>;
++		};
++		userled_pins: pinmux_userled_pins {
++			pinctrl-single,pins = <
++				0x54 0x7	/* gpmc_a5.gpio1_21, OUTPUT | MODE7 */
++				0x58 0x17	/* gpmc_a6.gpio1_22, OUTPUT_PULLUP | MODE7 */
++				0x5c 0x7	/* gpmc_a7.gpio1_23, OUTPUT | MODE7 */
++				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
++			>;
++		};
++		i2c2_pins: pinmux_i2c2_pins {
++			pinctrl-single,pins = <
++				0x178 0x73 	/* uart1_ctsn.i2c2_sda, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
++				0x17c 0x73	/* uart1_rtsn.i2c2_scl, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
++			>;
++		};
++	};
++
++	ocp {
++		uart1: serial@44e09000 {
++			status = "okay";
++		};
++
++		uart5: serial@481a8000 {
++			status = "okay";
++		};
++
++		gpio-leds {
++			compatible = "gpio-leds";
++			pinctrl-names = "default";
++			pinctrl-0 = <&userled_pins>;
++
++			led0 {
++				label = "beaglebone:green:usr0";
++				gpios = <&gpio2 21 0>;
++				linux,default-trigger = "heartbeat";
++				default-state = "off";
++			};
++
++			led1 {
++				label = "beaglebone:green:usr1";
++				gpios = <&gpio2 22 0>;
++				linux,default-trigger = "mmc0";
++				default-state = "off";
++			};
++
++			led2 {
++				label = "beaglebone:green:usr2";
++				gpios = <&gpio2 23 0>;
++				linux,default-trigger = "cpu0";
++				default-state = "off";
++			};
++
++			led3 {
++				label = "beaglebone:green:usr3";
++				gpios = <&gpio2 24 0>;
++				default-state = "off";
++			};
++		};
++
++		gpevt {
++			compatible = "gpevt";
++			dmas = <&edma 12>;
++			dma-names = "gpioevt";
++			gpio-evt = <&gpio3 2 0>;
++		};
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		led@2 {
++			label = "beaglebone:green:heartbeat";
++			gpios = <&gpio2 21 0>;
++			linux,default-trigger = "heartbeat";
++			default-state = "off";
++		};
++
++		led@3 {
++			label = "beaglebone:green:mmc0";
++			gpios = <&gpio2 22 0>;
++			linux,default-trigger = "mmc0";
++			default-state = "off";
++		};
++
++		led@4 {
++			label = "beaglebone:green:usr2";
++			gpios = <&gpio2 23 0>;
++			default-state = "off";
++		};
++
++		led@5 {
++			label = "beaglebone:green:usr3";
++			gpios = <&gpio2 24 0>;
++			default-state = "off";
++		};
++	};
++};
++
++&i2c0 {
++	status = "okay";
++	clock-frequency = <400000>;
++
++	tps: tps@24 {
++		reg = <0x24>;
++	};
++
++	baseboard_eeprom: baseboard_eeprom@50 {
++		compatible = "at,24c256";
++		reg = <0x50>;
++	};
++       
++};
++
++&i2c2 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c2_pins>;
++
++	clock-frequency = <100000>;
++
++	/* OK, I know these are cape but for now it will do */
++	cape_eeprom_0: cape_eeprom_0@54 {
++		compatible = "at,24c256";
++		reg = <0x54>;
++	};
++
++	cape_eeprom_1: cape_eeprom_1@55 {
++		compatible = "at,24c256";
++		reg = <0x55>;
++	};
++
++	cape_eeprom_2: cape_eeprom_2@56 {
++		compatible = "at,24c256";
++		reg = <0x56>;
++	};
++
++	cape_eeprom_3: cape_eeprom_3@57 {
++		compatible = "at,24c256";
++		reg = <0x57>;
++	};
++};
++
++/include/ "tps65217.dtsi"
++
++&tps {
++	regulators {
++		dcdc1_reg: regulator@0 {
++			regulator-always-on;
++		};
++
++		dcdc2_reg: regulator@1 {
++			/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
++			regulator-name = "vdd_mpu";
++			regulator-min-microvolt = <925000>;
++			regulator-max-microvolt = <1325000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		dcdc3_reg: regulator@2 {
++			/* VDD_CORE voltage limits 0.95V - 1.1V with +/-4% tolerance */
++			regulator-name = "vdd_core";
++			regulator-min-microvolt = <925000>;
++			regulator-max-microvolt = <1150000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		ldo1_reg: regulator@3 {
++			regulator-always-on;
++		};
++
++		ldo2_reg: regulator@4 {
++			regulator-always-on;
++		};
++
++		ldo3_reg: regulator@5 {
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <3300000>;
++			regulator-always-on;
++		};
++
++		ldo4_reg: regulator@6 {
++			regulator-always-on;
++		};
++	};
++};
++
++&cpsw_emac0 {
++	phy_id = <&davinci_mdio>, <0>;
++};
++
++&cpsw_emac1 {
++	phy_id = <&davinci_mdio>, <1>;
++};
++
++&mmc1 {
++	status = "okay";
++	vmmc-supply = <&ldo3_reg>;
++};
++
++&spi1 {
++	status = "okay";
++
++	lcd@0 {
++		compatible = "adafruit,tft-lcd-1.8-green", "sitronix,st7735";
++		spi-max-frequency = <8000000>;
++		reg = <0>;
++		spi-cpol;
++		spi-cpha;
++		st7735-rst = <&gpio4 19 0>;
++		st7735-dc = <&gpio4 21 0>;
++	};
++};
++
++&edma {
++	ti,edma-xbar-event-map = <32 12>;
++};
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 2162099..9fcc3d4 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -9,269 +9,5 @@
+ 
+ /include/ "am33xx.dtsi"
+ 
+-/ {
+-	model = "TI AM335x BeagleBone";
+-	compatible = "ti,am335x-bone", "ti,am33xx";
++/include/ "am335x-bone-common.dtsi"
+ 
+-	cpus {
+-		cpu@0 {
+-			cpu0-supply = <&dcdc2_reg>;
+-		};
+-	};
+-
+-	memory {
+-		device_type = "memory";
+-		reg = <0x80000000 0x10000000>; /* 256 MB */
+-	};
+-
+-	am33xx_pinmux: pinmux@44e10800 {
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&user_leds_s0 &spi1_pins_s0 &lcd_pins_s0 &gpevt_pins_s0>;
+-
+-		user_leds_s0: user_leds_s0 {
+-			pinctrl-single,pins = <
+-				0x54 0x7	/* gpmc_a5.gpio1_21, OUTPUT | MODE7 */
+-				0x58 0x17	/* gpmc_a6.gpio1_22, OUTPUT_PULLUP | MODE7 */
+-				0x5c 0x7	/* gpmc_a7.gpio1_23, OUTPUT | MODE7 */
+-				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
+-			>;
+-		};
+-
+-		spi1_pins_s0: spi1_pins_s0 {
+-			pinctrl-single,pins = <
+-				0x190 0x33	/* mcasp0_aclkx.spi1_sclk, INPUT_PULLUP | MODE3 */
+-				0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
+-				0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
+-				0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
+-			>;
+-		};
+-
+-		lcd_pins_s0: lcd_pins_s0 {
+-			pinctrl-single,pins = <
+-				0x1a4 0x17	/* mcasp0_fsr.gpio3_19, OUTPUT_PULLUP | MODE7 */
+-				0x1ac 0x17	/* mcasp0_ahclkx.gpio3_21, OUTPUT_PULLUP | MODE7 */
+-			>;
+-		};
+-
+-		gpevt_pins_s0: gpevt_pins_s0 {
+-			pinctrl-single,pins = <
+-				0x090 0x37	/* gpmc_advn_ale.gpio2_2, INPUT_PULLUP | MODE7 */
+-			>;
+-		};
+-		userled_pins: pinmux_userled_pins {
+-			pinctrl-single,pins = <
+-				0x54 0x7	/* gpmc_a5.gpio1_21, OUTPUT | MODE7 */
+-				0x58 0x17	/* gpmc_a6.gpio1_22, OUTPUT_PULLUP | MODE7 */
+-				0x5c 0x7	/* gpmc_a7.gpio1_23, OUTPUT | MODE7 */
+-				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
+-			>;
+-		};
+-		i2c2_pins: pinmux_i2c2_pins {
+-			pinctrl-single,pins = <
+-				0x178 0x73 	/* uart1_ctsn.i2c2_sda, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
+-				0x17c 0x73	/* uart1_rtsn.i2c2_scl, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
+-			>;
+-		};
+-	};
+-
+-	ocp {
+-		uart1: serial@44e09000 {
+-			status = "okay";
+-		};
+-
+-		uart5: serial@481a8000 {
+-			status = "okay";
+-		};
+-
+-		gpio-leds {
+-			compatible = "gpio-leds";
+-			pinctrl-names = "default";
+-			pinctrl-0 = <&userled_pins>;
+-
+-			led0 {
+-				label = "beaglebone:green:usr0";
+-				gpios = <&gpio2 21 0>;
+-				linux,default-trigger = "heartbeat";
+-				default-state = "off";
+-			};
+-
+-			led1 {
+-				label = "beaglebone:green:usr1";
+-				gpios = <&gpio2 22 0>;
+-				linux,default-trigger = "mmc0";
+-				default-state = "off";
+-			};
+-
+-			led2 {
+-				label = "beaglebone:green:usr2";
+-				gpios = <&gpio2 23 0>;
+-				linux,default-trigger = "cpu0";
+-				default-state = "off";
+-			};
+-
+-			led3 {
+-				label = "beaglebone:green:usr3";
+-				gpios = <&gpio2 24 0>;
+-				default-state = "off";
+-			};
+-		};
+-
+-		gpevt {
+-			compatible = "gpevt";
+-			dmas = <&edma 12>;
+-			dma-names = "gpioevt";
+-			gpio-evt = <&gpio3 2 0>;
+-		};
+-	};
+-
+-	leds {
+-		compatible = "gpio-leds";
+-
+-		led@2 {
+-			label = "beaglebone:green:heartbeat";
+-			gpios = <&gpio2 21 0>;
+-			linux,default-trigger = "heartbeat";
+-			default-state = "off";
+-		};
+-
+-		led@3 {
+-			label = "beaglebone:green:mmc0";
+-			gpios = <&gpio2 22 0>;
+-			linux,default-trigger = "mmc0";
+-			default-state = "off";
+-		};
+-
+-		led@4 {
+-			label = "beaglebone:green:usr2";
+-			gpios = <&gpio2 23 0>;
+-			default-state = "off";
+-		};
+-
+-		led@5 {
+-			label = "beaglebone:green:usr3";
+-			gpios = <&gpio2 24 0>;
+-			default-state = "off";
+-		};
+-	};
+-};
+-
+-&i2c0 {
+-	status = "okay";
+-	clock-frequency = <400000>;
+-
+-	tps: tps@24 {
+-		reg = <0x24>;
+-	};
+-
+-	baseboard_eeprom: baseboard_eeprom@50 {
+-		compatible = "at,24c256";
+-		reg = <0x50>;
+-	};
+-       
+-};
+-
+-&i2c2 {
+-	status = "okay";
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&i2c2_pins>;
+-
+-	clock-frequency = <100000>;
+-
+-	/* OK, I know these are cape but for now it will do */
+-	cape_eeprom_0: cape_eeprom_0@54 {
+-		compatible = "at,24c256";
+-		reg = <0x54>;
+-	};
+-
+-	cape_eeprom_1: cape_eeprom_1@55 {
+-		compatible = "at,24c256";
+-		reg = <0x55>;
+-	};
+-
+-	cape_eeprom_2: cape_eeprom_2@56 {
+-		compatible = "at,24c256";
+-		reg = <0x56>;
+-	};
+-
+-	cape_eeprom_3: cape_eeprom_3@57 {
+-		compatible = "at,24c256";
+-		reg = <0x57>;
+-	};
+-};
+-
+-/include/ "tps65217.dtsi"
+-
+-&tps {
+-	regulators {
+-		dcdc1_reg: regulator@0 {
+-			regulator-always-on;
+-		};
+-
+-		dcdc2_reg: regulator@1 {
+-			/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
+-			regulator-name = "vdd_mpu";
+-			regulator-min-microvolt = <925000>;
+-			regulator-max-microvolt = <1325000>;
+-			regulator-boot-on;
+-			regulator-always-on;
+-		};
+-
+-		dcdc3_reg: regulator@2 {
+-			/* VDD_CORE voltage limits 0.95V - 1.1V with +/-4% tolerance */
+-			regulator-name = "vdd_core";
+-			regulator-min-microvolt = <925000>;
+-			regulator-max-microvolt = <1150000>;
+-			regulator-boot-on;
+-			regulator-always-on;
+-		};
+-
+-		ldo1_reg: regulator@3 {
+-			regulator-always-on;
+-		};
+-
+-		ldo2_reg: regulator@4 {
+-			regulator-always-on;
+-		};
+-
+-		ldo3_reg: regulator@5 {
+-			regulator-min-microvolt = <1800000>;
+-			regulator-max-microvolt = <3300000>;
+-			regulator-always-on;
+-		};
+-
+-		ldo4_reg: regulator@6 {
+-			regulator-always-on;
+-		};
+-	};
+-};
+-
+-&cpsw_emac0 {
+-	phy_id = <&davinci_mdio>, <0>;
+-};
+-
+-&cpsw_emac1 {
+-	phy_id = <&davinci_mdio>, <1>;
+-};
+-
+-&mmc1 {
+-	status = "okay";
+-	vmmc-supply = <&ldo3_reg>;
+-};
+-
+-&spi1 {
+-	status = "okay";
+-
+-	lcd@0 {
+-		compatible = "adafruit,tft-lcd-1.8-green", "sitronix,st7735";
+-		spi-max-frequency = <8000000>;
+-		reg = <0>;
+-		spi-cpol;
+-		spi-cpha;
+-		st7735-rst = <&gpio4 19 0>;
+-		st7735-dc = <&gpio4 21 0>;
+-	};
+-};
+-
+-&edma {
+-	ti,edma-xbar-event-map = <32 12>;
+-};
+diff --git a/arch/arm/boot/dts/am335x-bonelt.dts b/arch/arm/boot/dts/am335x-bonelt.dts
+new file mode 100644
+index 0000000..cdc3dd0
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-bonelt.dts
+@@ -0,0 +1,20 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++/include/ "am33xx.dtsi"
++
++/include/ "am335x-bone-common.dtsi"
++
++&mmc2 {
++	vmmc-supply = <&ldo3_reg>;
++	bus-width = <4>;
++	ti,non-removable;
++	status = "okay";
++};
++
+-- 
+1.7.7.6
+

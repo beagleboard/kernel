@@ -1,0 +1,39 @@
+From 1ccad559b514a4db4dd2df1d7cd00a68b5dd7f13 Mon Sep 17 00:00:00 2001
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Date: Mon, 10 Dec 2012 11:14:56 +0000
+Subject: [PATCH 05/36] mfd: tps65910: Select REGMAP_IRQ in Kconfig to fix
+ build error
+
+TPS65910 mfd driver uses functions that are only avaiable when
+REGMAP_IRQ is enabled. So "select REGMAP_IRQ" is added to mfd
+Kconfig to fix below build error:
+
+drivers/built-in.o: In function `tps65910_irq_exit':
+/media/anil/kernel/drivers/mfd/tps65910.c:265: undefined reference to `regmap_del_irq_chip'
+drivers/built-in.o: In function `tps65910_irq_init':
+/media/anil/kernel/drivers/mfd/tps65910.c:254: undefined reference to `regmap_add_irq_chip'
+drivers/built-in.o: In function `tps65910_i2c_probe':
+/media/anil/kernel/drivers/mfd/tps65910.c:509: undefined reference to `regmap_irq_get_domain'
+make: *** [vmlinux] Error 1
+
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+Tested-by: Matt Porter <mporter@ti.com>
+---
+ drivers/mfd/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index 1c0abd4..01413a2 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -237,6 +237,7 @@ config MFD_TPS65910
+ 	depends on I2C=y && GPIOLIB
+ 	select MFD_CORE
+ 	select REGMAP_I2C
++	select REGMAP_IRQ
+ 	select IRQ_DOMAIN
+ 	help
+ 	  if you say yes here you get support for the TPS65910 series of
+-- 
+1.7.7.6
+

@@ -1,4 +1,4 @@
-From c03509e8c1f59a86a22c9c06e923cd3377881c65 Mon Sep 17 00:00:00 2001
+From fbdee97030195899f7f864c584f1b6a54b5b8c2f Mon Sep 17 00:00:00 2001
 From: Paolo Pisati <paolo.pisati@canonical.com>
 Date: Wed, 12 Dec 2012 12:45:53 +0100
 Subject: [PATCH 2/2] regulator: core: if voltage scaling fails, restore
@@ -10,10 +10,10 @@ Signed-off-by: Paolo Pisati <paolo.pisati@canonical.com>
  1 files changed, 13 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-index 0f65b24..5b50595 100644
+index 2785843..53abc98 100644
 --- a/drivers/regulator/core.c
 +++ b/drivers/regulator/core.c
-@@ -2288,6 +2288,7 @@ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV)
+@@ -2294,6 +2294,7 @@ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV)
  {
  	struct regulator_dev *rdev = regulator->rdev;
  	int ret = 0;
@@ -21,7 +21,7 @@ index 0f65b24..5b50595 100644
  
  	mutex_lock(&rdev->mutex);
  
-@@ -2309,18 +2310,29 @@ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV)
+@@ -2315,18 +2316,29 @@ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV)
  	ret = regulator_check_voltage(rdev, &min_uV, &max_uV);
  	if (ret < 0)
  		goto out;
