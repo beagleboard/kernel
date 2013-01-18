@@ -1,7 +1,7 @@
-From a8cbb5d9f10021bc5bee945724c42aeb011ac9da Mon Sep 17 00:00:00 2001
+From 0b0d99302741ff5f6f15e02d02cbe5c6d81084cd Mon Sep 17 00:00:00 2001
 From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
 Date: Tue, 31 Jul 2012 19:10:20 +0530
-Subject: [PATCH 80/93] ARM: OMAP2+: AM33xx: removed invalid McASP HWMOD data
+Subject: [PATCH 80/95] ARM: OMAP2+: AM33xx: removed invalid McASP HWMOD data
 
 McASP Data Address space is used for edma operation. Driver uses this
 address to setup edma dst/src. No Mapping is done on this address and
@@ -13,10 +13,10 @@ Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
  1 files changed, 0 insertions(+), 38 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index 0d9f88c..1a7a212 100644
+index 9b0f8c3..9fc8bf3 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -2963,24 +2963,6 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__mcasp0 = {
+@@ -2989,24 +2989,6 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__mcasp0 = {
  	.user		= OCP_USER_MPU,
  };
  
@@ -41,7 +41,7 @@ index 0d9f88c..1a7a212 100644
  /* l4 ls -> mcasp1 */
  static struct omap_hwmod_addr_space am33xx_mcasp1_addr_space[] = {
  	{
-@@ -2999,24 +2981,6 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__mcasp1 = {
+@@ -3025,24 +3007,6 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__mcasp1 = {
  	.user		= OCP_USER_MPU,
  };
  
@@ -66,7 +66,7 @@ index 0d9f88c..1a7a212 100644
  /* l4 ls -> mmc0 */
  static struct omap_hwmod_addr_space am33xx_mmc0_addr_space[] = {
  	{
-@@ -3501,9 +3465,7 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+@@ -3563,9 +3527,7 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
  	&am33xx_l4_per__i2c3,
  	&am33xx_l4_per__mailbox,
  	&am33xx_l4_ls__mcasp0,

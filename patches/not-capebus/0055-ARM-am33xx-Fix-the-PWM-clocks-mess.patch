@@ -1,7 +1,7 @@
-From 2ad6f431b4bcb50b7ddf8cee1407f4f46d83da99 Mon Sep 17 00:00:00 2001
+From 047414129b4d60220fb4ddd479423d055c280b47 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 4 Jan 2013 11:50:48 +0200
-Subject: [PATCH 55/93] ARM: am33xx: Fix the PWM clocks mess
+Subject: [PATCH 55/95] ARM: am33xx: Fix the PWM clocks mess
 
 Party based on
 	"AM33xx hwmod: Add parent child relationship for PWM subsystem"
@@ -26,10 +26,10 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  3 files changed, 314 insertions(+), 146 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
-index a279ad4..56fa2af 100644
+index e4735b8..029de5f 100644
 --- a/arch/arm/mach-omap2/cclock33xx_data.c
 +++ b/arch/arm/mach-omap2/cclock33xx_data.c
-@@ -832,6 +832,18 @@ static struct clk_hw_omap wdt1_fck_hw = {
+@@ -840,6 +840,18 @@ static struct clk_hw_omap wdt1_fck_hw = {
  
  DEFINE_STRUCT_CLK(wdt1_fck, wdt_ck_parents, gpio_fck_ops);
  
@@ -48,7 +48,7 @@ index a279ad4..56fa2af 100644
  /*
   * clkdev
   */
-@@ -911,6 +923,12 @@ static struct omap_clk am33xx_clks[] = {
+@@ -921,6 +933,12 @@ static struct omap_clk am33xx_clks[] = {
  	CLK(NULL,	"timer_32k_ck",		&clkdiv32k_ick,	CK_AM33XX),
  	CLK(NULL,	"timer_sys_ck",		&sys_clkin_ck,	CK_AM33XX),
  	CLK("4830e000.fb", 	"fck",		&lcd_gclk,	CK_AM33XX),
@@ -62,10 +62,10 @@ index a279ad4..56fa2af 100644
  
  
 diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index e6c3281..a737c12 100644
+index 266d512..d56f00f 100644
 --- a/arch/arm/mach-omap2/control.h
 +++ b/arch/arm/mach-omap2/control.h
-@@ -361,6 +361,14 @@
+@@ -365,6 +365,14 @@
  /* CONTROL OMAP STATUS register to identify OMAP3 features */
  #define OMAP3_CONTROL_OMAP_STATUS	0x044c
  
@@ -81,10 +81,10 @@ index e6c3281..a737c12 100644
  #define OMAP3_SGX_MASK			(3 << OMAP3_SGX_SHIFT)
  #define		FEAT_SGX_FULL		0
 diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index 0a7d3ea..0d9f88c 100644
+index 3497086..9b0f8c3 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -783,9 +783,7 @@ static struct omap_hwmod am33xx_elm_hwmod = {
+@@ -809,9 +809,7 @@ static struct omap_hwmod am33xx_elm_hwmod = {
  	},
  };
  
@@ -95,7 +95,7 @@ index 0a7d3ea..0d9f88c 100644
  static struct omap_hwmod_class_sysconfig am33xx_epwmss_sysc = {
  	.rev_offs	= 0x0,
  	.sysc_offs	= 0x4,
-@@ -801,18 +799,23 @@ static struct omap_hwmod_class am33xx_epwmss_hwmod_class = {
+@@ -827,18 +825,23 @@ static struct omap_hwmod_class am33xx_epwmss_hwmod_class = {
  	.sysc		= &am33xx_epwmss_sysc,
  };
  
@@ -127,7 +127,7 @@ index 0a7d3ea..0d9f88c 100644
  	.main_clk	= "l4ls_gclk",
  	.prcm		= {
  		.omap4	= {
-@@ -822,63 +825,68 @@ static struct omap_hwmod am33xx_ehrpwm0_hwmod = {
+@@ -848,63 +851,68 @@ static struct omap_hwmod am33xx_ehrpwm0_hwmod = {
  	},
  };
  
@@ -231,7 +231,7 @@ index 0a7d3ea..0d9f88c 100644
  			.modulemode	= MODULEMODE_SWCTRL,
  		},
  	},
-@@ -892,13 +900,60 @@ static struct omap_hwmod_irq_info am33xx_ecap1_irqs[] = {
+@@ -918,13 +926,60 @@ static struct omap_hwmod_irq_info am33xx_ecap1_irqs[] = {
  
  static struct omap_hwmod am33xx_ecap1_hwmod = {
  	.name		= "ecap1",
@@ -294,7 +294,7 @@ index 0a7d3ea..0d9f88c 100644
  			.modulemode	= MODULEMODE_SWCTRL,
  		},
  	},
-@@ -912,16 +967,49 @@ static struct omap_hwmod_irq_info am33xx_ecap2_irqs[] = {
+@@ -938,16 +993,49 @@ static struct omap_hwmod_irq_info am33xx_ecap2_irqs[] = {
  
  static struct omap_hwmod am33xx_ecap2_hwmod = {
  	.name		= "ecap2",
@@ -351,7 +351,7 @@ index 0a7d3ea..0d9f88c 100644
  };
  
  /*
-@@ -2547,162 +2635,210 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__elm = {
+@@ -2573,162 +2661,210 @@ static struct omap_hwmod_ocp_if am33xx_l4_ls__elm = {
  	.user		= OCP_USER_MPU,
  };
  
@@ -647,7 +647,7 @@ index 0a7d3ea..0d9f88c 100644
  /* l3s cfg -> gpmc */
  static struct omap_hwmod_addr_space am33xx_gpmc_addr_space[] = {
  	{
-@@ -3385,12 +3521,18 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+@@ -3447,12 +3583,18 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
  	&am33xx_l4_ls__uart6,
  	&am33xx_l4_ls__spinlock,
  	&am33xx_l4_ls__elm,

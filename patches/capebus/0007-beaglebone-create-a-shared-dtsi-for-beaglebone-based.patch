@@ -1,16 +1,16 @@
-From e3c526f20053bdd6df64c8be58da39436c042364 Mon Sep 17 00:00:00 2001
+From cd22269c9785849f59d8e7c9a10a698943c8f774 Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
-Date: Wed, 16 Jan 2013 08:17:05 +0100
+Date: Fri, 18 Jan 2013 09:19:38 +0100
 Subject: [PATCH 07/11] beaglebone: create a shared dtsi for beaglebone based
  boards and add a new dts for bonelt
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
  arch/arm/boot/dts/Makefile                |    3 +-
- arch/arm/boot/dts/am335x-bone-common.dtsi |  276 +++++++++++++++++++++++++++++
- arch/arm/boot/dts/am335x-bone.dts         |  266 +---------------------------
+ arch/arm/boot/dts/am335x-bone-common.dtsi |  290 +++++++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts         |  281 +----------------------------
  arch/arm/boot/dts/am335x-bonelt.dts       |   20 ++
- 4 files changed, 299 insertions(+), 266 deletions(-)
+ 4 files changed, 313 insertions(+), 281 deletions(-)
  create mode 100644 arch/arm/boot/dts/am335x-bone-common.dtsi
  create mode 100644 arch/arm/boot/dts/am335x-bonelt.dts
 
@@ -30,10 +30,10 @@ index 5ebb44f..5c0789d 100644
  dtb-$(CONFIG_ARCH_U8500) += snowball.dtb \
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
 new file mode 100644
-index 0000000..bc86bea
+index 0000000..9a7be8a
 --- /dev/null
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -0,0 +1,276 @@
+@@ -0,0 +1,290 @@
 +/*
 + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
 + *
@@ -157,6 +157,10 @@ index 0000000..bc86bea
 +			dma-names = "gpioevt";
 +			gpio-evt = <&gpio3 2 0>;
 +		};
++
++		rtc@44e3e000 {
++			ti,system-power-controller;
++		};
 +	};
 +
 +	leds {
@@ -237,6 +241,8 @@ index 0000000..bc86bea
 +/include/ "tps65217.dtsi"
 +
 +&tps {
++	ti,pmic-shutdown-controller;
++
 +	regulators {
 +		dcdc1_reg: regulator@0 {
 +			regulator-always-on;
@@ -310,19 +316,26 @@ index 0000000..bc86bea
 +&edma {
 +	ti,edma-xbar-event-map = <32 12>;
 +};
++
++&sham {
++	status = "okay";
++};
++
++&aes {
++	status = "okay";
++};
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 2162099..9fcc3d4 100644
+index bf87ceb..9abc1f3 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -9,269 +9,5 @@
+@@ -9,283 +9,4 @@
  
  /include/ "am33xx.dtsi"
  
 -/ {
 -	model = "TI AM335x BeagleBone";
 -	compatible = "ti,am335x-bone", "ti,am33xx";
-+/include/ "am335x-bone-common.dtsi"
- 
+-
 -	cpus {
 -		cpu@0 {
 -			cpu0-supply = <&dcdc2_reg>;
@@ -432,6 +445,10 @@ index 2162099..9fcc3d4 100644
 -			dma-names = "gpioevt";
 -			gpio-evt = <&gpio3 2 0>;
 -		};
+-
+-		rtc@44e3e000 {
+-			ti,system-power-controller;
+-		};
 -	};
 -
 -	leds {
@@ -512,6 +529,8 @@ index 2162099..9fcc3d4 100644
 -/include/ "tps65217.dtsi"
 -
 -&tps {
+-	ti,pmic-shutdown-controller;
+-
 -	regulators {
 -		dcdc1_reg: regulator@0 {
 -			regulator-always-on;
@@ -585,6 +604,15 @@ index 2162099..9fcc3d4 100644
 -&edma {
 -	ti,edma-xbar-event-map = <32 12>;
 -};
+-
+-&sham {
+-	status = "okay";
+-};
+-
+-&aes {
+-	status = "okay";
+-};
++/include/ "am335x-bone-common.dtsi"
 diff --git a/arch/arm/boot/dts/am335x-bonelt.dts b/arch/arm/boot/dts/am335x-bonelt.dts
 new file mode 100644
 index 0000000..cdc3dd0

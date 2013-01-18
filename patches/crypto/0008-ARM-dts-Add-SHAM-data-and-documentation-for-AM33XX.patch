@@ -1,0 +1,123 @@
+From 02d47b702d08cf9e59e0e98786117a064e8aa869 Mon Sep 17 00:00:00 2001
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Date: Mon, 17 Dec 2012 16:16:27 -0700
+Subject: [PATCH 08/34] ARM: dts: Add SHAM data and documentation for AM33XX
+
+Add the generic AM33XX SHAM module's device tree data and
+enable it for the am335x-evm, am335x-evmsk, and am335x-bone
+platforms.  Also add Documentation file describing the data
+for the SHAM module.
+
+CC: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+---
+ .../devicetree/bindings/crypto/omap-sham.txt       |   35 ++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts                  |    4 ++
+ arch/arm/boot/dts/am335x-evm.dts                   |    4 ++
+ arch/arm/boot/dts/am335x-evmsk.dts                 |    4 ++
+ arch/arm/boot/dts/am33xx.dtsi                      |   12 +++++++
+ 5 files changed, 59 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/crypto/omap-sham.txt
+
+diff --git a/Documentation/devicetree/bindings/crypto/omap-sham.txt b/Documentation/devicetree/bindings/crypto/omap-sham.txt
+new file mode 100644
+index 0000000..53839cc
+--- /dev/null
++++ b/Documentation/devicetree/bindings/crypto/omap-sham.txt
+@@ -0,0 +1,35 @@
++OMAP SoC SHA crypto Module
++
++Required properties:
++
++- compatible : Should contain entries for this and backward compatible
++  SHAM versions:
++  - "ti,omap2-sham" for OMAP2 & OMAP3.
++  - "ti,omap4-sham" for OMAP4 and AM33XX.
++  Note that these two versions are incompatible.
++- ti,hwmods: Name of the hwmod associated with the SHAM module
++- reg : Offset and length of the register set for the module
++- interrupt-parent : the phandle for the interrupt controller that
++  services interrupts for this module.
++- interrupts : the interrupt number for the SHAM module.
++
++Optional properties:
++- dmas: DMA controller phandle and DMA request ordered pair.
++	Only one rx pair is valid per SHAM module.
++- dma-names: DMA request name. This string corresponds 1:1 with
++	the ordered pair in dmas. The string naming is to be
++	"rx" for RX request.
++
++Example:
++	/* AM335x */
++	sham: sham@53100000 {
++		compatible = "ti,omap4-sham";
++		ti,hwmods = "sham";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reg = <0x53100000 0x200>;
++		interrupt-parent = <&intc>;
++		interrupts = <109>;
++		dmas = <&edma 36>;
++		dma-names = "rx";
++	};
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 874997b..5254b64 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -281,3 +281,7 @@
+ &edma {
+ 	ti,edma-xbar-event-map = <32 12>;
+ };
++
++&sham {
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index f61a51d..5276769 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -270,3 +270,7 @@
+ 		reg = <0>;
+ 	};
+ };
++
++&sham {
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 2546724..4dab44a 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -255,3 +255,7 @@
+ 	status = "okay";
+ 	vmmc-supply = <&vmmc_reg>;
+ };
++
++&sham {
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index c209cd4..73af47c 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -450,5 +450,17 @@
+ 				mac-address = [ 00 00 00 00 00 00 ];
+ 			};
+ 		};
++
++		sham: sham@53100000 {
++			compatible = "ti,omap4-sham";
++			ti,hwmods = "sham";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0x53100000 0x200>;
++			interrupt-parent = <&intc>;
++			interrupts = <109>;
++			dmas = <&edma 36>;
++			dma-names = "rx";
++		};
+ 	};
+ };
+-- 
+1.7.7.6
+

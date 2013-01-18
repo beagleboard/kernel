@@ -1,0 +1,47 @@
+From e30d38f509a86a92d3049e0d892acedabc2fdcc4 Mon Sep 17 00:00:00 2001
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Date: Thu, 20 Dec 2012 14:05:57 -0700
+Subject: [PATCH 32/34] crypto: omap-aes - Convert to
+ dma_request_slave_channel_compat()
+
+Use the dma_request_slave_channel_compat() call instead of
+the dma_request_channel() call to request a DMA channel.
+This allows the omap-aes driver use different DMA engines.
+
+CC: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
+Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+---
+ drivers/crypto/omap-aes.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
+index dfebd40..d34aa5d 100644
+--- a/drivers/crypto/omap-aes.c
++++ b/drivers/crypto/omap-aes.c
+@@ -296,15 +296,19 @@ static int omap_aes_dma_init(struct omap_aes_dev *dd)
+ 	dma_cap_zero(mask);
+ 	dma_cap_set(DMA_SLAVE, mask);
+ 
+-	dd->dma_lch_in = dma_request_channel(mask, omap_dma_filter_fn,
+-					     &dd->dma_in);
++	dd->dma_lch_in = dma_request_slave_channel_compat(mask,
++							  omap_dma_filter_fn,
++							  &dd->dma_in,
++							  dd->dev, "rx");
+ 	if (!dd->dma_lch_in) {
+ 		dev_err(dd->dev, "Unable to request in DMA channel\n");
+ 		goto err_dma_in;
+ 	}
+ 
+-	dd->dma_lch_out = dma_request_channel(mask, omap_dma_filter_fn,
+-					     &dd->dma_out);
++	dd->dma_lch_out = dma_request_slave_channel_compat(mask,
++							   omap_dma_filter_fn,
++							   &dd->dma_out,
++							   dd->dev, "tx");
+ 	if (!dd->dma_lch_out) {
+ 		dev_err(dd->dev, "Unable to request out DMA channel\n");
+ 		goto err_dma_out;
+-- 
+1.7.7.6
+

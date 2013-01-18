@@ -1,7 +1,7 @@
-From 257c64659b9eaf2888f92f732cbf785f78ac4313 Mon Sep 17 00:00:00 2001
+From b87ed234e74fa6ab80a1e711ef250dc6e0ad5fdb Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 14 Dec 2012 14:34:08 +0200
-Subject: [PATCH 10/93] am335x-bone-dtsi: Clean up
+Subject: [PATCH 10/95] am335x-bone-dtsi: Clean up
 
 Clean up the common dtsi.
 
@@ -12,11 +12,10 @@ Conflicts:
 	arch/arm/boot/dts/am335x-bone.dts
 ---
  arch/arm/boot/dts/am335x-bone-common.dtsi |   80 +----------------------------
- arch/arm/boot/dts/am335x-bone.dts         |    1 -
- 2 files changed, 1 insertions(+), 80 deletions(-)
+ 1 files changed, 1 insertions(+), 79 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index b22300a..3d98bad 100644
+index 8295b30..b084324 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
 @@ -73,7 +73,7 @@
@@ -28,7 +27,7 @@ index b22300a..3d98bad 100644
  		uart1: serial@44e09000 {
  			status = "okay";
  		};
-@@ -124,35 +124,6 @@
+@@ -128,35 +128,6 @@
  		};
  	};
  
@@ -64,7 +63,7 @@ index b22300a..3d98bad 100644
  };
  
  &i2c0 {
-@@ -162,41 +133,6 @@
+@@ -166,41 +137,6 @@
  	tps: tps@24 {
  		reg = <0x24>;
  	};
@@ -106,7 +105,7 @@ index b22300a..3d98bad 100644
  };
  
  /include/ "tps65217.dtsi"
-@@ -258,20 +194,6 @@
+@@ -264,20 +200,6 @@
  	vmmc-supply = <&ldo3_reg>;
  };
  
@@ -127,15 +126,6 @@ index b22300a..3d98bad 100644
  &edma {
  	ti,edma-xbar-event-map = <32 12>;
  };
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 9fcc3d4..9abc1f3 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -10,4 +10,3 @@
- /include/ "am33xx.dtsi"
- 
- /include/ "am335x-bone-common.dtsi"
--
 -- 
 1.7.7.6
 

@@ -1,4 +1,4 @@
-From 1eda3790f69bbf5a95b649099f6803aa80fbc264 Mon Sep 17 00:00:00 2001
+From 7b94d91b85cdab3eab89e3179c16d0541673d9f0 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 17 Jan 2013 20:18:32 +0200
 Subject: [PATCH 3/3] cpsw: Fix interrupt storm among other things
@@ -9,11 +9,11 @@ some general fixes.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- Documentation/devicetree/bindings/net/cpsw.txt |   1 +
- drivers/net/ethernet/ti/cpsw.c                 | 222 +++++++++++++++++++++----
- drivers/net/ethernet/ti/davinci_cpdma.c        |   4 +-
- drivers/net/ethernet/ti/davinci_cpdma.h        |   2 +-
- include/linux/platform_data/cpsw.h             |   1 +
+ Documentation/devicetree/bindings/net/cpsw.txt |    1 +
+ drivers/net/ethernet/ti/cpsw.c                 |  222 ++++++++++++++++++++----
+ drivers/net/ethernet/ti/davinci_cpdma.c        |    4 +-
+ drivers/net/ethernet/ti/davinci_cpdma.h        |    2 +-
+ include/linux/platform_data/cpsw.h             |    1 +
  5 files changed, 194 insertions(+), 36 deletions(-)
 
 diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
@@ -419,5 +419,5 @@ index 24368a2..be5b27e 100644
  
  #endif /* __CPSW_H__ */
 -- 
-1.8.1
+1.7.7.6
 

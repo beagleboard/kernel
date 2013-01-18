@@ -1,0 +1,40 @@
+From 0795b0f046cb9b7f676998dc7e50b30e4e2a9ee3 Mon Sep 17 00:00:00 2001
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Date: Mon, 17 Dec 2012 15:57:48 -0700
+Subject: [PATCH 06/34] ARM: AM33XX: Add sha0 crypto clock data
+
+Add clock data for for the SHA0 crypto module
+on the am33xx SoC.
+
+CC: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+---
+ arch/arm/mach-omap2/cclock33xx_data.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
+index a09d6d7..9b76049 100644
+--- a/arch/arm/mach-omap2/cclock33xx_data.c
++++ b/arch/arm/mach-omap2/cclock33xx_data.c
+@@ -412,6 +412,10 @@ static struct clk smartreflex1_fck;
+ DEFINE_STRUCT_CLK_HW_OMAP(smartreflex1_fck, NULL);
+ DEFINE_STRUCT_CLK(smartreflex1_fck, dpll_core_ck_parents, clk_ops_null);
+ 
++static struct clk sha0_fck;
++DEFINE_STRUCT_CLK_HW_OMAP(sha0_fck, NULL);
++DEFINE_STRUCT_CLK(sha0_fck, dpll_core_ck_parents, clk_ops_null);
++
+ /*
+  * Modules clock nodes
+  *
+@@ -876,6 +880,7 @@ static struct omap_clk am33xx_clks[] = {
+ 	CLK(NULL,	"mmu_fck",		&mmu_fck,	CK_AM33XX),
+ 	CLK(NULL,	"smartreflex0_fck",	&smartreflex0_fck,	CK_AM33XX),
+ 	CLK(NULL,	"smartreflex1_fck",	&smartreflex1_fck,	CK_AM33XX),
++	CLK(NULL,	"sha0_fck",		&sha0_fck,	CK_AM33XX),
+ 	CLK(NULL,	"timer1_fck",		&timer1_fck,	CK_AM33XX),
+ 	CLK(NULL,	"timer2_fck",		&timer2_fck,	CK_AM33XX),
+ 	CLK(NULL,	"timer3_fck",		&timer3_fck,	CK_AM33XX),
+-- 
+1.7.7.6
+

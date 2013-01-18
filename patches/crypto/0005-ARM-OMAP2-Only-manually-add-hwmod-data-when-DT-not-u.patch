@@ -1,0 +1,34 @@
+From 661962b60b13f9f5c73f9f14f31f637ad7343eba Mon Sep 17 00:00:00 2001
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Date: Mon, 17 Dec 2012 16:01:15 -0700
+Subject: [PATCH 05/34] ARM: OMAP2+: Only manually add hwmod data when DT not
+ used.
+
+The omap_init_sham() routine in devices.c only needs to be
+called when there is no device tree present.
+
+CC: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+---
+ arch/arm/mach-omap2/devices.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index d4d8905..7d9e786 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -686,10 +686,10 @@ static int __init omap2_init_devices(void)
+ 		omap_init_dmic();
+ 		omap_init_mcpdm();
+ 		omap_init_mcspi();
++		omap_init_sham();
+ 	}
+ 	omap_init_sti();
+ 	omap_init_rng();
+-	omap_init_sham();
+ 	omap_init_aes();
+ 	omap_init_vout();
+ 	omap_init_ocp2scp();
+-- 
+1.7.7.6
+

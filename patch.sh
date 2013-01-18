@@ -17,14 +17,14 @@ RECIPENAME="linux-mainline_3.7.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.8-rc3"
+TAG="v3.8-rc4"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="406089d01562f1e2bf9f089fd7637009ebaad589"
+EXTERNAL_SHA="7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619"
 
-PATCHSET="dma pinctrl cpufreq adc pwm i2c da8xx-fb mmc 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net merge usb not-capebus"
+PATCHSET="dma rtc pinctrl cpufreq adc pwm i2c da8xx-fb mmc crypto 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net merge usb not-capebus"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
