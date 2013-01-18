@@ -1,7 +1,7 @@
-From c0454a4e102a4cfadabebceaf6b39156aaefeab7 Mon Sep 17 00:00:00 2001
+From 8109d5dbb54ee2bc2ea3d0e2e4ca9460f50f058a Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 8 Jan 2013 15:19:52 +0200
-Subject: [PATCH 19/95] omap: Avoid crashes in the case of hwmod
+Subject: [PATCH 19/98] omap: Avoid crashes in the case of hwmod
  misconfiguration
 
 omap hwmod is really sensitive to hwmod misconfiguration.
@@ -50,14 +50,14 @@ Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b!
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index d81a92e..6aaaa3c 100644
+index 4653efb..2b58e21 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -784,7 +784,9 @@ static int _init_interface_clks(struct omap_hwmod *oh)
+@@ -783,7 +783,9 @@ static int _init_interface_clks(struct omap_hwmod *oh)
  		if (IS_ERR(c)) {
  			pr_warning("omap_hwmod: %s: cannot clk_get interface_clk %s\n",
  				   oh->name, os->clk);
@@ -68,7 +68,7 @@ index d81a92e..6aaaa3c 100644
  		}
  		os->_clk = c;
  		/*
-@@ -820,7 +822,9 @@ static int _init_opt_clks(struct omap_hwmod *oh)
+@@ -819,7 +821,9 @@ static int _init_opt_clks(struct omap_hwmod *oh)
  		if (IS_ERR(c)) {
  			pr_warning("omap_hwmod: %s: cannot clk_get opt_clk %s\n",
  				   oh->name, oc->clk);
@@ -80,5 +80,5 @@ index d81a92e..6aaaa3c 100644
  		oc->_clk = c;
  		/*
 -- 
-1.7.7.6
+1.8.1
 

@@ -1,7 +1,7 @@
-From 9e7eb9181e018b536c87abbd0eb9cc72eee525d3 Mon Sep 17 00:00:00 2001
+From 70164746dc240e57e9e7f9815b7c7b773dca9e90 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 3 Jan 2013 12:23:07 +0200
-Subject: [PATCH 32/95] OF: Introduce DT overlay support.
+Subject: [PATCH 32/98] OF: Introduce DT overlay support.
 
 Introduce DT overlay support.
 Using this functionality it is possible to dynamically overlay a part of
@@ -10,12 +10,12 @@ It is also possible to remove node and properties.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- Documentation/devicetree/overlay-notes.txt |  179 ++++++
- drivers/of/Kconfig                         |   10 +
- drivers/of/Makefile                        |    1 +
- drivers/of/overlay.c                       |  831 ++++++++++++++++++++++++++++
- include/linux/of.h                         |  107 ++++
- 5 files changed, 1128 insertions(+), 0 deletions(-)
+ Documentation/devicetree/overlay-notes.txt | 179 +++++++
+ drivers/of/Kconfig                         |  10 +
+ drivers/of/Makefile                        |   1 +
+ drivers/of/overlay.c                       | 831 +++++++++++++++++++++++++++++
+ include/linux/of.h                         | 107 ++++
+ 5 files changed, 1128 insertions(+)
  create mode 100644 Documentation/devicetree/overlay-notes.txt
  create mode 100644 drivers/of/overlay.c
 
@@ -1186,5 +1186,5 @@ index ab52243..8a908f0 100644
 +
  #endif /* _LINUX_OF_H */
 -- 
-1.7.7.6
+1.8.1
 

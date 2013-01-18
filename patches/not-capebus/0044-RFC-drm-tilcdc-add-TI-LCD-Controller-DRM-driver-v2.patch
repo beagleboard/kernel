@@ -1,7 +1,7 @@
-From 7e2bdd38187c16106ffc0cde1bef9c45737c8190 Mon Sep 17 00:00:00 2001
+From 3013ad67ead1e7b72c2b7110d5b5a86db134c503 Mon Sep 17 00:00:00 2001
 From: Rob Clark <robdclark@gmail.com>
 Date: Tue, 8 Jan 2013 15:04:28 -0600
-Subject: [PATCH 44/95] RFC: drm/tilcdc: add TI LCD Controller DRM driver (v2)
+Subject: [PATCH 44/98] RFC: drm/tilcdc: add TI LCD Controller DRM driver (v2)
 
 A simple DRM/KMS driver for the TI LCD Controller found in various
 smaller TI parts (AM33xx, OMAPL138, etc).  This driver uses the
@@ -20,17 +20,17 @@ v2: fix fb refcnting and few other cleanups
 
 Signed-off-by: Rob Clark <robdclark@gmail.com>
 ---
- drivers/gpu/drm/Kconfig                |    2 +
- drivers/gpu/drm/Makefile               |    1 +
- drivers/gpu/drm/tilcdc/Kconfig         |   10 +
- drivers/gpu/drm/tilcdc/Makefile        |    8 +
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c   |  598 +++++++++++++++++++++++++++++++
- drivers/gpu/drm/tilcdc/tilcdc_drv.c    |  602 ++++++++++++++++++++++++++++++++
- drivers/gpu/drm/tilcdc/tilcdc_drv.h    |  164 +++++++++
- drivers/gpu/drm/tilcdc/tilcdc_regs.h   |  154 ++++++++
- drivers/gpu/drm/tilcdc/tilcdc_tfp410.c |  425 ++++++++++++++++++++++
- drivers/gpu/drm/tilcdc/tilcdc_tfp410.h |   26 ++
- 10 files changed, 1990 insertions(+), 0 deletions(-)
+ drivers/gpu/drm/Kconfig                |   2 +
+ drivers/gpu/drm/Makefile               |   1 +
+ drivers/gpu/drm/tilcdc/Kconfig         |  10 +
+ drivers/gpu/drm/tilcdc/Makefile        |   8 +
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c   | 598 ++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c    | 602 +++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h    | 164 +++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_regs.h   | 154 +++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_tfp410.c | 425 +++++++++++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_tfp410.h |  26 ++
+ 10 files changed, 1990 insertions(+)
  create mode 100644 drivers/gpu/drm/tilcdc/Kconfig
  create mode 100644 drivers/gpu/drm/tilcdc/Makefile
  create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_crtc.c
@@ -2096,5 +2096,5 @@ index 0000000..5b800f1
 +
 +#endif /* __TILCDC_TFP410_H__ */
 -- 
-1.7.7.6
+1.8.1
 

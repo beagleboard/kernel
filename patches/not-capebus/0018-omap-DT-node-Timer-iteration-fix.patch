@@ -1,7 +1,7 @@
-From 3c3edf48131307145378424905207c8130d0a5ce Mon Sep 17 00:00:00 2001
+From 02bff40b072b8c3923beec8731f24bdc5e0bf317 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 8 Jan 2013 13:35:02 +0200
-Subject: [PATCH 18/95] omap: DT node Timer iteration fix
+Subject: [PATCH 18/98] omap: DT node Timer iteration fix
 
 The iterator correctly handles of_node_put() calls.
 Remove it before continue'ing the loop.
@@ -18,8 +18,8 @@ ERROR: Bad of_node_put() on /ocp/timer@44e31000!
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- arch/arm/mach-omap2/timer.c |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/timer.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
 index 691aa67..b8ad6e6 100644
@@ -44,5 +44,5 @@ index 691aa67..b8ad6e6 100644
  		of_add_property(np, &device_disabled);
  		return np;
 -- 
-1.7.7.6
+1.8.1
 

@@ -1,15 +1,15 @@
-From 4a02a4cfbc09ffa2963128d55402cd854a0b7493 Mon Sep 17 00:00:00 2001
+From f7cbc2b99cb8a14eb4b411ae60eb72f879294e64 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 15 Jan 2013 20:03:18 +0200
-Subject: [PATCH 90/95] am33xx: edma: Always update unused channel list
+Subject: [PATCH 90/98] am33xx: edma: Always update unused channel list
 
 When using dynamically created devices the single initialization
 of the the unused channels list is wrong, so do it every time.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- arch/arm/common/edma.c |   27 ++++++++++++---------------
- 1 files changed, 12 insertions(+), 15 deletions(-)
+ arch/arm/common/edma.c | 27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
 diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
 index beeb1d2..7654324 100644
@@ -57,5 +57,5 @@ index beeb1d2..7654324 100644
  	if (channel >= 0) {
  		ctlr = EDMA_CTLR(channel);
 -- 
-1.7.7.6
+1.8.1
 

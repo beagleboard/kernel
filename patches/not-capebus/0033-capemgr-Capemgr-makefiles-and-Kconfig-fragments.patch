@@ -1,7 +1,7 @@
-From 1142b3a431bc89b275030482207903570f2900ae Mon Sep 17 00:00:00 2001
+From 35dfa3af1db65a11ef902e364492c90ecc6a20e7 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 28 Dec 2012 20:56:48 +0200
-Subject: [PATCH 33/95] capemgr: Capemgr makefiles and Kconfig fragments.
+Subject: [PATCH 33/98] capemgr: Capemgr makefiles and Kconfig fragments.
 
 Introduce a cape loader using DT overlays and dynamic
 DT objects.
@@ -10,14 +10,14 @@ Makefile and Kconfig fragments.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- arch/arm/mach-omap2/Kconfig           |    2 ++
- drivers/misc/Kconfig                  |    2 ++
- drivers/misc/Makefile                 |    1 +
- drivers/misc/cape/Kconfig             |    5 +++++
- drivers/misc/cape/Makefile            |    5 +++++
- drivers/misc/cape/beaglebone/Kconfig  |   18 ++++++++++++++++++
- drivers/misc/cape/beaglebone/Makefile |    6 ++++++
- 7 files changed, 39 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Kconfig           |  2 ++
+ drivers/misc/Kconfig                  |  2 ++
+ drivers/misc/Makefile                 |  1 +
+ drivers/misc/cape/Kconfig             |  5 +++++
+ drivers/misc/cape/Makefile            |  5 +++++
+ drivers/misc/cape/beaglebone/Kconfig  | 18 ++++++++++++++++++
+ drivers/misc/cape/beaglebone/Makefile |  6 ++++++
+ 7 files changed, 39 insertions(+)
  create mode 100644 drivers/misc/cape/Kconfig
  create mode 100644 drivers/misc/cape/Makefile
  create mode 100644 drivers/misc/cape/beaglebone/Kconfig
@@ -115,5 +115,5 @@ index 0000000..b79ace4
 +obj-$(CONFIG_CAPE_BEAGLEBONE)		+= capemgr.o
 +obj-$(CONFIG_CAPE_BEAGLEBONE_GEIGER)	+= cape-bone-geiger.o
 -- 
-1.7.7.6
+1.8.1
 

@@ -1,15 +1,15 @@
-From a1266e20859d2e4b7f5cbd7f3c52fa8705eab8d9 Mon Sep 17 00:00:00 2001
+From 1f0ac1a5b459ef0f5449cd5e2ed7c89e9ba8b106 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 15 Jan 2013 12:07:50 +0200
-Subject: [PATCH 71/95] OF: Overlay: I2C client devices special handling.
+Subject: [PATCH 71/98] OF: Overlay: I2C client devices special handling.
 
 The I2C client devices are 'special', as in they're not platform
 devices. They need to be registered with an I2C specific method.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/of/overlay.c |  132 +++++++++++++++++++++++++++-----------------------
- 1 files changed, 71 insertions(+), 61 deletions(-)
+ drivers/of/overlay.c | 132 +++++++++++++++++++++++++++------------------------
+ 1 file changed, 71 insertions(+), 61 deletions(-)
 
 diff --git a/drivers/of/overlay.c b/drivers/of/overlay.c
 index fc7bf5a..0577067 100644
@@ -193,5 +193,5 @@ index fc7bf5a..0577067 100644
  	return 0;
  }
 -- 
-1.7.7.6
+1.8.1
 

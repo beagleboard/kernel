@@ -1,7 +1,7 @@
-From 1eac0dfd34c5d201c4ee72499b451bf10527bd6d Mon Sep 17 00:00:00 2001
+From eaba650e7ad9a7ed855d8e91a5cf5c02fa868853 Mon Sep 17 00:00:00 2001
 From: Grant Likely <grant.likely@secretlab.ca>
 Date: Tue, 2 Aug 2011 15:30:09 +0100
-Subject: [PATCH 06/11] ARM: CUSTOM: Build a uImage with dtb already appended
+Subject: [PATCH 4/7] ARM: CUSTOM: Build a uImage with dtb already appended
 
 Do not commit to mainline; this is a useful hack only for now.
 
@@ -12,9 +12,9 @@ Conflicts:
 
 	arch/arm/Makefile
 ---
- arch/arm/Makefile      |    3 +++
- arch/arm/boot/Makefile |    7 +++++++
- 2 files changed, 10 insertions(+), 0 deletions(-)
+ arch/arm/Makefile      | 3 +++
+ arch/arm/boot/Makefile | 7 +++++++
+ 2 files changed, 10 insertions(+)
 
 diff --git a/arch/arm/Makefile b/arch/arm/Makefile
 index 30c443c..cab6681 100644
@@ -56,5 +56,5 @@ index abfce28..131558f 100644
  	$(Q)$(MAKE) $(build)=$(obj)/bootp $@
  	@:
 -- 
-1.7.7.6
+1.8.1
 

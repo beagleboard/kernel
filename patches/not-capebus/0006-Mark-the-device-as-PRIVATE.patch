@@ -1,7 +1,7 @@
-From 0533e560853a0ad5d490687333bacb81045c27dd Mon Sep 17 00:00:00 2001
+From a7f99337f90025a1dcff3f07995498775db85fd6 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 30 Nov 2012 12:12:55 +0200
-Subject: [PATCH 06/95] Mark the device as PRIVATE
+Subject: [PATCH 06/98] Mark the device as PRIVATE
 
 Turns out if you enable CONFIG_NET_DMA the ip stack will try
 to grab all the available non-private DMA channels sometime late in the
@@ -14,8 +14,8 @@ dma devices.
 
 Very crazy bug.
 ---
- drivers/dma/edma.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/dma/edma.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
 index e57cce3..2e27ec5 100644
@@ -52,5 +52,5 @@ index e57cce3..2e27ec5 100644
  	edma_dma_init(ecc, &ecc->dma_slave, &pdev->dev);
  
 -- 
-1.7.7.6
+1.8.1
 

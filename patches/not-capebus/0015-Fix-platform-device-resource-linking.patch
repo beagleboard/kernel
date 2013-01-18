@@ -1,7 +1,7 @@
-From 03c6042fda7d02c5d1c52f7e981d9ad33e0bc1d0 Mon Sep 17 00:00:00 2001
+From ae65b649e35edc19850e2025823b7b26e7810b19 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 28 Dec 2012 11:34:15 +0200
-Subject: [PATCH 15/95] Fix platform device resource linking
+Subject: [PATCH 15/98] Fix platform device resource linking
 
 Platform device removal uncovered a number of problems with
 the way resources are handled in the core platform code.
@@ -21,8 +21,8 @@ resources.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/base/platform.c         |  124 ++++++++++++++++++++++++++-------------
- include/linux/platform_device.h |    4 +
+ drivers/base/platform.c         | 124 +++++++++++++++++++++++++++-------------
+ include/linux/platform_device.h |   4 ++
  2 files changed, 87 insertions(+), 41 deletions(-)
 
 diff --git a/drivers/base/platform.c b/drivers/base/platform.c
@@ -214,5 +214,5 @@ index a9ded9a..e48c2d5 100644
 +
  #endif /* _PLATFORM_DEVICE_H_ */
 -- 
-1.7.7.6
+1.8.1
 

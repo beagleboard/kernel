@@ -1,7 +1,7 @@
-From 047414129b4d60220fb4ddd479423d055c280b47 Mon Sep 17 00:00:00 2001
+From 0803c4d5afc748f0e3d3e6dd1a7d2dd0dcde5ea7 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 4 Jan 2013 11:50:48 +0200
-Subject: [PATCH 55/95] ARM: am33xx: Fix the PWM clocks mess
+Subject: [PATCH 55/98] ARM: am33xx: Fix the PWM clocks mess
 
 Party based on
 	"AM33xx hwmod: Add parent child relationship for PWM subsystem"
@@ -20,9 +20,9 @@ Original patch blurb was:
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- arch/arm/mach-omap2/cclock33xx_data.c      |   18 ++
- arch/arm/mach-omap2/control.h              |    8 +
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c |  434 ++++++++++++++++++----------
+ arch/arm/mach-omap2/cclock33xx_data.c      |  18 ++
+ arch/arm/mach-omap2/control.h              |   8 +
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 434 +++++++++++++++++++----------
  3 files changed, 314 insertions(+), 146 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
@@ -673,5 +673,5 @@ index 3497086..9b0f8c3 100644
  	&am33xx_l3_main__lcdc,
  	&am33xx_l4_ls__mcspi0,
 -- 
-1.7.7.6
+1.8.1
 

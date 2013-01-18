@@ -1,7 +1,7 @@
-From 5b60654ac81fdea61ad115cec473fc613fc848f6 Mon Sep 17 00:00:00 2001
+From f518e276501b58ce5af793b229b5010b34cd954e Mon Sep 17 00:00:00 2001
 From: Rob Clark <robdclark@gmail.com>
 Date: Tue, 18 Dec 2012 17:34:16 -0600
-Subject: [PATCH 45/95] RFC: drm/tilcdc: add support for LCD panels (v3)
+Subject: [PATCH 45/98] RFC: drm/tilcdc: add support for LCD panels (v3)
 
 Add an output panel driver for LCD panels.  Tested with LCD3 cape on
 beaglebone.
@@ -16,12 +16,12 @@ v3: add backlight support
 
 Signed-off-by: Rob Clark <robdclark@gmail.com>
 ---
- drivers/gpu/drm/tilcdc/Kconfig        |    2 +
- drivers/gpu/drm/tilcdc/Makefile       |    1 +
- drivers/gpu/drm/tilcdc/tilcdc_drv.c   |    3 +
- drivers/gpu/drm/tilcdc/tilcdc_panel.c |  473 +++++++++++++++++++++++++++++++++
- drivers/gpu/drm/tilcdc/tilcdc_panel.h |   26 ++
- 5 files changed, 505 insertions(+), 0 deletions(-)
+ drivers/gpu/drm/tilcdc/Kconfig        |   2 +
+ drivers/gpu/drm/tilcdc/Makefile       |   1 +
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c   |   3 +
+ drivers/gpu/drm/tilcdc/tilcdc_panel.c | 473 ++++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_panel.h |  26 ++
+ 5 files changed, 505 insertions(+)
  create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_panel.c
  create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_panel.h
 
@@ -590,5 +590,5 @@ index 0000000..7db40aa
 +
 +#endif /* __TILCDC_PANEL_H__ */
 -- 
-1.7.7.6
+1.8.1
 

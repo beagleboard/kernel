@@ -1,16 +1,16 @@
-From 32237e8f8425bc2ea7a5bc08d13ac6f090543a0c Mon Sep 17 00:00:00 2001
+From 2569e97f2fd6c6052370809f541e1e1892c06b34 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 13 Dec 2012 11:23:21 +0200
-Subject: [PATCH 20/95] i2c-EEPROM: In kernel memory accessor interface
+Subject: [PATCH 20/98] i2c-EEPROM: In kernel memory accessor interface
 
 In kernel users need to access the EEPROM using the i2c_client
 interface. Extend at24 to use it via the command interface.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/misc/eeprom/at24.c |   23 +++++++++++++++++
- include/linux/i2c/eeprom.h |   59 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 82 insertions(+), 0 deletions(-)
+ drivers/misc/eeprom/at24.c | 23 ++++++++++++++++++
+ include/linux/i2c/eeprom.h | 59 ++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 82 insertions(+)
  create mode 100644 include/linux/i2c/eeprom.h
 
 diff --git a/drivers/misc/eeprom/at24.c b/drivers/misc/eeprom/at24.c
@@ -127,5 +127,5 @@ index 0000000..1393980
 +
 +#endif
 -- 
-1.7.7.6
+1.8.1
 
