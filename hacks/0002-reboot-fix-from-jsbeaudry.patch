@@ -1,0 +1,105 @@
+From c566143ba22a62e697386cc082e23a174e1c0fbf Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Tue, 22 Jan 2013 17:44:03 +0100
+Subject: [PATCH 2/3] reboot fix from jsbeaudry
+
+---
+ arch/arm/mach-omap2/Makefile         |  1 +
+ arch/arm/mach-omap2/am33xx-restart.c | 40 ++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-generic.c  |  1 +
+ arch/arm/mach-omap2/common.h         |  8 ++++++++
+ 4 files changed, 50 insertions(+)
+ create mode 100644 arch/arm/mach-omap2/am33xx-restart.c
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 0474993..999d08c 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -53,6 +53,7 @@ AFLAGS_sram34xx.o			:=-Wa,-march=armv7-a
+ # Restart code (OMAP4/5 currently in omap4-common.c)
+ obj-$(CONFIG_SOC_OMAP2420)		+= omap2-restart.o
+ obj-$(CONFIG_SOC_OMAP2430)		+= omap2-restart.o
++obj-$(CONFIG_SOC_AM33XX)		+= am33xx-restart.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= omap3-restart.o
+ 
+ # Pin multiplexing
+diff --git a/arch/arm/mach-omap2/am33xx-restart.c b/arch/arm/mach-omap2/am33xx-restart.c
+new file mode 100644
+index 0000000..8912082
+--- /dev/null
++++ b/arch/arm/mach-omap2/am33xx-restart.c
+@@ -0,0 +1,40 @@
++/*
++ * am33xx-restart.c - Code common to all AM33xx machines.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include <linux/kernel.h>
++#include <linux/init.h>
++
++#include "iomap.h"
++#include "common.h"
++#include "control.h"
++#include "prm33xx.h"
++
++/**
++ * am3xx_restart - trigger a software restart of the SoC
++ * @mode: the "reboot mode", see arch/arm/kernel/{setup,process}.c
++ * @cmd: passed from the userspace program rebooting the system (if provided)
++ *
++ * Resets the SoC.  For @cmd, see the 'reboot' syscall in
++ * kernel/sys.c.  No return value.
++ */
++void am33xx_restart(char mode, const char *cmd)
++{
++	u32 v;
++
++        // TODO: Handle mode and cmd
++
++	v = am33xx_prm_read_reg(AM33XX_PRM_DEVICE_MOD,
++				AM33XX_PRM_RSTCTRL_OFFSET);
++	v |= 1;
++	am33xx_prm_write_reg(v, AM33XX_PRM_DEVICE_MOD,
++				 AM33XX_PRM_RSTCTRL_OFFSET);
++
++	/* OCP barrier */
++	v = am33xx_prm_read_reg(AM33XX_PRM_DEVICE_MOD,
++				    AM33XX_PRM_RSTCTRL_OFFSET);
++	while (1);
++}
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 1c9195d..6a9fd9a 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -142,6 +142,7 @@ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
+ 	.init_machine	= omap_generic_init,
+ 	.timer		= &omap3_am33xx_timer,
+ 	.dt_compat	= am33xx_boards_compat,
++	.restart	= am33xx_restart,
+ MACHINE_END
+ #endif
+ 
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 73cac5c..4f27d8e 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -129,6 +129,14 @@ static inline void omap2xxx_restart(char mode, const char *cmd)
+ }
+ #endif
+ 
++#ifdef CONFIG_SOC_AM33XX
++void am33xx_restart(char mode, const char *cmd);
++#else
++static inline void am33xx_restart(char mode, const char *cmd)
++{
++}
++#endif
++
+ #ifdef CONFIG_ARCH_OMAP3
+ void omap3xxx_restart(char mode, const char *cmd);
+ #else
+-- 
+1.8.1
+

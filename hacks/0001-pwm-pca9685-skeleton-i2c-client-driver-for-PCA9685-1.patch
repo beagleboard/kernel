@@ -1,0 +1,227 @@
+From ee1454f1555bd740d5873e67ffe52f2bc07ef08d Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Mon, 21 Jan 2013 12:47:26 +0100
+Subject: [PATCH 1/3] pwm-pca9685: skeleton i2c client driver for PCA9685 16
+ channel PWM driver
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ drivers/pwm/Kconfig       |  10 +++
+ drivers/pwm/Makefile      |   1 +
+ drivers/pwm/pwm-pca9685.c | 171 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 182 insertions(+)
+ create mode 100644 drivers/pwm/pwm-pca9685.c
+
+diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
+index 74f5084..85a348d 100644
+--- a/drivers/pwm/Kconfig
++++ b/drivers/pwm/Kconfig
+@@ -85,6 +85,16 @@ config PWM_MXS
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called pwm-mxs.
+ 
++config PWM_PCA9685
++	tristate "NXP PCA9685 PWM support"
++	depends on I2C
++	help
++	  Generic PWM framework driver for PCA9685. The PCA9685 has 16
++	  PWM controller.
++
++	  To compile this driver as a module, choose M here: the module
++	  will be called pca-9685.	
++
+ config PWM_PUV3
+ 	tristate "PKUnity NetBook-0916 PWM support"
+ 	depends on ARCH_PUV3
+diff --git a/drivers/pwm/Makefile b/drivers/pwm/Makefile
+index 8ddb432..92ec413 100644
+--- a/drivers/pwm/Makefile
++++ b/drivers/pwm/Makefile
+@@ -5,6 +5,7 @@ obj-$(CONFIG_PWM_IMX)		+= pwm-imx.o
+ obj-$(CONFIG_PWM_JZ4740)	+= pwm-jz4740.o
+ obj-$(CONFIG_PWM_LPC32XX)	+= pwm-lpc32xx.o
+ obj-$(CONFIG_PWM_MXS)		+= pwm-mxs.o
++obj-$(CONFIG_PWM_PCA9685)	+= pwm-pca9685.o
+ obj-$(CONFIG_PWM_PUV3)		+= pwm-puv3.o
+ obj-$(CONFIG_PWM_PXA)		+= pwm-pxa.o
+ obj-$(CONFIG_PWM_SAMSUNG)	+= pwm-samsung.o
+diff --git a/drivers/pwm/pwm-pca9685.c b/drivers/pwm/pwm-pca9685.c
+new file mode 100644
+index 0000000..fe504ab
+--- /dev/null
++++ b/drivers/pwm/pwm-pca9685.c
+@@ -0,0 +1,171 @@
++/* drivers/pwm/pwm-pca9685.c
++ * 
++ * Copyright (C) 2013 Koen Kooi
++ * 
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ * 
++ * This program is distributed in the hope that is will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABLILITY of FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU Genernal Public License for more details.
++ *
++ */
++
++
++#include <linux/err.h>
++#include <linux/slab.h>
++#include <linux/pwm.h>
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/i2c.h>
++#include <linux/interrupt.h>
++
++
++#define PCA9685_REG_PSC			0xFE
++#define PCA9685_REG_LED_ON(led)		0x6 + (led >> 2)
++#define PCA9685_REG_LED_OFF(led)	0x7 + (led >> 2)
++
++#define NUM_PWM_CHANNEL			16	/* PCA9685 channels */
++
++struct pca9685_pwm_chip {
++	struct pwm_chip chip;
++	unsigned long period_cycles[NUM_PWM_CHANNEL];
++	enum pwm_polarity polarity[NUM_PWM_CHANNEL];
++};
++
++struct pca9685_device {
++	struct i2c_client *client;
++	/* TODO */
++};
++
++static int pca9685_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
++		int duty_ns, int period_ns)
++{
++	pr_info("PWM config");
++	return 0;
++}
++
++static int pca9685_pwm_set_polarity(struct pwm_chip *chip, struct pwm_device *pwm,
++		enum pwm_polarity polarity)
++{
++	pr_info("PWM set polarity");
++	return 0;
++}
++
++static int pca9685_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
++{
++	pr_info("PWM enable");
++	return 0;
++}
++
++static void pca9685_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
++{
++	pr_info("PWM disable");
++}
++
++static void pca9685_pwm_free(struct pwm_chip *chip, struct pwm_device *pwm)
++{
++	pr_info("PWM free");
++	if (test_bit(PWMF_ENABLED, &pwm->flags)) {
++		dev_warn(chip->dev, "Removing PWM device without disabling\n");
++	}
++}
++
++static const struct pwm_ops pca9685_pwm_ops = {
++	.free		= pca9685_pwm_free,
++	.config		= pca9685_pwm_config,
++	.set_polarity	= pca9685_pwm_set_polarity,
++	.enable		= pca9685_pwm_enable,
++	.disable	= pca9685_pwm_disable,
++	.owner		= THIS_MODULE,
++};
++
++/* TODO */
++
++static int pca9685_probe(struct i2c_client *client,
++		const struct i2c_device_id *id)
++{
++	struct pca9685_device *dev;
++	struct pca9685_pwm_chip *pc;
++	int ret;
++
++	if (!i2c_check_functionality(client->adapter,
++		I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
++		I2C_FUNC_SMBUS_I2C_BLOCK)) {
++		printk(KERN_ERR "%s: needed i2c functionality is not supported\n", __func__);
++		return -ENODEV;
++	}
++	
++	dev = kzalloc(sizeof(struct pca9685_device), GFP_KERNEL);
++	if (dev == NULL) {
++		printk(KERN_ERR "%s: no memory\n", __func__);
++		return -ENOMEM;
++	}
++
++	dev->client = client;
++	i2c_set_clientdata(client, dev);
++
++	pc = kzalloc(sizeof(struct pca9685_pwm_chip), GFP_KERNEL);
++	if (pc == NULL) {
++		printk(KERN_ERR "%s: no memory\n", __func__);
++		return -ENOMEM;
++	}
++
++	pc->chip.dev = &client->dev;
++	pc->chip.ops = &pca9685_pwm_ops;
++	pc->chip.base = -1;
++        pc->chip.npwm = 16;
++
++	ret = pwmchip_add(&pc->chip);
++	if (ret < 0) {
++	pr_err("pwm-pca9685: pwmchip_add() failed: %d\n", ret);
++		return ret;
++        }
++
++	return 0;
++}
++
++static int pca9685_remove(struct i2c_client *client)
++{
++	struct pca9685_client *dev = i2c_get_clientdata(client);
++
++	/* TODO: do something */
++
++	kfree(dev);
++	return 0;
++}
++
++static const struct i2c_device_id pca9685_id[] = {
++	{ "pwm-pca9685", 0 },
++	{ }
++};
++
++static struct i2c_driver pca9685_driver = {
++	.probe    = pca9685_probe,
++	.remove   = pca9685_remove,
++	.id_table = pca9685_id,
++	.driver   = {
++		.name = "pca9685",
++	},
++};
++
++static int __init pca9685_init_driver(void)
++{
++	return i2c_add_driver(&pca9685_driver);
++}
++
++static void __exit pca9685_exit_driver(void)
++{
++	i2c_del_driver(&pca9685_driver);
++}
++
++module_init(pca9685_init_driver);
++module_exit(pca9685_exit_driver);
++
++MODULE_AUTHOR("Koen Kooi <koen@dominion.thruhere.net>");
++MODULE_DESCRIPTION("PCA9685 I2C 16 channel PWM driver");
++MODULE_LICENSE("GPL");
+-- 
+1.8.1
+
