@@ -1,0 +1,171 @@
+From 6536526994c2692a6937e4e4d5cb63e69b3cb0c7 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Tue, 15 Jan 2013 11:26:27 +0200
+Subject: [PATCH 69/99] of-i2c: Export single device registration method
+
+Dynamically inserting i2c client device nodes requires the use
+of a single device registration method. Rework and export it.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/of/of_i2c.c    | 104 +++++++++++++++++++++++++++----------------------
+ include/linux/of_i2c.h |  11 ++++++
+ 2 files changed, 68 insertions(+), 47 deletions(-)
+
+diff --git a/drivers/of/of_i2c.c b/drivers/of/of_i2c.c
+index b667264..116a5e0 100644
+--- a/drivers/of/of_i2c.c
++++ b/drivers/of/of_i2c.c
+@@ -17,10 +17,64 @@
+ #include <linux/of_i2c.h>
+ #include <linux/of_irq.h>
+ #include <linux/module.h>
++#include <linux/err.h>
++
++struct i2c_client *
++of_i2c_register_device(struct i2c_adapter *adap,
++		struct device_node *node)
++{
++	struct i2c_client *result;
++	struct i2c_board_info info = {};
++	struct dev_archdata dev_ad = {};
++	const __be32 *addr;
++	int len;
++
++	dev_dbg(&adap->dev, "of_i2c: register %s\n", node->full_name);
++
++	if (of_modalias_node(node, info.type, sizeof(info.type)) < 0) {
++		dev_err(&adap->dev, "of_i2c: modalias failure on %s\n",
++			node->full_name);
++		return ERR_PTR(-EINVAL);
++	}
++
++	addr = of_get_property(node, "reg", &len);
++	if (!addr || (len < sizeof(int))) {
++		dev_err(&adap->dev, "of_i2c: invalid reg on %s\n",
++			node->full_name);
++		return ERR_PTR(-EINVAL);
++	}
++
++	info.addr = be32_to_cpup(addr);
++	if (info.addr > (1 << 10) - 1) {
++		dev_err(&adap->dev, "of_i2c: invalid addr=%x on %s\n",
++			info.addr, node->full_name);
++		return ERR_PTR(-EINVAL);
++	}
++
++	info.irq = irq_of_parse_and_map(node, 0);
++	info.of_node = of_node_get(node);
++	info.archdata = &dev_ad;
++
++	if (of_get_property(node, "wakeup-source", NULL))
++		info.flags |= I2C_CLIENT_WAKE;
++
++	request_module("%s%s", I2C_MODULE_PREFIX, info.type);
++
++	result = i2c_new_device(adap, &info);
++	if (result == NULL) {
++		dev_err(&adap->dev, "of_i2c: Failure registering %s\n",
++			node->full_name);
++		of_node_put(node);
++		irq_dispose_mapping(info.irq);
++		return ERR_PTR(-ENODEV);
++	}
++
++	return result;
++}
++EXPORT_SYMBOL(of_i2c_register_device);
+ 
+ void of_i2c_register_devices(struct i2c_adapter *adap)
+ {
+-	void *result;
+ 	struct device_node *node;
+ 
+ 	/* Only register child devices if the adapter has a node pointer set */
+@@ -29,52 +83,8 @@ void of_i2c_register_devices(struct i2c_adapter *adap)
+ 
+ 	dev_dbg(&adap->dev, "of_i2c: walking child nodes\n");
+ 
+-	for_each_available_child_of_node(adap->dev.of_node, node) {
+-		struct i2c_board_info info = {};
+-		struct dev_archdata dev_ad = {};
+-		const __be32 *addr;
+-		int len;
+-
+-		dev_dbg(&adap->dev, "of_i2c: register %s\n", node->full_name);
+-
+-		if (of_modalias_node(node, info.type, sizeof(info.type)) < 0) {
+-			dev_err(&adap->dev, "of_i2c: modalias failure on %s\n",
+-				node->full_name);
+-			continue;
+-		}
+-
+-		addr = of_get_property(node, "reg", &len);
+-		if (!addr || (len < sizeof(int))) {
+-			dev_err(&adap->dev, "of_i2c: invalid reg on %s\n",
+-				node->full_name);
+-			continue;
+-		}
+-
+-		info.addr = be32_to_cpup(addr);
+-		if (info.addr > (1 << 10) - 1) {
+-			dev_err(&adap->dev, "of_i2c: invalid addr=%x on %s\n",
+-				info.addr, node->full_name);
+-			continue;
+-		}
+-
+-		info.irq = irq_of_parse_and_map(node, 0);
+-		info.of_node = of_node_get(node);
+-		info.archdata = &dev_ad;
+-
+-		if (of_get_property(node, "wakeup-source", NULL))
+-			info.flags |= I2C_CLIENT_WAKE;
+-
+-		request_module("%s%s", I2C_MODULE_PREFIX, info.type);
+-
+-		result = i2c_new_device(adap, &info);
+-		if (result == NULL) {
+-			dev_err(&adap->dev, "of_i2c: Failure registering %s\n",
+-			        node->full_name);
+-			of_node_put(node);
+-			irq_dispose_mapping(info.irq);
+-			continue;
+-		}
+-	}
++	for_each_available_child_of_node(adap->dev.of_node, node)
++		of_i2c_register_device(adap, node);
+ }
+ EXPORT_SYMBOL(of_i2c_register_devices);
+ 
+diff --git a/include/linux/of_i2c.h b/include/linux/of_i2c.h
+index cfb545c..53fca8f 100644
+--- a/include/linux/of_i2c.h
++++ b/include/linux/of_i2c.h
+@@ -15,6 +15,9 @@
+ #if defined(CONFIG_OF_I2C) || defined(CONFIG_OF_I2C_MODULE)
+ #include <linux/i2c.h>
+ 
++struct i2c_client *
++of_i2c_register_device(struct i2c_adapter *adap, struct device_node *node);
++
+ extern void of_i2c_register_devices(struct i2c_adapter *adap);
+ 
+ /* must call put_device() when done with returned i2c_client device */
+@@ -25,6 +28,14 @@ extern struct i2c_adapter *of_find_i2c_adapter_by_node(
+ 						struct device_node *node);
+ 
+ #else
++
++static inline struct i2c_client *
++of_i2c_register_device(struct i2c_adapter *adap,
++		struct device_node *node)
++{
++	return ERR_PTR(-ENODEV);
++}
++
+ static inline void of_i2c_register_devices(struct i2c_adapter *adap)
+ {
+ 	return;
+-- 
+1.8.1
+
