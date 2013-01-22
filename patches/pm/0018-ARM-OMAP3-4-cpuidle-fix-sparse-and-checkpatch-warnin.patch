@@ -1,0 +1,49 @@
+From 1ecc59c6d7ae8148b443a22507e0dac120580cfe Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 23 Dec 2012 00:53:11 -0700
+Subject: [PATCH 18/69] ARM: OMAP3/4: cpuidle: fix sparse and checkpatch
+ warnings
+
+Fix the following sparse warnings in the OMAP3/4 CPUIdle code:
+
+arch/arm/mach-omap2/cpuidle34xx.c:272:1: warning: symbol 'omap3_idle_dev' was not declared. Should it be static?
+arch/arm/mach-omap2/cpuidle34xx.c:274:23: warning: symbol 'omap3_idle_driver' was not declared. Should it be static?
+arch/arm/mach-omap2/cpuidle44xx.c:164:1: warning: symbol 'omap4_idle_dev' was not declared. Should it be static?
+arch/arm/mach-omap2/cpuidle44xx.c:166:23: warning: symbol 'omap4_idle_driver' was not declared. Should it be static?
+
+Also fix the following checkpatch warnings:
+
+WARNING: please, no space before tabs
+#44: FILE: arch/arm/mach-omap2/cpuidle34xx.c:105:
++^I.name = ^I"omap3_idle",$
+
+WARNING: please, no space before tabs
+#45: FILE: arch/arm/mach-omap2/cpuidle34xx.c:106:
++^I.owner = ^ITHIS_MODULE,$
+
+ERROR: code indent should use tabs where possible
+#211: FILE: arch/arm/mach-omap2/cpuidle44xx.c:74:
++                        /* C2 - CPU0 OFF + CPU1 OFF + MPU CSWR */$
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/cpuidle34xx.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 4e1e33d..e6215b5 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -53,6 +53,8 @@ struct omap3_idle_statedata {
+  */
+ #define OMAP_CPUIDLE_CX_NO_CLKDM_IDLE		BIT(0)
+ 
++static struct powerdomain *mpu_pd, *core_pd, *per_pd, *cam_pd;
++
+ /*
+  * Prevent PER OFF if CORE is not in RETention or OFF as this would
+  * disable PER wakeups completely.
+-- 
+1.8.1
+

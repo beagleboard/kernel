@@ -1,0 +1,89 @@
+From 65262544628d7aa57048b2ba651dc5c98c6c80bd Mon Sep 17 00:00:00 2001
+From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Date: Wed, 26 Dec 2012 16:00:14 +0530
+Subject: [PATCH 59/69] ARM: OMAP2+: AM33XX: Update the hardreset API
+
+WKUP-M3 has a reset status bit (RM_WKUP_STST.WKUP_M3_LRST)
+Update the hardreset API to ensure that the reset line properly
+deasserted.
+
+Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |  5 +----
+ arch/arm/mach-omap2/prm33xx.c    | 11 +++++++----
+ arch/arm/mach-omap2/prm33xx.h    |  2 +-
+ 3 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 2b58e21..c458f73 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -3045,11 +3045,8 @@ static int _am33xx_assert_hardreset(struct omap_hwmod *oh,
+ static int _am33xx_deassert_hardreset(struct omap_hwmod *oh,
+ 				     struct omap_hwmod_rst_info *ohri)
+ {
+-	if (ohri->st_shift)
+-		pr_err("omap_hwmod: %s: %s: hwmod data error: OMAP4 does not support st_shift\n",
+-		       oh->name, ohri->name);
+-
+ 	return am33xx_prm_deassert_hardreset(ohri->rst_shift,
++				ohri->st_shift,
+ 				oh->clkdm->pwrdm.ptr->prcm_offs,
+ 				oh->prcm.omap4.rstctrl_offs,
+ 				oh->prcm.omap4.rstst_offs);
+diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
+index 1ac7388..44c0d72 100644
+--- a/arch/arm/mach-omap2/prm33xx.c
++++ b/arch/arm/mach-omap2/prm33xx.c
+@@ -110,11 +110,11 @@ int am33xx_prm_assert_hardreset(u8 shift, s16 inst, u16 rstctrl_offs)
+  * -EINVAL upon an argument error, -EEXIST if the submodule was already out
+  * of reset, or -EBUSY if the submodule did not exit reset promptly.
+  */
+-int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
++int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, s16 inst,
+ 		u16 rstctrl_offs, u16 rstst_offs)
+ {
+ 	int c;
+-	u32 mask = 1 << shift;
++	u32 mask = 1 << st_shift;
+ 
+ 	/* Check the current status to avoid  de-asserting the line twice */
+ 	if (am33xx_prm_is_hardreset_asserted(shift, inst, rstctrl_offs) == 0)
+@@ -122,11 +122,14 @@ int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
+ 
+ 	/* Clear the reset status by writing 1 to the status bit */
+ 	am33xx_prm_rmw_reg_bits(0xffffffff, mask, inst, rstst_offs);
++
+ 	/* de-assert the reset control line */
++	mask = 1 << shift;
++
+ 	am33xx_prm_rmw_reg_bits(mask, 0, inst, rstctrl_offs);
+-	/* wait the status to be set */
+ 
+-	omap_test_timeout(am33xx_prm_is_hardreset_asserted(shift, inst,
++	/* wait the status to be set */
++	omap_test_timeout(am33xx_prm_is_hardreset_asserted(st_shift, inst,
+ 							   rstst_offs),
+ 			  MAX_MODULE_HARDRESET_WAIT, c);
+ 
+diff --git a/arch/arm/mach-omap2/prm33xx.h b/arch/arm/mach-omap2/prm33xx.h
+index 2f2eaa0..aefde49 100644
+--- a/arch/arm/mach-omap2/prm33xx.h
++++ b/arch/arm/mach-omap2/prm33xx.h
+@@ -125,7 +125,7 @@ extern void am33xx_prm_global_warm_sw_reset(void);
+ extern int am33xx_prm_is_hardreset_asserted(u8 shift, s16 inst,
+ 		u16 rstctrl_offs);
+ extern int am33xx_prm_assert_hardreset(u8 shift, s16 inst, u16 rstctrl_offs);
+-extern int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
++extern int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, s16 inst,
+ 		u16 rstctrl_offs, u16 rstst_offs);
+ #endif /* ASSEMBLER */
+ 
+-- 
+1.8.1
+

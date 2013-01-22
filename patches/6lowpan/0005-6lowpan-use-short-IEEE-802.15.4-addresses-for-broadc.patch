@@ -1,4 +1,4 @@
-From e2651dfe4ca4fbfeaf83cb10e1db91a7ee4a808e Mon Sep 17 00:00:00 2001
+From 40e78da5325b64bd67e0b06f154d1d490bad1b1e Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
 Date: Tue, 4 Sep 2012 23:48:13 -0400
 Subject: [PATCH 05/16] 6lowpan: use short IEEE 802.15.4 addresses for
@@ -9,8 +9,8 @@ bytes) for message broadcasting.
 
 Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
 ---
- net/ieee802154/6lowpan.c |   21 +++++++++++++--------
- 1 files changed, 13 insertions(+), 8 deletions(-)
+ net/ieee802154/6lowpan.c | 21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
 index 01495ca..1b3bfd2 100644
@@ -52,5 +52,5 @@ index 01495ca..1b3bfd2 100644
  		return dev_hard_header(skb, lowpan_dev_info(dev)->real_dev,
  				type, (void *)&da, (void *)&sa, skb->len);
 -- 
-1.7.7.6
+1.8.1
 

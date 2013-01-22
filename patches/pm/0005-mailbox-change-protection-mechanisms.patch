@@ -1,0 +1,82 @@
+From 3cc680bb4c58de646fbed266bf044f1c865a033c Mon Sep 17 00:00:00 2001
+From: Loic Pallardy <loic.pallardy-ext@stericsson.com>
+Date: Tue, 18 Dec 2012 13:10:08 +0000
+Subject: [PATCH 05/69] mailbox: change protection mechanisms
+
+TX: replace spin by mutex
+RX: replace spin_lock_irq by spin_lock_irqsave
+
+Signed-off-by: Loic Pallardy <loic.pallardy@st.com>
+---
+ drivers/mailbox/mailbox.c          | 10 ++++++----
+ drivers/mailbox/mailbox_internal.h |  1 +
+ 2 files changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
+index 34ee01c..6b612c0 100644
+--- a/drivers/mailbox/mailbox.c
++++ b/drivers/mailbox/mailbox.c
+@@ -95,7 +95,7 @@ int mailbox_msg_send(struct mailbox *mbox, struct mailbox_msg *msg)
+ 	struct mailbox_queue *mq = mbox->txq;
+ 	int ret = 0, len;
+ 
+-	spin_lock_bh(&mq->lock);
++	mutex_lock(&mq->mlock);
+ 
+ 	if (kfifo_avail(&mq->fifo) < (sizeof(msg) + msg->size)) {
+ 		ret = -ENOMEM;
+@@ -118,7 +118,7 @@ int mailbox_msg_send(struct mailbox *mbox, struct mailbox_msg *msg)
+ 	tasklet_schedule(&mbox->txq->tasklet);
+ 
+ out:
+-	spin_unlock_bh(&mq->lock);
++	mutex_unlock(&mq->mlock);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(mailbox_msg_send);
+@@ -198,6 +198,7 @@ static void mbox_rx_work(struct work_struct *work)
+ 	int len;
+ 	struct mailbox *mbox = mq->mbox;
+ 	struct mailbox_msg msg;
++	unsigned long flags;
+ 
+ 	while (kfifo_len(&mq->fifo) >= sizeof(msg)) {
+ 		len = kfifo_out(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
+@@ -210,12 +211,12 @@ static void mbox_rx_work(struct work_struct *work)
+ 		}
+ 
+ 		blocking_notifier_call_chain(&mbox->notifier, len, (void *)&msg);
+-		spin_lock_irq(&mq->lock);
++		spin_lock_irqsave(&mq->lock, flags);
+ 		if (mq->full) {
+ 			mq->full = false;
+ 			mailbox_enable_irq(mbox, IRQ_RX);
+ 		}
+-		spin_unlock_irq(&mq->lock);
++		spin_unlock_irqrestore(&mq->lock, flags);
+ 	}
+ }
+ 
+@@ -288,6 +289,7 @@ static struct mailbox_queue *mbox_queue_alloc(struct mailbox *mbox,
+ 		return NULL;
+ 
+ 	spin_lock_init(&mq->lock);
++	mutex_init(&mq->mlock);
+ 
+ 	if (kfifo_alloc(&mq->fifo, mbox_kfifo_size, GFP_KERNEL))
+ 		goto error;
+diff --git a/drivers/mailbox/mailbox_internal.h b/drivers/mailbox/mailbox_internal.h
+index f832766..0aca5c2 100644
+--- a/drivers/mailbox/mailbox_internal.h
++++ b/drivers/mailbox/mailbox_internal.h
+@@ -43,6 +43,7 @@ struct mailbox_ops {
+ 
+ struct mailbox_queue {
+ 	spinlock_t              lock;
++	struct mutex		mlock;
+ 	struct kfifo            fifo;
+ 	struct work_struct      work;
+ 	struct tasklet_struct   tasklet;
+-- 
+1.8.1
+

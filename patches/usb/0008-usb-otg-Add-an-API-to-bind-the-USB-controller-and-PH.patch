@@ -1,8 +1,7 @@
-From 3a244bae220d6189b9c7258d69e2b890d63cb8c6 Mon Sep 17 00:00:00 2001
+From c52cdd58a5172a641f635e96798546132ce64a9b Mon Sep 17 00:00:00 2001
 From: Kishon Vijay Abraham I <kishon@ti.com>
 Date: Wed, 16 Jan 2013 15:00:57 +0000
-Subject: [PATCH 08/13] usb: otg: Add an API to bind the USB controller and
- PHY
+Subject: [PATCH 08/13] usb: otg: Add an API to bind the USB controller and PHY
 
 New platforms are added which has multiple PHY's (of same type) and
 which has multiple USB controllers. The binding information has to be
@@ -13,9 +12,9 @@ called by platform specific initialization code.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/otg/otg.c   |   37 +++++++++++++++++++++++++++++++++++++
- include/linux/usb/phy.h |   22 ++++++++++++++++++++++
- 2 files changed, 59 insertions(+), 0 deletions(-)
+ drivers/usb/otg/otg.c   | 37 +++++++++++++++++++++++++++++++++++++
+ include/linux/usb/phy.h | 22 ++++++++++++++++++++++
+ 2 files changed, 59 insertions(+)
 
 diff --git a/drivers/usb/otg/otg.c b/drivers/usb/otg/otg.c
 index a30c041..492ba2f 100644
@@ -120,5 +119,5 @@ index a29ae1e..fbeab1a 100644
  
  static inline int
 -- 
-1.7.7.6
+1.8.1
 

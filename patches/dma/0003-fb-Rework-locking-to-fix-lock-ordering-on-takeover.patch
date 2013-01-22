@@ -1,4 +1,4 @@
-From 5c868e3c4aa844225ba87a2cf3b3d621945a570b Mon Sep 17 00:00:00 2001
+From 495f99544487a5a96b90adb5d7021f38cd7d3fba Mon Sep 17 00:00:00 2001
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Date: Fri, 16 Nov 2012 19:27:11 +0000
 Subject: [PATCH 03/36] fb: Rework locking to fix lock ordering on takeover
@@ -23,11 +23,11 @@ locking rules it uses for its notifiers it seems.
 Signed-off-by: Alan Cox <alan@linux.intel.com>
 Tested-by: Borislav Petkov <bp@alien8.de>
 ---
- drivers/tty/vt/vt.c           |   81 +++++++++++++++++++++++++++++++----------
- drivers/video/console/fbcon.c |   30 +++++++++++++++-
- drivers/video/fbmem.c         |    5 +--
- drivers/video/fbsysfs.c       |    3 ++
- include/linux/console.h       |    1 +
+ drivers/tty/vt/vt.c           | 81 +++++++++++++++++++++++++++++++++----------
+ drivers/video/console/fbcon.c | 30 +++++++++++++++-
+ drivers/video/fbmem.c         |  5 ++-
+ drivers/video/fbsysfs.c       |  3 ++
+ include/linux/console.h       |  1 +
  5 files changed, 97 insertions(+), 23 deletions(-)
 
 diff --git a/drivers/tty/vt/vt.c b/drivers/tty/vt/vt.c
@@ -289,5 +289,5 @@ index dedb082..4ef4307 100644
  #ifdef CONFIG_HW_CONSOLE
  int con_debug_enter(struct vc_data *vc);
 -- 
-1.7.7.6
+1.8.1
 

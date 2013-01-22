@@ -1,0 +1,98 @@
+From 644d8757eab25c2a6936d5fa596fd469d1f0a57a Mon Sep 17 00:00:00 2001
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Date: Sun, 23 Dec 2012 01:44:01 -0700
+Subject: [PATCH 31/69] ARM: OMAP2xxx: PM: convert to use the functional power
+ states API
+
+Use the functional power states as the API to control power domains:
+
+- use the PWRDM_FUNC_PWRST_* macros for the power states and logic
+  settings,
+
+- the function pwrdm_set_next_fpwrst(), which controls the power domains
+  next power and logic settings, shall be used instead of
+  pwrdm_set_next_pwrst() to program the power domains next states,
+
+- the function pwrdm_set_fpwrst(), which programs the power domains
+  power and logic settings, shall be used instead of
+  omap_set_pwrdm_state().
+
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+[paul@pwsan.com: split the original patch into OMAP2/3/4 variants; fix
+ commit message; update the power state programming to make sense;
+ warn if sets fail]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/pm24xx.c | 24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index 5d0f39b..01e9ff5 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -90,8 +90,8 @@ static int omap2_enter_full_retention(void)
+ 	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
+ 	omap2_prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
+ 
+-	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
+-	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
++	WARN_ON(pwrdm_set_next_fpwrst(core_pwrdm, PWRDM_FUNC_PWRST_CSWR));
++	WARN_ON(pwrdm_set_next_fpwrst(mpu_pwrdm, PWRDM_FUNC_PWRST_CSWR));
+ 
+ 	/* Workaround to kill USB */
+ 	l = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0) | OMAP24XX_USBSTANDBYCTRL;
+@@ -133,8 +133,8 @@ no_sleep:
+ 	/* Mask future PRCM-to-MPU interrupts */
+ 	omap2_prm_write_mod_reg(0x0, OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
+ 
+-	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+-	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_ON);
++	WARN_ON(pwrdm_set_next_fpwrst(mpu_pwrdm, PWRDM_FUNC_PWRST_ON));
++	WARN_ON(pwrdm_set_next_fpwrst(core_pwrdm, PWRDM_FUNC_PWRST_ON));
+ 
+ 	return 0;
+ }
+@@ -185,16 +185,16 @@ static void omap2_enter_mpu_retention(void)
+ 		omap2_prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
+ 
+ 		/* Try to enter MPU retention */
+-		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
+-
++		WARN_ON(pwrdm_set_next_fpwrst(mpu_pwrdm,
++					      PWRDM_FUNC_PWRST_CSWR));
+ 	} else {
+ 		/* Block MPU retention */
+-		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
++		WARN_ON(pwrdm_set_next_fpwrst(mpu_pwrdm, PWRDM_FUNC_PWRST_ON));
+ 	}
+ 
+ 	omap2_sram_idle();
+ 
+-	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
++	WARN_ON(pwrdm_set_next_fpwrst(mpu_pwrdm, PWRDM_FUNC_PWRST_ON));
+ }
+ 
+ static int omap2_can_sleep(void)
+@@ -249,17 +249,13 @@ static void __init prcm_setup_regs(void)
+ 	for (i = 0; i < num_mem_banks; i++)
+ 		pwrdm_set_mem_retst(core_pwrdm, i, PWRDM_POWER_RET);
+ 
+-	pwrdm_set_logic_retst(core_pwrdm, PWRDM_POWER_RET);
+-
+-	pwrdm_set_logic_retst(mpu_pwrdm, PWRDM_POWER_RET);
+-
+ 	/* Force-power down DSP, GFX powerdomains */
+ 
+ 	pwrdm = clkdm_get_pwrdm(dsp_clkdm);
+-	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_OFF);
++	WARN_ON(pwrdm_set_next_fpwrst(pwrdm, PWRDM_FUNC_PWRST_OFF));
+ 
+ 	pwrdm = clkdm_get_pwrdm(gfx_clkdm);
+-	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_OFF);
++	WARN_ON(pwrdm_set_next_fpwrst(pwrdm, PWRDM_FUNC_PWRST_OFF));
+ 
+ 	/* Enable hardware-supervised idle for all clkdms */
+ 	clkdm_for_each(omap_pm_clkdms_setup, NULL);
+-- 
+1.8.1
+

@@ -13,6 +13,8 @@ git checkout origin/3.8 -b 3.8
 ./patch.sh
 ```
 
+Get am335x-pm-firmware.bin from http://arago-project.org/git/projects/?p=am33x-cm3.git;a=tree;f=bin and copy it to kernel/firmware
+
 To build it:
 
 ```
@@ -47,11 +49,12 @@ Status
  * I2C: working
  * SPI: working
  * MMC: mmc1 working, mmc2 working, mmc3 untested
- * USB host: working
- * USB gadget: untested
- * LCDC: capebus has support for lcd3, lcd4, lcd7 and dvi capes
- * TS: not working
- * ADC: capebus has adc support
+   o you can only enable 1 controller, so mmc1 + mmc2 won't work
+ * USB host: not working
+ * USB gadget: not working
+ * LCDC: not-capebus has support for lcd3, lcd4, lcd7 and dvi capes
+ * TS: orking
+ * ADC: untested
  * PWM: ehrpwm and ecap working
  * PMIC: working
  * PMIC PWM: working, kills ethernet

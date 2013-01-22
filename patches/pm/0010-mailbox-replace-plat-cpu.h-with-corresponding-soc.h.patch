@@ -1,0 +1,51 @@
+From c1b5aad63dde4dc973a528d235f25e71cbfadd43 Mon Sep 17 00:00:00 2001
+From: Suman Anna <s-anna@ti.com>
+Date: Wed, 16 Jan 2013 16:07:22 -0600
+Subject: [PATCH 10/69] mailbox: replace plat/cpu.h with corresponding soc.h
+
+The AM33xx suspend resume functionality is built on top of the
+common mailbox framework and cleanup series posted for review,
+    http://www.spinics.net/lists/linux-omap/msg84035.html
+but is breaking the build when rebased for v3.8-rc3 due to the
+removal of soc.h from plat/cpu.h in commit,
+	e8d3d47 ARM: OMAP2+: Drop plat/cpu.h for omap2plus
+
+This is a quick temporary (though ugly) work-around to fix the
+build for the time being. The cpu_is/soc_is macros should ideally
+not be used by the drivers and the drivers should manage this
+through either the platform data or device tree properties. The
+current change is local to the mailbox driver code, which needs
+a cleanup and reposting for the latest rc anyways.
+
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+ drivers/mailbox/Makefile        | 2 ++
+ drivers/mailbox/mailbox-omap2.c | 2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/mailbox/Makefile b/drivers/mailbox/Makefile
+index c04ce79..8c3d40d 100644
+--- a/drivers/mailbox/Makefile
++++ b/drivers/mailbox/Makefile
+@@ -1,3 +1,5 @@
++ccflags-$(CONFIG_ARCH_OMAP) := -I$(srctree)/arch/arm
++
+ obj-$(CONFIG_MAILBOX) += mailbox.o
+ 
+ obj-$(CONFIG_OMAP1_MBOX)       += mailbox-omap1.o
+diff --git a/drivers/mailbox/mailbox-omap2.c b/drivers/mailbox/mailbox-omap2.c
+index 14e9b5d..04b58b8 100644
+--- a/drivers/mailbox/mailbox-omap2.c
++++ b/drivers/mailbox/mailbox-omap2.c
+@@ -17,7 +17,7 @@
+ #include <linux/io.h>
+ #include <linux/pm_runtime.h>
+ 
+-#include <plat/cpu.h>
++#include <mach-omap2/soc.h>
+ 
+ #include "mailbox_internal.h"
+ 
+-- 
+1.8.1
+

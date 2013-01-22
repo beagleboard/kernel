@@ -1,0 +1,83 @@
+From c984debe2f2b411296b5ac357787eda20792fccb Mon Sep 17 00:00:00 2001
+From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Date: Wed, 26 Dec 2012 16:11:39 +0530
+Subject: [PATCH 11/69] mailbox: OMAP2+: Add support for AM33XX
+
+Mailbox IP on AM33XX is the same as that present in OMAP4.
+The single instance of Mailbox IP on AM33XX contains
+8 sub-modules and facilitates communication between MPU,
+PRUs and WKUP_M3.
+
+The first mailbox sub-module is assigned for communication
+between MPU and WKUP-M3.
+
+Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: Russ Dill <russ.dill@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ drivers/mailbox/mailbox-omap2.c | 35 ++++++++++++++++++++++++++++++++++-
+ 1 file changed, 34 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/mailbox/mailbox-omap2.c b/drivers/mailbox/mailbox-omap2.c
+index 04b58b8..2b278ad 100644
+--- a/drivers/mailbox/mailbox-omap2.c
++++ b/drivers/mailbox/mailbox-omap2.c
+@@ -153,7 +153,7 @@ static void omap2_mbox_disable_irq(struct mailbox *mbox,
+ 	struct omap_mbox2_priv *p = mbox->priv;
+ 	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
+ 
+-	if (!cpu_is_omap44xx())
++	if (!cpu_is_omap44xx() && !soc_is_am33xx())
+ 		bit = mbox_read_reg(p->irqdisable) & ~bit;
+ 
+ 	mbox_write_reg(bit, p->irqdisable);
+@@ -354,6 +354,32 @@ struct mailbox mbox_2_info = {
+ struct mailbox *omap4_mboxes[] = { &mbox_1_info, &mbox_2_info, NULL };
+ #endif
+ 
++#if defined(CONFIG_SOC_AM33XX)
++static struct omap_mbox2_priv omap2_mbox_wkup_m3_priv = {
++	.tx_fifo = {
++		.msg		= MAILBOX_MESSAGE(0),
++		.fifo_stat	= MAILBOX_FIFOSTATUS(0),
++		.msg_stat	= MAILBOX_MSGSTATUS(0),
++	},
++	.rx_fifo = {
++		.msg		= MAILBOX_MESSAGE(1),
++		.msg_stat	= MAILBOX_MSGSTATUS(1),
++	},
++	.irqenable	= OMAP4_MAILBOX_IRQENABLE(3),
++	.irqstatus	= OMAP4_MAILBOX_IRQSTATUS(3),
++	.irqdisable	= OMAP4_MAILBOX_IRQENABLE_CLR(3),
++	.notfull_bit	= MAILBOX_IRQ_NOTFULL(0),
++	.newmsg_bit	= MAILBOX_IRQ_NEWMSG(0),
++};
++
++struct mailbox mbox_wkup_m3_info = {
++	.name	= "wkup_m3",
++	.ops	= &omap2_mbox_ops,
++	.priv	= &omap2_mbox_wkup_m3_priv,
++};
++struct mailbox *am33xx_mboxes[] = { &mbox_wkup_m3_info, NULL };
++#endif
++
+ static int omap2_mbox_probe(struct platform_device *pdev)
+ {
+ 	struct resource *mem;
+@@ -388,6 +414,13 @@ static int omap2_mbox_probe(struct platform_device *pdev)
+ 		list[0]->irq = list[1]->irq = platform_get_irq(pdev, 0);
+ 	}
+ #endif
++#if defined(CONFIG_SOC_AM33XX)
++	else if (soc_is_am33xx()) {
++		list = am33xx_mboxes;
++
++		list[0]->irq = platform_get_irq(pdev, 0);
++	}
++#endif
+ 	else {
+ 		pr_err("%s: platform not supported\n", __func__);
+ 		return -ENODEV;
+-- 
+1.8.1
+

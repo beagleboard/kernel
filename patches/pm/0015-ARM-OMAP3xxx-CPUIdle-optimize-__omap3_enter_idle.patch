@@ -1,0 +1,129 @@
+From b1d7274b7f92d8d8c7561f882eb12fcd73384030 Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Fri, 23 Nov 2012 19:20:47 -0700
+Subject: [PATCH 15/69] ARM: OMAP3xxx: CPUIdle: optimize __omap3_enter_idle()
+
+Avoid programming the MPU and CORE powerdomain next-power-state
+registers if those powerdomains will never enter low-power states
+(e.g., the state that people refer to as "C1").
+
+To avoid making assumptions about CPUIdle states based on their order
+in the list, use a flag to mark CPUIdle states that don't enter
+powerdomain low-power states.
+
+Avoid a previous-power-state register read on the MPU powerdomain
+unless we know that the MPU was supposed to go OFF during the last
+state transition.  Previous-power-state register reads can be very
+expensive, so it's worth avoiding these when possible.
+
+Since the CORE_L3 clockdomain can't go inactive unless the MPU is active,
+there's little point blocking autoidle on the CORE_L3 clockdomain in "C1"
+state, since we've programmed the MPU clockdomain to stay active.
+Remove the unnecessary code.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/cpuidle34xx.c | 35 ++++++++++++++++++++++-------------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index ff421c3..4e1e33d 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -39,9 +39,21 @@ struct omap3_idle_statedata {
+ 	u8 mpu_state;
+ 	u8 core_state;
+ 	u8 per_min_state;
++	u8 flags;
+ };
+ 
+ /*
++ * Possible flag bits for struct omap3_idle_statedata.flags:
++ *
++ * OMAP_CPUIDLE_CX_NO_CLKDM_IDLE: don't allow the MPU clockdomain to go
++ *    inactive.  This in turn prevents the MPU DPLL from entering autoidle
++ *    mode, so wakeup latency is greatly reduced, at the cost of additional
++ *    energy consumption.  This also prevents the CORE clockdomain from
++ *    entering idle.
++ */
++#define OMAP_CPUIDLE_CX_NO_CLKDM_IDLE		BIT(0)
++
++/*
+  * Prevent PER OFF if CORE is not in RETention or OFF as this would
+  * disable PER wakeups completely.
+  */
+@@ -51,6 +63,7 @@ static struct omap3_idle_statedata omap3_idle_data[] = {
+ 		.core_state = PWRDM_POWER_ON,
+ 		/* In C1 do not allow PER state lower than CORE state */
+ 		.per_min_state = PWRDM_POWER_ON,
++		.flags = OMAP_CPUIDLE_CX_NO_CLKDM_IDLE,
+ 	},
+ 	{
+ 		.mpu_state = PWRDM_POWER_ON,
+@@ -91,27 +104,25 @@ static int __omap3_enter_idle(struct cpuidle_device *dev,
+ 				int index)
+ {
+ 	struct omap3_idle_statedata *cx = &omap3_idle_data[index];
+-	u32 mpu_state = cx->mpu_state, core_state = cx->core_state;
+ 
+ 	local_fiq_disable();
+ 
+-	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
+-	pwrdm_set_next_pwrst(core_pd, core_state);
+-
+ 	if (omap_irq_pending() || need_resched())
+ 		goto return_sleep_time;
+ 
+ 	/* Deny idle for C1 */
+-	if (index == 0) {
++	if (cx->flags & OMAP_CPUIDLE_CX_NO_CLKDM_IDLE) {
+ 		clkdm_deny_idle(mpu_pd->pwrdm_clkdms[0]);
+-		clkdm_deny_idle(core_pd->pwrdm_clkdms[0]);
++	} else {
++		pwrdm_set_next_pwrst(mpu_pd, cx->mpu_state);
++		pwrdm_set_next_pwrst(core_pd, cx->core_state);
+ 	}
+ 
+ 	/*
+ 	 * Call idle CPU PM enter notifier chain so that
+ 	 * VFP context is saved.
+ 	 */
+-	if (mpu_state == PWRDM_POWER_OFF)
++	if (cx->mpu_state == PWRDM_POWER_OFF)
+ 		cpu_pm_enter();
+ 
+ 	/* Execute ARM wfi */
+@@ -121,17 +132,15 @@ static int __omap3_enter_idle(struct cpuidle_device *dev,
+ 	 * Call idle CPU PM enter notifier chain to restore
+ 	 * VFP context.
+ 	 */
+-	if (pwrdm_read_prev_pwrst(mpu_pd) == PWRDM_POWER_OFF)
++	if (cx->mpu_state == PWRDM_POWER_OFF &&
++	    pwrdm_read_prev_pwrst(mpu_pd) == PWRDM_POWER_OFF)
+ 		cpu_pm_exit();
+ 
+ 	/* Re-allow idle for C1 */
+-	if (index == 0) {
++	if (cx->flags & OMAP_CPUIDLE_CX_NO_CLKDM_IDLE)
+ 		clkdm_allow_idle(mpu_pd->pwrdm_clkdms[0]);
+-		clkdm_allow_idle(core_pd->pwrdm_clkdms[0]);
+-	}
+ 
+ return_sleep_time:
+-
+ 	local_fiq_enable();
+ 
+ 	return index;
+@@ -196,7 +205,7 @@ static int next_valid_state(struct cpuidle_device *dev,
+ 	 * Start search from the next (lower) state.
+ 	 */
+ 	for (idx = index - 1; idx >= 0; idx--) {
+-		cx =  &omap3_idle_data[idx];
++		cx = &omap3_idle_data[idx];
+ 		if ((cx->mpu_state >= mpu_deepest_state) &&
+ 		    (cx->core_state >= core_deepest_state)) {
+ 			next_index = idx;
+-- 
+1.8.1
+

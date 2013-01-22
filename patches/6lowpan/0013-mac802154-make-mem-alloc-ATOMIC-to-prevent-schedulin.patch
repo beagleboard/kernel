@@ -1,15 +1,15 @@
-From 05ecca3740a56a218ab05832f523e73032cd49a2 Mon Sep 17 00:00:00 2001
+From b7cfe5e2a0a6cec85c83a3abd53ae568b39a9195 Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
 Date: Tue, 10 Jul 2012 11:36:28 -0400
-Subject: [PATCH 13/16] mac802154: make mem alloc ATOMIC to prevent
- "scheduling while atomic" crashes
+Subject: [PATCH 13/16] mac802154: make mem alloc ATOMIC to prevent "scheduling
+ while atomic" crashes
 
 These crashes occur mainly with the serial driver (not yet in the tree).
 
 Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
 ---
- net/mac802154/wpan.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/mac802154/wpan.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/mac802154/wpan.c b/net/mac802154/wpan.c
 index fdf482a..e0d358f 100644
@@ -25,5 +25,5 @@ index fdf482a..e0d358f 100644
  		return -ENOMEM;
  
 -- 
-1.7.7.6
+1.8.1
 

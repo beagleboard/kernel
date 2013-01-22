@@ -1,0 +1,45 @@
+From def03b793eb2ef41afaec49d1d89fcfab67dc27a Mon Sep 17 00:00:00 2001
+From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Date: Mon, 31 Dec 2012 10:21:31 +0530
+Subject: [PATCH 66/69] ARM: OMAP2+: AM33XX: Select Mailbox when PM is enabled
+
+PM services on AM33XX depend on mailbox for communication
+with WKUP-M3 core so ensure that the right config options
+are selected. Thanks to Kevin Hilman <khilman@deeprootsystems.com>
+for the suggestion on updating the Kconfig and not just
+the omap2plus_defconfig which was done in the previous version
+of the AM33XX suspend-resume support.
+
+Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: Tony Lingren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/Kconfig | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index d8486c8..3fef51e 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -119,12 +119,15 @@ config SOC_AM33XX
+ 	bool "AM33XX support"
+ 	default y
+ 	select ARM_CPU_SUSPEND if PM
++	select COMMON_CLK
+ 	select CPU_V7
++	select MAILBOX if PM
+ 	select MULTI_IRQ_HANDLER
+ 	select COMMON_CLK
+ 	select MACH_AM335XEVM
+ 	select MACH_AM335XIAEVM
+ 	select MACH_TAM335X
++	select OMAP2PLUS_MBOX if PM
+ 
+ config OMAP_PACKAGE_ZAF
+        bool
+-- 
+1.8.1
+

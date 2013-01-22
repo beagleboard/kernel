@@ -1,0 +1,57 @@
+From 49761547d992415480b9ab6ec10ab4eefaf2d5bb Mon Sep 17 00:00:00 2001
+From: Tom Rini <trini@ti.com>
+Date: Thu, 17 Jan 2013 11:47:08 -0600
+Subject: [PATCH 68/69] Makefile, scripts/package/builddeb: HACK: Force xargs
+ max char length
+
+This is based on https://patchwork.kernel.org/patch/1314931/ with an
+extension to cover scripts/package/builddeb.  As hpa notes in the above
+link, QEMU is at fault here not the kernel, thus making this a HACK.  A
+bug against QEMU exists at
+https://bugs.launchpad.net/qemu-linaro/+bug/1036645 but until a fix is
+available, we need to hack around it.
+
+Signed-off-by: Tom Rini <trini@ti.com>
+---
+ Makefile                 | 4 ++--
+ scripts/package/builddeb | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 253a455..17bf38a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1060,7 +1060,7 @@ distclean: mrproper
+ 		-o -name '*.bak' -o -name '#*#' -o -name '.*.orig' \
+ 		-o -name '.*.rej' \
+ 		-o -name '*%' -o -name '.*.cmd' -o -name 'core' \) \
+-		-type f -print | xargs rm -f
++		-type f -print | xargs -s 122880 rm -f
+ 
+ 
+ # Packaging of the kernel to various formats
+@@ -1269,7 +1269,7 @@ clean: $(clean-dirs)
+ 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
+ 		-o -name '*.symtypes' -o -name 'modules.order' \
+ 		-o -name modules.builtin -o -name '.tmp_*.o.*' \
+-		-o -name '*.gcno' \) -type f -print | xargs rm -f
++		-o -name '*.gcno' \) -type f -print | xargs -s 122880 rm -f
+ 
+ # Generate tags for editors
+ # ---------------------------------------------------------------------------
+diff --git a/scripts/package/builddeb b/scripts/package/builddeb
+index 72d6255..f60936f 100644
+--- a/scripts/package/builddeb
++++ b/scripts/package/builddeb
+@@ -19,7 +19,7 @@ create_package() {
+ 	cp debian/changelog "$pdir/usr/share/doc/$pname/changelog.Debian"
+ 	gzip -9 "$pdir/usr/share/doc/$pname/changelog.Debian"
+ 	sh -c "cd '$pdir'; find . -type f ! -path './DEBIAN/*' -printf '%P\0' \
+-		| xargs -r0 md5sum > DEBIAN/md5sums"
++		| xargs -s 122880 -r0 md5sum > DEBIAN/md5sums"
+ 
+ 	# Fix ownership and permissions
+ 	chown -R root:root "$pdir"
+-- 
+1.8.1
+

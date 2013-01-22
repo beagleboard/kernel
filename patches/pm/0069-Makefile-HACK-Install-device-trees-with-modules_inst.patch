@@ -1,0 +1,49 @@
+From 59833c5e508ecee3f0b59bc70b89f5d775ed88f4 Mon Sep 17 00:00:00 2001
+From: Tom Rini <trini@ti.com>
+Date: Thu, 17 Jan 2013 14:21:37 -0600
+Subject: [PATCH 69/69] Makefile: HACK: Install device trees with
+ modules_install
+
+In Ubuntu (see
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1030600) it has
+been decided that device trees should live in
+firmware/$version/device-trees/ so we need to add device tree
+installation to the modules install rule following this location, as
+this is the rule that is responsible for installing all firmware for
+things built into the kernel.
+
+Signed-off-by: Tom Rini <trini@ti.com>
+---
+ Makefile | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index 17bf38a..59b3ca7 100644
+--- a/Makefile
++++ b/Makefile
+@@ -957,7 +957,11 @@ modules_prepare: prepare scripts
+ 
+ # Target to install modules
+ PHONY += modules_install
++ifeq ($(ARCH), arm)
++modules_install: _modinst_ _modinst_post dtbs
++else
+ modules_install: _modinst_ _modinst_post
++endif
+ 
+ PHONY += _modinst_
+ _modinst_:
+@@ -972,6 +976,10 @@ _modinst_:
+ 	@cp -f $(objtree)/modules.order $(MODLIB)/
+ 	@cp -f $(objtree)/modules.builtin $(MODLIB)/
+ 	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.modinst
++ifeq ($(ARCH), arm)
++	@mkdir -p $(INSTALL_FW_PATH)/device-tree
++	@cp $(objtree)/arch/arm/boot/dts/*.dtb $(INSTALL_FW_PATH)/device-tree/
++endif
+ 
+ # This depmod is only for convenience to give the initial
+ # boot a modules.dep even before / is mounted read-write.  However the
+-- 
+1.8.1
+

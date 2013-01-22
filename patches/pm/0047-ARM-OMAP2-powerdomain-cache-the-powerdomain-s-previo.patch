@@ -1,0 +1,107 @@
+From ec2f1951e82b893fa30922c98cedefed15213186 Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 9 Dec 2012 12:42:49 -0700
+Subject: [PATCH 47/69] ARM: OMAP2+: powerdomain: cache the powerdomain's
+ previous power state
+
+Cache the powerdomain previous power state registers.  The objective
+here is to avoid unneeded reads from the previous power state
+registers.  Reads from these registers can be extremely slow, even by
+I/O device standards.  I no longer recall the exact measurements, but
+my recollection was that they cost several microseconds.
+
+The cache is invalidated as part of the powerdomain pre-transition
+code, which runs shortly before WFI/WFE.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/powerdomain.c |  9 +++++++++
+ arch/arm/mach-omap2/powerdomain.h | 14 ++++++++++++++
+ 2 files changed, 23 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 425c868..f5e2727 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -499,6 +499,9 @@ static int _pwrdm_read_prev_fpwrst(struct powerdomain *pwrdm)
+ 	if (!_pwrdm_pwrst_can_change(pwrdm))
+ 		return PWRDM_FUNC_PWRST_ON;
+ 
++	if (pwrdm->_flags & _PWRDM_PREV_FPWRST_IS_VALID)
++		return pwrdm->prev_fpwrst;
++
+ 	pwrst = arch_pwrdm->pwrdm_read_prev_pwrst(pwrdm);
+ 	if (pwrst < 0)
+ 		return pwrst;
+@@ -512,6 +515,10 @@ static int _pwrdm_read_prev_fpwrst(struct powerdomain *pwrdm)
+ 	}
+ 
+ 	ret = _pwrdm_pwrst_to_fpwrst(pwrdm, pwrst, logic_pwrst, &fpwrst);
++	if (!ret) {
++		pwrdm->prev_fpwrst = fpwrst;
++		pwrdm->_flags |= _PWRDM_PREV_FPWRST_IS_VALID;
++	}
+ 
+ 	return (ret) ? ret : fpwrst;
+ }
+@@ -1017,6 +1024,8 @@ int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
+ 	pr_debug("powerdomain: %s: clearing previous power state reg\n",
+ 		 pwrdm->name);
+ 
++	pwrdm->_flags &= ~_PWRDM_PREV_FPWRST_IS_VALID;
++
+ 	if (arch_pwrdm && arch_pwrdm->pwrdm_clear_all_prev_pwrst)
+ 		ret = arch_pwrdm->pwrdm_clear_all_prev_pwrst(pwrdm);
+ 
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 1fb21f52..f4a189a 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -90,8 +90,17 @@ enum pwrdm_func_state {
+  *    powerdomain's next-functional-power-state -- struct
+  *    powerdomain.next_fpwrst -- is valid.  If this bit is not set,
+  *    the code needs to load the current value from the hardware.
++ *
++ * _PWRDM_PREV_FPWRST_IS_VALID: the locally-cached copy of the
++ *    powerdomain's previous-functional-power-state -- struct
++ *    powerdomain.prev_fpwrst -- is valid.  If this bit is not set,
++ *    the code needs to load the current value from the hardware.  The
++ *    previous-functional-power-state cache for the CORE and MPU needs
++ *    to be invalidated right before WFI, unless they were not programmed
++ *    to change power states.
+  */
+ #define _PWRDM_NEXT_FPWRST_IS_VALID	BIT(0)
++#define _PWRDM_PREV_FPWRST_IS_VALID	BIT(1)
+ 
+ /*
+  * Number of memory banks that are power-controllable.	On OMAP4430, the
+@@ -138,6 +147,7 @@ struct powerdomain;
+  * @fpwrst: current func power state (set in pwrdm_state_switch() or post_trans)
+  * @fpwrst_counter: estimated number of times the pwrdm entered the power states
+  * @next_fpwrst: cache of the powerdomain's next-power-state
++ * @prev_fpwrst: cache of the powerdomain's previous-power-state bitfield
+  * @timer: sched_clock() timestamp of last pwrdm_state_switch()
+  * @fpwrst_timer: estimated nanoseconds of residency in the various power states
+  * @_lock: spinlock used to serialize powerdomain and some clockdomain ops
+@@ -146,6 +156,9 @@ struct powerdomain;
+  *
+  * @prcm_partition possible values are defined in mach-omap2/prcm44xx.h.
+  *
++ * @prev_fpwrst is updated during pwrdm_pre_transition(), but presumably
++ * should also be updated upon clock/IP block idle transitions.
++ *
+  * Possible values for @_flags are documented above in the
+  * "Powerdomain internal flags (struct powerdomain._flags)" comments.
+  */
+@@ -165,6 +178,7 @@ struct powerdomain {
+ 	const u8 prcm_partition;
+ 	u8 fpwrst;
+ 	u8 next_fpwrst;
++	u8 prev_fpwrst;
+ 	u8 _flags;
+ 	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
+ 	struct list_head node;
+-- 
+1.8.1
+

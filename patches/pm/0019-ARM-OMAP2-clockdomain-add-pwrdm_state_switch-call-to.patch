@@ -1,0 +1,31 @@
+From 68df449d6aabc8ed30e3c883d9284fed8193cc77 Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 23 Dec 2012 00:53:12 -0700
+Subject: [PATCH 19/69] ARM: OMAP2+: clockdomain: add pwrdm_state_switch() call
+ to clkdm_sleep()
+
+In clkdm_sleep(), the powerdomain should be eligible to switch power
+states right after the call to the low-level clockdomain sleep
+function.  We should have been tracking that with the
+pwrdm_state_switch() code, but we weren't, for whatever reason.  Fix that.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clockdomain.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 7faf82d..f0ec514 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -764,6 +764,7 @@ int clkdm_sleep(struct clockdomain *clkdm)
+ 	spin_lock_irqsave(&clkdm->lock, flags);
+ 	clkdm->_flags &= ~_CLKDM_FLAG_HWSUP_ENABLED;
+ 	ret = arch_clkdm->clkdm_sleep(clkdm);
++	ret |= pwrdm_state_switch(clkdm->pwrdm.ptr);
+ 	spin_unlock_irqrestore(&clkdm->lock, flags);
+ 	return ret;
+ }
+-- 
+1.8.1
+

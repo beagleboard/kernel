@@ -1,0 +1,86 @@
+From 46d61c7721802d04b1c5adef1a07f7552e75f13e Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 23 Dec 2012 01:43:59 -0700
+Subject: [PATCH 28/69] ARM: OMAP2+: powerdomain: add functions that report on
+ powerdomain capabilities
+
+Add several functions to report on whether powerdomains can change their
+power state or logic retention power state, and whether those abilities
+can be controlled by the kernel.  This code is used in subsequent patches
+that add the functional power state code.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/powerdomain.c | 56 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 67495c9..30a2707 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -281,6 +281,62 @@ static void _pwrdm_restore_clkdm_state(struct powerdomain *pwrdm,
+ 	}
+ }
+ 
++/**
++ * _pwrdm_pwrst_is_controllable - can software change the powerdomain pwrst?
++ * @pwrdm: struct powerdomain * to test
++ *
++ * If the kernel can program the power state that the powerdomain
++ * @pwrdm should enter next, return 1; otherwise, return 0.
++ */
++static bool _pwrdm_pwrst_is_controllable(struct powerdomain *pwrdm)
++{
++	return (!pwrdm->pwrsts || pwrdm->pwrsts == PWRSTS_ON) ? 0 : 1;
++}
++
++/**
++ * _pwrdm_pwrst_can_change - can the power state of @pwrdm change?
++ * @pwrdm: struct powerdomain * to test
++ *
++ * If the power state of the powerdomain represented by @pwrdm can
++ * change (i.e., is not always on), and the kernel has some way to
++ * detect this, return 1; otherwise, return 0.  XXX The current
++ * implementation of this is based on an assumption and has not been
++ * verified against all OMAPs.
++ */
++static bool _pwrdm_pwrst_can_change(struct powerdomain *pwrdm)
++{
++	return _pwrdm_pwrst_is_controllable(pwrdm);
++}
++
++/**
++ * _pwrdm_logic_retst_is_controllable - can software change the logic retst?
++ * @pwrdm: struct powerdomain * to test
++ *
++ * If the kernel can program the power state that the powerdomain
++ * @pwrdm logic should enter when the @pwrdm enters the RETENTION
++ * power state, return 1; otherwise, return 0.
++ */
++static bool _pwrdm_logic_retst_is_controllable(struct powerdomain *pwrdm)
++{
++	return (!pwrdm->pwrsts_logic_ret ||
++		pwrdm->pwrsts_logic_ret == PWRSTS_RET) ? 0 : 1;
++}
++
++/**
++ * _pwrdm_logic_retst_can_change - can the logic retst change on @pwrdm?
++ * @pwrdm: struct powerdomain * to test
++ *
++ * If the logic powerstate for the powerdomain represented by @pwrdm
++ * can ever be something other than the powerdomain's powerstate, and
++ * the kernel has some way to detect this, return 1; otherwise, return
++ * 0.  XXX The current implementation of this is based on an
++ * assumption and has not been verified against all OMAPs.
++ */
++static bool _pwrdm_logic_retst_can_change(struct powerdomain *pwrdm)
++{
++	return _pwrdm_logic_retst_is_controllable(pwrdm);
++}
++
+ /* Public functions */
+ 
+ /**
+-- 
+1.8.1
+

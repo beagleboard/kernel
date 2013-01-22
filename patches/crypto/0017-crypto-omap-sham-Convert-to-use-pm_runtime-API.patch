@@ -1,4 +1,4 @@
-From 54a5ef46fe896933c67c2f19674b281a1fdf62fa Mon Sep 17 00:00:00 2001
+From a4398c5ec2420ec84cb41a6384a9ffddb8cb60ff Mon Sep 17 00:00:00 2001
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 Date: Wed, 10 Oct 2012 10:12:13 -0700
 Subject: [PATCH 17/34] crypto: omap-sham - Convert to use pm_runtime API
@@ -10,8 +10,8 @@ CC: Kevin Hilman <khilman@deeprootsystems.com>
 CC: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
 Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
- drivers/crypto/omap-sham.c |   28 +++++++++++-----------------
- 1 files changed, 11 insertions(+), 17 deletions(-)
+ drivers/crypto/omap-sham.c | 28 +++++++++++-----------------
+ 1 file changed, 11 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
 index 344f713..4a228c5 100644
@@ -111,5 +111,5 @@ index 344f713..4a228c5 100644
  	if (dd->irq >= 0)
  		free_irq(dd->irq, dd);
 -- 
-1.7.7.6
+1.8.1
 

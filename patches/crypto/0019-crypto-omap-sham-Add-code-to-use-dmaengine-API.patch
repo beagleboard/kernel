@@ -1,4 +1,4 @@
-From a25eded7f4ac3a312b20c51f501d8957e2540468 Mon Sep 17 00:00:00 2001
+From 390fd2138fb79037d911635da0764755bd8609a3 Mon Sep 17 00:00:00 2001
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 Date: Fri, 12 Oct 2012 11:47:09 -0700
 Subject: [PATCH 19/34] crypto: omap-sham - Add code to use dmaengine API
@@ -16,8 +16,8 @@ CC: Russell King <rmk+kernel@arm.linux.org.uk>
 CC: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
 Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
- drivers/crypto/omap-sham.c |  154 +++++++++++++++++++++++++++++++++++++++++---
- 1 files changed, 145 insertions(+), 9 deletions(-)
+ drivers/crypto/omap-sham.c | 154 ++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 145 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
 index b7949a0..57cb76a 100644
@@ -369,5 +369,5 @@ index b7949a0..57cb76a 100644
  		free_irq(dd->irq, dd);
  	kfree(dd);
 -- 
-1.7.7.6
+1.8.1
 

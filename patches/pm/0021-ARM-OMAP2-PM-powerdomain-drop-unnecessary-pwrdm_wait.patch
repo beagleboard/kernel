@@ -1,0 +1,100 @@
+From 311aae41d781a86fdca5f76ac3411fcb0978eb29 Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 23 Dec 2012 00:53:14 -0700
+Subject: [PATCH 21/69] ARM: OMAP2: PM/powerdomain: drop unnecessary
+ pwrdm_wait_transition()
+
+Drop an unnecessary pwrdm_wait_transition() from mach-omap2/pm.c -
+it's called by the subsequent pwrdm_state_switch().
+
+Also get rid of pwrdm_wait_transition() in the powerdomain code - there's
+no longer any need to export this function.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/pm.c          |  1 -
+ arch/arm/mach-omap2/powerdomain.c | 30 +++++-------------------------
+ arch/arm/mach-omap2/powerdomain.h |  2 --
+ 3 files changed, 5 insertions(+), 28 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index f4b3143..f18afc9 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -171,7 +171,6 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 pwrst)
+ 		break;
+ 	case LOWPOWERSTATE_SWITCH:
+ 		pwrdm_set_lowpwrstchange(pwrdm);
+-		pwrdm_wait_transition(pwrdm);
+ 		pwrdm_state_switch(pwrdm);
+ 		break;
+ 	}
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 92388c0..97b3881 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -112,7 +112,7 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+ 	for (i = 0; i < pwrdm->banks; i++)
+ 		pwrdm->ret_mem_off_counter[i] = 0;
+ 
+-	pwrdm_wait_transition(pwrdm);
++	arch_pwrdm->pwrdm_wait_transition(pwrdm);
+ 	pwrdm->state = pwrdm_read_pwrst(pwrdm);
+ 	pwrdm->state_counter[pwrdm->state] = 1;
+ 
+@@ -950,34 +950,14 @@ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
+ 	return ret;
+ }
+ 
+-/**
+- * pwrdm_wait_transition - wait for powerdomain power transition to finish
+- * @pwrdm: struct powerdomain * to wait for
+- *
+- * If the powerdomain @pwrdm is in the process of a state transition,
+- * spin until it completes the power transition, or until an iteration
+- * bailout value is reached. Returns -EINVAL if the powerdomain
+- * pointer is null, -EAGAIN if the bailout value was reached, or
+- * returns 0 upon success.
+- */
+-int pwrdm_wait_transition(struct powerdomain *pwrdm)
+-{
+-	int ret = -EINVAL;
+-
+-	if (!pwrdm)
+-		return -EINVAL;
+-
+-	if (arch_pwrdm && arch_pwrdm->pwrdm_wait_transition)
+-		ret = arch_pwrdm->pwrdm_wait_transition(pwrdm);
+-
+-	return ret;
+-}
+-
+ int pwrdm_state_switch(struct powerdomain *pwrdm)
+ {
+ 	int ret;
+ 
+-	ret = pwrdm_wait_transition(pwrdm);
++	if (!pwrdm || !arch_pwrdm)
++		return -EINVAL;
++
++	ret = arch_pwrdm->pwrdm_wait_transition(pwrdm);
+ 	if (!ret)
+ 		ret = _pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
+ 
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 5277d56eb..7c1534b 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -225,8 +225,6 @@ int pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm);
+ int pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm);
+ bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm);
+ 
+-int pwrdm_wait_transition(struct powerdomain *pwrdm);
+-
+ int pwrdm_state_switch(struct powerdomain *pwrdm);
+ int pwrdm_pre_transition(struct powerdomain *pwrdm);
+ int pwrdm_post_transition(struct powerdomain *pwrdm);
+-- 
+1.8.1
+

@@ -1,0 +1,72 @@
+From 641ee8e55264fa151632deda1d66792a969bbfce Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sat, 8 Dec 2012 06:04:03 -0700
+Subject: [PATCH 36/69] ARM: OMAP2+: powerdomain: add ability to test for
+ supported power states
+
+Add pwrdm_supports_fpwrst(), intended for use by the PM code to avoid
+attempting to program a powerdomain to a power state that it doesn't
+support.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/powerdomain.c | 33 +++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomain.h |  1 +
+ 2 files changed, 34 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index e449f14..7ebb82e 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -1531,3 +1531,36 @@ int pwrdm_read_prev_fpwrst(struct powerdomain *pwrdm)
+ 	return ret;
+ }
+ 
++/**
++ * pwrdm_supports_fpwrst - does the powerdomain @pwrdm support the @fpwrst power
++ * state?
++ * @pwrdm: struct powerdomain * pointing to a powerdomain to test
++ * @fpwrst: functional power state
++ *
++ * Returns true if the powerdomain pointed to by @pwrdm can enter the
++ * functional power state @fpwrst, or false if not.
++ */
++bool pwrdm_supports_fpwrst(struct powerdomain *pwrdm, u8 fpwrst)
++{
++	u8 pwrst, logic;
++	int ret;
++
++	if (!pwrdm || IS_ERR(pwrdm))
++		return false;
++
++	ret = _pwrdm_fpwrst_to_pwrst(pwrdm, fpwrst, &pwrst, &logic);
++	if (ret)
++		return false;
++
++	pr_debug("%s: pwrdm %s: set fpwrst %0x\n", __func__, pwrdm->name,
++		 fpwrst);
++
++	if (pwrdm->pwrsts_logic_ret && pwrst == PWRDM_POWER_RET &&
++	    !(pwrdm->pwrsts_logic_ret & (1 << logic)))
++		return false;
++
++	if (!(pwrdm->pwrsts & (1 << pwrst)))
++		return false;
++
++	return true;
++}
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 634cec7..50ec5d8 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -260,6 +260,7 @@ extern int pwrdm_set_fpwrst(struct powerdomain *pwrdm,
+ 			    enum pwrdm_func_state fpwrst);
+ extern int pwrdm_read_fpwrst(struct powerdomain *pwrdm);
+ extern int pwrdm_read_prev_fpwrst(struct powerdomain *pwrdm);
++extern bool pwrdm_supports_fpwrst(struct powerdomain *pwrdm, u8 fpwrst);
+ 
+ extern void omap242x_powerdomains_init(void);
+ extern void omap243x_powerdomains_init(void);
+-- 
+1.8.1
+

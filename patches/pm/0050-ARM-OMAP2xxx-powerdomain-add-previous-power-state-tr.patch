@@ -1,0 +1,45 @@
+From 3b1afbbb9f720ceca94064f4e0f0dc58864c8ebf Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 9 Dec 2012 12:42:50 -0700
+Subject: [PATCH 50/69] ARM: OMAP2xxx: powerdomain: add previous power state
+ tracking
+
+The OMAP2xxx PRM does support a form of powerdomain previous-power-state
+tracking; so add it.  This allows the power state tracking and debugging
+code to do something useful on this platform.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/prm2xxx.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/prm2xxx.c b/arch/arm/mach-omap2/prm2xxx.c
+index 418de9c..3f16083 100644
+--- a/arch/arm/mach-omap2/prm2xxx.c
++++ b/arch/arm/mach-omap2/prm2xxx.c
+@@ -179,10 +179,22 @@ static int omap2xxx_pwrdm_read_pwrst(struct powerdomain *pwrdm)
+ 	return omap2xxx_pwrst_to_common_pwrst(omap2xxx_pwrst);
+ }
+ 
++static int omap2xxx_pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
++{
++	u8 omap2xxx_pwrst;
++
++	omap2xxx_pwrst = omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs,
++						       OMAP2_PM_PWSTST,
++						       OMAP24XX_LASTSTATEENTERED_MASK);
++
++	return omap2xxx_pwrst_to_common_pwrst(omap2xxx_pwrst);
++}
++
+ struct pwrdm_ops omap2_pwrdm_operations = {
+ 	.pwrdm_set_next_pwrst	= omap2xxx_pwrdm_set_next_pwrst,
+ 	.pwrdm_read_next_pwrst	= omap2xxx_pwrdm_read_next_pwrst,
+ 	.pwrdm_read_pwrst	= omap2xxx_pwrdm_read_pwrst,
++	.pwrdm_read_prev_pwrst	= omap2xxx_pwrdm_read_prev_pwrst,
+ 	.pwrdm_set_logic_retst	= omap2_pwrdm_set_logic_retst,
+ 	.pwrdm_set_mem_onst	= omap2_pwrdm_set_mem_onst,
+ 	.pwrdm_set_mem_retst	= omap2_pwrdm_set_mem_retst,
+-- 
+1.8.1
+

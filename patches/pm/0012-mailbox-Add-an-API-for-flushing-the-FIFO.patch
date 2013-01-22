@@ -1,0 +1,150 @@
+From 6ce08e9fa8ac179f5b636e59c9b780e16ead1ed8 Mon Sep 17 00:00:00 2001
+From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Date: Wed, 26 Dec 2012 16:18:56 +0530
+Subject: [PATCH 12/69] mailbox: Add an API for flushing the FIFO
+
+On AM33XX, the mailbox module between the MPU and the
+WKUP-M3 co-processor facilitates a one-way communication.
+MPU uses the assigned mailbox sub-module to issue the
+interrupt to the WKUP-M3 co-processor which then goes
+and reads the the IPC data from registers in the control
+module.
+
+WKUP-M3 is in the L4_WKUP and does not have any access to
+the mailbox module. Due to this limitation, the MPU is
+completely responsible for FIFO maintenance and interrupt
+generation. MPU needs to ensure that the FIFO does not
+overflow by reading back the assigned mailbox sub-module.
+
+This patch adds an API in the mailbox code which the MPU
+can use to empty the FIFO by issuing a readback command.
+
+Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ drivers/mailbox/mailbox-omap2.c    | 19 +++++++++++++++++++
+ drivers/mailbox/mailbox.c          | 36 ++++++++++++++++++++++++++++++++++++
+ drivers/mailbox/mailbox_internal.h |  3 +++
+ include/linux/mailbox.h            |  1 +
+ 4 files changed, 59 insertions(+)
+
+diff --git a/drivers/mailbox/mailbox-omap2.c b/drivers/mailbox/mailbox-omap2.c
+index 2b278ad..8d282bb 100644
+--- a/drivers/mailbox/mailbox-omap2.c
++++ b/drivers/mailbox/mailbox-omap2.c
+@@ -127,6 +127,23 @@ static int omap2_mbox_fifo_full(struct mailbox *mbox)
+ 	return mbox_read_reg(fifo->fifo_stat);
+ }
+ 
++static int omap2_mbox_fifo_needs_flush(struct mailbox *mbox)
++{
++	struct omap_mbox2_priv *p = mbox->priv;
++	struct omap_mbox2_fifo *fifo = &p->tx_fifo;
++
++	return mbox_read_reg(fifo->msg_stat);
++}
++
++static void omap2_mbox_fifo_readback(struct mailbox *mbox,
++			struct mailbox_msg *msg)
++{
++	struct omap_mbox2_priv *p = mbox->priv;
++	struct omap_mbox2_fifo *fifo = &p->tx_fifo;
++
++	msg->header = mbox_read_reg(fifo->msg);
++}
++
+ static int ompa2_mbox_poll_for_space(struct mailbox *mbox)
+ {
+ 	if (omap2_mbox_fifo_full(mbox))
+@@ -223,6 +240,8 @@ static struct mailbox_ops omap2_mbox_ops = {
+ 	.read           = omap2_mbox_fifo_read,
+ 	.write          = omap2_mbox_fifo_write,
+ 	.empty          = omap2_mbox_fifo_empty,
++	.fifo_needs_flush	= omap2_mbox_fifo_needs_flush,
++	.fifo_readback		= omap2_mbox_fifo_readback,
+ 	.poll_for_space = ompa2_mbox_poll_for_space,
+ 	.enable_irq     = omap2_mbox_enable_irq,
+ 	.disable_irq    = omap2_mbox_disable_irq,
+diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
+index 02f5b95..a400543 100644
+--- a/drivers/mailbox/mailbox.c
++++ b/drivers/mailbox/mailbox.c
+@@ -57,6 +57,15 @@ static inline int mbox_empty(struct mailbox *mbox)
+ {
+ 	return mbox->ops->empty(mbox);
+ }
++static inline int mbox_fifo_needs_flush(struct mailbox *mbox)
++{
++	return mbox->ops->fifo_needs_flush(mbox);
++}
++static inline void mbox_fifo_readback(struct mailbox *mbox,
++				struct mailbox_msg *msg)
++{
++	mbox->ops->fifo_readback(mbox, msg);
++}
+ 
+ /* Mailbox IRQ handle functions */
+ static inline void ack_mbox_irq(struct mailbox *mbox, mailbox_irq_t irq)
+@@ -110,6 +119,33 @@ out:
+ }
+ EXPORT_SYMBOL(mailbox_msg_send);
+ 
++/*
++ * Flush the Rx FIFO by reading back the messages
++ * Since the normal expectation is that the Rx will do the
++ * reading, add a debug message to indicate if we really flush
++ *
++ * Returns the no. of messages read back
++ */
++int mailbox_rx_flush(struct mailbox *mbox)
++{
++	int ret = 0;
++	struct mailbox_msg readback_msg;
++
++	while (mbox_fifo_needs_flush(mbox)) {
++		mbox_fifo_readback(mbox, &readback_msg);
++		ret++;
++	}
++
++	if (ret) {
++		/* no more messages in the fifo. clear IRQ source. */
++		ack_mbox_irq(mbox, IRQ_RX);
++		pr_debug("Flushed %s Rx FIFO by reading back\n", mbox->name);
++	}
++
++	return ret;
++}
++EXPORT_SYMBOL(mailbox_rx_flush);
++
+ #define TRANSFER_TIMEOUT 30000 /* Becomes ~3s timeout */
+ 
+ static struct mailbox_msg no_irq_msg_res;
+diff --git a/drivers/mailbox/mailbox_internal.h b/drivers/mailbox/mailbox_internal.h
+index 02d12e3..f41f204 100644
+--- a/drivers/mailbox/mailbox_internal.h
++++ b/drivers/mailbox/mailbox_internal.h
+@@ -30,6 +30,9 @@ struct mailbox_ops {
+ 	int             (*write)(struct mailbox *mbox, struct mailbox_msg *msg);
+ 	int             (*empty)(struct mailbox *mbox);
+ 	int             (*poll_for_space)(struct mailbox *mbox);
++	int		(*fifo_needs_flush)(struct mailbox *mbox);
++	void		(*fifo_readback)(struct mailbox *mbox,
++				struct mailbox_msg *msg);
+ 	/* irq */
+ 	void            (*enable_irq)(struct mailbox *mbox,
+ 			mailbox_irq_t irq);
+diff --git a/include/linux/mailbox.h b/include/linux/mailbox.h
+index 6bc968d..ee4f72a 100644
+--- a/include/linux/mailbox.h
++++ b/include/linux/mailbox.h
+@@ -31,6 +31,7 @@ struct mailbox_msg {
+ #define MAILBOX_FILL_HEADER_MSG(_msg, _header) \
+ 	MAILBOX_FILL_MSG(_msg, _header, NULL, 0);
+ 
++int mailbox_rx_flush(struct mailbox *);
+ int mailbox_msg_send(struct mailbox *, struct mailbox_msg *msg);
+ struct mailbox_msg *mailbox_msg_send_receive_no_irq(struct mailbox *,
+ 		struct mailbox_msg *msg);
+-- 
+1.8.1
+

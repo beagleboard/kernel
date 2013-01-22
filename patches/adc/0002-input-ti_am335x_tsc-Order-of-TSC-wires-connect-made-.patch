@@ -1,4 +1,4 @@
-From 3aa144a6c935b79cec00d808af4dbeb72a3bade3 Mon Sep 17 00:00:00 2001
+From 94b6998bcf05ac088f66f0da2e816033529ec68c Mon Sep 17 00:00:00 2001
 From: "Patil, Rachna" <rachna@ti.com>
 Date: Mon, 22 Oct 2012 10:15:17 +0000
 Subject: [PATCH 2/5] input: ti_am335x_tsc: Order of TSC wires connect, made
@@ -10,9 +10,9 @@ Making changes to accept this as platform data.
 
 Signed-off-by: Patil, Rachna <rachna@ti.com>
 ---
- drivers/input/touchscreen/ti_am335x_tsc.c |  156 ++++++++++++++++++++++++++---
- include/linux/input/ti_am335x_tsc.h       |   12 ++
- include/linux/mfd/ti_am335x_tscadc.h      |   10 ++-
+ drivers/input/touchscreen/ti_am335x_tsc.c | 156 +++++++++++++++++++++++++++---
+ include/linux/input/ti_am335x_tsc.h       |  12 +++
+ include/linux/mfd/ti_am335x_tscadc.h      |  10 +-
  3 files changed, 159 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
@@ -328,5 +328,5 @@ index 23e4f33..9624fea 100644
  #define	MAX_CLK_DIV		7
  #define TOTAL_STEPS		16
 -- 
-1.7.7.6
+1.8.1
 

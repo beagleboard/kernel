@@ -1,0 +1,309 @@
+From 268fd606de9364c681cb0be94731d42a964574bb Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 23 Dec 2012 00:53:14 -0700
+Subject: [PATCH 22/69] ARM: OMAP2+: PM/powerdomain: move
+ omap_set_pwrdm_state() to powerdomain code
+
+Move omap_set_pwrdm_state() from the PM code to the powerdomain code,
+and refactor it to split it up into several functions.  A subsequent patch
+will rename it to conform with the existing powerdomain function names.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/pm.c          |  61 ----------------
+ arch/arm/mach-omap2/pm.h          |   1 -
+ arch/arm/mach-omap2/powerdomain.c | 146 ++++++++++++++++++++++++++++++--------
+ arch/arm/mach-omap2/powerdomain.h |   3 +-
+ 4 files changed, 119 insertions(+), 92 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index f18afc9..48d6d5d 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -108,10 +108,6 @@ static void __init omap2_init_processor_devices(void)
+ 	}
+ }
+ 
+-/* Types of sleep_switch used in omap_set_pwrdm_state */
+-#define FORCEWAKEUP_SWITCH	0
+-#define LOWPOWERSTATE_SWITCH	1
+-
+ int __init omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused)
+ {
+ 	if ((clkdm->flags & CLKDM_CAN_ENABLE_AUTO) &&
+@@ -124,63 +120,6 @@ int __init omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused)
+ }
+ 
+ /*
+- * This sets pwrdm state (other than mpu & core. Currently only ON &
+- * RET are supported.
+- */
+-int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 pwrst)
+-{
+-	u8 curr_pwrst, next_pwrst;
+-	int sleep_switch = -1, ret = 0, hwsup = 0;
+-
+-	if (!pwrdm || IS_ERR(pwrdm))
+-		return -EINVAL;
+-
+-	while (!(pwrdm->pwrsts & (1 << pwrst))) {
+-		if (pwrst == PWRDM_POWER_OFF)
+-			return ret;
+-		pwrst--;
+-	}
+-
+-	next_pwrst = pwrdm_read_next_pwrst(pwrdm);
+-	if (next_pwrst == pwrst)
+-		return ret;
+-
+-	curr_pwrst = pwrdm_read_pwrst(pwrdm);
+-	if (curr_pwrst < PWRDM_POWER_ON) {
+-		if ((curr_pwrst > pwrst) &&
+-			(pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE)) {
+-			sleep_switch = LOWPOWERSTATE_SWITCH;
+-		} else {
+-			hwsup = clkdm_in_hwsup(pwrdm->pwrdm_clkdms[0]);
+-			clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
+-			sleep_switch = FORCEWAKEUP_SWITCH;
+-		}
+-	}
+-
+-	ret = pwrdm_set_next_pwrst(pwrdm, pwrst);
+-	if (ret)
+-		pr_err("%s: unable to set power state of powerdomain: %s\n",
+-		       __func__, pwrdm->name);
+-
+-	switch (sleep_switch) {
+-	case FORCEWAKEUP_SWITCH:
+-		if (hwsup)
+-			clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
+-		else
+-			clkdm_sleep(pwrdm->pwrdm_clkdms[0]);
+-		break;
+-	case LOWPOWERSTATE_SWITCH:
+-		pwrdm_set_lowpwrstchange(pwrdm);
+-		pwrdm_state_switch(pwrdm);
+-		break;
+-	}
+-
+-	return ret;
+-}
+-
+-
+-
+-/*
+  * This API is to be called during init to set the various voltage
+  * domains to the voltage as per the opp table. Typically we boot up
+  * at the nominal voltage. So this function finds out the rate of
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index c22503b..7bdd22a 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -33,7 +33,6 @@ static inline int omap4_idle_init(void)
+ extern void *omap3_secure_ram_storage;
+ extern void omap3_pm_off_mode_enable(int);
+ extern void omap_sram_idle(void);
+-extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ extern int omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused);
+ extern int (*omap_pm_suspend)(void);
+ 
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 97b3881..1df33bb 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -42,6 +42,11 @@ enum {
+ 	PWRDM_STATE_PREV,
+ };
+ 
++/* Types of sleep_switch used in omap_set_pwrdm_state() */
++#define ALREADYACTIVE_SWITCH		0
++#define FORCEWAKEUP_SWITCH		1
++#define LOWPOWERSTATE_SWITCH		2
++#define ERROR_SWITCH			3
+ 
+ /* pwrdm_list contains all registered struct powerdomains */
+ static LIST_HEAD(pwrdm_list);
+@@ -200,6 +205,80 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
+ 	return 0;
+ }
+ 
++/**
++ * _pwrdm_save_clkdm_state_and_activate - prepare for power state change
++ * @pwrdm: struct powerdomain * to operate on
++ * @pwrst: power state to switch to
++ * @hwsup: ptr to a bool to return whether the clkdm is hardware-supervised
++ *
++ * Determine whether the powerdomain needs to be turned on before
++ * attempting to switch power states.  Called by
++ * omap_set_pwrdm_state().  NOTE that if the powerdomain contains
++ * multiple clockdomains, this code assumes that the first clockdomain
++ * supports software-supervised wakeup mode - potentially a problem.
++ * Returns the power state switch mode currently in use (see the
++ * "Types of sleep_switch" comment above).
++ */
++static u8 _pwrdm_save_clkdm_state_and_activate(struct powerdomain *pwrdm,
++					       u8 pwrst, bool *hwsup)
++{
++	int curr_pwrst;
++	u8 sleep_switch;
++
++	curr_pwrst = pwrdm_read_pwrst(pwrdm);
++	if (curr_pwrst < 0) {
++		WARN_ON(1);
++		sleep_switch = ERROR_SWITCH;
++	} else if (curr_pwrst < PWRDM_POWER_ON) {
++		if (curr_pwrst > pwrst &&
++		    pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE &&
++		    arch_pwrdm->pwrdm_set_lowpwrstchange) {
++			sleep_switch = LOWPOWERSTATE_SWITCH;
++		} else {
++			*hwsup = clkdm_in_hwsup(pwrdm->pwrdm_clkdms[0]);
++			clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
++			sleep_switch = FORCEWAKEUP_SWITCH;
++		}
++	} else {
++		sleep_switch = ALREADYACTIVE_SWITCH;
++	}
++
++	return sleep_switch;
++}
++
++/**
++ * _pwrdm_restore_clkdm_state - restore the clkdm hwsup state after pwrst change
++ * @pwrdm: struct powerdomain * to operate on
++ * @sleep_switch: return value from _pwrdm_save_clkdm_state_and_activate()
++ * @hwsup: should @pwrdm's first clockdomain be set to hardware-supervised mode?
++ *
++ * Restore the clockdomain state perturbed by
++ * _pwrdm_save_clkdm_state_and_activate(), and call the power state
++ * bookkeeping code.  Called by omap_set_pwrdm_state().  NOTE that if
++ * the powerdomain contains multiple clockdomains, this assumes that
++ * the first associated clockdomain supports either
++ * hardware-supervised idle control in the register, or
++ * software-supervised sleep.  No return value.
++ */
++static void _pwrdm_restore_clkdm_state(struct powerdomain *pwrdm,
++				       u8 sleep_switch, bool hwsup)
++{
++	switch (sleep_switch) {
++	case FORCEWAKEUP_SWITCH:
++		if (hwsup)
++			clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
++		else
++			clkdm_sleep(pwrdm->pwrdm_clkdms[0]);
++		break;
++	case LOWPOWERSTATE_SWITCH:
++		if (pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE &&
++		    arch_pwrdm->pwrdm_set_lowpwrstchange)
++			arch_pwrdm->pwrdm_set_lowpwrstchange(pwrdm);
++		pwrdm_state_switch(pwrdm);
++		break;
++	}
++}
++
+ /* Public functions */
+ 
+ /**
+@@ -921,35 +1000,6 @@ bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm)
+ 	return (pwrdm && pwrdm->flags & PWRDM_HAS_HDWR_SAR) ? 1 : 0;
+ }
+ 
+-/**
+- * pwrdm_set_lowpwrstchange - Request a low power state change
+- * @pwrdm: struct powerdomain *
+- *
+- * Allows a powerdomain to transtion to a lower power sleep state
+- * from an existing sleep state without waking up the powerdomain.
+- * Returns -EINVAL if the powerdomain pointer is null or if the
+- * powerdomain does not support LOWPOWERSTATECHANGE, or returns 0
+- * upon success.
+- */
+-int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
+-{
+-	int ret = -EINVAL;
+-
+-	if (!pwrdm)
+-		return -EINVAL;
+-
+-	if (!(pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE))
+-		return -EINVAL;
+-
+-	pr_debug("powerdomain: %s: setting LOWPOWERSTATECHANGE bit\n",
+-		 pwrdm->name);
+-
+-	if (arch_pwrdm && arch_pwrdm->pwrdm_set_lowpwrstchange)
+-		ret = arch_pwrdm->pwrdm_set_lowpwrstchange(pwrdm);
+-
+-	return ret;
+-}
+-
+ int pwrdm_state_switch(struct powerdomain *pwrdm)
+ {
+ 	int ret;
+@@ -984,6 +1034,44 @@ int pwrdm_post_transition(struct powerdomain *pwrdm)
+ 	return 0;
+ }
+ 
++/*
++ * This sets pwrdm state (other than mpu & core. Currently only ON &
++ * RET are supported.
++ */
++int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 pwrst)
++{
++	u8 next_pwrst, sleep_switch;
++	int ret = 0;
++	bool hwsup = false;
++
++	if (!pwrdm || IS_ERR(pwrdm))
++		return -EINVAL;
++
++	while (!(pwrdm->pwrsts & (1 << pwrst))) {
++		if (pwrst == PWRDM_POWER_OFF)
++			return ret;
++		pwrst--;
++	}
++
++	next_pwrst = pwrdm_read_next_pwrst(pwrdm);
++	if (next_pwrst == pwrst)
++		return ret;
++
++	sleep_switch = _pwrdm_save_clkdm_state_and_activate(pwrdm, pwrst,
++							    &hwsup);
++	if (sleep_switch == ERROR_SWITCH)
++		return -EINVAL;
++
++	ret = pwrdm_set_next_pwrst(pwrdm, pwrst);
++	if (ret)
++		pr_err("%s: unable to set power state of powerdomain: %s\n",
++		       __func__, pwrdm->name);
++
++	_pwrdm_restore_clkdm_state(pwrdm, sleep_switch, hwsup);
++
++	return ret;
++}
++
+ /**
+  * pwrdm_get_context_loss_count - get powerdomain's context loss count
+  * @pwrdm: struct powerdomain * to wait for
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 7c1534b..1edb3b7 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -228,10 +228,11 @@ bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm);
+ int pwrdm_state_switch(struct powerdomain *pwrdm);
+ int pwrdm_pre_transition(struct powerdomain *pwrdm);
+ int pwrdm_post_transition(struct powerdomain *pwrdm);
+-int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
+ int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
+ 
++extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 state);
++
+ extern void omap242x_powerdomains_init(void);
+ extern void omap243x_powerdomains_init(void);
+ extern void omap3xxx_powerdomains_init(void);
+-- 
+1.8.1
+

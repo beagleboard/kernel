@@ -1,0 +1,74 @@
+From 0051073de41e6e478431708e0e0a9a1572dbd011 Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 9 Dec 2012 12:42:48 -0700
+Subject: [PATCH 44/69] ARM: OMAP2+: powerdomain: remove some redundant checks;
+ add some notes
+
+Remove some redundant tests in static functions, and add some comments
+to some code that should have future attention.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/powerdomain.c | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 658f4ed..62e2f75 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -95,7 +95,7 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+ 	int i;
+ 	struct voltagedomain *voltdm;
+ 
+-	if (!pwrdm || !pwrdm->name)
++	if (!pwrdm->name)
+ 		return -EINVAL;
+ 
+ 	if (cpu_is_omap44xx() &&
+@@ -528,9 +528,6 @@ static int _pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
+ {
+ 	int ret = -EINVAL;
+ 
+-	if (!pwrdm)
+-		return -EINVAL;
+-
+ 	if (pwrdm->banks < (bank + 1))
+ 		return -EEXIST;
+ 
+@@ -566,9 +563,6 @@ static int _pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
+ {
+ 	int ret = -EINVAL;
+ 
+-	if (!pwrdm)
+-		return -EINVAL;
+-
+ 	if (pwrdm->banks < (bank + 1))
+ 		return -EEXIST;
+ 
+@@ -635,6 +629,11 @@ static void _pwrdm_state_switch(struct powerdomain *pwrdm)
+ 
+ static int _pwrdm_pre_transition_cb(struct powerdomain *pwrdm, void *unused)
+ {
++	/*
++	 * XXX It should be possible to avoid the clear_all_prev_pwrst
++	 * call for powerdomains if we are programming them to stay on,
++	 * for example.
++	 */
+ 	pwrdm_clear_all_prev_pwrst(pwrdm);
+ 	_pwrdm_state_switch(pwrdm);
+ 	return 0;
+@@ -1000,6 +999,11 @@ int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
+ 		return ret;
+ 
+ 	/*
++	 * XXX Is there some way for us to skip powerdomains that
++	 * don't have a prev pwrst register?
++	 */
++
++	/*
+ 	 * XXX should get the powerdomain's current state here;
+ 	 * warn & fail if it is not ON.
+ 	 */
+-- 
+1.8.1
+

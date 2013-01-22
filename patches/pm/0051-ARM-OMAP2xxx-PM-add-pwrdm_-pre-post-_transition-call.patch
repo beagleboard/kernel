@@ -1,0 +1,55 @@
+From b70cefca8b794b1d0cffa88522994a0a6d3355d9 Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 9 Dec 2012 12:42:50 -0700
+Subject: [PATCH 51/69] ARM: OMAP2xxx: PM: add pwrdm_(pre|post)_transition()
+ calls to the 2xxx PM code
+
+The OMAP2xxx PM code was missing calls to pwrdm_pre_transition() and
+pwrdm_post_transition().  This prevented the power state debugging
+from working correctly, and also violated some assumptions that are
+used in future power state caching patches.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/pm24xx.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index 9b4f3d9..7c1185d 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -99,6 +99,8 @@ static int omap2_enter_full_retention(void)
+ 
+ 	omap2_gpio_prepare_for_idle(0);
+ 
++	pwrdm_pre_transition(NULL);
++
+ 	/* One last check for pending IRQs to avoid extra latency due
+ 	 * to sleeping unnecessarily. */
+ 	if (omap_irq_pending())
+@@ -110,6 +112,8 @@ static int omap2_enter_full_retention(void)
+ 			   OMAP_SDRC_REGADDR(SDRC_POWER));
+ 
+ no_sleep:
++	pwrdm_post_transition(NULL);
++
+ 	omap2_gpio_resume_after_idle();
+ 
+ 	clk_enable(osc_ck);
+@@ -192,8 +196,12 @@ static void omap2_enter_mpu_retention(void)
+ 		WARN_ON(pwrdm_set_next_fpwrst(mpu_pwrdm, PWRDM_FUNC_PWRST_ON));
+ 	}
+ 
++	pwrdm_pre_transition(mpu_pwrdm);
++
+ 	omap2_sram_idle();
+ 
++	pwrdm_post_transition(mpu_pwrdm);
++
+ 	WARN_ON(pwrdm_set_next_fpwrst(mpu_pwrdm, PWRDM_FUNC_PWRST_ON));
+ }
+ 
+-- 
+1.8.1
+

@@ -1,0 +1,105 @@
+From 39e26d6486e08ec5bb048cc7630e59a98da6a99d Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 23 Dec 2012 00:53:13 -0700
+Subject: [PATCH 20/69] ARM: OMAP2xxx: PM: clean up some crufty powerstate
+ programming code
+
+Don't attempt to put clockdomains to sleep; this should be handled by the
+clock framework.  It should be enough to program the next-power-state,
+and then let the code in omap_pm_clkdms_setup() deal with the rest.
+
+Start out by programming the MPU and CORE powerdomains to stay ON.
+Then control the MPU and CORE powerdomain states directly in
+omap2_enter_full_retention() and omap2_enter_mpu_retention().  Not the
+most optimal way to do it, but certainly is the most conservative until
+OMAP2xxx PM is working again.
+
+Get rid of the open-coded PM_PWSTCTRL_MPU writes in
+omap2_enter_mpu_retention(); use the powerdomain code instead.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/pm24xx.c | 30 ++++++++++--------------------
+ 1 file changed, 10 insertions(+), 20 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index c333fa6..5d0f39b 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -90,11 +90,7 @@ static int omap2_enter_full_retention(void)
+ 	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
+ 	omap2_prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
+ 
+-	/*
+-	 * Set MPU powerdomain's next power state to RETENTION;
+-	 * preserve logic state during retention
+-	 */
+-	pwrdm_set_logic_retst(mpu_pwrdm, PWRDM_POWER_RET);
++	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
+ 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
+ 
+ 	/* Workaround to kill USB */
+@@ -137,6 +133,9 @@ no_sleep:
+ 	/* Mask future PRCM-to-MPU interrupts */
+ 	omap2_prm_write_mod_reg(0x0, OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
+ 
++	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
++	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_ON);
++
+ 	return 0;
+ }
+ 
+@@ -186,17 +185,16 @@ static void omap2_enter_mpu_retention(void)
+ 		omap2_prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
+ 
+ 		/* Try to enter MPU retention */
+-		omap2_prm_write_mod_reg((0x01 << OMAP_POWERSTATE_SHIFT) |
+-				  OMAP_LOGICRETSTATE_MASK,
+-				  MPU_MOD, OMAP2_PM_PWSTCTRL);
++		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
++
+ 	} else {
+ 		/* Block MPU retention */
+-
+-		omap2_prm_write_mod_reg(OMAP_LOGICRETSTATE_MASK, MPU_MOD,
+-						 OMAP2_PM_PWSTCTRL);
++		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+ 	}
+ 
+ 	omap2_sram_idle();
++
++	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+ }
+ 
+ static int omap2_can_sleep(void)
+@@ -251,25 +249,17 @@ static void __init prcm_setup_regs(void)
+ 	for (i = 0; i < num_mem_banks; i++)
+ 		pwrdm_set_mem_retst(core_pwrdm, i, PWRDM_POWER_RET);
+ 
+-	/* Set CORE powerdomain's next power state to RETENTION */
+-	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
++	pwrdm_set_logic_retst(core_pwrdm, PWRDM_POWER_RET);
+ 
+-	/*
+-	 * Set MPU powerdomain's next power state to RETENTION;
+-	 * preserve logic state during retention
+-	 */
+ 	pwrdm_set_logic_retst(mpu_pwrdm, PWRDM_POWER_RET);
+-	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
+ 
+ 	/* Force-power down DSP, GFX powerdomains */
+ 
+ 	pwrdm = clkdm_get_pwrdm(dsp_clkdm);
+ 	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_OFF);
+-	clkdm_sleep(dsp_clkdm);
+ 
+ 	pwrdm = clkdm_get_pwrdm(gfx_clkdm);
+ 	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_OFF);
+-	clkdm_sleep(gfx_clkdm);
+ 
+ 	/* Enable hardware-supervised idle for all clkdms */
+ 	clkdm_for_each(omap_pm_clkdms_setup, NULL);
+-- 
+1.8.1
+

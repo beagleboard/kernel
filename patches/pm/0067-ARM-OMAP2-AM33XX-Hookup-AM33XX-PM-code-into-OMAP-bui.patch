@@ -1,0 +1,173 @@
+From d9eceda75faeb2ddd081821220dcac95aeebbc45 Mon Sep 17 00:00:00 2001
+From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Date: Mon, 31 Dec 2012 10:23:34 +0530
+Subject: [PATCH 67/69] ARM: OMAP2+: AM33XX: Hookup AM33XX PM code into OMAP
+ builds
+
+With all the requisite changes in place we can now
+enable basic PM support on AM33XX. This patch updates
+the various OMAP files to enable suspend-resume on
+AM33XX.
+
+Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: Tony Lingren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/Makefile        |  2 ++
+ arch/arm/mach-omap2/board-generic.c |  1 +
+ arch/arm/mach-omap2/common.h        | 10 ++++++++++
+ arch/arm/mach-omap2/io.c            |  7 +++++++
+ arch/arm/mach-omap2/pm.h            |  7 +++++++
+ arch/arm/mach-omap2/sram.c          | 10 +++++++++-
+ arch/arm/mach-omap2/sram.h          |  2 ++
+ 7 files changed, 38 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 7cfb176..0474993 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -81,6 +81,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o omap-mpuss-lowpower.o
+ obj-$(CONFIG_SOC_OMAP5)			+= omap-mpuss-lowpower.o
++obj-$(CONFIG_SOC_AM33XX)		+= pm33xx.o sleep33xx.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+ 
+ obj-$(CONFIG_POWER_AVS_OMAP)		+= sr_device.o
+@@ -88,6 +89,7 @@ obj-$(CONFIG_POWER_AVS_OMAP_CLASS3)    += smartreflex-class3.o
+ 
+ AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+ AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a$(plus_sec)
++AFLAGS_sleep33xx.o			:=-Wa,-march=armv7-a$(plus_sec)
+ 
+ ifeq ($(CONFIG_PM_VERBOSE),y)
+ CFLAGS_pm_bus.o				+= -DDEBUG
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 53cb380b..1c9195d 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -136,6 +136,7 @@ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
+ 	.reserve	= omap_reserve,
+ 	.map_io		= am33xx_map_io,
+ 	.init_early	= am33xx_init_early,
++	.init_late	= am33xx_init_late,
+ 	.init_irq	= omap_intc_of_init,
+ 	.handle_irq	= omap3_intc_handle_irq,
+ 	.init_machine	= omap_generic_init,
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 41d74fe..73cac5c 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -68,6 +68,15 @@ static inline int omap4_pm_init(void)
+ }
+ #endif
+ 
++#if defined(CONFIG_PM) && defined(CONFIG_SOC_AM33XX)
++int am33xx_pm_init(void);
++#else
++static inline int am33xx_pm_init(void)
++{
++	return 0;
++}
++#endif
++
+ #ifdef CONFIG_OMAP_MUX
+ int omap_mux_late_init(void);
+ #else
+@@ -106,6 +115,7 @@ void omap2430_init_late(void);
+ void omap3430_init_late(void);
+ void omap35xx_init_late(void);
+ void omap3630_init_late(void);
++void am33xx_init_late(void);
+ void am35xx_init_late(void);
+ void ti81xx_init_late(void);
+ void omap4430_init_late(void);
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 2c3fdd6..b5637c6 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -570,6 +570,13 @@ void __init am33xx_init_early(void)
+ 	omap_hwmod_init_postsetup();
+ 	am33xx_clk_init();
+ }
++
++void __init am33xx_init_late(void)
++{
++	omap_mux_late_init();
++	omap2_common_pm_late_init();
++	am33xx_pm_init();
++}
+ #endif
+ 
+ #ifdef CONFIG_ARCH_OMAP4
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 531a4de..118ebde 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -76,6 +76,13 @@ extern unsigned int omap3_do_wfi_sz;
+ /* ... and its pointer from SRAM after copy */
+ extern void (*omap3_do_wfi_sram)(void);
+ 
++/* am33xx_do_wfi function pointer and size, for copy to SRAM */
++extern void am33xx_do_wfi(void);
++extern unsigned int am33xx_do_wfi_sz;
++extern unsigned int am33xx_resume_offset;
++/* ... and its pointer from SRAM after copy */
++extern void (*am33xx_do_wfi_sram)(void);
++
+ /* save_secure_ram_context function pointer and size, for copy to SRAM */
+ extern int save_secure_ram_context(u32 *addr);
+ extern unsigned int save_secure_ram_context_sz;
+diff --git a/arch/arm/mach-omap2/sram.c b/arch/arm/mach-omap2/sram.c
+index 0ff0f06..7951e0d 100644
+--- a/arch/arm/mach-omap2/sram.c
++++ b/arch/arm/mach-omap2/sram.c
+@@ -151,7 +151,7 @@ static void __init omap2_map_sram(void)
+ 		omap_sram_size -= SZ_16K;
+ 	}
+ #endif
+-	if (cpu_is_omap34xx()) {
++	if (cpu_is_omap34xx() || soc_is_am33xx()) {
+ 		/*
+ 		 * SRAM must be marked as non-cached on OMAP3 since the
+ 		 * CORE DPLL M2 divider change code (in SRAM) runs with the
+@@ -282,10 +282,18 @@ static inline int omap34xx_sram_init(void)
+ }
+ #endif /* CONFIG_ARCH_OMAP3 */
+ 
++#ifdef CONFIG_SOC_AM33XX
+ static inline int am33xx_sram_init(void)
+ {
++	am33xx_push_sram_idle();
+ 	return 0;
+ }
++#else
++static inline int am33xx_sram_init(void)
++{
++	return 0;
++}
++#endif
+ 
+ int __init omap_sram_init(void)
+ {
+diff --git a/arch/arm/mach-omap2/sram.h b/arch/arm/mach-omap2/sram.h
+index ca7277c..24788b5 100644
+--- a/arch/arm/mach-omap2/sram.h
++++ b/arch/arm/mach-omap2/sram.h
+@@ -62,8 +62,10 @@ extern unsigned long omap3_sram_configure_core_dpll_sz;
+ 
+ #ifdef CONFIG_PM
+ extern void omap_push_sram_idle(void);
++extern void am33xx_push_sram_idle(void);
+ #else
+ static inline void omap_push_sram_idle(void) {}
++static inline void am33xx_push_sram_idle(void) {}
+ #endif /* CONFIG_PM */
+ 
+ #endif /* __ASSEMBLY__ */
+-- 
+1.8.1
+
