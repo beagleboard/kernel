@@ -1,0 +1,61 @@
+From 311ae9b9e882482fb9dc44e5ed8994163c287407 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Tue, 15 Jan 2013 20:03:18 +0200
+Subject: [PATCH 90/98] am33xx: edma: Always update unused channel list
+
+When using dynamically created devices the single initialization
+of the the unused channels list is wrong, so do it every time.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/common/edma.c | 27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
+
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index beeb1d2..7654324 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -576,8 +576,6 @@ static int prepare_unused_channel_list(struct device *dev, void *data)
+ 
+ /*-----------------------------------------------------------------------*/
+ 
+-static bool unused_chan_list_done;
+-
+ /* Resource alloc/free:  dma channels, parameter RAM slots */
+ 
+ /**
+@@ -618,19 +616,18 @@ int edma_alloc_channel(int channel,
+ 	unsigned i, done = 0, ctlr = 0;
+ 	int ret = 0;
+ 
+-	if (!unused_chan_list_done) {
+-		/*
+-		 * Scan all the platform devices to find out the EDMA channels
+-		 * used and clear them in the unused list, making the rest
+-		 * available for ARM usage.
+-		 */
+-		ret = bus_for_each_dev(&platform_bus_type, NULL, NULL,
+-				prepare_unused_channel_list);
+-		if (ret < 0)
+-			return ret;
+-
+-		unused_chan_list_done = true;
+-	}
++	/*
++	 * Scan all the platform devices to find out the EDMA channels
++	 * used and clear them in the unused list, making the rest
++	 * available for ARM usage.
++	 *
++	 * Note: We do this every time now, since when devices are
++	 * dynamically created the old unused list must be updated.
++	 */
++	ret = bus_for_each_dev(&platform_bus_type, NULL, NULL,
++			prepare_unused_channel_list);
++	if (ret < 0)
++		return ret;
+ 
+ 	if (channel >= 0) {
+ 		ctlr = EDMA_CTLR(channel);
+-- 
+1.8.1
+
