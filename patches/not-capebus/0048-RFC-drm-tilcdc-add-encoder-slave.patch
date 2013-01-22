@@ -1,4 +1,4 @@
-From bd5f4d381264de85492dc920b67e39291d33b2dd Mon Sep 17 00:00:00 2001
+From 40ce61269114853298fea11e0a8eb07df32ba27f Mon Sep 17 00:00:00 2001
 From: Rob Clark <robdclark@gmail.com>
 Date: Tue, 8 Jan 2013 15:11:27 -0600
 Subject: [PATCH 48/98] RFC: drm/tilcdc: add encoder slave
@@ -49,7 +49,7 @@ index 32ff961..814fa005 100644
  
  obj-$(CONFIG_DRM_TILCDC)	+= tilcdc.o
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
-index 33a19a4..91165cb 100644
+index b371177..be0722c 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
 @@ -21,6 +21,7 @@
@@ -60,7 +60,7 @@ index 33a19a4..91165cb 100644
  
  #include "drm_fb_helper.h"
  
-@@ -586,6 +587,7 @@ static int __init tilcdc_drm_init(void)
+@@ -589,6 +590,7 @@ static int __init tilcdc_drm_init(void)
  	DBG("init");
  	tilcdc_tfp410_init();
  	tilcdc_panel_init();
@@ -68,7 +68,7 @@ index 33a19a4..91165cb 100644
  	return platform_driver_register(&tilcdc_platform_driver);
  }
  
-@@ -594,10 +596,11 @@ static void __exit tilcdc_drm_fini(void)
+@@ -597,10 +599,11 @@ static void __exit tilcdc_drm_fini(void)
  	DBG("fini");
  	tilcdc_tfp410_fini();
  	tilcdc_panel_fini();

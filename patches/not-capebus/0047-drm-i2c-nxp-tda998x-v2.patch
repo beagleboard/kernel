@@ -1,15 +1,18 @@
-From a57182d14e9f2bf491546d26ee914127a0d0253d Mon Sep 17 00:00:00 2001
+From 8e38765b8aee8c015b0124a06fde915ffadd2168 Mon Sep 17 00:00:00 2001
 From: Rob Clark <robdclark@gmail.com>
 Date: Tue, 8 Jan 2013 19:21:02 -0600
-Subject: [PATCH 47/98] RFC: drm/i2c: nxp-tda998x
+Subject: [PATCH 47/98] drm/i2c: nxp-tda998x (v2)
 
 Driver for the NXP TDA998X i2c hdmi encoder slave.
+
+v1: original
+v2: fix npix/nline programming
 
 Signed-off-by: Rob Clark <robdclark@gmail.com>
 ---
  drivers/gpu/drm/i2c/Makefile      |   3 +
- drivers/gpu/drm/i2c/tda998x_drv.c | 907 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 910 insertions(+)
+ drivers/gpu/drm/i2c/tda998x_drv.c | 908 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 911 insertions(+)
  create mode 100644 drivers/gpu/drm/i2c/tda998x_drv.c
 
 diff --git a/drivers/gpu/drm/i2c/Makefile b/drivers/gpu/drm/i2c/Makefile
@@ -25,10 +28,10 @@ index 9286256..43aa33b 100644
 +obj-$(CONFIG_DRM_I2C_NXP_TDA998X) += tda998x.o
 diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
 new file mode 100644
-index 0000000..47f8fd2
+index 0000000..02054e8
 --- /dev/null
 +++ b/drivers/gpu/drm/i2c/tda998x_drv.c
-@@ -0,0 +1,907 @@
+@@ -0,0 +1,908 @@
 +/*
 + * Copyright (C) 2012 Texas Instruments
 + * Author: Rob Clark <robdclark@gmail.com>
@@ -570,6 +573,7 @@ index 0000000..47f8fd2
 +	reg_clear(encoder, REG_TX33, TX33_HDMI);
 +
 +	reg_write(encoder, REG_ENC_CNTRL, ENC_CNTRL_CTL_CODE(0));
++	/* no pre-filter or interpolator: */
 +	reg_write(encoder, REG_HVF_CNTRL_0, HVF_CNTRL_0_PREFIL(0) |
 +			HVF_CNTRL_0_INTPOL(0));
 +	reg_write(encoder, REG_VIP_CNTRL_5, VIP_CNTRL_5_SP_CNT(0));
@@ -611,8 +615,8 @@ index 0000000..47f8fd2
 +		reg_set(encoder, REG_VIP_CNTRL_3, VIP_CNTRL_3_H_TGL);
 +
 +	reg_write(encoder, REG_VIDFORMAT, 0x00);
-+	reg_write16(encoder, REG_NPIX_MSB, mode->htotal - 1);
-+	reg_write16(encoder, REG_NLINE_MSB, mode->vtotal - 1);
++	reg_write16(encoder, REG_NPIX_MSB, mode->hdisplay - 1);
++	reg_write16(encoder, REG_NLINE_MSB, mode->vdisplay - 1);
 +	reg_write16(encoder, REG_VS_LINE_STRT_1_MSB, line_start);
 +	reg_write16(encoder, REG_VS_LINE_END_1_MSB, line_end);
 +	reg_write16(encoder, REG_VS_PIX_STRT_1_MSB, hs_start);

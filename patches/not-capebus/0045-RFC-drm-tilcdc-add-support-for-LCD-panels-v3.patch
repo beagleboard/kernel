@@ -1,4 +1,4 @@
-From eaea81cd997360ba58253cae9c185f2194176725 Mon Sep 17 00:00:00 2001
+From 8c084c2805e8f3a97c2d928458b51b813122f665 Mon Sep 17 00:00:00 2001
 From: Rob Clark <robdclark@gmail.com>
 Date: Tue, 18 Dec 2012 17:34:16 -0600
 Subject: [PATCH 45/98] RFC: drm/tilcdc: add support for LCD panels (v3)
@@ -51,7 +51,7 @@ index 1359cc2..32ff961 100644
  
  obj-$(CONFIG_DRM_TILCDC)	+= tilcdc.o
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
-index 3b6a919..33a19a4 100644
+index 86cdc63..b371177 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
 @@ -20,6 +20,7 @@
@@ -62,7 +62,7 @@ index 3b6a919..33a19a4 100644
  
  #include "drm_fb_helper.h"
  
-@@ -584,6 +585,7 @@ static int __init tilcdc_drm_init(void)
+@@ -587,6 +588,7 @@ static int __init tilcdc_drm_init(void)
  {
  	DBG("init");
  	tilcdc_tfp410_init();
@@ -70,7 +70,7 @@ index 3b6a919..33a19a4 100644
  	return platform_driver_register(&tilcdc_platform_driver);
  }
  
-@@ -591,6 +593,7 @@ static void __exit tilcdc_drm_fini(void)
+@@ -594,6 +596,7 @@ static void __exit tilcdc_drm_fini(void)
  {
  	DBG("fini");
  	tilcdc_tfp410_fini();
