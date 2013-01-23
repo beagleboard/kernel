@@ -1,0 +1,57 @@
+From 26ee8918e302a240a6bc07ab89d96844261bd65b Mon Sep 17 00:00:00 2001
+From: Nishanth Menon <nm@ti.com>
+Date: Fri, 18 Jan 2013 19:52:33 +0000
+Subject: [PATCH 2/3] cpufreq: cpufreq-cpu0: use RCU locks around usage of OPP
+
+OPP pointer is RCU protected, hence after finding it, de-reference
+also should be protected with the same RCU context else the OPP
+pointer may become invalid.
+
+Reported-by: Jack Mitchell <jack@embed.me.uk>
+Tested-by: Alexander Holler <holler@ahsoftware.de>
+Tested-by: Jack Mitchell <jack@embed.me.uk>
+Acked-by: Alexander Holler <holler@ahsoftware.de>
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ drivers/cpufreq/cpufreq-cpu0.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/cpufreq/cpufreq-cpu0.c b/drivers/cpufreq/cpufreq-cpu0.c
+index 52bf36d..debc5a7 100644
+--- a/drivers/cpufreq/cpufreq-cpu0.c
++++ b/drivers/cpufreq/cpufreq-cpu0.c
+@@ -71,12 +71,15 @@ static int cpu0_set_target(struct cpufreq_policy *policy,
+ 	}
+ 
+ 	if (cpu_reg) {
++		rcu_read_lock();
+ 		opp = opp_find_freq_ceil(cpu_dev, &freq_Hz);
+ 		if (IS_ERR(opp)) {
++			rcu_read_unlock();
+ 			pr_err("failed to find OPP for %ld\n", freq_Hz);
+ 			return PTR_ERR(opp);
+ 		}
+ 		volt = opp_get_voltage(opp);
++		rcu_read_unlock();
+ 		tol = volt * voltage_tolerance / 100;
+ 		volt_old = regulator_get_voltage(cpu_reg);
+ 	}
+@@ -236,12 +239,14 @@ static int cpu0_cpufreq_driver_init(void)
+ 		 */
+ 		for (i = 0; freq_table[i].frequency != CPUFREQ_TABLE_END; i++)
+ 			;
++		rcu_read_lock();
+ 		opp = opp_find_freq_exact(cpu_dev,
+ 				freq_table[0].frequency * 1000, true);
+ 		min_uV = opp_get_voltage(opp);
+ 		opp = opp_find_freq_exact(cpu_dev,
+ 				freq_table[i-1].frequency * 1000, true);
+ 		max_uV = opp_get_voltage(opp);
++		rcu_read_unlock();
+ 		ret = regulator_set_voltage_time(cpu_reg, min_uV, max_uV);
+ 		if (ret > 0)
+ 			transition_latency += ret * 1000;
+-- 
+1.8.1
+

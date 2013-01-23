@@ -1,14 +1,13 @@
-From c52cdd58a5172a641f635e96798546132ce64a9b Mon Sep 17 00:00:00 2001
+From 8d4a14437c797f2a6f117d147647cdceb1da282f Mon Sep 17 00:00:00 2001
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Date: Wed, 16 Jan 2013 15:00:57 +0000
-Subject: [PATCH 08/13] usb: otg: Add an API to bind the USB controller and PHY
+Date: Tue, 22 Jan 2013 09:58:09 +0000
+Subject: [PATCH 3/9] usb: otg: Add an API to bind the USB controller and PHY
 
-New platforms are added which has multiple PHY's (of same type) and
-which has multiple USB controllers. The binding information has to be
-present in the PHY library (otg.c) in order for it to return the
-appropriate PHY whenever the USB controller request for the PHY. So
-added a new API to pass the binding information. This API should be
-called by platform specific initialization code.
+In order to support platforms which has multiple PHY's (of same type) and
+which has multiple USB controllers, a new design is adopted wherin the binding
+information (between the PHY and the USB controller) should be passed to the
+PHY library from platform specific file (board file).
+So added a new API to pass the binding information.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---

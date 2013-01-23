@@ -1,7 +1,7 @@
-From fa344af1a11743cd4af309b759e81fa184f4bbfb Mon Sep 17 00:00:00 2001
+From 37bc32e0da38ba291fc252a4832116e0e9c38b9b Mon Sep 17 00:00:00 2001
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Date: Wed, 16 Jan 2013 15:01:01 +0000
-Subject: [PATCH 12/13] usb: otg: add device tree support to otg library
+Date: Tue, 22 Jan 2013 09:58:13 +0000
+Subject: [PATCH 7/9] usb: otg: add device tree support to otg library
 
 Added an API devm_usb_get_phy_by_phandle(), to get usb phy by passing a
 device node phandle value. This function will return a pointer to
@@ -16,7 +16,7 @@ Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
  2 files changed, 85 insertions(+)
 
 diff --git a/drivers/usb/otg/otg.c b/drivers/usb/otg/otg.c
-index dbf2043..e9799bb 100644
+index 1f30b22..67daf8c 100644
 --- a/drivers/usb/otg/otg.c
 +++ b/drivers/usb/otg/otg.c
 @@ -13,7 +13,9 @@
@@ -29,7 +29,7 @@ index dbf2043..e9799bb 100644
  
  #include <linux/usb/otg.h>
  
-@@ -34,6 +36,20 @@ static struct usb_phy *__usb_find_phy(struct device *dev, u8 index)
+@@ -50,6 +52,20 @@ static struct usb_phy *__usb_find_phy_dev(struct device *dev,
  	return ERR_PTR(-ENODEV);
  }
  
@@ -50,7 +50,7 @@ index dbf2043..e9799bb 100644
  static void devm_usb_phy_release(struct device *dev, void *res)
  {
  	struct usb_phy *phy = *(struct usb_phy **)res;
-@@ -109,6 +125,67 @@ err0:
+@@ -125,6 +141,67 @@ err0:
  }
  EXPORT_SYMBOL(usb_get_phy);
  
@@ -116,22 +116,22 @@ index dbf2043..e9799bb 100644
 +EXPORT_SYMBOL(devm_usb_get_phy_by_phandle);
 +
  /**
-  * devm_usb_put_phy - release the USB PHY
-  * @dev - device that wants to release this phy
+  * usb_get_phy_dev - find the USB PHY
+  * @dev - device that requests this phy
 diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
-index d133c8b..5836b6d 100644
+index 3a9ae3e..c7f5a98 100644
 --- a/include/linux/usb/phy.h
 +++ b/include/linux/usb/phy.h
-@@ -163,6 +163,8 @@ usb_phy_shutdown(struct usb_phy *x)
- #ifdef CONFIG_USB_OTG_UTILS
- extern struct usb_phy *usb_get_phy(struct device *dev, u8 index);
- extern struct usb_phy *devm_usb_get_phy(struct device *dev, u8 index);
+@@ -167,6 +167,8 @@ extern struct usb_phy *devm_usb_get_phy(struct device *dev,
+ 	enum usb_phy_type type);
+ extern struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index);
+ extern struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index);
 +extern struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
 +	const char *phandle, u8 index);
  extern void usb_put_phy(struct usb_phy *);
  extern void devm_usb_put_phy(struct device *dev, struct usb_phy *x);
  extern struct usb_phy_bind *usb_bind_phy(const char *dev_name, u8 index,
-@@ -178,6 +180,12 @@ static inline struct usb_phy *devm_usb_get_phy(struct device *dev, u8 index)
+@@ -193,6 +195,12 @@ static inline struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index)
  	return NULL;
  }
  

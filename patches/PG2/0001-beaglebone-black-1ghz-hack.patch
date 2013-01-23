@@ -1,19 +1,19 @@
-From d80eab8f1681bb72506a3aedf3da397b711803d0 Mon Sep 17 00:00:00 2001
+From eee2e4271b11aa1d495500bcf42cdd4a55c97ebc Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Tue, 22 Jan 2013 17:52:18 +0100
-Subject: [PATCH 3/3] beaglebone black: 1ghz hack
+Subject: [PATCH] beaglebone black: 1ghz hack
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
- arch/arm/boot/dts/am335x-bonelt.dts | 17 +++++++++++++++++
+ arch/arm/boot/dts/am335x-bonelt.dts | 16 ++++++++++++++++
  arch/arm/boot/dts/am33xx.dtsi       |  2 +-
- 2 files changed, 18 insertions(+), 1 deletion(-)
+ 2 files changed, 17 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bonelt.dts b/arch/arm/boot/dts/am335x-bonelt.dts
-index 6cb2a51..a7d8d99 100644
+index 6cb2a51..4b9fc1a 100644
 --- a/arch/arm/boot/dts/am335x-bonelt.dts
 +++ b/arch/arm/boot/dts/am335x-bonelt.dts
-@@ -33,3 +33,20 @@
+@@ -33,3 +33,19 @@
  	status = "okay";
  };
  
@@ -28,14 +28,13 @@ index 6cb2a51..a7d8d99 100644
 +		/* kHz    uV */
 +		1000000	1350000
 +		800000	1300000
-+		720000  1285000
-+		600000  1225000
-+		500000  1125000
-+		275000  1125000
++		600000  1112000
++		300000   969000
 +	>;
 +};
++
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 872d501..0a61357 100644
+index 18485bb..41e6224 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
 @@ -24,7 +24,7 @@

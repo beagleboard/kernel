@@ -1,0 +1,238 @@
+From 69bb04620b1127e1b293914d60f8d69fef380056 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Tue, 22 Jan 2013 22:25:06 +0200
+Subject: [PATCH 9/9] MUSB: Hack around to make host port to work.
+
+It sort of works, but it doesn't handle hotplug.
+After removing the device, issue lsusb to cause it to scan the bus again.
+
+Crappy, I know, but at least works.
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi |  6 ++++
+ arch/arm/boot/dts/am33xx.dtsi             |  9 ++++--
+ drivers/usb/musb/musb_core.c              | 45 ++++++++++++++++++++++++----
+ drivers/usb/musb/musb_dsps.c              | 49 +++++++++++++++++++++++++++++--
+ drivers/usb/musb/musb_host.c              |  7 +++--
+ 5 files changed, 105 insertions(+), 11 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 96bce02..213addb 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -373,3 +373,9 @@
+ &aes {
+ 	status = "okay";
+ };
++
++&usb_otg_hs {
++	interface_type = <1>;
++	power = <500>;
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 872d501..18485bb 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -490,11 +490,15 @@
+ 
+ 		};
+ 
+-		nop-phy {
++		nop-phy@0 {
+ 			compatible = "nop-xceiv-usb";
+ 		};
+ 
+-		usb@47400000 {
++		nop-phy@1 {
++			compatible = "nop-xceiv-usb";
++		};
++
++		usb_otg_hs: usb@47400000 {
+ 			compatible = "ti,musb-am33xx";
+ 			reg = <0x47400000 0x1000	/* usbss */
+ 			       0x47401000 0x800		/* musb instance 0 */
+@@ -509,6 +513,7 @@
+ 			port1-mode = <1>;
+ 			power = <250>;
+ 			ti,hwmods = "usb_otg_hs";
++			status = "disabled";
+ 		};
+ 
+ 		mac: ethernet@4a100000 {
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index fd34867..cd738d1 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1955,11 +1955,43 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 		musb_write_ulpi_buscontrol(musb->mregs, busctl);
+ 	}
+ 
+-	MUSB_DEV_MODE(musb);
+-	musb->xceiv->otg->default_a = 0;
+-	musb->xceiv->state = OTG_STATE_B_IDLE;
++	dev_info(dev, "*** mode=%d\n", plat->mode);
++	dev_info(dev, "*** power=%d\n", plat->power);
+ 
+-	status = musb_gadget_setup(musb);
++	/* For the host-only role, we can activate right away.
++	 * (We expect the ID pin to be forcibly grounded!!)
++	 * Otherwise, wait till the gadget driver hooks up.
++	 */
++	if (plat->mode == MUSB_HOST) {	/* host mode */
++
++		del_timer(&musb->otg_timer);
++
++		MUSB_HST_MODE(musb);
++		musb->xceiv->otg->default_a = 1;
++		musb->xceiv->state = OTG_STATE_A_WAIT_VRISE;
++
++		status = usb_add_hcd(hcd, 0, 0);
++
++		hcd->self.uses_pio_for_control = 1;
++		dev_dbg(musb->controller, "%s mode, status %d, devctl %02x %c\n",
++			"HOST", status,
++			musb_readb(musb->mregs, MUSB_DEVCTL),
++			(musb_readb(musb->mregs, MUSB_DEVCTL)
++				& MUSB_DEVCTL_BDEVICE
++				? 'B' : 'A'));
++
++	} else {
++		MUSB_DEV_MODE(musb);
++		musb->xceiv->otg->default_a = 0;
++		musb->xceiv->state = OTG_STATE_B_IDLE;
++
++		status = musb_gadget_setup(musb);
++
++		dev_dbg(musb->controller, "%s mode, status %d, dev%02x\n",
++			plat->mode == MUSB_OTG ? "OTG" : "PERIPHERAL",
++			status,
++			musb_readb(musb->mregs, MUSB_DEVCTL));
++	}
+ 
+ 	if (status < 0)
+ 		goto fail3;
+@@ -1982,7 +2014,10 @@ fail5:
+ 	musb_exit_debugfs(musb);
+ 
+ fail4:
+-	musb_gadget_cleanup(musb);
++	if (plat->mode == MUSB_HOST)
++		usb_remove_hcd(hcd);
++	else
++		musb_gadget_cleanup(musb);
+ 
+ fail3:
+ 	pm_runtime_put_sync(musb->controller);
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index f7d764d..29e28f6 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -415,19 +415,30 @@ static int dsps_musb_init(struct musb *musb)
+ 	/* mentor core register starts at offset of 0x400 from musb base */
+ 	musb->mregs += wrp->musb_core_offset;
+ 
++#if 1
+ 	/* NOP driver needs change if supporting dual instance */
+ 	usb_nop_xceiv_register();
+ 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+-	if (IS_ERR_OR_NULL(musb->xceiv))
++#else
++	/* Get the NOP PHY */
++	sprintf(name, "usb%d-phy", pdev->id);
++	musb->xceiv = devm_usb_get_phy_by_phandle(&parent_pdev->dev, name);
++#endif
++	if (IS_ERR_OR_NULL(musb->xceiv)) {
++		dev_err(dev, "%s:%d %s: FAIL\n", __FILE__, __LINE__, __func__);
+ 		return -ENODEV;
++	}
+ 
+ 	/* Returns zero if e.g. not clocked */
+ 	rev = dsps_readl(reg_base, wrp->revision);
+ 	if (!rev) {
++		dev_err(dev, "%s:%d %s: FAIL\n", __FILE__, __LINE__, __func__);
+ 		status = -ENODEV;
+ 		goto err0;
+ 	}
+ 
++	dev_info(dev, "pdev->id = %d\n", pdev->id);
++
+ 	setup_timer(&glue->timer[pdev->id], otg_timer, (unsigned long) musb);
+ 
+ 	/* Reset the musb */
+@@ -446,6 +457,8 @@ static int dsps_musb_init(struct musb *musb)
+ 	/* clear level interrupt */
+ 	dsps_writel(reg_base, wrp->eoi, 0);
+ 
++	dev_info(dev, "%s:%d %s: OK\n", __FILE__, __LINE__, __func__);
++
+ 	return 0;
+ err0:
+ 	usb_put_phy(musb->xceiv);
+@@ -761,9 +774,41 @@ static const struct platform_device_id musb_dsps_id_table[] = {
+ MODULE_DEVICE_TABLE(platform, musb_dsps_id_table);
+ 
+ #ifdef CONFIG_OF
++
++static const struct dsps_musb_wrapper am33xx_driver_data = {
++	.revision		= 0x00,
++	.control		= 0x14,
++	.status			= 0x18,
++	.eoi			= 0x24,
++	.epintr_set		= 0x38,
++	.epintr_clear		= 0x40,
++	.epintr_status		= 0x30,
++	.coreintr_set		= 0x3c,
++	.coreintr_clear		= 0x44,
++	.coreintr_status	= 0x34,
++	.phy_utmi		= 0xe0,
++	.mode			= 0xe8,
++	.reset			= 0,
++	.otg_disable		= 21,
++	.iddig			= 8,
++	.usb_shift		= 0,
++	.usb_mask		= 0x1ff,
++	.usb_bitmap		= (0x1ff << 0),
++	.drvvbus		= 8,
++	.txep_shift		= 0,
++	.txep_mask		= 0xffff,
++	.txep_bitmap		= (0xffff << 0),
++	.rxep_shift		= 16,
++	.rxep_mask		= 0xfffe,
++	.rxep_bitmap		= (0xfffe << 16),
++	.musb_core_offset	= 0x400,
++	.poll_seconds		= 2,
++	.instances		= 2,
++};
++
+ static const struct of_device_id musb_dsps_of_match[] = {
+ 	{ .compatible = "ti,musb-am33xx",
+-		.data = (void *) &ti81xx_driver_data, },
++		.data = (void *) &am33xx_driver_data, },
+ 	{  },
+ };
+ MODULE_DEVICE_TABLE(of, musb_dsps_of_match);
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+index e9f0fd9..86442a2 100644
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -2431,12 +2431,15 @@ static int musb_bus_suspend(struct usb_hcd *hcd)
+ 		break;
+ 	}
+ 
++#if 0
+ 	if (musb->is_active) {
+ 		WARNING("trying to suspend as %s while active\n",
+ 				otg_state_string(musb->xceiv->state));
+ 		return -EBUSY;
+-	} else
+-		return 0;
++	}
++#endif
++
++	return 0;
+ }
+ 
+ static int musb_bus_resume(struct usb_hcd *hcd)
+-- 
+1.8.1
+
