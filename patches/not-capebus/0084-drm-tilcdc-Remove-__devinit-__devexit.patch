@@ -1,0 +1,115 @@
+From 37f34e6fad670558495d2da4bb837c2e5798ab5e Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Tue, 15 Jan 2013 14:12:34 +0200
+Subject: [PATCH 084/103] drm-tilcdc: Remove __devinit/__devexit
+
+__devinit/__devexit and the like has been purged. Remove them.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c    |    6 +++---
+ drivers/gpu/drm/tilcdc/tilcdc_panel.c  |    4 ++--
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c  |    4 ++--
+ drivers/gpu/drm/tilcdc/tilcdc_tfp410.c |    4 ++--
+ 4 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+index 9eef3ff..808ac16 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+@@ -573,7 +573,7 @@ static const struct dev_pm_ops tilcdc_pm_ops = {
+  * Platform driver:
+  */
+ 
+-static int __devinit tilcdc_pdev_probe(struct platform_device *pdev)
++static int tilcdc_pdev_probe(struct platform_device *pdev)
+ {
+ 	/* bail out early if no DT data: */
+ 	if (!pdev->dev.of_node) {
+@@ -584,7 +584,7 @@ static int __devinit tilcdc_pdev_probe(struct platform_device *pdev)
+ 	return drm_platform_init(&tilcdc_driver, pdev);
+ }
+ 
+-static int __devexit tilcdc_pdev_remove(struct platform_device *pdev)
++static int tilcdc_pdev_remove(struct platform_device *pdev)
+ {
+ 	drm_platform_exit(&tilcdc_driver, pdev);
+ 
+@@ -599,7 +599,7 @@ MODULE_DEVICE_TABLE(of, tilcdc_of_match);
+ 
+ static struct platform_driver tilcdc_platform_driver = {
+ 	.probe      = tilcdc_pdev_probe,
+-	.remove     = __devexit_p(tilcdc_pdev_remove),
++	.remove     = tilcdc_pdev_remove,
+ 	.driver     = {
+ 		.owner  = THIS_MODULE,
+ 		.name   = "tilcdc",
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_panel.c b/drivers/gpu/drm/tilcdc/tilcdc_panel.c
+index edc2355..54f7177 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_panel.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_panel.c
+@@ -391,7 +391,7 @@ static struct tilcdc_panel_info * of_get_panel_info(struct device_node *np)
+ 
+ static struct of_device_id panel_of_match[];
+ 
+-static int __devinit panel_probe(struct platform_device *pdev)
++static int panel_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *node = pdev->dev.of_node;
+ 	struct panel_module *panel_mod;
+@@ -441,7 +441,7 @@ fail:
+ 	return ret;
+ }
+ 
+-static int __devexit panel_remove(struct platform_device *pdev)
++static int panel_remove(struct platform_device *pdev)
+ {
+ 	return 0;
+ }
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+index 75f1728..02753fe 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+@@ -298,7 +298,7 @@ static const struct tilcdc_module_ops slave_module_ops = {
+ 
+ static struct of_device_id slave_of_match[];
+ 
+-static int __devinit slave_probe(struct platform_device *pdev)
++static int slave_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *node = pdev->dev.of_node;
+ 	struct device_node *i2c_node;
+@@ -352,7 +352,7 @@ fail:
+ 	return ret;
+ }
+ 
+-static int __devexit slave_remove(struct platform_device *pdev)
++static int slave_remove(struct platform_device *pdev)
+ {
+ 	return 0;
+ }
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c b/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+index 0f4ca61..eaae4dd 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+@@ -325,7 +325,7 @@ static const struct tilcdc_module_ops tfp410_module_ops = {
+ 
+ static struct of_device_id tfp410_of_match[];
+ 
+-static int __devinit tfp410_probe(struct platform_device *pdev)
++static int tfp410_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *node = pdev->dev.of_node;
+ 	struct device_node *i2c_node;
+@@ -391,7 +391,7 @@ fail:
+ 	return ret;
+ }
+ 
+-static int __devexit tfp410_remove(struct platform_device *pdev)
++static int tfp410_remove(struct platform_device *pdev)
+ {
+ 	return 0;
+ }
+-- 
+1.7.10.4
+
