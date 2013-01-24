@@ -12,8 +12,8 @@ DIR="$PWD"
 PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
-RECIPEDIR="linux-mainline-3.7"
-RECIPENAME="linux-mainline_3.7.bb"
+RECIPEDIR="linux-mainline-3.8"
+RECIPENAME="linux-mainline_3.8.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
@@ -22,9 +22,9 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="1d8549085377674224bf30a368284c391a3ce40e"
+EXTERNAL_SHA="ff7532ca2c631e7e96dcd305a967b610259dc0ea"
 
-PATCHSET="dma rtc pinctrl cpufreq adc pwm i2c da8xx-fb mmc crypto 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net merge not-capebus pru iio pm usb PG2 rcu-cpufreq"
+PATCHSET="dma rtc pinctrl cpufreq adc pwm i2c da8xx-fb mmc crypto 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net not-capebus pru iio usb PG2 rcu-cpufreq"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
