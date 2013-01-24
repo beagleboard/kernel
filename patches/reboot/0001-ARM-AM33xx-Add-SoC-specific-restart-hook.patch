@@ -1,27 +1,15 @@
-From patchwork Wed Jan 23 21:02:40 2013
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Subject: ARM: AM33xx: Add SoC specific restart hook
-Date: Wed, 23 Jan 2013 21:02:40 -0000
-From: Jean-Sebastien A. Beaudry <jsabeaudry@handyem.com>
-X-Patchwork-Id: 2026911
-Message-Id: <1358974960-20106-1-git-send-email-jsabeaudry@handyem.com>
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>,
- linux-arm <linux-arm-kernel@lists.infradead.org>,
- "Jean-Sebastien A. Beaudry" <jsabeaudry@handyem.com>
-
+From 1de0ec318a9fa02943e9336c50a4638dd7960b2a Mon Sep 17 00:00:00 2001
 From: "Jean-Sebastien A. Beaudry" <jsabeaudry@handyem.com>
+Date: Wed, 23 Jan 2013 21:02:40 +0000
+Subject: [PATCH] ARM: AM33xx: Add SoC specific restart hook
 
 Add restart hook so that DTS based AM33xx builds can restart
 the platform.
 
 Tested-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Jean-Sebastien A. Beaudry <jsabeaudry@handyem.com>
-
 ---
-arch/arm/mach-omap2/Makefile         |    1 +
+ arch/arm/mach-omap2/Makefile         |    1 +
  arch/arm/mach-omap2/am33xx-restart.c |   34 ++++++++++++++++++++++++++++++++++
  arch/arm/mach-omap2/board-generic.c  |    1 +
  arch/arm/mach-omap2/common.h         |    8 ++++++++
@@ -111,3 +99,6 @@ index 948bcaa..0c3a991 100644
  #ifdef CONFIG_ARCH_OMAP3
  void omap3xxx_restart(char mode, const char *cmd);
  #else
+-- 
+1.7.10.4
+
