@@ -14,14 +14,14 @@ https://github.com/beagleboard/kernel/blob/beagleboard-3.2/patches/camera/0003-b
 
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c | 152 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3beagle.c |  152 +++++++++++++++++++++++++++++++
  1 file changed, 152 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index e492022..95bec6f 100644
+index 598e4d6..3f679b9 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -171,6 +171,7 @@ static void __init omap3_beagle_init_rev(void)
+@@ -172,6 +172,7 @@ static void __init omap3_beagle_init_rev(void)
  
  char expansionboard_name[16];
  char expansionboard2_name[16];
@@ -29,7 +29,7 @@ index e492022..95bec6f 100644
  
  enum {
  	EXPANSION_MMC_NONE = 0,
-@@ -523,6 +524,14 @@ static struct regulator_consumer_supply beagle_vsim_supply[] = {
+@@ -526,6 +527,14 @@ static struct regulator_consumer_supply beagle_vsim_supply[] = {
  	REGULATOR_SUPPLY("vmmc_aux", "omap_hsmmc.0"),
  };
  
@@ -44,7 +44,7 @@ index e492022..95bec6f 100644
  static struct gpio_led gpio_leds[];
  
  static int beagle_twl_gpio_setup(struct device *dev,
-@@ -631,11 +640,43 @@ static struct regulator_init_data beagle_vsim = {
+@@ -634,11 +643,43 @@ static struct regulator_init_data beagle_vsim = {
  	.consumer_supplies	= beagle_vsim_supply,
  };
  
@@ -88,8 +88,8 @@ index e492022..95bec6f 100644
  };
  
  static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
-@@ -700,6 +741,71 @@ static struct i2c_board_info __initdata beagle_i2c2_bbtoys_ulcd[] = {};
- static void __init omap3beagle_tsc2007_init(void) { return; }
+@@ -702,6 +743,71 @@ static void __init omap3beagle_tsc2007_init(void)
+ static struct i2c_board_info __initdata beagle_i2c2_bbtoys_ulcd[] = {};
  #endif
  
 +#if defined(CONFIG_VIDEO_MT9P031)
@@ -160,7 +160,7 @@ index e492022..95bec6f 100644
  static int __init omap3_beagle_i2c_init(void)
  {
  	omap3_pmic_get_config(&beagle_twldata,
-@@ -836,6 +942,18 @@ static int __init expansionboard2_setup(char *str)
+@@ -838,6 +944,18 @@ static int __init expansionboard2_setup(char *str)
  	return 0;
  }
  
@@ -179,7 +179,7 @@ index e492022..95bec6f 100644
  static int __init beagle_opp_init(void)
  {
  	int r = 0;
-@@ -1113,8 +1231,42 @@ static void __init omap3_beagle_init(void)
+@@ -1115,8 +1233,42 @@ static void __init omap3_beagle_init(void)
  	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
  }
  
@@ -223,5 +223,5 @@ index e492022..95bec6f 100644
  MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
  	/* Maintainer: Syed Mohammed Khasim - http://beagleboard.org */
 -- 
-1.8.1
+1.7.10.4
 

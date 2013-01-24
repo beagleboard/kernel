@@ -1,18 +1,29 @@
 From e13761d5458071ed50ca01fade36026c4e5adeb6 Mon Sep 17 00:00:00 2001
 From: Robert Nelson <robertcnelson@gmail.com>
-Date: Tue, 11 Dec 2012 06:30:06 -0600
+Date: Mon, 21 Jan 2013 11:47:02 -0600
 Subject: [PATCH 02/10] Beagle: expansion: add zippy
+
+v2: add #include <linux/regulator/fixed.h>
+build fix from Pantelis Antoniou <panto@antoniou-consulting.com>
 
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c | 163 ++++++++++++++++++++++++++++++--
- 1 file changed, 157 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/board-omap3beagle.c |  164 +++++++++++++++++++++++++++++--
+ 1 file changed, 158 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 16fd530..c707f49 100644
+index 16fd530..8f3ba5b 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -165,6 +165,86 @@ static void __init omap3_beagle_init_rev(void)
+@@ -33,6 +33,7 @@
+ #include <linux/mmc/host.h>
+ 
+ #include <linux/regulator/machine.h>
++#include <linux/regulator/fixed.h>
+ #include <linux/i2c/twl.h>
+ 
+ #include <asm/mach-types.h>
+@@ -165,6 +166,86 @@ static void __init omap3_beagle_init_rev(void)
  
  char expansionboard_name[16];
  
@@ -99,7 +110,7 @@ index 16fd530..c707f49 100644
  static struct mtd_partition omap3beagle_nand_partitions[] = {
  	/* All the partition sizes are listed in terms of NAND block size */
  	{
-@@ -241,6 +321,23 @@ static struct omap2_hsmmc_info mmc[] = {
+@@ -241,6 +322,23 @@ static struct omap2_hsmmc_info mmc[] = {
  	{}	/* Terminator */
  };
  
@@ -123,7 +134,7 @@ index 16fd530..c707f49 100644
  static struct regulator_consumer_supply beagle_vmmc1_supply[] = {
  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
  };
-@@ -256,10 +353,21 @@ static int beagle_twl_gpio_setup(struct device *dev,
+@@ -256,10 +354,21 @@ static int beagle_twl_gpio_setup(struct device *dev,
  {
  	int r;
  
@@ -149,7 +160,7 @@ index 16fd530..c707f49 100644
  
  	/*
  	 * TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
-@@ -352,6 +460,14 @@ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
+@@ -352,6 +461,14 @@ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
         },
  };
  
@@ -164,7 +175,7 @@ index 16fd530..c707f49 100644
  static int __init omap3_beagle_i2c_init(void)
  {
  	omap3_pmic_get_config(&beagle_twldata,
-@@ -362,6 +478,15 @@ static int __init omap3_beagle_i2c_init(void)
+@@ -362,6 +479,15 @@ static int __init omap3_beagle_i2c_init(void)
  	beagle_twldata.vpll2->constraints.name = "VDVI";
  
  	omap3_pmic_init("twl4030", &beagle_twldata);
@@ -180,7 +191,7 @@ index 16fd530..c707f49 100644
  	/* Bus 3 is attached to the DVI port where devices like the pico DLP
  	 * projector don't work reliably with 400kHz */
  	omap_register_i2c_bus(3, 100, beagle_i2c_eeprom, ARRAY_SIZE(beagle_i2c_eeprom));
-@@ -516,10 +641,30 @@ static void __init omap3_beagle_init(void)
+@@ -516,10 +642,30 @@ static void __init omap3_beagle_init(void)
  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
  	omap3_beagle_init_rev();
  
@@ -213,7 +224,7 @@ index 16fd530..c707f49 100644
  
  	omap3_beagle_i2c_init();
  
-@@ -534,6 +679,12 @@ static void __init omap3_beagle_init(void)
+@@ -534,6 +680,12 @@ static void __init omap3_beagle_init(void)
  	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
  				  mt46h32m32lf6_sdrc_params);
  
@@ -227,5 +238,5 @@ index 16fd530..c707f49 100644
  	usbhs_init(&usbhs_bdata);
  	board_nand_init(omap3beagle_nand_partitions,
 -- 
-1.8.1
+1.7.10.4
 
