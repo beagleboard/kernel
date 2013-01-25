@@ -1,0 +1,26 @@
+From 4fc758bda35191f3e2b677476b3d9ef5735d7584 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Fri, 25 Jan 2013 12:11:15 +0100
+Subject: [PATCH 5/6] iio: stmsensors: buildfix
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ drivers/iio/common/st_sensors/st_sensors_trigger.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/iio/common/st_sensors/st_sensors_trigger.c b/drivers/iio/common/st_sensors/st_sensors_trigger.c
+index 139ed03..6db5cbc 100644
+--- a/drivers/iio/common/st_sensors/st_sensors_trigger.c
++++ b/drivers/iio/common/st_sensors/st_sensors_trigger.c
+@@ -19,7 +19,7 @@
+ 
+ 
+ int st_sensors_allocate_trigger(struct iio_dev *indio_dev,
+-				const struct iio_trigger_ops *trigger_ops)
++				struct iio_trigger_ops *trigger_ops)
+ {
+ 	int err;
+ 	struct st_sensor_data *sdata = iio_priv(indio_dev);
+-- 
+1.8.1
+

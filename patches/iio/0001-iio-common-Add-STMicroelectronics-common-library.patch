@@ -1,25 +1,25 @@
-From 46ba6d84727d27e60f3e11190c0fb7a9066e83ec Mon Sep 17 00:00:00 2001
-From: Denis Ciocca <denis.ciocca@xxxxxx>
-Date: Thu, 24 Jan 2013 18:25:09 +0100
-Subject: [PATCH 1/5] iio:common: Add STMicroelectronics common library
+From fdb7b8103903414e9521183395390adc85419d8a Mon Sep 17 00:00:00 2001
+From: Denis Ciocca <denis.ciocca@st.com>
+Date: Tue, 8 Jan 2013 12:03:33 +0100
+Subject: [PATCH 1/6] iio:common: Add STMicroelectronics common library
 
 This patch add a generic library for STMicroelectronics 3-axis sensors.
 
-Signed-off-by: Denis Ciocca <denis.ciocca@xxxxxx>
+Signed-off-by: Denis Ciocca <denis.ciocca@st.com>
 ---
  drivers/iio/common/Kconfig                         |   1 +
  drivers/iio/common/Makefile                        |   1 +
  drivers/iio/common/st_sensors/Kconfig              |  14 +
  drivers/iio/common/st_sensors/Makefile             |  10 +
  drivers/iio/common/st_sensors/st_sensors_buffer.c  | 115 ++++++
- drivers/iio/common/st_sensors/st_sensors_core.c    | 411 +++++++++++++++++++++
+ drivers/iio/common/st_sensors/st_sensors_core.c    | 409 +++++++++++++++++++++
  drivers/iio/common/st_sensors/st_sensors_i2c.c     |  81 ++++
  drivers/iio/common/st_sensors/st_sensors_spi.c     | 128 +++++++
  drivers/iio/common/st_sensors/st_sensors_trigger.c |  77 ++++
- include/linux/iio/common/st_sensors.h              | 266 +++++++++++++
+ include/linux/iio/common/st_sensors.h              | 260 +++++++++++++
  include/linux/iio/common/st_sensors_i2c.h          |  20 +
  include/linux/iio/common/st_sensors_spi.h          |  20 +
- 12 files changed, 1144 insertions(+)
+ 12 files changed, 1136 insertions(+)
  create mode 100644 drivers/iio/common/st_sensors/Kconfig
  create mode 100644 drivers/iio/common/st_sensors/Makefile
  create mode 100644 drivers/iio/common/st_sensors/st_sensors_buffer.c
@@ -87,7 +87,7 @@ index 0000000..9f3e24f
 +st_sensors-$(CONFIG_IIO_TRIGGER) += st_sensors_trigger.o
 diff --git a/drivers/iio/common/st_sensors/st_sensors_buffer.c b/drivers/iio/common/st_sensors/st_sensors_buffer.c
 new file mode 100644
-index 0000000..0eb86b6
+index 0000000..f4a5adc
 --- /dev/null
 +++ b/drivers/iio/common/st_sensors/st_sensors_buffer.c
 @@ -0,0 +1,115 @@
@@ -96,7 +96,7 @@ index 0000000..0eb86b6
 + *
 + * Copyright 2012-2013 STMicroelectronics Inc.
 + *
-+ * Denis Ciocca <denis.ciocca@xxxxxx>
++ * Denis Ciocca <denis.ciocca@st.com>
 + *
 + * Licensed under the GPL-2.
 + */
@@ -203,21 +203,21 @@ index 0000000..0eb86b6
 +}
 +EXPORT_SYMBOL(st_sensors_trigger_handler);
 +
-+MODULE_AUTHOR("Denis Ciocca <denis.ciocca@xxxxxx>");
++MODULE_AUTHOR("Denis Ciocca <denis.ciocca@st.com>");
 +MODULE_DESCRIPTION("STMicroelectronics ST-sensors buffer");
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/iio/common/st_sensors/st_sensors_core.c b/drivers/iio/common/st_sensors/st_sensors_core.c
 new file mode 100644
-index 0000000..f09d60e
+index 0000000..559d3f9
 --- /dev/null
 +++ b/drivers/iio/common/st_sensors/st_sensors_core.c
-@@ -0,0 +1,411 @@
+@@ -0,0 +1,409 @@
 +/*
 + * STMicroelectronics sensors core library driver
 + *
 + * Copyright 2012-2013 STMicroelectronics Inc.
 + *
-+ * Denis Ciocca <denis.ciocca@xxxxxx>
++ * Denis Ciocca <denis.ciocca@st.com>
 + *
 + * Licensed under the GPL-2.
 + */
@@ -226,15 +226,15 @@ index 0000000..f09d60e
 +#include <linux/module.h>
 +#include <linux/slab.h>
 +#include <linux/delay.h>
-+#include <linux/unaligned/le_byteshift.h>
 +#include <linux/iio/iio.h>
++#include <asm/unaligned.h>
 +
 +#include <linux/iio/common/st_sensors.h>
 +
 +
 +#define ST_SENSORS_WAI_ADDRESS		0x0f
 +
-+int st_sensors_write_data_with_mask(struct iio_dev *indio_dev,
++static int st_sensors_write_data_with_mask(struct iio_dev *indio_dev,
 +						u8 reg_addr, u8 mask, u8 data)
 +{
 +	int err;
@@ -251,7 +251,6 @@ index 0000000..f09d60e
 +st_sensors_write_data_with_mask_error:
 +	return err;
 +}
-+EXPORT_SYMBOL(st_sensors_write_data_with_mask);
 +
 +int st_sensors_get_sampling_frequency_avl(struct iio_dev *indio_dev,
 +			const struct st_sensor_odr_avl *odr_avl, char *buf)
@@ -366,7 +365,7 @@ index 0000000..f09d60e
 +	return ret;
 +}
 +
-+int st_sensors_set_fullscale(struct iio_dev *indio_dev,
++static int st_sensors_set_fullscale(struct iio_dev *indio_dev,
 +			const struct st_sensors *sensor, unsigned int fs)
 +{
 +	int err, i;
@@ -389,7 +388,6 @@ index 0000000..f09d60e
 +	dev_err(&indio_dev->dev, "failed to set new fullscale.\n");
 +	return err;
 +}
-+EXPORT_SYMBOL(st_sensors_set_fullscale);
 +
 +int st_sensors_set_enable(struct iio_dev *indio_dev,
 +				const struct st_sensors *sensor, bool enable)
@@ -620,12 +618,12 @@ index 0000000..f09d60e
 +}
 +EXPORT_SYMBOL(st_sensors_check_device_support);
 +
-+MODULE_AUTHOR("Denis Ciocca <denis.ciocca@xxxxxx>");
++MODULE_AUTHOR("Denis Ciocca <denis.ciocca@st.com>");
 +MODULE_DESCRIPTION("STMicroelectronics ST-sensors core");
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/iio/common/st_sensors/st_sensors_i2c.c b/drivers/iio/common/st_sensors/st_sensors_i2c.c
 new file mode 100644
-index 0000000..bb9be42
+index 0000000..5683436
 --- /dev/null
 +++ b/drivers/iio/common/st_sensors/st_sensors_i2c.c
 @@ -0,0 +1,81 @@
@@ -634,7 +632,7 @@ index 0000000..bb9be42
 + *
 + * Copyright 2012-2013 STMicroelectronics Inc.
 + *
-+ * Denis Ciocca <denis.ciocca@xxxxxx>
++ * Denis Ciocca <denis.ciocca@st.com>
 + *
 + * Licensed under the GPL-2.
 + */
@@ -707,12 +705,12 @@ index 0000000..bb9be42
 +}
 +EXPORT_SYMBOL(st_sensors_i2c_configure);
 +
-+MODULE_AUTHOR("Denis Ciocca <denis.ciocca@xxxxxx>");
++MODULE_AUTHOR("Denis Ciocca <denis.ciocca@st.com>");
 +MODULE_DESCRIPTION("STMicroelectronics ST-sensors i2c driver");
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/iio/common/st_sensors/st_sensors_spi.c b/drivers/iio/common/st_sensors/st_sensors_spi.c
 new file mode 100644
-index 0000000..be66d76
+index 0000000..8a795f5
 --- /dev/null
 +++ b/drivers/iio/common/st_sensors/st_sensors_spi.c
 @@ -0,0 +1,128 @@
@@ -721,7 +719,7 @@ index 0000000..be66d76
 + *
 + * Copyright 2012-2013 STMicroelectronics Inc.
 + *
-+ * Denis Ciocca <denis.ciocca@xxxxxx>
++ * Denis Ciocca <denis.ciocca@st.com>
 + *
 + * Licensed under the GPL-2.
 + */
@@ -841,12 +839,12 @@ index 0000000..be66d76
 +}
 +EXPORT_SYMBOL(st_sensors_spi_configure);
 +
-+MODULE_AUTHOR("Denis Ciocca <denis.ciocca@xxxxxx>");
++MODULE_AUTHOR("Denis Ciocca <denis.ciocca@st.com>");
 +MODULE_DESCRIPTION("STMicroelectronics ST-sensors spi driver");
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/iio/common/st_sensors/st_sensors_trigger.c b/drivers/iio/common/st_sensors/st_sensors_trigger.c
 new file mode 100644
-index 0000000..6b91500
+index 0000000..139ed03
 --- /dev/null
 +++ b/drivers/iio/common/st_sensors/st_sensors_trigger.c
 @@ -0,0 +1,77 @@
@@ -855,7 +853,7 @@ index 0000000..6b91500
 + *
 + * Copyright 2012-2013 STMicroelectronics Inc.
 + *
-+ * Denis Ciocca <denis.ciocca@xxxxxx>
++ * Denis Ciocca <denis.ciocca@st.com>
 + *
 + * Licensed under the GPL-2.
 + */
@@ -871,7 +869,7 @@ index 0000000..6b91500
 +
 +
 +int st_sensors_allocate_trigger(struct iio_dev *indio_dev,
-+					struct iio_trigger_ops *trigger_ops)
++				const struct iio_trigger_ops *trigger_ops)
 +{
 +	int err;
 +	struct st_sensor_data *sdata = iio_priv(indio_dev);
@@ -924,21 +922,21 @@ index 0000000..6b91500
 +}
 +EXPORT_SYMBOL(st_sensors_deallocate_trigger);
 +
-+MODULE_AUTHOR("Denis Ciocca <denis.ciocca@xxxxxx>");
++MODULE_AUTHOR("Denis Ciocca <denis.ciocca@st.com>");
 +MODULE_DESCRIPTION("STMicroelectronics ST-sensors trigger");
 +MODULE_LICENSE("GPL v2");
 diff --git a/include/linux/iio/common/st_sensors.h b/include/linux/iio/common/st_sensors.h
 new file mode 100644
-index 0000000..9224e5c
+index 0000000..b7bfd5d
 --- /dev/null
 +++ b/include/linux/iio/common/st_sensors.h
-@@ -0,0 +1,266 @@
+@@ -0,0 +1,260 @@
 +/*
 + * STMicroelectronics sensors library driver
 + *
 + * Copyright 2012-2013 STMicroelectronics Inc.
 + *
-+ * Denis Ciocca <denis.ciocca@xxxxxx>
++ * Denis Ciocca <denis.ciocca@st.com>
 + *
 + * Licensed under the GPL-2.
 + */
@@ -1170,17 +1168,11 @@ index 0000000..9224e5c
 +int st_sensors_set_axis_enable(struct iio_dev *indio_dev,
 +			const struct st_sensors *sensor, u8 axis_enable);
 +
-+int st_sensors_write_data_with_mask(struct iio_dev *indio_dev,
-+						u8 reg_addr, u8 mask, u8 data);
-+
 +int st_sensors_get_sampling_frequency_avl(struct iio_dev *indio_dev,
 +			const struct st_sensor_odr_avl *odr_avl, char *buf);
 +
 +int st_sensors_get_scale_avl(struct iio_dev *indio_dev,
 +		const struct st_sensor_fullscale_avl *fullscale_avl, char *buf);
-+
-+int st_sensors_set_fullscale(struct iio_dev *indio_dev,
-+			const struct st_sensors *sensor, unsigned int fs);
 +
 +int st_sensors_set_odr(struct iio_dev *indio_dev,
 +			const struct st_sensors *sensor, unsigned int odr);
@@ -1201,7 +1193,7 @@ index 0000000..9224e5c
 +#endif /* ST_SENSORS_H */
 diff --git a/include/linux/iio/common/st_sensors_i2c.h b/include/linux/iio/common/st_sensors_i2c.h
 new file mode 100644
-index 0000000..9b6996f
+index 0000000..67d8453
 --- /dev/null
 +++ b/include/linux/iio/common/st_sensors_i2c.h
 @@ -0,0 +1,20 @@
@@ -1210,7 +1202,7 @@ index 0000000..9b6996f
 + *
 + * Copyright 2012-2013 STMicroelectronics Inc.
 + *
-+ * Denis Ciocca <denis.ciocca@xxxxxx>
++ * Denis Ciocca <denis.ciocca@st.com>
 + *
 + * Licensed under the GPL-2.
 + */
@@ -1227,7 +1219,7 @@ index 0000000..9b6996f
 +#endif /* ST_SENSORS_I2C_H */
 diff --git a/include/linux/iio/common/st_sensors_spi.h b/include/linux/iio/common/st_sensors_spi.h
 new file mode 100644
-index 0000000..7cfef2c
+index 0000000..d964a35
 --- /dev/null
 +++ b/include/linux/iio/common/st_sensors_spi.h
 @@ -0,0 +1,20 @@
@@ -1236,7 +1228,7 @@ index 0000000..7cfef2c
 + *
 + * Copyright 2012-2013 STMicroelectronics Inc.
 + *
-+ * Denis Ciocca <denis.ciocca@xxxxxx>
++ * Denis Ciocca <denis.ciocca@st.com>
 + *
 + * Licensed under the GPL-2.
 + */

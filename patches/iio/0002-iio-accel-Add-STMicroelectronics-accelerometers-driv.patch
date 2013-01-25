@@ -1,34 +1,34 @@
-From 707e48f01fc47fb3269924dc40d3b735ed1b23e3 Mon Sep 17 00:00:00 2001
-From: Denis Ciocca <denis.ciocca@xxxxxx>
-Date: Thu, 24 Jan 2013 18:25:09 +0100
-Subject: [PATCH 2/5] iio:accel: Add STMicroelectronics accelerometers driver
+From 401dec49dee86a1d94d276b52b266a8ffe8fefcb Mon Sep 17 00:00:00 2001
+From: Denis Ciocca <denis.ciocca@st.com>
+Date: Tue, 8 Jan 2013 12:05:18 +0100
+Subject: [PATCH 2/6] iio:accel: Add STMicroelectronics accelerometers driver
 
 This patch adds a generic accelerometer driver for STMicroelectronics
 accelerometers, currently it supports:
 LSM303DLH, LSM303DLHC, LIS3DH, LSM330D, LSM330DL, LSM330DLC,
 LIS331DLH, LSM303DL, LSM303DLM, LSM330.
 
-Signed-off-by: Denis Ciocca <denis.ciocca@xxxxxx>
+Signed-off-by: Denis Ciocca <denis.ciocca@st.com>
 ---
- drivers/iio/accel/Kconfig           |  32 ++
+ drivers/iio/accel/Kconfig           |  31 ++
  drivers/iio/accel/Makefile          |   7 +
- drivers/iio/accel/st_accel_buffer.c | 119 ++++++++
- drivers/iio/accel/st_accel_core.c   | 582 ++++++++++++++++++++++++++++++++++++
+ drivers/iio/accel/st_accel.h        |  52 ++++
+ drivers/iio/accel/st_accel_buffer.c | 114 +++++++
+ drivers/iio/accel/st_accel_core.c   | 578 ++++++++++++++++++++++++++++++++++++
  drivers/iio/accel/st_accel_i2c.c    |  87 ++++++
  drivers/iio/accel/st_accel_spi.c    |  86 ++++++
- include/linux/iio/accel/st_accel.h  |  52 ++++
- 7 files changed, 965 insertions(+)
+ 7 files changed, 955 insertions(+)
+ create mode 100644 drivers/iio/accel/st_accel.h
  create mode 100644 drivers/iio/accel/st_accel_buffer.c
  create mode 100644 drivers/iio/accel/st_accel_core.c
  create mode 100644 drivers/iio/accel/st_accel_i2c.c
  create mode 100644 drivers/iio/accel/st_accel_spi.c
- create mode 100644 include/linux/iio/accel/st_accel.h
 
 diff --git a/drivers/iio/accel/Kconfig b/drivers/iio/accel/Kconfig
-index 05e996f..892e86c 100644
+index 05e996f..6e3cc4c 100644
 --- a/drivers/iio/accel/Kconfig
 +++ b/drivers/iio/accel/Kconfig
-@@ -14,4 +14,36 @@ config HID_SENSOR_ACCEL_3D
+@@ -14,4 +14,35 @@ config HID_SENSOR_ACCEL_3D
  	  Say yes here to build support for the HID SENSOR
  	  accelerometers 3D.
  
@@ -50,7 +50,6 @@ index 05e996f..892e86c 100644
 +	  - st_accel (core functions for the driver [it is mandatory]);
 +	  - st_accel_i2c (necessary for the I2C devices [optional*]);
 +	  - st_accel_spi (necessary for the SPI devices [optional*]);
-+	  - st_accel_buffer (necessary for triggered buffer [optional]);
 +	  
 +	  (*) one of these is necessary to do something.
 +
@@ -80,18 +79,76 @@ index 5bc6855..4fad4bc 100644
 +
 +obj-$(CONFIG_IIO_ST_ACCEL_I2C_3AXIS) += st_accel_i2c.o
 +obj-$(CONFIG_IIO_ST_ACCEL_SPI_3AXIS) += st_accel_spi.o
-diff --git a/drivers/iio/accel/st_accel_buffer.c b/drivers/iio/accel/st_accel_buffer.c
+diff --git a/drivers/iio/accel/st_accel.h b/drivers/iio/accel/st_accel.h
 new file mode 100644
-index 0000000..5fa1322
+index 0000000..847b1ea
 --- /dev/null
-+++ b/drivers/iio/accel/st_accel_buffer.c
-@@ -0,0 +1,119 @@
++++ b/drivers/iio/accel/st_accel.h
+@@ -0,0 +1,52 @@
 +/*
 + * STMicroelectronics accelerometers driver
 + *
 + * Copyright 2012-2013 STMicroelectronics Inc.
 + *
-+ * Denis Ciocca <denis.ciocca@xxxxxx>
++ * Denis Ciocca <denis.ciocca@st.com>
++ * v. 1.0.0
++ * Licensed under the GPL-2.
++ */
++
++#ifndef ST_ACCEL_H
++#define ST_ACCEL_H
++
++#include <linux/types.h>
++#include <linux/iio/common/st_sensors.h>
++
++#define LSM303DLH_ACCEL_DEV_NAME	"lsm303dlh_accel"
++#define LSM303DLHC_ACCEL_DEV_NAME	"lsm303dlhc_accel"
++#define LIS3DH_ACCEL_DEV_NAME		"lis3dh"
++#define LSM330D_ACCEL_DEV_NAME		"lsm330d_accel"
++#define LSM330DL_ACCEL_DEV_NAME		"lsm330dl_accel"
++#define LSM330DLC_ACCEL_DEV_NAME	"lsm330dlc_accel"
++#define LIS331DLH_ACCEL_DEV_NAME	"lis331dlh"
++#define LSM303DL_ACCEL_DEV_NAME		"lsm303dl_accel"
++#define LSM303DLM_ACCEL_DEV_NAME	"lsm303dlm_accel"
++#define LSM330_ACCEL_DEV_NAME		"lsm330_accel"
++
++int st_accel_common_probe(struct iio_dev *indio_dev);
++void st_accel_common_remove(struct iio_dev *indio_dev);
++int st_accel_set_dataready_irq(struct iio_dev *indio_dev, bool state);
++int st_accel_set_axis_enable(struct iio_dev *indio_dev, u8 active_bit);
++int st_accel_set_enable(struct iio_dev *indio_dev, bool enable);
++
++#ifdef CONFIG_IIO_BUFFER
++int st_accel_allocate_ring(struct iio_dev *indio_dev);
++void st_accel_deallocate_ring(struct iio_dev *indio_dev);
++int st_accel_trig_set_state(struct iio_trigger *trig, bool state);
++#else /* CONFIG_IIO_BUFFER */
++static inline int st_accel_allocate_ring(struct iio_dev *indio_dev)
++{
++	return 0;
++}
++static inline void st_accel_deallocate_ring(struct iio_dev *indio_dev)
++{
++}
++static inline int st_accel_trig_set_state(struct iio_trigger *trig, bool state)
++{
++	return 0;
++}
++#endif /* CONFIG_IIO_BUFFER */
++
++#endif /* ST_ACCEL_H */
+diff --git a/drivers/iio/accel/st_accel_buffer.c b/drivers/iio/accel/st_accel_buffer.c
+new file mode 100644
+index 0000000..1329355
+--- /dev/null
++++ b/drivers/iio/accel/st_accel_buffer.c
+@@ -0,0 +1,114 @@
++/*
++ * STMicroelectronics accelerometers driver
++ *
++ * Copyright 2012-2013 STMicroelectronics Inc.
++ *
++ * Denis Ciocca <denis.ciocca@st.com>
 + *
 + * Licensed under the GPL-2.
 + */
@@ -101,7 +158,6 @@ index 0000000..5fa1322
 +#include <linux/slab.h>
 +#include <linux/stat.h>
 +#include <linux/interrupt.h>
-+#include <linux/byteorder/generic.h>
 +#include <linux/i2c.h>
 +#include <linux/delay.h>
 +#include <linux/iio/iio.h>
@@ -109,16 +165,14 @@ index 0000000..5fa1322
 +#include <linux/iio/trigger_consumer.h>
 +#include <linux/iio/triggered_buffer.h>
 +
-+#include <linux/iio/accel/st_accel.h>
 +#include <linux/iio/common/st_sensors.h>
-+
++#include "st_accel.h"
 +
 +int st_accel_trig_set_state(struct iio_trigger *trig, bool state)
 +{
 +	struct iio_dev *indio_dev = trig->private_data;
 +	return st_accel_set_dataready_irq(indio_dev, state);
 +}
-+EXPORT_SYMBOL(st_accel_trig_set_state);
 +
 +static int st_accel_buffer_preenable(struct iio_dev *indio_dev)
 +{
@@ -194,29 +248,27 @@ index 0000000..5fa1322
 +	return iio_triggered_buffer_setup(indio_dev, &iio_pollfunc_store_time,
 +		&st_sensors_trigger_handler, &st_accel_buffer_setup_ops);
 +}
-+EXPORT_SYMBOL(st_accel_allocate_ring);
 +
 +void st_accel_deallocate_ring(struct iio_dev *indio_dev)
 +{
 +	iio_triggered_buffer_cleanup(indio_dev);
 +}
-+EXPORT_SYMBOL(st_accel_deallocate_ring);
 +
-+MODULE_AUTHOR("Denis Ciocca <denis.ciocca@xxxxxx>");
++MODULE_AUTHOR("Denis Ciocca <denis.ciocca@st.com>");
 +MODULE_DESCRIPTION("STMicroelectronics accelerometers buffer");
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/iio/accel/st_accel_core.c b/drivers/iio/accel/st_accel_core.c
 new file mode 100644
-index 0000000..dd03099
+index 0000000..580e3a7
 --- /dev/null
 +++ b/drivers/iio/accel/st_accel_core.c
-@@ -0,0 +1,582 @@
+@@ -0,0 +1,578 @@
 +/*
 + * STMicroelectronics accelerometers driver
 + *
 + * Copyright 2012-2013 STMicroelectronics Inc.
 + *
-+ * Denis Ciocca <denis.ciocca@xxxxxx>
++ * Denis Ciocca <denis.ciocca@st.com>
 + *
 + * Licensed under the GPL-2.
 + */
@@ -236,9 +288,8 @@ index 0000000..dd03099
 +#include <linux/iio/trigger_consumer.h>
 +#include <linux/iio/buffer.h>
 +
-+#include <linux/iio/accel/st_accel.h>
 +#include <linux/iio/common/st_sensors.h>
-+
++#include "st_accel.h"
 +
 +/* DEFAULT VALUE FOR SENSORS */
 +#define ST_ACCEL_DEFAULT_OUT_X_L_ADDR		0x28
@@ -363,11 +414,10 @@ index 0000000..dd03099
 +		.wai = ST_ACCEL_1_WAI_EXP,
 +		.sensors_supported = {
 +			[0] = LIS3DH_ACCEL_DEV_NAME,
-+			[1] = LSM303DLH_ACCEL_DEV_NAME,
-+			[2] = LSM303DLHC_ACCEL_DEV_NAME,
-+			[3] = LSM330D_ACCEL_DEV_NAME,
-+			[4] = LSM330DL_ACCEL_DEV_NAME,
-+			[5] = LSM330DLC_ACCEL_DEV_NAME,
++			[1] = LSM303DLHC_ACCEL_DEV_NAME,
++			[2] = LSM330D_ACCEL_DEV_NAME,
++			[3] = LSM330DL_ACCEL_DEV_NAME,
++			[4] = LSM330DLC_ACCEL_DEV_NAME,
 +		},
 +		.ch = (struct iio_chan_spec *)st_accel_12bit_channels,
 +		.odr = {
@@ -433,9 +483,10 @@ index 0000000..dd03099
 +	{
 +		.wai = ST_ACCEL_2_WAI_EXP,
 +		.sensors_supported = {
-+			[0] = LIS331DLH_ACCEL_DEV_NAME,
-+			[1] = LSM303DL_ACCEL_DEV_NAME,
-+			[2] = LSM303DLM_ACCEL_DEV_NAME,
++			[0] = LSM303DLH_ACCEL_DEV_NAME,
++			[1] = LIS331DLH_ACCEL_DEV_NAME,
++			[2] = LSM303DL_ACCEL_DEV_NAME,
++			[3] = LSM303DLM_ACCEL_DEV_NAME,
 +		},
 +		.ch = (struct iio_chan_spec *)st_accel_12bit_channels,
 +		.odr = {
@@ -621,7 +672,6 @@ index 0000000..dd03099
 +	return st_sensors_set_dataready_irq(indio_dev,
 +					&st_accel_sensors[adata->index], state);
 +}
-+EXPORT_SYMBOL(st_accel_set_dataready_irq);
 +
 +int st_accel_set_axis_enable(struct iio_dev *indio_dev, u8 active_bit)
 +{
@@ -630,7 +680,6 @@ index 0000000..dd03099
 +	return st_sensors_set_axis_enable(indio_dev,
 +				&st_accel_sensors[adata->index], active_bit);
 +}
-+EXPORT_SYMBOL(st_accel_set_axis_enable);
 +
 +int st_accel_set_enable(struct iio_dev *indio_dev, bool enable)
 +{
@@ -639,7 +688,6 @@ index 0000000..dd03099
 +	return st_sensors_set_enable(indio_dev,
 +				&st_accel_sensors[adata->index], enable);
 +}
-+EXPORT_SYMBOL(st_accel_set_enable);
 +
 +static ssize_t st_accel_sysfs_set_sampling_frequency(struct device *dev,
 +		struct device_attribute *attr, const char *buf, size_t size)
@@ -718,7 +766,7 @@ index 0000000..dd03099
 +	.write_raw = &st_accel_write_raw,
 +};
 +
-+static struct iio_trigger_ops st_accel_trigger_ops = {
++static const struct iio_trigger_ops st_accel_trigger_ops = {
 +	.owner = THIS_MODULE,
 +	.set_trigger_state = &st_accel_trig_set_state,
 +};
@@ -790,12 +838,12 @@ index 0000000..dd03099
 +}
 +EXPORT_SYMBOL(st_accel_common_remove);
 +
-+MODULE_AUTHOR("Denis Ciocca <denis.ciocca@xxxxxx>");
++MODULE_AUTHOR("Denis Ciocca <denis.ciocca@st.com>");
 +MODULE_DESCRIPTION("STMicroelectronics accelerometers driver");
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/iio/accel/st_accel_i2c.c b/drivers/iio/accel/st_accel_i2c.c
 new file mode 100644
-index 0000000..026a948
+index 0000000..90b8ddf
 --- /dev/null
 +++ b/drivers/iio/accel/st_accel_i2c.c
 @@ -0,0 +1,87 @@
@@ -804,7 +852,7 @@ index 0000000..026a948
 + *
 + * Copyright 2012-2013 STMicroelectronics Inc.
 + *
-+ * Denis Ciocca <denis.ciocca@xxxxxx>
++ * Denis Ciocca <denis.ciocca@st.com>
 + *
 + * Licensed under the GPL-2.
 + */
@@ -816,9 +864,9 @@ index 0000000..026a948
 +#include <linux/iio/iio.h>
 +#include <linux/iio/trigger.h>
 +
-+#include <linux/iio/accel/st_accel.h>
 +#include <linux/iio/common/st_sensors.h>
 +#include <linux/iio/common/st_sensors_i2c.h>
++#include "st_accel.h"
 +
 +static int st_accel_i2c_probe(struct i2c_client *client,
 +						const struct i2c_device_id *id)
@@ -883,12 +931,12 @@ index 0000000..026a948
 +};
 +module_i2c_driver(st_accel_driver);
 +
-+MODULE_AUTHOR("Denis Ciocca <denis.ciocca@xxxxxx>");
++MODULE_AUTHOR("Denis Ciocca <denis.ciocca@st.com>");
 +MODULE_DESCRIPTION("STMicroelectronics accelerometers i2c driver");
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/iio/accel/st_accel_spi.c b/drivers/iio/accel/st_accel_spi.c
 new file mode 100644
-index 0000000..d74f395
+index 0000000..dbd45c0
 --- /dev/null
 +++ b/drivers/iio/accel/st_accel_spi.c
 @@ -0,0 +1,86 @@
@@ -897,7 +945,7 @@ index 0000000..d74f395
 + *
 + * Copyright 2012-2013 STMicroelectronics Inc.
 + *
-+ * Denis Ciocca <denis.ciocca@xxxxxx>
++ * Denis Ciocca <denis.ciocca@st.com>
 + *
 + * Licensed under the GPL-2.
 + */
@@ -909,9 +957,9 @@ index 0000000..d74f395
 +#include <linux/iio/iio.h>
 +#include <linux/iio/trigger.h>
 +
-+#include <linux/iio/accel/st_accel.h>
 +#include <linux/iio/common/st_sensors.h>
 +#include <linux/iio/common/st_sensors_spi.h>
++#include "st_accel.h"
 +
 +static int st_accel_spi_probe(struct spi_device *spi)
 +{
@@ -975,67 +1023,9 @@ index 0000000..d74f395
 +};
 +module_spi_driver(st_accel_driver);
 +
-+MODULE_AUTHOR("Denis Ciocca <denis.ciocca@xxxxxx>");
++MODULE_AUTHOR("Denis Ciocca <denis.ciocca@st.com>");
 +MODULE_DESCRIPTION("STMicroelectronics accelerometers spi driver");
 +MODULE_LICENSE("GPL v2");
-diff --git a/include/linux/iio/accel/st_accel.h b/include/linux/iio/accel/st_accel.h
-new file mode 100644
-index 0000000..63bf114
---- /dev/null
-+++ b/include/linux/iio/accel/st_accel.h
-@@ -0,0 +1,52 @@
-+/*
-+ * STMicroelectronics accelerometers driver
-+ *
-+ * Copyright 2012-2013 STMicroelectronics Inc.
-+ *
-+ * Denis Ciocca <denis.ciocca@xxxxxx>
-+ * v. 1.0.0
-+ * Licensed under the GPL-2.
-+ */
-+
-+#ifndef ST_ACCEL_H
-+#define ST_ACCEL_H
-+
-+#include <linux/types.h>
-+#include "../common/st_sensors.h"
-+
-+#define LSM303DLH_ACCEL_DEV_NAME	"lsm303dlh_accel"
-+#define LSM303DLHC_ACCEL_DEV_NAME	"lsm303dlhc_accel"
-+#define LIS3DH_ACCEL_DEV_NAME		"lis3dh"
-+#define LSM330D_ACCEL_DEV_NAME		"lsm330d_accel"
-+#define LSM330DL_ACCEL_DEV_NAME		"lsm330dl_accel"
-+#define LSM330DLC_ACCEL_DEV_NAME	"lsm330dlc_accel"
-+#define LIS331DLH_ACCEL_DEV_NAME	"lis331dlh"
-+#define LSM303DL_ACCEL_DEV_NAME		"lsm303dl_accel"
-+#define LSM303DLM_ACCEL_DEV_NAME	"lsm303dlm_accel"
-+#define LSM330_ACCEL_DEV_NAME		"lsm330_accel"
-+
-+int st_accel_common_probe(struct iio_dev *indio_dev);
-+void st_accel_common_remove(struct iio_dev *indio_dev);
-+int st_accel_set_dataready_irq(struct iio_dev *indio_dev, bool state);
-+int st_accel_set_axis_enable(struct iio_dev *indio_dev, u8 active_bit);
-+int st_accel_set_enable(struct iio_dev *indio_dev, bool enable);
-+
-+#ifdef CONFIG_IIO_BUFFER
-+int st_accel_allocate_ring(struct iio_dev *indio_dev);
-+void st_accel_deallocate_ring(struct iio_dev *indio_dev);
-+int st_accel_trig_set_state(struct iio_trigger *trig, bool state);
-+#else /* CONFIG_IIO_BUFFER */
-+static inline int st_accel_allocate_ring(struct iio_dev *indio_dev)
-+{
-+	return 0;
-+}
-+static inline void st_accel_deallocate_ring(struct iio_dev *indio_dev)
-+{
-+}
-+static inline int st_accel_trig_set_state(struct iio_trigger *trig, bool state)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_IIO_BUFFER */
-+
-+#endif /* ST_ACCEL_H */
 -- 
 1.8.1
 
