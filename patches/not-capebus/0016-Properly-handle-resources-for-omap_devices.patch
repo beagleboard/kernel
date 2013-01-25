@@ -1,4 +1,4 @@
-From 444c0969dd63bffe23e84984fad70f376f255707 Mon Sep 17 00:00:00 2001
+From d7377a9ad4648ae2ebbdf84d407020fc9c6a1aad Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 28 Dec 2012 11:41:11 +0200
 Subject: [PATCH 016/103] Properly handle resources for omap_devices
@@ -13,7 +13,7 @@ and make sure that no resources that have no parent (which can happen for DMA
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- arch/arm/mach-omap2/omap_device.c |  232 +++++++++++++++++++++++--------------
+ arch/arm/mach-omap2/omap_device.c | 232 ++++++++++++++++++++++++--------------
  1 file changed, 148 insertions(+), 84 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
@@ -290,5 +290,5 @@ index e065daa..9f8dba1 100644
  		pm_lats = omap_default_latency;
  		pm_lats_cnt = ARRAY_SIZE(omap_default_latency);
 -- 
-1.7.10.4
+1.8.1
 

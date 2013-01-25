@@ -1,4 +1,4 @@
-From 513e0d22a8d8f8d2dbce8ce53c9324949b59add5 Mon Sep 17 00:00:00 2001
+From 9cf12471646231eaee9270ab28d5855b4dc846d1 Mon Sep 17 00:00:00 2001
 From: Robert Nelson <robertcnelson@gmail.com>
 Date: Tue, 11 Dec 2012 07:02:40 -0600
 Subject: [PATCH 10/10] Beagle: expansion: add LSR COM6L Adapter Board
@@ -9,10 +9,10 @@ Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
  1 file changed, 55 insertions(+), 5 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 95bec6f..7f8e2fa 100644
+index 3f679b9..cdc77c5 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -172,6 +172,7 @@ static void __init omap3_beagle_init_rev(void)
+@@ -173,6 +173,7 @@ static void __init omap3_beagle_init_rev(void)
  char expansionboard_name[16];
  char expansionboard2_name[16];
  char camera_name[16];
@@ -20,7 +20,7 @@ index 95bec6f..7f8e2fa 100644
  
  enum {
  	EXPANSION_MMC_NONE = 0,
-@@ -207,6 +208,10 @@ struct wl12xx_platform_data omap_beagle_wlan_data __initdata = {
+@@ -208,6 +209,10 @@ struct wl12xx_platform_data omap_beagle_wlan_data __initdata = {
  	.board_ref_clock = WL12XX_REFCLOCK_38, /* 38.4 MHz */
  };
  
@@ -31,7 +31,7 @@ index 95bec6f..7f8e2fa 100644
  static struct ti_st_plat_data wilink_platform_data = {
  	.nshutdown_gpio	= OMAP_BEAGLE_BT_EN_GPIO,
  	.dev_name		= "/dev/ttyO1",
-@@ -954,6 +959,18 @@ static int __init camera_setup(char *str)
+@@ -956,6 +961,18 @@ static int __init camera_setup(char *str)
  	return 0;
  }
  
@@ -50,7 +50,7 @@ index 95bec6f..7f8e2fa 100644
  static int __init beagle_opp_init(void)
  {
  	int r = 0;
-@@ -1081,9 +1098,29 @@ static void __init omap3_beagle_init(void)
+@@ -1083,9 +1100,29 @@ static void __init omap3_beagle_init(void)
  		omap_mux_init_gpio(OMAP3BEAGLE_GPIO_ZIPPY_MMC_CD, OMAP_PIN_INPUT);
  	}
  
@@ -81,7 +81,7 @@ index 95bec6f..7f8e2fa 100644
  		expansion_config.mmc_settings = EXPANSION_MMC_WIFI;
  	#endif
  	}
-@@ -1175,12 +1212,24 @@ static void __init omap3_beagle_init(void)
+@@ -1177,12 +1214,24 @@ static void __init omap3_beagle_init(void)
  		gpio_export(162, 1);
  	}
  
@@ -110,7 +110,7 @@ index 95bec6f..7f8e2fa 100644
  		pr_info("Beagle expansionboard: registering wl12xx bt platform device\n");
  		platform_device_register(&wl12xx_device);
  		platform_device_register(&btwilink_device);
-@@ -1265,6 +1314,7 @@ static int __init omap3_beagle_late_initcall(void)
+@@ -1267,6 +1316,7 @@ static int __init omap3_beagle_late_initcall(void)
  early_param("buddy", expansionboard_setup);
  early_param("buddy2", expansionboard2_setup);
  early_param("camera", camera_setup);

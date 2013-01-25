@@ -1,4 +1,4 @@
-From 768c96eb50986d50834b881ddfdceb0ac6282827 Mon Sep 17 00:00:00 2001
+From 066597abcd88cc76e47794a7e1792dcd3b9e695a Mon Sep 17 00:00:00 2001
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 Date: Wed, 7 Nov 2012 12:16:49 -0700
 Subject: [PATCH 09/34] ARM: OMAP2xxx: hwmod: Convert AES crypto devcie data to
@@ -20,7 +20,7 @@ Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
  7 files changed, 73 insertions(+), 26 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cclock2430_data.c b/arch/arm/mach-omap2/cclock2430_data.c
-index a60c16d..6f721b2 100644
+index ff8b83f..89f6ed8 100644
 --- a/arch/arm/mach-omap2/cclock2430_data.c
 +++ b/arch/arm/mach-omap2/cclock2430_data.c
 @@ -1995,7 +1995,8 @@ static struct omap_clk omap2430_clks[] = {
@@ -34,7 +34,7 @@ index a60c16d..6f721b2 100644
  	CLK(NULL,	"usb_fck",	&usb_fck,	CK_243X),
  	CLK("musb-omap2430",	"ick",	&usbhs_ick,	CK_243X),
 diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 7d9e786..232f331 100644
+index 62300ec..fe5e6a2 100644
 --- a/arch/arm/mach-omap2/devices.c
 +++ b/arch/arm/mach-omap2/devices.c
 @@ -493,28 +493,6 @@ static void __init omap_init_sham(void)

@@ -1,4 +1,4 @@
-From e61b44b30c7d8f2dcfa528908b1fa31fe5cbbf87 Mon Sep 17 00:00:00 2001
+From 223f91fd85a17a4c870054bf0e684a79d19f6525 Mon Sep 17 00:00:00 2001
 From: Robert Nelson <robertcnelson@gmail.com>
 Date: Tue, 2 Aug 2011 21:55:34 -0500
 Subject: [PATCH 1/2] panda: fix wl12xx regulator
@@ -11,10 +11,10 @@ Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index e49b40b..0fd1a70 100644
+index f096beb..4b2b254 100644
 --- a/arch/arm/mach-omap2/twl-common.c
 +++ b/arch/arm/mach-omap2/twl-common.c
-@@ -360,6 +360,7 @@ static struct regulator_init_data omap4_vusb_idata = {
+@@ -398,6 +398,7 @@ static struct regulator_init_data omap4_vusb_idata = {
  static struct regulator_init_data omap4_clk32kg_idata = {
  	.constraints = {
  		.valid_ops_mask		= REGULATOR_CHANGE_STATUS,

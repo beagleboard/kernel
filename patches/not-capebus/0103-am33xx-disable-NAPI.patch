@@ -1,0 +1,25 @@
+From 8cfa686ab9552cc5f8fc258dbee0311bead51fba Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Thu, 24 Jan 2013 15:35:12 +0100
+Subject: [PATCH 103/103] am33xx: disable NAPI
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am33xx.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 5f72381..24f4371 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -525,6 +525,7 @@
+ 			 */
+ 			interrupts = <40 41 42 43>;
+ 			ranges;
++			disable-napi;
+ 
+ 			davinci_mdio: mdio@4a101000 {
+ 				compatible = "ti,davinci_mdio";
+-- 
+1.8.1
+

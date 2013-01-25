@@ -1,0 +1,34 @@
+From 8896fbe21ee352b0bd8de98ffb73ae41ab26aeed Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Fri, 18 Jan 2013 11:49:48 +0100
+Subject: [PATCH 094/103] tilcdc: magic debug statement makes power gpio work
+ on LCD7
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+index 808ac16..5017cca 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+@@ -209,10 +209,13 @@ static int tilcdc_load(struct drm_device *dev, unsigned long flags)
+ 		dev_info(&pdev->dev, "No power control GPIO\n");
+ 	} else {
+ 		gpioflags = GPIOF_DIR_OUT;
+-		if (ofgpioflags & OF_GPIO_ACTIVE_LOW)
++		if (ofgpioflags & OF_GPIO_ACTIVE_LOW) {
+ 			gpioflags |= GPIOF_INIT_LOW;
+-		else
++			dev_info(&pdev->dev, "Power GPIO active low, initial state set to low\n");
++		} else {
+ 			gpioflags |= GPIOF_INIT_HIGH;
++			dev_info(&pdev->dev, "Power GPIO active high, initial state set to high\n");
++		}
+ 		ret = devm_gpio_request_one(&pdev->dev, gpio,
+ 		gpioflags, "lcdc_drv:PDN");
+ 		if (ret != 0) {
+-- 
+1.8.1
+

@@ -1,4 +1,4 @@
-From fcbcebe52e55a5435efdc801a83177506c4ce702 Mon Sep 17 00:00:00 2001
+From 3054208474394fd1c4b87571c88912c022435412 Mon Sep 17 00:00:00 2001
 From: Kishon Vijay Abraham I <kishon@ti.com>
 Date: Tue, 22 Jan 2013 09:58:11 +0000
 Subject: [PATCH 5/9] ARM: OMAP: USB: Add phy binding information
@@ -11,23 +11,23 @@ done here for OMAP platforms.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/mach-omap2/board-2430sdp.c          |    2 ++
- arch/arm/mach-omap2/board-3430sdp.c          |    2 ++
- arch/arm/mach-omap2/board-4430sdp.c          |    2 ++
- arch/arm/mach-omap2/board-cm-t35.c           |    2 ++
- arch/arm/mach-omap2/board-devkit8000.c       |    2 ++
- arch/arm/mach-omap2/board-igep0020.c         |    2 ++
- arch/arm/mach-omap2/board-ldp.c              |    2 ++
- arch/arm/mach-omap2/board-omap3beagle.c      |    2 ++
- arch/arm/mach-omap2/board-omap3evm.c         |    2 ++
- arch/arm/mach-omap2/board-omap3logic.c       |    2 ++
- arch/arm/mach-omap2/board-omap3pandora.c     |    2 ++
- arch/arm/mach-omap2/board-omap3stalker.c     |    2 ++
- arch/arm/mach-omap2/board-omap3touchbook.c   |    2 ++
- arch/arm/mach-omap2/board-omap4panda.c       |    2 ++
- arch/arm/mach-omap2/board-overo.c            |    2 ++
- arch/arm/mach-omap2/board-rm680.c            |    2 ++
- arch/arm/mach-omap2/board-zoom-peripherals.c |    2 ++
+ arch/arm/mach-omap2/board-2430sdp.c          | 2 ++
+ arch/arm/mach-omap2/board-3430sdp.c          | 2 ++
+ arch/arm/mach-omap2/board-4430sdp.c          | 2 ++
+ arch/arm/mach-omap2/board-cm-t35.c           | 2 ++
+ arch/arm/mach-omap2/board-devkit8000.c       | 2 ++
+ arch/arm/mach-omap2/board-igep0020.c         | 2 ++
+ arch/arm/mach-omap2/board-ldp.c              | 2 ++
+ arch/arm/mach-omap2/board-omap3beagle.c      | 2 ++
+ arch/arm/mach-omap2/board-omap3evm.c         | 2 ++
+ arch/arm/mach-omap2/board-omap3logic.c       | 2 ++
+ arch/arm/mach-omap2/board-omap3pandora.c     | 2 ++
+ arch/arm/mach-omap2/board-omap3stalker.c     | 2 ++
+ arch/arm/mach-omap2/board-omap3touchbook.c   | 2 ++
+ arch/arm/mach-omap2/board-omap4panda.c       | 2 ++
+ arch/arm/mach-omap2/board-overo.c            | 2 ++
+ arch/arm/mach-omap2/board-rm680.c            | 2 ++
+ arch/arm/mach-omap2/board-zoom-peripherals.c | 2 ++
  17 files changed, 34 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
@@ -171,7 +171,7 @@ index 0869f4f..3b5510a 100644
  	board_nand_init(ldp_nand_partitions, ARRAY_SIZE(ldp_nand_partitions),
  			ZOOM_NAND_CS, 0, nand_default_timings);
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 8000e71..cd55192 100644
+index 20b4e1b..a5cb58c 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
 @@ -31,6 +31,7 @@
@@ -182,7 +182,7 @@ index 8000e71..cd55192 100644
  
  #include <linux/regulator/machine.h>
  #include <linux/regulator/fixed.h>
-@@ -1287,6 +1288,7 @@ static void __init omap3_beagle_init(void)
+@@ -1267,6 +1268,7 @@ static void __init omap3_beagle_init(void)
  	#endif
  	}
  
@@ -291,7 +291,7 @@ index 263cb9c..6b22ce3 100644
  	usbhs_init(&usbhs_bdata);
  	board_nand_init(omap3touchbook_nand_partitions,
 diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 5c8e9ce..64fb190 100644
+index 769c1fe..40184cc 100644
 --- a/arch/arm/mach-omap2/board-omap4panda.c
 +++ b/arch/arm/mach-omap2/board-omap4panda.c
 @@ -30,6 +30,7 @@
@@ -302,7 +302,7 @@ index 5c8e9ce..64fb190 100644
  #include <linux/wl12xx.h>
  #include <linux/platform_data/omap-abe-twl6040.h>
  
-@@ -441,6 +442,7 @@ static void __init omap4_panda_init(void)
+@@ -447,6 +448,7 @@ static void __init omap4_panda_init(void)
  	omap_sdrc_init(NULL, NULL);
  	omap4_twl6030_hsmmc_init(mmc);
  	omap4_ehci_init();
@@ -371,5 +371,5 @@ index 26e07ad..dc5498b 100644
  	enable_board_wakeup_source();
  	omap_serial_init();
 -- 
-1.7.10.4
+1.8.1
 

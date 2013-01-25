@@ -1,4 +1,4 @@
-From 6773d11f624925a0e9c0b0389ab6d82deb410cd2 Mon Sep 17 00:00:00 2001
+From e349b900d44893191f35c7b3e22c8c0b61c1c6a0 Mon Sep 17 00:00:00 2001
 From: Kishon Vijay Abraham I <kishon@ti.com>
 Date: Tue, 15 Jan 2013 08:42:55 +0000
 Subject: [PATCH 2/9] drivers: usb: start using the control module driver
@@ -64,10 +64,10 @@ index 80d4148..ee14cb7 100644
 +	reg = <0x4a0ad080 0x58>;
  };
 diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 129d508..103f4ba 100644
+index 793f54a..624a7e8 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2698,13 +2698,6 @@ static struct resource omap44xx_usb_phy_and_pll_addrs[] = {
+@@ -2702,13 +2702,6 @@ static struct resource omap44xx_usb_phy_and_pll_addrs[] = {
  		.end		= 0x4a0ae000,
  		.flags		= IORESOURCE_MEM,
  	},
@@ -81,7 +81,7 @@ index 129d508..103f4ba 100644
  	{ }
  };
  
-@@ -6152,12 +6145,6 @@ static struct omap_hwmod_addr_space omap44xx_usb_otg_hs_addrs[] = {
+@@ -6156,12 +6149,6 @@ static struct omap_hwmod_addr_space omap44xx_usb_otg_hs_addrs[] = {
  		.pa_end		= 0x4a0ab7ff,
  		.flags		= ADDR_TYPE_RT
  	},

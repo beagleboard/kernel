@@ -1,0 +1,46 @@
+From 5882d38fb928ba1802cf1b6f27d434e8b7099181 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 14 Dec 2012 13:10:51 +0200
+Subject: [PATCH 025/103] OF: Introduce device tree node flag helpers.
+
+Helper functions for working with device node flags.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ include/linux/of.h | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 5ebcc5c..2ff35b5 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -114,6 +114,26 @@ static inline void of_node_set_flag(struct device_node *n, unsigned long flag)
+ 	set_bit(flag, &n->_flags);
+ }
+ 
++static inline void of_node_clear_flag(struct device_node *n, unsigned long flag)
++{
++	clear_bit(flag, &n->_flags);
++}
++
++static inline int of_property_check_flag(struct property *p, unsigned long flag)
++{
++	return test_bit(flag, &p->_flags);
++}
++
++static inline void of_property_set_flag(struct property *p, unsigned long flag)
++{
++	set_bit(flag, &p->_flags);
++}
++
++static inline void of_property_clear_flag(struct property *p, unsigned long flag)
++{
++	clear_bit(flag, &p->_flags);
++}
++
+ extern struct device_node *of_find_all_nodes(struct device_node *prev);
+ 
+ /*
+-- 
+1.8.1
+

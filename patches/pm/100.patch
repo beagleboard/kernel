@@ -1,0 +1,29 @@
+From d791d64a2a9b32efb50668962381f4b635ce29c0 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 23 Jan 2013 14:42:42 +0200
+Subject: [PATCH] omap2: Don't enable PM unconditionally
+
+Amazingly enough not everyone needs PM always enabled. Allow it to be
+disabled.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/mach-omap2/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 3fef51e..d1c4a2b 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -11,7 +11,7 @@ config ARCH_OMAP2PLUS_TYPICAL
+ 	select I2C_OMAP
+ 	select MENELAUS if ARCH_OMAP2
+ 	select NEON if ARCH_OMAP3 || ARCH_OMAP4 || SOC_OMAP5
+-	select PM_RUNTIME
++	select PM_RUNTIME if CPU_IDLE
+ 	select REGULATOR
+ 	select SERIAL_OMAP
+ 	select SERIAL_OMAP_CONSOLE
+-- 
+1.8.1
+

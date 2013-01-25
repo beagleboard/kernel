@@ -1,4 +1,4 @@
-From 69bb04620b1127e1b293914d60f8d69fef380056 Mon Sep 17 00:00:00 2001
+From 963da1f62096eaa6f9fd4d5a4528c2ac479a2d9e Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 22 Jan 2013 22:25:06 +0200
 Subject: [PATCH 9/9] MUSB: Hack around to make host port to work.
@@ -30,10 +30,10 @@ index 96bce02..213addb 100644
 +	status = "okay";
 +};
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 872d501..18485bb 100644
+index c3949d1..690b749 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -490,11 +490,15 @@
+@@ -489,11 +489,15 @@
  
  		};
  
@@ -51,7 +51,7 @@ index 872d501..18485bb 100644
  			compatible = "ti,musb-am33xx";
  			reg = <0x47400000 0x1000	/* usbss */
  			       0x47401000 0x800		/* musb instance 0 */
-@@ -509,6 +513,7 @@
+@@ -508,6 +512,7 @@
  			port1-mode = <1>;
  			power = <250>;
  			ti,hwmods = "usb_otg_hs";

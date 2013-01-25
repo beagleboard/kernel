@@ -1,4 +1,4 @@
-From 13539ffe8edbbd9d8da5e735c5b9d078c49acbc2 Mon Sep 17 00:00:00 2001
+From 02c8da5837005910570ce9d05da9b7b627f2cd66 Mon Sep 17 00:00:00 2001
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 Date: Mon, 1 Oct 2012 21:03:04 -0700
 Subject: [PATCH 01/34] ARM: OMAP2xxx: hwmod: Convert SHAM crypto device data
@@ -20,7 +20,7 @@ Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
  7 files changed, 71 insertions(+), 21 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cclock2430_data.c b/arch/arm/mach-omap2/cclock2430_data.c
-index eda079b..a60c16d 100644
+index eb3dab6..ff8b83f 100644
 --- a/arch/arm/mach-omap2/cclock2430_data.c
 +++ b/arch/arm/mach-omap2/cclock2430_data.c
 @@ -1992,6 +1992,7 @@ static struct omap_clk omap2430_clks[] = {
@@ -32,7 +32,7 @@ index eda079b..a60c16d 100644
  	CLK(NULL,	"rng_ick",	&rng_ick,	CK_243X),
  	CLK("omap-aes",	"ick",	&aes_ick,	CK_243X),
 diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index b868f5a..b2cabaa 100644
+index f5c71ac..fc93642 100644
 --- a/arch/arm/mach-omap2/devices.c
 +++ b/arch/arm/mach-omap2/devices.c
 @@ -480,24 +480,6 @@ static void omap_init_rng(void)
