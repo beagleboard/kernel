@@ -1,0 +1,31 @@
+From 6c4de75198f209265ac97a4bce3aeb861910d803 Mon Sep 17 00:00:00 2001
+From: Afzal Mohammed <afzal@ti.com>
+Date: Mon, 31 Dec 2012 01:03:41 +0530
+Subject: [PATCH 40/47] video: da8xx-fb: ensure non-null cfg in pdata
+
+Ensure that platform data contains pointer for lcd_ctrl_config.
+
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ drivers/video/da8xx-fb.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+index 7a32e83..3b146bc 100644
+--- a/drivers/video/da8xx-fb.c
++++ b/drivers/video/da8xx-fb.c
+@@ -1320,6 +1320,11 @@ static int fb_probe(struct platform_device *device)
+ 
+ 	lcd_cfg = (struct lcd_ctrl_config *)fb_pdata->controller_data;
+ 
++	if (!lcd_cfg) {
++		ret = -EINVAL;
++		goto err_pm_runtime_disable;
++	}
++
+ 	da8xx_fb_info = framebuffer_alloc(sizeof(struct da8xx_fb_par),
+ 					&device->dev);
+ 	if (!da8xx_fb_info) {
+-- 
+1.8.1
+

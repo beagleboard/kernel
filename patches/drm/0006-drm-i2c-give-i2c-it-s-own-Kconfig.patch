@@ -1,0 +1,92 @@
+From d8ef588ccb44e876248f7ad9a14132fe90d6ffe5 Mon Sep 17 00:00:00 2001
+From: Rob Clark <robdclark@gmail.com>
+Date: Thu, 24 Jan 2013 15:39:19 -0600
+Subject: [PATCH 06/11] drm/i2c: give i2c it's own Kconfig
+
+Move this out of nouveau directory.  As we start to add more encoder
+slaves used by other drivers, it makes sense to put the Kconfig bits in
+one place.
+
+Signed-off-by: Rob Clark <robdclark@gmail.com>
+---
+ drivers/gpu/drm/Kconfig         |  2 ++
+ drivers/gpu/drm/i2c/Kconfig     | 22 ++++++++++++++++++++++
+ drivers/gpu/drm/nouveau/Kconfig | 23 -----------------------
+ 3 files changed, 24 insertions(+), 23 deletions(-)
+ create mode 100644 drivers/gpu/drm/i2c/Kconfig
+
+diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+index 983201b..99b09e1 100644
+--- a/drivers/gpu/drm/Kconfig
++++ b/drivers/gpu/drm/Kconfig
+@@ -69,6 +69,8 @@ config DRM_KMS_CMA_HELPER
+ 	help
+ 	  Choose this if you need the KMS CMA helper functions
+ 
++source "drivers/gpu/drm/i2c/Kconfig"
++
+ config DRM_TDFX
+ 	tristate "3dfx Banshee/Voodoo3+"
+ 	depends on DRM && PCI
+diff --git a/drivers/gpu/drm/i2c/Kconfig b/drivers/gpu/drm/i2c/Kconfig
+new file mode 100644
+index 0000000..1611836
+--- /dev/null
++++ b/drivers/gpu/drm/i2c/Kconfig
+@@ -0,0 +1,22 @@
++menu "I2C encoder or helper chips"
++     depends on DRM && DRM_KMS_HELPER && I2C
++
++config DRM_I2C_CH7006
++	tristate "Chrontel ch7006 TV encoder"
++	default m if DRM_NOUVEAU
++	help
++	  Support for Chrontel ch7006 and similar TV encoders, found
++	  on some nVidia video cards.
++
++	  This driver is currently only useful if you're also using
++	  the nouveau driver.
++
++config DRM_I2C_SIL164
++	tristate "Silicon Image sil164 TMDS transmitter"
++	default m if DRM_NOUVEAU
++	help
++	  Support for sil164 and similar single-link (or dual-link
++	  when used in pairs) TMDS transmitters, used in some nVidia
++	  video cards.
++
++endmenu
+diff --git a/drivers/gpu/drm/nouveau/Kconfig b/drivers/gpu/drm/nouveau/Kconfig
+index 8a55bee..47ccc1a 100644
+--- a/drivers/gpu/drm/nouveau/Kconfig
++++ b/drivers/gpu/drm/nouveau/Kconfig
+@@ -52,26 +52,3 @@ config DRM_NOUVEAU_BACKLIGHT
+ 	help
+ 	  Say Y here if you want to control the backlight of your display
+ 	  (e.g. a laptop panel).
+-
+-menu "I2C encoder or helper chips"
+-     depends on DRM && DRM_KMS_HELPER && I2C
+-
+-config DRM_I2C_CH7006
+-	tristate "Chrontel ch7006 TV encoder"
+-	default m if DRM_NOUVEAU
+-	help
+-	  Support for Chrontel ch7006 and similar TV encoders, found
+-	  on some nVidia video cards.
+-
+-	  This driver is currently only useful if you're also using
+-	  the nouveau driver.
+-
+-config DRM_I2C_SIL164
+-	tristate "Silicon Image sil164 TMDS transmitter"
+-	default m if DRM_NOUVEAU
+-	help
+-	  Support for sil164 and similar single-link (or dual-link
+-	  when used in pairs) TMDS transmitters, used in some nVidia
+-	  video cards.
+-
+-endmenu
+-- 
+1.8.1
+

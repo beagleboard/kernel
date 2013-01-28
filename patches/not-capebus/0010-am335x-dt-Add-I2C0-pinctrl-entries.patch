@@ -1,0 +1,42 @@
+From d2d69a9b472591630f7f4fc30ec00484b3f6488f Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 28 Dec 2012 11:26:59 +0200
+Subject: [PATCH 10/87] am335x-dt: Add I2C0 pinctrl entries.
+
+Make sure I2C0 gets it's own pinctrl entries and doesn't rely on the
+bootloader.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 312ded8..e43417b 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -65,6 +65,12 @@
+ 				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
+ 			>;
+ 		};
++		i2c0_pins: pinmux_i2c0_pins {
++			pinctrl-single,pins = <
++				0x188 0x70 	/* i2c0_sda, SLEWCTRL_SLOW | INPUT_PULLUP | MODE0 */
++				0x18c 0x70	/* i2c0_scl, SLEWCTRL_SLOW | INPUT_PULLUP | MODE0 */
++			>;
++		};
+ 		i2c2_pins: pinmux_i2c2_pins {
+ 			pinctrl-single,pins = <
+ 				0x178 0x73 	/* uart1_ctsn.i2c2_sda, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
+@@ -133,6 +139,8 @@
+ &i2c0 {
+ 	status = "okay";
+ 	clock-frequency = <400000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c0_pins>;
+ 
+ 	tps: tps@24 {
+ 		reg = <0x24>;
+-- 
+1.8.1
+

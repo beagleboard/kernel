@@ -1,4 +1,4 @@
-From 0651251d87d94df8158d1ce4eafe91ba06abcf11 Mon Sep 17 00:00:00 2001
+From 9a6a80df9a9c0b36ba34c5bb59942ab4bbd58fa3 Mon Sep 17 00:00:00 2001
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 Date: Wed, 19 Dec 2012 21:17:07 -0700
 Subject: [PATCH 14/34] ARM: AM33XX: hwmod: Update and uncomment AES0 module
@@ -15,7 +15,7 @@ Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
  1 file changed, 42 insertions(+), 9 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index cea1fc7..3497086 100644
+index 87c7dee..a180336 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
 @@ -416,7 +416,6 @@ static struct omap_hwmod am33xx_adc_tsc_hwmod = {
@@ -83,7 +83,7 @@ index cea1fc7..3497086 100644
  
  /* sha0 HIB2 (the 'P' (public) device) */
  static struct omap_hwmod_class_sysconfig am33xx_sha0_sysc = {
-@@ -3358,6 +3372,24 @@ static struct omap_hwmod_ocp_if am33xx_l3_main__sha0 = {
+@@ -3456,6 +3470,24 @@ static struct omap_hwmod_ocp_if am33xx_l3_main__sha0 = {
  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
  };
  
@@ -108,7 +108,7 @@ index cea1fc7..3497086 100644
  static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
  	&am33xx_l4_fw__emif_fw,
  	&am33xx_l3_main__emif,
-@@ -3432,6 +3464,7 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+@@ -3536,6 +3568,7 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
  	&am33xx_l4_hs__cpgmac0,
  	&am33xx_cpgmac0__mdio,
  	&am33xx_l3_main__sha0,

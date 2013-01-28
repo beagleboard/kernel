@@ -1,0 +1,145 @@
+From 3655b35dc91254fc6a3da175c3f770700809f462 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 4 Jan 2013 11:51:06 +0200
+Subject: [PATCH 41/87] am33xx DT: Update am33xx.dsi with the new PWM DT
+ bindings
+
+Use the new bindings for the PWM subsystem.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi | 118 +++++++++++++++++++++++++++++++-----------
+ 1 file changed, 89 insertions(+), 29 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 3898f41..0cecd2b 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -407,35 +407,95 @@
+ 			ti,timer-pwm;
+ 		};
+ 
+-               ehrpwm0: ehrpwm@48300200 {
+-                       compatible      = "ti,am33xx-ehrpwm";
+-                       reg = <0x48300200 0x100 0x48300000 0x10>;
+-                       interrupt-parent = <&intc>;
+-                       interrupt = <86 58>;
+-                       ti,hwmods = "ehrpwm0";
+-                       #pwm-cells = <3>;
+-                       status = "disabled";
+-               };
+-
+-               ehrpwm1: ehrpwm@48302200 {
+-                       compatible      = "ti,am33xx-ehrpwm";
+-                       reg = <0x48302200 0x100 0x48302000 0x10>;
+-                       interrupt-parent = <&intc>;
+-                       interrupt = <87 59>;
+-                       ti,hwmods = "ehrpwm1";
+-                       #pwm-cells = <3>;
+-                       status = "disabled";
+-               };
+-
+-               ehrpwm2: ehrpwm@48304200 {
+-                       compatible      = "ti,am33xx-ehrpwm";
+-                       reg = <0x48304200 0x100 0x48304000 0x10>;
+-                       interrupt-parent = <&intc>;
+-                       interrupt = <39 60>;
+-                       ti,hwmods = "ehrpwm2";
+-                       #pwm-cells = <3>;
+-                       status = "disabled";
+-               };
++		epwmss0: epwmss@48300000 {
++			compatible = "ti,am33xx-pwmss";
++			reg = <0x48300000 0x10
++				0x48300100 0x80
++				0x48300180 0x80
++				0x48300200 0x80>;
++			ti,hwmods = "epwmss0";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			status = "disabled";
++			ranges;
++
++			ecap0: ecap@48300100 {
++				compatible = "ti,am33xx-ecap";
++				#pwm-cells = <3>;
++				reg = <0x48300100 0x80>;
++				ti,hwmods = "ecap0";
++				status = "disabled";
++			};
++
++			ehrpwm0: ehrpwm@48300200 {
++				compatible = "ti,am33xx-ehrpwm";
++				#pwm-cells = <3>;
++				reg = <0x48300200 0x80>;
++				ti,hwmods = "ehrpwm0";
++				status = "disabled";
++				tbclkgating;
++			};
++		};
++
++		epwmss1: epwmss@48302000 {
++			compatible = "ti,am33xx-pwmss";
++			reg = <0x48302000 0x10
++				0x48302100 0x80
++				0x48302180 0x80
++				0x48302200 0x80>;
++			ti,hwmods = "epwmss1";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			status = "disabled";
++			ranges;
++
++			ecap1: ecap@48302100 {
++				compatible = "ti,am33xx-ecap";
++				#pwm-cells = <3>;
++				reg = <0x48302100 0x80>;
++				ti,hwmods = "ecap1";
++				status = "disabled";
++			};
++
++			ehrpwm1: ehrpwm@48302200 {
++				compatible = "ti,am33xx-ehrpwm";
++				#pwm-cells = <3>;
++				reg = <0x48302200 0x80>;
++				ti,hwmods = "ehrpwm1";
++				status = "disabled";
++				tbclkgating;
++			};
++		};
++
++		epwmss2: epwmss@48304000 {
++			compatible = "ti,am33xx-pwmss";
++			reg = <0x48304000 0x10
++				0x48304100 0x80
++				0x48304180 0x80
++				0x48304200 0x80>;
++			ti,hwmods = "epwmss2";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			status = "disabled";
++			ranges;
++
++			ecap2: ecap@48304100 {
++				compatible = "ti,am33xx-ecap";
++				#pwm-cells = <3>;
++				reg = <0x48304100 0x80>;
++				ti,hwmods = "ecap2";
++				status = "disabled";
++			};
++
++			ehrpwm2: ehrpwm@48304200 {
++				compatible = "ti,am33xx-ehrpwm";
++				#pwm-cells = <3>;
++				reg = <0x48304200 0x80>;
++				ti,hwmods = "ehrpwm2";
++				status = "disabled";
++				tbclkgating;
++			};
++		};
+ 
+ 		rtc@44e3e000 {
+ 			compatible = "ti,da830-rtc";
+-- 
+1.8.1
+

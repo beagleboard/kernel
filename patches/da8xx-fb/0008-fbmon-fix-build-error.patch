@@ -1,0 +1,37 @@
+From 780b03ebc35aafbc5d4b17054b9e78f64d41404c Mon Sep 17 00:00:00 2001
+From: Afzal Mohammed <afzal@ti.com>
+Date: Wed, 2 Jan 2013 19:16:40 +0530
+Subject: [PATCH 08/47] fbmon: fix build error
+
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ include/linux/fb.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/include/linux/fb.h b/include/linux/fb.h
+index 58b9860..0ce30d1 100644
+--- a/include/linux/fb.h
++++ b/include/linux/fb.h
+@@ -716,9 +716,19 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
+ extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
+ extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+ 
++#if defined(CONFIG_OF_VIDEOMODE) && defined(CONFIG_FB_MODE_HELPERS)
+ extern int of_get_fb_videomode(struct device_node *np,
+ 			       struct fb_videomode *fb,
+ 			       int index);
++#else
++static inline int of_get_fb_videomode(struct device_node *np,
++				      struct fb_videomode *fb,
++				      int index)
++{
++	return -EINVAL;
++}
++#endif
++
+ extern int fb_videomode_from_videomode(const struct videomode *vm,
+ 				       struct fb_videomode *fbmode);
+ 
+-- 
+1.8.1
+

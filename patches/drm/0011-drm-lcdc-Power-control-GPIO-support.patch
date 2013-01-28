@@ -1,0 +1,66 @@
+From 936d39e370e0a9353dff97b586850af02589115e Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 9 Jan 2013 16:31:29 +0200
+Subject: [PATCH 11/11] drm: lcdc: Power control GPIO support
+
+A large number of LCDC designs use a GPIO pin for power control.
+Implement it trivialy.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c | 25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+index c5b592d..91e8ed2 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+@@ -25,6 +25,8 @@
+ 
+ #include "drm_fb_helper.h"
+ 
++#include <linux/of_gpio.h>
++
+ static LIST_HEAD(module_list);
+ 
+ void tilcdc_module_init(struct tilcdc_module *mod, const char *name,
+@@ -158,7 +160,9 @@ static int tilcdc_load(struct drm_device *dev, unsigned long flags)
+ 	struct device_node *node = pdev->dev.of_node;
+ 	struct tilcdc_drm_private *priv;
+ 	struct resource *res;
+-	int ret;
++	enum of_gpio_flags ofgpioflags;
++	unsigned long gpioflags;
++	int gpio, ret;
+ 
+ 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+ 	if (!priv) {
+@@ -198,6 +202,25 @@ static int tilcdc_load(struct drm_device *dev, unsigned long flags)
+ 		goto fail;
+ 	}
+ 
++	/* some devices have a power gpio control */
++	gpio = of_get_named_gpio_flags(pdev->dev.of_node, "ti,power-gpio",
++                       0, &ofgpioflags);
++	if (IS_ERR_VALUE(gpio)) {
++		dev_info(&pdev->dev, "No power control GPIO\n");
++	} else {
++		gpioflags = GPIOF_DIR_OUT;
++		if (ofgpioflags & OF_GPIO_ACTIVE_LOW)
++			gpioflags |= GPIOF_INIT_LOW;
++		else
++			gpioflags |= GPIOF_INIT_HIGH;
++		ret = devm_gpio_request_one(&pdev->dev, gpio,
++		gpioflags, "lcdc_drv:PDN");
++		if (ret != 0) {
++			dev_err(&pdev->dev, "Failed to request power gpio\n");
++			goto fail;
++		}
++	}
++
+ #ifdef CONFIG_CPU_FREQ
+ 	priv->lcd_fck_rate = clk_get_rate(priv->clk);
+ 	priv->freq_transition.notifier_call = cpufreq_transition;
+-- 
+1.8.1
+

@@ -1,0 +1,44 @@
+From 61389eeeb22f0ea78bbd9fd1fb8e3d025dc3b315 Mon Sep 17 00:00:00 2001
+From: "Patil, Rachna" <rachna@ti.com>
+Date: Thu, 24 Jan 2013 03:45:07 +0000
+Subject: [PATCH 3/8] input: touchscreen: ti_tsc: remove unwanted fifo flush
+
+When touchscreen and ADC are used together, this
+unwanted fifo flush leads to loss of ADC data.
+
+Signed-off-by: Patil, Rachna <rachna@ti.com>
+---
+ drivers/input/touchscreen/ti_am335x_tsc.c | 10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+index 0c460f9..064d2b2 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -308,8 +308,6 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+ 	unsigned int x = 0, y = 0;
+ 	unsigned int z1, z2, z;
+ 	unsigned int fsm;
+-	unsigned int fifo1count, fifo0count;
+-	int i;
+ 
+ 	status = titsc_readl(ts_dev, REG_IRQSTATUS);
+ 	if (status & IRQENB_FIFO0THRES) {
+@@ -318,14 +316,6 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+ 		z1 = titsc_readl(ts_dev, REG_FIFO0) & 0xfff;
+ 		z2 = titsc_readl(ts_dev, REG_FIFO1) & 0xfff;
+ 
+-		fifo1count = titsc_readl(ts_dev, REG_FIFO1CNT);
+-		for (i = 0; i < fifo1count; i++)
+-			titsc_readl(ts_dev, REG_FIFO1);
+-
+-		fifo0count = titsc_readl(ts_dev, REG_FIFO0CNT);
+-		for (i = 0; i < fifo0count; i++)
+-			titsc_readl(ts_dev, REG_FIFO0);
+-
+ 		if (ts_dev->pen_down && z1 != 0 && z2 != 0) {
+ 			/*
+ 			 * Calculate pressure using formula
+-- 
+1.8.1
+

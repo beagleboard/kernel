@@ -1,0 +1,29 @@
+From cb00c86b7155db77711ff3a7466aa2d9bc1a696c Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Sat, 26 Jan 2013 22:31:12 -0800
+Subject: [PATCH 87/87] capemgr: Fixed AIN name display in error message
+
+AIN5 was harded in error message instead of using info->vsense_name
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ drivers/misc/cape/beaglebone/cape-bone-geiger.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/misc/cape/beaglebone/cape-bone-geiger.c b/drivers/misc/cape/beaglebone/cape-bone-geiger.c
+index 1e50594..6be383e 100644
+--- a/drivers/misc/cape/beaglebone/cape-bone-geiger.c
++++ b/drivers/misc/cape/beaglebone/cape-bone-geiger.c
+@@ -385,7 +385,8 @@ static int bonegeiger_probe(struct platform_device *pdev)
+ 
+ 	info->vsense_channel = iio_channel_get(NULL, info->vsense_name);
+ 	if (IS_ERR(info->vsense_channel)) {
+-		dev_err(&pdev->dev, "Could not get AIN5 analog input\n");
++		dev_err(&pdev->dev, "Could not get %s analog input\n",
++					info->vsense_name);
+ 		err = PTR_ERR(info->vsense_channel);
+ 		goto err_no_vsense;
+ 	}
+-- 
+1.8.1
+

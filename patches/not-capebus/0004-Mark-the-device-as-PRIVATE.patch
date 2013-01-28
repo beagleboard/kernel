@@ -1,0 +1,56 @@
+From 47c4d7ad0750c6c8ffbc0ad5c0d44af0abaa6978 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 30 Nov 2012 12:12:55 +0200
+Subject: [PATCH 04/87] Mark the device as PRIVATE
+
+Turns out if you enable CONFIG_NET_DMA the ip stack will try
+to grab all the available non-private DMA channels sometime late in the
+boot sequence.
+
+That's bad enough, what is worse is that it brindly iterates over
+any possible channel; if the driver returns ENODEV on any of the
+channels dmaengine will remove the device from the list of available
+dma devices.
+
+Very crazy bug.
+---
+ drivers/dma/edma.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index e57cce3..2e27ec5 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -395,8 +395,11 @@ static int edma_alloc_chan_resources(struct dma_chan *chan)
+ 	a_ch_num = edma_alloc_channel(echan->ch_num, edma_callback,
+ 					chan, EVENTQ_DEFAULT);
+ 
++	/* NOTE: DO NOT RETURN ENODEV */
++	/* It causes dmaengine to remove the device from it's list */
++
+ 	if (a_ch_num < 0) {
+-		ret = -ENODEV;
++		ret = -EINVAL;
+ 		goto err_no_chan;
+ 	}
+ 
+@@ -404,7 +407,7 @@ static int edma_alloc_chan_resources(struct dma_chan *chan)
+ 		dev_err(dev, "failed to allocate requested channel %u:%u\n",
+ 			EDMA_CTLR(echan->ch_num),
+ 			EDMA_CHAN_SLOT(echan->ch_num));
+-		ret = -ENODEV;
++		ret = -EINVAL;
+ 		goto err_wrong_chan;
+ 	}
+ 
+@@ -591,6 +594,7 @@ static int edma_probe(struct platform_device *pdev)
+ 
+ 	dma_cap_zero(ecc->dma_slave.cap_mask);
+ 	dma_cap_set(DMA_SLAVE, ecc->dma_slave.cap_mask);
++	dma_cap_set(DMA_PRIVATE, ecc->dma_slave.cap_mask);
+ 
+ 	edma_dma_init(ecc, &ecc->dma_slave, &pdev->dev);
+ 
+-- 
+1.8.1
+

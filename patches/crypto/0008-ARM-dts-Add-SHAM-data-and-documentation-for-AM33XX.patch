@@ -1,4 +1,4 @@
-From 78878e99dc695fb40e644745bee9773c7d0f8847 Mon Sep 17 00:00:00 2001
+From fe950083b89dee6c02dd7d742dc01bc7318904f1 Mon Sep 17 00:00:00 2001
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 Date: Mon, 17 Dec 2012 16:16:27 -0700
 Subject: [PATCH 08/34] ARM: dts: Add SHAM data and documentation for AM33XX
@@ -73,11 +73,11 @@ index 874997b..5254b64 100644
 +	status = "okay";
 +};
 diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index f61a51d..5276769 100644
+index 1f6b157..b8cb5be 100644
 --- a/arch/arm/boot/dts/am335x-evm.dts
 +++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -270,3 +270,7 @@
- 		reg = <0>;
+@@ -358,3 +358,7 @@
+ 		};
  	};
  };
 +
@@ -85,25 +85,26 @@ index f61a51d..5276769 100644
 +	status = "okay";
 +};
 diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 2546724..4dab44a 100644
+index 7a87803..a7e1659 100644
 --- a/arch/arm/boot/dts/am335x-evmsk.dts
 +++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -255,3 +255,7 @@
- 	status = "okay";
- 	vmmc-supply = <&vmmc_reg>;
+@@ -331,3 +331,7 @@
+ 		};
+ 	};
  };
 +
 +&sham {
 +	status = "okay";
 +};
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index c209cd4..73af47c 100644
+index fc0f34b..60aab3f 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -450,5 +450,17 @@
- 				mac-address = [ 00 00 00 00 00 00 ];
+@@ -549,6 +549,18 @@
+ 				ti,hwmods = "ehrpwm2";
+ 				status = "disabled";
  			};
- 		};
++		}
 +
 +		sham: sham@53100000 {
 +			compatible = "ti,omap4-sham";
@@ -115,7 +116,7 @@ index c209cd4..73af47c 100644
 +			interrupts = <109>;
 +			dmas = <&edma 36>;
 +			dma-names = "rx";
-+		};
+ 		};
  	};
  };
 -- 

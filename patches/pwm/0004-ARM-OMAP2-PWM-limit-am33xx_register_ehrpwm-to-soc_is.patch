@@ -1,0 +1,30 @@
+From 981c0939e3cd595a32bf92b5151be8521c91af6e Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Tue, 27 Nov 2012 10:53:23 -0600
+Subject: [PATCH 4/5] ARM: OMAP2: PWM: limit am33xx_register_ehrpwm to
+ soc_is_am33xx, fixes boot on Beagle/Panda
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/devices.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 8ca1520..f5c71ac 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -745,8 +745,9 @@ static int __init omap2_init_devices(void)
+ 	omap_init_aes();
+ 	omap_init_vout();
+ 	omap_init_ocp2scp();
+-
+-	am33xx_register_ehrpwm();
++	if (soc_is_am33xx()) {
++		am33xx_register_ehrpwm();
++	}
+ 	return 0;
+ }
+ arch_initcall(omap2_init_devices);
+-- 
+1.8.1
+
