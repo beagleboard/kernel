@@ -1,0 +1,35 @@
+From f082e702f9356d48e6a32997a892570bc2fcbbec Mon Sep 17 00:00:00 2001
+From: Afzal Mohammed <afzal@ti.com>
+Date: Fri, 11 Jan 2013 10:43:59 +0530
+Subject: [PATCH 37/48] video: da8xx-fb: make io operations safe
+
+Replace __raw_readl/__raw_writel with readl/writel; this driver is
+reused on ARMv7 (AM335x SoC).
+
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ drivers/video/da8xx-fb.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+index 720604c..35a33ca 100644
+--- a/drivers/video/da8xx-fb.c
++++ b/drivers/video/da8xx-fb.c
+@@ -141,12 +141,12 @@ static int frame_done_flag;
+ 
+ static inline unsigned int lcdc_read(unsigned int addr)
+ {
+-	return (unsigned int)__raw_readl(da8xx_fb_reg_base + (addr));
++	return (unsigned int)readl(da8xx_fb_reg_base + (addr));
+ }
+ 
+ static inline void lcdc_write(unsigned int val, unsigned int addr)
+ {
+-	__raw_writel(val, da8xx_fb_reg_base + (addr));
++	writel(val, da8xx_fb_reg_base + (addr));
+ }
+ 
+ struct da8xx_fb_par {
+-- 
+1.8.1
+

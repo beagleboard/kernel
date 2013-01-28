@@ -1,0 +1,43 @@
+From 2dd269594b88d522b1389b267b6c611f574bb405 Mon Sep 17 00:00:00 2001
+From: Afzal Mohammed <afzal@ti.com>
+Date: Mon, 31 Dec 2012 14:08:54 +0530
+Subject: [PATCH 22/48] ARM: dts: AM33XX: Add am335x-evm lcdc panel timings
+
+Update lcdc node with panel timings (typical) for AM335X-EVM.
+
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ arch/arm/boot/dts/am335x-evm.dts | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index d4dd1af..9415b31 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -283,3 +283,23 @@
+ 		ti,adc-channels = <4>;
+ 	};
+ };
++
++&lcdc {
++	status = "okay";
++
++	display-timings {
++		800x480p62 {
++			clock-frequency = <30000000>;
++			hactive = <800>;
++			vactive = <480>;
++			hfront-porch = <39>;
++			hback-porch = <39>;
++			hsync-len = <47>;
++			vback-porch = <29>;
++			vfront-porch = <13>;
++			vsync-len = <2>;
++			hsync-active = <1>;
++			vsync-active = <1>;
++		};
++	};
++};
+-- 
+1.8.1
+

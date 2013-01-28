@@ -1,66 +1,65 @@
-From 517caa7d6b06301850ac413ed603b239492bd22c Mon Sep 17 00:00:00 2001
+From d155987506da023e1cbad07f43f75e8c1a27f238 Mon Sep 17 00:00:00 2001
 From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Mon, 16 Jul 2012 14:57:33 +0530
-Subject: [PATCH 29/47] ARM: dts: AM33XX: Add PWM backlight DT data to
- am335x-evmsk
+Subject: [PATCH 29/48] ARM: dts: AM33XX: Add PWM backlight DT data to
+ am335x-evm
 
-PWM output from ecap2 uses as backlight source. Also adds low threshold
-value to have a uniform divisions in brightness-levels scales with
-inverse polarity.
+PWM output from ecap0 uses as backlight source. Also adds low threshold
+value to have a uniform divisions in brightness-levels scales.
 
 Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
 Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
 
 Conflicts:
 
-	arch/arm/boot/dts/am335x-evmsk.dts
+	arch/arm/boot/dts/am335x-evm.dts
 ---
- arch/arm/boot/dts/am335x-evmsk.dts | 23 +++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-evm.dts | 23 +++++++++++++++++++++++
  1 file changed, 23 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index f684704..7a87803 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -84,6 +84,12 @@
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index af69e81..1f6b157 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -86,6 +86,12 @@
  				0xec 0x00	/* lcd_ac_bias_en.lcd_ac_bias_en, OUTPUT | MODE0 */
  			>;
  		};
 +
-+		ecap2_pins: backlight_pins {
++		ecap0_pins: backlight_pins {
 +			pinctrl-single,pins = <
-+				0x19c 0x4	/* mcasp0_ahclkr.ecap2_in_pwm2_out MODE4 */
++				0x164 0x0	/* eCAP0_in_PWM0_out.eCAP0_in_PWM0_out MODE0 */
 +			>;
 +		};
  	};
  
  	ocp {
-@@ -127,6 +133,16 @@
- 				st,max-limit-z = <750>;
+@@ -144,6 +150,16 @@
+ 				reg = <0x48>;
  			};
  		};
 +
-+		epwmss2: epwmss@48304000 {
++		epwmss0: epwmss@48300000 {
 +			status = "okay";
 +
-+			ecap2: ecap@48304100 {
++			ecap0: ecap@48300100 {
 +				status = "okay";
 +				pinctrl-names = "default";
-+				pinctrl-0 = <&ecap2_pins>;
++				pinctrl-0 = <&ecap0_pins>;
 +			};
 +		};
  	};
  
  	vbat: fixedregulator@0 {
-@@ -203,6 +219,13 @@
- 			gpios = <&gpio3 5 0>;
+@@ -200,6 +216,13 @@
+ 			gpio-key,wakeup;
  		};
  	};
 +
 +	backlight {
 +		compatible = "pwm-backlight";
-+		pwms = <&ecap2 0 50000 1>;
-+		brightness-levels = <0 58 61 66 75 90 125 170 255>;
++		pwms = <&ecap0 0 50000 0>;
++		brightness-levels = <0 51 53 56 62 75 101 152 255>;
 +		default-brightness-level = <8>;
 +	};
  };

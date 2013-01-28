@@ -1,0 +1,45 @@
+From 7351f1fe7c6eb367a8fdf01cff3b68f2f38f0c22 Mon Sep 17 00:00:00 2001
+From: Afzal Mohammed <afzal@ti.com>
+Date: Tue, 4 Dec 2012 18:40:45 +0530
+Subject: [PATCH 19/48] video: da8xx-fb: report correct pixclock
+
+Update "var" pixclock with the value that is configurable in hardware.
+This lets user know the actual pixclock.
+
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ drivers/video/da8xx-fb.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+index a5341d0..0f73c76 100644
+--- a/drivers/video/da8xx-fb.c
++++ b/drivers/video/da8xx-fb.c
+@@ -686,6 +686,15 @@ static inline unsigned da8xx_fb_calc_clk_divider(struct da8xx_fb_par *par,
+ 	return par->lcd_fck_rate / (PICOS2KHZ(pixclock) * 1000);
+ }
+ 
++static inline unsigned da8xx_fb_round_clk(struct da8xx_fb_par *par,
++					  unsigned pixclock)
++{
++	unsigned div;
++
++	div = da8xx_fb_calc_clk_divider(par, pixclock);
++	return KHZ2PICOS(par->lcd_fck_rate / (1000 * div));
++}
++
+ static inline void da8xx_fb_config_clk_divider(unsigned div)
+ {
+ 	/* Configure the LCD clock divisor. */
+@@ -962,6 +971,8 @@ static int fb_check_var(struct fb_var_screeninfo *var,
+ 	if (var->yres + var->yoffset > var->yres_virtual)
+ 		var->yoffset = var->yres_virtual - var->yres;
+ 
++	var->pixclock = da8xx_fb_round_clk(par, var->pixclock);
++
+ 	return err;
+ }
+ 
+-- 
+1.8.1
+

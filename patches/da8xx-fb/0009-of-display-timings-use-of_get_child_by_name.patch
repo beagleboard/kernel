@@ -1,0 +1,26 @@
+From 11cd5e3e496177fb09eddcae54dab4a39d44772e Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Mon, 28 Jan 2013 16:36:45 +0100
+Subject: [PATCH 09/48] of display timings: use of_get_child_by_name
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ drivers/video/of_display_timing.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/video/of_display_timing.c b/drivers/video/of_display_timing.c
+index 13ecd98..c0ea594 100644
+--- a/drivers/video/of_display_timing.c
++++ b/drivers/video/of_display_timing.c
+@@ -125,7 +125,7 @@ struct display_timings *of_get_display_timings(struct device_node *np)
+ 		return NULL;
+ 	}
+ 
+-	timings_np = of_find_node_by_name(np, "display-timings");
++	timings_np = of_get_child_by_name(np, "display-timings");
+ 	if (!timings_np) {
+ 		pr_err("%s: could not find display-timings node\n",
+ 			of_node_full_name(np));
+-- 
+1.8.1
+

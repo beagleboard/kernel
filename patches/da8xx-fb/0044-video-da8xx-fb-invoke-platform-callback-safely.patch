@@ -1,0 +1,31 @@
+From 4e20eb0315e4b8d69641a7b3afbb759cbac1dc9b Mon Sep 17 00:00:00 2001
+From: Afzal Mohammed <afzal@ti.com>
+Date: Mon, 31 Dec 2012 00:02:32 +0530
+Subject: [PATCH 44/48] video: da8xx-fb: invoke platform callback safely
+
+Ensure that platform data is present before checking whether platform
+callback is present (the one used to control backlight). So far this
+was not an issue as driver was purely non-DT triggered, but now DT
+support has been added.
+
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ drivers/video/da8xx-fb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+index 08ee8eb..0beed20 100644
+--- a/drivers/video/da8xx-fb.c
++++ b/drivers/video/da8xx-fb.c
+@@ -1347,7 +1347,7 @@ static int fb_probe(struct platform_device *device)
+ 	par->dev = &device->dev;
+ 	par->lcdc_clk = fb_clk;
+ 	par->lcd_fck_rate = clk_get_rate(fb_clk);
+-	if (fb_pdata->panel_power_ctrl) {
++	if (fb_pdata && fb_pdata->panel_power_ctrl) {
+ 		par->panel_power_ctrl = fb_pdata->panel_power_ctrl;
+ 		par->panel_power_ctrl(1);
+ 	}
+-- 
+1.8.1
+

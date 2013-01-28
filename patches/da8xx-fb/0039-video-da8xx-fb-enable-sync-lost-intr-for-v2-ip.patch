@@ -1,0 +1,29 @@
+From 10861df353622dd492d0b423beb19640e7f2054a Mon Sep 17 00:00:00 2001
+From: Afzal Mohammed <afzal@ti.com>
+Date: Mon, 17 Dec 2012 19:37:46 +0530
+Subject: [PATCH 39/48] video: da8xx-fb: enable sync lost intr for v2 ip
+
+interrupt handler is checking for sync lost interrupt, but it was not
+enabled, enable it.
+
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ drivers/video/da8xx-fb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+index 7f92f37..ca69e01 100644
+--- a/drivers/video/da8xx-fb.c
++++ b/drivers/video/da8xx-fb.c
+@@ -318,7 +318,7 @@ static void lcd_blit(int load_mode, struct da8xx_fb_par *par)
+ 			reg_int = lcdc_read(LCD_INT_ENABLE_SET_REG) |
+ 				LCD_V2_END_OF_FRAME0_INT_ENA |
+ 				LCD_V2_END_OF_FRAME1_INT_ENA |
+-				LCD_FRAME_DONE;
++				LCD_FRAME_DONE | LCD_SYNC_LOST;
+ 			lcdc_write(reg_int, LCD_INT_ENABLE_SET_REG);
+ 		}
+ 		reg_dma |= LCD_DUAL_FRAME_BUFFER_ENABLE;
+-- 
+1.8.1
+
