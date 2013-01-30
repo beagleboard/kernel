@@ -1,4 +1,4 @@
-From fe950083b89dee6c02dd7d742dc01bc7318904f1 Mon Sep 17 00:00:00 2001
+From c87ad13a6994c4036b84d6c8e321072bbf98a66e Mon Sep 17 00:00:00 2001
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 Date: Mon, 17 Dec 2012 16:16:27 -0700
 Subject: [PATCH 08/34] ARM: dts: Add SHAM data and documentation for AM33XX
@@ -97,14 +97,13 @@ index 7a87803..a7e1659 100644
 +	status = "okay";
 +};
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index fc0f34b..60aab3f 100644
+index 0087b13..fa94f6e 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -549,6 +549,18 @@
- 				ti,hwmods = "ehrpwm2";
- 				status = "disabled";
+@@ -550,5 +550,17 @@
+ 				//status = "disabled";
  			};
-+		}
+ 		};
 +
 +		sham: sham@53100000 {
 +			compatible = "ti,omap4-sham";
@@ -116,7 +115,7 @@ index fc0f34b..60aab3f 100644
 +			interrupts = <109>;
 +			dmas = <&edma 36>;
 +			dma-names = "rx";
- 		};
++		};
  	};
  };
 -- 
