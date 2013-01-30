@@ -1,0 +1,40 @@
+From afc8d8f6253d877922754d8f55e472a641bf8c1a Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Tue, 29 Jan 2013 15:06:00 +0100
+Subject: [PATCH 90/90] beaglebone: uncomment eMMC override
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 96bce02..23a8b01 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -137,14 +137,14 @@
+ 			};
+ 
+ 			/* Beaglebone black has it soldered on */
+-			// slot@4 {
+-			// 	ti,cape-override;
+-			// 	compatible = "ti,beaglebone-black";
+-			// 	board-name = "Bone-LT-eMMC-2G";
+-			// 	version = "00A0";
+-			// 	manufacturer = "Texas Instruments";
+-			// 	part-number = "BB-BONE-EMMC-2G";
+-			// };
++			 slot@4 {
++			 	ti,cape-override;
++			 	compatible = "ti,beaglebone-black";
++			 	board-name = "Bone-LT-eMMC-2G";
++			 	version = "00A0";
++			 	manufacturer = "Texas Instruments";
++			 	part-number = "BB-BONE-EMMC-2G";
++			 };
+ 
+ 			/* geiger cape version A0 without an EEPROM */
+ 			slot@5 {
+-- 
+1.8.1
+
