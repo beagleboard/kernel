@@ -1,0 +1,43 @@
+From 98b6e5a6ab4f5a264d38fa97eeb8cc9eab554eec Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 30 Jan 2013 15:13:19 +0200
+Subject: [PATCH 14/14] am335x-tscadc: Do not use find_node_by_name, use
+ get_child_by_name
+
+of_find_node_by_name doesn't work with overlays, and it's not
+doing what the caller expected to do anyway. find_node_by_name
+works by a coincidence anyway.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/mfd/ti_am335x_tscadc.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+index 899534d..e28a31d 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -85,10 +85,10 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 		if (pdata->adc_init)
+ 			adc_channels = pdata->adc_init->adc_channels;
+ 	} else {
+-		node = of_find_node_by_name(pdev->dev.of_node, "tsc");
++		node = of_get_child_by_name(pdev->dev.of_node, "tsc");
+ 		of_property_read_u32(node, "ti,wires", &tsc_wires);
+ 
+-		node = of_find_node_by_name(pdev->dev.of_node, "adc");
++		node = of_get_child_by_name(pdev->dev.of_node, "adc");
+ 		of_property_read_u32(node, "ti,adc-channels", &adc_channels);
+ 	}
+ 
+@@ -284,6 +284,7 @@ static const struct dev_pm_ops tscadc_pm_ops = {
+ 
+ static const struct of_device_id ti_tscadc_dt_ids[] = {
+ 	{ .compatible = "ti,ti-tscadc", },
++	{ }
+ };
+ 
+ static struct platform_driver ti_tscadc_driver = {
+-- 
+1.8.1
+
