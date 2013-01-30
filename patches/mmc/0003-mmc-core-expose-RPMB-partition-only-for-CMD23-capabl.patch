@@ -1,0 +1,37 @@
+From 0842044a2b1e4a549373db678b9c01444ae8b1fa Mon Sep 17 00:00:00 2001
+From: Balaji T K <balajitk@ti.com>
+Date: Fri, 25 Jan 2013 17:00:30 +0530
+Subject: [PATCH 3/3] mmc: core: expose RPMB partition only for CMD23 capable
+ hosts
+
+SET_BLOCK_COUNT CMD23 is needed for all access to RPMB partition.  If
+block count is not set by CMD23, all subsequent read/write commands fail
+as per eMMC specification. So, If the host does not support CMD23, do not
+expose RPMB partition.
+
+Accessing RPMB partition can cause hang / huge delay for hosts which do
+not support CMD23.
+
+Signed-off-by: Balaji T K <balajitk@ti.com>
+Reported-and-Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Chris Ball <cjb@laptop.org>
+---
+ drivers/mmc/core/mmc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/mmc/core/mmc.c b/drivers/mmc/core/mmc.c
+index e6e3911..089e8ea 100644
+--- a/drivers/mmc/core/mmc.c
++++ b/drivers/mmc/core/mmc.c
+@@ -496,7 +496,7 @@ static int mmc_read_ext_csd(struct mmc_card *card, u8 *ext_csd)
+ 		 * RPMB regions are defined in multiples of 128K.
+ 		 */
+ 		card->ext_csd.raw_rpmb_size_mult = ext_csd[EXT_CSD_RPMB_MULT];
+-		if (ext_csd[EXT_CSD_RPMB_MULT]) {
++		if (ext_csd[EXT_CSD_RPMB_MULT] && mmc_host_cmd23(card->host)) {
+ 			mmc_part_add(card, ext_csd[EXT_CSD_RPMB_MULT] << 17,
+ 				EXT_CSD_PART_CONFIG_ACC_RPMB,
+ 				"rpmb", 0, false,
+-- 
+1.8.1
+
