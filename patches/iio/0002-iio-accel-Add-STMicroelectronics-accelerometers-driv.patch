@@ -1,6 +1,6 @@
-From fd2cb386b95ba0d1d852aafb523483dee20c6c86 Mon Sep 17 00:00:00 2001
-From: Denis Ciocca <denis.ciocca@st.com>
-Date: Tue, 8 Jan 2013 12:05:18 +0100
+From d1579f48c5c95eb57ed6ca5151687605896b9c32 Mon Sep 17 00:00:00 2001
+From: Denis Ciocca <denis.ciocca@gmail.com>
+Date: Fri, 25 Jan 2013 23:44:00 +0000
 Subject: [PATCH 2/6] iio:accel: Add STMicroelectronics accelerometers driver
 
 This patch adds a generic accelerometer driver for STMicroelectronics
@@ -9,15 +9,17 @@ LSM303DLH, LSM303DLHC, LIS3DH, LSM330D, LSM330DL, LSM330DLC,
 LIS331DLH, LSM303DL, LSM303DLM, LSM330.
 
 Signed-off-by: Denis Ciocca <denis.ciocca@st.com>
+Reviewed-by: Lars-Peter Clausen <lars@metafoo.de>
+Signed-off-by: Jonathan Cameron <jic23@kernel.org>
 ---
- drivers/iio/accel/Kconfig           |  31 ++
- drivers/iio/accel/Makefile          |   7 +
- drivers/iio/accel/st_accel.h        |  52 ++++
- drivers/iio/accel/st_accel_buffer.c | 114 +++++++
- drivers/iio/accel/st_accel_core.c   | 578 ++++++++++++++++++++++++++++++++++++
- drivers/iio/accel/st_accel_i2c.c    |  87 ++++++
- drivers/iio/accel/st_accel_spi.c    |  86 ++++++
- 7 files changed, 955 insertions(+)
+ drivers/iio/accel/Kconfig           |  38 +++
+ drivers/iio/accel/Makefile          |   9 +
+ drivers/iio/accel/st_accel.h        |  47 ++++
+ drivers/iio/accel/st_accel_buffer.c | 114 +++++++++
+ drivers/iio/accel/st_accel_core.c   | 495 ++++++++++++++++++++++++++++++++++++
+ drivers/iio/accel/st_accel_i2c.c    |  87 +++++++
+ drivers/iio/accel/st_accel_spi.c    |  86 +++++++
+ 7 files changed, 876 insertions(+)
  create mode 100644 drivers/iio/accel/st_accel.h
  create mode 100644 drivers/iio/accel/st_accel_buffer.c
  create mode 100644 drivers/iio/accel/st_accel_core.c
@@ -25,13 +27,20 @@ Signed-off-by: Denis Ciocca <denis.ciocca@st.com>
  create mode 100644 drivers/iio/accel/st_accel_spi.c
 
 diff --git a/drivers/iio/accel/Kconfig b/drivers/iio/accel/Kconfig
-index 05e996f..6e3cc4c 100644
+index 05e996f..bb59496 100644
 --- a/drivers/iio/accel/Kconfig
 +++ b/drivers/iio/accel/Kconfig
-@@ -14,4 +14,35 @@ config HID_SENSOR_ACCEL_3D
+@@ -14,4 +14,42 @@ config HID_SENSOR_ACCEL_3D
  	  Say yes here to build support for the HID SENSOR
  	  accelerometers 3D.
  
++config KXSD9
++	tristate "Kionix KXSD9 Accelerometer Driver"
++	depends on SPI
++	help
++	  Say yes here to build support for the Kionix KXSD9 accelerometer.
++	  Currently this only supports the device via an SPI interface.
++
 +config IIO_ST_ACCEL_3AXIS
 +	tristate "STMicroelectronics accelerometers 3-Axis Driver"
 +	depends on (I2C || SPI_MASTER) && SYSFS
@@ -50,7 +59,7 @@ index 05e996f..6e3cc4c 100644
 +	  - st_accel (core functions for the driver [it is mandatory]);
 +	  - st_accel_i2c (necessary for the I2C devices [optional*]);
 +	  - st_accel_spi (necessary for the SPI devices [optional*]);
-+	  
++
 +	  (*) one of these is necessary to do something.
 +
 +config IIO_ST_ACCEL_I2C_3AXIS
@@ -65,10 +74,10 @@ index 05e996f..6e3cc4c 100644
 +
  endmenu
 diff --git a/drivers/iio/accel/Makefile b/drivers/iio/accel/Makefile
-index 5bc6855..4fad4bc 100644
+index 5bc6855..87d8fa2 100644
 --- a/drivers/iio/accel/Makefile
 +++ b/drivers/iio/accel/Makefile
-@@ -3,3 +3,10 @@
+@@ -3,3 +3,12 @@
  #
  
  obj-$(CONFIG_HID_SENSOR_ACCEL_3D) += hid-sensor-accel-3d.o
@@ -79,12 +88,14 @@ index 5bc6855..4fad4bc 100644
 +
 +obj-$(CONFIG_IIO_ST_ACCEL_I2C_3AXIS) += st_accel_i2c.o
 +obj-$(CONFIG_IIO_ST_ACCEL_SPI_3AXIS) += st_accel_spi.o
++
++obj-$(CONFIG_KXSD9)	+= kxsd9.o
 diff --git a/drivers/iio/accel/st_accel.h b/drivers/iio/accel/st_accel.h
 new file mode 100644
-index 0000000..847b1ea
+index 0000000..37949b9
 --- /dev/null
 +++ b/drivers/iio/accel/st_accel.h
-@@ -0,0 +1,52 @@
+@@ -0,0 +1,47 @@
 +/*
 + * STMicroelectronics accelerometers driver
 + *
@@ -101,7 +112,6 @@ index 0000000..847b1ea
 +#include <linux/types.h>
 +#include <linux/iio/common/st_sensors.h>
 +
-+#define LSM303DLH_ACCEL_DEV_NAME	"lsm303dlh_accel"
 +#define LSM303DLHC_ACCEL_DEV_NAME	"lsm303dlhc_accel"
 +#define LIS3DH_ACCEL_DEV_NAME		"lis3dh"
 +#define LSM330D_ACCEL_DEV_NAME		"lsm330d_accel"
@@ -109,19 +119,18 @@ index 0000000..847b1ea
 +#define LSM330DLC_ACCEL_DEV_NAME	"lsm330dlc_accel"
 +#define LIS331DLH_ACCEL_DEV_NAME	"lis331dlh"
 +#define LSM303DL_ACCEL_DEV_NAME		"lsm303dl_accel"
++#define LSM303DLH_ACCEL_DEV_NAME	"lsm303dlh_accel"
 +#define LSM303DLM_ACCEL_DEV_NAME	"lsm303dlm_accel"
 +#define LSM330_ACCEL_DEV_NAME		"lsm330_accel"
 +
 +int st_accel_common_probe(struct iio_dev *indio_dev);
 +void st_accel_common_remove(struct iio_dev *indio_dev);
-+int st_accel_set_dataready_irq(struct iio_dev *indio_dev, bool state);
-+int st_accel_set_axis_enable(struct iio_dev *indio_dev, u8 active_bit);
-+int st_accel_set_enable(struct iio_dev *indio_dev, bool enable);
 +
 +#ifdef CONFIG_IIO_BUFFER
 +int st_accel_allocate_ring(struct iio_dev *indio_dev);
 +void st_accel_deallocate_ring(struct iio_dev *indio_dev);
 +int st_accel_trig_set_state(struct iio_trigger *trig, bool state);
++#define ST_ACCEL_TRIGGER_SET_STATE (&st_accel_trig_set_state)
 +#else /* CONFIG_IIO_BUFFER */
 +static inline int st_accel_allocate_ring(struct iio_dev *indio_dev)
 +{
@@ -130,16 +139,13 @@ index 0000000..847b1ea
 +static inline void st_accel_deallocate_ring(struct iio_dev *indio_dev)
 +{
 +}
-+static inline int st_accel_trig_set_state(struct iio_trigger *trig, bool state)
-+{
-+	return 0;
-+}
++#define ST_ACCEL_TRIGGER_SET_STATE NULL
 +#endif /* CONFIG_IIO_BUFFER */
 +
 +#endif /* ST_ACCEL_H */
 diff --git a/drivers/iio/accel/st_accel_buffer.c b/drivers/iio/accel/st_accel_buffer.c
 new file mode 100644
-index 0000000..1329355
+index 0000000..6bd82c7
 --- /dev/null
 +++ b/drivers/iio/accel/st_accel_buffer.c
 @@ -0,0 +1,114 @@
@@ -171,14 +177,15 @@ index 0000000..1329355
 +int st_accel_trig_set_state(struct iio_trigger *trig, bool state)
 +{
 +	struct iio_dev *indio_dev = trig->private_data;
-+	return st_accel_set_dataready_irq(indio_dev, state);
++
++	return st_sensors_set_dataready_irq(indio_dev, state);
 +}
 +
 +static int st_accel_buffer_preenable(struct iio_dev *indio_dev)
 +{
 +	int err;
 +
-+	err = st_accel_set_enable(indio_dev, true);
++	err = st_sensors_set_enable(indio_dev, true);
 +	if (err < 0)
 +		goto st_accel_set_enable_error;
 +
@@ -199,7 +206,7 @@ index 0000000..1329355
 +		goto allocate_memory_error;
 +	}
 +
-+	err = st_accel_set_axis_enable(indio_dev,
++	err = st_sensors_set_axis_enable(indio_dev,
 +					(u8)indio_dev->active_scan_mask[0]);
 +	if (err < 0)
 +		goto st_accel_buffer_postenable_error;
@@ -225,12 +232,11 @@ index 0000000..1329355
 +	if (err < 0)
 +		goto st_accel_buffer_predisable_error;
 +
-+	err = st_accel_set_axis_enable(indio_dev,
-+						ST_SENSORS_ENABLE_ALL_CHANNELS);
++	err = st_sensors_set_axis_enable(indio_dev, ST_SENSORS_ENABLE_ALL_AXIS);
 +	if (err < 0)
 +		goto st_accel_buffer_predisable_error;
 +
-+	err = st_accel_set_enable(indio_dev, false);
++	err = st_sensors_set_enable(indio_dev, false);
 +
 +st_accel_buffer_predisable_error:
 +	kfree(adata->buffer_data);
@@ -259,10 +265,10 @@ index 0000000..1329355
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/iio/accel/st_accel_core.c b/drivers/iio/accel/st_accel_core.c
 new file mode 100644
-index 0000000..580e3a7
+index 0000000..a235de2
 --- /dev/null
 +++ b/drivers/iio/accel/st_accel_core.c
-@@ -0,0 +1,578 @@
+@@ -0,0 +1,495 @@
 +/*
 + * STMicroelectronics accelerometers driver
 + *
@@ -483,9 +489,9 @@ index 0000000..580e3a7
 +	{
 +		.wai = ST_ACCEL_2_WAI_EXP,
 +		.sensors_supported = {
-+			[0] = LSM303DLH_ACCEL_DEV_NAME,
-+			[1] = LIS331DLH_ACCEL_DEV_NAME,
-+			[2] = LSM303DL_ACCEL_DEV_NAME,
++			[0] = LIS331DLH_ACCEL_DEV_NAME,
++			[1] = LSM303DL_ACCEL_DEV_NAME,
++			[2] = LSM303DLH_ACCEL_DEV_NAME,
 +			[3] = LSM303DLM_ACCEL_DEV_NAME,
 +		},
 +		.ch = (struct iio_chan_spec *)st_accel_12bit_channels,
@@ -629,8 +635,7 @@ index 0000000..580e3a7
 +
 +	switch (mask) {
 +	case IIO_CHAN_INFO_RAW:
-+		err = st_sensors_read_info_raw(indio_dev, ch, val,
-+					&st_accel_sensors[adata->index]);
++		err = st_sensors_read_info_raw(indio_dev, ch, val);
 +		if (err < 0)
 +			goto read_error;
 +
@@ -651,12 +656,10 @@ index 0000000..580e3a7
 +		struct iio_chan_spec const *chan, int val, int val2, long mask)
 +{
 +	int err;
-+	struct st_sensor_data *adata = iio_priv(indio_dev);
 +
 +	switch (mask) {
 +	case IIO_CHAN_INFO_SCALE:
-+		err = st_sensors_set_fullscale_by_gain(indio_dev,
-+					&st_accel_sensors[adata->index], val2);
++		err = st_sensors_set_fullscale_by_gain(indio_dev, val2);
 +		break;
 +	default:
 +		return -EINVAL;
@@ -665,88 +668,9 @@ index 0000000..580e3a7
 +	return err;
 +}
 +
-+int st_accel_set_dataready_irq(struct iio_dev *indio_dev, bool state)
-+{
-+	struct st_sensor_data *adata = iio_priv(indio_dev);
-+
-+	return st_sensors_set_dataready_irq(indio_dev,
-+					&st_accel_sensors[adata->index], state);
-+}
-+
-+int st_accel_set_axis_enable(struct iio_dev *indio_dev, u8 active_bit)
-+{
-+	struct st_sensor_data *adata = iio_priv(indio_dev);
-+
-+	return st_sensors_set_axis_enable(indio_dev,
-+				&st_accel_sensors[adata->index], active_bit);
-+}
-+
-+int st_accel_set_enable(struct iio_dev *indio_dev, bool enable)
-+{
-+	struct st_sensor_data *adata = iio_priv(indio_dev);
-+
-+	return st_sensors_set_enable(indio_dev,
-+				&st_accel_sensors[adata->index], enable);
-+}
-+
-+static ssize_t st_accel_sysfs_set_sampling_frequency(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
-+{
-+	int err;
-+	unsigned int odr;
-+	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-+	struct st_sensor_data *adata = iio_priv(indio_dev);
-+
-+	err = kstrtoint(buf, 10, &odr);
-+	if (err < 0)
-+		goto conversion_error;
-+
-+	mutex_lock(&indio_dev->mlock);
-+	err = st_sensors_set_odr(indio_dev,
-+					&st_accel_sensors[adata->index], odr);
-+	mutex_unlock(&indio_dev->mlock);
-+
-+conversion_error:
-+	return err < 0 ? err : size;
-+}
-+
-+static ssize_t st_accel_sysfs_get_sampling_frequency(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-+	struct st_sensor_data *adata = iio_priv(indio_dev);
-+
-+	return sprintf(buf, "%d\n", adata->odr);
-+}
-+
-+static ssize_t st_accel_sysfs_scale_avail(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-+	struct st_sensor_data *adata = iio_priv(indio_dev);
-+
-+	return st_sensors_get_scale_avl(indio_dev,
-+			st_accel_sensors[adata->index].fs.fs_avl, buf);
-+}
-+
-+static ssize_t st_accel_sysfs_sampling_frequency_avail(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-+	struct st_sensor_data *adata = iio_priv(indio_dev);
-+
-+	return st_sensors_get_sampling_frequency_avl(indio_dev,
-+			st_accel_sensors[adata->index].odr.odr_avl, buf);
-+}
-+
-+static IIO_DEV_ATTR_SAMP_FREQ_AVAIL(st_accel_sysfs_sampling_frequency_avail);
-+
-+static IIO_DEVICE_ATTR(in_accel_scale_available, S_IRUGO,
-+					st_accel_sysfs_scale_avail, NULL , 0);
-+
-+static IIO_DEV_ATTR_SAMP_FREQ(S_IWUSR | S_IRUGO,
-+			st_accel_sysfs_get_sampling_frequency,
-+					st_accel_sysfs_set_sampling_frequency);
++static ST_SENSOR_DEV_ATTR_SAMP_FREQ();
++static ST_SENSORS_DEV_ATTR_SAMP_FREQ_AVAIL();
++static ST_SENSORS_DEV_ATTR_SCALE_AVAIL(in_accel_scale_available);
 +
 +static struct attribute *st_accel_attributes[] = {
 +	&iio_dev_attr_sampling_frequency_available.dev_attr.attr,
@@ -768,7 +692,7 @@ index 0000000..580e3a7
 +
 +static const struct iio_trigger_ops st_accel_trigger_ops = {
 +	.owner = THIS_MODULE,
-+	.set_trigger_state = &st_accel_trig_set_state,
++	.set_trigger_state = ST_ACCEL_TRIGGER_SET_STATE,
 +};
 +
 +int st_accel_common_probe(struct iio_dev *indio_dev)
@@ -784,16 +708,15 @@ index 0000000..580e3a7
 +	if (err < 0)
 +		goto st_accel_common_probe_error;
 +
-+	adata->multiread_bit = st_accel_sensors[adata->index].multi_read_bit;
-+	indio_dev->channels = st_accel_sensors[adata->index].ch;
++	adata->multiread_bit = adata->sensor->multi_read_bit;
++	indio_dev->channels = adata->sensor->ch;
 +	indio_dev->num_channels = ST_SENSORS_NUMBER_ALL_CHANNELS;
 +
 +	adata->current_fullscale = (struct st_sensor_fullscale_avl *)
-+				&st_accel_sensors[adata->index].fs.fs_avl[0];
-+	adata->odr = st_accel_sensors[adata->index].odr.odr_avl[0].hz;
++						&adata->sensor->fs.fs_avl[0];
++	adata->odr = adata->sensor->odr.odr_avl[0].hz;
 +
-+	err = st_sensors_init_sensor(indio_dev,
-+					&st_accel_sensors[adata->index]);
++	err = st_sensors_init_sensor(indio_dev);
 +	if (err < 0)
 +		goto st_accel_common_probe_error;
 +

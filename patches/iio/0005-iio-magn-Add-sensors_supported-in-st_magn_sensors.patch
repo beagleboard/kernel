@@ -1,0 +1,38 @@
+From 2b53b4653414ffc2d480e35bc59af112a36ca2c1 Mon Sep 17 00:00:00 2001
+From: Denis Ciocca <denis.ciocca@st.com>
+Date: Tue, 29 Jan 2013 12:27:30 +0100
+Subject: [PATCH 5/6] iio:magn: Add sensors_supported in st_magn_sensors
+
+This patch add sensors_supported struct to st_magn_sensors. Without this the probe can't match the WhoAmI and sensor name.
+---
+ drivers/iio/magnetometer/st_magn_core.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/iio/magnetometer/st_magn_core.c b/drivers/iio/magnetometer/st_magn_core.c
+index 1dfcb41..a69fbe1 100644
+--- a/drivers/iio/magnetometer/st_magn_core.c
++++ b/drivers/iio/magnetometer/st_magn_core.c
+@@ -136,6 +136,10 @@ static const struct iio_chan_spec st_magn_2_16bit_channels[] = {
+ static const struct st_sensors st_magn_sensors[] = {
+ 	{
+ 		.wai = ST_MAGN_1_WAI_EXP,
++		.sensors_supported = {
++			[0] = LSM303DLHC_MAGN_DEV_NAME,
++			[1] = LSM303DLM_MAGN_DEV_NAME,
++		},
+ 		.ch = (struct iio_chan_spec *)st_magn_16bit_channels,
+ 		.odr = {
+ 			.addr = ST_MAGN_1_ODR_ADDR,
+@@ -210,6 +214,9 @@ static const struct st_sensors st_magn_sensors[] = {
+ 	},
+ 	{
+ 		.wai = ST_MAGN_2_WAI_EXP,
++		.sensors_supported = {
++			[0] = LIS3MDL_MAGN_DEV_NAME,
++		},
+ 		.ch = (struct iio_chan_spec *)st_magn_2_16bit_channels,
+ 		.odr = {
+ 			.addr = ST_MAGN_2_ODR_ADDR,
+-- 
+1.8.1
+

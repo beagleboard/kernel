@@ -1,6 +1,6 @@
-From f9cb7a413e215376d92c78f72c8f4e4f10c20873 Mon Sep 17 00:00:00 2001
-From: Denis Ciocca <denis.ciocca@st.com>
-Date: Tue, 8 Jan 2013 12:06:09 +0100
+From 4e99f1a8683406aaf01ea2e4a3b2e3cad4d4728a Mon Sep 17 00:00:00 2001
+From: Denis Ciocca <denis.ciocca@gmail.com>
+Date: Fri, 25 Jan 2013 23:44:00 +0000
 Subject: [PATCH 3/6] iio:gyro: Add STMicroelectronics gyroscopes driver
 
 This patch adds a generic gyroscope driver for STMicroelectronics
@@ -8,15 +8,17 @@ gyroscopes, currently it supports:
 L3G4200D, LSM330DL, L3GD20, L3GD20H, LSM330DLC, L3G4IS, LSM330.
 
 Signed-off-by: Denis Ciocca <denis.ciocca@st.com>
+Reviewed-by: Lars-Peter Clausen <lars@metafoo.de>
+Signed-off-by: Jonathan Cameron <jic23@kernel.org>
 ---
- drivers/iio/gyro/Kconfig          |  30 +++
+ drivers/iio/gyro/Kconfig          |  30 ++++
  drivers/iio/gyro/Makefile         |   7 +
- drivers/iio/gyro/st_gyro.h        |  50 +++++
- drivers/iio/gyro/st_gyro_buffer.c | 114 ++++++++++
- drivers/iio/gyro/st_gyro_core.c   | 445 ++++++++++++++++++++++++++++++++++++++
- drivers/iio/gyro/st_gyro_i2c.c    |  85 ++++++++
- drivers/iio/gyro/st_gyro_spi.c    |  84 +++++++
- 7 files changed, 815 insertions(+)
+ drivers/iio/gyro/st_gyro.h        |  45 +++++
+ drivers/iio/gyro/st_gyro_buffer.c | 114 ++++++++++++
+ drivers/iio/gyro/st_gyro_core.c   | 363 ++++++++++++++++++++++++++++++++++++++
+ drivers/iio/gyro/st_gyro_i2c.c    |  85 +++++++++
+ drivers/iio/gyro/st_gyro_spi.c    |  84 +++++++++
+ 7 files changed, 728 insertions(+)
  create mode 100644 drivers/iio/gyro/st_gyro.h
  create mode 100644 drivers/iio/gyro/st_gyro_buffer.c
  create mode 100644 drivers/iio/gyro/st_gyro_core.c
@@ -24,7 +26,7 @@ Signed-off-by: Denis Ciocca <denis.ciocca@st.com>
  create mode 100644 drivers/iio/gyro/st_gyro_spi.c
 
 diff --git a/drivers/iio/gyro/Kconfig b/drivers/iio/gyro/Kconfig
-index 96b68f6..8c3fc12 100644
+index 96b68f6..e852a202 100644
 --- a/drivers/iio/gyro/Kconfig
 +++ b/drivers/iio/gyro/Kconfig
 @@ -23,4 +23,34 @@ config HID_SENSOR_GYRO_3D
@@ -48,7 +50,7 @@ index 96b68f6..8c3fc12 100644
 +	  - st_gyro (core functions for the driver [it is mandatory]);
 +	  - st_gyro_i2c (necessary for the I2C devices [optional*]);
 +	  - st_gyro_spi (necessary for the SPI devices [optional*]);
-+	  
++
 +	  (*) one of these is necessary to do something.
 +
 +config IIO_ST_GYRO_I2C_3AXIS
@@ -79,10 +81,10 @@ index 702a058..b932f17 100644
 +obj-$(CONFIG_IIO_ST_GYRO_SPI_3AXIS) += st_gyro_spi.o
 diff --git a/drivers/iio/gyro/st_gyro.h b/drivers/iio/gyro/st_gyro.h
 new file mode 100644
-index 0000000..3bc0e22
+index 0000000..3ad9907
 --- /dev/null
 +++ b/drivers/iio/gyro/st_gyro.h
-@@ -0,0 +1,50 @@
+@@ -0,0 +1,45 @@
 +/*
 + * STMicroelectronics gyroscopes driver
 + *
@@ -110,14 +112,12 @@ index 0000000..3bc0e22
 +
 +int st_gyro_common_probe(struct iio_dev *indio_dev);
 +void st_gyro_common_remove(struct iio_dev *indio_dev);
-+int st_gyro_set_dataready_irq(struct iio_dev *indio_dev, bool state);
-+int st_gyro_set_axis_enable(struct iio_dev *indio_dev, u8 active_bit);
-+int st_gyro_set_enable(struct iio_dev *indio_dev, bool enable);
 +
 +#ifdef CONFIG_IIO_BUFFER
 +int st_gyro_allocate_ring(struct iio_dev *indio_dev);
 +void st_gyro_deallocate_ring(struct iio_dev *indio_dev);
 +int st_gyro_trig_set_state(struct iio_trigger *trig, bool state);
++#define ST_GYRO_TRIGGER_SET_STATE (&st_gyro_trig_set_state)
 +#else /* CONFIG_IIO_BUFFER */
 +static inline int st_gyro_allocate_ring(struct iio_dev *indio_dev)
 +{
@@ -126,16 +126,13 @@ index 0000000..3bc0e22
 +static inline void st_gyro_deallocate_ring(struct iio_dev *indio_dev)
 +{
 +}
-+static inline int st_gyro_trig_set_state(struct iio_trigger *trig, bool state)
-+{
-+	return 0;
-+}
++#define ST_GYRO_TRIGGER_SET_STATE NULL
 +#endif /* CONFIG_IIO_BUFFER */
 +
 +#endif /* ST_GYRO_H */
 diff --git a/drivers/iio/gyro/st_gyro_buffer.c b/drivers/iio/gyro/st_gyro_buffer.c
 new file mode 100644
-index 0000000..ee82756
+index 0000000..da4d122
 --- /dev/null
 +++ b/drivers/iio/gyro/st_gyro_buffer.c
 @@ -0,0 +1,114 @@
@@ -167,14 +164,15 @@ index 0000000..ee82756
 +int st_gyro_trig_set_state(struct iio_trigger *trig, bool state)
 +{
 +	struct iio_dev *indio_dev = trig->private_data;
-+	return st_gyro_set_dataready_irq(indio_dev, state);
++
++	return st_sensors_set_dataready_irq(indio_dev, state);
 +}
 +
 +static int st_gyro_buffer_preenable(struct iio_dev *indio_dev)
 +{
 +	int err;
 +
-+	err = st_gyro_set_enable(indio_dev, true);
++	err = st_sensors_set_enable(indio_dev, true);
 +	if (err < 0)
 +		goto st_gyro_set_enable_error;
 +
@@ -195,7 +193,7 @@ index 0000000..ee82756
 +		goto allocate_memory_error;
 +	}
 +
-+	err = st_gyro_set_axis_enable(indio_dev,
++	err = st_sensors_set_axis_enable(indio_dev,
 +					(u8)indio_dev->active_scan_mask[0]);
 +	if (err < 0)
 +		goto st_gyro_buffer_postenable_error;
@@ -221,12 +219,11 @@ index 0000000..ee82756
 +	if (err < 0)
 +		goto st_gyro_buffer_predisable_error;
 +
-+	err = st_gyro_set_axis_enable(indio_dev,
-+						ST_SENSORS_ENABLE_ALL_CHANNELS);
++	err = st_sensors_set_axis_enable(indio_dev, ST_SENSORS_ENABLE_ALL_AXIS);
 +	if (err < 0)
 +		goto st_gyro_buffer_predisable_error;
 +
-+	err = st_gyro_set_enable(indio_dev, false);
++	err = st_sensors_set_enable(indio_dev, false);
 +
 +st_gyro_buffer_predisable_error:
 +	kfree(gdata->buffer_data);
@@ -255,10 +252,10 @@ index 0000000..ee82756
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/iio/gyro/st_gyro_core.c b/drivers/iio/gyro/st_gyro_core.c
 new file mode 100644
-index 0000000..9e5ff6f
+index 0000000..0a09998
 --- /dev/null
 +++ b/drivers/iio/gyro/st_gyro_core.c
-@@ -0,0 +1,445 @@
+@@ -0,0 +1,363 @@
 +/*
 + * STMicroelectronics gyroscopes driver
 + *
@@ -493,8 +490,7 @@ index 0000000..9e5ff6f
 +
 +	switch (mask) {
 +	case IIO_CHAN_INFO_RAW:
-+		err = st_sensors_read_info_raw(indio_dev, ch, val,
-+						&st_gyro_sensors[gdata->index]);
++		err = st_sensors_read_info_raw(indio_dev, ch, val);
 +		if (err < 0)
 +			goto read_error;
 +
@@ -515,12 +511,10 @@ index 0000000..9e5ff6f
 +		struct iio_chan_spec const *chan, int val, int val2, long mask)
 +{
 +	int err;
-+	struct st_sensor_data *gdata = iio_priv(indio_dev);
 +
 +	switch (mask) {
 +	case IIO_CHAN_INFO_SCALE:
-+		err = st_sensors_set_fullscale_by_gain(indio_dev,
-+					&st_gyro_sensors[gdata->index], val2);
++		err = st_sensors_set_fullscale_by_gain(indio_dev, val2);
 +		break;
 +	default:
 +		err = -EINVAL;
@@ -529,88 +523,9 @@ index 0000000..9e5ff6f
 +	return err;
 +}
 +
-+int st_gyro_set_dataready_irq(struct iio_dev *indio_dev, bool state)
-+{
-+	struct st_sensor_data *gdata = iio_priv(indio_dev);
-+
-+	return st_sensors_set_dataready_irq(indio_dev,
-+					&st_gyro_sensors[gdata->index], state);
-+}
-+
-+int st_gyro_set_axis_enable(struct iio_dev *indio_dev, u8 active_bit)
-+{
-+	struct st_sensor_data *gdata = iio_priv(indio_dev);
-+
-+	return st_sensors_set_axis_enable(indio_dev,
-+				&st_gyro_sensors[gdata->index], active_bit);
-+}
-+
-+int st_gyro_set_enable(struct iio_dev *indio_dev, bool enable)
-+{
-+	struct st_sensor_data *gdata = iio_priv(indio_dev);
-+
-+	return st_sensors_set_enable(indio_dev,
-+				&st_gyro_sensors[gdata->index], enable);
-+}
-+
-+static ssize_t st_gyro_sysfs_set_sampling_frequency(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
-+{
-+	int err;
-+	unsigned int odr;
-+	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-+	struct st_sensor_data *gdata = iio_priv(indio_dev);
-+
-+	err = kstrtoint(buf, 10, &odr);
-+	if (err < 0)
-+		goto conversion_error;
-+
-+	mutex_lock(&indio_dev->mlock);
-+	err = st_sensors_set_odr(indio_dev,
-+					&st_gyro_sensors[gdata->index], odr);
-+	mutex_unlock(&indio_dev->mlock);
-+
-+conversion_error:
-+	return err < 0 ? err : size;
-+}
-+
-+static ssize_t st_gyro_sysfs_get_sampling_frequency(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-+	struct st_sensor_data *gdata = iio_priv(indio_dev);
-+
-+	return sprintf(buf, "%d\n", gdata->odr);
-+}
-+
-+static ssize_t st_gyro_sysfs_scale_avail(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-+	struct st_sensor_data *gdata = iio_priv(indio_dev);
-+
-+	return st_sensors_get_scale_avl(indio_dev,
-+				st_gyro_sensors[gdata->index].fs.fs_avl, buf);
-+}
-+
-+static ssize_t st_gyro_sysfs_sampling_frequency_avail(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-+	struct st_sensor_data *gdata = iio_priv(indio_dev);
-+
-+	return st_sensors_get_sampling_frequency_avl(indio_dev,
-+			st_gyro_sensors[gdata->index].odr.odr_avl, buf);
-+}
-+
-+static IIO_DEV_ATTR_SAMP_FREQ_AVAIL(st_gyro_sysfs_sampling_frequency_avail);
-+
-+static IIO_DEVICE_ATTR(in_anglvel_scale_available, S_IRUGO,
-+					st_gyro_sysfs_scale_avail, NULL , 0);
-+
-+static IIO_DEV_ATTR_SAMP_FREQ(S_IWUSR | S_IRUGO,
-+			st_gyro_sysfs_get_sampling_frequency,
-+					st_gyro_sysfs_set_sampling_frequency);
++static ST_SENSOR_DEV_ATTR_SAMP_FREQ();
++static ST_SENSORS_DEV_ATTR_SAMP_FREQ_AVAIL();
++static ST_SENSORS_DEV_ATTR_SCALE_AVAIL(in_anglvel_scale_available);
 +
 +static struct attribute *st_gyro_attributes[] = {
 +	&iio_dev_attr_sampling_frequency_available.dev_attr.attr,
@@ -632,7 +547,7 @@ index 0000000..9e5ff6f
 +
 +static const struct iio_trigger_ops st_gyro_trigger_ops = {
 +	.owner = THIS_MODULE,
-+	.set_trigger_state = &st_gyro_trig_set_state,
++	.set_trigger_state = ST_GYRO_TRIGGER_SET_STATE,
 +};
 +
 +int st_gyro_common_probe(struct iio_dev *indio_dev)
@@ -648,15 +563,15 @@ index 0000000..9e5ff6f
 +	if (err < 0)
 +		goto st_gyro_common_probe_error;
 +
-+	gdata->multiread_bit = st_gyro_sensors[gdata->index].multi_read_bit;
-+	indio_dev->channels = st_gyro_sensors[gdata->index].ch;
++	gdata->multiread_bit = gdata->sensor->multi_read_bit;
++	indio_dev->channels = gdata->sensor->ch;
 +	indio_dev->num_channels = ST_SENSORS_NUMBER_ALL_CHANNELS;
 +
 +	gdata->current_fullscale = (struct st_sensor_fullscale_avl *)
-+				&st_gyro_sensors[gdata->index].fs.fs_avl[0];
-+	gdata->odr = st_gyro_sensors[gdata->index].odr.odr_avl[0].hz;
++						&gdata->sensor->fs.fs_avl[0];
++	gdata->odr = gdata->sensor->odr.odr_avl[0].hz;
 +
-+	err = st_sensors_init_sensor(indio_dev, &st_gyro_sensors[gdata->index]);
++	err = st_sensors_init_sensor(indio_dev);
 +	if (err < 0)
 +		goto st_gyro_common_probe_error;
 +

@@ -1,6 +1,6 @@
-From 418e56bfb6971f6dd9ef682956eef44a945a5777 Mon Sep 17 00:00:00 2001
-From: Denis Ciocca <denis.ciocca@st.com>
-Date: Tue, 8 Jan 2013 12:06:40 +0100
+From fc3ae52991e14590783354addc373947601f56d7 Mon Sep 17 00:00:00 2001
+From: Denis Ciocca <denis.ciocca@gmail.com>
+Date: Fri, 25 Jan 2013 23:44:00 +0000
 Subject: [PATCH 4/6] iio:magnetometer: Add STMicroelectronics magnetometers
  driver
 
@@ -9,15 +9,16 @@ magnetometers, currently it supports:
 LSM303DLHC, LSM303DLM, LIS3MDL.
 
 Signed-off-by: Denis Ciocca <denis.ciocca@st.com>
+Signed-off-by: Jonathan Cameron <jic23@kernel.org>
 ---
- drivers/iio/magnetometer/Kconfig          |  30 ++
+ drivers/iio/magnetometer/Kconfig          |  30 +++
  drivers/iio/magnetometer/Makefile         |   7 +
- drivers/iio/magnetometer/st_magn.h        |  47 +++
- drivers/iio/magnetometer/st_magn_buffer.c |  98 +++++++
- drivers/iio/magnetometer/st_magn_core.c   | 465 ++++++++++++++++++++++++++++++
+ drivers/iio/magnetometer/st_magn.h        |  45 ++++
+ drivers/iio/magnetometer/st_magn_buffer.c |  98 ++++++++
+ drivers/iio/magnetometer/st_magn_core.c   | 394 ++++++++++++++++++++++++++++++
  drivers/iio/magnetometer/st_magn_i2c.c    |  81 ++++++
- drivers/iio/magnetometer/st_magn_spi.c    |  80 +++++
- 7 files changed, 808 insertions(+)
+ drivers/iio/magnetometer/st_magn_spi.c    |  80 ++++++
+ 7 files changed, 735 insertions(+)
  create mode 100644 drivers/iio/magnetometer/st_magn.h
  create mode 100644 drivers/iio/magnetometer/st_magn_buffer.c
  create mode 100644 drivers/iio/magnetometer/st_magn_core.c
@@ -25,7 +26,7 @@ Signed-off-by: Denis Ciocca <denis.ciocca@st.com>
  create mode 100644 drivers/iio/magnetometer/st_magn_spi.c
 
 diff --git a/drivers/iio/magnetometer/Kconfig b/drivers/iio/magnetometer/Kconfig
-index ff11d68..0ea5075 100644
+index ff11d68..cd29be5 100644
 --- a/drivers/iio/magnetometer/Kconfig
 +++ b/drivers/iio/magnetometer/Kconfig
 @@ -14,4 +14,34 @@ config HID_SENSOR_MAGNETOMETER_3D
@@ -49,7 +50,7 @@ index ff11d68..0ea5075 100644
 +	  - st_magn (core functions for the driver [it is mandatory]);
 +	  - st_magn_i2c (necessary for the I2C devices [optional*]);
 +	  - st_magn_spi (necessary for the SPI devices [optional*]);
-+	  
++
 +	  (*) one of these is necessary to do something.
 +
 +config IIO_ST_MAGN_I2C_3AXIS
@@ -80,10 +81,10 @@ index 60dc4f2..e786728 100644
 +obj-$(CONFIG_IIO_ST_MAGN_SPI_3AXIS) += st_magn_spi.o
 diff --git a/drivers/iio/magnetometer/st_magn.h b/drivers/iio/magnetometer/st_magn.h
 new file mode 100644
-index 0000000..a576aac
+index 0000000..7e81d00
 --- /dev/null
 +++ b/drivers/iio/magnetometer/st_magn.h
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,45 @@
 +/*
 + * STMicroelectronics magnetometers driver
 + *
@@ -106,8 +107,6 @@ index 0000000..a576aac
 +
 +int st_magn_common_probe(struct iio_dev *indio_dev);
 +void st_magn_common_remove(struct iio_dev *indio_dev);
-+int st_magn_set_axis_enable(struct iio_dev *indio_dev, u8 active_bit);
-+int st_magn_set_enable(struct iio_dev *indio_dev, bool enable);
 +
 +#ifdef CONFIG_IIO_BUFFER
 +int st_magn_allocate_ring(struct iio_dev *indio_dev);
@@ -133,7 +132,7 @@ index 0000000..a576aac
 +#endif /* ST_MAGN_H */
 diff --git a/drivers/iio/magnetometer/st_magn_buffer.c b/drivers/iio/magnetometer/st_magn_buffer.c
 new file mode 100644
-index 0000000..fddcdb2
+index 0000000..708857b
 --- /dev/null
 +++ b/drivers/iio/magnetometer/st_magn_buffer.c
 @@ -0,0 +1,98 @@
@@ -166,7 +165,7 @@ index 0000000..fddcdb2
 +{
 +	int err;
 +
-+	err = st_magn_set_enable(indio_dev, true);
++	err = st_sensors_set_enable(indio_dev, true);
 +	if (err < 0)
 +		goto st_magn_set_enable_error;
 +
@@ -208,7 +207,7 @@ index 0000000..fddcdb2
 +	if (err < 0)
 +		goto st_magn_buffer_predisable_error;
 +
-+	err = st_magn_set_enable(indio_dev, false);
++	err = st_sensors_set_enable(indio_dev, false);
 +
 +st_magn_buffer_predisable_error:
 +	kfree(mdata->buffer_data);
@@ -237,10 +236,10 @@ index 0000000..fddcdb2
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/iio/magnetometer/st_magn_core.c b/drivers/iio/magnetometer/st_magn_core.c
 new file mode 100644
-index 0000000..24c046a
+index 0000000..1dfcb41
 --- /dev/null
 +++ b/drivers/iio/magnetometer/st_magn_core.c
-@@ -0,0 +1,465 @@
+@@ -0,0 +1,394 @@
 +/*
 + * STMicroelectronics magnetometers driver
 + *
@@ -509,18 +508,18 @@ index 0000000..24c046a
 +
 +	switch (mask) {
 +	case IIO_CHAN_INFO_RAW:
-+		err = st_sensors_read_info_raw(indio_dev, ch, val,
-+						&st_magn_sensors[mdata->index]);
++		err = st_sensors_read_info_raw(indio_dev, ch, val);
 +		if (err < 0)
 +			goto read_error;
 +
 +		return IIO_VAL_INT;
 +	case IIO_CHAN_INFO_SCALE:
 +		*val = 0;
-+		if (ch->scan_index != ST_SENSORS_SCAN_Z)
-+			*val2 = mdata->current_fullscale->gain;
-+		else
++		if ((ch->scan_index == ST_SENSORS_SCAN_Z) &&
++					(mdata->current_fullscale->gain2 != 0))
 +			*val2 = mdata->current_fullscale->gain2;
++		else
++			*val2 = mdata->current_fullscale->gain;
 +		return IIO_VAL_INT_PLUS_MICRO;
 +	default:
 +		return -EINVAL;
@@ -534,12 +533,10 @@ index 0000000..24c046a
 +		struct iio_chan_spec const *chan, int val, int val2, long mask)
 +{
 +	int err;
-+	struct st_sensor_data *mdata = iio_priv(indio_dev);
 +
 +	switch (mask) {
 +	case IIO_CHAN_INFO_SCALE:
-+		err = st_sensors_set_fullscale_by_gain(indio_dev,
-+					&st_magn_sensors[mdata->index], val2);
++		err = st_sensors_set_fullscale_by_gain(indio_dev, val2);
 +		break;
 +	default:
 +		err = -EINVAL;
@@ -548,77 +545,9 @@ index 0000000..24c046a
 +	return err;
 +}
 +
-+int st_magn_set_axis_enable(struct iio_dev *indio_dev, u8 active_bit)
-+{
-+	return 0;
-+}
-+
-+int st_magn_set_enable(struct iio_dev *indio_dev, bool enable)
-+{
-+	struct st_sensor_data *mdata = iio_priv(indio_dev);
-+
-+	return st_sensors_set_enable(indio_dev,
-+				&st_magn_sensors[mdata->index], enable);
-+}
-+
-+static ssize_t st_magn_sysfs_set_sampling_frequency(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
-+{
-+	int err;
-+	unsigned int odr;
-+	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-+	struct st_sensor_data *mdata = iio_priv(indio_dev);
-+
-+	err = kstrtoint(buf, 10, &odr);
-+	if (err < 0)
-+		goto conversion_error;
-+
-+	mutex_lock(&indio_dev->mlock);
-+	err = st_sensors_set_odr(indio_dev,
-+					&st_magn_sensors[mdata->index], odr);
-+	mutex_unlock(&indio_dev->mlock);
-+
-+conversion_error:
-+	return err < 0 ? err : size;
-+}
-+
-+static ssize_t st_magn_sysfs_get_sampling_frequency(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-+	struct st_sensor_data *mdata = iio_priv(indio_dev);
-+
-+	return sprintf(buf, "%d\n", mdata->odr);
-+}
-+
-+static ssize_t st_magn_sysfs_scale_available(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-+	struct st_sensor_data *mdata = iio_priv(indio_dev);
-+
-+	return st_sensors_get_scale_avl(indio_dev,
-+				st_magn_sensors[mdata->index].fs.fs_avl, buf);
-+}
-+
-+static ssize_t st_magn_sysfs_sampling_frequency_available(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-+	struct st_sensor_data *mdata = iio_priv(indio_dev);
-+
-+	return st_sensors_get_sampling_frequency_avl(indio_dev,
-+				st_magn_sensors[mdata->index].odr.odr_avl, buf);
-+}
-+
-+static IIO_DEV_ATTR_SAMP_FREQ_AVAIL(st_magn_sysfs_sampling_frequency_available);
-+
-+static IIO_DEVICE_ATTR(in_magn_scale_available, S_IRUGO,
-+				st_magn_sysfs_scale_available, NULL , 0);
-+
-+static IIO_DEV_ATTR_SAMP_FREQ(S_IWUSR | S_IRUGO,
-+			st_magn_sysfs_get_sampling_frequency,
-+					st_magn_sysfs_set_sampling_frequency);
++static ST_SENSOR_DEV_ATTR_SAMP_FREQ();
++static ST_SENSORS_DEV_ATTR_SAMP_FREQ_AVAIL();
++static ST_SENSORS_DEV_ATTR_SCALE_AVAIL(in_magn_scale_available);
 +
 +static struct attribute *st_magn_attributes[] = {
 +	&iio_dev_attr_sampling_frequency_available.dev_attr.attr,
@@ -651,16 +580,15 @@ index 0000000..24c046a
 +	if (err < 0)
 +		goto st_magn_common_probe_error;
 +
-+	mdata->multiread_bit = st_magn_sensors[mdata->index].multi_read_bit;
-+	indio_dev->channels = st_magn_sensors[mdata->index].ch;
++	mdata->multiread_bit = mdata->sensor->multi_read_bit;
++	indio_dev->channels = mdata->sensor->ch;
 +	indio_dev->num_channels = ST_SENSORS_NUMBER_ALL_CHANNELS;
 +
 +	mdata->current_fullscale = (struct st_sensor_fullscale_avl *)
-+				&st_magn_sensors[mdata->index].fs.fs_avl[0];
-+	mdata->odr = st_magn_sensors[mdata->index].odr.odr_avl[0].hz;
++						&mdata->sensor->fs.fs_avl[0];
++	mdata->odr = mdata->sensor->odr.odr_avl[0].hz;
 +
-+	err = st_sensors_init_sensor(indio_dev,
-+					&st_magn_sensors[mdata->index]);
++	err = st_sensors_init_sensor(indio_dev);
 +	if (err < 0)
 +		goto st_magn_common_probe_error;
 +

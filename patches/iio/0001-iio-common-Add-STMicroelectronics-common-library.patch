@@ -1,25 +1,27 @@
-From 599ff3a3ccf824862779fac6dd1efcb8d7f1ad03 Mon Sep 17 00:00:00 2001
-From: Denis Ciocca <denis.ciocca@st.com>
-Date: Tue, 8 Jan 2013 12:03:33 +0100
+From 9047be3fa05c5d4e19ea5fe98bb51c0e87558516 Mon Sep 17 00:00:00 2001
+From: Denis Ciocca <denis.ciocca@gmail.com>
+Date: Fri, 25 Jan 2013 23:44:00 +0000
 Subject: [PATCH 1/6] iio:common: Add STMicroelectronics common library
 
 This patch add a generic library for STMicroelectronics 3-axis sensors.
 
 Signed-off-by: Denis Ciocca <denis.ciocca@st.com>
+Reviewed-by: Lars-Peter Clausen <lars@metafoo.de>
+Signed-off-by: Jonathan Cameron <jic23@kernel.org>
 ---
  drivers/iio/common/Kconfig                         |   1 +
  drivers/iio/common/Makefile                        |   1 +
  drivers/iio/common/st_sensors/Kconfig              |  14 +
  drivers/iio/common/st_sensors/Makefile             |  10 +
- drivers/iio/common/st_sensors/st_sensors_buffer.c  | 115 ++++++
- drivers/iio/common/st_sensors/st_sensors_core.c    | 409 +++++++++++++++++++++
+ drivers/iio/common/st_sensors/st_sensors_buffer.c  | 116 ++++++
+ drivers/iio/common/st_sensors/st_sensors_core.c    | 460 +++++++++++++++++++++
  drivers/iio/common/st_sensors/st_sensors_i2c.c     |  81 ++++
- drivers/iio/common/st_sensors/st_sensors_spi.c     | 128 +++++++
+ drivers/iio/common/st_sensors/st_sensors_spi.c     | 128 ++++++
  drivers/iio/common/st_sensors/st_sensors_trigger.c |  77 ++++
- include/linux/iio/common/st_sensors.h              | 260 +++++++++++++
+ include/linux/iio/common/st_sensors.h              | 274 ++++++++++++
  include/linux/iio/common/st_sensors_i2c.h          |  20 +
  include/linux/iio/common/st_sensors_spi.h          |  20 +
- 12 files changed, 1136 insertions(+)
+ 12 files changed, 1202 insertions(+)
  create mode 100644 drivers/iio/common/st_sensors/Kconfig
  create mode 100644 drivers/iio/common/st_sensors/Makefile
  create mode 100644 drivers/iio/common/st_sensors/st_sensors_buffer.c
@@ -87,10 +89,10 @@ index 0000000..9f3e24f
 +st_sensors-$(CONFIG_IIO_TRIGGER) += st_sensors_trigger.o
 diff --git a/drivers/iio/common/st_sensors/st_sensors_buffer.c b/drivers/iio/common/st_sensors/st_sensors_buffer.c
 new file mode 100644
-index 0000000..f4a5adc
+index 0000000..09b236d
 --- /dev/null
 +++ b/drivers/iio/common/st_sensors/st_sensors_buffer.c
-@@ -0,0 +1,115 @@
+@@ -0,0 +1,116 @@
 +/*
 + * STMicroelectronics sensors buffer library driver
 + *
@@ -113,6 +115,7 @@ index 0000000..f4a5adc
 +#include <linux/irqreturn.h>
 +
 +#include <linux/iio/common/st_sensors.h>
++
 +
 +int st_sensors_get_buffer_element(struct iio_dev *indio_dev, u8 *buf)
 +{
@@ -208,10 +211,10 @@ index 0000000..f4a5adc
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/iio/common/st_sensors/st_sensors_core.c b/drivers/iio/common/st_sensors/st_sensors_core.c
 new file mode 100644
-index 0000000..559d3f9
+index 0000000..fba6d68
 --- /dev/null
 +++ b/drivers/iio/common/st_sensors/st_sensors_core.c
-@@ -0,0 +1,409 @@
+@@ -0,0 +1,460 @@
 +/*
 + * STMicroelectronics sensors core library driver
 + *
@@ -252,18 +255,18 @@ index 0000000..559d3f9
 +	return err;
 +}
 +
-+int st_sensors_get_sampling_frequency_avl(struct iio_dev *indio_dev,
-+			const struct st_sensor_odr_avl *odr_avl, char *buf)
++int st_sensors_get_sampling_frequency_avl(struct iio_dev *indio_dev, char *buf)
 +{
 +	int i, len = 0;
++	struct st_sensor_data *sdata = iio_priv(indio_dev);
 +
 +	mutex_lock(&indio_dev->mlock);
 +	for (i = 0; i < ST_SENSORS_ODR_LIST_MAX; i++) {
-+		if (odr_avl[i].hz == 0)
++		if (sdata->sensor->odr.odr_avl[i].hz == 0)
 +			break;
 +
-+		len += scnprintf(buf + len, PAGE_SIZE - len,
-+							"%d ", odr_avl[i].hz);
++		len += scnprintf(buf + len, PAGE_SIZE - len, "%d ",
++					sdata->sensor->odr.odr_avl[i].hz);
 +	}
 +	mutex_unlock(&indio_dev->mlock);
 +	buf[len - 1] = '\n';
@@ -272,18 +275,18 @@ index 0000000..559d3f9
 +}
 +EXPORT_SYMBOL(st_sensors_get_sampling_frequency_avl);
 +
-+int st_sensors_get_scale_avl(struct iio_dev *indio_dev,
-+		const struct st_sensor_fullscale_avl *fullscale_avl, char *buf)
++int st_sensors_get_scale_avl(struct iio_dev *indio_dev, char *buf)
 +{
 +	int i, len = 0;
++	struct st_sensor_data *sdata = iio_priv(indio_dev);
 +
 +	mutex_lock(&indio_dev->mlock);
 +	for (i = 0; i < ST_SENSORS_FULLSCALE_AVL_MAX; i++) {
-+		if (fullscale_avl[i].num == 0)
++		if (sdata->sensor->fs.fs_avl[i].num == 0)
 +			break;
 +
-+		len += scnprintf(buf + len, PAGE_SIZE - len,
-+					"0.%06u ", fullscale_avl[i].gain);
++		len += scnprintf(buf + len, PAGE_SIZE - len, "0.%06u ",
++					sdata->sensor->fs.fs_avl[i].gain);
 +	}
 +	mutex_unlock(&indio_dev->mlock);
 +	buf[len - 1] = '\n';
@@ -292,7 +295,7 @@ index 0000000..559d3f9
 +}
 +EXPORT_SYMBOL(st_sensors_get_scale_avl);
 +
-+static int st_sensors_match_odr(const struct st_sensors *sensor,
++static int st_sensors_match_odr(struct st_sensors *sensor,
 +			unsigned int odr, struct st_sensor_odr_avl *odr_out)
 +{
 +	int i, ret = -EINVAL;
@@ -313,29 +316,30 @@ index 0000000..559d3f9
 +	return ret;
 +}
 +
-+int st_sensors_set_odr(struct iio_dev *indio_dev,
-+			const struct st_sensors *sensor, unsigned int odr)
++int st_sensors_set_odr(struct iio_dev *indio_dev, unsigned int odr)
 +{
 +	int err;
-+	struct st_sensor_data *sdata = iio_priv(indio_dev);
 +	struct st_sensor_odr_avl odr_out;
++	struct st_sensor_data *sdata = iio_priv(indio_dev);
 +
-+	err = st_sensors_match_odr(sensor, odr, &odr_out);
++	err = st_sensors_match_odr(sdata->sensor, odr, &odr_out);
 +	if (err < 0)
 +		goto st_sensors_match_odr_error;
 +
-+	if ((sensor->odr.addr == sensor->pw.addr) &&
-+				(sensor->odr.mask == sensor->pw.mask)) {
++	if ((sdata->sensor->odr.addr == sdata->sensor->pw.addr) &&
++			(sdata->sensor->odr.mask == sdata->sensor->pw.mask)) {
 +		if (sdata->enabled == true) {
 +			err = st_sensors_write_data_with_mask(indio_dev,
-+				sensor->odr.addr, sensor->odr.mask,
++				sdata->sensor->odr.addr,
++				sdata->sensor->odr.mask,
 +				odr_out.value);
 +		} else {
 +			err = 0;
 +		}
 +	} else {
 +		err = st_sensors_write_data_with_mask(indio_dev,
-+			sensor->odr.addr, sensor->odr.mask, odr_out.value);
++			sdata->sensor->odr.addr, sdata->sensor->odr.mask,
++			odr_out.value);
 +	}
 +	if (err >= 0)
 +		sdata->odr = odr_out.hz;
@@ -345,7 +349,7 @@ index 0000000..559d3f9
 +}
 +EXPORT_SYMBOL(st_sensors_set_odr);
 +
-+static int st_sensors_match_fs(const struct st_sensors *sensor,
++static int st_sensors_match_fs(struct st_sensors *sensor,
 +					unsigned int fs, int *index_fs_avl)
 +{
 +	int i, ret = -EINVAL;
@@ -365,23 +369,24 @@ index 0000000..559d3f9
 +	return ret;
 +}
 +
-+static int st_sensors_set_fullscale(struct iio_dev *indio_dev,
-+			const struct st_sensors *sensor, unsigned int fs)
++static int st_sensors_set_fullscale(struct iio_dev *indio_dev, unsigned int fs)
 +{
 +	int err, i;
 +	struct st_sensor_data *sdata = iio_priv(indio_dev);
 +
-+	err = st_sensors_match_fs(sensor, fs, &i);
++	err = st_sensors_match_fs(sdata->sensor, fs, &i);
 +	if (err < 0)
 +		goto st_accel_set_fullscale_error;
 +
 +	err = st_sensors_write_data_with_mask(indio_dev,
-+		sensor->fs.addr, sensor->fs.mask, sensor->fs.fs_avl[i].value);
++				sdata->sensor->fs.addr,
++				sdata->sensor->fs.mask,
++				sdata->sensor->fs.fs_avl[i].value);
 +	if (err < 0)
 +		goto st_accel_set_fullscale_error;
 +
 +	sdata->current_fullscale = (struct st_sensor_fullscale_avl *)
-+							&sensor->fs.fs_avl[i];
++						&sdata->sensor->fs.fs_avl[i];
 +	return err;
 +
 +st_accel_set_fullscale_error:
@@ -389,21 +394,20 @@ index 0000000..559d3f9
 +	return err;
 +}
 +
-+int st_sensors_set_enable(struct iio_dev *indio_dev,
-+				const struct st_sensors *sensor, bool enable)
++int st_sensors_set_enable(struct iio_dev *indio_dev, bool enable)
 +{
-+	int err = -EINVAL;
 +	bool found;
 +	u8 tmp_value;
++	int err = -EINVAL;
 +	struct st_sensor_odr_avl odr_out;
 +	struct st_sensor_data *sdata = iio_priv(indio_dev);
 +
 +	if (enable) {
 +		found = false;
-+		tmp_value = sensor->pw.value_on;
-+		if ((sensor->odr.addr == sensor->pw.addr) &&
-+				(sensor->odr.mask == sensor->pw.mask)) {
-+			err = st_sensors_match_odr(sensor,
++		tmp_value = sdata->sensor->pw.value_on;
++		if ((sdata->sensor->odr.addr == sdata->sensor->pw.addr) &&
++			(sdata->sensor->odr.mask == sdata->sensor->pw.mask)) {
++			err = st_sensors_match_odr(sdata->sensor,
 +							sdata->odr, &odr_out);
 +			if (err < 0)
 +				goto set_enable_error;
@@ -411,18 +415,23 @@ index 0000000..559d3f9
 +			found = true;
 +		}
 +		err = st_sensors_write_data_with_mask(indio_dev,
-+				sensor->pw.addr, sensor->pw.mask, tmp_value);
++				sdata->sensor->pw.addr,
++				sdata->sensor->pw.mask, tmp_value);
 +		if (err < 0)
 +			goto set_enable_error;
++
 +		sdata->enabled = true;
++
 +		if (found)
 +			sdata->odr = odr_out.hz;
 +	} else {
-+			err = st_sensors_write_data_with_mask(indio_dev,
-+				sensor->pw.addr, sensor->pw.mask,
-+							sensor->pw.value_off);
++		err = st_sensors_write_data_with_mask(indio_dev,
++				sdata->sensor->pw.addr,
++				sdata->sensor->pw.mask,
++				sdata->sensor->pw.value_off);
 +		if (err < 0)
 +			goto set_enable_error;
++
 +		sdata->enabled = false;
 +	}
 +
@@ -431,82 +440,81 @@ index 0000000..559d3f9
 +}
 +EXPORT_SYMBOL(st_sensors_set_enable);
 +
-+int st_sensors_set_axis_enable(struct iio_dev *indio_dev,
-+			const struct st_sensors *sensor, u8 axis_enable)
++int st_sensors_set_axis_enable(struct iio_dev *indio_dev, u8 axis_enable)
 +{
++	struct st_sensor_data *sdata = iio_priv(indio_dev);
++
 +	return st_sensors_write_data_with_mask(indio_dev,
-+				sensor->enable_axis.addr,
-+					sensor->enable_axis.mask, axis_enable);
++				sdata->sensor->enable_axis.addr,
++				sdata->sensor->enable_axis.mask, axis_enable);
 +}
 +EXPORT_SYMBOL(st_sensors_set_axis_enable);
 +
-+int st_sensors_init_sensor(struct iio_dev *indio_dev,
-+						const struct st_sensors *sensor)
++int st_sensors_init_sensor(struct iio_dev *indio_dev)
 +{
 +	int err;
 +	struct st_sensor_data *sdata = iio_priv(indio_dev);
 +
 +	mutex_init(&sdata->tb.buf_lock);
 +
-+	err = st_sensors_set_enable(indio_dev, sensor, false);
++	err = st_sensors_set_enable(indio_dev, false);
 +	if (err < 0)
 +		goto init_error;
 +
-+	err = st_sensors_set_fullscale(indio_dev, sensor,
++	err = st_sensors_set_fullscale(indio_dev,
 +						sdata->current_fullscale->num);
 +	if (err < 0)
 +		goto init_error;
 +
-+	err = st_sensors_set_odr(indio_dev, sensor, sdata->odr);
++	err = st_sensors_set_odr(indio_dev, sdata->odr);
 +	if (err < 0)
 +		goto init_error;
 +
 +	/* set BDU */
-+	err = st_sensors_write_data_with_mask(indio_dev, sensor->bdu.addr,
-+							sensor->bdu.mask, true);
++	err = st_sensors_write_data_with_mask(indio_dev,
++			sdata->sensor->bdu.addr, sdata->sensor->bdu.mask, true);
 +	if (err < 0)
 +		goto init_error;
 +
-+	err = st_sensors_set_axis_enable(indio_dev, sensor,
-+						ST_SENSORS_ENABLE_ALL_CHANNELS);
++	err = st_sensors_set_axis_enable(indio_dev, ST_SENSORS_ENABLE_ALL_AXIS);
 +
 +init_error:
 +	return err;
 +}
 +EXPORT_SYMBOL(st_sensors_init_sensor);
 +
-+int st_sensors_set_dataready_irq(struct iio_dev *indio_dev,
-+				const struct st_sensors *sensor, bool enable)
++int st_sensors_set_dataready_irq(struct iio_dev *indio_dev, bool enable)
 +{
 +	int err;
++	struct st_sensor_data *sdata = iio_priv(indio_dev);
 +
 +	/* Enable/Disable the interrupt generator 1. */
-+	if (sensor->drdy_irq.ig1.en_addr > 0) {
++	if (sdata->sensor->drdy_irq.ig1.en_addr > 0) {
 +		err = st_sensors_write_data_with_mask(indio_dev,
-+			sensor->drdy_irq.ig1.en_addr,
-+			sensor->drdy_irq.ig1.en_mask, (int)enable);
++			sdata->sensor->drdy_irq.ig1.en_addr,
++			sdata->sensor->drdy_irq.ig1.en_mask, (int)enable);
 +		if (err < 0)
 +			goto st_accel_set_dataready_irq_error;
 +	}
 +
 +	/* Enable/Disable the interrupt generator for data ready. */
 +	err = st_sensors_write_data_with_mask(indio_dev,
-+			sensor->drdy_irq.addr,
-+			sensor->drdy_irq.mask, (int)enable);
++			sdata->sensor->drdy_irq.addr,
++			sdata->sensor->drdy_irq.mask, (int)enable);
 +
 +st_accel_set_dataready_irq_error:
 +	return err;
 +}
 +EXPORT_SYMBOL(st_sensors_set_dataready_irq);
 +
-+int st_sensors_set_fullscale_by_gain(struct iio_dev *indio_dev,
-+				const struct st_sensors *sensor, int scale)
++int st_sensors_set_fullscale_by_gain(struct iio_dev *indio_dev, int scale)
 +{
 +	int err = -EINVAL, i;
++	struct st_sensor_data *sdata = iio_priv(indio_dev);
 +
 +	for (i = 0; i < ST_SENSORS_FULLSCALE_AVL_MAX; i++) {
-+		if ((sensor->fs.fs_avl[i].gain == scale) &&
-+					(sensor->fs.fs_avl[i].gain != 0)) {
++		if ((sdata->sensor->fs.fs_avl[i].gain == scale) &&
++				(sdata->sensor->fs.fs_avl[i].gain != 0)) {
 +			err = 0;
 +			break;
 +		}
@@ -515,7 +523,7 @@ index 0000000..559d3f9
 +		goto st_sensors_match_scale_error;
 +
 +	err = st_sensors_set_fullscale(indio_dev,
-+					sensor, sensor->fs.fs_avl[i].num);
++					sdata->sensor->fs.fs_avl[i].num);
 +
 +st_sensors_match_scale_error:
 +	return err;
@@ -530,8 +538,8 @@ index 0000000..559d3f9
 +	struct st_sensor_data *sdata = iio_priv(indio_dev);
 +
 +	err = sdata->tf->read_multiple_byte(&sdata->tb, sdata->dev,
-+			ch_addr, ST_SENSORS_BYTE_FOR_CHANNEL,
-+						outdata, sdata->multiread_bit);
++				ch_addr, ST_SENSORS_BYTE_FOR_CHANNEL,
++				outdata, sdata->multiread_bit);
 +	if (err < 0)
 +		goto read_error;
 +
@@ -542,8 +550,7 @@ index 0000000..559d3f9
 +}
 +
 +int st_sensors_read_info_raw(struct iio_dev *indio_dev,
-+			struct iio_chan_spec const *ch, int *val,
-+						const struct st_sensors *sensor)
++				struct iio_chan_spec const *ch, int *val)
 +{
 +	int err;
 +	struct st_sensor_data *sdata = iio_priv(indio_dev);
@@ -553,11 +560,11 @@ index 0000000..559d3f9
 +		err = -EBUSY;
 +		goto read_error;
 +	} else {
-+		err = st_sensors_set_enable(indio_dev, sensor, true);
++		err = st_sensors_set_enable(indio_dev, true);
 +		if (err < 0)
 +			goto read_error;
 +
-+		msleep((sensor->bootime * 1000) / sdata->odr);
++		msleep((sdata->sensor->bootime * 1000) / sdata->odr);
 +		err = st_sensors_read_axis_data(indio_dev, ch->address, val);
 +		if (err < 0)
 +			goto read_error;
@@ -577,8 +584,8 @@ index 0000000..559d3f9
 +int st_sensors_check_device_support(struct iio_dev *indio_dev,
 +			int num_sensors_list, const struct st_sensors *sensors)
 +{
-+	int i, n, err;
 +	u8 wai;
++	int i, n, err;
 +	struct st_sensor_data *sdata = iio_priv(indio_dev);
 +
 +	err = sdata->tf->read_byte(&sdata->tb, sdata->dev,
@@ -605,7 +612,7 @@ index 0000000..559d3f9
 +		goto sensor_name_mismatch;
 +	}
 +
-+	sdata->index = i;
++	sdata->sensor = (struct st_sensors *)&sensors[i];
 +
 +	return i;
 +
@@ -618,12 +625,59 @@ index 0000000..559d3f9
 +}
 +EXPORT_SYMBOL(st_sensors_check_device_support);
 +
++ssize_t st_sensors_sysfs_get_sampling_frequency(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct st_sensor_data *adata = iio_priv(dev_get_drvdata(dev));
++
++	return sprintf(buf, "%d\n", adata->odr);
++}
++EXPORT_SYMBOL(st_sensors_sysfs_get_sampling_frequency);
++
++ssize_t st_sensors_sysfs_set_sampling_frequency(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t size)
++{
++	int err;
++	unsigned int odr;
++	struct iio_dev *indio_dev = dev_get_drvdata(dev);
++
++	err = kstrtoint(buf, 10, &odr);
++	if (err < 0)
++		goto conversion_error;
++
++	mutex_lock(&indio_dev->mlock);
++	err = st_sensors_set_odr(indio_dev, odr);
++	mutex_unlock(&indio_dev->mlock);
++
++conversion_error:
++	return err < 0 ? err : size;
++}
++EXPORT_SYMBOL(st_sensors_sysfs_set_sampling_frequency);
++
++ssize_t st_sensors_sysfs_sampling_frequency_avail(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct iio_dev *indio_dev = dev_get_drvdata(dev);
++
++	return st_sensors_get_sampling_frequency_avl(indio_dev, buf);
++}
++EXPORT_SYMBOL(st_sensors_sysfs_sampling_frequency_avail);
++
++ssize_t st_sensors_sysfs_scale_avail(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct iio_dev *indio_dev = dev_get_drvdata(dev);
++
++	return st_sensors_get_scale_avl(indio_dev, buf);
++}
++EXPORT_SYMBOL(st_sensors_sysfs_scale_avail);
++
 +MODULE_AUTHOR("Denis Ciocca <denis.ciocca@st.com>");
 +MODULE_DESCRIPTION("STMicroelectronics ST-sensors core");
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/iio/common/st_sensors/st_sensors_i2c.c b/drivers/iio/common/st_sensors/st_sensors_i2c.c
 new file mode 100644
-index 0000000..5683436
+index 0000000..38af944
 --- /dev/null
 +++ b/drivers/iio/common/st_sensors/st_sensors_i2c.c
 @@ -0,0 +1,81 @@
@@ -673,7 +727,7 @@ index 0000000..5683436
 +		struct st_sensor_transfer_buffer *tb, struct device *dev,
 +			u8 reg_addr, int len, u8 *data, bool multiread_bit)
 +{
-+	if (multiread_bit == true)
++	if (multiread_bit)
 +		reg_addr |= ST_SENSORS_I2C_MULTIREAD;
 +
 +	return i2c_smbus_read_i2c_block_data(to_i2c_client(dev),
@@ -710,7 +764,7 @@ index 0000000..5683436
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/iio/common/st_sensors/st_sensors_spi.c b/drivers/iio/common/st_sensors/st_sensors_spi.c
 new file mode 100644
-index 0000000..8a795f5
+index 0000000..f0aa2f1
 --- /dev/null
 +++ b/drivers/iio/common/st_sensors/st_sensors_spi.c
 @@ -0,0 +1,128 @@
@@ -762,7 +816,7 @@ index 0000000..8a795f5
 +	};
 +
 +	mutex_lock(&tb->buf_lock);
-+	if ((multiread_bit == true) && (len > 1))
++	if ((multiread_bit) && (len > 1))
 +		tb->tx_buf[0] = reg_addr | ST_SENSORS_SPI_MULTIREAD;
 +	else
 +		tb->tx_buf[0] = reg_addr | ST_SENSORS_SPI_READ;
@@ -927,10 +981,10 @@ index 0000000..139ed03
 +MODULE_LICENSE("GPL v2");
 diff --git a/include/linux/iio/common/st_sensors.h b/include/linux/iio/common/st_sensors.h
 new file mode 100644
-index 0000000..b7bfd5d
+index 0000000..3cc8571
 --- /dev/null
 +++ b/include/linux/iio/common/st_sensors.h
-@@ -0,0 +1,260 @@
+@@ -0,0 +1,274 @@
 +/*
 + * STMicroelectronics sensors library driver
 + *
@@ -949,16 +1003,15 @@ index 0000000..b7bfd5d
 +#include <linux/irqreturn.h>
 +#include <linux/iio/trigger.h>
 +
-+
-+#define ST_SENSORS_TX_MAX_LENGHT		2
-+#define ST_SENSORS_RX_MAX_LENGHT		6
++#define ST_SENSORS_TX_MAX_LENGTH		2
++#define ST_SENSORS_RX_MAX_LENGTH		6
 +
 +#define ST_SENSORS_ODR_LIST_MAX			10
 +#define ST_SENSORS_FULLSCALE_AVL_MAX		10
 +
 +#define ST_SENSORS_NUMBER_ALL_CHANNELS		4
 +#define ST_SENSORS_NUMBER_DATA_CHANNELS		3
-+#define ST_SENSORS_ENABLE_ALL_CHANNELS		0x07
++#define ST_SENSORS_ENABLE_ALL_AXIS		0x07
 +#define ST_SENSORS_BYTE_FOR_CHANNEL		2
 +#define ST_SENSORS_SCAN_X			0
 +#define ST_SENSORS_SCAN_Y			1
@@ -992,6 +1045,19 @@ index 0000000..b7bfd5d
 +		.endianness = endian, \
 +	}, \
 +}
++
++#define ST_SENSOR_DEV_ATTR_SAMP_FREQ() \
++		IIO_DEV_ATTR_SAMP_FREQ(S_IWUSR | S_IRUGO, \
++			st_sensors_sysfs_get_sampling_frequency, \
++			st_sensors_sysfs_set_sampling_frequency)
++
++#define ST_SENSORS_DEV_ATTR_SAMP_FREQ_AVAIL() \
++		IIO_DEV_ATTR_SAMP_FREQ_AVAIL( \
++			st_sensors_sysfs_sampling_frequency_avail)
++
++#define ST_SENSORS_DEV_ATTR_SCALE_AVAIL(name) \
++		IIO_DEVICE_ATTR(name, S_IRUGO, \
++			st_sensors_sysfs_scale_avail, NULL , 0);
 +
 +struct st_sensor_odr_avl {
 +	unsigned int hz;
@@ -1066,8 +1132,8 @@ index 0000000..b7bfd5d
 + */
 +struct st_sensor_transfer_buffer {
 +	struct mutex buf_lock;
-+	u8 rx_buf[ST_SENSORS_RX_MAX_LENGHT];
-+	u8 tx_buf[ST_SENSORS_TX_MAX_LENGHT] ____cacheline_aligned;
++	u8 rx_buf[ST_SENSORS_RX_MAX_LENGTH];
++	u8 tx_buf[ST_SENSORS_TX_MAX_LENGTH] ____cacheline_aligned;
 +};
 +
 +/**
@@ -1084,40 +1150,6 @@ index 0000000..b7bfd5d
 +	int (*read_multiple_byte) (struct st_sensor_transfer_buffer *tb,
 +		struct device *dev, u8 reg_addr, int len, u8 *data,
 +							bool multiread_bit);
-+};
-+
-+/**
-+ * struct st_sensor_data - ST sensor device status
-+ * @dev: Pointer to instance of struct device (I2C or SPI).
-+ * @trig: The trigger in use by the core driver.
-+ * @current_fullscale: Maximum range of measure by the sensor.
-+ * @enabled: Status of the sensor (false->off, true->on).
-+ * @multiread_bit: Use or not particular bit for [I2C/SPI] multiread.
-+ * @index: Number used to point the sensor being used in the st_sensors struct.
-+ * @buffer_data: Data used by buffer part.
-+ * @odr: Output data rate of the sensor [Hz].
-+ * @get_irq_data_ready: Function to get the IRQ used for data ready signal.
-+ * @tf: Transfer function structure used by I/O operations.
-+ * @tb: Transfer buffers and mutex used by I/O operations.
-+ */
-+struct st_sensor_data {
-+	struct device *dev;
-+	struct iio_trigger *trig;
-+	struct st_sensor_fullscale_avl *current_fullscale;
-+
-+	bool enabled;
-+	bool multiread_bit;
-+
-+	short index;
-+
-+	char *buffer_data;
-+
-+	unsigned int odr;
-+
-+	unsigned int (*get_irq_data_ready) (struct iio_dev *indio_dev);
-+
-+	const struct st_sensor_transfer_function *tf;
-+	struct st_sensor_transfer_buffer tb;
 +};
 +
 +/**
@@ -1148,9 +1180,42 @@ index 0000000..b7bfd5d
 +	unsigned int bootime;
 +};
 +
++/**
++ * struct st_sensor_data - ST sensor device status
++ * @dev: Pointer to instance of struct device (I2C or SPI).
++ * @trig: The trigger in use by the core driver.
++ * @sensor: Pointer to the current sensor struct in use.
++ * @current_fullscale: Maximum range of measure by the sensor.
++ * @enabled: Status of the sensor (false->off, true->on).
++ * @multiread_bit: Use or not particular bit for [I2C/SPI] multiread.
++ * @buffer_data: Data used by buffer part.
++ * @odr: Output data rate of the sensor [Hz].
++ * @get_irq_data_ready: Function to get the IRQ used for data ready signal.
++ * @tf: Transfer function structure used by I/O operations.
++ * @tb: Transfer buffers and mutex used by I/O operations.
++ */
++struct st_sensor_data {
++	struct device *dev;
++	struct iio_trigger *trig;
++	struct st_sensors *sensor;
++	struct st_sensor_fullscale_avl *current_fullscale;
++
++	bool enabled;
++	bool multiread_bit;
++
++	char *buffer_data;
++
++	unsigned int odr;
++
++	unsigned int (*get_irq_data_ready) (struct iio_dev *indio_dev);
++
++	const struct st_sensor_transfer_function *tf;
++	struct st_sensor_transfer_buffer tb;
++};
++
 +#ifdef CONFIG_IIO_BUFFER
 +int st_sensors_allocate_trigger(struct iio_dev *indio_dev,
-+					struct iio_trigger_ops *trigger_ops);
++				const struct iio_trigger_ops *trigger_ops);
 +
 +void st_sensors_deallocate_trigger(struct iio_dev *indio_dev);
 +
@@ -1159,36 +1224,39 @@ index 0000000..b7bfd5d
 +int st_sensors_get_buffer_element(struct iio_dev *indio_dev, u8 *buf);
 +#endif
 +
-+int st_sensors_init_sensor(struct iio_dev *indio_dev,
-+					const struct st_sensors *sensor);
++int st_sensors_init_sensor(struct iio_dev *indio_dev);
 +
-+int st_sensors_set_enable(struct iio_dev *indio_dev,
-+				const struct st_sensors *sensor, bool enable);
++int st_sensors_set_enable(struct iio_dev *indio_dev, bool enable);
 +
-+int st_sensors_set_axis_enable(struct iio_dev *indio_dev,
-+			const struct st_sensors *sensor, u8 axis_enable);
++int st_sensors_set_axis_enable(struct iio_dev *indio_dev, u8 axis_enable);
 +
-+int st_sensors_get_sampling_frequency_avl(struct iio_dev *indio_dev,
-+			const struct st_sensor_odr_avl *odr_avl, char *buf);
++int st_sensors_get_sampling_frequency_avl(struct iio_dev *indio_dev, char *buf);
 +
-+int st_sensors_get_scale_avl(struct iio_dev *indio_dev,
-+		const struct st_sensor_fullscale_avl *fullscale_avl, char *buf);
++int st_sensors_get_scale_avl(struct iio_dev *indio_dev, char *buf);
 +
-+int st_sensors_set_odr(struct iio_dev *indio_dev,
-+			const struct st_sensors *sensor, unsigned int odr);
++int st_sensors_set_odr(struct iio_dev *indio_dev, unsigned int odr);
 +
-+int st_sensors_set_dataready_irq(struct iio_dev *indio_dev,
-+				const struct st_sensors *sensor, bool enable);
++int st_sensors_set_dataready_irq(struct iio_dev *indio_dev, bool enable);
 +
-+int st_sensors_set_fullscale_by_gain(struct iio_dev *indio_dev,
-+				const struct st_sensors *sensor, int scale);
++int st_sensors_set_fullscale_by_gain(struct iio_dev *indio_dev, int scale);
 +
 +int st_sensors_read_info_raw(struct iio_dev *indio_dev,
-+			struct iio_chan_spec const *ch, int *val,
-+					const struct st_sensors *sensor);
++				struct iio_chan_spec const *ch, int *val);
 +
 +int st_sensors_check_device_support(struct iio_dev *indio_dev,
 +			int num_sensors_list, const struct st_sensors *sensors);
++
++ssize_t st_sensors_sysfs_get_sampling_frequency(struct device *dev,
++				struct device_attribute *attr, char *buf);
++
++ssize_t st_sensors_sysfs_set_sampling_frequency(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t size);
++
++ssize_t st_sensors_sysfs_sampling_frequency_avail(struct device *dev,
++				struct device_attribute *attr, char *buf);
++
++ssize_t st_sensors_sysfs_scale_avail(struct device *dev,
++				struct device_attribute *attr, char *buf);
 +
 +#endif /* ST_SENSORS_H */
 diff --git a/include/linux/iio/common/st_sensors_i2c.h b/include/linux/iio/common/st_sensors_i2c.h
