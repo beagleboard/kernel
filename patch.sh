@@ -22,7 +22,7 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="949db153b6466c6f7cad5a427ecea94985927311"
+EXTERNAL_SHA="2e51b231a8d716ea5aacde0bd95ac789cea195b0"
 
 PATCHSET="dma rtc pinctrl cpufreq adc i2c da8xx-fb pwm mmc crypto 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net drm not-capebus pru usb PG2 reboot iio"
 
@@ -82,7 +82,7 @@ for patchset in ${PATCHSET} ; do
 	mkdir -p ${EXPORTPATH}/$patchset
 	for patch in $(ls -1 ${PATCHPATH}/$patchset/*.patch | sort -n) ; do
 		$ECHO -n "$patch: "
-		git am -3 -q $patch && echo applied || exit 1
+		git am -q $patch && echo applied || exit 1
 	done
 
 	NEWCOMMIT="$(git log --oneline --no-abbrev -1 | awk '{print $1}')"
