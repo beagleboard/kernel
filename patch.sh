@@ -22,7 +22,7 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="2e51b231a8d716ea5aacde0bd95ac789cea195b0"
+EXTERNAL_SHA="04c2eee5b9dfcb13f3cd07a5537fb8c785f2751a"
 
 PATCHSET="dma rtc pinctrl cpufreq adc i2c da8xx-fb pwm mmc crypto 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net drm not-capebus pru usb PG2 reboot iio"
 
@@ -97,10 +97,10 @@ mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux
 cp ${RECIPEFILE} ${EXPORTPATH}-oe/recipes-kernel/linux/
 
 if [ "${EXTERNAL_TREE}" ] ; then
-	echo 'SRCREV_pn-${PN}' \= \"${EXTERNAL_SHA}\" >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+	sed -i -e s:SEDMEREV:${EXTERNAL_SHA}: ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+	sed -i -e s,SEDMEURI,${EXTERNAL_TREE}\;branch=${EXTERNAL_BRANCH}, ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 	echo >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
-	echo 'SRC_URI = " \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
-	echo "	${EXTERNAL_TREE};branch=${EXTERNAL_BRANCH}"' \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+	echo 'SRC_URI += " \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 fi
 
 if [ -f ${DIR}/patch_script.sh ] ; then
@@ -117,6 +117,7 @@ for patchset in ${PATCHSET} ; do
 done
 
 echo '	file://defconfig \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+echo '  file://am335x-pm-firmware.bin \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 echo "\"" >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 
 mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}

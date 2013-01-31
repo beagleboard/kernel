@@ -14,4 +14,11 @@ S = "${WORKDIR}/git"
 
 PV = "3.8.0"
 
+SRC_URI = "SEDMEURI"
+SRCREV_pn-${PN} = "SEDMEREV"
 
+do_configure_prepend() {
+	if [ -e ${WORKDIR}/am335x-pm-firmware.bin ] ; then
+		cp ${WORKDIR}/am335x-pm-firmware.bin ${S}/firmware
+	fi
+}
