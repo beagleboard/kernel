@@ -48,19 +48,18 @@ Status
 
  * I2C: working
  * SPI: working
- * MMC: mmc1 working, mmc2 working, mmc3 untested
-   o you can only enable 1 controller, so mmc1 + mmc2 won't work
- * USB host: not working
+ * MMC: mmc1 working, mmc2 working
+ * USB host: working, replugging needs 'lsusb' to pick new devices, unless you use a hub in between
  * USB gadget: not working
  * LCDC: not-capebus has support for lcd3, lcd4, lcd7 and dvi capes
- * TS: orking
+ * TS: working
  * ADC: untested
  * PWM: ehrpwm and ecap working
  * PMIC: working
  * PMIC PWM: working, kills ethernet
  * CPUfreq: working
  * Capes: DVI, LCD3, LCD4, LCD7, geiger and weathercape are functional, but need tweaking
- * AUDIO: untested
+ * AUDIO: working
 
 Bootlog
 ======
