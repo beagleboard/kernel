@@ -1,0 +1,33 @@
+From af03c52523b8863da02c717c2660d592720bf911 Mon Sep 17 00:00:00 2001
+From: Yegor Yefremov <yegorslists@googlemail.com>
+Date: Tue, 11 Dec 2012 15:37:47 +0100
+Subject: [PATCH 100/101] arm: increase FORCE_MAX_ZONEORDER for TI AM33XX
+
+arm: increase FORCE_MAX_ZONEORDER for TI AM33XX
+
+FORCE_MAX_ZONEORDER of 12 is needed to allocation more than 4MB
+of consistent DMA memory (da8xx frame buffer driver).
+
+Signed-off-by: Dejan Gacnik <dejan.gacnik@gmail.com>
+Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ arch/arm/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 96871ee..7084d3c 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1710,6 +1710,7 @@ source "mm/Kconfig"
+ config FORCE_MAX_ZONEORDER
+ 	int "Maximum zone order" if ARCH_SHMOBILE
+ 	range 11 64 if ARCH_SHMOBILE
++	default "12" if  SOC_OMAPAM33XX
+ 	default "9" if SA1111
+ 	default "11"
+ 	help
+-- 
+1.8.1.2
+
