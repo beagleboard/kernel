@@ -54,12 +54,12 @@ Status
  * LCDC: not-capebus has support for lcd3, lcd4, lcd7 and dvi capes
  * TS: working
  * ADC: untested
- * PWM: ehrpwm and ecap working
+ * PWM: ehrpwm and ecap working (no sysfs entries)
  * PMIC: working
  * PMIC PWM: working, kills ethernet
  * CPUfreq: working
  * Capes: DVI, LCD3, LCD4, LCD7, geiger and weathercape are functional, but need tweaking
- * AUDIO: working
+ * AUDIO: working (not working, or even instantiated, on HDMI)
 
 Bootlog
 ======
