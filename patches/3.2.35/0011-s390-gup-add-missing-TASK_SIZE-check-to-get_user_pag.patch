@@ -1,0 +1,39 @@
+From b40fb38fdbdbc58904a1214f94716ec764df175b Mon Sep 17 00:00:00 2001
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Date: Mon, 22 Oct 2012 15:49:02 +0200
+Subject: [PATCH 11/90] s390/gup: add missing TASK_SIZE check to
+ get_user_pages_fast()
+
+commit d55c4c613fc4d4ad2ba0fc6fa2b57176d420f7e4 upstream.
+
+When walking page tables we need to make sure that everything
+is within bounds of the ASCE limit of the task's address space.
+Otherwise we might calculate e.g. a pud pointer which is not
+within a pud and dereference it.
+So check against TASK_SIZE (which is the ASCE limit) before
+walking page tables.
+
+Reviewed-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/s390/mm/gup.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/s390/mm/gup.c b/arch/s390/mm/gup.c
+index 65cb06e..4ccf9f5 100644
+--- a/arch/s390/mm/gup.c
++++ b/arch/s390/mm/gup.c
+@@ -183,7 +183,7 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 	addr = start;
+ 	len = (unsigned long) nr_pages << PAGE_SHIFT;
+ 	end = start + len;
+-	if (end < start)
++	if ((end < start) || (end > TASK_SIZE))
+ 		goto slow_irqon;
+ 
+ 	/*
+-- 
+1.8.1.2
+

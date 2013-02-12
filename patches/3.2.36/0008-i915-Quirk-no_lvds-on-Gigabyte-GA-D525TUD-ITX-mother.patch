@@ -1,0 +1,48 @@
+From 987f1491a23fe1e81816a6a1fcadabb498b7e88a Mon Sep 17 00:00:00 2001
+From: Calvin Walton <calvin.walton@kepstin.ca>
+Date: Fri, 24 Aug 2012 07:56:31 -0400
+Subject: [PATCH 008/171] i915: Quirk no_lvds on Gigabyte GA-D525TUD ITX
+ motherboard
+
+commit a51d4ed01e5bb39d2cf36a12f9976ab08872c192 upstream.
+
+This board is incorrectly detected as having an LVDS connector,
+resulting in the VGA output (the only available output on the board)
+showing the console only in the top-left 1024x768 pixels, and an extra
+LVDS connector appearing in X.
+
+It's a desktop Mini-ITX board using an Atom D525 CPU with an NM10
+chipset.
+
+I've had this board for about a year, but this is the first time I
+noticed the issue because I've been running it headless for most of its
+life.
+
+Signed-off-by: Calvin Walton <calvin.walton@kepstin.ca>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_lvds.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
+index 57152a7..3c18d00 100644
+--- a/drivers/gpu/drm/i915/intel_lvds.c
++++ b/drivers/gpu/drm/i915/intel_lvds.c
+@@ -779,6 +779,14 @@ static const struct dmi_system_id intel_no_lvds[] = {
+ 			DMI_MATCH(DMI_BOARD_NAME, "ZBOXSD-ID12/ID13"),
+ 		},
+ 	},
++	{
++		.callback = intel_no_lvds_dmi_callback,
++		.ident = "Gigabyte GA-D525TUD",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "Gigabyte Technology Co., Ltd."),
++			DMI_MATCH(DMI_BOARD_NAME, "D525TUD"),
++		},
++	},
+ 
+ 	{ }	/* terminating entry */
+ };
+-- 
+1.8.1.2
+

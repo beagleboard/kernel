@@ -1,0 +1,71 @@
+From d430db98d76a8c17032a61458ddc579ee4eb9c53 Mon Sep 17 00:00:00 2001
+From: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
+Date: Fri, 9 Nov 2012 16:15:28 +0000
+Subject: [PATCH 071/171] mfd: Only unregister platform devices allocated by
+ the mfd core
+
+commit b9fbb62eb61452d728c39b2e5020739c575aac53 upstream.
+
+mfd_remove_devices would iterate over all devices sharing a parent with
+an mfd device regardless of whether they were allocated by the mfd core
+or not. This especially caused problems when the device structure was
+not contained within a platform_device, because to_platform_device is
+used on each device pointer.
+
+This patch defines a device_type for mfd devices and checks this is
+present from mfd_remove_devices_fn before processing the device.
+
+Signed-off-by: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
+Tested-by: Peter Tyser <ptyser@xes-inc.com>
+Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/mfd/mfd-core.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
+index 411f523..6dad2ef 100644
+--- a/drivers/mfd/mfd-core.c
++++ b/drivers/mfd/mfd-core.c
+@@ -19,6 +19,10 @@
+ #include <linux/slab.h>
+ #include <linux/module.h>
+ 
++static struct device_type mfd_dev_type = {
++	.name	= "mfd_device",
++};
++
+ int mfd_cell_enable(struct platform_device *pdev)
+ {
+ 	const struct mfd_cell *cell = mfd_get_cell(pdev);
+@@ -88,6 +92,7 @@ static int mfd_add_device(struct device *parent, int id,
+ 		goto fail_device;
+ 
+ 	pdev->dev.parent = parent;
++	pdev->dev.type = &mfd_dev_type;
+ 
+ 	if (cell->pdata_size) {
+ 		ret = platform_device_add_data(pdev,
+@@ -183,10 +188,16 @@ EXPORT_SYMBOL(mfd_add_devices);
+ 
+ static int mfd_remove_devices_fn(struct device *dev, void *c)
+ {
+-	struct platform_device *pdev = to_platform_device(dev);
+-	const struct mfd_cell *cell = mfd_get_cell(pdev);
++	struct platform_device *pdev;
++	const struct mfd_cell *cell;
+ 	atomic_t **usage_count = c;
+ 
++	if (dev->type != &mfd_dev_type)
++		return 0;
++
++	pdev = to_platform_device(dev);
++	cell = mfd_get_cell(pdev);
++
+ 	/* find the base address of usage_count pointers (for freeing) */
+ 	if (!*usage_count || (cell->usage_count < *usage_count))
+ 		*usage_count = cell->usage_count;
+-- 
+1.8.1.2
+

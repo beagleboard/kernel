@@ -1,0 +1,67 @@
+From 81418af2cb5b41b138b91d6397f2d1215461cf24 Mon Sep 17 00:00:00 2001
+From: Dave Jones <davej@redhat.com>
+Date: Thu, 8 Nov 2012 16:09:27 -0800
+Subject: [PATCH 74/90] selinux: fix sel_netnode_insert() suspicious rcu
+ dereference
+
+commit 88a693b5c1287be4da937699cb82068ce9db0135 upstream.
+
+===============================
+[ INFO: suspicious RCU usage. ]
+3.5.0-rc1+ #63 Not tainted
+-------------------------------
+security/selinux/netnode.c:178 suspicious rcu_dereference_check() usage!
+
+other info that might help us debug this:
+
+rcu_scheduler_active = 1, debug_locks = 0
+1 lock held by trinity-child1/8750:
+ #0:  (sel_netnode_lock){+.....}, at: [<ffffffff812d8f8a>] sel_netnode_sid+0x16a/0x3e0
+
+stack backtrace:
+Pid: 8750, comm: trinity-child1 Not tainted 3.5.0-rc1+ #63
+Call Trace:
+ [<ffffffff810cec2d>] lockdep_rcu_suspicious+0xfd/0x130
+ [<ffffffff812d91d1>] sel_netnode_sid+0x3b1/0x3e0
+ [<ffffffff812d8e20>] ? sel_netnode_find+0x1a0/0x1a0
+ [<ffffffff812d24a6>] selinux_socket_bind+0xf6/0x2c0
+ [<ffffffff810cd1dd>] ? trace_hardirqs_off+0xd/0x10
+ [<ffffffff810cdb55>] ? lock_release_holdtime.part.9+0x15/0x1a0
+ [<ffffffff81093841>] ? lock_hrtimer_base+0x31/0x60
+ [<ffffffff812c9536>] security_socket_bind+0x16/0x20
+ [<ffffffff815550ca>] sys_bind+0x7a/0x100
+ [<ffffffff816c03d5>] ? sysret_check+0x22/0x5d
+ [<ffffffff810d392d>] ? trace_hardirqs_on_caller+0x10d/0x1a0
+ [<ffffffff8133b09e>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+ [<ffffffff816c03a9>] system_call_fastpath+0x16/0x1b
+
+This patch below does what Paul McKenney suggested in the previous thread.
+
+Signed-off-by: Dave Jones <davej@redhat.com>
+Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Acked-by: Paul Moore <paul@paul-moore.com>
+Cc: Eric Paris <eparis@parisplace.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: James Morris <james.l.morris@oracle.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ security/selinux/netnode.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/security/selinux/netnode.c b/security/selinux/netnode.c
+index 3bf46ab..46a5b81 100644
+--- a/security/selinux/netnode.c
++++ b/security/selinux/netnode.c
+@@ -174,7 +174,8 @@ static void sel_netnode_insert(struct sel_netnode *node)
+ 	if (sel_netnode_hash[idx].size == SEL_NETNODE_HASH_BKT_LIMIT) {
+ 		struct sel_netnode *tail;
+ 		tail = list_entry(
+-			rcu_dereference(sel_netnode_hash[idx].list.prev),
++			rcu_dereference_protected(sel_netnode_hash[idx].list.prev,
++						  lockdep_is_held(&sel_netnode_lock)),
+ 			struct sel_netnode, list);
+ 		list_del_rcu(&tail->list);
+ 		kfree_rcu(tail, rcu);
+-- 
+1.8.1.2
+

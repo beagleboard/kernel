@@ -1,0 +1,69 @@
+From 876dbb146d70b2d8e9584b58e7284467886127da Mon Sep 17 00:00:00 2001
+From: Xi Wang <xi.wang@gmail.com>
+Date: Sun, 11 Nov 2012 11:20:01 +0000
+Subject: [PATCH 24/90] ipv4: avoid undefined behavior in do_ip_setsockopt()
+
+[ Upstream commit 0c9f79be295c99ac7e4b569ca493d75fdcc19e4e ]
+
+(1<<optname) is undefined behavior in C with a negative optname or
+optname larger than 31.  In those cases the result of the shift is
+not necessarily zero (e.g., on x86).
+
+This patch simplifies the code with a switch statement on optname.
+It also allows the compiler to generate better code (e.g., using a
+64-bit mask).
+
+Signed-off-by: Xi Wang <xi.wang@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv4/ip_sockglue.c | 33 +++++++++++++++++++++------------
+ 1 file changed, 21 insertions(+), 12 deletions(-)
+
+diff --git a/net/ipv4/ip_sockglue.c b/net/ipv4/ip_sockglue.c
+index 09ff51b..0106d25 100644
+--- a/net/ipv4/ip_sockglue.c
++++ b/net/ipv4/ip_sockglue.c
+@@ -468,18 +468,27 @@ static int do_ip_setsockopt(struct sock *sk, int level,
+ 	struct inet_sock *inet = inet_sk(sk);
+ 	int val = 0, err;
+ 
+-	if (((1<<optname) & ((1<<IP_PKTINFO) | (1<<IP_RECVTTL) |
+-			     (1<<IP_RECVOPTS) | (1<<IP_RECVTOS) |
+-			     (1<<IP_RETOPTS) | (1<<IP_TOS) |
+-			     (1<<IP_TTL) | (1<<IP_HDRINCL) |
+-			     (1<<IP_MTU_DISCOVER) | (1<<IP_RECVERR) |
+-			     (1<<IP_ROUTER_ALERT) | (1<<IP_FREEBIND) |
+-			     (1<<IP_PASSSEC) | (1<<IP_TRANSPARENT) |
+-			     (1<<IP_MINTTL) | (1<<IP_NODEFRAG))) ||
+-	    optname == IP_MULTICAST_TTL ||
+-	    optname == IP_MULTICAST_ALL ||
+-	    optname == IP_MULTICAST_LOOP ||
+-	    optname == IP_RECVORIGDSTADDR) {
++	switch (optname) {
++	case IP_PKTINFO:
++	case IP_RECVTTL:
++	case IP_RECVOPTS:
++	case IP_RECVTOS:
++	case IP_RETOPTS:
++	case IP_TOS:
++	case IP_TTL:
++	case IP_HDRINCL:
++	case IP_MTU_DISCOVER:
++	case IP_RECVERR:
++	case IP_ROUTER_ALERT:
++	case IP_FREEBIND:
++	case IP_PASSSEC:
++	case IP_TRANSPARENT:
++	case IP_MINTTL:
++	case IP_NODEFRAG:
++	case IP_MULTICAST_TTL:
++	case IP_MULTICAST_ALL:
++	case IP_MULTICAST_LOOP:
++	case IP_RECVORIGDSTADDR:
+ 		if (optlen >= sizeof(int)) {
+ 			if (get_user(val, (int __user *) optval))
+ 				return -EFAULT;
+-- 
+1.8.1.2
+

@@ -1,0 +1,49 @@
+From 84b2996b178c40a300741cb1cbd6254e80bbf510 Mon Sep 17 00:00:00 2001
+From: Will Deacon <will.deacon@arm.com>
+Date: Fri, 19 Oct 2012 14:03:32 +0100
+Subject: [PATCH 036/171] virtio: 9p: correctly pass physical address to
+ userspace for high pages
+
+commit b9cdc88df8e63e81c723b82c286fc97f5d0dc325 upstream.
+
+When using a virtio transport, the 9p net device may pass the physical
+address of a kernel buffer to userspace via a scatterlist inside a
+virtqueue. If the kernel buffer is mapped outside of the linear mapping
+(e.g. highmem), then virt_to_page will return a bogus value and we will
+populate the scatterlist with junk.
+
+This patch uses kmap_to_page when populating the page array for a kernel
+buffer.
+
+Cc: Sasha Levin <levinsasha928@gmail.com>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/9p/trans_virtio.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/net/9p/trans_virtio.c b/net/9p/trans_virtio.c
+index 32aa983..55f0c09 100644
+--- a/net/9p/trans_virtio.c
++++ b/net/9p/trans_virtio.c
+@@ -37,6 +37,7 @@
+ #include <linux/inet.h>
+ #include <linux/idr.h>
+ #include <linux/file.h>
++#include <linux/highmem.h>
+ #include <linux/slab.h>
+ #include <net/9p/9p.h>
+ #include <linux/parser.h>
+@@ -323,7 +324,7 @@ static int p9_get_mapped_pages(struct virtio_chan *chan,
+ 		int count = nr_pages;
+ 		while (nr_pages) {
+ 			s = rest_of_page(data);
+-			pages[index++] = virt_to_page(data);
++			pages[index++] = kmap_to_page(data);
+ 			data += s;
+ 			nr_pages--;
+ 		}
+-- 
+1.8.1.2
+

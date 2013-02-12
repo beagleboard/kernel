@@ -1,0 +1,36 @@
+From 0f0ddeec0c9522a520d0b6b1b0f7368d14995902 Mon Sep 17 00:00:00 2001
+From: Jussi Pakkanen <jussi.pakkanen@canonical.com>
+Date: Tue, 10 Jan 2012 23:04:16 -0800
+Subject: [PATCH 46/90] Input: bcm5974 - set BUTTONPAD property
+
+commit 52965cc012f7a3cf35f06485ec275ebf3b3fddae upstream.
+
+Some bcm5974 trackpads have a physical button beneath the physical surface.
+This patch sets the property bit so user space applications can detect the
+trackpad type and act accordingly.
+
+Signed-off-by: Jussi Pakkanen <jussi.pakkanen@canonical.com>
+Reviewed-by: Henrik Rydberg <rydberg@euromail.se>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/input/mouse/bcm5974.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/input/mouse/bcm5974.c b/drivers/input/mouse/bcm5974.c
+index ec58f48..1512bd8 100644
+--- a/drivers/input/mouse/bcm5974.c
++++ b/drivers/input/mouse/bcm5974.c
+@@ -453,6 +453,9 @@ static void setup_events_to_report(struct input_dev *input_dev,
+ 	__set_bit(BTN_TOOL_QUADTAP, input_dev->keybit);
+ 	__set_bit(BTN_LEFT, input_dev->keybit);
+ 
++	if (cfg->caps & HAS_INTEGRATED_BUTTON)
++		__set_bit(INPUT_PROP_BUTTONPAD, input_dev->propbit);
++
+ 	input_set_events_per_packet(input_dev, 60);
+ }
+ 
+-- 
+1.8.1.2
+

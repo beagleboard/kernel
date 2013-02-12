@@ -1,0 +1,36 @@
+From 341876a7ee1c95ac6647f5950d528993cdfd719a Mon Sep 17 00:00:00 2001
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Date: Fri, 4 Jan 2013 23:00:54 +0100
+Subject: [PATCH 23/46] ACPI / scan: Do not use dummy HID for system bus ACPI
+ nodes
+
+commit 4f5f64cf0cc916220aaa055992e31195470cfe37 upstream.
+
+At one point acpi_device_set_id() checks if acpi_device_hid(device)
+returns NULL, but that never happens, so system bus devices with an
+empty list of PNP IDs are given the dummy HID ("device") instead of
+the "system bus HID" ("LNXSYBUS").  Fix the code to use the right
+check.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/acpi/scan.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 8ab80ba..a8b88ad 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1152,7 +1152,7 @@ static void acpi_device_set_id(struct acpi_device *device)
+ 			acpi_add_id(device, ACPI_DOCK_HID);
+ 		else if (!acpi_ibm_smbus_match(device))
+ 			acpi_add_id(device, ACPI_SMBUS_IBM_HID);
+-		else if (!acpi_device_hid(device) &&
++		else if (list_empty(&device->pnp.ids) &&
+ 			 ACPI_IS_ROOT_DEVICE(device->parent)) {
+ 			acpi_add_id(device, ACPI_BUS_HID); /* \_SB, LNXSYBUS */
+ 			strcpy(device->pnp.device_name, ACPI_BUS_DEVICE_NAME);
+-- 
+1.8.1.2
+

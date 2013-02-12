@@ -1,0 +1,36 @@
+From 4dc10865143a612b483cf2be4d4b9cbc4aff4bd2 Mon Sep 17 00:00:00 2001
+From: Anton Blanchard <anton@samba.org>
+Date: Sun, 11 Nov 2012 19:01:05 +0000
+Subject: [PATCH 062/171] powerpc: Fix CONFIG_RELOCATABLE=y CONFIG_CRASH_DUMP=n
+ build
+
+commit 11ee7e99f35ecb15f59b21da6a82d96d2cd3fcc8 upstream.
+
+If we build a kernel with CONFIG_RELOCATABLE=y CONFIG_CRASH_DUMP=n,
+the kernel fails when we run at a non zero offset. It turns out
+we were incorrectly wrapping some of the relocatable kernel code
+with CONFIG_CRASH_DUMP.
+
+Signed-off-by: Anton Blanchard <anton@samba.org>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/powerpc/kernel/head_64.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/powerpc/kernel/head_64.S b/arch/powerpc/kernel/head_64.S
+index 06c7251..cdf6b3f 100644
+--- a/arch/powerpc/kernel/head_64.S
++++ b/arch/powerpc/kernel/head_64.S
+@@ -435,7 +435,7 @@ _STATIC(__after_prom_start)
+ 	tovirt(r6,r6)			/* on booke, we already run at PAGE_OFFSET */
+ #endif
+ 
+-#ifdef CONFIG_CRASH_DUMP
++#ifdef CONFIG_RELOCATABLE
+ /*
+  * Check if the kernel has to be running as relocatable kernel based on the
+  * variable __run_at_load, if it is set the kernel is treated as relocatable
+-- 
+1.8.1.2
+

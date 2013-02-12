@@ -1,0 +1,74 @@
+From 0ac60a975396f64a8b96a79638f5fb0601f61411 Mon Sep 17 00:00:00 2001
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 17 Jun 2012 18:05:05 +0200
+Subject: [PATCH 012/171] hwmon: (coretemp) Improve support of recent Atom CPU
+ models
+
+commit fcc14ac1a86931f38da047cf8fb634c6db7b58bc upstream.
+
+Document the new Atom series (Tunnel Creek and Medfield) as being
+supported, and list TjMax for the Atom E600 series.
+
+Also enable the Atom tjmax heuristic for these Atom CPU models.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Reviewed-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Alexander Stein <alexander.stein@systec-electronic.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: "R, Durgadoss" <durgadoss.r@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ Documentation/hwmon/coretemp | 8 +++++++-
+ drivers/hwmon/coretemp.c     | 3 ++-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
+index 84d46c0..f6aed440 100644
+--- a/Documentation/hwmon/coretemp
++++ b/Documentation/hwmon/coretemp
+@@ -6,7 +6,8 @@ Supported chips:
+     Prefix: 'coretemp'
+     CPUID: family 0x6, models 0xe (Pentium M DC), 0xf (Core 2 DC 65nm),
+                               0x16 (Core 2 SC 65nm), 0x17 (Penryn 45nm),
+-                              0x1a (Nehalem), 0x1c (Atom), 0x1e (Lynnfield)
++                              0x1a (Nehalem), 0x1c (Atom), 0x1e (Lynnfield),
++                              0x26 (Tunnel Creek Atom), 0x27 (Medfield Atom)
+     Datasheet: Intel 64 and IA-32 Architectures Software Developer's Manual
+                Volume 3A: System Programming Guide
+                http://softwarecommunity.intel.com/Wiki/Mobility/720.htm
+@@ -65,6 +66,9 @@ Process		Processor					TjMax(C)
+ 		U3400						105
+ 		P4505/P4500 					90
+ 
++32nm		Atom Processors
++		Z2460						90
++
+ 45nm		Xeon Processors 5400 Quad-Core
+ 		X5492, X5482, X5472, X5470, X5460, X5450	85
+ 		E5472, E5462, E5450/40/30/20/10/05		85
+@@ -85,6 +89,8 @@ Process		Processor					TjMax(C)
+ 		N475/470/455/450				100
+ 		N280/270					90
+ 		330/230						125
++		E680/660/640/620				90
++		E680T/660T/640T/620T				110
+ 
+ 45nm		Core2 Processors
+ 		Solo ULV SU3500/3300				100
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 19b4412..9325d32 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -208,7 +208,8 @@ static int adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
+ 
+ 	/* Atom CPUs */
+ 
+-	if (c->x86_model == 0x1c) {
++	if (c->x86_model == 0x1c || c->x86_model == 0x26
++	    || c->x86_model == 0x27) {
+ 		usemsr_ee = 0;
+ 
+ 		host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0, 0));
+-- 
+1.8.1.2
+

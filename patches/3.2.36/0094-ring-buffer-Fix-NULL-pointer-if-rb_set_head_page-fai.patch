@@ -1,0 +1,58 @@
+From 33b43b8753ff25eaf53c5c7cba02b050eb95e119 Mon Sep 17 00:00:00 2001
+From: Steven Rostedt <srostedt@redhat.com>
+Date: Thu, 29 Nov 2012 22:27:22 -0500
+Subject: [PATCH 094/171] ring-buffer: Fix NULL pointer if rb_set_head_page()
+ fails
+
+commit 54f7be5b831254199522523ccab4c3d954bbf576 upstream.
+
+The function rb_set_head_page() searches the list of ring buffer
+pages for a the page that has the HEAD page flag set. If it does
+not find it, it will do a WARN_ON(), disable the ring buffer and
+return NULL, as this should never happen.
+
+But if this bug happens to happen, not all callers of this function
+can handle a NULL pointer being returned from it. That needs to be
+fixed.
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/trace/ring_buffer.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
+index f5b7b5c..6fdc629 100644
+--- a/kernel/trace/ring_buffer.c
++++ b/kernel/trace/ring_buffer.c
+@@ -2683,7 +2683,7 @@ unsigned long ring_buffer_oldest_event_ts(struct ring_buffer *buffer, int cpu)
+ 	unsigned long flags;
+ 	struct ring_buffer_per_cpu *cpu_buffer;
+ 	struct buffer_page *bpage;
+-	unsigned long ret;
++	unsigned long ret = 0;
+ 
+ 	if (!cpumask_test_cpu(cpu, buffer->cpumask))
+ 		return 0;
+@@ -2698,7 +2698,8 @@ unsigned long ring_buffer_oldest_event_ts(struct ring_buffer *buffer, int cpu)
+ 		bpage = cpu_buffer->reader_page;
+ 	else
+ 		bpage = rb_set_head_page(cpu_buffer);
+-	ret = bpage->page->time_stamp;
++	if (bpage)
++		ret = bpage->page->time_stamp;
+ 	raw_spin_unlock_irqrestore(&cpu_buffer->reader_lock, flags);
+ 
+ 	return ret;
+@@ -3005,6 +3006,8 @@ rb_get_reader_page(struct ring_buffer_per_cpu *cpu_buffer)
+ 	 * Splice the empty reader page into the list around the head.
+ 	 */
+ 	reader = rb_set_head_page(cpu_buffer);
++	if (!reader)
++		goto out;
+ 	cpu_buffer->reader_page->list.next = rb_list_head(reader->list.next);
+ 	cpu_buffer->reader_page->list.prev = reader->list.prev;
+ 
+-- 
+1.8.1.2
+

@@ -1,0 +1,39 @@
+From d64d254625f1eae254a454cfb6ad90fa7262572e Mon Sep 17 00:00:00 2001
+From: Eric Sandeen <sandeen@redhat.com>
+Date: Wed, 14 Nov 2012 22:22:05 -0500
+Subject: [PATCH 061/171] ext4: init pagevec in ext4_da_block_invalidatepages
+
+commit 66bea92c69477a75a5d37b9bfed5773c92a3c4b4 upstream.
+
+ext4_da_block_invalidatepages is missing a pagevec_init(),
+which means that pvec->cold contains random garbage.
+
+This affects whether the page goes to the front or
+back of the LRU when ->cold makes it to
+free_hot_cold_page()
+
+Reviewed-by: Lukas Czerner <lczerner@redhat.com>
+Reviewed-by: Carlos Maiolino <cmaiolino@redhat.com>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ext4/inode.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 50d50fe..7b3778e 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -1422,6 +1422,7 @@ static void ext4_da_block_invalidatepages(struct mpage_da_data *mpd)
+ 
+ 	index = mpd->first_page;
+ 	end   = mpd->next_page - 1;
++	pagevec_init(&pvec, 0);
+ 	while (index <= end) {
+ 		nr_pages = pagevec_lookup(&pvec, mapping, index, PAGEVEC_SIZE);
+ 		if (nr_pages == 0)
+-- 
+1.8.1.2
+

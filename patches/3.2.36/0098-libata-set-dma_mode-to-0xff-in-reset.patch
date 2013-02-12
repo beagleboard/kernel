@@ -1,0 +1,54 @@
+From 5078c81cee95ea8d43e369399e994251c0488f1e Mon Sep 17 00:00:00 2001
+From: Aaron Lu <aaron.lu@intel.com>
+Date: Mon, 3 Dec 2012 11:35:02 +0800
+Subject: [PATCH 098/171] libata: set dma_mode to 0xff in reset
+
+commit 5416912af75de9cba5d1c75b99a7888b0bbbd2fb upstream.
+
+ata_device->dma_mode's initial value is zero, which is not a valid dma
+mode, but ata_dma_enabled will return true for this value. This patch
+sets dma_mode to 0xff in reset function, so that ata_dma_enabled will
+not return true for this case, or it will cause problem for pata_acpi.
+
+The corrsponding bugzilla page is at:
+https://bugzilla.kernel.org/show_bug.cgi?id=49151
+
+Reported-by: Phillip Wood <phillip.wood@dunelm.org.uk>
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Tested-by: Szymon Janc <szymon@janc.net.pl>
+Tested-by: Dutra Julio <dutra.julio@gmail.com>
+Acked-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/ata/libata-core.c | 1 +
+ drivers/ata/libata-eh.c   | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/drivers/ata/libata-core.c b/drivers/ata/libata-core.c
+index 321e23e..c9540c0 100644
+--- a/drivers/ata/libata-core.c
++++ b/drivers/ata/libata-core.c
+@@ -2529,6 +2529,7 @@ int ata_bus_probe(struct ata_port *ap)
+ 		 * bus as we may be talking too fast.
+ 		 */
+ 		dev->pio_mode = XFER_PIO_0;
++		dev->dma_mode = 0xff;
+ 
+ 		/* If the controller has a pio mode setup function
+ 		 * then use it to set the chipset to rights. Don't
+diff --git a/drivers/ata/libata-eh.c b/drivers/ata/libata-eh.c
+index 58db834..aea627e 100644
+--- a/drivers/ata/libata-eh.c
++++ b/drivers/ata/libata-eh.c
+@@ -2599,6 +2599,7 @@ int ata_eh_reset(struct ata_link *link, int classify,
+ 		 * bus as we may be talking too fast.
+ 		 */
+ 		dev->pio_mode = XFER_PIO_0;
++		dev->dma_mode = 0xff;
+ 
+ 		/* If the controller has a pio mode setup function
+ 		 * then use it to set the chipset to rights. Don't
+-- 
+1.8.1.2
+

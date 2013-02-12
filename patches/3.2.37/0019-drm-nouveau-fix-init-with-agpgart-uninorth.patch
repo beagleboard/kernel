@@ -1,0 +1,44 @@
+From 714e5de90b0c85c792b882b3f89baab89fda6696 Mon Sep 17 00:00:00 2001
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Mon, 31 Dec 2012 03:34:59 +0200
+Subject: [PATCH 19/46] drm/nouveau: fix init with agpgart-uninorth
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit eda85d6ad490923152544fba0473798b6cc0edf6 upstream.
+
+Check that the AGP aperture can be mapped. This follows a similar change
+done for Radeon (commit 365048ff, drm/radeon: AGP memory is only I/O if
+the aperture can be mapped by the CPU.).
+
+The patch fixes the following error seen on G5 iMac:
+
+	nouveau E[     DRM] failed to create kernel channel, -12
+
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=58806
+Reviewed-by: Michel Dänzer <michel@daenzer.net>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/nouveau/nouveau_bo.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/nouveau/nouveau_bo.c b/drivers/gpu/drm/nouveau/nouveau_bo.c
+index d5af089..2bb29c9 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_bo.c
++++ b/drivers/gpu/drm/nouveau/nouveau_bo.c
+@@ -940,7 +940,7 @@ nouveau_ttm_io_mem_reserve(struct ttm_bo_device *bdev, struct ttm_mem_reg *mem)
+ 		if (dev_priv->gart_info.type == NOUVEAU_GART_AGP) {
+ 			mem->bus.offset = mem->start << PAGE_SHIFT;
+ 			mem->bus.base = dev_priv->gart_info.aper_base;
+-			mem->bus.is_iomem = true;
++			mem->bus.is_iomem = !dev->agp->cant_use_aperture;
+ 		}
+ #endif
+ 		break;
+-- 
+1.8.1.2
+

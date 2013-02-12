@@ -1,0 +1,50 @@
+From bb536fd5d48953e2af2e692c618de26cb01b572b Mon Sep 17 00:00:00 2001
+From: Shuah Khan <shuah.khan@hp.com>
+Date: Wed, 12 Dec 2012 16:27:51 -0700
+Subject: [PATCH 030/171] powerpc: fix wii_memory_fixups() compile error on
+ 3.0.y tree
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Fix wii_memory_fixups() the following compile error on 3.0.y tree with
+wii_defconfig on 3.0.y tree.
+
+  CC      arch/powerpc/platforms/embedded6xx/wii.o
+arch/powerpc/platforms/embedded6xx/wii.c: In function ‘wii_memory_fixups’:
+arch/powerpc/platforms/embedded6xx/wii.c:88:2: error: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘phys_addr_t’ [-Werror=format]
+arch/powerpc/platforms/embedded6xx/wii.c:88:2: error: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘phys_addr_t’ [-Werror=format]
+arch/powerpc/platforms/embedded6xx/wii.c:90:2: error: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘phys_addr_t’ [-Werror=format]
+arch/powerpc/platforms/embedded6xx/wii.c:90:2: error: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘phys_addr_t’ [-Werror=format]
+cc1: all warnings being treated as errors
+make[2]: *** [arch/powerpc/platforms/embedded6xx/wii.o] Error 1
+make[1]: *** [arch/powerpc/platforms/embedded6xx] Error 2
+make: *** [arch/powerpc/platforms] Error 2
+
+Signed-off-by: Shuah Khan <shuah.khan@hp.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/powerpc/platforms/embedded6xx/wii.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/arch/powerpc/platforms/embedded6xx/wii.c b/arch/powerpc/platforms/embedded6xx/wii.c
+index 1b5dc1a..daf793b 100644
+--- a/arch/powerpc/platforms/embedded6xx/wii.c
++++ b/arch/powerpc/platforms/embedded6xx/wii.c
+@@ -85,9 +85,11 @@ void __init wii_memory_fixups(void)
+ 	wii_hole_start = p[0].base + p[0].size;
+ 	wii_hole_size = p[1].base - wii_hole_start;
+ 
+-	pr_info("MEM1: <%08llx %08llx>\n", p[0].base, p[0].size);
++	pr_info("MEM1: <%08llx %08llx>\n",
++		(unsigned long long) p[0].base, (unsigned long long) p[0].size);
+ 	pr_info("HOLE: <%08lx %08lx>\n", wii_hole_start, wii_hole_size);
+-	pr_info("MEM2: <%08llx %08llx>\n", p[1].base, p[1].size);
++	pr_info("MEM2: <%08llx %08llx>\n",
++		(unsigned long long) p[1].base, (unsigned long long) p[1].size);
+ 
+ 	p[0].size += wii_hole_size + p[1].size;
+ 
+-- 
+1.8.1.2
+

@@ -1,0 +1,53 @@
+From 56e98e74d86ead8d6b6e94949456a968215e7613 Mon Sep 17 00:00:00 2001
+From: Arik Nemtsov <arik@wizery.com>
+Date: Mon, 5 Nov 2012 10:27:52 +0200
+Subject: [PATCH 04/90] mac80211: sync acccess to tx_filtered/ps_tx_buf queues
+
+commit 987c285c2ae2e4e32aca3a9b3252d28171c75711 upstream.
+
+These are accessed without a lock when ending STA PSM. If the
+sta_cleanup timer accesses these lists at the same time, we might crash.
+
+This may fix some mysterious crashes we had during
+ieee80211_sta_ps_deliver_wakeup.
+
+Signed-off-by: Arik Nemtsov <arik@wizery.com>
+Signed-off-by: Ido Yariv <ido@wizery.com>
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/mac80211/sta_info.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/net/mac80211/sta_info.c b/net/mac80211/sta_info.c
+index 1fdd8ff..1c775f0 100644
+--- a/net/mac80211/sta_info.c
++++ b/net/mac80211/sta_info.c
+@@ -1129,6 +1129,7 @@ void ieee80211_sta_ps_deliver_wakeup(struct sta_info *sta)
+ 	struct ieee80211_local *local = sdata->local;
+ 	struct sk_buff_head pending;
+ 	int filtered = 0, buffered = 0, ac;
++	unsigned long flags;
+ 
+ 	clear_sta_flag(sta, WLAN_STA_SP);
+ 
+@@ -1144,12 +1145,16 @@ void ieee80211_sta_ps_deliver_wakeup(struct sta_info *sta)
+ 	for (ac = 0; ac < IEEE80211_NUM_ACS; ac++) {
+ 		int count = skb_queue_len(&pending), tmp;
+ 
++		spin_lock_irqsave(&sta->tx_filtered[ac].lock, flags);
+ 		skb_queue_splice_tail_init(&sta->tx_filtered[ac], &pending);
++		spin_unlock_irqrestore(&sta->tx_filtered[ac].lock, flags);
+ 		tmp = skb_queue_len(&pending);
+ 		filtered += tmp - count;
+ 		count = tmp;
+ 
++		spin_lock_irqsave(&sta->ps_tx_buf[ac].lock, flags);
+ 		skb_queue_splice_tail_init(&sta->ps_tx_buf[ac], &pending);
++		spin_unlock_irqrestore(&sta->ps_tx_buf[ac].lock, flags);
+ 		tmp = skb_queue_len(&pending);
+ 		buffered += tmp - count;
+ 	}
+-- 
+1.8.1.2
+

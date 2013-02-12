@@ -1,0 +1,99 @@
+From 9160a07686e8d485948df4af6b1719b885564069 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Mon, 22 Oct 2012 22:15:05 +0200
+Subject: [PATCH 043/171] usb: gadget: uvc: fix error path in
+ uvc_function_bind()
+
+commit 0f9df939385527049c8062a099fbfa1479fe7ce0 upstream.
+
+The "video->minor = -1" assigment is done in V4L2 by
+video_register_device() so it is removed here.
+Now. uvc_function_bind() calls in error case uvc_function_unbind() for
+cleanup. The problem is that uvc_function_unbind() frees the uvc struct
+and uvc_bind_config() does as well in error case of usb_add_function().
+Removing kfree() in usb_add_function() would make the patch smaller but
+it would look odd because the new allocated memory is not cleaned up.
+However it is not guaranteed that if we call usb_add_function() we also
+get to the bind function.
+Therefore the patch extracts the conditional cleanup from
+uvc_function_unbind() applies to uvc_function_bind().
+uvc_function_unbind() now contains only the complete cleanup which is
+required once everything has been registrated.
+
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Bhupesh Sharma <bhupesh.sharma@st.com>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/gadget/f_uvc.c | 39 +++++++++++++++++++++------------------
+ 1 file changed, 21 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/usb/gadget/f_uvc.c b/drivers/usb/gadget/f_uvc.c
+index 2022fe49..a0abc65 100644
+--- a/drivers/usb/gadget/f_uvc.c
++++ b/drivers/usb/gadget/f_uvc.c
+@@ -335,7 +335,6 @@ uvc_register_video(struct uvc_device *uvc)
+ 		return -ENOMEM;
+ 
+ 	video->parent = &cdev->gadget->dev;
+-	video->minor = -1;
+ 	video->fops = &uvc_v4l2_fops;
+ 	video->release = video_device_release;
+ 	strncpy(video->name, cdev->gadget->name, sizeof(video->name));
+@@ -462,23 +461,12 @@ uvc_function_unbind(struct usb_configuration *c, struct usb_function *f)
+ 
+ 	INFO(cdev, "uvc_function_unbind\n");
+ 
+-	if (uvc->vdev) {
+-		if (uvc->vdev->minor == -1)
+-			video_device_release(uvc->vdev);
+-		else
+-			video_unregister_device(uvc->vdev);
+-		uvc->vdev = NULL;
+-	}
+-
+-	if (uvc->control_ep)
+-		uvc->control_ep->driver_data = NULL;
+-	if (uvc->video.ep)
+-		uvc->video.ep->driver_data = NULL;
++	video_unregister_device(uvc->vdev);
++	uvc->control_ep->driver_data = NULL;
++	uvc->video.ep->driver_data = NULL;
+ 
+-	if (uvc->control_req) {
+-		usb_ep_free_request(cdev->gadget->ep0, uvc->control_req);
+-		kfree(uvc->control_buf);
+-	}
++	usb_ep_free_request(cdev->gadget->ep0, uvc->control_req);
++	kfree(uvc->control_buf);
+ 
+ 	kfree(f->descriptors);
+ 	kfree(f->hs_descriptors);
+@@ -563,7 +551,22 @@ uvc_function_bind(struct usb_configuration *c, struct usb_function *f)
+ 	return 0;
+ 
+ error:
+-	uvc_function_unbind(c, f);
++	if (uvc->vdev)
++		video_device_release(uvc->vdev);
++
++	if (uvc->control_ep)
++		uvc->control_ep->driver_data = NULL;
++	if (uvc->video.ep)
++		uvc->video.ep->driver_data = NULL;
++
++	if (uvc->control_req) {
++		usb_ep_free_request(cdev->gadget->ep0, uvc->control_req);
++		kfree(uvc->control_buf);
++	}
++
++	kfree(f->descriptors);
++	kfree(f->hs_descriptors);
++	kfree(f->ss_descriptors);
+ 	return ret;
+ }
+ 
+-- 
+1.8.1.2
+

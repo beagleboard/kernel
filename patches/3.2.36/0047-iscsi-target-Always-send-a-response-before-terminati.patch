@@ -1,0 +1,78 @@
+From a0c5a4ac3a60882802c45b4fd250435ea290cfe7 Mon Sep 17 00:00:00 2001
+From: Roland Dreier <roland@purestorage.com>
+Date: Mon, 5 Nov 2012 18:02:42 -0800
+Subject: [PATCH 047/171] iscsi-target: Always send a response before
+ terminating iSCSI connection
+
+commit 1c5c12c666fda27c7c494b34934a0a0631a48130 upstream.
+
+There are some cases, for example when the initiator sends an
+out-of-bounds ErrorRecoveryLevel value, where the iSCSI target
+terminates the connection without sending back any error.  Audit the
+login path and add appropriate iscsit_tx_login_rsp() calls to make
+sure this doesn't happen.
+
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/target/iscsi/iscsi_target_login.c |  8 ++++----
+ drivers/target/iscsi/iscsi_target_nego.c  | 10 ++++++++--
+ 2 files changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/target/iscsi/iscsi_target_login.c b/drivers/target/iscsi/iscsi_target_login.c
+index eb0c9fe..0df4a5f 100644
+--- a/drivers/target/iscsi/iscsi_target_login.c
++++ b/drivers/target/iscsi/iscsi_target_login.c
+@@ -130,13 +130,13 @@ int iscsi_check_for_session_reinstatement(struct iscsi_conn *conn)
+ 
+ 	initiatorname_param = iscsi_find_param_from_key(
+ 			INITIATORNAME, conn->param_list);
+-	if (!initiatorname_param)
+-		return -1;
+-
+ 	sessiontype_param = iscsi_find_param_from_key(
+ 			SESSIONTYPE, conn->param_list);
+-	if (!sessiontype_param)
++	if (!initiatorname_param || !sessiontype_param) {
++		iscsit_tx_login_rsp(conn, ISCSI_STATUS_CLS_INITIATOR_ERR,
++			ISCSI_LOGIN_STATUS_MISSING_FIELDS);
+ 		return -1;
++	}
+ 
+ 	sessiontype = (strncmp(sessiontype_param->value, NORMAL, 6)) ? 1 : 0;
+ 
+diff --git a/drivers/target/iscsi/iscsi_target_nego.c b/drivers/target/iscsi/iscsi_target_nego.c
+index 98936cb..7d85f88 100644
+--- a/drivers/target/iscsi/iscsi_target_nego.c
++++ b/drivers/target/iscsi/iscsi_target_nego.c
+@@ -632,8 +632,11 @@ static int iscsi_target_handle_csg_one(struct iscsi_conn *conn, struct iscsi_log
+ 			login->req_buf,
+ 			payload_length,
+ 			conn->param_list);
+-	if (ret < 0)
++	if (ret < 0) {
++		iscsit_tx_login_rsp(conn, ISCSI_STATUS_CLS_INITIATOR_ERR,
++				ISCSI_LOGIN_STATUS_INIT_ERR);
+ 		return -1;
++	}
+ 
+ 	if (login->first_request)
+ 		if (iscsi_target_check_first_request(conn, login) < 0)
+@@ -648,8 +651,11 @@ static int iscsi_target_handle_csg_one(struct iscsi_conn *conn, struct iscsi_log
+ 			login->rsp_buf,
+ 			&login->rsp_length,
+ 			conn->param_list);
+-	if (ret < 0)
++	if (ret < 0) {
++		iscsit_tx_login_rsp(conn, ISCSI_STATUS_CLS_INITIATOR_ERR,
++				ISCSI_LOGIN_STATUS_INIT_ERR);
+ 		return -1;
++	}
+ 
+ 	if (!login->auth_complete &&
+ 	     ISCSI_TPG_ATTRIB(ISCSI_TPG_C(conn))->authentication) {
+-- 
+1.8.1.2
+

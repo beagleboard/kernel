@@ -1,0 +1,32 @@
+From fab610b281a8d5f87d2aecb4be708e79e686f638 Mon Sep 17 00:00:00 2001
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Date: Mon, 5 Nov 2012 22:26:40 +0300
+Subject: [PATCH 045/171] usb: musb: cppi_dma: export cppi_interrupt()
+
+commit 8b416b0b25d5d8ddb3a91c1d20e1373582c50405 upstream.
+
+Now that DaVinci glue layer can be modular, we must export cppi_interrupt()
+that it may call...
+
+Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/musb/cppi_dma.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/usb/musb/cppi_dma.c b/drivers/usb/musb/cppi_dma.c
+index 94db2e9..dd3c6ed 100644
+--- a/drivers/usb/musb/cppi_dma.c
++++ b/drivers/usb/musb/cppi_dma.c
+@@ -1315,6 +1315,7 @@ irqreturn_t cppi_interrupt(int irq, void *dev_id)
+ 
+ 	return IRQ_HANDLED;
+ }
++EXPORT_SYMBOL_GPL(cppi_interrupt);
+ 
+ /* Instantiate a software object representing a DMA controller. */
+ struct dma_controller *__devinit
+-- 
+1.8.1.2
+

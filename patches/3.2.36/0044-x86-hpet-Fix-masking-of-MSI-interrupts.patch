@@ -1,0 +1,44 @@
+From dea196413b724e6fafb2e2a5a5f1dcd69f9449d4 Mon Sep 17 00:00:00 2001
+From: Jan Beulich <JBeulich@suse.com>
+Date: Fri, 2 Nov 2012 14:02:40 +0000
+Subject: [PATCH 044/171] x86: hpet: Fix masking of MSI interrupts
+
+commit 6acf5a8c931da9d26c8dd77d784daaf07fa2bff0 upstream.
+
+HPET_TN_FSB is not a proper mask bit; it merely toggles between MSI and
+legacy interrupt delivery. The proper mask bit is HPET_TN_ENABLE, so
+use both bits when (un)masking the interrupt.
+
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
+Link: http://lkml.kernel.org/r/5093E09002000078000A60E6@nat28.tlf.novell.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kernel/hpet.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/x86/kernel/hpet.c b/arch/x86/kernel/hpet.c
+index 1bb0bf4..4970ef0 100644
+--- a/arch/x86/kernel/hpet.c
++++ b/arch/x86/kernel/hpet.c
+@@ -429,7 +429,7 @@ void hpet_msi_unmask(struct irq_data *data)
+ 
+ 	/* unmask it */
+ 	cfg = hpet_readl(HPET_Tn_CFG(hdev->num));
+-	cfg |= HPET_TN_FSB;
++	cfg |= HPET_TN_ENABLE | HPET_TN_FSB;
+ 	hpet_writel(cfg, HPET_Tn_CFG(hdev->num));
+ }
+ 
+@@ -440,7 +440,7 @@ void hpet_msi_mask(struct irq_data *data)
+ 
+ 	/* mask it */
+ 	cfg = hpet_readl(HPET_Tn_CFG(hdev->num));
+-	cfg &= ~HPET_TN_FSB;
++	cfg &= ~(HPET_TN_ENABLE | HPET_TN_FSB);
+ 	hpet_writel(cfg, HPET_Tn_CFG(hdev->num));
+ }
+ 
+-- 
+1.8.1.2
+

@@ -1,0 +1,50 @@
+From 7ce41586e52584b663665e2676f7742448993c9f Mon Sep 17 00:00:00 2001
+From: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
+Date: Fri, 14 Dec 2012 10:38:02 -0200
+Subject: [PATCH 147/171] USB: cdc-wdm: fix regression on buffer deallocation
+
+[ no commit upstream, since usb_alloc_coherent usage was removed from
+  the driver before this was fixed ]
+
+Commit cafbe85 ("USB: cdc-wdm: better allocate a buffer that is at least
+as big as we tell the USB core") introduced a regression: it changed
+the size used in usb_alloc_coherent, but failed to do the same for the
+usb_free_coherent calls.
+
+It also was marked for stable and got backported to older kernels. But
+in the upstream kernel, the usage of usb_alloc_coherent was right after
+removed from the driver, so upstream doesn't have this problem, while
+the stable kernels still have, and thus need this fix.
+
+BugLink: https://bugs.launchpad.net/bugs/1074157
+Signed-off-by: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/class/cdc-wdm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/class/cdc-wdm.c b/drivers/usb/class/cdc-wdm.c
+index 9aaed0d..97b2c55 100644
+--- a/drivers/usb/class/cdc-wdm.c
++++ b/drivers/usb/class/cdc-wdm.c
+@@ -301,7 +301,7 @@ static void cleanup(struct wdm_device *desc)
+ 			  desc->sbuf,
+ 			  desc->validity->transfer_dma);
+ 	usb_free_coherent(interface_to_usbdev(desc->intf),
+-			  desc->bMaxPacketSize0,
++			  desc->wMaxCommand,
+ 			  desc->inbuf,
+ 			  desc->response->transfer_dma);
+ 	kfree(desc->orq);
+@@ -788,7 +788,7 @@ out:
+ err3:
+ 	usb_set_intfdata(intf, NULL);
+ 	usb_free_coherent(interface_to_usbdev(desc->intf),
+-			  desc->bMaxPacketSize0,
++			  desc->wMaxCommand,
+ 			desc->inbuf,
+ 			desc->response->transfer_dma);
+ err2:
+-- 
+1.8.1.2
+

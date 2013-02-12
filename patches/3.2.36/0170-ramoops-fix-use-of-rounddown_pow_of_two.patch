@@ -1,0 +1,38 @@
+From 12e02439b4853c6a4b6fb96a5bc910b0f8005326 Mon Sep 17 00:00:00 2001
+From: Marco Stornelli <marco.stornelli@gmail.com>
+Date: Thu, 12 Jan 2012 17:20:58 -0800
+Subject: [PATCH 170/171] ramoops: fix use of rounddown_pow_of_two()
+
+commit fdb5950754eb3dedb9fea7c8828d3e51d9dbc3f7 upstream.
+
+The return value of rounddown_pow_of_two wasn't evaluated, so the
+operation was a no-op.
+
+Signed-off-by: Marco Stornelli <marco.stornelli@gmail.com>
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/char/ramoops.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/char/ramoops.c b/drivers/char/ramoops.c
+index 7c7f42a1f8..9658116 100644
+--- a/drivers/char/ramoops.c
++++ b/drivers/char/ramoops.c
+@@ -126,8 +126,8 @@ static int __init ramoops_probe(struct platform_device *pdev)
+ 		goto fail3;
+ 	}
+ 
+-	rounddown_pow_of_two(pdata->mem_size);
+-	rounddown_pow_of_two(pdata->record_size);
++	pdata->mem_size = rounddown_pow_of_two(pdata->mem_size);
++	pdata->record_size = rounddown_pow_of_two(pdata->record_size);
+ 
+ 	/* Check for the minimum memory size */
+ 	if (pdata->mem_size < MIN_MEM_SIZE &&
+-- 
+1.8.1.2
+

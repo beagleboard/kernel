@@ -1,0 +1,47 @@
+From 6afc3fcafc1372971e1cbdecbec07237ffeee5fa Mon Sep 17 00:00:00 2001
+From: NeilBrown <neilb@suse.de>
+Date: Thu, 13 Dec 2012 15:14:36 +1100
+Subject: [PATCH 125/171] NFS: avoid NULL dereference in nfs_destroy_server
+
+commit f259613a1e4b44a0cf85a5dafd931be96ee7c9e5 upstream.
+
+In rare circumstances, nfs_clone_server() of a v2 or v3 server can get
+an error between setting server->destory (to nfs_destroy_server), and
+calling nfs_start_lockd (which will set server->nlm_host).
+
+If this happens, nfs_clone_server will call nfs_free_server which
+will call nfs_destroy_server and thence nlmclnt_done(NULL).  This
+causes the NULL to be dereferenced.
+
+So add a guard to only call nlmclnt_done() if ->nlm_host is not NULL.
+
+The other guards there are irrelevant as nlm_host can only be non-NULL
+if one of these flags are set - so remove those tests.  (Thanks to Trond
+for this suggestion).
+
+This is suitable for any stable kernel since 2.6.25.
+
+Signed-off-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/client.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/fs/nfs/client.c b/fs/nfs/client.c
+index 873bf00..d03a400 100644
+--- a/fs/nfs/client.c
++++ b/fs/nfs/client.c
+@@ -672,8 +672,7 @@ static int nfs_create_rpc_client(struct nfs_client *clp,
+  */
+ static void nfs_destroy_server(struct nfs_server *server)
+ {
+-	if (!(server->flags & NFS_MOUNT_LOCAL_FLOCK) ||
+-			!(server->flags & NFS_MOUNT_LOCAL_FCNTL))
++	if (server->nlm_host)
+ 		nlmclnt_done(server->nlm_host);
+ }
+ 
+-- 
+1.8.1.2
+

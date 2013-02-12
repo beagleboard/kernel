@@ -1,0 +1,34 @@
+From 76377bf9353f8a7a0522377ec1f5dc4a446acf20 Mon Sep 17 00:00:00 2001
+From: Alex Deucher <alexander.deucher@amd.com>
+Date: Tue, 4 Dec 2012 16:50:28 -0500
+Subject: [PATCH 110/171] drm/radeon: fix eDP clk and lane setup for scaled
+ modes
+
+commit 93927f9c1db5f55085457e820f0631064c7bfa34 upstream.
+
+Need to use the adjusted mode since we are sending native
+timing and using the scaler for non-native modes.
+
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+Reviewed-by: Jerome Glisse <jglisse@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/atombios_encoders.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/radeon/atombios_encoders.c b/drivers/gpu/drm/radeon/atombios_encoders.c
+index aca4755..f0dc04b 100644
+--- a/drivers/gpu/drm/radeon/atombios_encoders.c
++++ b/drivers/gpu/drm/radeon/atombios_encoders.c
+@@ -111,7 +111,7 @@ static bool radeon_atom_mode_fixup(struct drm_encoder *encoder,
+ 	    ((radeon_encoder->active_device & (ATOM_DEVICE_DFP_SUPPORT | ATOM_DEVICE_LCD_SUPPORT)) ||
+ 	     (radeon_encoder_get_dp_bridge_encoder_id(encoder) != ENCODER_OBJECT_ID_NONE))) {
+ 		struct drm_connector *connector = radeon_get_connector_for_encoder(encoder);
+-		radeon_dp_set_link_config(connector, mode);
++		radeon_dp_set_link_config(connector, adjusted_mode);
+ 	}
+ 
+ 	return true;
+-- 
+1.8.1.2
+

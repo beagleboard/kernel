@@ -1,0 +1,38 @@
+From 614487ee97aec918f44b9e60ecac9d31d5a19cc4 Mon Sep 17 00:00:00 2001
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Date: Thu, 18 Oct 2012 21:07:01 +0100
+Subject: [PATCH 009/171] drm/i915: Add no-lvds quirk for Supermicro X7SPA-H
+
+commit c31407a3672aaebb4acddf90944a114fa5c8af7b upstream.
+
+Reported-and-tested-by: Francois Tigeot <ftigeot@wolfpond.org>
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=55375
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_lvds.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
+index 3c18d00..cf5ea3d 100644
+--- a/drivers/gpu/drm/i915/intel_lvds.c
++++ b/drivers/gpu/drm/i915/intel_lvds.c
+@@ -787,6 +787,14 @@ static const struct dmi_system_id intel_no_lvds[] = {
+ 			DMI_MATCH(DMI_BOARD_NAME, "D525TUD"),
+ 		},
+ 	},
++	{
++		.callback = intel_no_lvds_dmi_callback,
++		.ident = "Supermicro X7SPA-H",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Supermicro"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "X7SPA-H"),
++		},
++	},
+ 
+ 	{ }	/* terminating entry */
+ };
+-- 
+1.8.1.2
+

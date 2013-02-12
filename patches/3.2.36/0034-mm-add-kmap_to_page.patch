@@ -1,0 +1,68 @@
+From ae6742649b4e3854faff625631bbee343b5e85fa Mon Sep 17 00:00:00 2001
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Tue, 31 Jul 2012 16:45:02 -0700
+Subject: [PATCH 034/171] mm: add kmap_to_page()
+
+This is extracted from Mel Gorman's commit 5a178119b0fb ('mm: add
+support for direct_IO to highmem pages') upstream.
+
+Required to backport commit b9cdc88df8e6 ('virtio: 9p: correctly pass
+physical address to userspace for high pages').
+
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ include/linux/highmem.h |  7 +++++++
+ mm/highmem.c            | 12 ++++++++++++
+ 2 files changed, 19 insertions(+)
+
+diff --git a/include/linux/highmem.h b/include/linux/highmem.h
+index 3a93f73..52e9620 100644
+--- a/include/linux/highmem.h
++++ b/include/linux/highmem.h
+@@ -38,10 +38,17 @@ extern unsigned long totalhigh_pages;
+ 
+ void kmap_flush_unused(void);
+ 
++struct page *kmap_to_page(void *addr);
++
+ #else /* CONFIG_HIGHMEM */
+ 
+ static inline unsigned int nr_free_highpages(void) { return 0; }
+ 
++static inline struct page *kmap_to_page(void *addr)
++{
++	return virt_to_page(addr);
++}
++
+ #define totalhigh_pages 0UL
+ 
+ #ifndef ARCH_HAS_KMAP
+diff --git a/mm/highmem.c b/mm/highmem.c
+index 57d82c6..d517cd1 100644
+--- a/mm/highmem.c
++++ b/mm/highmem.c
+@@ -94,6 +94,18 @@ static DECLARE_WAIT_QUEUE_HEAD(pkmap_map_wait);
+ 		do { spin_unlock(&kmap_lock); (void)(flags); } while (0)
+ #endif
+ 
++struct page *kmap_to_page(void *vaddr)
++{
++	unsigned long addr = (unsigned long)vaddr;
++
++	if (addr >= PKMAP_ADDR(0) && addr <= PKMAP_ADDR(LAST_PKMAP)) {
++		int i = (addr - PKMAP_ADDR(0)) >> PAGE_SHIFT;
++		return pte_page(pkmap_page_table[i]);
++	}
++
++	return virt_to_page(addr);
++}
++
+ static void flush_all_zero_pkmaps(void)
+ {
+ 	int i;
+-- 
+1.8.1.2
+

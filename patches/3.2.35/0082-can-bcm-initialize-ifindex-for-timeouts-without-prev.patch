@@ -1,0 +1,38 @@
+From a562df266f2ec6a6bd5481c619d8754f7318023c Mon Sep 17 00:00:00 2001
+From: Oliver Hartkopp <socketcan@hartkopp.net>
+Date: Mon, 26 Nov 2012 22:24:23 +0100
+Subject: [PATCH 82/90] can: bcm: initialize ifindex for timeouts without
+ previous frame reception
+
+commit 81b401100c01d2357031e874689f89bd788d13cd upstream.
+
+Set in the rx_ifindex to pass the correct interface index in the case of a
+message timeout detection. Usually the rx_ifindex value is set at receive
+time. But when no CAN frame has been received the RX_TIMEOUT notification
+did not contain a valid value.
+
+Reported-by: Andre Naujoks <nautsch2@googlemail.com>
+Signed-off-by: Oliver Hartkopp <socketcan@hartkopp.net>
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/can/bcm.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/net/can/bcm.c b/net/can/bcm.c
+index 151b773..3910c1f 100644
+--- a/net/can/bcm.c
++++ b/net/can/bcm.c
+@@ -1084,6 +1084,9 @@ static int bcm_rx_setup(struct bcm_msg_head *msg_head, struct msghdr *msg,
+ 		op->sk = sk;
+ 		op->ifindex = ifindex;
+ 
++		/* ifindex for timeout events w/o previous frame reception */
++		op->rx_ifindex = ifindex;
++
+ 		/* initialize uninitialized (kzalloc) structure */
+ 		hrtimer_init(&op->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+ 		op->timer.function = bcm_rx_timeout_handler;
+-- 
+1.8.1.2
+

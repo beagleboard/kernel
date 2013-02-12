@@ -1,0 +1,41 @@
+From 28e28587b0b85d2e888ba4f2141e3609b2b32fb8 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Date: Sun, 16 Dec 2012 00:25:57 +0000
+Subject: [PATCH 138/171] ARM: missing ->mmap_sem around find_vma() in
+ swp_emulate.c
+
+commit 7bf9b7bef881aac820bf1f2e9951a17b09bd7e04 upstream.
+
+find_vma() is *not* safe when somebody else is removing vmas.  Not just
+the return value might get bogus just as you are getting it (this instance
+doesn't try to dereference the resulting vma), the search itself can get
+buggered in rather spectacular ways.  IOW, ->mmap_sem really, really is
+not optional here.
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/arm/kernel/swp_emulate.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/kernel/swp_emulate.c b/arch/arm/kernel/swp_emulate.c
+index 5f452f8..5d9b1ee 100644
+--- a/arch/arm/kernel/swp_emulate.c
++++ b/arch/arm/kernel/swp_emulate.c
+@@ -108,10 +108,12 @@ static void set_segfault(struct pt_regs *regs, unsigned long addr)
+ {
+ 	siginfo_t info;
+ 
++	down_read(&current->mm->mmap_sem);
+ 	if (find_vma(current->mm, addr) == NULL)
+ 		info.si_code = SEGV_MAPERR;
+ 	else
+ 		info.si_code = SEGV_ACCERR;
++	up_read(&current->mm->mmap_sem);
+ 
+ 	info.si_signo = SIGSEGV;
+ 	info.si_errno = 0;
+-- 
+1.8.1.2
+

@@ -1,0 +1,43 @@
+From 45d214e0a6d67881cc9567e9966c89052eb9db5c Mon Sep 17 00:00:00 2001
+From: majianpeng <majianpeng@gmail.com>
+Date: Thu, 8 Nov 2012 08:56:27 +0800
+Subject: [PATCH 66/90] md: Avoid write invalid address if read_seqretry
+ returned true.
+
+commit 35f9ac2dcec8f79d7059ce174fd7b7ee3290d620 upstream.
+
+If read_seqretry returned true and bbp was changed, it will write
+invalid address which can cause some serious problem.
+
+This bug was introduced by commit v3.0-rc7-130-g2699b67.
+So fix is suitable for 3.0.y thru 3.6.y.
+
+Reported-by: zhuwenfeng@kedacom.com
+Tested-by: zhuwenfeng@kedacom.com
+Signed-off-by: Jianpeng Ma <majianpeng@gmail.com>
+Signed-off-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/md/md.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/md/md.c b/drivers/md/md.c
+index b4ce891..145e378e 100644
+--- a/drivers/md/md.c
++++ b/drivers/md/md.c
+@@ -1801,10 +1801,10 @@ retry:
+ 			memset(bbp, 0xff, PAGE_SIZE);
+ 
+ 			for (i = 0 ; i < bb->count ; i++) {
+-				u64 internal_bb = *p++;
++				u64 internal_bb = p[i];
+ 				u64 store_bb = ((BB_OFFSET(internal_bb) << 10)
+ 						| BB_LEN(internal_bb));
+-				*bbp++ = cpu_to_le64(store_bb);
++				bbp[i] = cpu_to_le64(store_bb);
+ 			}
+ 			bb->changed = 0;
+ 			if (read_seqretry(&bb->lock, seq))
+-- 
+1.8.1.2
+

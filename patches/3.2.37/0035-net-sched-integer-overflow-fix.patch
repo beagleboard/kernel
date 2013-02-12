@@ -1,0 +1,33 @@
+From be5c5190129c4f861c61f39a2077c4dbe4855574 Mon Sep 17 00:00:00 2001
+From: Stefan Hasko <hasko.stevo@gmail.com>
+Date: Fri, 21 Dec 2012 15:04:59 +0000
+Subject: [PATCH 35/46] net: sched: integer overflow fix
+
+[ Upstream commit d2fe85da52e89b8012ffad010ef352a964725d5f ]
+
+Fixed integer overflow in function htb_dequeue
+
+Signed-off-by: Stefan Hasko <hasko.stevo@gmail.com>
+Acked-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/sched/sch_htb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/sched/sch_htb.c b/net/sched/sch_htb.c
+index 29b942c..f08b9166 100644
+--- a/net/sched/sch_htb.c
++++ b/net/sched/sch_htb.c
+@@ -876,7 +876,7 @@ ok:
+ 	q->now = psched_get_time();
+ 	start_at = jiffies;
+ 
+-	next_event = q->now + 5 * PSCHED_TICKS_PER_SEC;
++	next_event = q->now + 5LLU * PSCHED_TICKS_PER_SEC;
+ 
+ 	for (level = 0; level < TC_HTB_MAXDEPTH; level++) {
+ 		/* common case optimization - skip event handler quickly */
+-- 
+1.8.1.2
+

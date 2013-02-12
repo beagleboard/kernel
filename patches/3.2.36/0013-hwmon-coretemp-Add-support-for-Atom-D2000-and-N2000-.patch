@@ -1,0 +1,61 @@
+From 975f0dd4eb69704ca0c4586ca3daf8bc15b4bbbc Mon Sep 17 00:00:00 2001
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 17 Jun 2012 18:05:05 +0200
+Subject: [PATCH 013/171] hwmon: (coretemp) Add support for Atom D2000 and
+ N2000 series CPU models
+
+commit 5592906f8b01282ea3c2acaf641fd067ad4bb3dc upstream.
+
+Document the Atom series D2000 and N2000 (Cedar Trail) as being supported.
+List and set TjMax for those series.
+
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: "R, Durgadoss" <durgadoss.r@intel.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ Documentation/hwmon/coretemp | 5 ++++-
+ drivers/hwmon/coretemp.c     | 3 +++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
+index f6aed440..71d83d2 100644
+--- a/Documentation/hwmon/coretemp
++++ b/Documentation/hwmon/coretemp
+@@ -7,7 +7,8 @@ Supported chips:
+     CPUID: family 0x6, models 0xe (Pentium M DC), 0xf (Core 2 DC 65nm),
+                               0x16 (Core 2 SC 65nm), 0x17 (Penryn 45nm),
+                               0x1a (Nehalem), 0x1c (Atom), 0x1e (Lynnfield),
+-                              0x26 (Tunnel Creek Atom), 0x27 (Medfield Atom)
++                              0x26 (Tunnel Creek Atom), 0x27 (Medfield Atom),
++                              0x36 (Cedar Trail Atom)
+     Datasheet: Intel 64 and IA-32 Architectures Software Developer's Manual
+                Volume 3A: System Programming Guide
+                http://softwarecommunity.intel.com/Wiki/Mobility/720.htm
+@@ -68,6 +69,8 @@ Process		Processor					TjMax(C)
+ 
+ 32nm		Atom Processors
+ 		Z2460						90
++		D2700/2550/2500					100
++		N2850/2800/2650/2600				100
+ 
+ 45nm		Xeon Processors 5400 Quad-Core
+ 		X5492, X5482, X5472, X5470, X5460, X5450	85
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 9325d32..7750fd4 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -222,6 +222,9 @@ static int adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
+ 			tjmax = 90000;
+ 
+ 		pci_dev_put(host_bridge);
++	} else if (c->x86_model == 0x36) {
++		usemsr_ee = 0;
++		tjmax = 100000;
+ 	}
+ 
+ 	if (c->x86_model > 0xe && usemsr_ee) {
+-- 
+1.8.1.2
+

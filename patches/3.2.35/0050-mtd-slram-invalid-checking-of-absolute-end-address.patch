@@ -1,0 +1,32 @@
+From e80b9ac3b7c5677b6fe399bfce1276c67af3a09c Mon Sep 17 00:00:00 2001
+From: Jiri Engelthaler <engycz@gmail.com>
+Date: Thu, 20 Sep 2012 16:49:50 +0200
+Subject: [PATCH 50/90] mtd: slram: invalid checking of absolute end address
+
+commit c36a7ff4578ab6294885aef5ef241aeec4cdb1f0 upstream.
+
+Fixed parsing end absolute address.
+
+Signed-off-by: Jiri Engelthaler <engycz@gmail.com>
+Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/mtd/devices/slram.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/mtd/devices/slram.c b/drivers/mtd/devices/slram.c
+index e585263..f38c348 100644
+--- a/drivers/mtd/devices/slram.c
++++ b/drivers/mtd/devices/slram.c
+@@ -266,7 +266,7 @@ static int parse_cmdline(char *devname, char *szstart, char *szlength)
+ 
+ 	if (*(szlength) != '+') {
+ 		devlength = simple_strtoul(szlength, &buffer, 0);
+-		devlength = handle_unit(devlength, buffer) - devstart;
++		devlength = handle_unit(devlength, buffer);
+ 		if (devlength < devstart)
+ 			goto err_out;
+ 
+-- 
+1.8.1.2
+

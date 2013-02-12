@@ -1,0 +1,49 @@
+From 3758014cbd55fe98f6d29e845048669f95d393ee Mon Sep 17 00:00:00 2001
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Date: Fri, 2 Nov 2012 12:30:53 +0000
+Subject: [PATCH 54/90] fix virtual aliasing issue in get_shared_area()
+
+commit 949a05d03490e39e773e8652ccab9157e6f595b4 upstream.
+
+On Thu, 2012-11-01 at 16:45 -0700, Michel Lespinasse wrote:
+> Looking at the arch/parisc/kernel/sys_parisc.c implementation of
+> get_shared_area(), I do have a concern though. The function basically
+> ignores the pgoff argument, so that if one creates a shared mapping of
+> pages 0-N of a file, and then a separate shared mapping of pages 1-N
+> of that same file, both will have the same cache offset for their
+> starting address.
+>
+> This looks like this would create obvious aliasing issues. Am I
+> misreading this ? I can't understand how this could work good enough
+> to be undetected, so there must be something I'm missing here ???
+
+This turns out to be correct and we need to pay attention to the pgoff as
+well as the address when creating the virtual address for the area.
+Fortunately, the bug is rarely triggered as most applications which use pgoff
+tend to use large values (git being the primary one, and it uses pgoff in
+multiples of 16MB) which are larger than our cache coherency modulus, so the
+problem isn't often seen in practise.
+
+Reported-by: Michel Lespinasse <walken@google.com>
+Signed-off-by: James Bottomley <JBottomley@Parallels.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/parisc/kernel/sys_parisc.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/parisc/kernel/sys_parisc.c b/arch/parisc/kernel/sys_parisc.c
+index c9b9322..7ea75d1 100644
+--- a/arch/parisc/kernel/sys_parisc.c
++++ b/arch/parisc/kernel/sys_parisc.c
+@@ -73,6 +73,8 @@ static unsigned long get_shared_area(struct address_space *mapping,
+ 	struct vm_area_struct *vma;
+ 	int offset = mapping ? get_offset(mapping) : 0;
+ 
++	offset = (offset + (pgoff << PAGE_SHIFT)) & 0x3FF000;
++
+ 	addr = DCACHE_ALIGN(addr - offset) + offset;
+ 
+ 	for (vma = find_vma(current->mm, addr); ; vma = vma->vm_next) {
+-- 
+1.8.1.2
+

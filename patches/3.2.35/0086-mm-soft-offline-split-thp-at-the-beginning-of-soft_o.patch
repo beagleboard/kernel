@@ -1,0 +1,50 @@
+From 3ef79cabd34d66cfa80faea77073730cb37230ed Mon Sep 17 00:00:00 2001
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Date: Thu, 29 Nov 2012 13:54:34 -0800
+Subject: [PATCH 86/90] mm: soft offline: split thp at the beginning of
+ soft_offline_page()
+
+commit 783657a7dc20e5c0efbc9a09a9dd38e238a723da upstream.
+
+When we try to soft-offline a thp tail page, put_page() is called on the
+tail page unthinkingly and VM_BUG_ON is triggered in put_compound_page().
+
+This patch splits thp before going into the main body of soft-offlining.
+
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/memory-failure.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 5bd5bb1..1b03878 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -1475,9 +1475,17 @@ int soft_offline_page(struct page *page, int flags)
+ {
+ 	int ret;
+ 	unsigned long pfn = page_to_pfn(page);
++	struct page *hpage = compound_trans_head(page);
+ 
+ 	if (PageHuge(page))
+ 		return soft_offline_huge_page(page, flags);
++	if (PageTransHuge(hpage)) {
++		if (PageAnon(hpage) && unlikely(split_huge_page(hpage))) {
++			pr_info("soft offline: %#lx: failed to split THP\n",
++				pfn);
++			return -EBUSY;
++		}
++	}
+ 
+ 	ret = get_any_page(page, pfn, flags);
+ 	if (ret < 0)
+-- 
+1.8.1.2
+

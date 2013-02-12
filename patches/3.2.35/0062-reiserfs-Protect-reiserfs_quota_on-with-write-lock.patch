@@ -1,0 +1,52 @@
+From 40eb32f4c3623fa385683afd6846a1bbc04eddca Mon Sep 17 00:00:00 2001
+From: Jan Kara <jack@suse.cz>
+Date: Tue, 13 Nov 2012 16:34:17 +0100
+Subject: [PATCH 62/90] reiserfs: Protect reiserfs_quota_on() with write lock
+
+commit b9e06ef2e8706fe669b51f4364e3aeed58639eb2 upstream.
+
+In reiserfs_quota_on() we do quite some work - for example unpacking
+tail of a quota file. Thus we have to hold write lock until a moment
+we call back into the quota code.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+[bwh: Backported to 3.2: there is no distinction between USRQUOTA and
+ GRPQUOTA mount options here]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/reiserfs/super.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/fs/reiserfs/super.c b/fs/reiserfs/super.c
+index ea5ffc6..963b40a 100644
+--- a/fs/reiserfs/super.c
++++ b/fs/reiserfs/super.c
+@@ -2073,8 +2073,11 @@ static int reiserfs_quota_on(struct super_block *sb, int type, int format_id,
+ 	struct inode *inode;
+ 	struct reiserfs_transaction_handle th;
+ 
+-	if (!(REISERFS_SB(sb)->s_mount_opt & (1 << REISERFS_QUOTA)))
+-		return -EINVAL;
++	reiserfs_write_lock(sb);
++	if (!(REISERFS_SB(sb)->s_mount_opt & (1 << REISERFS_QUOTA))) {
++		err = -EINVAL;
++		goto out;
++	}
+ 
+ 	/* Quotafile not on the same filesystem? */
+ 	if (path->mnt->mnt_sb != sb) {
+@@ -2116,8 +2119,10 @@ static int reiserfs_quota_on(struct super_block *sb, int type, int format_id,
+ 		if (err)
+ 			goto out;
+ 	}
+-	err = dquot_quota_on(sb, type, format_id, path);
++	reiserfs_write_unlock(sb);
++	return dquot_quota_on(sb, type, format_id, path);
+ out:
++	reiserfs_write_unlock(sb);
+ 	return err;
+ }
+ 
+-- 
+1.8.1.2
+

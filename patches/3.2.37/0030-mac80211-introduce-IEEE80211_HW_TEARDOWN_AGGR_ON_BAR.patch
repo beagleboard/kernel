@@ -1,0 +1,80 @@
+From 0c702683f1910ce69439f952517b38a1bd50a47f Mon Sep 17 00:00:00 2001
+From: Stanislaw Gruszka <sgruszka@redhat.com>
+Date: Mon, 3 Dec 2012 12:56:33 +0100
+Subject: [PATCH 30/46] mac80211: introduce
+ IEEE80211_HW_TEARDOWN_AGGR_ON_BAR_FAIL
+
+commit 5b632fe85ec82e5c43740b52e74c66df50a37db3 upstream.
+
+Commit f0425beda4d404a6e751439b562100b902ba9c98 "mac80211: retry sending
+failed BAR frames later instead of tearing down aggr" caused regression
+on rt2x00 hardware (connection hangs). This regression was fixed by
+commit be03d4a45c09ee5100d3aaaedd087f19bc20d01 "rt2x00: Don't let
+mac80211 send a BAR when an AMPDU subframe fails". But the latter
+commit caused yet another problem reported in
+https://bugzilla.kernel.org/show_bug.cgi?id=42828#c22
+
+After long discussion in this thread:
+http://mid.gmane.org/20121018075615.GA18212@redhat.com
+and testing various alternative solutions, which failed on one or other
+setup, we have no other good fix for the issues like just revert both
+mentioned earlier commits.
+
+To do not affect other hardware which benefit from commit
+f0425beda4d404a6e751439b562100b902ba9c98, instead of reverting it,
+introduce flag that when used will restore mac80211 behaviour before
+the commit.
+
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+[replaced link with mid.gmane.org that has message-id]
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ include/net/mac80211.h | 5 +++++
+ net/mac80211/status.c  | 6 +++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/include/net/mac80211.h b/include/net/mac80211.h
+index 72eddd1..1a6201a 100644
+--- a/include/net/mac80211.h
++++ b/include/net/mac80211.h
+@@ -1128,6 +1128,10 @@ enum sta_notify_cmd {
+  * @IEEE80211_HW_TX_AMPDU_SETUP_IN_HW: The device handles TX A-MPDU session
+  *	setup strictly in HW. mac80211 should not attempt to do this in
+  *	software.
++ *
++ * @IEEE80211_HW_TEARDOWN_AGGR_ON_BAR_FAIL: On this hardware TX BA session
++ *	should be tear down once BAR frame will not be acked.
++ *
+  */
+ enum ieee80211_hw_flags {
+ 	IEEE80211_HW_HAS_RATE_CONTROL			= 1<<0,
+@@ -1154,6 +1158,7 @@ enum ieee80211_hw_flags {
+ 	IEEE80211_HW_SUPPORTS_PER_STA_GTK		= 1<<21,
+ 	IEEE80211_HW_AP_LINK_PS				= 1<<22,
+ 	IEEE80211_HW_TX_AMPDU_SETUP_IN_HW		= 1<<23,
++	IEEE80211_HW_TEARDOWN_AGGR_ON_BAR_FAIL		= 1<<26,
+ };
+ 
+ /**
+diff --git a/net/mac80211/status.c b/net/mac80211/status.c
+index 16518f3..67df50e 100644
+--- a/net/mac80211/status.c
++++ b/net/mac80211/status.c
+@@ -429,7 +429,11 @@ void ieee80211_tx_status(struct ieee80211_hw *hw, struct sk_buff *skb)
+ 				       IEEE80211_BAR_CTRL_TID_INFO_MASK) >>
+ 				      IEEE80211_BAR_CTRL_TID_INFO_SHIFT;
+ 
+-				ieee80211_set_bar_pending(sta, tid, ssn);
++				if (local->hw.flags &
++				    IEEE80211_HW_TEARDOWN_AGGR_ON_BAR_FAIL)
++					ieee80211_stop_tx_ba_session(&sta->sta, tid);
++				else
++					ieee80211_set_bar_pending(sta, tid, ssn);
+ 			}
+ 		}
+ 
+-- 
+1.8.1.2
+

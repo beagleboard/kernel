@@ -1,0 +1,46 @@
+From 7efb9d5c6bae986d29ac78ed5e2db7c48a00d049 Mon Sep 17 00:00:00 2001
+From: Jay Purohit <jspurohit@velocitylimitless.com>
+Date: Sun, 14 Oct 2012 07:07:21 +0000
+Subject: [PATCH 155/171] usb/ipheth: Add iPhone 5 support
+
+[ Upstream commit af1b85e49089f945deb46258b0fc4bc9910afb22 ]
+
+I noticed that the iPhone ethernet driver did not support
+iPhone 5. I quickly added support to it in my kernel, here's
+a patch.
+
+Signed-off-by: Jay Purohit <jspurohit@velocitylimitless.com>
+Acked-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Signed-off-by: Jan Ceuleers <jan.ceuleers@computer.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/usb/ipheth.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/net/usb/ipheth.c b/drivers/net/usb/ipheth.c
+index 00ed9c1..ac53952 100644
+--- a/drivers/net/usb/ipheth.c
++++ b/drivers/net/usb/ipheth.c
+@@ -62,6 +62,7 @@
+ #define USB_PRODUCT_IPAD 0x129a
+ #define USB_PRODUCT_IPHONE_4_VZW 0x129c
+ #define USB_PRODUCT_IPHONE_4S	0x12a0
++#define USB_PRODUCT_IPHONE_5	0x12a8
+ 
+ #define IPHETH_USBINTF_CLASS    255
+ #define IPHETH_USBINTF_SUBCLASS 253
+@@ -113,6 +114,10 @@ static struct usb_device_id ipheth_table[] = {
+ 		USB_VENDOR_APPLE, USB_PRODUCT_IPHONE_4S,
+ 		IPHETH_USBINTF_CLASS, IPHETH_USBINTF_SUBCLASS,
+ 		IPHETH_USBINTF_PROTO) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(
++		USB_VENDOR_APPLE, USB_PRODUCT_IPHONE_5,
++		IPHETH_USBINTF_CLASS, IPHETH_USBINTF_SUBCLASS,
++		IPHETH_USBINTF_PROTO) },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(usb, ipheth_table);
+-- 
+1.8.1.2
+

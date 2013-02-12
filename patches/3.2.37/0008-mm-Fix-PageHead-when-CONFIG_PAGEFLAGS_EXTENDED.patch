@@ -1,0 +1,65 @@
+From 83d6cff33c3708a3866d3b70e07375178e403c36 Mon Sep 17 00:00:00 2001
+From: Christoffer Dall <cdall@cs.columbia.edu>
+Date: Fri, 21 Dec 2012 13:03:50 -0500
+Subject: [PATCH 08/46] mm: Fix PageHead when !CONFIG_PAGEFLAGS_EXTENDED
+
+commit ad4b3fb7ff9940bcdb1e4cd62bd189d10fa636ba upstream.
+
+Unfortunately with !CONFIG_PAGEFLAGS_EXTENDED, (!PageHead) is false, and
+(PageHead) is true, for tail pages.  If this is indeed the intended
+behavior, which I doubt because it breaks cache cleaning on some ARM
+systems, then the nomenclature is highly problematic.
+
+This patch makes sure PageHead is only true for head pages and PageTail
+is only true for tail pages, and neither is true for non-compound pages.
+
+[ This buglet seems ancient - seems to have been introduced back in Apr
+  2008 in commit 6a1e7f777f61: "pageflags: convert to the use of new
+  macros".  And the reason nobody noticed is because the PageHead()
+  tests are almost all about just sanity-checking, and only used on
+  pages that are actual page heads.  The fact that the old code returned
+  true for tail pages too was thus not really noticeable.   - Linus ]
+
+Signed-off-by: Christoffer Dall <cdall@cs.columbia.edu>
+Acked-by:  Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Will Deacon <Will.Deacon@arm.com>
+Cc: Steve Capper <Steve.Capper@arm.com>
+Cc: Christoph Lameter <cl@linux.com>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ include/linux/page-flags.h | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
+index e90a673..8d9b903 100644
+--- a/include/linux/page-flags.h
++++ b/include/linux/page-flags.h
+@@ -360,7 +360,7 @@ static inline void ClearPageCompound(struct page *page)
+  * pages on the LRU and/or pagecache.
+  */
+ TESTPAGEFLAG(Compound, compound)
+-__PAGEFLAG(Head, compound)
++__SETPAGEFLAG(Head, compound)  __CLEARPAGEFLAG(Head, compound)
+ 
+ /*
+  * PG_reclaim is used in combination with PG_compound to mark the
+@@ -372,8 +372,14 @@ __PAGEFLAG(Head, compound)
+  * PG_compound & PG_reclaim	=> Tail page
+  * PG_compound & ~PG_reclaim	=> Head page
+  */
++#define PG_head_mask ((1L << PG_compound))
+ #define PG_head_tail_mask ((1L << PG_compound) | (1L << PG_reclaim))
+ 
++static inline int PageHead(struct page *page)
++{
++	return ((page->flags & PG_head_tail_mask) == PG_head_mask);
++}
++
+ static inline int PageTail(struct page *page)
+ {
+ 	return ((page->flags & PG_head_tail_mask) == PG_head_tail_mask);
+-- 
+1.8.1.2
+

@@ -1,0 +1,66 @@
+From e1997c23a4293927bac70d03652ffd58cfaeaf25 Mon Sep 17 00:00:00 2001
+From: Stanislaw Gruszka <sgruszka@redhat.com>
+Date: Mon, 3 Dec 2012 12:59:04 +0100
+Subject: [PATCH 31/46] Revert: "rt2x00: Don't let mac80211 send a BAR when an
+ AMPDU subframe fails"
+
+commit ab9d6e4ffe192427ce9e93d4f927b0faaa8a941e upstream.
+
+This revert:
+
+commit be03d4a45c09ee5100d3aaaedd087f19bc20d01f
+Author: Andreas Hartmann <andihartmann@01019freenet.de>
+Date:   Tue Apr 17 00:25:28 2012 +0200
+
+    rt2x00: Don't let mac80211 send a BAR when an AMPDU subframe fails
+
+To fix problem workaround by above commit use
+IEEE80211_HW_TEARDOWN_AGGR_ON_BAR_FAIL flag (see change log for
+"mac80211: introduce IEEE80211_HW_TEARDOWN_AGGR_ON_BAR_FAIL" patch).
+
+Resolve: https://bugzilla.kernel.org/show_bug.cgi?id=42828
+Bisected-by: Francisco Pina Martins <f.pinamartins@gmail.com>
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/rt2x00/rt2800lib.c | 3 ++-
+ drivers/net/wireless/rt2x00/rt2x00dev.c | 7 +++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/net/wireless/rt2x00/rt2800lib.c b/drivers/net/wireless/rt2x00/rt2800lib.c
+index fb19447..67cbe5a 100644
+--- a/drivers/net/wireless/rt2x00/rt2800lib.c
++++ b/drivers/net/wireless/rt2x00/rt2800lib.c
+@@ -4208,7 +4208,8 @@ int rt2800_probe_hw_mode(struct rt2x00_dev *rt2x00dev)
+ 	    IEEE80211_HW_SIGNAL_DBM |
+ 	    IEEE80211_HW_SUPPORTS_PS |
+ 	    IEEE80211_HW_PS_NULLFUNC_STACK |
+-	    IEEE80211_HW_AMPDU_AGGREGATION;
++	    IEEE80211_HW_AMPDU_AGGREGATION |
++	    IEEE80211_HW_TEARDOWN_AGGR_ON_BAR_FAIL;
+ 	/*
+ 	 * Don't set IEEE80211_HW_HOST_BROADCAST_PS_BUFFERING for USB devices
+ 	 * unless we are capable of sending the buffered frames out after the
+diff --git a/drivers/net/wireless/rt2x00/rt2x00dev.c b/drivers/net/wireless/rt2x00/rt2x00dev.c
+index a8bdd2b..f099b30 100644
+--- a/drivers/net/wireless/rt2x00/rt2x00dev.c
++++ b/drivers/net/wireless/rt2x00/rt2x00dev.c
+@@ -387,10 +387,9 @@ void rt2x00lib_txdone(struct queue_entry *entry,
+ 		tx_info->flags |= IEEE80211_TX_STAT_AMPDU;
+ 		tx_info->status.ampdu_len = 1;
+ 		tx_info->status.ampdu_ack_len = success ? 1 : 0;
+-		/*
+-		 * TODO: Need to tear down BA session here
+-		 * if not successful.
+-		 */
++
++		if (!success)
++			tx_info->flags |= IEEE80211_TX_STAT_AMPDU_NO_BACK;
+ 	}
+ 
+ 	if (rate_flags & IEEE80211_TX_RC_USE_RTS_CTS) {
+-- 
+1.8.1.2
+

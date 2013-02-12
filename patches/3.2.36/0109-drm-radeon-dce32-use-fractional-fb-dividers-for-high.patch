@@ -1,0 +1,33 @@
+From 73894c42d720c4354fdc060a5560a616ec828252 Mon Sep 17 00:00:00 2001
+From: Alex Deucher <alexander.deucher@amd.com>
+Date: Tue, 13 Nov 2012 18:03:41 -0500
+Subject: [PATCH 109/171] drm/radeon/dce32+: use fractional fb dividers for
+ high clocks
+
+commit a02dc74b317d78298cb0587b9b1f6f741fd5c139 upstream.
+
+Fixes flickering with some high res montiors.
+
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+[bwh: Backported to 3.2: use pll->flags instead of radeon_crtc->pll_flags]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/atombios_crtc.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/gpu/drm/radeon/atombios_crtc.c b/drivers/gpu/drm/radeon/atombios_crtc.c
+index ee9d363..a25d08a 100644
+--- a/drivers/gpu/drm/radeon/atombios_crtc.c
++++ b/drivers/gpu/drm/radeon/atombios_crtc.c
+@@ -544,6 +544,8 @@ static u32 atombios_adjust_pll(struct drm_crtc *crtc,
+ 		/* use frac fb div on APUs */
+ 		if (ASIC_IS_DCE41(rdev))
+ 			pll->flags |= RADEON_PLL_USE_FRAC_FB_DIV;
++		if (ASIC_IS_DCE32(rdev) && mode->clock > 165000)
++			pll->flags |= RADEON_PLL_USE_FRAC_FB_DIV;
+ 	} else {
+ 		pll->flags |= RADEON_PLL_LEGACY;
+ 
+-- 
+1.8.1.2
+

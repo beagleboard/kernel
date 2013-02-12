@@ -1,0 +1,44 @@
+From f7e65fec5faaf50ffce56602cc6dc4a2b0d19342 Mon Sep 17 00:00:00 2001
+From: "H. Peter Anvin" <hpa@linux.intel.com>
+Date: Tue, 20 Nov 2012 22:21:02 -0800
+Subject: [PATCH 70/90] x86-32: Export kernel_stack_pointer() for modules
+
+commit cb57a2b4cff7edf2a4e32c0163200e9434807e0a upstream.
+
+Modules, in particular oprofile (and possibly other similar tools)
+need kernel_stack_pointer(), so export it using EXPORT_SYMBOL_GPL().
+
+Cc: Yang Wei <wei.yang@windriver.com>
+Cc: Robert Richter <robert.richter@amd.com>
+Cc: Jun Zhang <jun.zhang@intel.com>
+Link: http://lkml.kernel.org/r/20120912135059.GZ8285@erda.amd.com
+Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kernel/ptrace.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/x86/kernel/ptrace.c b/arch/x86/kernel/ptrace.c
+index 08fef04..2dc4121 100644
+--- a/arch/x86/kernel/ptrace.c
++++ b/arch/x86/kernel/ptrace.c
+@@ -21,6 +21,7 @@
+ #include <linux/signal.h>
+ #include <linux/perf_event.h>
+ #include <linux/hw_breakpoint.h>
++#include <linux/module.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
+@@ -191,6 +192,7 @@ unsigned long kernel_stack_pointer(struct pt_regs *regs)
+ 
+ 	return (unsigned long)regs;
+ }
++EXPORT_SYMBOL_GPL(kernel_stack_pointer);
+ 
+ static unsigned long *pt_regs_access(struct pt_regs *regs, unsigned long regno)
+ {
+-- 
+1.8.1.2
+

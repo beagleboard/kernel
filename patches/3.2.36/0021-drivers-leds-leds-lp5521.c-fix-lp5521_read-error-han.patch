@@ -1,0 +1,73 @@
+From de4d9c04ed42ff5936185db83e0bf0f8df7a2413 Mon Sep 17 00:00:00 2001
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Tue, 29 May 2012 15:07:26 -0700
+Subject: [PATCH 021/171] drivers/leds/leds-lp5521.c: fix lp5521_read() error
+ handling
+
+commit 5bc9ad774c063f6b41965e7314f2c26aa5e465a0 upstream.
+
+Gcc 4.6.2 complains that:
+
+  drivers/leds/leds-lp5521.c: In function `lp5521_load_program':
+  drivers/leds/leds-lp5521.c:214:21: warning: `mode' may be used uninitialized in this function [-Wuninitialized]
+  drivers/leds/leds-lp5521.c: In function `lp5521_probe':
+  drivers/leds/leds-lp5521.c:788:5: warning: `buf' may be used uninitialized in this function [-Wuninitialized]
+  drivers/leds/leds-lp5521.c:740:6: warning: `ret' may be used uninitialized in this function [-Wuninitialized]
+
+These are real problems if lp5521_read() returns an error.  When that
+happens we should handle it, instead of ignoring it or doing a bitwise
+OR with all the other error codes and continuing.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Milo <Milo.Kim@ti.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Bryan Wu <bryan.wu@canonical.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/leds/leds-lp5521.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/leds/leds-lp5521.c b/drivers/leds/leds-lp5521.c
+index 47771ad..bf5cfd7 100644
+--- a/drivers/leds/leds-lp5521.c
++++ b/drivers/leds/leds-lp5521.c
+@@ -198,9 +198,14 @@ static int lp5521_load_program(struct lp5521_engine *eng, const u8 *pattern)
+ 
+ 	/* move current engine to direct mode and remember the state */
+ 	ret = lp5521_set_engine_mode(eng, LP5521_CMD_DIRECT);
++	if (ret)
++		return ret;
++
+ 	/* Mode change requires min 500 us delay. 1 - 2 ms  with margin */
+ 	usleep_range(1000, 2000);
+-	ret |= lp5521_read(client, LP5521_REG_OP_MODE, &mode);
++	ret = lp5521_read(client, LP5521_REG_OP_MODE, &mode);
++	if (ret)
++		return ret;
+ 
+ 	/* For loading, all the engines to load mode */
+ 	lp5521_write(client, LP5521_REG_OP_MODE, LP5521_CMD_DIRECT);
+@@ -216,8 +221,7 @@ static int lp5521_load_program(struct lp5521_engine *eng, const u8 *pattern)
+ 				LP5521_PROG_MEM_SIZE,
+ 				pattern);
+ 
+-	ret |= lp5521_write(client, LP5521_REG_OP_MODE, mode);
+-	return ret;
++	return lp5521_write(client, LP5521_REG_OP_MODE, mode);
+ }
+ 
+ static int lp5521_set_led_current(struct lp5521_chip *chip, int led, u8 curr)
+@@ -693,7 +697,7 @@ static int __devinit lp5521_probe(struct i2c_client *client,
+ 	 * LP5521_REG_ENABLE register will not have any effect - strange!
+ 	 */
+ 	ret = lp5521_read(client, LP5521_REG_R_CURRENT, &buf);
+-	if (buf != LP5521_REG_R_CURR_DEFAULT) {
++	if (ret || buf != LP5521_REG_R_CURR_DEFAULT) {
+ 		dev_err(&client->dev, "error in resetting chip\n");
+ 		goto fail2;
+ 	}
+-- 
+1.8.1.2
+

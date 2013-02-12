@@ -1,0 +1,36 @@
+From a7ef2ba495d1c0bbe6fc74e22971edd6efea2ad3 Mon Sep 17 00:00:00 2001
+From: Misael Lopez Cruz <misael.lopez@ti.com>
+Date: Thu, 8 Nov 2012 12:03:12 -0600
+Subject: [PATCH 07/90] ASoC: dapm: Use card_list during DAPM shutdown
+
+commit 445632ad6dda42f4d3f9df2569a852ca0d4ea608 upstream.
+
+DAPM shutdown incorrectly uses "list" field of codec struct while
+iterating over probed components (codec_dev_list). "list" field
+refers to codecs registered in the system, "card_list" field is
+used for probed components.
+
+Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
+Signed-off-by: Liam Girdwood <lrg@ti.com>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/soc/soc-dapm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sound/soc/soc-dapm.c b/sound/soc/soc-dapm.c
+index 0dc441c..b516488 100644
+--- a/sound/soc/soc-dapm.c
++++ b/sound/soc/soc-dapm.c
+@@ -3009,7 +3009,7 @@ void snd_soc_dapm_shutdown(struct snd_soc_card *card)
+ {
+ 	struct snd_soc_codec *codec;
+ 
+-	list_for_each_entry(codec, &card->codec_dev_list, list) {
++	list_for_each_entry(codec, &card->codec_dev_list, card_list) {
+ 		soc_dapm_shutdown_codec(&codec->dapm);
+ 		if (codec->dapm.bias_level == SND_SOC_BIAS_STANDBY)
+ 			snd_soc_dapm_set_bias_level(&codec->dapm,
+-- 
+1.8.1.2
+

@@ -1,0 +1,111 @@
+From 1420a7d4d4457c84be1a6a229257443c5d821643 Mon Sep 17 00:00:00 2001
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Date: Sat, 29 Oct 2011 12:37:06 -0700
+Subject: [PATCH 30/90] Input: i8042 - also perform controller reset when
+ suspending
+
+commit 1729ad1f4f9e167ade84ca8b5269695c42351160 upstream.
+
+In addition to some laptops needing i8042 reset after resuming from S2R to
+get their touchpads working there is another class of laptops - ones that
+need i8042 reset before going to S2R, otherwise they will simply reboot
+instead of resuming.
+
+See https://bugzilla.kernel.org/show_bug.cgi?id=15612
+
+This change forces reset of i8042 before doing S2R.
+
+Reported-by: Stefan Koch <stefan_koch@gmx.net>
+Tested-by: Alexander van Loon <a.vanloon@alexandervanloon.nl>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/input/serio/i8042.c | 23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/input/serio/i8042.c b/drivers/input/serio/i8042.c
+index d37a48e..8656441 100644
+--- a/drivers/input/serio/i8042.c
++++ b/drivers/input/serio/i8042.c
+@@ -991,7 +991,7 @@ static int i8042_controller_init(void)
+  * Reset the controller and reset CRT to the original value set by BIOS.
+  */
+ 
+-static void i8042_controller_reset(void)
++static void i8042_controller_reset(bool force_reset)
+ {
+ 	i8042_flush();
+ 
+@@ -1016,7 +1016,7 @@ static void i8042_controller_reset(void)
+  * Reset the controller if requested.
+  */
+ 
+-	if (i8042_reset)
++	if (i8042_reset || force_reset)
+ 		i8042_controller_selftest();
+ 
+ /*
+@@ -1139,9 +1139,9 @@ static int i8042_controller_resume(bool force_reset)
+  * upsetting it.
+  */
+ 
+-static int i8042_pm_reset(struct device *dev)
++static int i8042_pm_suspend(struct device *dev)
+ {
+-	i8042_controller_reset();
++	i8042_controller_reset(true);
+ 
+ 	return 0;
+ }
+@@ -1163,13 +1163,20 @@ static int i8042_pm_thaw(struct device *dev)
+ 	return 0;
+ }
+ 
++static int i8042_pm_reset(struct device *dev)
++{
++	i8042_controller_reset(false);
++
++	return 0;
++}
++
+ static int i8042_pm_restore(struct device *dev)
+ {
+ 	return i8042_controller_resume(false);
+ }
+ 
+ static const struct dev_pm_ops i8042_pm_ops = {
+-	.suspend	= i8042_pm_reset,
++	.suspend	= i8042_pm_suspend,
+ 	.resume		= i8042_pm_resume,
+ 	.thaw		= i8042_pm_thaw,
+ 	.poweroff	= i8042_pm_reset,
+@@ -1185,7 +1192,7 @@ static const struct dev_pm_ops i8042_pm_ops = {
+ 
+ static void i8042_shutdown(struct platform_device *dev)
+ {
+-	i8042_controller_reset();
++	i8042_controller_reset(false);
+ }
+ 
+ static int __init i8042_create_kbd_port(void)
+@@ -1424,7 +1431,7 @@ static int __init i8042_probe(struct platform_device *dev)
+  out_fail:
+ 	i8042_free_aux_ports();	/* in case KBD failed but AUX not */
+ 	i8042_free_irqs();
+-	i8042_controller_reset();
++	i8042_controller_reset(false);
+ 	i8042_platform_device = NULL;
+ 
+ 	return error;
+@@ -1434,7 +1441,7 @@ static int __devexit i8042_remove(struct platform_device *dev)
+ {
+ 	i8042_unregister_ports();
+ 	i8042_free_irqs();
+-	i8042_controller_reset();
++	i8042_controller_reset(false);
+ 	i8042_platform_device = NULL;
+ 
+ 	return 0;
+-- 
+1.8.1.2
+

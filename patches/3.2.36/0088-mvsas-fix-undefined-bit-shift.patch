@@ -1,0 +1,74 @@
+From c54471e52a415fe1c1e4f1fd41167f0e3322a118 Mon Sep 17 00:00:00 2001
+From: Xi Wang <xi.wang@gmail.com>
+Date: Fri, 16 Nov 2012 14:40:03 -0500
+Subject: [PATCH 088/171] mvsas: fix undefined bit shift
+
+commit beecadea1b8d67f591b13f7099559f32f3fd601d upstream.
+
+The macro bit(n) is defined as ((u32)1 << n), and thus it doesn't work
+with n >= 32, such as in mvs_94xx_assign_reg_set():
+
+	if (i >= 32) {
+		mvi->sata_reg_set |= bit(i);
+		...
+	}
+
+The shift ((u32)1 << n) with n >= 32 also leads to undefined behavior.
+The result varies depending on the architecture.
+
+This patch changes bit(n) to do a 64-bit shift.  It also simplifies
+mv_ffc64() using __ffs64(), since invoking ffz() with ~0 is undefined.
+
+Signed-off-by: Xi Wang <xi.wang@gmail.com>
+Acked-by: Xiangliang Yu <yuxiangl@marvell.com>
+Signed-off-by: James Bottomley <JBottomley@Parallels.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/scsi/mvsas/mv_94xx.h | 14 ++------------
+ drivers/scsi/mvsas/mv_sas.h  |  2 +-
+ 2 files changed, 3 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/scsi/mvsas/mv_94xx.h b/drivers/scsi/mvsas/mv_94xx.h
+index 8f7eb4f..487aa6f 100644
+--- a/drivers/scsi/mvsas/mv_94xx.h
++++ b/drivers/scsi/mvsas/mv_94xx.h
+@@ -258,21 +258,11 @@ enum sas_sata_phy_regs {
+ #define SPI_ADDR_VLD_94XX         	(1U << 1)
+ #define SPI_CTRL_SpiStart_94XX     	(1U << 0)
+ 
+-#define mv_ffc(x)   ffz(x)
+-
+ static inline int
+ mv_ffc64(u64 v)
+ {
+-	int i;
+-	i = mv_ffc((u32)v);
+-	if (i >= 0)
+-		return i;
+-	i = mv_ffc((u32)(v>>32));
+-
+-	if (i != 0)
+-		return 32 + i;
+-
+-	return -1;
++	u64 x = ~v;
++	return x ? __ffs64(x) : -1;
+ }
+ 
+ #define r_reg_set_enable(i) \
+diff --git a/drivers/scsi/mvsas/mv_sas.h b/drivers/scsi/mvsas/mv_sas.h
+index c04a4f5..da24955 100644
+--- a/drivers/scsi/mvsas/mv_sas.h
++++ b/drivers/scsi/mvsas/mv_sas.h
+@@ -69,7 +69,7 @@ extern struct kmem_cache *mvs_task_list_cache;
+ #define DEV_IS_EXPANDER(type)	\
+ 	((type == EDGE_DEV) || (type == FANOUT_DEV))
+ 
+-#define bit(n) ((u32)1 << n)
++#define bit(n) ((u64)1 << n)
+ 
+ #define for_each_phy(__lseq_mask, __mc, __lseq)			\
+ 	for ((__mc) = (__lseq_mask), (__lseq) = 0;		\
+-- 
+1.8.1.2
+

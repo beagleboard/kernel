@@ -1,0 +1,45 @@
+From bc7860a07ef72908999c14e9e28173934e547605 Mon Sep 17 00:00:00 2001
+From: Oleg Nesterov <oleg@redhat.com>
+Date: Fri, 7 Dec 2012 15:49:22 +0100
+Subject: [PATCH 002/171] freezer: PF_FREEZER_NOSIG should be cleared along
+ with PF_NOFREEZE
+
+This patch is only for pre-v3.3 stable trees which backported
+b40a7959 "freezer: exec should clear PF_NOFREEZE along with PF_KTHREAD".
+v3.3+ doesn't need this fix.
+
+b40a7959 is the trivial bugfix, but unfortunately I forgot that
+until 34b087e4 "freezer: kill unused set_freezable_with_signal()"
+there were another only-for-kernel-threads flag, PF_FREEZER_NOSIG,
+which should be cleared as well.
+
+See https://bugs.launchpad.net/ubuntu/+source/v86d/+bug/1080530
+The freezer fails because it expects that a PF_FREEZER_NOSIG task
+doesn't need a signal. Before b40a7959 it wrongly succeeds leaving
+the PF_NOFREEZE | PF_FREEZER_NOSIG task unfrozen.
+
+Reported-and-tested-by: Joseph Salisbury <joseph.salisbury@canonical.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+[bwh: Don't touch PF_FORKNOEXEC; it's cleared elsewhere]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/exec.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/fs/exec.c b/fs/exec.c
+index 121ccae..03d970d 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -1095,7 +1095,8 @@ int flush_old_exec(struct linux_binprm * bprm)
+ 	bprm->mm = NULL;		/* We're using it now */
+ 
+ 	set_fs(USER_DS);
+-	current->flags &= ~(PF_RANDOMIZE | PF_KTHREAD | PF_NOFREEZE);
++	current->flags &=
++		~(PF_RANDOMIZE | PF_KTHREAD | PF_NOFREEZE | PF_FREEZER_NOSIG);
+ 	flush_thread();
+ 	current->personality &= ~bprm->per_clear;
+ 
+-- 
+1.8.1.2
+

@@ -1,0 +1,39 @@
+From 9fdefc5f816b92866eff9b9ef2ca582ef76333a1 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Rafa=C5=82=20Mi=C5=82ecki?= <zajec5@gmail.com>
+Date: Mon, 10 Dec 2012 07:53:56 +0100
+Subject: [PATCH 114/171] bcma: mips: fix clearing device IRQ
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit cbbc0138efe1dcd5426b8fc5d87741f5057aee72 upstream.
+
+We were using wrong IRQ number so clearing wasn't working at all.
+Depending on a platform this could result in a one device having two
+interrupts assigned. On BCM4706 this resulted in all IRQs being broken.
+
+Cc: Hauke Mehrtens <hauke@hauke-m.de>
+Signed-off-by: Rafał Miłecki <zajec5@gmail.com>
+Acked-by: Hauke Mehrtens <hauke@hauke-m.de>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/bcma/driver_mips.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/bcma/driver_mips.c b/drivers/bcma/driver_mips.c
+index c3e9dff..041fddf 100644
+--- a/drivers/bcma/driver_mips.c
++++ b/drivers/bcma/driver_mips.c
+@@ -115,7 +115,7 @@ static void bcma_core_mips_set_irq(struct bcma_device *dev, unsigned int irq)
+ 			    bcma_read32(mdev, BCMA_MIPS_MIPS74K_INTMASK(0)) &
+ 			    ~(1 << irqflag));
+ 	else
+-		bcma_write32(mdev, BCMA_MIPS_MIPS74K_INTMASK(irq), 0);
++		bcma_write32(mdev, BCMA_MIPS_MIPS74K_INTMASK(oldirq), 0);
+ 
+ 	/* assign the new one */
+ 	if (irq == 0) {
+-- 
+1.8.1.2
+

@@ -1,0 +1,63 @@
+From a9c06de7e5fba92d092a5ade30cb414aeb73847a Mon Sep 17 00:00:00 2001
+From: Eugeni Dodonov <eugeni.dodonov@intel.com>
+Date: Thu, 5 Jan 2012 09:34:28 -0200
+Subject: [PATCH 006/171] drm: give up on edid retries when i2c bus is not
+ responding
+
+commit 9292f37e1f5c79400254dca46f83313488093825 upstream.
+
+This allows to avoid talking to a non-responding bus repeatedly until we
+finally timeout after 15 attempts. We can do this by catching the -ENXIO
+error, provided by i2c_algo_bit:bit_doAddress call.
+
+Within the bit_doAddress we already try 3 times to get the edid data, so
+if the routine tells us that bus is not responding, it is mostly pointless
+to keep re-trying those attempts over and over again until we reach final
+number of retries.
+
+This change should fix https://bugs.freedesktop.org/show_bug.cgi?id=41059
+and improve overall edid detection timing by 10-30% in most cases, and by
+a much larger margin in case of phantom outputs (up to 30x in one worst
+case).
+
+Timing results for i915-powered machines for 'time xrandr' command:
+Machine 1: from 0.840s to 0.290s
+Machine 2: from 0.315s to 0.280s
+Machine 3: from +/- 4s to 0.184s
+
+Timing results for HD5770 with 'time xrandr' command:
+Machine 4: from 3.210s to 1.060s
+
+Reviewed-by: Chris Wilson <chris@hchris-wilson.co.uk>
+Reviewed-by: Keith Packard <keithp@keithp.com>
+Tested-by: Sean Finney <seanius@seanius.net>
+Tested-by: Soren Hansen <soren@linux2go.dk>
+Tested-by: Hernando Torque <sirius@sonnenkinder.org>
+Tested-by: Mike Lothian <mike@fireburn.co.uk>
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=41059
+Signed-off-by: Eugeni Dodonov <eugeni.dodonov@intel.com>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/drm_edid.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/gpu/drm/drm_edid.c b/drivers/gpu/drm/drm_edid.c
+index 0c1a99b..bb95d59 100644
+--- a/drivers/gpu/drm/drm_edid.c
++++ b/drivers/gpu/drm/drm_edid.c
+@@ -274,6 +274,11 @@ drm_do_probe_ddc_edid(struct i2c_adapter *adapter, unsigned char *buf,
+ 			}
+ 		};
+ 		ret = i2c_transfer(adapter, msgs, 2);
++		if (ret == -ENXIO) {
++			DRM_DEBUG_KMS("drm: skipping non-existent adapter %s\n",
++					adapter->name);
++			break;
++		}
+ 	} while (ret != 2 && --retries);
+ 
+ 	return ret == 2 ? 0 : -1;
+-- 
+1.8.1.2
+

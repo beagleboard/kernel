@@ -1,0 +1,50 @@
+From 4c65b37e1e27429a5acb50cf38bdf87ea83a8f4d Mon Sep 17 00:00:00 2001
+From: Michael Tokarev <mjt@tls.msk.ru>
+Date: Tue, 25 Dec 2012 14:08:16 -0500
+Subject: [PATCH 06/46] ext4: do not try to write superblock on ro remount w/o
+ journal
+
+commit d096ad0f79a782935d2e06ae8fb235e8c5397775 upstream.
+
+When a journal-less ext4 filesystem is mounted on a read-only block
+device (blockdev --setro will do), each remount (for other, unrelated,
+flags, like suid=>nosuid etc) results in a series of scary messages
+from kernel telling about I/O errors on the device.
+
+This is becauese of the following code ext4_remount():
+
+       if (sbi->s_journal == NULL)
+                ext4_commit_super(sb, 1);
+
+at the end of remount procedure, which forces writing (flushing) of
+a superblock regardless whenever it is dirty or not, if the filesystem
+is readonly or not, and whenever the device itself is readonly or not.
+
+We only need call ext4_commit_super when the file system had been
+previously mounted read/write.
+
+Thanks to Eric Sandeen for help in diagnosing this issue.
+
+Signed-off-By: Michael Tokarev <mjt@tls.msk.ru>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ext4/super.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+index 4e03de4..24ac7a2 100644
+--- a/fs/ext4/super.c
++++ b/fs/ext4/super.c
+@@ -4654,7 +4654,7 @@ static int ext4_remount(struct super_block *sb, int *flags, char *data)
+ 	}
+ 
+ 	ext4_setup_system_zone(sb);
+-	if (sbi->s_journal == NULL)
++	if (sbi->s_journal == NULL && !(old_sb_flags & MS_RDONLY))
+ 		ext4_commit_super(sb, 1);
+ 
+ #ifdef CONFIG_QUOTA
+-- 
+1.8.1.2
+

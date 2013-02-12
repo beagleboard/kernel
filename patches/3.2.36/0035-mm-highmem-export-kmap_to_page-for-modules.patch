@@ -1,0 +1,36 @@
+From 303183d7e84bfcab6087c5198b49eaf1c97b227e Mon Sep 17 00:00:00 2001
+From: Will Deacon <will.deacon@arm.com>
+Date: Fri, 19 Oct 2012 14:03:31 +0100
+Subject: [PATCH 035/171] mm: highmem: export kmap_to_page for modules
+
+commit f0263d2d222e9e25f2587e51a9dc58c6fb2a9352 upstream.
+
+Some virtio device drivers (9p) need to translate high virtual addresses
+to physical addresses, which are inserted into the virtqueue for
+processing by userspace.
+
+This patch exports the kmap_to_page symbol, so that the affected drivers
+can be compiled as modules.
+
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/highmem.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/mm/highmem.c b/mm/highmem.c
+index d517cd1..2a07f97 100644
+--- a/mm/highmem.c
++++ b/mm/highmem.c
+@@ -105,6 +105,7 @@ struct page *kmap_to_page(void *vaddr)
+ 
+ 	return virt_to_page(addr);
+ }
++EXPORT_SYMBOL(kmap_to_page);
+ 
+ static void flush_all_zero_pkmaps(void)
+ {
+-- 
+1.8.1.2
+

@@ -1,0 +1,29 @@
+From f5cfa91ab803647468d53121010e05f466cf4c2b Mon Sep 17 00:00:00 2001
+From: Duncan Roe <duncan_roe@acslink.net.au>
+Date: Wed, 10 Oct 2012 14:19:50 +0200
+Subject: [PATCH 023/171] ALSA: hda - Fix missing beep on ASUS X43U notebook
+
+commit 7110005e8d5c3cd418fc4b64f9f124f004422a9a upstream.
+
+Signed-off-by: Duncan Roe <duncan_roe@acslink.net.au>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/pci/hda/patch_realtek.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
+index 1a09fbf..b441384 100644
+--- a/sound/pci/hda/patch_realtek.c
++++ b/sound/pci/hda/patch_realtek.c
+@@ -3854,6 +3854,7 @@ static void alc_auto_init_std(struct hda_codec *codec)
+ 	((spec)->beep_amp = HDA_COMPOSE_AMP_VAL(nid, 3, idx, dir))
+ 
+ static const struct snd_pci_quirk beep_white_list[] = {
++	SND_PCI_QUIRK(0x1043, 0x103c, "ASUS", 1),
+ 	SND_PCI_QUIRK(0x1043, 0x829f, "ASUS", 1),
+ 	SND_PCI_QUIRK(0x1043, 0x83ce, "EeePC", 1),
+ 	SND_PCI_QUIRK(0x1043, 0x831a, "EeePC", 1),
+-- 
+1.8.1.2
+

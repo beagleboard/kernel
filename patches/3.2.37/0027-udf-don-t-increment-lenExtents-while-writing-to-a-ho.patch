@@ -1,0 +1,62 @@
+From 59d6b179c34a67bf99d371cffe629711936432ee Mon Sep 17 00:00:00 2001
+From: Namjae Jeon <namjae.jeon@samsung.com>
+Date: Wed, 10 Oct 2012 00:09:12 +0900
+Subject: [PATCH 27/46] udf: don't increment lenExtents while writing to a hole
+
+commit fb719c59bdb4fca86ee1fd1f42ab3735ca12b6b2 upstream.
+
+Incrementing lenExtents even while writing to a hole is bad
+for performance as calls to udf_discard_prealloc and
+udf_truncate_tail_extent would not return from start if
+isize != lenExtents
+
+Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
+Signed-off-by: Ashish Sangwan <a.sangwan@samsung.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/udf/inode.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/fs/udf/inode.c b/fs/udf/inode.c
+index 15df1a4..af37ce3 100644
+--- a/fs/udf/inode.c
++++ b/fs/udf/inode.c
+@@ -581,6 +581,7 @@ static struct buffer_head *inode_getblk(struct inode *inode, sector_t block,
+ 	struct udf_inode_info *iinfo = UDF_I(inode);
+ 	int goal = 0, pgoal = iinfo->i_location.logicalBlockNum;
+ 	int lastblock = 0;
++	bool isBeyondEOF;
+ 
+ 	prev_epos.offset = udf_file_entry_alloc_offset(inode);
+ 	prev_epos.block = iinfo->i_location;
+@@ -659,7 +660,7 @@ static struct buffer_head *inode_getblk(struct inode *inode, sector_t block,
+ 	/* Are we beyond EOF? */
+ 	if (etype == -1) {
+ 		int ret;
+-
++		isBeyondEOF = 1;
+ 		if (count) {
+ 			if (c)
+ 				laarr[0] = laarr[1];
+@@ -702,6 +703,7 @@ static struct buffer_head *inode_getblk(struct inode *inode, sector_t block,
+ 		endnum = c + 1;
+ 		lastblock = 1;
+ 	} else {
++		isBeyondEOF = 0;
+ 		endnum = startnum = ((count > 2) ? 2 : count);
+ 
+ 		/* if the current extent is in position 0,
+@@ -749,7 +751,8 @@ static struct buffer_head *inode_getblk(struct inode *inode, sector_t block,
+ 			*err = -ENOSPC;
+ 			return NULL;
+ 		}
+-		iinfo->i_lenExtents += inode->i_sb->s_blocksize;
++		if (isBeyondEOF)
++			iinfo->i_lenExtents += inode->i_sb->s_blocksize;
+ 	}
+ 
+ 	/* if the extent the requsted block is located in contains multiple
+-- 
+1.8.1.2
+

@@ -1,0 +1,48 @@
+From e40105f3e7d9ac84323bea5ff290439f2b09f779 Mon Sep 17 00:00:00 2001
+From: Malcolm Priestley <tvboxspy@gmail.com>
+Date: Sun, 11 Nov 2012 15:41:25 +0000
+Subject: [PATCH 166/171] staging: vt6656: 64 bit fixes : correct all type
+ sizes
+
+commit 7730492855a2f9c828599bcd8d62760f96d319e4 upstream.
+
+After this patch all BYTE/WORD/DWORD types can be replaced with the appropriate u sizes.
+
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/vt6656/ttype.h | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/staging/vt6656/ttype.h b/drivers/staging/vt6656/ttype.h
+index 0f70562c..dfbf747 100644
+--- a/drivers/staging/vt6656/ttype.h
++++ b/drivers/staging/vt6656/ttype.h
+@@ -44,9 +44,9 @@ typedef int             BOOL;
+ 
+ /****** Simple typedefs  ***************************************************/
+ 
+-typedef unsigned char   BYTE;           //  8-bit
+-typedef unsigned short  WORD;           // 16-bit
+-typedef unsigned long   DWORD;          // 32-bit
++typedef u8 BYTE;
++typedef u16 WORD;
++typedef u32 DWORD;
+ 
+ // QWORD is for those situation that we want
+ // an 8-byte-aligned 8 byte long structure
+@@ -62,8 +62,8 @@ typedef UQuadWord       QWORD;          // 64-bit
+ 
+ /****** Common pointer types ***********************************************/
+ 
+-typedef unsigned long   ULONG_PTR;      // 32-bit
+-typedef unsigned long   DWORD_PTR;      // 32-bit
++typedef u32 ULONG_PTR;
++typedef u32 DWORD_PTR;
+ 
+ // boolean pointer
+ 
+-- 
+1.8.1.2
+

@@ -1,0 +1,68 @@
+From 2b007e69160812e4ca06a4020cbe186801ec2496 Mon Sep 17 00:00:00 2001
+From: Johannes Berg <johannes.berg@intel.com>
+Date: Sun, 4 Nov 2012 09:29:17 +0100
+Subject: [PATCH 156/171] iwlwifi: handle DMA mapping failures
+
+commit 7c34158231b2eda8dcbd297be2bb1559e69cb433 upstream.
+
+The RX replenish code doesn't handle DMA mapping failures,
+which will cause issues if there actually is a failure. This
+was reported by Shuah Khan who found a DMA mapping framework
+warning ("device driver failed to check map error").
+
+Reported-by: Shuah Khan <shuah.khan@hp.com>
+Reviewed-by: Emmanuel Grumbach <emmanuel.grumbach@intel.com>
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+[bwh: Backported to 3.2:
+ - Adjust filename, context, indentation
+ - Use bus(trans) instead of trans where necessary
+ - Use hw_params(trans).rx_page_order instead of trans_pcie->rx_page_order]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/iwlwifi/iwl-trans-pcie-rx.c | 23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/wireless/iwlwifi/iwl-trans-pcie-rx.c b/drivers/net/wireless/iwlwifi/iwl-trans-pcie-rx.c
+index d580da2..9fefb56 100644
+--- a/drivers/net/wireless/iwlwifi/iwl-trans-pcie-rx.c
++++ b/drivers/net/wireless/iwlwifi/iwl-trans-pcie-rx.c
+@@ -311,6 +311,14 @@ static void iwlagn_rx_allocate(struct iwl_trans *trans, gfp_t priority)
+ 		rxb->page_dma = dma_map_page(bus(trans)->dev, page, 0,
+ 				PAGE_SIZE << hw_params(trans).rx_page_order,
+ 				DMA_FROM_DEVICE);
++		if (dma_mapping_error(bus(trans)->dev, rxb->page_dma)) {
++			rxb->page = NULL;
++			spin_lock_irqsave(&rxq->lock, flags);
++			list_add(&rxb->list, &rxq->rx_used);
++			spin_unlock_irqrestore(&rxq->lock, flags);
++			__free_pages(page, hw_params(trans).rx_page_order);
++			return;
++		}
+ 		/* dma address must be no more than 36 bits */
+ 		BUG_ON(rxb->page_dma & ~DMA_BIT_MASK(36));
+ 		/* and also 256 byte aligned! */
+@@ -489,8 +497,19 @@ static void iwl_rx_handle(struct iwl_trans *trans)
+ 				0, PAGE_SIZE <<
+ 				    hw_params(trans).rx_page_order,
+ 				DMA_FROM_DEVICE);
+-			list_add_tail(&rxb->list, &rxq->rx_free);
+-			rxq->free_count++;
++			if (dma_mapping_error(bus(trans)->dev, rxb->page_dma)) {
++				/*
++				 * free the page(s) as well to not break
++				 * the invariant that the items on the used
++				 * list have no page(s)
++				 */
++				__free_pages(rxb->page, hw_params(trans).rx_page_order);
++				rxb->page = NULL;
++				list_add_tail(&rxb->list, &rxq->rx_used);
++			} else {
++				list_add_tail(&rxb->list, &rxq->rx_free);
++				rxq->free_count++;
++			}
+ 		} else
+ 			list_add_tail(&rxb->list, &rxq->rx_used);
+ 
+-- 
+1.8.1.2
+

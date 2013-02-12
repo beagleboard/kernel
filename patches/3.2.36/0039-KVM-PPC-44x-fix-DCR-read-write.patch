@@ -1,0 +1,41 @@
+From 328b7912fd67a429196153c12dd11c7370cde201 Mon Sep 17 00:00:00 2001
+From: Alexander Graf <agraf@suse.de>
+Date: Sat, 6 Oct 2012 03:56:35 +0200
+Subject: [PATCH 039/171] KVM: PPC: 44x: fix DCR read/write
+
+commit e43a028752fed049e4bd94ef895542f96d79fa74 upstream.
+
+When remembering the direction of a DCR transaction, we should write
+to the same variable that we interpret on later when doing vcpu_run
+again.
+
+Signed-off-by: Alexander Graf <agraf@suse.de>
+[bwh: Backported to 3.2: adjust context, indentation]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/powerpc/kvm/44x_emulate.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/powerpc/kvm/44x_emulate.c b/arch/powerpc/kvm/44x_emulate.c
+index 549bb2c..ded8a1a 100644
+--- a/arch/powerpc/kvm/44x_emulate.c
++++ b/arch/powerpc/kvm/44x_emulate.c
+@@ -79,6 +79,7 @@ int kvmppc_core_emulate_op(struct kvm_run *run, struct kvm_vcpu *vcpu,
+ 				run->dcr.dcrn = dcrn;
+ 				run->dcr.data =  0;
+ 				run->dcr.is_write = 0;
++				vcpu->arch.dcr_is_write = 0;
+ 				vcpu->arch.io_gpr = rt;
+ 				vcpu->arch.dcr_needed = 1;
+ 				kvmppc_account_exit(vcpu, DCR_EXITS);
+@@ -100,6 +101,7 @@ int kvmppc_core_emulate_op(struct kvm_run *run, struct kvm_vcpu *vcpu,
+ 				run->dcr.dcrn = dcrn;
+ 				run->dcr.data = kvmppc_get_gpr(vcpu, rs);
+ 				run->dcr.is_write = 1;
++				vcpu->arch.dcr_is_write = 1;
+ 				vcpu->arch.dcr_needed = 1;
+ 				kvmppc_account_exit(vcpu, DCR_EXITS);
+ 				emulated = EMULATE_DO_DCR;
+-- 
+1.8.1.2
+

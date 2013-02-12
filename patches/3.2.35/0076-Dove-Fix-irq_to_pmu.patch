@@ -1,0 +1,36 @@
+From 58b329a2a9572fc7778be32910abecbf4e78547f Mon Sep 17 00:00:00 2001
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Date: Sun, 18 Nov 2012 16:39:32 +0000
+Subject: [PATCH 76/90] Dove: Fix irq_to_pmu()
+
+commit d356cf5a74afa32b40decca3c9dd88bc3cd63eb5 upstream.
+
+PMU interrupts start at IRQ_DOVE_PMU_START, not IRQ_DOVE_PMU_START + 1.
+Fix the condition.  (It may have been less likely to occur had the code
+been written "if (irq >= IRQ_DOVE_PMU_START" which imho is the easier
+to understand notation, and matches the normal way of thinking about
+these things.)
+
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Jason Cooper <jason@lakedaemon.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/arm/mach-dove/include/mach/pm.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-dove/include/mach/pm.h b/arch/arm/mach-dove/include/mach/pm.h
+index 3ad9f94..11799c3 100644
+--- a/arch/arm/mach-dove/include/mach/pm.h
++++ b/arch/arm/mach-dove/include/mach/pm.h
+@@ -45,7 +45,7 @@ static inline int pmu_to_irq(int pin)
+ 
+ static inline int irq_to_pmu(int irq)
+ {
+-	if (IRQ_DOVE_PMU_START < irq && irq < NR_IRQS)
++	if (IRQ_DOVE_PMU_START <= irq && irq < NR_IRQS)
+ 		return irq - IRQ_DOVE_PMU_START;
+ 
+ 	return -EINVAL;
+-- 
+1.8.1.2
+

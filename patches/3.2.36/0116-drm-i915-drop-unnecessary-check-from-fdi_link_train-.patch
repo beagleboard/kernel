@@ -1,0 +1,60 @@
+From 9d07c74971b2708c4db617caf2911ccc06306d6e Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Wed, 31 Oct 2012 22:52:28 +0100
+Subject: [PATCH 116/171] drm/i915: drop unnecessary check from fdi_link_train
+ code
+
+commit 8f5718a6d9a29bf1f51910c6b32bd0244f905303 upstream.
+
+They are all written for a specific north disaplay->pch combination.
+So stop pretending otherwise.
+
+Reviewed-by: Paulo Zanoni <paulo.r.zanoni@intel.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_display.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index c75aa43..5d3b0a5 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -2439,11 +2439,9 @@ static void ironlake_fdi_link_train(struct drm_crtc *crtc)
+ 	udelay(150);
+ 
+ 	/* Ironlake workaround, enable clock pointer after FDI enable*/
+-	if (HAS_PCH_IBX(dev)) {
+-		I915_WRITE(FDI_RX_CHICKEN(pipe), FDI_RX_PHASE_SYNC_POINTER_OVR);
+-		I915_WRITE(FDI_RX_CHICKEN(pipe), FDI_RX_PHASE_SYNC_POINTER_OVR |
+-			   FDI_RX_PHASE_SYNC_POINTER_EN);
+-	}
++	I915_WRITE(FDI_RX_CHICKEN(pipe), FDI_RX_PHASE_SYNC_POINTER_OVR);
++	I915_WRITE(FDI_RX_CHICKEN(pipe), FDI_RX_PHASE_SYNC_POINTER_OVR |
++		   FDI_RX_PHASE_SYNC_POINTER_EN);
+ 
+ 	reg = FDI_RX_IIR(pipe);
+ 	for (tries = 0; tries < 5; tries++) {
+@@ -2546,8 +2544,7 @@ static void gen6_fdi_link_train(struct drm_crtc *crtc)
+ 	POSTING_READ(reg);
+ 	udelay(150);
+ 
+-	if (HAS_PCH_CPT(dev))
+-		cpt_phase_pointer_enable(dev, pipe);
++	cpt_phase_pointer_enable(dev, pipe);
+ 
+ 	for (i = 0; i < 4; i++) {
+ 		reg = FDI_TX_CTL(pipe);
+@@ -2667,8 +2664,7 @@ static void ivb_manual_fdi_link_train(struct drm_crtc *crtc)
+ 	POSTING_READ(reg);
+ 	udelay(150);
+ 
+-	if (HAS_PCH_CPT(dev))
+-		cpt_phase_pointer_enable(dev, pipe);
++	cpt_phase_pointer_enable(dev, pipe);
+ 
+ 	for (i = 0; i < 4; i++) {
+ 		reg = FDI_TX_CTL(pipe);
+-- 
+1.8.1.2
+

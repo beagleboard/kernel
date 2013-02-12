@@ -1,0 +1,48 @@
+From 7ffdddffe015bf6202a0a845a99637c2e2a378b4 Mon Sep 17 00:00:00 2001
+From: Will Deacon <will.deacon@arm.com>
+Date: Fri, 19 Oct 2012 14:03:33 +0100
+Subject: [PATCH 037/171] virtio: force vring descriptors to be allocated from
+ lowmem
+
+commit b92b1b89a33c172c075edccf6afb0edc41d851fd upstream.
+
+Virtio devices may attempt to add descriptors to a virtqueue from atomic
+context using GFP_ATOMIC allocation. This is problematic because such
+allocations can fall outside of the lowmem mapping, causing virt_to_phys
+to report bogus physical addresses which are subsequently passed to
+userspace via the buffers for the virtual device.
+
+This patch masks out __GFP_HIGH and __GFP_HIGHMEM from the requested
+flags when allocating descriptors for a virtqueue. If an atomic
+allocation is requested and later fails, we will return -ENOSPC which
+will be handled by the driver.
+
+Cc: Sasha Levin <levinsasha928@gmail.com>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/virtio/virtio_ring.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/virtio/virtio_ring.c b/drivers/virtio/virtio_ring.c
+index c7a2c20..dc2eed1 100644
+--- a/drivers/virtio/virtio_ring.c
++++ b/drivers/virtio/virtio_ring.c
+@@ -121,6 +121,13 @@ static int vring_add_indirect(struct vring_virtqueue *vq,
+ 	unsigned head;
+ 	int i;
+ 
++	/*
++	 * We require lowmem mappings for the descriptors because
++	 * otherwise virt_to_phys will give us bogus addresses in the
++	 * virtqueue.
++	 */
++	gfp &= ~(__GFP_HIGHMEM | __GFP_HIGH);
++
+ 	desc = kmalloc((out + in) * sizeof(struct vring_desc), gfp);
+ 	if (!desc)
+ 		return -ENOMEM;
+-- 
+1.8.1.2
+

@@ -1,0 +1,61 @@
+From 03dd6e183f2276b6386bb853d81186f0082ad780 Mon Sep 17 00:00:00 2001
+From: Christian Borntraeger <borntraeger@de.ibm.com>
+Date: Tue, 2 Oct 2012 16:25:38 +0200
+Subject: [PATCH 031/171] s390/kvm: dont announce RRBM support
+
+commit 87cac8f879a5ecd7109dbe688087e8810b3364eb upstream.
+
+Newer kernels (linux-next with the transparent huge page patches)
+use rrbm if the feature is announced via feature bit 66.
+RRBM will cause intercepts, so KVM does not handle it right now,
+causing an illegal instruction in the guest.
+The  easy solution is to disable the feature bit for the guest.
+
+This fixes bugs like:
+Kernel BUG at 0000000000124c2a [verbose debug info unavailable]
+illegal operation: 0001 [#1] SMP
+Modules linked in: virtio_balloon virtio_net ipv6 autofs4
+CPU: 0 Not tainted 3.5.4 #1
+Process fmempig (pid: 659, task: 000000007b712fd0, ksp: 000000007bed3670)
+Krnl PSW : 0704d00180000000 0000000000124c2a (pmdp_clear_flush_young+0x5e/0x80)
+     R:0 T:1 IO:1 EX:1 Key:0 M:1 W:0 P:0 AS:3 CC:1 PM:0 EA:3
+     00000000003cc000 0000000000000004 0000000000000000 0000000079800000
+     0000000000040000 0000000000000000 000000007bed3918 000000007cf40000
+     0000000000000001 000003fff7f00000 000003d281a94000 000000007bed383c
+     000000007bed3918 00000000005ecbf8 00000000002314a6 000000007bed36e0
+ Krnl Code:>0000000000124c2a: b9810025          ogr     %r2,%r5
+           0000000000124c2e: 41343000           la      %r3,0(%r4,%r3)
+           0000000000124c32: a716fffa           brct    %r1,124c26
+           0000000000124c36: b9010022           lngr    %r2,%r2
+           0000000000124c3a: e3d0f0800004       lg      %r13,128(%r15)
+           0000000000124c40: eb22003f000c       srlg    %r2,%r2,63
+[ 2150.713198] Call Trace:
+[ 2150.713223] ([<00000000002312c4>] page_referenced_one+0x6c/0x27c)
+[ 2150.713749]  [<0000000000233812>] page_referenced+0x32a/0x410
+[...]
+
+CC: Alex Graf <agraf@suse.de>
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Signed-off-by: Marcelo Tosatti <mtosatti@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/s390/kvm/kvm-s390.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/s390/kvm/kvm-s390.c b/arch/s390/kvm/kvm-s390.c
+index d3cb86c..dffcaa4 100644
+--- a/arch/s390/kvm/kvm-s390.c
++++ b/arch/s390/kvm/kvm-s390.c
+@@ -749,7 +749,7 @@ static int __init kvm_s390_init(void)
+ 	}
+ 	memcpy(facilities, S390_lowcore.stfle_fac_list, 16);
+ 	facilities[0] &= 0xff00fff3f47c0000ULL;
+-	facilities[1] &= 0x201c000000000000ULL;
++	facilities[1] &= 0x001c000000000000ULL;
+ 	return 0;
+ }
+ 
+-- 
+1.8.1.2
+

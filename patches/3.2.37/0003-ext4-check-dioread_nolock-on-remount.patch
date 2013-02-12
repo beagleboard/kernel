@@ -1,0 +1,70 @@
+From 87a789d8be22144c984bc5d30add6e130cb22b7f Mon Sep 17 00:00:00 2001
+From: Jan Kara <jack@suse.cz>
+Date: Thu, 20 Dec 2012 00:07:18 -0500
+Subject: [PATCH 03/46] ext4: check dioread_nolock on remount
+
+commit 261cb20cb2f0737a247aaf08dff7eb065e3e5b66 upstream.
+
+Currently we allow enabling dioread_nolock mount option on remount for
+filesystems where blocksize < PAGE_CACHE_SIZE.  This isn't really
+supported so fix the bug by moving the check for blocksize !=
+PAGE_CACHE_SIZE into parse_options(). Change the original PAGE_SIZE to
+PAGE_CACHE_SIZE along the way because that's what we are really
+interested in.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Reviewed-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ext4/super.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
+
+diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+index f8d5fce..4e03de4 100644
+--- a/fs/ext4/super.c
++++ b/fs/ext4/super.c
+@@ -1942,6 +1942,16 @@ set_qf_format:
+ 		}
+ 	}
+ #endif
++	if (test_opt(sb, DIOREAD_NOLOCK)) {
++		int blocksize =
++			BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
++
++		if (blocksize < PAGE_CACHE_SIZE) {
++			ext4_msg(sb, KERN_ERR, "can't mount with "
++				 "dioread_nolock if block size != PAGE_SIZE");
++			return 0;
++		}
++	}
+ 	return 1;
+ }
+ 
+@@ -3367,15 +3377,6 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 			clear_opt(sb, DELALLOC);
+ 	}
+ 
+-	blocksize = BLOCK_SIZE << le32_to_cpu(es->s_log_block_size);
+-	if (test_opt(sb, DIOREAD_NOLOCK)) {
+-		if (blocksize < PAGE_SIZE) {
+-			ext4_msg(sb, KERN_ERR, "can't mount with "
+-				 "dioread_nolock if block size != PAGE_SIZE");
+-			goto failed_mount;
+-		}
+-	}
+-
+ 	sb->s_flags = (sb->s_flags & ~MS_POSIXACL) |
+ 		(test_opt(sb, POSIX_ACL) ? MS_POSIXACL : 0);
+ 
+@@ -3417,6 +3418,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (!ext4_feature_set_ok(sb, (sb->s_flags & MS_RDONLY)))
+ 		goto failed_mount;
+ 
++	blocksize = BLOCK_SIZE << le32_to_cpu(es->s_log_block_size);
+ 	if (blocksize < EXT4_MIN_BLOCK_SIZE ||
+ 	    blocksize > EXT4_MAX_BLOCK_SIZE) {
+ 		ext4_msg(sb, KERN_ERR,
+-- 
+1.8.1.2
+

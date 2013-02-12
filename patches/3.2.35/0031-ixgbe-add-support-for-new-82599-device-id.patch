@@ -1,0 +1,58 @@
+From 51a33185503ac8b5a4012cfd453958ab645229cc Mon Sep 17 00:00:00 2001
+From: Emil Tantilov <emil.s.tantilov@intel.com>
+Date: Fri, 4 Nov 2011 06:43:29 +0000
+Subject: [PATCH 31/90] ixgbe: add support for new 82599 device id
+
+commit 9e791e4a04c08868f02cd579a428a7268492e1b4 upstream.
+
+Support for new 82599 based quad port adapter.
+
+Signed-off-by: Emil Tantilov <emil.s.tantilov@intel.com>
+Tested-by: Phil Schmitt <phillip.j.schmitt@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c | 1 +
+ drivers/net/ethernet/intel/ixgbe/ixgbe_main.c  | 1 +
+ drivers/net/ethernet/intel/ixgbe/ixgbe_type.h  | 1 +
+ 3 files changed, 3 insertions(+)
+
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c
+index 4ae26a7..7720721 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c
+@@ -356,6 +356,7 @@ static enum ixgbe_media_type ixgbe_get_media_type_82599(struct ixgbe_hw *hw)
+ 	case IXGBE_DEV_ID_82599_SFP_FCOE:
+ 	case IXGBE_DEV_ID_82599_SFP_EM:
+ 	case IXGBE_DEV_ID_82599_SFP_SF2:
++	case IXGBE_DEV_ID_82599_SFP_SF_QP:
+ 	case IXGBE_DEV_ID_82599EN_SFP:
+ 		media_type = ixgbe_media_type_fiber;
+ 		break;
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+index 8ef92d1..b9e073e 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+@@ -106,6 +106,7 @@ static DEFINE_PCI_DEVICE_TABLE(ixgbe_pci_tbl) = {
+ 	{PCI_VDEVICE(INTEL, IXGBE_DEV_ID_82599_SFP_SF2), board_82599 },
+ 	{PCI_VDEVICE(INTEL, IXGBE_DEV_ID_82599_LS), board_82599 },
+ 	{PCI_VDEVICE(INTEL, IXGBE_DEV_ID_82599EN_SFP), board_82599 },
++	{PCI_VDEVICE(INTEL, IXGBE_DEV_ID_82599_SFP_SF_QP), board_82599 },
+ 	/* required last entry */
+ 	{0, }
+ };
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h b/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h
+index 6c5cca8..97b7bb2 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h
+@@ -65,6 +65,7 @@
+ #define IXGBE_SUBDEV_ID_82599_KX4_KR_MEZZ  0x000C
+ #define IXGBE_DEV_ID_82599_LS            0x154F
+ #define IXGBE_DEV_ID_X540T               0x1528
++#define IXGBE_DEV_ID_82599_SFP_SF_QP     0x154A
+ 
+ /* VF Device IDs */
+ #define IXGBE_DEV_ID_82599_VF           0x10ED
+-- 
+1.8.1.2
+

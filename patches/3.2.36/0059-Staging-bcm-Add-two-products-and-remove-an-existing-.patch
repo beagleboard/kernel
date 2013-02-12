@@ -1,0 +1,62 @@
+From 0b386ebfd917536d6315fab76e4ec68abe432bbb Mon Sep 17 00:00:00 2001
+From: Kevin McKinney <klmckinney1@gmail.com>
+Date: Mon, 12 Nov 2012 22:20:30 -0500
+Subject: [PATCH 059/171] Staging: bcm: Add two products and remove an existing
+ product.
+
+commit 4f29ef050848245f7c180b95ccf67dfcd76b1fd8 upstream.
+
+This patch adds two new products and modifies
+the device id table to include them. In addition,
+product of 0xbccd - BCM_USB_PRODUCT_ID_SM250 is
+removed because Beceem, ZTE, Sprint use this id
+for block devices.
+
+Reported-by: Muhammad Minhazul Haque <mdminhazulhaque@gmail.com>
+Signed-off-by: Kevin McKinney <klmckinney1@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/bcm/InterfaceInit.c | 3 ++-
+ drivers/staging/bcm/InterfaceInit.h | 2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/staging/bcm/InterfaceInit.c b/drivers/staging/bcm/InterfaceInit.c
+index 42466a9..3582535 100644
+--- a/drivers/staging/bcm/InterfaceInit.c
++++ b/drivers/staging/bcm/InterfaceInit.c
+@@ -4,11 +4,12 @@ static struct usb_device_id InterfaceUsbtable[] = {
+ 	{ USB_DEVICE(BCM_USB_VENDOR_ID_T3, BCM_USB_PRODUCT_ID_T3) },
+ 	{ USB_DEVICE(BCM_USB_VENDOR_ID_T3, BCM_USB_PRODUCT_ID_T3B) },
+ 	{ USB_DEVICE(BCM_USB_VENDOR_ID_T3, BCM_USB_PRODUCT_ID_T3L) },
+-	{ USB_DEVICE(BCM_USB_VENDOR_ID_T3, BCM_USB_PRODUCT_ID_SM250) },
++	{ USB_DEVICE(BCM_USB_VENDOR_ID_T3, BCM_USB_PRODUCT_ID_SYM) },
+ 	{ USB_DEVICE(BCM_USB_VENDOR_ID_ZTE, BCM_USB_PRODUCT_ID_226) },
+ 	{ USB_DEVICE(BCM_USB_VENDOR_ID_FOXCONN, BCM_USB_PRODUCT_ID_1901) },
+ 	{ USB_DEVICE(BCM_USB_VENDOR_ID_ZTE, BCM_USB_PRODUCT_ID_ZTE_TU25) },
+ 	{ USB_DEVICE(BCM_USB_VENDOR_ID_ZTE, BCM_USB_PRODUCT_ID_ZTE_226) },
++	{ USB_DEVICE(BCM_USB_VENDOR_ID_ZTE, BCM_USB_PRODUCT_ID_ZTE_326) },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(usb, InterfaceUsbtable);
+diff --git a/drivers/staging/bcm/InterfaceInit.h b/drivers/staging/bcm/InterfaceInit.h
+index f25b17e..6fa4f09 100644
+--- a/drivers/staging/bcm/InterfaceInit.h
++++ b/drivers/staging/bcm/InterfaceInit.h
+@@ -8,11 +8,11 @@
+ #define BCM_USB_PRODUCT_ID_T3 	0x0300
+ #define BCM_USB_PRODUCT_ID_T3B 	0x0210
+ #define BCM_USB_PRODUCT_ID_T3L 	0x0220
+-#define BCM_USB_PRODUCT_ID_SM250 	0xbccd
+ #define BCM_USB_PRODUCT_ID_SYM  0x15E
+ #define BCM_USB_PRODUCT_ID_1901 0xe017
+ #define BCM_USB_PRODUCT_ID_226	0x0132 /* not sure if this is valid */
+ #define BCM_USB_PRODUCT_ID_ZTE_226 0x172
++#define BCM_USB_PRODUCT_ID_ZTE_326 0x173 /* ZTE AX326 */
+ #define BCM_USB_PRODUCT_ID_ZTE_TU25 0x0007
+ 
+ #define BCM_USB_MINOR_BASE 		192
+-- 
+1.8.1.2
+

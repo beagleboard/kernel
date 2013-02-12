@@ -1,0 +1,87 @@
+From 1c2e8a39c7af204797391868da8e9e8bc2e7aa76 Mon Sep 17 00:00:00 2001
+From: Jani Nikula <jani.nikula@intel.com>
+Date: Mon, 12 Nov 2012 18:31:35 +0200
+Subject: [PATCH 10/90] drm/i915/sdvo: clean up connectors on intel_sdvo_init()
+ failures
+
+commit d0ddfbd3d1346c1f481ec2289eef350cdba64b42 upstream.
+
+Any failures in intel_sdvo_init() after the intel_sdvo_setup_output() call
+left behind ghost connectors, attached (with a dangling pointer) to the
+sdvo that has been cleaned up and freed. Properly destroy any connectors
+attached to the encoder.
+
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=46381
+CC: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-off-by: Jani Nikula <jani.nikula@intel.com>
+Tested-by: bjo@nord-west.org
+[danvet: added a comment to explain why we need to clean up connectors
+even when sdvo_output_setup fails.]
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_sdvo.c | 22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_sdvo.c b/drivers/gpu/drm/i915/intel_sdvo.c
+index 3f4afba..9e24670 100644
+--- a/drivers/gpu/drm/i915/intel_sdvo.c
++++ b/drivers/gpu/drm/i915/intel_sdvo.c
+@@ -2264,6 +2264,18 @@ intel_sdvo_output_setup(struct intel_sdvo *intel_sdvo, uint16_t flags)
+ 	return true;
+ }
+ 
++static void intel_sdvo_output_cleanup(struct intel_sdvo *intel_sdvo)
++{
++	struct drm_device *dev = intel_sdvo->base.base.dev;
++	struct drm_connector *connector, *tmp;
++
++	list_for_each_entry_safe(connector, tmp,
++				 &dev->mode_config.connector_list, head) {
++		if (intel_attached_encoder(connector) == &intel_sdvo->base)
++			intel_sdvo_destroy(connector);
++	}
++}
++
+ static bool intel_sdvo_tv_create_property(struct intel_sdvo *intel_sdvo,
+ 					  struct intel_sdvo_connector *intel_sdvo_connector,
+ 					  int type)
+@@ -2596,7 +2608,8 @@ bool intel_sdvo_init(struct drm_device *dev, int sdvo_reg)
+ 				    intel_sdvo->caps.output_flags) != true) {
+ 		DRM_DEBUG_KMS("SDVO output failed to setup on SDVO%c\n",
+ 			      IS_SDVOB(sdvo_reg) ? 'B' : 'C');
+-		goto err;
++		/* Output_setup can leave behind connectors! */
++		goto err_output;
+ 	}
+ 
+ 	/* Only enable the hotplug irq if we need it, to work around noisy
+@@ -2609,12 +2622,12 @@ bool intel_sdvo_init(struct drm_device *dev, int sdvo_reg)
+ 
+ 	/* Set the input timing to the screen. Assume always input 0. */
+ 	if (!intel_sdvo_set_target_input(intel_sdvo))
+-		goto err;
++		goto err_output;
+ 
+ 	if (!intel_sdvo_get_input_pixel_clock_range(intel_sdvo,
+ 						    &intel_sdvo->pixel_clock_min,
+ 						    &intel_sdvo->pixel_clock_max))
+-		goto err;
++		goto err_output;
+ 
+ 	DRM_DEBUG_KMS("%s device VID/DID: %02X:%02X.%02X, "
+ 			"clock range %dMHz - %dMHz, "
+@@ -2634,6 +2647,9 @@ bool intel_sdvo_init(struct drm_device *dev, int sdvo_reg)
+ 			(SDVO_OUTPUT_TMDS1 | SDVO_OUTPUT_RGB1) ? 'Y' : 'N');
+ 	return true;
+ 
++err_output:
++	intel_sdvo_output_cleanup(intel_sdvo);
++
+ err:
+ 	drm_encoder_cleanup(&intel_encoder->base);
+ 	i2c_del_adapter(&intel_sdvo->ddc);
+-- 
+1.8.1.2
+

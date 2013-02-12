@@ -1,0 +1,46 @@
+From 45145d4babb27c5c6c6ae71a9cf4f7b1776ab825 Mon Sep 17 00:00:00 2001
+From: Boris Ostrovsky <boris.ostrovsky@amd.com>
+Date: Thu, 15 Nov 2012 13:41:50 -0500
+Subject: [PATCH 71/90] x86, microcode, AMD: Add support for family 16h
+ processors
+
+commit 36c46ca4f322a7bf89aad5462a3a1f61713edce7 upstream.
+
+Add valid patch size for family 16h processors.
+
+[ hpa: promoting to urgent/stable since it is hw enabling and trivial ]
+
+Signed-off-by: Boris Ostrovsky <boris.ostrovsky@amd.com>
+Acked-by: Andreas Herrmann <herrmann.der.user@googlemail.com>
+Link: http://lkml.kernel.org/r/1353004910-2204-1-git-send-email-boris.ostrovsky@amd.com
+Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kernel/microcode_amd.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/x86/kernel/microcode_amd.c b/arch/x86/kernel/microcode_amd.c
+index ac52c15..1ef962b 100644
+--- a/arch/x86/kernel/microcode_amd.c
++++ b/arch/x86/kernel/microcode_amd.c
+@@ -163,6 +163,7 @@ static unsigned int verify_ucode_size(int cpu, const u8 *buf, unsigned int size)
+ #define F1XH_MPB_MAX_SIZE 2048
+ #define F14H_MPB_MAX_SIZE 1824
+ #define F15H_MPB_MAX_SIZE 4096
++#define F16H_MPB_MAX_SIZE 3458
+ 
+ 	switch (c->x86) {
+ 	case 0x14:
+@@ -171,6 +172,9 @@ static unsigned int verify_ucode_size(int cpu, const u8 *buf, unsigned int size)
+ 	case 0x15:
+ 		max_size = F15H_MPB_MAX_SIZE;
+ 		break;
++	case 0x16:
++		max_size = F16H_MPB_MAX_SIZE;
++		break;
+ 	default:
+ 		max_size = F1XH_MPB_MAX_SIZE;
+ 		break;
+-- 
+1.8.1.2
+

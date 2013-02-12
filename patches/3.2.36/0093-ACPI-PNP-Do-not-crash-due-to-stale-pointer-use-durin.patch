@@ -1,0 +1,52 @@
+From 310064a74c7b8f2a4a918d484c1deb3b053bfd4e Mon Sep 17 00:00:00 2001
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Date: Fri, 30 Nov 2012 13:05:05 +0100
+Subject: [PATCH 093/171] ACPI / PNP: Do not crash due to stale pointer use
+ during system resume
+
+commit a6b5e88c0e42093b9057856f35770966c8c591e3 upstream.
+
+During resume from system suspend the 'data' field of
+struct pnp_dev in pnpacpi_set_resources() may be a stale pointer,
+due to removal of the associated ACPI device node object in the
+previous suspend-resume cycle.  This happens, for example, if a
+dockable machine is booted in the docking station and then suspended
+and resumed and suspended again.  If that happens,
+pnpacpi_build_resource_template() called from pnpacpi_set_resources()
+attempts to use that pointer and crashes.
+
+However, pnpacpi_set_resources() actually checks the device's ACPI
+handle, attempts to find the ACPI device node object attached to it
+and returns an error code if that fails, so in fact it knows what the
+correct value of dev->data should be.  Use this observation to update
+dev->data with the correct value if necessary and dump a call trace
+if that's the case (once).
+
+We still need to fix the root cause of this issue, but preventing
+systems from crashing because of it is an improvement too.
+
+Reported-and-tested-by: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+References: https://bugzilla.kernel.org/show_bug.cgi?id=51071
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/pnp/pnpacpi/core.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+index d21e8f5..e353788 100644
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -95,6 +95,9 @@ static int pnpacpi_set_resources(struct pnp_dev *dev)
+ 		return -ENODEV;
+ 	}
+ 
++	if (WARN_ON_ONCE(acpi_dev != dev->data))
++		dev->data = acpi_dev;
++
+ 	ret = pnpacpi_build_resource_template(dev, &buffer);
+ 	if (ret)
+ 		return ret;
+-- 
+1.8.1.2
+

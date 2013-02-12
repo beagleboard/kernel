@@ -1,0 +1,39 @@
+From de967a2d4c371bd940f9ad27019128fa1cad4d9c Mon Sep 17 00:00:00 2001
+From: Tom Herbert <therbert@google.com>
+Date: Fri, 16 Nov 2012 09:04:15 +0000
+Subject: [PATCH 27/90] net-rps: Fix brokeness causing OOO packets
+
+[ Upstream commit baefa31db2f2b13a05d1b81bdf2d20d487f58b0a ]
+
+In commit c445477d74ab3779 which adds aRFS to the kernel, the CPU
+selected for RFS is not set correctly when CPU is changing.
+This is causing OOO packets and probably other issues.
+
+Signed-off-by: Tom Herbert <therbert@google.com>
+Acked-by: Eric Dumazet <edumazet@google.com>
+Acked-by: Ben Hutchings <bhutchings@solarflare.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/core/dev.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 480be72..2aac4ec 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -2829,8 +2829,10 @@ static int get_rps_cpu(struct net_device *dev, struct sk_buff *skb,
+ 		if (unlikely(tcpu != next_cpu) &&
+ 		    (tcpu == RPS_NO_CPU || !cpu_online(tcpu) ||
+ 		     ((int)(per_cpu(softnet_data, tcpu).input_queue_head -
+-		      rflow->last_qtail)) >= 0))
++		      rflow->last_qtail)) >= 0)) {
++			tcpu = next_cpu;
+ 			rflow = set_rps_cpu(dev, skb, rflow, next_cpu);
++		}
+ 
+ 		if (tcpu != RPS_NO_CPU && cpu_online(tcpu)) {
+ 			*rflowp = rflow;
+-- 
+1.8.1.2
+

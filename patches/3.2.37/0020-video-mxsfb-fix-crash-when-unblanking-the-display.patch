@@ -1,0 +1,41 @@
+From 4108e6fc06140a2ffcd008a2269c428f5100c3ed Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Lothar=20Wa=C3=9Fmann?= <LW@KARO-electronics.de>
+Date: Thu, 22 Nov 2012 13:49:14 +0100
+Subject: [PATCH 20/46] video: mxsfb: fix crash when unblanking the display
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit 6c1ecba8d84841277d68140ef485335d5be28485 upstream.
+
+The VDCTRL4 register does not provide the MXS SET/CLR/TOGGLE feature.
+The write in mxsfb_disable_controller() sets the data_cnt for the LCD
+DMA to 0 which obviously means the max. count for the LCD DMA and
+leads to overwriting arbitrary memory when the display is unblanked.
+
+Signed-off-by: Lothar Waßmann <LW@KARO-electronics.de>
+Acked-by: Juergen Beisert <jbe@pengutronix.de>
+Tested-by: Lauri Hintsala <lauri.hintsala@bluegiga.net>
+Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/video/mxsfb.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/video/mxsfb.c b/drivers/video/mxsfb.c
+index d837d63..03cb95a 100644
+--- a/drivers/video/mxsfb.c
++++ b/drivers/video/mxsfb.c
+@@ -366,7 +366,8 @@ static void mxsfb_disable_controller(struct fb_info *fb_info)
+ 		loop--;
+ 	}
+ 
+-	writel(VDCTRL4_SYNC_SIGNALS_ON, host->base + LCDC_VDCTRL4 + REG_CLR);
++	reg = readl(host->base + LCDC_VDCTRL4);
++	writel(reg & ~VDCTRL4_SYNC_SIGNALS_ON, host->base + LCDC_VDCTRL4);
+ 
+ 	clk_disable(host->clk);
+ 
+-- 
+1.8.1.2
+

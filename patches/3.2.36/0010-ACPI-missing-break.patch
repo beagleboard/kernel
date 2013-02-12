@@ -1,0 +1,31 @@
+From 98a84252b37288e35aeb3fff2c12e0150d5f8c8b Mon Sep 17 00:00:00 2001
+From: Alan Cox <alan@linux.intel.com>
+Date: Fri, 26 Oct 2012 01:05:56 +0200
+Subject: [PATCH 010/171] ACPI: missing break
+
+commit 879dca019dc43a1622edca3e7dde644b14b5acc5 upstream.
+
+We handle NOTIFY_THROTTLING so don't then fall through to unsupported event.
+
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/acpi/processor_driver.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 9d7bc9f..ac28db3 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -409,6 +409,7 @@ static void acpi_processor_notify(struct acpi_device *device, u32 event)
+ 		acpi_bus_generate_proc_event(device, event, 0);
+ 		acpi_bus_generate_netlink_event(device->pnp.device_class,
+ 						  dev_name(&device->dev), event, 0);
++		break;
+ 	default:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "Unsupported event [0x%x]\n", event));
+-- 
+1.8.1.2
+

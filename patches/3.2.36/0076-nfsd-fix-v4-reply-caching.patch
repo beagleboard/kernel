@@ -1,0 +1,35 @@
+From 68bc40cb0316f82af989fbacd3f3abd6198c9427 Mon Sep 17 00:00:00 2001
+From: "J. Bruce Fields" <bfields@redhat.com>
+Date: Fri, 16 Nov 2012 15:22:43 -0500
+Subject: [PATCH 076/171] nfsd: fix v4 reply caching
+
+commit 57d276d71aef7d8305ff002a070cb98deb2edced upstream.
+
+Very embarassing: 1091006c5eb15cba56785bd5b498a8d0b9546903 "nfsd: turn
+on reply cache for NFSv4" missed a line, effectively leaving the reply
+cache off in the v4 case.  I thought I'd tested that, but I guess not.
+
+This time, wrote a pynfs test to confirm it works.
+
+Signed-off-by: J. Bruce Fields <bfields@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfsd/nfssvc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/nfsd/nfssvc.c b/fs/nfsd/nfssvc.c
+index eda7d7e..7595582 100644
+--- a/fs/nfsd/nfssvc.c
++++ b/fs/nfsd/nfssvc.c
+@@ -633,7 +633,7 @@ nfsd_dispatch(struct svc_rqst *rqstp, __be32 *statp)
+ 	}
+ 
+ 	/* Store reply in cache. */
+-	nfsd_cache_update(rqstp, proc->pc_cachetype, statp + 1);
++	nfsd_cache_update(rqstp, rqstp->rq_cachetype, statp + 1);
+ 	return 1;
+ }
+ 
+-- 
+1.8.1.2
+

@@ -1,0 +1,55 @@
+From 6230aea0d7a6085ef4705c9e1144fb46dfc64eaa Mon Sep 17 00:00:00 2001
+From: Paulo Zanoni <paulo.r.zanoni@intel.com>
+Date: Tue, 20 Nov 2012 13:27:41 -0200
+Subject: [PATCH 073/171] drm/i915: make the panel fitter work on pipes B and C
+ on IVB
+
+commit 13888d78c664a1f61d7b09d282f5916993827a40 upstream.
+
+I actually found this problem on Haswell, but then discovered Ivy
+Bridge also has it by reading the spec.
+
+I don't have the hardware to test this.
+
+Signed-off-by: Paulo Zanoni <paulo.r.zanoni@intel.com>
+Reviewed-by: Damien Lespiau <damien.lespiau@intel.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_reg.h      | 2 ++
+ drivers/gpu/drm/i915/intel_display.c | 6 +++++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_reg.h b/drivers/gpu/drm/i915/i915_reg.h
+index a294a32..7a10f5f 100644
+--- a/drivers/gpu/drm/i915/i915_reg.h
++++ b/drivers/gpu/drm/i915/i915_reg.h
+@@ -2816,6 +2816,8 @@
+ #define _PFA_CTL_1               0x68080
+ #define _PFB_CTL_1               0x68880
+ #define  PF_ENABLE              (1<<31)
++#define  PF_PIPE_SEL_MASK_IVB	(3<<29)
++#define  PF_PIPE_SEL_IVB(pipe)	((pipe)<<29)
+ #define  PF_FILTER_MASK		(3<<23)
+ #define  PF_FILTER_PROGRAMMED	(0<<23)
+ #define  PF_FILTER_MED_3x3	(1<<23)
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index fdae61f..c9676c2 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -3073,7 +3073,11 @@ static void ironlake_crtc_enable(struct drm_crtc *crtc)
+ 		 * as some pre-programmed values are broken,
+ 		 * e.g. x201.
+ 		 */
+-		I915_WRITE(PF_CTL(pipe), PF_ENABLE | PF_FILTER_MED_3x3);
++		if (IS_IVYBRIDGE(dev))
++			I915_WRITE(PF_CTL(pipe), PF_ENABLE | PF_FILTER_MED_3x3 |
++						 PF_PIPE_SEL_IVB(pipe));
++		else
++			I915_WRITE(PF_CTL(pipe), PF_ENABLE | PF_FILTER_MED_3x3);
+ 		I915_WRITE(PF_WIN_POS(pipe), dev_priv->pch_pf_pos);
+ 		I915_WRITE(PF_WIN_SZ(pipe), dev_priv->pch_pf_size);
+ 	}
+-- 
+1.8.1.2
+

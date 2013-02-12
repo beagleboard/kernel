@@ -1,0 +1,58 @@
+From 171f06a4d173a567330f609e4b132bf5673537ba Mon Sep 17 00:00:00 2001
+From: Martin Teichmann <lkb.teichmann@gmail.com>
+Date: Wed, 21 Nov 2012 16:45:07 +0100
+Subject: [PATCH 081/171] USB: ftdi_sio: Add support for Newport AGILIS motor
+ drivers
+
+commit d7e14b375b40c04cd735b115713043b69a2c68ac upstream.
+
+The Newport AGILIS model AG-UC8 compact piezo motor controller
+(http://search.newport.com/?q=*&x2=sku&q2=AG-UC8)
+is yet another device using an FTDI USB-to-serial chip. It works
+fine with the ftdi_sio driver when adding
+
+  options ftdi-sio product=0x3000 vendor=0x104d
+
+to modprobe.d. udevadm reports "Newport" as the manufacturer,
+and "Agilis" as the product name.
+
+Signed-off-by: Martin Teichmann <lkb.teichmann@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/ftdi_sio.c     | 1 +
+ drivers/usb/serial/ftdi_sio_ids.h | 6 ++++++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/drivers/usb/serial/ftdi_sio.c b/drivers/usb/serial/ftdi_sio.c
+index fc194a2..3f989d6 100644
+--- a/drivers/usb/serial/ftdi_sio.c
++++ b/drivers/usb/serial/ftdi_sio.c
+@@ -197,6 +197,7 @@ static struct usb_device_id id_table_combined [] = {
+ 	{ USB_DEVICE(FTDI_VID, FTDI_OPENDCC_THROTTLE_PID) },
+ 	{ USB_DEVICE(FTDI_VID, FTDI_OPENDCC_GATEWAY_PID) },
+ 	{ USB_DEVICE(FTDI_VID, FTDI_OPENDCC_GBM_PID) },
++	{ USB_DEVICE(NEWPORT_VID, NEWPORT_AGILIS_PID) },
+ 	{ USB_DEVICE(INTERBIOMETRICS_VID, INTERBIOMETRICS_IOBOARD_PID) },
+ 	{ USB_DEVICE(INTERBIOMETRICS_VID, INTERBIOMETRICS_MINI_IOBOARD_PID) },
+ 	{ USB_DEVICE(FTDI_VID, FTDI_SPROG_II) },
+diff --git a/drivers/usb/serial/ftdi_sio_ids.h b/drivers/usb/serial/ftdi_sio_ids.h
+index 7b5eb74..aedf65f 100644
+--- a/drivers/usb/serial/ftdi_sio_ids.h
++++ b/drivers/usb/serial/ftdi_sio_ids.h
+@@ -752,6 +752,12 @@
+ #define TTI_VID			0x103E	/* Vendor Id */
+ #define TTI_QL355P_PID		0x03E8	/* TTi QL355P power supply */
+ 
++/*
++ * Newport Cooperation (www.newport.com)
++ */
++#define NEWPORT_VID			0x104D
++#define NEWPORT_AGILIS_PID		0x3000
++
+ /* Interbiometrics USB I/O Board */
+ /* Developed for Interbiometrics by Rudolf Gugler */
+ #define INTERBIOMETRICS_VID              0x1209
+-- 
+1.8.1.2
+

@@ -1,0 +1,65 @@
+From 4aa7da5fbe7d9891d39a70ded1b0ec44a095c532 Mon Sep 17 00:00:00 2001
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Date: Thu, 22 Dec 2011 15:02:13 -0800
+Subject: [PATCH 43/90] xhci: Remove warnings about MSI and MSI-X capabilities.
+
+commit 3b9783b277e66731891ab42eeaacebbdcdd6e629 upstream.
+
+xHCI host controllers may not be capable of MSI, but they should be able
+to be used in legacy PCI interrupt mode.  Similarly, some xHCI host
+controllers will have MSI support but not MSI-X support.  Lower the
+dmesg log level from an error to debug.  The message won't appear unless
+CONFIG_USB_XHCI_HCD_DEBUGGING is turned on.
+
+If we need to find out whether the device can support MSI or MSI-X and
+it's not being enabled by the driver, it's easy to ask the user to run
+lspci.
+
+Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/host/xhci.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
+index 5a23f4d..dab05d1 100644
+--- a/drivers/usb/host/xhci.c
++++ b/drivers/usb/host/xhci.c
+@@ -206,14 +206,14 @@ static int xhci_setup_msi(struct xhci_hcd *xhci)
+ 
+ 	ret = pci_enable_msi(pdev);
+ 	if (ret) {
+-		xhci_err(xhci, "failed to allocate MSI entry\n");
++		xhci_dbg(xhci, "failed to allocate MSI entry\n");
+ 		return ret;
+ 	}
+ 
+ 	ret = request_irq(pdev->irq, (irq_handler_t)xhci_msi_irq,
+ 				0, "xhci_hcd", xhci_to_hcd(xhci));
+ 	if (ret) {
+-		xhci_err(xhci, "disable MSI interrupt\n");
++		xhci_dbg(xhci, "disable MSI interrupt\n");
+ 		pci_disable_msi(pdev);
+ 	}
+ 
+@@ -276,7 +276,7 @@ static int xhci_setup_msix(struct xhci_hcd *xhci)
+ 
+ 	ret = pci_enable_msix(pdev, xhci->msix_entries, xhci->msix_count);
+ 	if (ret) {
+-		xhci_err(xhci, "Failed to enable MSI-X\n");
++		xhci_dbg(xhci, "Failed to enable MSI-X\n");
+ 		goto free_entries;
+ 	}
+ 
+@@ -292,7 +292,7 @@ static int xhci_setup_msix(struct xhci_hcd *xhci)
+ 	return ret;
+ 
+ disable_msix:
+-	xhci_err(xhci, "disable MSI-X interrupt\n");
++	xhci_dbg(xhci, "disable MSI-X interrupt\n");
+ 	xhci_free_irq(xhci);
+ 	pci_disable_msix(pdev);
+ free_entries:
+-- 
+1.8.1.2
+

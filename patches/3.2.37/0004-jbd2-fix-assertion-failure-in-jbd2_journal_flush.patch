@@ -1,0 +1,60 @@
+From de1f35a8dfee84339e57612473ef57cd5cbe34a4 Mon Sep 17 00:00:00 2001
+From: Jan Kara <jack@suse.cz>
+Date: Fri, 21 Dec 2012 00:15:51 -0500
+Subject: [PATCH 04/46] jbd2: fix assertion failure in jbd2_journal_flush()
+
+commit d7961c7fa4d2e3c3f12be67e21ba8799b5a7238a upstream.
+
+The following race is possible between start_this_handle() and someone
+calling jbd2_journal_flush().
+
+Process A                              Process B
+start_this_handle().
+  if (journal->j_barrier_count) # false
+  if (!journal->j_running_transaction) { #true
+    read_unlock(&journal->j_state_lock);
+                                       jbd2_journal_lock_updates()
+                                       jbd2_journal_flush()
+                                         write_lock(&journal->j_state_lock);
+                                         if (journal->j_running_transaction) {
+                                           # false
+                                         ... wait for committing trans ...
+                                         write_unlock(&journal->j_state_lock);
+    ...
+    write_lock(&journal->j_state_lock);
+    if (!journal->j_running_transaction) { # true
+      jbd2_get_transaction(journal, new_transaction);
+    write_unlock(&journal->j_state_lock);
+    goto repeat; # eventually blocks on j_barrier_count > 0
+                                         ...
+                                         J_ASSERT(!journal->j_running_transaction);
+                                           # fails
+
+We fix the race by rechecking j_barrier_count after reacquiring j_state_lock
+in exclusive mode.
+
+Reported-by: yjwsignal@empal.com
+Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/jbd2/transaction.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/fs/jbd2/transaction.c b/fs/jbd2/transaction.c
+index 8267de5..d7dd774 100644
+--- a/fs/jbd2/transaction.c
++++ b/fs/jbd2/transaction.c
+@@ -179,7 +179,8 @@ repeat:
+ 		if (!new_transaction)
+ 			goto alloc_transaction;
+ 		write_lock(&journal->j_state_lock);
+-		if (!journal->j_running_transaction) {
++		if (!journal->j_running_transaction &&
++		    !journal->j_barrier_count) {
+ 			jbd2_get_transaction(journal, new_transaction);
+ 			new_transaction = NULL;
+ 		}
+-- 
+1.8.1.2
+

@@ -1,0 +1,65 @@
+From c219cd8d5130e1dbff3d1475ad24bf01130cb387 Mon Sep 17 00:00:00 2001
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Date: Wed, 21 Nov 2012 00:19:06 -0700
+Subject: [PATCH 77/90] ARM: Kirkwood: Update PCI-E fixup
+
+commit 1dc831bf53fddcc6443f74a39e72db5bcea4f15d upstream.
+
+- The code relies on rc_pci_fixup being called, which only happens
+  when CONFIG_PCI_QUIRKS is enabled, so add that to Kconfig. Omitting
+  this causes a booting failure with a non-obvious cause.
+- Update rc_pci_fixup to set the class properly, copying the
+  more modern style from other places
+- Correct the rc_pci_fixup comment
+
+Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Signed-off-by: Jason Cooper <jason@lakedaemon.net>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/arm/Kconfig              |  1 +
+ arch/arm/mach-kirkwood/pcie.c | 11 ++++++++---
+ 2 files changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 42cbaca4..c2912e3 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -542,6 +542,7 @@ config ARCH_KIRKWOOD
+ 	bool "Marvell Kirkwood"
+ 	select CPU_FEROCEON
+ 	select PCI
++	select PCI_QUIRKS
+ 	select ARCH_REQUIRE_GPIOLIB
+ 	select GENERIC_CLOCKEVENTS
+ 	select PLAT_ORION
+diff --git a/arch/arm/mach-kirkwood/pcie.c b/arch/arm/mach-kirkwood/pcie.c
+index 74b992d..a881c54 100644
+--- a/arch/arm/mach-kirkwood/pcie.c
++++ b/arch/arm/mach-kirkwood/pcie.c
+@@ -213,14 +213,19 @@ static int __init kirkwood_pcie_setup(int nr, struct pci_sys_data *sys)
+ 	return 1;
+ }
+ 
++/*
++ * The root complex has a hardwired class of PCI_CLASS_MEMORY_OTHER, when it
++ * is operating as a root complex this needs to be switched to
++ * PCI_CLASS_BRIDGE_HOST or Linux will errantly try to process the BAR's on
++ * the device. Decoding setup is handled by the orion code.
++ */
+ static void __devinit rc_pci_fixup(struct pci_dev *dev)
+ {
+-	/*
+-	 * Prevent enumeration of root complex.
+-	 */
+ 	if (dev->bus->parent == NULL && dev->devfn == 0) {
+ 		int i;
+ 
++		dev->class &= 0xff;
++		dev->class |= PCI_CLASS_BRIDGE_HOST << 8;
+ 		for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
+ 			dev->resource[i].start = 0;
+ 			dev->resource[i].end   = 0;
+-- 
+1.8.1.2
+

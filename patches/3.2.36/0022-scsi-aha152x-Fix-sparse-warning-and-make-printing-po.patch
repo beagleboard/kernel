@@ -1,0 +1,42 @@
+From e378923ec96cef5b6fb6e21bd771766aa0909821 Mon Sep 17 00:00:00 2001
+From: Krzysztof Wilczynski <krzysztof.wilczynski@linux.com>
+Date: Wed, 2 May 2012 11:34:01 +0100
+Subject: [PATCH 022/171] scsi: aha152x: Fix sparse warning and make printing
+ pointer address more portable.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit b631cf1f899f9d2e449884dbccc34940637c639f upstream.
+
+This is to change use of "0x%08x" in favour of "%p" as per ../Documentation/printk-formats.txt,
+which also takes care about the following warning during compilation time:
+
+  drivers/scsi/aha152x.c: In function ‘get_command’:
+  drivers/scsi/aha152x.c:2987: warning: cast from pointer to integer of different size
+
+Signed-off-by: Krzysztof Wilczynski <krzysztof.wilczynski@linux.com>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/scsi/aha152x.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/scsi/aha152x.c b/drivers/scsi/aha152x.c
+index f17c92c..0fd5ea7 100644
+--- a/drivers/scsi/aha152x.c
++++ b/drivers/scsi/aha152x.c
+@@ -2985,8 +2985,8 @@ static int get_command(char *pos, Scsi_Cmnd * ptr)
+ 	char *start = pos;
+ 	int i;
+ 
+-	SPRINTF("0x%08x: target=%d; lun=%d; cmnd=( ",
+-		(unsigned int) ptr, ptr->device->id, ptr->device->lun);
++	SPRINTF("%p: target=%d; lun=%d; cmnd=( ",
++		ptr, ptr->device->id, ptr->device->lun);
+ 
+ 	for (i = 0; i < COMMAND_SIZE(ptr->cmnd[0]); i++)
+ 		SPRINTF("0x%02x ", ptr->cmnd[i]);
+-- 
+1.8.1.2
+

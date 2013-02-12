@@ -1,0 +1,43 @@
+From b8f2b2d2d049603bbba185ffef4284022d571714 Mon Sep 17 00:00:00 2001
+From: Namjae Jeon <namjae.jeon@samsung.com>
+Date: Wed, 10 Oct 2012 00:08:56 +0900
+Subject: [PATCH 163/171] udf: fix memory leak while allocating blocks during
+ write
+
+commit 2fb7d99d0de3fd8ae869f35ab682581d8455887a upstream.
+
+Need to brelse the buffer_head stored in cur_epos and next_epos.
+
+Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
+Signed-off-by: Ashish Sangwan <a.sangwan@samsung.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/udf/inode.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/fs/udf/inode.c b/fs/udf/inode.c
+index e2787d0..15df1a4 100644
+--- a/fs/udf/inode.c
++++ b/fs/udf/inode.c
+@@ -744,6 +744,8 @@ static struct buffer_head *inode_getblk(struct inode *inode, sector_t block,
+ 				goal, err);
+ 		if (!newblocknum) {
+ 			brelse(prev_epos.bh);
++			brelse(cur_epos.bh);
++			brelse(next_epos.bh);
+ 			*err = -ENOSPC;
+ 			return NULL;
+ 		}
+@@ -774,6 +776,8 @@ static struct buffer_head *inode_getblk(struct inode *inode, sector_t block,
+ 	udf_update_extents(inode, laarr, startnum, endnum, &prev_epos);
+ 
+ 	brelse(prev_epos.bh);
++	brelse(cur_epos.bh);
++	brelse(next_epos.bh);
+ 
+ 	newblock = udf_get_pblock(inode->i_sb, newblocknum,
+ 				iinfo->i_location.partitionReferenceNum, 0);
+-- 
+1.8.1.2
+

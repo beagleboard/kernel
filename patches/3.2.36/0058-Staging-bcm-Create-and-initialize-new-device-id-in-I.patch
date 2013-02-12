@@ -1,0 +1,53 @@
+From 69f4353cf93c543f04cc79a499495a8455276293 Mon Sep 17 00:00:00 2001
+From: Kevin McKinney <klmckinney1@gmail.com>
+Date: Tue, 11 Sep 2012 22:19:06 -0400
+Subject: [PATCH 058/171] Staging: bcm: Create and initialize new device id in
+ InterfaceInit
+
+commit e66fc1fba248738d32f3b64508f9ef1176d9e767 upstream.
+
+This patch create and initalizes a new device
+id of 0x172 as reported by Rinat Camalov
+<richman1000000d@gmail.com>. In addition, a
+comment is added to the potential invalid
+existing device id.
+
+Reported-by: Rinat Camalov <richman1000000d@gmail.com>
+Signed-off-by: Kevin McKinney <klmckinney1@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/bcm/InterfaceInit.c | 1 +
+ drivers/staging/bcm/InterfaceInit.h | 3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/staging/bcm/InterfaceInit.c b/drivers/staging/bcm/InterfaceInit.c
+index a09d351..42466a9 100644
+--- a/drivers/staging/bcm/InterfaceInit.c
++++ b/drivers/staging/bcm/InterfaceInit.c
+@@ -8,6 +8,7 @@ static struct usb_device_id InterfaceUsbtable[] = {
+ 	{ USB_DEVICE(BCM_USB_VENDOR_ID_ZTE, BCM_USB_PRODUCT_ID_226) },
+ 	{ USB_DEVICE(BCM_USB_VENDOR_ID_FOXCONN, BCM_USB_PRODUCT_ID_1901) },
+ 	{ USB_DEVICE(BCM_USB_VENDOR_ID_ZTE, BCM_USB_PRODUCT_ID_ZTE_TU25) },
++	{ USB_DEVICE(BCM_USB_VENDOR_ID_ZTE, BCM_USB_PRODUCT_ID_ZTE_226) },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(usb, InterfaceUsbtable);
+diff --git a/drivers/staging/bcm/InterfaceInit.h b/drivers/staging/bcm/InterfaceInit.h
+index 058315a..f25b17e 100644
+--- a/drivers/staging/bcm/InterfaceInit.h
++++ b/drivers/staging/bcm/InterfaceInit.h
+@@ -11,7 +11,8 @@
+ #define BCM_USB_PRODUCT_ID_SM250 	0xbccd
+ #define BCM_USB_PRODUCT_ID_SYM  0x15E
+ #define BCM_USB_PRODUCT_ID_1901 0xe017
+-#define BCM_USB_PRODUCT_ID_226  0x0132
++#define BCM_USB_PRODUCT_ID_226	0x0132 /* not sure if this is valid */
++#define BCM_USB_PRODUCT_ID_ZTE_226 0x172
+ #define BCM_USB_PRODUCT_ID_ZTE_TU25 0x0007
+ 
+ #define BCM_USB_MINOR_BASE 		192
+-- 
+1.8.1.2
+

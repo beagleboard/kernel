@@ -1,0 +1,39 @@
+From 8e7a75bdd9c9d501cdc657f6debe6e000de28d4c Mon Sep 17 00:00:00 2001
+From: Malcolm Priestley <tvboxspy@gmail.com>
+Date: Sun, 7 Oct 2012 08:27:00 +0100
+Subject: [PATCH 164/171] staging: vt6656: [BUG] out of bound array reference
+ in RFbSetPower.
+
+commit ab1dd9963137a1e122004d5378a581bf16ae9bc8 upstream.
+
+Calling RFbSetPower with uCH zero value will cause out of bound array reference.
+
+This causes 64 bit kernels to oops on boot.
+
+Note: Driver does not function on 64 bit kernels and should be
+blacklisted on them.
+
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/vt6656/rf.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/staging/vt6656/rf.c b/drivers/staging/vt6656/rf.c
+index 3fd0478..8cf0881 100644
+--- a/drivers/staging/vt6656/rf.c
++++ b/drivers/staging/vt6656/rf.c
+@@ -769,6 +769,9 @@ BYTE    byPwr = pDevice->byCCKPwr;
+         return TRUE;
+     }
+ 
++	if (uCH == 0)
++		return -EINVAL;
++
+     switch (uRATE) {
+     case RATE_1M:
+     case RATE_2M:
+-- 
+1.8.1.2
+

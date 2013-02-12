@@ -1,0 +1,49 @@
+From f47063f5c0c8fc7d34e19dfb8daef5164c2f70eb Mon Sep 17 00:00:00 2001
+From: Jerome Glisse <jglisse@redhat.com>
+Date: Tue, 11 Dec 2012 11:56:52 -0500
+Subject: [PATCH 124/171] drm/radeon: fix amd afusion gpu setup aka sumo v2
+
+commit bd25f0783dc3fb72e1e2779c2b99b2d34b67fa8a upstream.
+
+Set the proper number of tile pipe that should be a multiple of
+pipe depending on the number of se engine.
+
+Fix:
+https://bugs.freedesktop.org/show_bug.cgi?id=56405
+https://bugs.freedesktop.org/show_bug.cgi?id=56720
+
+v2: Don't change sumo2
+
+Signed-off-by: Jerome Glisse <jglisse@redhat.com>
+Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
+[bwh: Backported to 3.2: don't define/use *_GB_ADDR_CONFIG_GOLDEN]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/evergreen.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/evergreen.c b/drivers/gpu/drm/radeon/evergreen.c
+index b919b11..09778497 100644
+--- a/drivers/gpu/drm/radeon/evergreen.c
++++ b/drivers/gpu/drm/radeon/evergreen.c
+@@ -1730,7 +1730,7 @@ static void evergreen_gpu_init(struct radeon_device *rdev)
+ 	case CHIP_SUMO:
+ 		rdev->config.evergreen.num_ses = 1;
+ 		rdev->config.evergreen.max_pipes = 4;
+-		rdev->config.evergreen.max_tile_pipes = 2;
++		rdev->config.evergreen.max_tile_pipes = 4;
+ 		if (rdev->pdev->device == 0x9648)
+ 			rdev->config.evergreen.max_simds = 3;
+ 		else if ((rdev->pdev->device == 0x9647) ||
+@@ -1819,7 +1819,7 @@ static void evergreen_gpu_init(struct radeon_device *rdev)
+ 		break;
+ 	case CHIP_CAICOS:
+ 		rdev->config.evergreen.num_ses = 1;
+-		rdev->config.evergreen.max_pipes = 4;
++		rdev->config.evergreen.max_pipes = 2;
+ 		rdev->config.evergreen.max_tile_pipes = 2;
+ 		rdev->config.evergreen.max_simds = 2;
+ 		rdev->config.evergreen.max_backends = 1 * rdev->config.evergreen.num_ses;
+-- 
+1.8.1.2
+

@@ -1,0 +1,53 @@
+From 96495e181053f5dabbd64a9df538ddefab501ca7 Mon Sep 17 00:00:00 2001
+From: Bing Zhao <bzhao@marvell.com>
+Date: Thu, 15 Nov 2012 15:58:48 -0800
+Subject: [PATCH 57/90] mwifiex: report error to MMC core if we cannot suspend
+
+commit dd321acddc3be1371263b8c9e6c6f2af89f63d57 upstream.
+
+When host_sleep_config command fails we should return error to
+MMC core to indicate the failure for our device.
+
+The misspelled variable is also removed as it's redundant.
+
+Signed-off-by: Bing Zhao <bzhao@marvell.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/mwifiex/sdio.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/net/wireless/mwifiex/sdio.c b/drivers/net/wireless/mwifiex/sdio.c
+index 283171b..3579a68 100644
+--- a/drivers/net/wireless/mwifiex/sdio.c
++++ b/drivers/net/wireless/mwifiex/sdio.c
+@@ -162,7 +162,6 @@ static int mwifiex_sdio_suspend(struct device *dev)
+ 	struct sdio_mmc_card *card;
+ 	struct mwifiex_adapter *adapter;
+ 	mmc_pm_flag_t pm_flag = 0;
+-	int hs_actived = 0;
+ 	int i;
+ 	int ret = 0;
+ 
+@@ -189,12 +188,14 @@ static int mwifiex_sdio_suspend(struct device *dev)
+ 	adapter = card->adapter;
+ 
+ 	/* Enable the Host Sleep */
+-	hs_actived = mwifiex_enable_hs(adapter);
+-	if (hs_actived) {
+-		pr_debug("cmd: suspend with MMC_PM_KEEP_POWER\n");
+-		ret = sdio_set_host_pm_flags(func, MMC_PM_KEEP_POWER);
++	if (!mwifiex_enable_hs(adapter)) {
++		dev_err(adapter->dev, "cmd: failed to suspend\n");
++		return -EFAULT;
+ 	}
+ 
++	dev_dbg(adapter->dev, "cmd: suspend with MMC_PM_KEEP_POWER\n");
++	ret = sdio_set_host_pm_flags(func, MMC_PM_KEEP_POWER);
++
+ 	/* Indicate device suspended */
+ 	adapter->is_suspended = true;
+ 
+-- 
+1.8.1.2
+

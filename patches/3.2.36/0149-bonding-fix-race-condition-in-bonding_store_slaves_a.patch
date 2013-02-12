@@ -1,0 +1,47 @@
+From 3edc9151e9b92010903e643638c96c2b0295d206 Mon Sep 17 00:00:00 2001
+From: "nikolay@redhat.com" <nikolay@redhat.com>
+Date: Thu, 29 Nov 2012 01:37:59 +0000
+Subject: [PATCH 149/171] bonding: fix race condition in
+ bonding_store_slaves_active
+
+[ Upstream commit e196c0e579902f42cf72414461fb034e5a1ffbf7 ]
+
+Race between bonding_store_slaves_active() and slave manipulation
+ functions. The bond_for_each_slave use in bonding_store_slaves_active()
+ is not protected by any synchronization mechanism.
+ NULL pointer dereference is easy to reach.
+ Fixed by acquiring the bond->lock for the slave walk.
+
+ v2: Make description text < 75 columns
+
+Signed-off-by: Nikolay Aleksandrov <nikolay@redhat.com>
+Signed-off-by: Jay Vosburgh <fubar@us.ibm.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/bonding/bond_sysfs.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/net/bonding/bond_sysfs.c b/drivers/net/bonding/bond_sysfs.c
+index 4ef7e2f..a03fde9 100644
+--- a/drivers/net/bonding/bond_sysfs.c
++++ b/drivers/net/bonding/bond_sysfs.c
+@@ -1579,6 +1579,7 @@ static ssize_t bonding_store_slaves_active(struct device *d,
+ 		goto out;
+ 	}
+ 
++	read_lock(&bond->lock);
+ 	bond_for_each_slave(bond, slave, i) {
+ 		if (!bond_is_active_slave(slave)) {
+ 			if (new_value)
+@@ -1587,6 +1588,7 @@ static ssize_t bonding_store_slaves_active(struct device *d,
+ 				slave->inactive = 1;
+ 		}
+ 	}
++	read_unlock(&bond->lock);
+ out:
+ 	return ret;
+ }
+-- 
+1.8.1.2
+

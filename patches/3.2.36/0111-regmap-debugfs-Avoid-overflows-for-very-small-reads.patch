@@ -1,0 +1,36 @@
+From e94c21f7bfe84b112020edae127024f9c3b9a49f Mon Sep 17 00:00:00 2001
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date: Tue, 11 Dec 2012 01:14:11 +0900
+Subject: [PATCH 111/171] regmap: debugfs: Avoid overflows for very small reads
+
+commit db04328c167ff8e7c57f4a3532214aeada3a82fd upstream.
+
+If count is less than the size of a register then we may hit integer
+wraparound when trying to move backwards to check if we're still in
+the buffer. Instead move the position forwards to check if it's still
+in the buffer, we are unlikely to be able to allocate a buffer
+sufficiently big to overflow here.
+
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+[bwh: Backported to 3.2: formatted length is tot_len]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/base/regmap/regmap-debugfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/base/regmap/regmap-debugfs.c b/drivers/base/regmap/regmap-debugfs.c
+index 6f39747..cd252e0 100644
+--- a/drivers/base/regmap/regmap-debugfs.c
++++ b/drivers/base/regmap/regmap-debugfs.c
+@@ -67,7 +67,7 @@ static ssize_t regmap_map_read_file(struct file *file, char __user *user_buf,
+ 		/* If we're in the region the user is trying to read */
+ 		if (p >= *ppos) {
+ 			/* ...but not beyond it */
+-			if (buf_pos >= count - 1 - tot_len)
++			if (buf_pos + 1 + tot_len >= count)
+ 				break;
+ 
+ 			/* Format the register */
+-- 
+1.8.1.2
+

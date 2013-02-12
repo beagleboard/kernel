@@ -1,0 +1,55 @@
+From 3349aaadf4ded9b886449b063425a6b7dbb6b365 Mon Sep 17 00:00:00 2001
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Date: Tue, 25 Oct 2011 13:55:30 +0200
+Subject: [PATCH 44/90] xhci: Remove scary warnings about transfer issues.
+
+commit 2a9227a5eeaeb3f91e3a72ceea4fa59016ca5d20 upstream.
+
+Getting a short packet or a babble error is usually a recoverable error,
+so stop scaring users with warnings in dmesg when xHCI debugging is turned
+off.
+
+Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/host/xhci-ring.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
+index 0c6fb19..7de9993 100644
+--- a/drivers/usb/host/xhci-ring.c
++++ b/drivers/usb/host/xhci-ring.c
+@@ -1934,7 +1934,6 @@ static int process_ctrl_td(struct xhci_hcd *xhci, struct xhci_td *td,
+ 		}
+ 		break;
+ 	case COMP_SHORT_TX:
+-		xhci_warn(xhci, "WARN: short transfer on control ep\n");
+ 		if (td->urb->transfer_flags & URB_SHORT_NOT_OK)
+ 			*status = -EREMOTEIO;
+ 		else
+@@ -2291,7 +2290,7 @@ static int handle_tx_event(struct xhci_hcd *xhci,
+ 		xhci_dbg(xhci, "Stopped on No-op or Link TRB\n");
+ 		break;
+ 	case COMP_STALL:
+-		xhci_warn(xhci, "WARN: Stalled endpoint\n");
++		xhci_dbg(xhci, "Stalled endpoint\n");
+ 		ep->ep_state |= EP_HALTED;
+ 		status = -EPIPE;
+ 		break;
+@@ -2301,11 +2300,11 @@ static int handle_tx_event(struct xhci_hcd *xhci,
+ 		break;
+ 	case COMP_SPLIT_ERR:
+ 	case COMP_TX_ERR:
+-		xhci_warn(xhci, "WARN: transfer error on endpoint\n");
++		xhci_dbg(xhci, "Transfer error on endpoint\n");
+ 		status = -EPROTO;
+ 		break;
+ 	case COMP_BABBLE:
+-		xhci_warn(xhci, "WARN: babble error on endpoint\n");
++		xhci_dbg(xhci, "Babble error on endpoint\n");
+ 		status = -EOVERFLOW;
+ 		break;
+ 	case COMP_DB_ERR:
+-- 
+1.8.1.2
+

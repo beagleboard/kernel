@@ -1,0 +1,34 @@
+From 124a7c282891892a846c509f2fd19b89f44588c4 Mon Sep 17 00:00:00 2001
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Date: Fri, 23 Nov 2012 12:07:39 +0800
+Subject: [PATCH 082/171] iscsit: use GFP_ATOMIC under spin lock
+
+commit 3c989d7603872bf878840f7ce3ea49b73bea4c6c upstream.
+
+The function iscsit_build_conn_drop_async_message() is called
+from iscsit_close_connection() with spin lock 'sess->conn_lock'
+held, so we should use GFP_ATOMIC instead of GFP_KERNEL.
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/target/iscsi/iscsi_target.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/target/iscsi/iscsi_target.c b/drivers/target/iscsi/iscsi_target.c
+index 6fa7222..3effde2 100644
+--- a/drivers/target/iscsi/iscsi_target.c
++++ b/drivers/target/iscsi/iscsi_target.c
+@@ -2367,7 +2367,7 @@ static void iscsit_build_conn_drop_async_message(struct iscsi_conn *conn)
+ 	if (!conn_p)
+ 		return;
+ 
+-	cmd = iscsit_allocate_cmd(conn_p, GFP_KERNEL);
++	cmd = iscsit_allocate_cmd(conn_p, GFP_ATOMIC);
+ 	if (!cmd) {
+ 		iscsit_dec_conn_usage_count(conn_p);
+ 		return;
+-- 
+1.8.1.2
+

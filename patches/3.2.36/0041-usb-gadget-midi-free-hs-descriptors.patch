@@ -1,0 +1,32 @@
+From 2093eafb6f5d37010d3fc08aba953645c2024ab7 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Mon, 22 Oct 2012 22:15:02 +0200
+Subject: [PATCH 041/171] usb: gadget: midi: free hs descriptors
+
+commit d185039f7982eb82cf8d03b6fb6689587ca5af24 upstream.
+
+The HS descriptors are only created if HS is supported by the UDC but we
+never free them.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/gadget/f_midi.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/usb/gadget/f_midi.c b/drivers/usb/gadget/f_midi.c
+index 3797b3d..dfd7b98 100644
+--- a/drivers/usb/gadget/f_midi.c
++++ b/drivers/usb/gadget/f_midi.c
+@@ -416,6 +416,7 @@ static void f_midi_unbind(struct usb_configuration *c, struct usb_function *f)
+ 	midi->id = NULL;
+ 
+ 	usb_free_descriptors(f->descriptors);
++	usb_free_descriptors(f->hs_descriptors);
+ 	kfree(midi);
+ }
+ 
+-- 
+1.8.1.2
+

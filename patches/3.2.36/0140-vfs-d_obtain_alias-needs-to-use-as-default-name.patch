@@ -1,0 +1,52 @@
+From 8d5006d5dc63377edd6013b8a6340508a7e3dfb2 Mon Sep 17 00:00:00 2001
+From: NeilBrown <neilb@suse.de>
+Date: Thu, 8 Nov 2012 16:09:37 -0800
+Subject: [PATCH 140/171] vfs: d_obtain_alias() needs to use "/" as default
+ name.
+
+commit b911a6bdeef5848c468597d040e3407e0aee04ce upstream.
+
+NFS appears to use d_obtain_alias() to create the root dentry rather than
+d_make_root.  This can cause 'prepend_path()' to complain that the root
+has a weird name if an NFS filesystem is lazily unmounted.  e.g.  if
+"/mnt" is an NFS mount then
+
+ { cd /mnt; umount -l /mnt ; ls -l /proc/self/cwd; }
+
+will cause a WARN message like
+   WARNING: at /home/git/linux/fs/dcache.c:2624 prepend_path+0x1d7/0x1e0()
+   ...
+   Root dentry has weird name <>
+
+to appear in kernel logs.
+
+So change d_obtain_alias() to use "/" rather than "" as the anonymous
+name.
+
+Signed-off-by: NeilBrown <neilb@suse.de>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+[bwh: Backported to 3.2: use named initialisers instead of QSTR_INIT()]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/dcache.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/dcache.c b/fs/dcache.c
+index 63c0c6b..bb7f4cc 100644
+--- a/fs/dcache.c
++++ b/fs/dcache.c
+@@ -1492,7 +1492,7 @@ static struct dentry * d_find_any_alias(struct inode *inode)
+  */
+ struct dentry *d_obtain_alias(struct inode *inode)
+ {
+-	static const struct qstr anonstring = { .name = "" };
++	static const struct qstr anonstring = { .name = "/", .len = 1 };
+ 	struct dentry *tmp;
+ 	struct dentry *res;
+ 
+-- 
+1.8.1.2
+

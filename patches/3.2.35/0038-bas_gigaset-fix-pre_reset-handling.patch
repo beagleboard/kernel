@@ -1,0 +1,70 @@
+From 700e3ee2ced5f3abe1752ebeffbbac15f8ce6790 Mon Sep 17 00:00:00 2001
+From: Tilman Schmidt <tilman@imap.cc>
+Date: Wed, 24 Oct 2012 08:44:32 +0000
+Subject: [PATCH 38/90] bas_gigaset: fix pre_reset handling
+
+commit c6fdd8e5d0c65bb8821dc6da26ee1a2ddd58b3cc upstream.
+
+The delayed work function int_in_work() may call usb_reset_device()
+and thus, indirectly, the driver's pre_reset method. Trying to
+cancel the work synchronously in that situation would deadlock.
+Fix by avoiding cancel_work_sync() in the pre_reset method.
+
+If the reset was NOT initiated by int_in_work() this might cause
+int_in_work() to run after the post_reset method, with urb_int_in
+already resubmitted, so handle that case gracefully.
+
+Signed-off-by: Tilman Schmidt <tilman@imap.cc>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/isdn/gigaset/bas-gigaset.c | 19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/isdn/gigaset/bas-gigaset.c b/drivers/isdn/gigaset/bas-gigaset.c
+index 3913f47..492aa52 100644
+--- a/drivers/isdn/gigaset/bas-gigaset.c
++++ b/drivers/isdn/gigaset/bas-gigaset.c
+@@ -616,7 +616,13 @@ static void int_in_work(struct work_struct *work)
+ 	if (rc == 0)
+ 		/* success, resubmit interrupt read URB */
+ 		rc = usb_submit_urb(urb, GFP_ATOMIC);
+-	if (rc != 0 && rc != -ENODEV) {
++
++	switch (rc) {
++	case 0:		/* success */
++	case -ENODEV:	/* device gone */
++	case -EINVAL:	/* URB already resubmitted, or terminal badness */
++		break;
++	default:	/* failure: try to recover by resetting the device */
+ 		dev_err(cs->dev, "clear halt failed: %s\n", get_usb_rcmsg(rc));
+ 		rc = usb_lock_device_for_reset(ucs->udev, ucs->interface);
+ 		if (rc == 0) {
+@@ -2437,7 +2443,9 @@ static void gigaset_disconnect(struct usb_interface *interface)
+ }
+ 
+ /* gigaset_suspend
+- * This function is called before the USB connection is suspended.
++ * This function is called before the USB connection is suspended
++ * or before the USB device is reset.
++ * In the latter case, message == PMSG_ON.
+  */
+ static int gigaset_suspend(struct usb_interface *intf, pm_message_t message)
+ {
+@@ -2493,7 +2501,12 @@ static int gigaset_suspend(struct usb_interface *intf, pm_message_t message)
+ 	del_timer_sync(&ucs->timer_atrdy);
+ 	del_timer_sync(&ucs->timer_cmd_in);
+ 	del_timer_sync(&ucs->timer_int_in);
+-	cancel_work_sync(&ucs->int_in_wq);
++
++	/* don't try to cancel int_in_wq from within reset as it
++	 * might be the one requesting the reset
++	 */
++	if (message.event != PM_EVENT_ON)
++		cancel_work_sync(&ucs->int_in_wq);
+ 
+ 	gig_dbg(DEBUG_SUSPEND, "suspend complete");
+ 	return 0;
+-- 
+1.8.1.2
+

@@ -1,0 +1,37 @@
+From 2fd6a48fcb707dcdb3b8a47912ce40e835baa5bd Mon Sep 17 00:00:00 2001
+From: Kees Cook <keescook@chromium.org>
+Date: Fri, 19 Oct 2012 18:45:53 -0700
+Subject: [PATCH 016/171] use clamp_t in UNAME26 fix
+
+commit 31fd84b95eb211d5db460a1dda85e004800a7b52 upstream.
+
+The min/max call needed to have explicit types on some architectures
+(e.g. mn10300). Use clamp_t instead to avoid the warning:
+
+  kernel/sys.c: In function 'override_release':
+  kernel/sys.c:1287:10: warning: comparison of distinct pointer types lacks a cast [enabled by default]
+
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/sys.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/sys.c b/kernel/sys.c
+index d7c4ab0..f5939c2 100644
+--- a/kernel/sys.c
++++ b/kernel/sys.c
+@@ -1190,7 +1190,7 @@ static int override_release(char __user *release, size_t len)
+ 			rest++;
+ 		}
+ 		v = ((LINUX_VERSION_CODE >> 8) & 0xff) + 40;
+-		copy = min(sizeof(buf), max_t(size_t, 1, len));
++		copy = clamp_t(size_t, len, 1, sizeof(buf));
+ 		copy = scnprintf(buf, copy, "2.6.%u%s", v, rest);
+ 		ret = copy_to_user(release, buf, copy + 1);
+ 	}
+-- 
+1.8.1.2
+

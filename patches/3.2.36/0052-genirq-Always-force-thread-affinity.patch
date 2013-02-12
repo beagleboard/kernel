@@ -1,0 +1,85 @@
+From 26e11f10cf50156ad1778ceeef91454c9d230f96 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sat, 3 Nov 2012 11:52:09 +0100
+Subject: [PATCH 052/171] genirq: Always force thread affinity
+
+commit 04aa530ec04f61875b99c12721162e2964e3318c upstream.
+
+Sankara reported that the genirq core code fails to adjust the
+affinity of an interrupt thread in several cases:
+
+ 1) On request/setup_irq() the call to setup_affinity() happens before
+    the new action is registered, so the new thread is not notified.
+
+ 2) For secondary shared interrupts nothing notifies the new thread to
+    change its affinity.
+
+ 3) Interrupts which have the IRQ_NO_BALANCE flag set are not moving
+    the thread either.
+
+Fix this by setting the thread affinity flag right on thread creation
+time. This ensures that under all circumstances the thread moves to
+the right place. Requires a check in irq_thread_check_affinity for an
+existing affinity mask (CONFIG_CPU_MASK_OFFSTACK=y)
+
+Reported-and-tested-by: Sankara Muthukrishnan <sankara.m@gmail.com>
+Link: http://lkml.kernel.org/r/alpine.LFD.2.02.1209041738200.2754@ionos
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/irq/manage.c | 23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
+
+diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+index 7600092..382a6bd 100644
+--- a/kernel/irq/manage.c
++++ b/kernel/irq/manage.c
+@@ -701,6 +701,7 @@ static void
+ irq_thread_check_affinity(struct irq_desc *desc, struct irqaction *action)
+ {
+ 	cpumask_var_t mask;
++	bool valid = true;
+ 
+ 	if (!test_and_clear_bit(IRQTF_AFFINITY, &action->thread_flags))
+ 		return;
+@@ -715,10 +716,18 @@ irq_thread_check_affinity(struct irq_desc *desc, struct irqaction *action)
+ 	}
+ 
+ 	raw_spin_lock_irq(&desc->lock);
+-	cpumask_copy(mask, desc->irq_data.affinity);
++	/*
++	 * This code is triggered unconditionally. Check the affinity
++	 * mask pointer. For CPU_MASK_OFFSTACK=n this is optimized out.
++	 */
++	if (desc->irq_data.affinity)
++		cpumask_copy(mask, desc->irq_data.affinity);
++	else
++		valid = false;
+ 	raw_spin_unlock_irq(&desc->lock);
+ 
+-	set_cpus_allowed_ptr(current, mask);
++	if (valid)
++		set_cpus_allowed_ptr(current, mask);
+ 	free_cpumask_var(mask);
+ }
+ #else
+@@ -950,6 +959,16 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
+ 		 */
+ 		get_task_struct(t);
+ 		new->thread = t;
++		/*
++		 * Tell the thread to set its affinity. This is
++		 * important for shared interrupt handlers as we do
++		 * not invoke setup_affinity() for the secondary
++		 * handlers as everything is already set up. Even for
++		 * interrupts marked with IRQF_NO_BALANCE this is
++		 * correct as we want the thread to move to the cpu(s)
++		 * on which the requesting code placed the interrupt.
++		 */
++		set_bit(IRQTF_AFFINITY, &new->thread_flags);
+ 	}
+ 
+ 	if (!alloc_cpumask_var(&mask, GFP_KERNEL)) {
+-- 
+1.8.1.2
+

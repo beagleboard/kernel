@@ -1,0 +1,46 @@
+From 37b505d1ea9334c0471d4818bfdc6d485f1a05f9 Mon Sep 17 00:00:00 2001
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Date: Fri, 31 Aug 2012 09:55:54 +0000
+Subject: [PATCH 22/90] netfilter: Validate the sequence number of dataless ACK
+ packets as well
+
+commit 4a70bbfaef0361d27272629d1a250a937edcafe4 upstream.
+
+We spare nothing by not validating the sequence number of dataless
+ACK packets and enabling it makes harder off-path attacks.
+
+See: "Reflection scan: an Off-Path Attack on TCP" by Jan Wrobel,
+http://arxiv.org/abs/1201.2074
+
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/netfilter/nf_conntrack_proto_tcp.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 2458cc9..57ad466 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -625,15 +625,9 @@ static bool tcp_in_window(const struct nf_conn *ct,
+ 		ack = sack = receiver->td_end;
+ 	}
+ 
+-	if (seq == end
+-	    && (!tcph->rst
+-		|| (seq == 0 && state->state == TCP_CONNTRACK_SYN_SENT)))
++	if (tcph->rst && seq == 0 && state->state == TCP_CONNTRACK_SYN_SENT)
+ 		/*
+-		 * Packets contains no data: we assume it is valid
+-		 * and check the ack value only.
+-		 * However RST segments are always validated by their
+-		 * SEQ number, except when seq == 0 (reset sent answering
+-		 * SYN.
++		 * RST sent answering SYN.
+ 		 */
+ 		seq = end = sender->td_end;
+ 
+-- 
+1.8.1.2
+

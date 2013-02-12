@@ -1,0 +1,74 @@
+From b08471046e434ccd1ab97ffae629cd2a9cfc454f Mon Sep 17 00:00:00 2001
+From: Len Brown <len.brown@intel.com>
+Date: Fri, 1 Jun 2012 19:45:32 -0400
+Subject: [PATCH 88/90] intel_idle: initial IVB support
+
+commit 6edab08c24f9141d69cfa4683a0a027d86ab303e upstream.
+
+From an OS point of view, IVB looks like SNB, but quicker.
+
+Signed-off-by: Len Brown <len.brown@intel.com>
+[bwh: Backported to 3.2: add model number to the switch in
+ intel_idle_probe(), as there is no device ID table]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/idle/intel_idle.c | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+
+diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
+index 5b39216..26e7b38 100644
+--- a/drivers/idle/intel_idle.c
++++ b/drivers/idle/intel_idle.c
+@@ -163,6 +163,38 @@ static struct cpuidle_state snb_cstates[MWAIT_MAX_NUM_CSTATES] = {
+ 		.enter = &intel_idle },
+ };
+ 
++static struct cpuidle_state ivb_cstates[MWAIT_MAX_NUM_CSTATES] = {
++	{ /* MWAIT C0 */ },
++	{ /* MWAIT C1 */
++		.name = "C1-IVB",
++		.desc = "MWAIT 0x00",
++		.flags = CPUIDLE_FLAG_TIME_VALID,
++		.exit_latency = 1,
++		.target_residency = 1,
++		.enter = &intel_idle },
++	{ /* MWAIT C2 */
++		.name = "C3-IVB",
++		.desc = "MWAIT 0x10",
++		.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_TLB_FLUSHED,
++		.exit_latency = 59,
++		.target_residency = 156,
++		.enter = &intel_idle },
++	{ /* MWAIT C3 */
++		.name = "C6-IVB",
++		.desc = "MWAIT 0x20",
++		.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_TLB_FLUSHED,
++		.exit_latency = 80,
++		.target_residency = 300,
++		.enter = &intel_idle },
++	{ /* MWAIT C4 */
++		.name = "C7-IVB",
++		.desc = "MWAIT 0x30",
++		.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_TLB_FLUSHED,
++		.exit_latency = 87,
++		.target_residency = 300,
++		.enter = &intel_idle },
++};
++
+ static struct cpuidle_state atom_cstates[MWAIT_MAX_NUM_CSTATES] = {
+ 	{ /* MWAIT C0 */ },
+ 	{ /* MWAIT C1 */
+@@ -386,6 +418,10 @@ static int intel_idle_probe(void)
+ 		cpuidle_state_table = snb_cstates;
+ 		break;
+ 
++	case 0x3A:	/* IVB */
++		cpuidle_state_table = ivb_cstates;
++		break;
++
+ 	default:
+ 		pr_debug(PREFIX "does not run on family %d model %d\n",
+ 			boot_cpu_data.x86, boot_cpu_data.x86_model);
+-- 
+1.8.1.2
+

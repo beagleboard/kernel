@@ -1,0 +1,56 @@
+From ca5d8c5aa3365f955e70a3f109cb18b208ddda25 Mon Sep 17 00:00:00 2001
+From: Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de>
+Date: Tue, 13 Nov 2012 18:43:03 +0100
+Subject: [PATCH 53/90] mac80211: deinitialize ibss-internals after emptiness
+ check
+
+commit b78a4932f5fb11fadf41e69c606a33fa6787574c upstream.
+
+The check whether the IBSS is active and can be removed should be
+performed before deinitializing the fields used for the check/search.
+Otherwise, the configured BSS will not be found and removed properly.
+
+To make it more clear for the future, rename sdata->u.ibss to the
+local pointer ifibss which is used within the checks.
+
+This behaviour was introduced by
+f3209bea110cade12e2b133da8b8499689cb0e2e
+("mac80211: fix IBSS teardown race")
+
+Cc: Ignacy Gawedzki <i@lri.fr>
+Signed-off-by: Simon Wunderlich <siwu@hrz.tu-chemnitz.de>
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/mac80211/ibss.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/net/mac80211/ibss.c b/net/mac80211/ibss.c
+index 8c7364b..9e20cb8 100644
+--- a/net/mac80211/ibss.c
++++ b/net/mac80211/ibss.c
+@@ -965,10 +965,6 @@ int ieee80211_ibss_leave(struct ieee80211_sub_if_data *sdata)
+ 
+ 	mutex_lock(&sdata->u.ibss.mtx);
+ 
+-	sdata->u.ibss.state = IEEE80211_IBSS_MLME_SEARCH;
+-	memset(sdata->u.ibss.bssid, 0, ETH_ALEN);
+-	sdata->u.ibss.ssid_len = 0;
+-
+ 	active_ibss = ieee80211_sta_active_ibss(sdata);
+ 
+ 	if (!active_ibss && !is_zero_ether_addr(ifibss->bssid)) {
+@@ -989,6 +985,10 @@ int ieee80211_ibss_leave(struct ieee80211_sub_if_data *sdata)
+ 		}
+ 	}
+ 
++	ifibss->state = IEEE80211_IBSS_MLME_SEARCH;
++	memset(ifibss->bssid, 0, ETH_ALEN);
++	ifibss->ssid_len = 0;
++
+ 	sta_info_flush(sdata->local, sdata);
+ 
+ 	/* remove beacon */
+-- 
+1.8.1.2
+

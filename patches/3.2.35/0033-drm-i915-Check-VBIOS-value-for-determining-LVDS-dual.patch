@@ -1,0 +1,171 @@
+From 70c964b4647f3600e3f2569f2de2f1ff7b81f910 Mon Sep 17 00:00:00 2001
+From: Takashi Iwai <tiwai@suse.de>
+Date: Tue, 20 Mar 2012 13:07:05 +0100
+Subject: [PATCH 33/90] drm/i915: Check VBIOS value for determining LVDS dual
+ channel mode, too
+
+commit b03543857fd75876b96e10d4320b775e95041bb7 upstream.
+
+Currently i915 driver checks [PCH_]LVDS register bits to decide
+whether to set up the dual-link or the single-link mode.  This relies
+implicitly on that BIOS initializes the register properly at boot.
+However, BIOS doesn't initialize it always.  When the machine is
+booted with the closed lid, BIOS skips the LVDS reg initialization.
+This ends up in blank output on a machine with a dual-link LVDS when
+you open the lid after the boot.
+
+This patch adds a workaround for that problem by checking the initial
+LVDS register value in VBT.
+
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=37742
+Tested-By: Paulo Zanoni <paulo.r.zanoni@intel.com>
+Reviewed-by: Rodrigo Vivi <rodrigo.vivi@gmail.com>
+Reviewed-by: Adam Jackson <ajax@redhat.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_drv.h      |  2 ++
+ drivers/gpu/drm/i915/intel_bios.c    | 36 ++++++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/i915/intel_display.c | 30 ++++++++++++++++++++++++------
+ 3 files changed, 62 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index c364358..791df46 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -374,6 +374,8 @@ typedef struct drm_i915_private {
+ 	unsigned int lvds_use_ssc:1;
+ 	unsigned int display_clock_mode:1;
+ 	int lvds_ssc_freq;
++	unsigned int bios_lvds_val; /* initial [PCH_]LVDS reg val in VBIOS */
++	unsigned int lvds_val; /* used for checking LVDS channel mode */
+ 	struct {
+ 		int rate;
+ 		int lanes;
+diff --git a/drivers/gpu/drm/i915/intel_bios.c b/drivers/gpu/drm/i915/intel_bios.c
+index 22efb08..87bb87b 100644
+--- a/drivers/gpu/drm/i915/intel_bios.c
++++ b/drivers/gpu/drm/i915/intel_bios.c
+@@ -174,6 +174,28 @@ get_lvds_dvo_timing(const struct bdb_lvds_lfp_data *lvds_lfp_data,
+ 	return (struct lvds_dvo_timing *)(entry + dvo_timing_offset);
+ }
+ 
++/* get lvds_fp_timing entry
++ * this function may return NULL if the corresponding entry is invalid
++ */
++static const struct lvds_fp_timing *
++get_lvds_fp_timing(const struct bdb_header *bdb,
++		   const struct bdb_lvds_lfp_data *data,
++		   const struct bdb_lvds_lfp_data_ptrs *ptrs,
++		   int index)
++{
++	size_t data_ofs = (const u8 *)data - (const u8 *)bdb;
++	u16 data_size = ((const u16 *)data)[-1]; /* stored in header */
++	size_t ofs;
++
++	if (index >= ARRAY_SIZE(ptrs->ptr))
++		return NULL;
++	ofs = ptrs->ptr[index].fp_timing_offset;
++	if (ofs < data_ofs ||
++	    ofs + sizeof(struct lvds_fp_timing) > data_ofs + data_size)
++		return NULL;
++	return (const struct lvds_fp_timing *)((const u8 *)bdb + ofs);
++}
++
+ /* Try to find integrated panel data */
+ static void
+ parse_lfp_panel_data(struct drm_i915_private *dev_priv,
+@@ -183,6 +205,7 @@ parse_lfp_panel_data(struct drm_i915_private *dev_priv,
+ 	const struct bdb_lvds_lfp_data *lvds_lfp_data;
+ 	const struct bdb_lvds_lfp_data_ptrs *lvds_lfp_data_ptrs;
+ 	const struct lvds_dvo_timing *panel_dvo_timing;
++	const struct lvds_fp_timing *fp_timing;
+ 	struct drm_display_mode *panel_fixed_mode;
+ 	int i, downclock;
+ 
+@@ -244,6 +267,19 @@ parse_lfp_panel_data(struct drm_i915_private *dev_priv,
+ 			      "Normal Clock %dKHz, downclock %dKHz\n",
+ 			      panel_fixed_mode->clock, 10*downclock);
+ 	}
++
++	fp_timing = get_lvds_fp_timing(bdb, lvds_lfp_data,
++				       lvds_lfp_data_ptrs,
++				       lvds_options->panel_type);
++	if (fp_timing) {
++		/* check the resolution, just to be sure */
++		if (fp_timing->x_res == panel_fixed_mode->hdisplay &&
++		    fp_timing->y_res == panel_fixed_mode->vdisplay) {
++			dev_priv->bios_lvds_val = fp_timing->lvds_reg_val;
++			DRM_DEBUG_KMS("VBT initial LVDS value %x\n",
++				      dev_priv->bios_lvds_val);
++		}
++	}
+ }
+ 
+ /* Try to find sdvo panel data */
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index adac0dd..fdae61f 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -356,6 +356,27 @@ static const intel_limit_t intel_limits_ironlake_display_port = {
+ 	.find_pll = intel_find_pll_ironlake_dp,
+ };
+ 
++static bool is_dual_link_lvds(struct drm_i915_private *dev_priv,
++			      unsigned int reg)
++{
++	unsigned int val;
++
++	if (dev_priv->lvds_val)
++		val = dev_priv->lvds_val;
++	else {
++		/* BIOS should set the proper LVDS register value at boot, but
++		 * in reality, it doesn't set the value when the lid is closed;
++		 * we need to check "the value to be set" in VBT when LVDS
++		 * register is uninitialized.
++		 */
++		val = I915_READ(reg);
++		if (!(val & ~LVDS_DETECTED))
++			val = dev_priv->bios_lvds_val;
++		dev_priv->lvds_val = val;
++	}
++	return (val & LVDS_CLKB_POWER_MASK) == LVDS_CLKB_POWER_UP;
++}
++
+ static const intel_limit_t *intel_ironlake_limit(struct drm_crtc *crtc,
+ 						int refclk)
+ {
+@@ -364,8 +385,7 @@ static const intel_limit_t *intel_ironlake_limit(struct drm_crtc *crtc,
+ 	const intel_limit_t *limit;
+ 
+ 	if (intel_pipe_has_type(crtc, INTEL_OUTPUT_LVDS)) {
+-		if ((I915_READ(PCH_LVDS) & LVDS_CLKB_POWER_MASK) ==
+-		    LVDS_CLKB_POWER_UP) {
++		if (is_dual_link_lvds(dev_priv, PCH_LVDS)) {
+ 			/* LVDS dual channel */
+ 			if (refclk == 100000)
+ 				limit = &intel_limits_ironlake_dual_lvds_100m;
+@@ -393,8 +413,7 @@ static const intel_limit_t *intel_g4x_limit(struct drm_crtc *crtc)
+ 	const intel_limit_t *limit;
+ 
+ 	if (intel_pipe_has_type(crtc, INTEL_OUTPUT_LVDS)) {
+-		if ((I915_READ(LVDS) & LVDS_CLKB_POWER_MASK) ==
+-		    LVDS_CLKB_POWER_UP)
++		if (is_dual_link_lvds(dev_priv, LVDS))
+ 			/* LVDS with dual channel */
+ 			limit = &intel_limits_g4x_dual_channel_lvds;
+ 		else
+@@ -531,8 +550,7 @@ intel_find_best_PLL(const intel_limit_t *limit, struct drm_crtc *crtc,
+ 		 * reliably set up different single/dual channel state, if we
+ 		 * even can.
+ 		 */
+-		if ((I915_READ(LVDS) & LVDS_CLKB_POWER_MASK) ==
+-		    LVDS_CLKB_POWER_UP)
++		if (is_dual_link_lvds(dev_priv, LVDS))
+ 			clock.p2 = limit->p2.p2_fast;
+ 		else
+ 			clock.p2 = limit->p2.p2_slow;
+-- 
+1.8.1.2
+

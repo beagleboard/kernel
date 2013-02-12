@@ -1,0 +1,34 @@
+From a508eb6066e04381c1f973e4218178451a2ab4f6 Mon Sep 17 00:00:00 2001
+From: Masanari Iida <standby24x7@gmail.com>
+Date: Fri, 23 Mar 2012 15:02:06 -0700
+Subject: [PATCH 019/171] drivers/leds/leds-lp5521.c: fix typo
+
+commit 3a2fd4a14112452eb5c1a079ac8b3f4842762afe upstream.
+
+"reseting" -> "resetting"
+
+Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/leds/leds-lp5521.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/leds/leds-lp5521.c b/drivers/leds/leds-lp5521.c
+index cb641f1..e47902c 100644
+--- a/drivers/leds/leds-lp5521.c
++++ b/drivers/leds/leds-lp5521.c
+@@ -694,7 +694,7 @@ static int __devinit lp5521_probe(struct i2c_client *client,
+ 	 */
+ 	lp5521_read(client, LP5521_REG_R_CURRENT, &buf);
+ 	if (buf != LP5521_REG_R_CURR_DEFAULT) {
+-		dev_err(&client->dev, "error in reseting chip\n");
++		dev_err(&client->dev, "error in resetting chip\n");
+ 		goto fail2;
+ 	}
+ 	usleep_range(10000, 20000);
+-- 
+1.8.1.2
+

@@ -1,0 +1,80 @@
+From 65460f4b0f73b39291ea579f277c15a4c73d2d9e Mon Sep 17 00:00:00 2001
+From: Krzysztof Mazur <krzysiek@podlesie.net>
+Date: Wed, 19 Dec 2012 11:03:41 +0100
+Subject: [PATCH 02/46] i915: ensure that VGA plane is disabled
+
+commit 0fde901f1ddd2ce0e380a6444f1fb7ca555859e9 upstream.
+
+Some broken systems (like HP nc6120) in some cases, usually after LID
+close/open, enable VGA plane, making display unusable (black screen on LVDS,
+some strange mode on VGA output). We used to disable VGA plane only once at
+startup. Now we also check, if VGA plane is still disabled while changing
+mode, and fix that if something changed it.
+
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=57434
+Signed-off-by: Krzysztof Mazur <krzysiek@podlesie.net>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+[bwh: Backported to 3.2: intel_modeset_setup_hw_state() does not
+ exist, so call i915_redisable_vga() directly from intel_lid_notify()]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_drv.h      |  1 +
+ drivers/gpu/drm/i915/intel_display.c | 17 +++++++++++++++++
+ drivers/gpu/drm/i915/intel_lvds.c    |  1 +
+ 3 files changed, 19 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index 791df46..012a9d2 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -1305,6 +1305,7 @@ static inline void intel_unregister_dsm_handler(void) { return; }
+ #endif /* CONFIG_ACPI */
+ 
+ /* modesetting */
++extern void i915_redisable_vga(struct drm_device *dev);
+ extern void intel_modeset_init(struct drm_device *dev);
+ extern void intel_modeset_gem_init(struct drm_device *dev);
+ extern void intel_modeset_cleanup(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index 54acad3..fa9639b 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -8898,6 +8898,23 @@ static void i915_disable_vga(struct drm_device *dev)
+ 	POSTING_READ(vga_reg);
+ }
+ 
++void i915_redisable_vga(struct drm_device *dev)
++{
++	struct drm_i915_private *dev_priv = dev->dev_private;
++	u32 vga_reg;
++
++	if (HAS_PCH_SPLIT(dev))
++		vga_reg = CPU_VGACNTRL;
++	else
++		vga_reg = VGACNTRL;
++
++	if (I915_READ(vga_reg) != VGA_DISP_DISABLE) {
++		DRM_DEBUG_KMS("Something enabled VGA plane, disabling it\n");
++		I915_WRITE(vga_reg, VGA_DISP_DISABLE);
++		POSTING_READ(vga_reg);
++	}
++}
++
+ void intel_modeset_init(struct drm_device *dev)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
+index cf5ea3d..c6d0966 100644
+--- a/drivers/gpu/drm/i915/intel_lvds.c
++++ b/drivers/gpu/drm/i915/intel_lvds.c
+@@ -535,6 +535,7 @@ static int intel_lid_notify(struct notifier_block *nb, unsigned long val,
+ 
+ 	mutex_lock(&dev->mode_config.mutex);
+ 	drm_helper_resume_force_mode(dev);
++	i915_redisable_vga(dev);
+ 	mutex_unlock(&dev->mode_config.mutex);
+ 
+ 	return NOTIFY_OK;
+-- 
+1.8.1.2
+

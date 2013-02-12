@@ -1,0 +1,67 @@
+From ced79457fc5174fedf4277a0498d878514d8feb3 Mon Sep 17 00:00:00 2001
+From: "joshua.a.hay@intel.com" <joshua.a.hay@intel.com>
+Date: Fri, 21 Sep 2012 00:08:21 +0000
+Subject: [PATCH 32/90] ixgbe: add support for X540-AT1
+
+commit df376f0de167754da9b3ece4afdb5bb8bf3fbf3e upstream.
+
+This patch adds device support for Ethernet Controller X540-AT1.
+
+Signed-off-by: Josh Hay <joshua.a.hay@intel.com>
+Tested-by: Phil Schmitt <phillip.j.schmitt@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/intel/ixgbe/ixgbe_common.c | 1 +
+ drivers/net/ethernet/intel/ixgbe/ixgbe_main.c   | 2 ++
+ drivers/net/ethernet/intel/ixgbe/ixgbe_type.h   | 1 +
+ 3 files changed, 4 insertions(+)
+
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
+index f1365fe..2c14e85 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
+@@ -3157,6 +3157,7 @@ static s32 ixgbe_device_supports_autoneg_fc(struct ixgbe_hw *hw)
+ 
+ 	switch (hw->device_id) {
+ 	case IXGBE_DEV_ID_X540T:
++	case IXGBE_DEV_ID_X540T1:
+ 		return 0;
+ 	case IXGBE_DEV_ID_82599_T3_LOM:
+ 		return 0;
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+index b9e073e..cc96a5a 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+@@ -107,6 +107,7 @@ static DEFINE_PCI_DEVICE_TABLE(ixgbe_pci_tbl) = {
+ 	{PCI_VDEVICE(INTEL, IXGBE_DEV_ID_82599_LS), board_82599 },
+ 	{PCI_VDEVICE(INTEL, IXGBE_DEV_ID_82599EN_SFP), board_82599 },
+ 	{PCI_VDEVICE(INTEL, IXGBE_DEV_ID_82599_SFP_SF_QP), board_82599 },
++	{PCI_VDEVICE(INTEL, IXGBE_DEV_ID_X540T1), board_X540 },
+ 	/* required last entry */
+ 	{0, }
+ };
+@@ -7612,6 +7613,7 @@ static int __devinit ixgbe_probe(struct pci_dev *pdev,
+ 		adapter->wol = IXGBE_WUFC_MAG;
+ 		break;
+ 	case IXGBE_DEV_ID_X540T:
++	case IXGBE_DEV_ID_X540T1:
+ 		/* Check eeprom to see if it is enabled */
+ 		hw->eeprom.ops.read(hw, 0x2c, &adapter->eeprom_cap);
+ 		wol_cap = adapter->eeprom_cap & IXGBE_DEVICE_CAPS_WOL_MASK;
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h b/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h
+index 97b7bb2..f00d6d5 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h
+@@ -66,6 +66,7 @@
+ #define IXGBE_DEV_ID_82599_LS            0x154F
+ #define IXGBE_DEV_ID_X540T               0x1528
+ #define IXGBE_DEV_ID_82599_SFP_SF_QP     0x154A
++#define IXGBE_DEV_ID_X540T1              0x1560
+ 
+ /* VF Device IDs */
+ #define IXGBE_DEV_ID_82599_VF           0x10ED
+-- 
+1.8.1.2
+

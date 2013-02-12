@@ -1,0 +1,53 @@
+From 57f20db0de7cc6d4b847d5c7a4b0de46ec6d3014 Mon Sep 17 00:00:00 2001
+From: Tejun Heo <tj@kernel.org>
+Date: Tue, 4 Dec 2012 07:40:39 -0800
+Subject: [PATCH 011/171] workqueue: convert BUG_ON()s in
+ __queue_delayed_work() to WARN_ON_ONCE()s
+
+commit fc4b514f2727f74a4587c31db87e0e93465518c3 upstream.
+
+8852aac25e ("workqueue: mod_delayed_work_on() shouldn't queue timer on
+0 delay") unexpectedly uncovered a very nasty abuse of delayed_work in
+megaraid - it allocated work_struct, casted it to delayed_work and
+then pass that into queue_delayed_work().
+
+Previously, this was okay because 0 @delay short-circuited to
+queue_work() before doing anything with delayed_work.  8852aac25e
+moved 0 @delay test into __queue_delayed_work() after sanity check on
+delayed_work making megaraid trigger BUG_ON().
+
+Although megaraid is already fixed by c1d390d8e6 ("megaraid: fix
+BUG_ON() from incorrect use of delayed work"), this patch converts
+BUG_ON()s in __queue_delayed_work() to WARN_ON_ONCE()s so that such
+abusers, if there are more, trigger warning but don't crash the
+machine.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Xiaotian Feng <xtfeng@gmail.com>
+[Shuah Khan: This change is back-ported from upstream change that
+ converted BUG_ON()s in __queue_delayed_work() to WARN_ON_ONCE()s.]
+Tested on Stable Trees: 3.0.x, 3.4.x, 3.6.x
+Signed-off-by: Shuah Khan <shuah.khan@hp.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/workqueue.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/kernel/workqueue.c b/kernel/workqueue.c
+index d551d5f..7bf068a 100644
+--- a/kernel/workqueue.c
++++ b/kernel/workqueue.c
+@@ -1146,8 +1146,8 @@ int queue_delayed_work_on(int cpu, struct workqueue_struct *wq,
+ 	if (!test_and_set_bit(WORK_STRUCT_PENDING_BIT, work_data_bits(work))) {
+ 		unsigned int lcpu;
+ 
+-		BUG_ON(timer_pending(timer));
+-		BUG_ON(!list_empty(&work->entry));
++		WARN_ON_ONCE(timer_pending(timer));
++		WARN_ON_ONCE(!list_empty(&work->entry));
+ 
+ 		timer_stats_timer_set_start_info(&dwork->timer);
+ 
+-- 
+1.8.1.2
+

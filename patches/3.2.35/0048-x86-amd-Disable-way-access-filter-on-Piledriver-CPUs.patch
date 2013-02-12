@@ -1,0 +1,72 @@
+From 95adee19d6897104449bbd5140acc6a13570953b Mon Sep 17 00:00:00 2001
+From: Andre Przywara <andre.przywara@amd.com>
+Date: Wed, 31 Oct 2012 17:20:50 +0100
+Subject: [PATCH 48/90] x86, amd: Disable way access filter on Piledriver CPUs
+
+commit 2bbf0a1427c377350f001fbc6260995334739ad7 upstream.
+
+The Way Access Filter in recent AMD CPUs may hurt the performance of
+some workloads, caused by aliasing issues in the L1 cache.
+This patch disables it on the affected CPUs.
+
+The issue is similar to that one of last year:
+http://lkml.indiana.edu/hypermail/linux/kernel/1107.3/00041.html
+This new patch does not replace the old one, we just need another
+quirk for newer CPUs.
+
+The performance penalty without the patch depends on the
+circumstances, but is a bit less than the last year's 3%.
+
+The workloads affected would be those that access code from the same
+physical page under different virtual addresses, so different
+processes using the same libraries with ASLR or multiple instances of
+PIE-binaries. The code needs to be accessed simultaneously from both
+cores of the same compute unit.
+
+More details can be found here:
+http://developer.amd.com/Assets/SharedL1InstructionCacheonAMD15hCPU.pdf
+
+CPUs affected are anything with the core known as Piledriver.
+That includes the new parts of the AMD A-Series (aka Trinity) and the
+just released new CPUs of the FX-Series (aka Vishera).
+The model numbering is a bit odd here: FX CPUs have model 2,
+A-Series has model 10h, with possible extensions to 1Fh. Hence the
+range of model ids.
+
+Signed-off-by: Andre Przywara <osp@andrep.de>
+Link: http://lkml.kernel.org/r/1351700450-9277-1-git-send-email-osp@andrep.de
+Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
+[bwh: Backported to 3.2: wrmsrl_safe() is called checking_wrmsrl()]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kernel/cpu/amd.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/arch/x86/kernel/cpu/amd.c b/arch/x86/kernel/cpu/amd.c
+index ff8557e..f07becc 100644
+--- a/arch/x86/kernel/cpu/amd.c
++++ b/arch/x86/kernel/cpu/amd.c
+@@ -587,6 +587,20 @@ static void __cpuinit init_amd(struct cpuinfo_x86 *c)
+ 		}
+ 	}
+ 
++	/*
++	 * The way access filter has a performance penalty on some workloads.
++	 * Disable it on the affected CPUs.
++	 */
++	if ((c->x86 == 0x15) &&
++	    (c->x86_model >= 0x02) && (c->x86_model < 0x20)) {
++		u64 val;
++
++		if (!rdmsrl_safe(0xc0011021, &val) && !(val & 0x1E)) {
++			val |= 0x1E;
++			checking_wrmsrl(0xc0011021, val);
++		}
++	}
++
+ 	cpu_detect_cache_sizes(c);
+ 
+ 	/* Multi core CPU? */
+-- 
+1.8.1.2
+

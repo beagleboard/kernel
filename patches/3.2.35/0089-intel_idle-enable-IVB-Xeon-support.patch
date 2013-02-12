@@ -1,0 +1,32 @@
+From c28324f1b86e1fa725549cf889137999913f2f27 Mon Sep 17 00:00:00 2001
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Sun, 2 Dec 2012 13:14:30 +0000
+Subject: [PATCH 89/90] intel_idle: enable IVB Xeon support
+
+commit 23795e580cad5d6b73d47d51b9074ce3e58bf334 upstream.
+
+IVB Xeon currently shares the same parameters IVB client.
+
+For 3.2, add model number to the switch in intel_idle_probe(), as
+there is no device ID table.
+
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/idle/intel_idle.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
+index 26e7b38..3f28290 100644
+--- a/drivers/idle/intel_idle.c
++++ b/drivers/idle/intel_idle.c
+@@ -419,6 +419,7 @@ static int intel_idle_probe(void)
+ 		break;
+ 
+ 	case 0x3A:	/* IVB */
++	case 0x3E:	/* IVB Xeon */
+ 		cpuidle_state_table = ivb_cstates;
+ 		break;
+ 
+-- 
+1.8.1.2
+

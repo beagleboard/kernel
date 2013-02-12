@@ -1,0 +1,58 @@
+From ac3eeecc34005052be2cae8520c4e1128d94b453 Mon Sep 17 00:00:00 2001
+From: Dan Williams <dcbw@redhat.com>
+Date: Fri, 14 Dec 2012 13:10:50 +0000
+Subject: [PATCH 132/171] i2400m: add Intel 6150 device IDs
+
+commit 999a7c5776a0ed2133645fa7e008bec05bda9254 upstream.
+
+Add device IDs for WiMAX function of Intel 6150 cards.
+
+Signed-off-by: Dan Williams <dcbw@redhat.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wimax/i2400m/i2400m-usb.h | 3 +++
+ drivers/net/wimax/i2400m/usb.c        | 6 ++++++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/drivers/net/wimax/i2400m/i2400m-usb.h b/drivers/net/wimax/i2400m/i2400m-usb.h
+index 6650fde..9f1e947 100644
+--- a/drivers/net/wimax/i2400m/i2400m-usb.h
++++ b/drivers/net/wimax/i2400m/i2400m-usb.h
+@@ -152,6 +152,9 @@ enum {
+ 	/* Device IDs */
+ 	USB_DEVICE_ID_I6050 = 0x0186,
+ 	USB_DEVICE_ID_I6050_2 = 0x0188,
++	USB_DEVICE_ID_I6150 = 0x07d6,
++	USB_DEVICE_ID_I6150_2 = 0x07d7,
++	USB_DEVICE_ID_I6150_3 = 0x07d9,
+ 	USB_DEVICE_ID_I6250 = 0x0187,
+ };
+ 
+diff --git a/drivers/net/wimax/i2400m/usb.c b/drivers/net/wimax/i2400m/usb.c
+index 2c1b8b6..6bb7f3c 100644
+--- a/drivers/net/wimax/i2400m/usb.c
++++ b/drivers/net/wimax/i2400m/usb.c
+@@ -492,6 +492,9 @@ int i2400mu_probe(struct usb_interface *iface,
+ 	switch (id->idProduct) {
+ 	case USB_DEVICE_ID_I6050:
+ 	case USB_DEVICE_ID_I6050_2:
++	case USB_DEVICE_ID_I6150:
++	case USB_DEVICE_ID_I6150_2:
++	case USB_DEVICE_ID_I6150_3:
+ 	case USB_DEVICE_ID_I6250:
+ 		i2400mu->i6050 = 1;
+ 		break;
+@@ -741,6 +744,9 @@ static
+ struct usb_device_id i2400mu_id_table[] = {
+ 	{ USB_DEVICE(0x8086, USB_DEVICE_ID_I6050) },
+ 	{ USB_DEVICE(0x8086, USB_DEVICE_ID_I6050_2) },
++	{ USB_DEVICE(0x8087, USB_DEVICE_ID_I6150) },
++	{ USB_DEVICE(0x8087, USB_DEVICE_ID_I6150_2) },
++	{ USB_DEVICE(0x8087, USB_DEVICE_ID_I6150_3) },
+ 	{ USB_DEVICE(0x8086, USB_DEVICE_ID_I6250) },
+ 	{ USB_DEVICE(0x8086, 0x0181) },
+ 	{ USB_DEVICE(0x8086, 0x1403) },
+-- 
+1.8.1.2
+

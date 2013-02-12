@@ -1,0 +1,29 @@
+From d0ed2102811310b53c56be5d1f6b39acef8980cb Mon Sep 17 00:00:00 2001
+From: Markus Becker <mab@comnets.uni-bremen.de>
+Date: Thu, 22 Nov 2012 09:41:23 +0100
+Subject: [PATCH 079/171] USB: cp210x: add Virtenio Preon32 device id
+
+commit 356fe44f4b8ece867bdb9876b1854d7adbef9de2 upstream.
+
+Signed-off-by: Markus Becker <mab@comnets.uni-bremen.de>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/cp210x.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/usb/serial/cp210x.c b/drivers/usb/serial/cp210x.c
+index 35e6b5f..381d00d 100644
+--- a/drivers/usb/serial/cp210x.c
++++ b/drivers/usb/serial/cp210x.c
+@@ -120,6 +120,7 @@ static const struct usb_device_id id_table[] = {
+ 	{ USB_DEVICE(0x10C4, 0x8477) }, /* Balluff RFID */
+ 	{ USB_DEVICE(0x10C4, 0x85EA) }, /* AC-Services IBUS-IF */
+ 	{ USB_DEVICE(0x10C4, 0x85EB) }, /* AC-Services CIS-IBUS */
++	{ USB_DEVICE(0x10C4, 0x85F8) }, /* Virtenio Preon32 */
+ 	{ USB_DEVICE(0x10C4, 0x8664) }, /* AC-Services CAN-IF */
+ 	{ USB_DEVICE(0x10C4, 0x8665) }, /* AC-Services OBD-IF */
+ 	{ USB_DEVICE(0x10C4, 0xEA60) }, /* Silicon Labs factory default */
+-- 
+1.8.1.2
+

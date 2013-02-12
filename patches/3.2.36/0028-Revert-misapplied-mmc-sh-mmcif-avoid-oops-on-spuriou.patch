@@ -1,0 +1,36 @@
+From eb664f0b43778cb3edf331db1c542b29daab2690 Mon Sep 17 00:00:00 2001
+From: Chris Ball <cjb@laptop.org>
+Date: Mon, 3 Dec 2012 09:17:19 -0500
+Subject: [PATCH 028/171] Revert misapplied "mmc: sh-mmcif: avoid oops on
+ spurious interrupts"
+
+commit 6984f3c31bb57cb7491dbec1be44b74bd00f4648 upstream.
+
+This reverts commit 8464dd52d3198dd05, which was a misapplied debugging
+version of the patch, not the final patch itself.
+
+Signed-off-by: Chris Ball <cjb@laptop.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/mmc/host/sh_mmcif.c | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/drivers/mmc/host/sh_mmcif.c b/drivers/mmc/host/sh_mmcif.c
+index 559d30d..d5505f3 100644
+--- a/drivers/mmc/host/sh_mmcif.c
++++ b/drivers/mmc/host/sh_mmcif.c
+@@ -1003,10 +1003,6 @@ static irqreturn_t sh_mmcif_intr(int irq, void *dev_id)
+ 		host->sd_error = true;
+ 		dev_dbg(&host->pd->dev, "int err state = %08x\n", state);
+ 	}
+-	if (host->state == STATE_IDLE) {
+-		dev_info(&host->pd->dev, "Spurious IRQ status 0x%x", state);
+-		return IRQ_HANDLED;
+-	}
+ 	if (state & ~(INT_CMD12RBE | INT_CMD12CRE))
+ 		complete(&host->intr_wait);
+ 	else
+-- 
+1.8.1.2
+

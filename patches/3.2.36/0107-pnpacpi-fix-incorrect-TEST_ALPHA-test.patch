@@ -1,0 +1,34 @@
+From 539ba1278fe6fa990638d04b125f1502c2773c8a Mon Sep 17 00:00:00 2001
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Date: Fri, 7 Dec 2012 23:11:14 +0100
+Subject: [PATCH 107/171] pnpacpi: fix incorrect TEST_ALPHA() test
+
+commit cdc87c5a30f407ed1ce43d8a22261116873d5ef1 upstream.
+
+TEST_ALPHA() is broken and always returns 0.
+
+[akpm@linux-foundation.org: return false for '@' as well, per Bjorn]
+Signed-off-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/pnp/pnpacpi/core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+index e353788..291906e 100644
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -58,7 +58,7 @@ static inline int __init is_exclusive_device(struct acpi_device *dev)
+ 	if (!(('0' <= (c) && (c) <= '9') || ('A' <= (c) && (c) <= 'F'))) \
+ 		return 0
+ #define TEST_ALPHA(c) \
+-	if (!('@' <= (c) || (c) <= 'Z')) \
++	if (!('A' <= (c) && (c) <= 'Z')) \
+ 		return 0
+ static int __init ispnpidacpi(const char *id)
+ {
+-- 
+1.8.1.2
+

@@ -1,0 +1,30 @@
+From 7fe3934db97874b84a8c6e014be81c0efa3960de Mon Sep 17 00:00:00 2001
+From: Alexander Shiyan <shc_work@mail.ru>
+Date: Tue, 20 Nov 2012 09:59:11 +0000
+Subject: [PATCH 153/171] irda: sir_dev: Fix copy/paste typo
+
+[ Upstream commit 2355a62bcbdcc4b567425bab036bfab6ade87eed ]
+
+Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/irda/sir_dev.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/irda/sir_dev.c b/drivers/net/irda/sir_dev.c
+index 5039f08..43e9ab4 100644
+--- a/drivers/net/irda/sir_dev.c
++++ b/drivers/net/irda/sir_dev.c
+@@ -222,7 +222,7 @@ static void sirdev_config_fsm(struct work_struct *work)
+ 			break;
+ 
+ 		case SIRDEV_STATE_DONGLE_SPEED:
+-			if (dev->dongle_drv->reset) {
++			if (dev->dongle_drv->set_speed) {
+ 				ret = dev->dongle_drv->set_speed(dev, fsm->param);
+ 				if (ret < 0) {
+ 					fsm->result = ret;
+-- 
+1.8.1.2
+

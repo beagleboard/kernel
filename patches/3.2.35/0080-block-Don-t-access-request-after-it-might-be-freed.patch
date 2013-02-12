@@ -1,0 +1,61 @@
+From ea2f4a8aadc5967fbb6655b0df825fce01ec4420 Mon Sep 17 00:00:00 2001
+From: Roland Dreier <roland@purestorage.com>
+Date: Thu, 22 Nov 2012 02:00:11 -0800
+Subject: [PATCH 80/90] block: Don't access request after it might be freed
+
+commit 893d290f1d7496db97c9471bc352ad4a11dc8a25 upstream.
+
+After we've done __elv_add_request() and __blk_run_queue() in
+blk_execute_rq_nowait(), the request might finish and be freed
+immediately.  Therefore checking if the type is REQ_TYPE_PM_RESUME
+isn't safe afterwards, because if it isn't, rq might be gone.
+Instead, check beforehand and stash the result in a temporary.
+
+This fixes crashes in blk_execute_rq_nowait() I get occasionally when
+running with lots of memory debugging options enabled -- I think this
+race is usually harmless because the window for rq to be reallocated
+is so small.
+
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ block/blk-exec.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/block/blk-exec.c b/block/blk-exec.c
+index 6053285..ac2c6e7 100644
+--- a/block/blk-exec.c
++++ b/block/blk-exec.c
+@@ -49,6 +49,7 @@ void blk_execute_rq_nowait(struct request_queue *q, struct gendisk *bd_disk,
+ 			   rq_end_io_fn *done)
+ {
+ 	int where = at_head ? ELEVATOR_INSERT_FRONT : ELEVATOR_INSERT_BACK;
++	bool is_pm_resume;
+ 
+ 	if (unlikely(blk_queue_dead(q))) {
+ 		rq->errors = -ENXIO;
+@@ -59,12 +60,18 @@ void blk_execute_rq_nowait(struct request_queue *q, struct gendisk *bd_disk,
+ 
+ 	rq->rq_disk = bd_disk;
+ 	rq->end_io = done;
++	/*
++	 * need to check this before __blk_run_queue(), because rq can
++	 * be freed before that returns.
++	 */
++	is_pm_resume = rq->cmd_type == REQ_TYPE_PM_RESUME;
++
+ 	WARN_ON(irqs_disabled());
+ 	spin_lock_irq(q->queue_lock);
+ 	__elv_add_request(q, rq, where);
+ 	__blk_run_queue(q);
+ 	/* the queue is stopped so it won't be run */
+-	if (rq->cmd_type == REQ_TYPE_PM_RESUME)
++	if (is_pm_resume)
+ 		q->request_fn(q);
+ 	spin_unlock_irq(q->queue_lock);
+ }
+-- 
+1.8.1.2
+

@@ -1,0 +1,60 @@
+From 9098b6a20397ead9ed567cb94296ee089f074091 Mon Sep 17 00:00:00 2001
+From: Bing Zhao <bzhao@marvell.com>
+Date: Thu, 15 Nov 2012 15:58:47 -0800
+Subject: [PATCH 56/90] mwifiex: fix system hang issue in cmd timeout error
+ case
+
+commit b1a47aa5e1e159e2cb06d7dfcc17ef5149b09299 upstream.
+
+Reported by Tim Shepard:
+I was seeing sporadic failures (wedgeups), and the majority of those
+failures I saw printed the printouts in mwifiex_cmd_timeout_func with
+cmd = 0xe5 which is CMD_802_11_HS_CFG_ENH.  When this happens, two
+minutes later I get notified that the rtcwake thread is blocked, like
+this:
+      INFO: task rtcwake:3495 blocked for more than 120 seconds.
+
+To get the hung thread unblocked we wake up the cmd wait queue and
+cancel the ioctl.
+
+Reported-by: Tim Shepard <shep@laptop.org>
+Signed-off-by: Bing Zhao <bzhao@marvell.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/mwifiex/cmdevt.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/net/wireless/mwifiex/cmdevt.c b/drivers/net/wireless/mwifiex/cmdevt.c
+index 6e0a3ea..5a25dd2 100644
+--- a/drivers/net/wireless/mwifiex/cmdevt.c
++++ b/drivers/net/wireless/mwifiex/cmdevt.c
+@@ -816,9 +816,6 @@ mwifiex_cmd_timeout_func(unsigned long function_context)
+ 		return;
+ 	}
+ 	cmd_node = adapter->curr_cmd;
+-	if (cmd_node->wait_q_enabled)
+-		adapter->cmd_wait_q.status = -ETIMEDOUT;
+-
+ 	if (cmd_node) {
+ 		adapter->dbg.timeout_cmd_id =
+ 			adapter->dbg.last_cmd_id[adapter->dbg.last_cmd_index];
+@@ -863,6 +860,14 @@ mwifiex_cmd_timeout_func(unsigned long function_context)
+ 
+ 		dev_err(adapter->dev, "ps_mode=%d ps_state=%d\n",
+ 				adapter->ps_mode, adapter->ps_state);
++
++		if (cmd_node->wait_q_enabled) {
++			adapter->cmd_wait_q.status = -ETIMEDOUT;
++			wake_up_interruptible(&adapter->cmd_wait_q.wait);
++			mwifiex_cancel_pending_ioctl(adapter);
++			/* reset cmd_sent flag to unblock new commands */
++			adapter->cmd_sent = false;
++		}
+ 	}
+ 	if (adapter->hw_status == MWIFIEX_HW_STATUS_INITIALIZING)
+ 		mwifiex_init_fw_complete(adapter);
+-- 
+1.8.1.2
+

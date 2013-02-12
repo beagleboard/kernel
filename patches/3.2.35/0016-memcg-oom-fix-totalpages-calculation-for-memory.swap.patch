@@ -1,0 +1,93 @@
+From fc4ef9890e7f8f388fe8fa35748560bbb0f709fe Mon Sep 17 00:00:00 2001
+From: Michal Hocko <mhocko@suse.cz>
+Date: Fri, 16 Nov 2012 14:14:49 -0800
+Subject: [PATCH 16/90] memcg: oom: fix totalpages calculation for
+ memory.swappiness==0
+
+commit 9a5a8f19b43430752067ecaee62fc59e11e88fa6 upstream.
+
+oom_badness() takes a totalpages argument which says how many pages are
+available and it uses it as a base for the score calculation.  The value
+is calculated by mem_cgroup_get_limit which considers both limit and
+total_swap_pages (resp.  memsw portion of it).
+
+This is usually correct but since fe35004fbf9e ("mm: avoid swapping out
+with swappiness==0") we do not swap when swappiness is 0 which means
+that we cannot really use up all the totalpages pages.  This in turn
+confuses oom score calculation if the memcg limit is much smaller than
+the available swap because the used memory (capped by the limit) is
+negligible comparing to totalpages so the resulting score is too small
+if adj!=0 (typically task with CAP_SYS_ADMIN or non zero oom_score_adj).
+A wrong process might be selected as result.
+
+The problem can be worked around by checking mem_cgroup_swappiness==0
+and not considering swap at all in such a case.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ Documentation/cgroups/memory.txt |  4 ++++
+ mm/memcontrol.c                  | 21 +++++++++++++++------
+ 2 files changed, 19 insertions(+), 6 deletions(-)
+
+diff --git a/Documentation/cgroups/memory.txt b/Documentation/cgroups/memory.txt
+index cc0ebc5..fd129f6 100644
+--- a/Documentation/cgroups/memory.txt
++++ b/Documentation/cgroups/memory.txt
+@@ -440,6 +440,10 @@ Note:
+ 5.3 swappiness
+ 
+ Similar to /proc/sys/vm/swappiness, but affecting a hierarchy of groups only.
++Please note that unlike the global swappiness, memcg knob set to 0
++really prevents from any swapping even if there is a swap storage
++available. This might lead to memcg OOM killer if there are no file
++pages to reclaim.
+ 
+ Following cgroups' swappiness can't be changed.
+ - root cgroup (uses /proc/sys/vm/swappiness).
+diff --git a/mm/memcontrol.c b/mm/memcontrol.c
+index c8425b1..d027a24 100644
+--- a/mm/memcontrol.c
++++ b/mm/memcontrol.c
+@@ -1457,17 +1457,26 @@ static int mem_cgroup_count_children(struct mem_cgroup *memcg)
+ u64 mem_cgroup_get_limit(struct mem_cgroup *memcg)
+ {
+ 	u64 limit;
+-	u64 memsw;
+ 
+ 	limit = res_counter_read_u64(&memcg->res, RES_LIMIT);
+-	limit += total_swap_pages << PAGE_SHIFT;
+ 
+-	memsw = res_counter_read_u64(&memcg->memsw, RES_LIMIT);
+ 	/*
+-	 * If memsw is finite and limits the amount of swap space available
+-	 * to this memcg, return that limit.
++	 * Do not consider swap space if we cannot swap due to swappiness
+ 	 */
+-	return min(limit, memsw);
++	if (mem_cgroup_swappiness(memcg)) {
++		u64 memsw;
++
++		limit += total_swap_pages << PAGE_SHIFT;
++		memsw = res_counter_read_u64(&memcg->memsw, RES_LIMIT);
++
++		/*
++		 * If memsw is finite and limits the amount of swap space
++		 * available to this memcg, return that limit.
++		 */
++		limit = min(limit, memsw);
++	}
++
++	return limit;
+ }
+ 
+ /*
+-- 
+1.8.1.2
+

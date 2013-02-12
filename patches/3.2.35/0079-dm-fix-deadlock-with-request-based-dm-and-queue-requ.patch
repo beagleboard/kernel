@@ -1,0 +1,46 @@
+From fc45af73c2688e78eb9043f5a5b5bbb8ca0fea3e Mon Sep 17 00:00:00 2001
+From: Jens Axboe <axboe@kernel.dk>
+Date: Tue, 6 Nov 2012 12:24:26 +0100
+Subject: [PATCH 79/90] dm: fix deadlock with request based dm and queue
+ request_fn recursion
+
+commit a8c32a5c98943d370ea606a2e7dc04717eb92206 upstream.
+
+Request based dm attempts to re-run the request queue off the
+request completion path. If used with a driver that potentially does
+end_io from its request_fn, we could deadlock trying to recurse
+back into request dispatch. Fix this by punting the request queue
+run to kblockd.
+
+Tested to fix a quickly reproducible deadlock in such a scenario.
+
+Acked-by: Alasdair G Kergon <agk@redhat.com>
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/md/dm.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/md/dm.c b/drivers/md/dm.c
+index 502dcf7..8953630 100644
+--- a/drivers/md/dm.c
++++ b/drivers/md/dm.c
+@@ -755,8 +755,14 @@ static void rq_completed(struct mapped_device *md, int rw, int run_queue)
+ 	if (!md_in_flight(md))
+ 		wake_up(&md->wait);
+ 
++	/*
++	 * Run this off this callpath, as drivers could invoke end_io while
++	 * inside their request_fn (and holding the queue lock). Calling
++	 * back into ->request_fn() could deadlock attempting to grab the
++	 * queue lock again.
++	 */
+ 	if (run_queue)
+-		blk_run_queue(md->queue);
++		blk_run_queue_async(md->queue);
+ 
+ 	/*
+ 	 * dm_put() must be at the end of this function. See the comment above
+-- 
+1.8.1.2
+

@@ -1,0 +1,49 @@
+From fad41476fb7cb22e47d8d15f09f87e6ad535f343 Mon Sep 17 00:00:00 2001
+From: Jan Kara <jack@suse.cz>
+Date: Tue, 13 Nov 2012 18:25:38 +0100
+Subject: [PATCH 63/90] reiserfs: Protect reiserfs_quota_write() with write
+ lock
+
+commit 361d94a338a3fd0cee6a4ea32bbc427ba228e628 upstream.
+
+Calls into reiserfs journalling code and reiserfs_get_block() need to
+be protected with write lock. We remove write lock around calls to high
+level quota code in the next patch so these paths would suddently become
+unprotected.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/reiserfs/super.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/fs/reiserfs/super.c b/fs/reiserfs/super.c
+index 963b40a..64775e0 100644
+--- a/fs/reiserfs/super.c
++++ b/fs/reiserfs/super.c
+@@ -2196,7 +2196,9 @@ static ssize_t reiserfs_quota_write(struct super_block *sb, int type,
+ 		tocopy = sb->s_blocksize - offset < towrite ?
+ 		    sb->s_blocksize - offset : towrite;
+ 		tmp_bh.b_state = 0;
++		reiserfs_write_lock(sb);
+ 		err = reiserfs_get_block(inode, blk, &tmp_bh, GET_BLOCK_CREATE);
++		reiserfs_write_unlock(sb);
+ 		if (err)
+ 			goto out;
+ 		if (offset || tocopy != sb->s_blocksize)
+@@ -2212,10 +2214,12 @@ static ssize_t reiserfs_quota_write(struct super_block *sb, int type,
+ 		flush_dcache_page(bh->b_page);
+ 		set_buffer_uptodate(bh);
+ 		unlock_buffer(bh);
++		reiserfs_write_lock(sb);
+ 		reiserfs_prepare_for_journal(sb, bh, 1);
+ 		journal_mark_dirty(current->journal_info, sb, bh);
+ 		if (!journal_quota)
+ 			reiserfs_add_ordered_list(inode, bh);
++		reiserfs_write_unlock(sb);
+ 		brelse(bh);
+ 		offset = 0;
+ 		towrite -= tocopy;
+-- 
+1.8.1.2
+

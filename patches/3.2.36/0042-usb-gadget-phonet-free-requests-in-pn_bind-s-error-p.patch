@@ -1,0 +1,51 @@
+From 2f81f328997b47103231193bcf8a1ecb72aacc09 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Mon, 22 Oct 2012 22:15:04 +0200
+Subject: [PATCH 042/171] usb: gadget: phonet: free requests in pn_bind()'s
+ error path
+
+commit d0eca719dd11ad0619e8dd6a1f3eceb95b0216dd upstream.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/gadget/f_phonet.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/gadget/f_phonet.c b/drivers/usb/gadget/f_phonet.c
+index 16a509a..5431493 100644
+--- a/drivers/usb/gadget/f_phonet.c
++++ b/drivers/usb/gadget/f_phonet.c
+@@ -532,7 +532,7 @@ int pn_bind(struct usb_configuration *c, struct usb_function *f)
+ 
+ 		req = usb_ep_alloc_request(fp->out_ep, GFP_KERNEL);
+ 		if (!req)
+-			goto err;
++			goto err_req;
+ 
+ 		req->complete = pn_rx_complete;
+ 		fp->out_reqv[i] = req;
+@@ -541,14 +541,18 @@ int pn_bind(struct usb_configuration *c, struct usb_function *f)
+ 	/* Outgoing USB requests */
+ 	fp->in_req = usb_ep_alloc_request(fp->in_ep, GFP_KERNEL);
+ 	if (!fp->in_req)
+-		goto err;
++		goto err_req;
+ 
+ 	INFO(cdev, "USB CDC Phonet function\n");
+ 	INFO(cdev, "using %s, OUT %s, IN %s\n", cdev->gadget->name,
+ 		fp->out_ep->name, fp->in_ep->name);
+ 	return 0;
+ 
++err_req:
++	for (i = 0; i < phonet_rxq_size && fp->out_reqv[i]; i++)
++		usb_ep_free_request(fp->out_ep, fp->out_reqv[i]);
+ err:
++
+ 	if (fp->out_ep)
+ 		fp->out_ep->driver_data = NULL;
+ 	if (fp->in_ep)
+-- 
+1.8.1.2
+

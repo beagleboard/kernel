@@ -1,0 +1,64 @@
+From a71f867d5e30d87b3731c67f53b7cb3bee5eee69 Mon Sep 17 00:00:00 2001
+From: Alasdair G Kergon <agk@redhat.com>
+Date: Fri, 21 Dec 2012 20:23:30 +0000
+Subject: [PATCH 144/171] dm ioctl: prevent unsafe change to dm_ioctl data_size
+
+commit e910d7ebecd1aac43125944a8641b6cb1a0dfabe upstream.
+
+Abort dm ioctl processing if userspace changes the data_size parameter
+after we validated it but before we finished copying the data buffer
+from userspace.
+
+The dm ioctl parameters are processed in the following sequence:
+ 1. ctl_ioctl() calls copy_params();
+ 2. copy_params() makes a first copy of the fixed-sized portion of the
+    userspace parameters into the local variable "tmp";
+ 3. copy_params() then validates tmp.data_size and allocates a new
+    structure big enough to hold the complete data and copies the whole
+    userspace buffer there;
+ 4. ctl_ioctl() reads userspace data the second time and copies the whole
+    buffer into the pointer "param";
+ 5. ctl_ioctl() reads param->data_size without any validation and stores it
+    in the variable "input_param_size";
+ 6. "input_param_size" is further used as the authoritative size of the
+    kernel buffer.
+
+The problem is that userspace code could change the contents of user
+memory between steps 2 and 4.  In particular, the data_size parameter
+can be changed to an invalid value after the kernel has validated it.
+This lets userspace force the kernel to access invalid kernel memory.
+
+The fix is to ensure that the size has not changed at step 4.
+
+This patch shouldn't have a security impact because CAP_SYS_ADMIN is
+required to run this code, but it should be fixed anyway.
+
+Reported-by: Mikulas Patocka <mpatocka@redhat.com>
+Signed-off-by: Alasdair G Kergon <agk@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/md/dm-ioctl.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/md/dm-ioctl.c b/drivers/md/dm-ioctl.c
+index 1ce84ed..42c873f 100644
+--- a/drivers/md/dm-ioctl.c
++++ b/drivers/md/dm-ioctl.c
+@@ -1562,6 +1562,14 @@ static int copy_params(struct dm_ioctl __user *user, struct dm_ioctl **param)
+ 	if (copy_from_user(dmi, user, tmp.data_size))
+ 		goto bad;
+ 
++	/*
++	 * Abort if something changed the ioctl data while it was being copied.
++	 */
++	if (dmi->data_size != tmp.data_size) {
++		DMERR("rejecting ioctl: data size modified while processing parameters");
++		goto bad;
++	}
++
+ 	/* Wipe the user buffer so we do not return it to userspace */
+ 	if (secure_data && clear_user(user, tmp.data_size))
+ 		goto bad;
+-- 
+1.8.1.2
+

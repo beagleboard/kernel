@@ -1,0 +1,70 @@
+From c3924fd276ce8fdf80af1bc04f01b9700c72a4e9 Mon Sep 17 00:00:00 2001
+From: Johannes Berg <johannes.berg@intel.com>
+Date: Sun, 9 Dec 2012 23:41:06 +0000
+Subject: [PATCH 154/171] ipv4: ip_check_defrag must not modify skb before
+ unsharing
+
+[ Upstream commit 1bf3751ec90cc3174e01f0d701e8449ce163d113 ]
+
+ip_check_defrag() might be called from af_packet within the
+RX path where shared SKBs are used, so it must not modify
+the input SKB before it has unshared it for defragmentation.
+Use skb_copy_bits() to get the IP header and only pull in
+everything later.
+
+The same is true for the other caller in macvlan as it is
+called from dev->rx_handler which can also get a shared SKB.
+
+Reported-by: Eric Leblond <eric@regit.org>
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv4/ip_fragment.c | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
+
+diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
+index fdaabf2..a4e7131 100644
+--- a/net/ipv4/ip_fragment.c
++++ b/net/ipv4/ip_fragment.c
+@@ -684,28 +684,27 @@ EXPORT_SYMBOL(ip_defrag);
+ 
+ struct sk_buff *ip_check_defrag(struct sk_buff *skb, u32 user)
+ {
+-	const struct iphdr *iph;
++	struct iphdr iph;
+ 	u32 len;
+ 
+ 	if (skb->protocol != htons(ETH_P_IP))
+ 		return skb;
+ 
+-	if (!pskb_may_pull(skb, sizeof(struct iphdr)))
++	if (!skb_copy_bits(skb, 0, &iph, sizeof(iph)))
+ 		return skb;
+ 
+-	iph = ip_hdr(skb);
+-	if (iph->ihl < 5 || iph->version != 4)
++	if (iph.ihl < 5 || iph.version != 4)
+ 		return skb;
+-	if (!pskb_may_pull(skb, iph->ihl*4))
+-		return skb;
+-	iph = ip_hdr(skb);
+-	len = ntohs(iph->tot_len);
+-	if (skb->len < len || len < (iph->ihl * 4))
++
++	len = ntohs(iph.tot_len);
++	if (skb->len < len || len < (iph.ihl * 4))
+ 		return skb;
+ 
+-	if (ip_is_fragment(ip_hdr(skb))) {
++	if (ip_is_fragment(&iph)) {
+ 		skb = skb_share_check(skb, GFP_ATOMIC);
+ 		if (skb) {
++			if (!pskb_may_pull(skb, iph.ihl*4))
++				return skb;
+ 			if (pskb_trim_rcsum(skb, len))
+ 				return skb;
+ 			memset(IPCB(skb), 0, sizeof(struct inet_skb_parm));
+-- 
+1.8.1.2
+

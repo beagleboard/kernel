@@ -1,0 +1,77 @@
+From 6c0897ff9f596468abe682a92a3ec60d1f420e80 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Tue, 13 Nov 2012 05:37:18 +0000
+Subject: [PATCH 39/46] tcp: tcp_replace_ts_recent() should not be called from
+ tcp_validate_incoming()
+
+[ Upstream commit bd090dfc634ddd711a5fbd0cadc6e0ab4977bcaf ]
+
+We added support for RFC 5961 in latest kernels but TCP fails
+to perform exhaustive check of ACK sequence.
+
+We can update our view of peer tsval from a frame that is
+later discarded by tcp_ack()
+
+This makes timestamps enabled sessions vulnerable to injection of
+a high tsval : peers start an ACK storm, since the victim
+sends a dupack each time it receives an ACK from the other peer.
+
+As tcp_validate_incoming() is called before tcp_ack(), we should
+not peform tcp_replace_ts_recent() from it, and let callers do it
+at the right time.
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Neal Cardwell <ncardwell@google.com>
+Cc: Yuchung Cheng <ycheng@google.com>
+Cc: Nandita Dukkipati <nanditad@google.com>
+Cc: H.K. Jerry Chu <hkchu@google.com>
+Cc: Romain Francoise <romain@orebokech.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv4/tcp_input.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
+index de434bc..b75cb85 100644
+--- a/net/ipv4/tcp_input.c
++++ b/net/ipv4/tcp_input.c
+@@ -5312,11 +5312,6 @@ static bool tcp_validate_incoming(struct sock *sk, struct sk_buff *skb,
+ 		goto discard;
+ 	}
+ 
+-	/* ts_recent update must be made after we are sure that the packet
+-	 * is in window.
+-	 */
+-	tcp_replace_ts_recent(tp, TCP_SKB_CB(skb)->seq);
+-
+ 	/* step 3: check security and precedence [ignored] */
+ 
+ 	/* step 4: Check for a SYN
+@@ -5551,6 +5546,11 @@ step5:
+ 	if (th->ack && tcp_ack(sk, skb, FLAG_SLOWPATH) < 0)
+ 		goto discard;
+ 
++	/* ts_recent update must be made after we are sure that the packet
++	 * is in window.
++	 */
++	tcp_replace_ts_recent(tp, TCP_SKB_CB(skb)->seq);
++
+ 	tcp_rcv_rtt_measure_ts(sk, skb);
+ 
+ 	/* Process urgent data. */
+@@ -6021,6 +6021,11 @@ int tcp_rcv_state_process(struct sock *sk, struct sk_buff *skb,
+ 	} else
+ 		goto discard;
+ 
++	/* ts_recent update must be made after we are sure that the packet
++	 * is in window.
++	 */
++	tcp_replace_ts_recent(tp, TCP_SKB_CB(skb)->seq);
++
+ 	/* step 6: check the URG bit */
+ 	tcp_urg(sk, skb, th);
+ 
+-- 
+1.8.1.2
+

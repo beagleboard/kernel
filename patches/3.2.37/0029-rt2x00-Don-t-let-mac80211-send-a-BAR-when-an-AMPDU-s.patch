@@ -1,0 +1,60 @@
+From d453328e8334741b84aadc49dcb05f5dcdf1a087 Mon Sep 17 00:00:00 2001
+From: Andreas Hartmann <andihartmann@01019freenet.de>
+Date: Tue, 17 Apr 2012 00:25:28 +0200
+Subject: [PATCH 29/46] rt2x00: Don't let mac80211 send a BAR when an AMPDU
+ subframe fails
+
+commit be03d4a45c09ee5100d3aaaedd087f19bc20d01f upstream.
+
+There are connection stalls or very poor throughputs with rt2800
+hardware using 802.11n in AP mode since patch "mac80211: retry sending
+failed BAR frames later instead of tearing down aggr"[1][2].
+
+Since rt2800 hardware is not able to correctly report the tx status of
+BAR frames, this patch removes as workaround the existing error handling
+on AP side, which lets mac80211 send a BAR when an AMPDU subframe fails.
+
+As a result, most wifi clients (aside from Intel STAs on Windows)
+instead will timeout now the reorder buffer and request the lost frame
+again.
+
+The correct solution would be, to tear down BA session on AP side.
+
+This patch was born on the basis of "[RFT] rt2x00: Tear down BA
+session on QoS frame failure"[3].
+
+Thanks to Helmut Schaa for his support!
+
+[1] http://thread.gmane.org/gmane.linux.kernel.wireless.general/83297/focus=83304
+[2] http://git.kernel.org/?p=linux/kernel/git/linville/wireless-testing.git;a=commit;h=f0425beda4d404a6e751439b562100b902ba9c98
+[3] http://thread.gmane.org/gmane.linux.drivers.rt2x00.user/569
+
+Signed-off-by: Andreas Hartmann <andihartmann@01019freenet.de>
+Acked-by: Helmut Schaa <helmut.schaa@googlemail.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/rt2x00/rt2x00dev.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/net/wireless/rt2x00/rt2x00dev.c b/drivers/net/wireless/rt2x00/rt2x00dev.c
+index f099b30..a8bdd2b 100644
+--- a/drivers/net/wireless/rt2x00/rt2x00dev.c
++++ b/drivers/net/wireless/rt2x00/rt2x00dev.c
+@@ -387,9 +387,10 @@ void rt2x00lib_txdone(struct queue_entry *entry,
+ 		tx_info->flags |= IEEE80211_TX_STAT_AMPDU;
+ 		tx_info->status.ampdu_len = 1;
+ 		tx_info->status.ampdu_ack_len = success ? 1 : 0;
+-
+-		if (!success)
+-			tx_info->flags |= IEEE80211_TX_STAT_AMPDU_NO_BACK;
++		/*
++		 * TODO: Need to tear down BA session here
++		 * if not successful.
++		 */
+ 	}
+ 
+ 	if (rate_flags & IEEE80211_TX_RC_USE_RTS_CTS) {
+-- 
+1.8.1.2
+

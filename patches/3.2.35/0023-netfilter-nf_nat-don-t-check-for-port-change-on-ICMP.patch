@@ -1,0 +1,48 @@
+From dc7df60c1d99e94cde3336538c69aeaaa9cc78c3 Mon Sep 17 00:00:00 2001
+From: Ulrich Weber <ulrich.weber@sophos.com>
+Date: Thu, 25 Oct 2012 05:34:45 +0000
+Subject: [PATCH 23/90] netfilter: nf_nat: don't check for port change on ICMP
+ tuples
+
+commit 38fe36a248ec3228f8e6507955d7ceb0432d2000 upstream.
+
+ICMP tuples have id in src and type/code in dst.
+So comparing src.u.all with dst.u.all will always fail here
+and ip_xfrm_me_harder() is called for every ICMP packet,
+even if there was no NAT.
+
+Signed-off-by: Ulrich Weber <ulrich.weber@sophos.com>
+[Pablo Neira Ayuso: Backported to.3.0]
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv4/netfilter/nf_nat_standalone.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
+index 9290048..e32b542 100644
+--- a/net/ipv4/netfilter/nf_nat_standalone.c
++++ b/net/ipv4/netfilter/nf_nat_standalone.c
+@@ -194,7 +194,8 @@ nf_nat_out(unsigned int hooknum,
+ 
+ 		if ((ct->tuplehash[dir].tuple.src.u3.ip !=
+ 		     ct->tuplehash[!dir].tuple.dst.u3.ip) ||
+-		    (ct->tuplehash[dir].tuple.src.u.all !=
++		    (ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
++		     ct->tuplehash[dir].tuple.src.u.all !=
+ 		     ct->tuplehash[!dir].tuple.dst.u.all)
+ 		   )
+ 			return ip_xfrm_me_harder(skb) == 0 ? ret : NF_DROP;
+@@ -230,7 +231,8 @@ nf_nat_local_fn(unsigned int hooknum,
+ 				ret = NF_DROP;
+ 		}
+ #ifdef CONFIG_XFRM
+-		else if (ct->tuplehash[dir].tuple.dst.u.all !=
++		else if (ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
++			 ct->tuplehash[dir].tuple.dst.u.all !=
+ 			 ct->tuplehash[!dir].tuple.src.u.all)
+ 			if (ip_xfrm_me_harder(skb))
+ 				ret = NF_DROP;
+-- 
+1.8.1.2
+

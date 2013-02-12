@@ -1,0 +1,40 @@
+From 420d563ccf2ba80449260505befb2fc044f89d9a Mon Sep 17 00:00:00 2001
+From: Jan Kara <jack@suse.cz>
+Date: Fri, 23 Nov 2012 14:03:04 +0100
+Subject: [PATCH 81/90] jbd: Fix lock ordering bug in journal_unmap_buffer()
+
+commit 25389bb207987b5774182f763b9fb65ff08761c8 upstream.
+
+Commit 09e05d48 introduced a wait for transaction commit into
+journal_unmap_buffer() in the case we are truncating a buffer undergoing commit
+in the page stradding i_size on a filesystem with blocksize < pagesize. Sadly
+we forgot to drop buffer lock before waiting for transaction commit and thus
+deadlock is possible when kjournald wants to lock the buffer.
+
+Fix the problem by dropping the buffer lock before waiting for transaction
+commit. Since we are still holding page lock (and that is OK), buffer cannot
+disappear under us.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/jbd/transaction.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/fs/jbd/transaction.c b/fs/jbd/transaction.c
+index edac004..7c86b37 100644
+--- a/fs/jbd/transaction.c
++++ b/fs/jbd/transaction.c
+@@ -1957,7 +1957,9 @@ retry:
+ 			spin_unlock(&journal->j_list_lock);
+ 			jbd_unlock_bh_state(bh);
+ 			spin_unlock(&journal->j_state_lock);
++			unlock_buffer(bh);
+ 			log_wait_commit(journal, tid);
++			lock_buffer(bh);
+ 			goto retry;
+ 		}
+ 		/*
+-- 
+1.8.1.2
+

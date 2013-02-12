@@ -1,0 +1,42 @@
+From bce1882e77dbb989bb7bde1ba4b75a9054e48b12 Mon Sep 17 00:00:00 2001
+From: Eugene Shatokhin <eugene.shatokhin@rosalab.ru>
+Date: Thu, 8 Nov 2012 15:11:11 -0500
+Subject: [PATCH 048/171] ext4: fix memory leak in ext4_xattr_set_acl()'s error
+ path
+
+commit 24ec19b0ae83a385ad9c55520716da671274b96c upstream.
+
+In ext4_xattr_set_acl(), if ext4_journal_start() returns an error,
+posix_acl_release() will not be called for 'acl' which may result in a
+memory leak.
+
+This patch fixes that.
+
+Reviewed-by: Lukas Czerner <lczerner@redhat.com>
+Signed-off-by: Eugene Shatokhin <eugene.shatokhin@rosalab.ru>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ext4/acl.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/fs/ext4/acl.c b/fs/ext4/acl.c
+index a5c29bb..8535c45 100644
+--- a/fs/ext4/acl.c
++++ b/fs/ext4/acl.c
+@@ -410,8 +410,10 @@ ext4_xattr_set_acl(struct dentry *dentry, const char *name, const void *value,
+ 
+ retry:
+ 	handle = ext4_journal_start(inode, EXT4_DATA_TRANS_BLOCKS(inode->i_sb));
+-	if (IS_ERR(handle))
+-		return PTR_ERR(handle);
++	if (IS_ERR(handle)) {
++		error = PTR_ERR(handle);
++		goto release_and_out;
++	}
+ 	error = ext4_set_acl(handle, inode, type, acl);
+ 	ext4_journal_stop(handle);
+ 	if (error == -ENOSPC && ext4_should_retry_alloc(inode->i_sb, &retries))
+-- 
+1.8.1.2
+

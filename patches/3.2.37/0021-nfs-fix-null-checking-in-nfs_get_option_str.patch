@@ -1,0 +1,41 @@
+From 895c32b072e51ce2c6ce57b3d8717ca048babbb2 Mon Sep 17 00:00:00 2001
+From: Xi Wang <xi.wang@gmail.com>
+Date: Fri, 4 Jan 2013 03:22:57 -0500
+Subject: [PATCH 21/46] nfs: fix null checking in nfs_get_option_str()
+
+commit e25fbe380c4e3c09afa98bcdcd9d3921443adab8 upstream.
+
+The following null pointer check is broken.
+
+	*option = match_strdup(args);
+	return !option;
+
+The pointer `option' must be non-null, and thus `!option' is always false.
+Use `!*option' instead.
+
+The bug was introduced in commit c5cb09b6f8 ("Cleanup: Factor out some
+cut-and-paste code.").
+
+Signed-off-by: Xi Wang <xi.wang@gmail.com>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/super.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/nfs/super.c b/fs/nfs/super.c
+index 8150344..1943898 100644
+--- a/fs/nfs/super.c
++++ b/fs/nfs/super.c
+@@ -1057,7 +1057,7 @@ static int nfs_get_option_str(substring_t args[], char **option)
+ {
+ 	kfree(*option);
+ 	*option = match_strdup(args);
+-	return !option;
++	return !*option;
+ }
+ 
+ static int nfs_get_option_ul(substring_t args[], unsigned long *option)
+-- 
+1.8.1.2
+

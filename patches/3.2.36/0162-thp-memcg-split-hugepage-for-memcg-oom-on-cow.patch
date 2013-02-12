@@ -1,0 +1,94 @@
+From e6fcd4b3af6fbb26f3fbf93bad78337fd7457be6 Mon Sep 17 00:00:00 2001
+From: David Rientjes <rientjes@google.com>
+Date: Tue, 29 May 2012 15:06:23 -0700
+Subject: [PATCH 162/171] thp, memcg: split hugepage for memcg oom on cow
+
+commit 1f1d06c34f7675026326cd9f39ff91e4555cf355 upstream.
+
+On COW, a new hugepage is allocated and charged to the memcg.  If the
+system is oom or the charge to the memcg fails, however, the fault
+handler will return VM_FAULT_OOM which results in an oom kill.
+
+Instead, it's possible to fallback to splitting the hugepage so that the
+COW results only in an order-0 page being allocated and charged to the
+memcg which has a higher liklihood to succeed.  This is expensive
+because the hugepage must be split in the page fault handler, but it is
+much better than unnecessarily oom killing a process.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/huge_memory.c |  3 +++
+ mm/memory.c      | 18 +++++++++++++++---
+ 2 files changed, 18 insertions(+), 3 deletions(-)
+
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 8f005e9..470cbb4 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -921,6 +921,8 @@ int do_huge_pmd_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 		ret = do_huge_pmd_wp_page_fallback(mm, vma, address,
+ 						   pmd, orig_pmd, page, haddr);
++		if (ret & VM_FAULT_OOM)
++			split_huge_page(page);
+ 		put_page(page);
+ 		goto out;
+ 	}
+@@ -928,6 +930,7 @@ int do_huge_pmd_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 
+ 	if (unlikely(mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))) {
+ 		put_page(new_page);
++		split_huge_page(page);
+ 		put_page(page);
+ 		ret |= VM_FAULT_OOM;
+ 		goto out;
+diff --git a/mm/memory.c b/mm/memory.c
+index 70f5daf..15e686a 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3469,6 +3469,7 @@ int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	if (unlikely(is_vm_hugetlb_page(vma)))
+ 		return hugetlb_fault(mm, vma, address, flags);
+ 
++retry:
+ 	pgd = pgd_offset(mm, address);
+ 	pud = pud_alloc(mm, pgd, address);
+ 	if (!pud)
+@@ -3482,13 +3483,24 @@ int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 							  pmd, flags);
+ 	} else {
+ 		pmd_t orig_pmd = *pmd;
++		int ret;
++
+ 		barrier();
+ 		if (pmd_trans_huge(orig_pmd)) {
+ 			if (flags & FAULT_FLAG_WRITE &&
+ 			    !pmd_write(orig_pmd) &&
+-			    !pmd_trans_splitting(orig_pmd))
+-				return do_huge_pmd_wp_page(mm, vma, address,
+-							   pmd, orig_pmd);
++			    !pmd_trans_splitting(orig_pmd)) {
++				ret = do_huge_pmd_wp_page(mm, vma, address, pmd,
++							  orig_pmd);
++				/*
++				 * If COW results in an oom, the huge pmd will
++				 * have been split, so retry the fault on the
++				 * pte for a smaller charge.
++				 */
++				if (unlikely(ret & VM_FAULT_OOM))
++					goto retry;
++				return ret;
++			}
+ 			return 0;
+ 		}
+ 	}
+-- 
+1.8.1.2
+

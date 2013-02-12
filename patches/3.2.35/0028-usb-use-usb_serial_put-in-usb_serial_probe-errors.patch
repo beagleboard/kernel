@@ -1,0 +1,54 @@
+From 1818144cd6f693b216d90b653c3dce9274c12b2f Mon Sep 17 00:00:00 2001
+From: Jan Safrata <jan.nikitenko@gmail.com>
+Date: Tue, 22 May 2012 14:04:50 +0200
+Subject: [PATCH 28/90] usb: use usb_serial_put in usb_serial_probe errors
+
+commit 0658a3366db7e27fa32c12e886230bb58c414c92 upstream.
+
+The use of kfree(serial) in error cases of usb_serial_probe
+was invalid - usb_serial structure allocated in create_serial()
+gets reference of usb_device that needs to be put, so we need
+to use usb_serial_put() instead of simple kfree().
+
+Signed-off-by: Jan Safrata <jan.nikitenko@gmail.com>
+Acked-by: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/usb-serial.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/usb/serial/usb-serial.c b/drivers/usb/serial/usb-serial.c
+index 8bea45c..e5206de 100644
+--- a/drivers/usb/serial/usb-serial.c
++++ b/drivers/usb/serial/usb-serial.c
+@@ -764,7 +764,7 @@ int usb_serial_probe(struct usb_interface *interface,
+ 
+ 		if (retval) {
+ 			dbg("sub driver rejected device");
+-			kfree(serial);
++			usb_serial_put(serial);
+ 			module_put(type->driver.owner);
+ 			return retval;
+ 		}
+@@ -836,7 +836,7 @@ int usb_serial_probe(struct usb_interface *interface,
+ 		 */
+ 		if (num_bulk_in == 0 || num_bulk_out == 0) {
+ 			dev_info(&interface->dev, "PL-2303 hack: descriptors matched but endpoints did not\n");
+-			kfree(serial);
++			usb_serial_put(serial);
+ 			module_put(type->driver.owner);
+ 			return -ENODEV;
+ 		}
+@@ -850,7 +850,7 @@ int usb_serial_probe(struct usb_interface *interface,
+ 		if (num_ports == 0) {
+ 			dev_err(&interface->dev,
+ 			    "Generic device with no bulk out, not allowed.\n");
+-			kfree(serial);
++			usb_serial_put(serial);
+ 			module_put(type->driver.owner);
+ 			return -EIO;
+ 		}
+-- 
+1.8.1.2
+

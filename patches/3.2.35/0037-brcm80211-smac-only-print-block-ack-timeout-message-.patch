@@ -1,0 +1,40 @@
+From 9de0abd4d234539fe405cae4a5fbcaf1729ac42c Mon Sep 17 00:00:00 2001
+From: Arend van Spriel <arend@broadcom.com>
+Date: Thu, 23 Feb 2012 18:38:23 +0100
+Subject: [PATCH 37/90] brcm80211: smac: only print block-ack timeout message
+ at trace level
+
+commit 2b0a53d51b5f263bb581bbdb40ebb9f7e09609b1 upstream.
+
+In regular use block-ack timeouts can happen so it does not make
+sense to fill the log with these messages.
+
+Reviewed-by: Pieter-Paul Giesberts <pieterpg@broadcom.com>
+Reviewed-by: Alwin Beukers <alwin@broadcom.com>
+Signed-off-by: Arend van Spriel <arend@broadcom.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/brcm80211/brcmsmac/ampdu.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/net/wireless/brcm80211/brcmsmac/ampdu.c b/drivers/net/wireless/brcm80211/brcmsmac/ampdu.c
+index 0515862..858a762 100644
+--- a/drivers/net/wireless/brcm80211/brcmsmac/ampdu.c
++++ b/drivers/net/wireless/brcm80211/brcmsmac/ampdu.c
+@@ -1072,9 +1072,9 @@ brcms_c_ampdu_dotxstatus_complete(struct ampdu_info *ampdu, struct scb *scb,
+ 				    IEEE80211_TX_STAT_AMPDU_NO_BACK;
+ 				skb_pull(p, D11_PHY_HDR_LEN);
+ 				skb_pull(p, D11_TXH_LEN);
+-				wiphy_err(wiphy, "%s: BA Timeout, seq %d, in_"
+-					"transit %d\n", "AMPDU status", seq,
+-					ini->tx_in_transit);
++				BCMMSG(wiphy,
++				       "BA Timeout, seq %d, in_transit %d\n",
++				       seq, ini->tx_in_transit);
+ 				ieee80211_tx_status_irqsafe(wlc->pub->ieee_hw,
+ 							    p);
+ 			}
+-- 
+1.8.1.2
+

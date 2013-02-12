@@ -1,0 +1,35 @@
+From 369445a107508bbaf0c830d99040f973967517d9 Mon Sep 17 00:00:00 2001
+From: Merlin Schumacher <merlin.schumacher@gmail.com>
+Date: Tue, 24 Jan 2012 04:35:35 +0800
+Subject: [PATCH 42/90] acer-wmi: support for P key on TM8372
+
+commit 67e1d34cd54cbf33f093f1dd53e7bda1124eb972 upstream.
+
+BugLink: http://launchpad.net/bugs/865807
+
+There is no entry for P key on TM8372, so when P key is pressed, only
+"acer_wmi: Unknown key number - 0x29" in dmesg.
+
+Signed-off-by: Merlin Schumacher <merlin.schumacher@gmail.com>
+Signed-off-by: Ike Panhc <ike.pan@canonical.com>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/platform/x86/acer-wmi.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
+index 110e4af..7d47434 100644
+--- a/drivers/platform/x86/acer-wmi.c
++++ b/drivers/platform/x86/acer-wmi.c
+@@ -105,6 +105,7 @@ static const struct key_entry acer_wmi_keymap[] = {
+ 	{KE_KEY, 0x22, {KEY_PROG2} },    /* Arcade */
+ 	{KE_KEY, 0x23, {KEY_PROG3} },    /* P_Key */
+ 	{KE_KEY, 0x24, {KEY_PROG4} },    /* Social networking_Key */
++	{KE_KEY, 0x29, {KEY_PROG3} },    /* P_Key for TM8372 */
+ 	{KE_IGNORE, 0x41, {KEY_MUTE} },
+ 	{KE_IGNORE, 0x42, {KEY_PREVIOUSSONG} },
+ 	{KE_IGNORE, 0x43, {KEY_NEXTSONG} },
+-- 
+1.8.1.2
+

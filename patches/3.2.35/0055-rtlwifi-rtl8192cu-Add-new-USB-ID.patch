@@ -1,0 +1,33 @@
+From 948bc7325d5ac60c045212fcab6a989fa8149f2d Mon Sep 17 00:00:00 2001
+From: Albert Pool <albertpool@solcon.nl>
+Date: Tue, 30 Oct 2012 20:58:06 +0100
+Subject: [PATCH 55/90] rtlwifi: rtl8192cu: Add new USB ID
+
+commit a485e827f07bfdd0762059386e6e787bed6e81ee upstream.
+
+This is an ISY IWL 2000. Probably a clone of Belkin F7D1102 050d:1102.
+Its FCC ID is the same.
+
+Signed-off-by: Albert Pool <albertpool@solcon.nl>
+Acked-by: Larry Finger <Larry.Finger@lwfinger.net>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/rtlwifi/rtl8192cu/sw.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/net/wireless/rtlwifi/rtl8192cu/sw.c b/drivers/net/wireless/rtlwifi/rtl8192cu/sw.c
+index 0302148..a99be2d0 100644
+--- a/drivers/net/wireless/rtlwifi/rtl8192cu/sw.c
++++ b/drivers/net/wireless/rtlwifi/rtl8192cu/sw.c
+@@ -307,6 +307,7 @@ static struct usb_device_id rtl8192c_usb_ids[] = {
+ 	/*=== Customer ID ===*/
+ 	/****** 8188CU ********/
+ 	{RTL_USB_DEVICE(0x050d, 0x1102, rtl92cu_hal_cfg)}, /*Belkin - Edimax*/
++	{RTL_USB_DEVICE(0x050d, 0x11f2, rtl92cu_hal_cfg)}, /*Belkin - ISY*/
+ 	{RTL_USB_DEVICE(0x06f8, 0xe033, rtl92cu_hal_cfg)}, /*Hercules - Edimax*/
+ 	{RTL_USB_DEVICE(0x07b8, 0x8188, rtl92cu_hal_cfg)}, /*Abocom - Abocom*/
+ 	{RTL_USB_DEVICE(0x07b8, 0x8189, rtl92cu_hal_cfg)}, /*Funai - Abocom*/
+-- 
+1.8.1.2
+

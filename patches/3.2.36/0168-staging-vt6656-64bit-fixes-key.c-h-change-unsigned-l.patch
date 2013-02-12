@@ -1,0 +1,92 @@
+From 79637c42cdc9ebe59c484a7924e41827db6ec2ee Mon Sep 17 00:00:00 2001
+From: Malcolm Priestley <tvboxspy@gmail.com>
+Date: Sun, 11 Nov 2012 15:49:59 +0000
+Subject: [PATCH 168/171] staging: vt6656: 64bit fixes: key.c/h change unsigned
+ long to u32
+
+commit c0d05b305b00c698b0a8c1b3d46c9380bce9db45 upstream.
+
+Fixes long issues.
+
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/vt6656/key.c | 6 +++---
+ drivers/staging/vt6656/key.h | 8 ++++----
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/staging/vt6656/key.c b/drivers/staging/vt6656/key.c
+index 70b8d8d..fd93e83 100644
+--- a/drivers/staging/vt6656/key.c
++++ b/drivers/staging/vt6656/key.c
+@@ -223,7 +223,7 @@ BOOL KeybSetKey(
+     PSKeyManagement pTable,
+     PBYTE           pbyBSSID,
+     DWORD           dwKeyIndex,
+-    unsigned long           uKeyLength,
++	u32 uKeyLength,
+     PQWORD          pKeyRSC,
+     PBYTE           pbyKey,
+     BYTE            byKeyDecMode
+@@ -675,7 +675,7 @@ BOOL KeybSetDefaultKey(
+     void *pDeviceHandler,
+     PSKeyManagement pTable,
+     DWORD           dwKeyIndex,
+-    unsigned long           uKeyLength,
++	u32 uKeyLength,
+     PQWORD          pKeyRSC,
+     PBYTE           pbyKey,
+     BYTE            byKeyDecMode
+@@ -788,7 +788,7 @@ BOOL KeybSetAllGroupKey(
+     void *pDeviceHandler,
+     PSKeyManagement pTable,
+     DWORD           dwKeyIndex,
+-    unsigned long           uKeyLength,
++	u32 uKeyLength,
+     PQWORD          pKeyRSC,
+     PBYTE           pbyKey,
+     BYTE            byKeyDecMode
+diff --git a/drivers/staging/vt6656/key.h b/drivers/staging/vt6656/key.h
+index f749c7a..bd35d39 100644
+--- a/drivers/staging/vt6656/key.h
++++ b/drivers/staging/vt6656/key.h
+@@ -58,7 +58,7 @@
+ typedef struct tagSKeyItem
+ {
+     BOOL        bKeyValid;
+-    unsigned long       uKeyLength;
++	u32 uKeyLength;
+     BYTE        abyKey[MAX_KEY_LEN];
+     QWORD       KeyRSC;
+     DWORD       dwTSC47_16;
+@@ -107,7 +107,7 @@ BOOL KeybSetKey(
+     PSKeyManagement pTable,
+     PBYTE           pbyBSSID,
+     DWORD           dwKeyIndex,
+-    unsigned long           uKeyLength,
++	u32 uKeyLength,
+     PQWORD          pKeyRSC,
+     PBYTE           pbyKey,
+     BYTE            byKeyDecMode
+@@ -146,7 +146,7 @@ BOOL KeybSetDefaultKey(
+     void *pDeviceHandler,
+     PSKeyManagement pTable,
+     DWORD           dwKeyIndex,
+-    unsigned long           uKeyLength,
++	u32 uKeyLength,
+     PQWORD          pKeyRSC,
+     PBYTE           pbyKey,
+     BYTE            byKeyDecMode
+@@ -156,7 +156,7 @@ BOOL KeybSetAllGroupKey(
+     void *pDeviceHandler,
+     PSKeyManagement pTable,
+     DWORD           dwKeyIndex,
+-    unsigned long           uKeyLength,
++	u32 uKeyLength,
+     PQWORD          pKeyRSC,
+     PBYTE           pbyKey,
+     BYTE            byKeyDecMode
+-- 
+1.8.1.2
+

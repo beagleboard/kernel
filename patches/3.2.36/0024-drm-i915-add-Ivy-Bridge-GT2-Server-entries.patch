@@ -1,0 +1,59 @@
+From 34502e303152790ed7fa54b917c2f763478f40ec Mon Sep 17 00:00:00 2001
+From: Eugeni Dodonov <eugeni.dodonov@intel.com>
+Date: Thu, 29 Mar 2012 20:55:48 -0300
+Subject: [PATCH 024/171] drm/i915: add Ivy Bridge GT2 Server entries
+
+commit cc22a938fc1db0c8ef5e693a69b159c4b851dab3 upstream.
+
+This adds PCI ID for IVB GT2 server variant which we were missing.
+
+Signed-off-by: Eugeni Dodonov <eugeni.dodonov@intel.com>
+[danvet: fix up conflict because the patch has been diffed against next. tsk.]
+Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/char/agp/intel-agp.h    | 1 +
+ drivers/char/agp/intel-gtt.c    | 2 ++
+ drivers/gpu/drm/i915/i915_drv.c | 1 +
+ 3 files changed, 4 insertions(+)
+
+diff --git a/drivers/char/agp/intel-agp.h b/drivers/char/agp/intel-agp.h
+index 6f24604..439d7e7 100644
+--- a/drivers/char/agp/intel-agp.h
++++ b/drivers/char/agp/intel-agp.h
+@@ -235,6 +235,7 @@
+ #define PCI_DEVICE_ID_INTEL_IVYBRIDGE_M_GT2_IG		0x0166
+ #define PCI_DEVICE_ID_INTEL_IVYBRIDGE_S_HB		0x0158  /* Server */
+ #define PCI_DEVICE_ID_INTEL_IVYBRIDGE_S_GT1_IG		0x015A
++#define PCI_DEVICE_ID_INTEL_IVYBRIDGE_S_GT2_IG		0x016A
+ 
+ int intel_gmch_probe(struct pci_dev *pdev,
+ 			       struct agp_bridge_data *bridge);
+diff --git a/drivers/char/agp/intel-gtt.c b/drivers/char/agp/intel-gtt.c
+index c92424c..43c4ec3 100644
+--- a/drivers/char/agp/intel-gtt.c
++++ b/drivers/char/agp/intel-gtt.c
+@@ -1459,6 +1459,8 @@ static const struct intel_gtt_driver_description {
+ 	    "Ivybridge", &sandybridge_gtt_driver },
+ 	{ PCI_DEVICE_ID_INTEL_IVYBRIDGE_S_GT1_IG,
+ 	    "Ivybridge", &sandybridge_gtt_driver },
++	{ PCI_DEVICE_ID_INTEL_IVYBRIDGE_S_GT2_IG,
++	    "Ivybridge", &sandybridge_gtt_driver },
+ 	{ 0, NULL, NULL }
+ };
+ 
+diff --git a/drivers/gpu/drm/i915/i915_drv.c b/drivers/gpu/drm/i915/i915_drv.c
+index 3a1bfd7..452bc51 100644
+--- a/drivers/gpu/drm/i915/i915_drv.c
++++ b/drivers/gpu/drm/i915/i915_drv.c
+@@ -287,6 +287,7 @@ static const struct pci_device_id pciidlist[] = {		/* aka */
+ 	INTEL_VGA_DEVICE(0x0152, &intel_ivybridge_d_info), /* GT1 desktop */
+ 	INTEL_VGA_DEVICE(0x0162, &intel_ivybridge_d_info), /* GT2 desktop */
+ 	INTEL_VGA_DEVICE(0x015a, &intel_ivybridge_d_info), /* GT1 server */
++	INTEL_VGA_DEVICE(0x016a, &intel_ivybridge_d_info), /* GT2 server */
+ 	{0, 0, 0}
+ };
+ 
+-- 
+1.8.1.2
+

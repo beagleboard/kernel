@@ -1,0 +1,134 @@
+From e9d996e1f70ed63013cca57ed12f36173f33e7fb Mon Sep 17 00:00:00 2001
+From: Niels Ole Salscheider <niels_ole@salscheider-online.de>
+Date: Thu, 3 Jan 2013 19:09:28 +0100
+Subject: [PATCH 18/46] drm/radeon: Properly handle DDC probe for DP bridges
+
+commit 0a9069d34918659bc8a89e21e69e60b2b83291a3 upstream.
+
+DDC information can be accessed using AUX CH
+
+Fixes failure to probe monitors on some systems with
+DP bridge chips.
+
+agd5f: minor fixes
+
+Signed-off-by: Niels Ole Salscheider <niels_ole@salscheider-online.de>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_connectors.c | 10 ++++++----
+ drivers/gpu/drm/radeon/radeon_display.c    | 13 +++++++++----
+ drivers/gpu/drm/radeon/radeon_i2c.c        | 10 ++++++++--
+ drivers/gpu/drm/radeon/radeon_mode.h       |  2 +-
+ 4 files changed, 24 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_connectors.c b/drivers/gpu/drm/radeon/radeon_connectors.c
+index 87d494d..6fd53b6 100644
+--- a/drivers/gpu/drm/radeon/radeon_connectors.c
++++ b/drivers/gpu/drm/radeon/radeon_connectors.c
+@@ -689,7 +689,7 @@ radeon_vga_detect(struct drm_connector *connector, bool force)
+ 		ret = connector_status_disconnected;
+ 
+ 	if (radeon_connector->ddc_bus)
+-		dret = radeon_ddc_probe(radeon_connector);
++		dret = radeon_ddc_probe(radeon_connector, false);
+ 	if (dret) {
+ 		radeon_connector->detected_by_load = false;
+ 		if (radeon_connector->edid) {
+@@ -871,7 +871,7 @@ radeon_dvi_detect(struct drm_connector *connector, bool force)
+ 	bool dret = false;
+ 
+ 	if (radeon_connector->ddc_bus)
+-		dret = radeon_ddc_probe(radeon_connector);
++		dret = radeon_ddc_probe(radeon_connector, false);
+ 	if (dret) {
+ 		radeon_connector->detected_by_load = false;
+ 		if (radeon_connector->edid) {
+@@ -1299,7 +1299,8 @@ radeon_dp_detect(struct drm_connector *connector, bool force)
+ 		if (encoder) {
+ 			/* setup ddc on the bridge */
+ 			radeon_atom_ext_encoder_setup_ddc(encoder);
+-			if (radeon_ddc_probe(radeon_connector)) /* try DDC */
++			/* bridge chips are always aux */
++			if (radeon_ddc_probe(radeon_connector, true)) /* try DDC */
+ 				ret = connector_status_connected;
+ 			else if (radeon_connector->dac_load_detect) { /* try load detection */
+ 				struct drm_encoder_helper_funcs *encoder_funcs = encoder->helper_private;
+@@ -1317,7 +1318,8 @@ radeon_dp_detect(struct drm_connector *connector, bool force)
+ 				if (radeon_dp_getdpcd(radeon_connector))
+ 					ret = connector_status_connected;
+ 			} else {
+-				if (radeon_ddc_probe(radeon_connector))
++				/* try non-aux ddc (DP to DVI/HMDI/etc. adapter) */
++				if (radeon_ddc_probe(radeon_connector, false))
+ 					ret = connector_status_connected;
+ 			}
+ 		}
+diff --git a/drivers/gpu/drm/radeon/radeon_display.c b/drivers/gpu/drm/radeon/radeon_display.c
+index a22d6e6..aec8e0c 100644
+--- a/drivers/gpu/drm/radeon/radeon_display.c
++++ b/drivers/gpu/drm/radeon/radeon_display.c
+@@ -701,10 +701,15 @@ int radeon_ddc_get_modes(struct radeon_connector *radeon_connector)
+ 	if (radeon_connector->router.ddc_valid)
+ 		radeon_router_select_ddc_port(radeon_connector);
+ 
+-	if ((radeon_connector->base.connector_type == DRM_MODE_CONNECTOR_DisplayPort) ||
+-	    (radeon_connector->base.connector_type == DRM_MODE_CONNECTOR_eDP) ||
+-	    (radeon_connector_encoder_get_dp_bridge_encoder_id(&radeon_connector->base) !=
+-	     ENCODER_OBJECT_ID_NONE)) {
++	if (radeon_connector_encoder_get_dp_bridge_encoder_id(&radeon_connector->base) !=
++	    ENCODER_OBJECT_ID_NONE) {
++		struct radeon_connector_atom_dig *dig = radeon_connector->con_priv;
++
++		if (dig->dp_i2c_bus)
++			radeon_connector->edid = drm_get_edid(&radeon_connector->base,
++							      &dig->dp_i2c_bus->adapter);
++	} else if ((radeon_connector->base.connector_type == DRM_MODE_CONNECTOR_DisplayPort) ||
++		   (radeon_connector->base.connector_type == DRM_MODE_CONNECTOR_eDP)) {
+ 		struct radeon_connector_atom_dig *dig = radeon_connector->con_priv;
+ 
+ 		if ((dig->dp_sink_type == CONNECTOR_OBJECT_ID_DISPLAYPORT ||
+diff --git a/drivers/gpu/drm/radeon/radeon_i2c.c b/drivers/gpu/drm/radeon/radeon_i2c.c
+index 1441b00..cf20351 100644
+--- a/drivers/gpu/drm/radeon/radeon_i2c.c
++++ b/drivers/gpu/drm/radeon/radeon_i2c.c
+@@ -34,7 +34,7 @@
+  * radeon_ddc_probe
+  *
+  */
+-bool radeon_ddc_probe(struct radeon_connector *radeon_connector)
++bool radeon_ddc_probe(struct radeon_connector *radeon_connector, bool use_aux)
+ {
+ 	u8 out = 0x0;
+ 	u8 buf[8];
+@@ -58,7 +58,13 @@ bool radeon_ddc_probe(struct radeon_connector *radeon_connector)
+ 	if (radeon_connector->router.ddc_valid)
+ 		radeon_router_select_ddc_port(radeon_connector);
+ 
+-	ret = i2c_transfer(&radeon_connector->ddc_bus->adapter, msgs, 2);
++	if (use_aux) {
++		struct radeon_connector_atom_dig *dig = radeon_connector->con_priv;
++		ret = i2c_transfer(&dig->dp_i2c_bus->adapter, msgs, 2);
++	} else {
++		ret = i2c_transfer(&radeon_connector->ddc_bus->adapter, msgs, 2);
++	}
++
+ 	if (ret != 2)
+ 		/* Couldn't find an accessible DDC on this connector */
+ 		return false;
+diff --git a/drivers/gpu/drm/radeon/radeon_mode.h b/drivers/gpu/drm/radeon/radeon_mode.h
+index bbb372e..bb42df4 100644
+--- a/drivers/gpu/drm/radeon/radeon_mode.h
++++ b/drivers/gpu/drm/radeon/radeon_mode.h
+@@ -523,7 +523,7 @@ extern void radeon_i2c_put_byte(struct radeon_i2c_chan *i2c,
+ 				u8 val);
+ extern void radeon_router_select_ddc_port(struct radeon_connector *radeon_connector);
+ extern void radeon_router_select_cd_port(struct radeon_connector *radeon_connector);
+-extern bool radeon_ddc_probe(struct radeon_connector *radeon_connector);
++extern bool radeon_ddc_probe(struct radeon_connector *radeon_connector, bool use_aux);
+ extern int radeon_ddc_get_modes(struct radeon_connector *radeon_connector);
+ 
+ extern struct drm_encoder *radeon_best_encoder(struct drm_connector *connector);
+-- 
+1.8.1.2
+

@@ -1,0 +1,54 @@
+From e2236f640a81de394d17346e2c4066e443cb7695 Mon Sep 17 00:00:00 2001
+From: Zhang Rui <rui.zhang@intel.com>
+Date: Tue, 4 Dec 2012 23:30:19 +0100
+Subject: [PATCH 103/171] ACPI / video: ignore BIOS initial backlight value for
+ HP Folio 13-2000
+
+commit 129ff8f8d58297b04f47b5d6fad81aa2d08404e1 upstream.
+
+Or else the laptop will boot with a dimmed screen.
+
+References: https://bugzilla.kernel.org/show_bug.cgi?id=51141
+Tested-by: Stefan Nagy <public@stefan-nagy.at>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/acpi/video.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 08a44b5..0e47949 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -389,6 +389,12 @@ static int __init video_set_bqc_offset(const struct dmi_system_id *d)
+ 	return 0;
+ }
+ 
++static int video_ignore_initial_backlight(const struct dmi_system_id *d)
++{
++	use_bios_initial_backlight = 0;
++	return 0;
++}
++
+ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 	/*
+ 	 * Broken _BQC workaround http://bugzilla.kernel.org/show_bug.cgi?id=13121
+@@ -433,6 +439,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 7720"),
+ 		},
+ 	},
++	{
++	 .callback = video_ignore_initial_backlight,
++	 .ident = "HP Folio 13-2000",
++	 .matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "HP Folio 13 - 2000 Notebook PC"),
++		},
++	},
+ 	{}
+ };
+ 
+-- 
+1.8.1.2
+

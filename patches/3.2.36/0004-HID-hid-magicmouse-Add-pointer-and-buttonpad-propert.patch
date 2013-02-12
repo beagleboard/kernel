@@ -1,0 +1,31 @@
+From b65a59d1926f7265bfc536a5966443554a5be279 Mon Sep 17 00:00:00 2001
+From: Chase Douglas <chase.douglas@canonical.com>
+Date: Mon, 13 Feb 2012 20:12:31 -0800
+Subject: [PATCH 004/171] HID: hid-magicmouse: Add pointer and buttonpad
+ properties for Magic Trackpad
+
+commit 503f7d53b368c8e4e13a7756220c0536fcf1a034 upstream.
+
+Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/hid/hid-magicmouse.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/hid/hid-magicmouse.c b/drivers/hid/hid-magicmouse.c
+index 2ab7175..7cf3ffe 100644
+--- a/drivers/hid/hid-magicmouse.c
++++ b/drivers/hid/hid-magicmouse.c
+@@ -418,6 +418,8 @@ static void magicmouse_setup_input(struct input_dev *input, struct hid_device *h
+ 		__set_bit(BTN_TOOL_TRIPLETAP, input->keybit);
+ 		__set_bit(BTN_TOOL_QUADTAP, input->keybit);
+ 		__set_bit(BTN_TOUCH, input->keybit);
++		__set_bit(INPUT_PROP_POINTER, input->propbit);
++		__set_bit(INPUT_PROP_BUTTONPAD, input->propbit);
+ 	}
+ 
+ 	if (report_touches) {
+-- 
+1.8.1.2
+

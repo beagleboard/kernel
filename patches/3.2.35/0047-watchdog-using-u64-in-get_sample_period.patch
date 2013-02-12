@@ -1,0 +1,54 @@
+From 4c64ab66e8cc3bf5b1239d0c595e1d202be035c4 Mon Sep 17 00:00:00 2001
+From: Chuansheng Liu <chuansheng.liu@intel.com>
+Date: Mon, 26 Nov 2012 16:29:54 -0800
+Subject: [PATCH 47/90] watchdog: using u64 in get_sample_period()
+
+commit 8ffeb9b0e6369135bf03a073514f571ef10606b9 upstream.
+
+In get_sample_period(), unsigned long is not enough:
+
+  watchdog_thresh * 2 * (NSEC_PER_SEC / 5)
+
+case1:
+  watchdog_thresh is 10 by default, the sample value will be: 0xEE6B2800
+
+case2:
+ set watchdog_thresh is 20, the sample value will be: 0x1 DCD6 5000
+
+In case2, we need use u64 to express the sample period.  Otherwise,
+changing the threshold thru proc often can not be successful.
+
+Signed-off-by: liu chuansheng <chuansheng.liu@intel.com>
+Acked-by: Don Zickus <dzickus@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/watchdog.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/kernel/watchdog.c b/kernel/watchdog.c
+index 1d7bca7..a8bc4d9 100644
+--- a/kernel/watchdog.c
++++ b/kernel/watchdog.c
+@@ -113,7 +113,7 @@ static unsigned long get_timestamp(int this_cpu)
+ 	return cpu_clock(this_cpu) >> 30LL;  /* 2^30 ~= 10^9 */
+ }
+ 
+-static unsigned long get_sample_period(void)
++static u64 get_sample_period(void)
+ {
+ 	/*
+ 	 * convert watchdog_thresh from seconds to ns
+@@ -121,7 +121,7 @@ static unsigned long get_sample_period(void)
+ 	 * increment before the hardlockup detector generates
+ 	 * a warning
+ 	 */
+-	return get_softlockup_thresh() * (NSEC_PER_SEC / 5);
++	return get_softlockup_thresh() * ((u64)NSEC_PER_SEC / 5);
+ }
+ 
+ /* Commands for resetting the watchdog */
+-- 
+1.8.1.2
+

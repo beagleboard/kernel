@@ -1,0 +1,49 @@
+From 4634f566991c7386ae54da2876f68b224ad12e8f Mon Sep 17 00:00:00 2001
+From: Zhang Rui <rui.zhang@intel.com>
+Date: Tue, 4 Dec 2012 23:23:16 +0100
+Subject: [PATCH 44/46] ACPI : do not use Lid and Sleep button for S5 wakeup
+
+commit b7e383046c2c7c13ad928cd7407eafff758ddd4b upstream.
+
+When system enters power off, the _PSW of Lid device is enabled.
+But this may cause the system to reboot instead of power off.
+
+A proper way to fix this is to always disable lid wakeup capability for S5.
+
+References: https://bugzilla.kernel.org/show_bug.cgi?id=35262
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/acpi/scan.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index a8b88ad..792b66f 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -789,8 +789,8 @@ acpi_bus_extract_wakeup_device_power_package(acpi_handle handle,
+ static void acpi_bus_set_run_wake_flags(struct acpi_device *device)
+ {
+ 	struct acpi_device_id button_device_ids[] = {
+-		{"PNP0C0D", 0},
+ 		{"PNP0C0C", 0},
++		{"PNP0C0D", 0},
+ 		{"PNP0C0E", 0},
+ 		{"", 0},
+ 	};
+@@ -802,6 +802,11 @@ static void acpi_bus_set_run_wake_flags(struct acpi_device *device)
+ 	/* Power button, Lid switch always enable wakeup */
+ 	if (!acpi_match_device_ids(device, button_device_ids)) {
+ 		device->wakeup.flags.run_wake = 1;
++		if (!acpi_match_device_ids(device, &button_device_ids[1])) {
++			/* Do not use Lid/sleep button for S5 wakeup */
++			if (device->wakeup.sleep_state == ACPI_STATE_S5)
++				device->wakeup.sleep_state = ACPI_STATE_S4;
++		}
+ 		device_set_wakeup_capable(&device->dev, true);
+ 		return;
+ 	}
+-- 
+1.8.1.2
+

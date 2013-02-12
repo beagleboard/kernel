@@ -1,0 +1,33 @@
+From a44f5fe1d090bec75997def327a6b5873ed6db21 Mon Sep 17 00:00:00 2001
+From: Yanchuan Nian <ycnian@gmail.com>
+Date: Wed, 24 Oct 2012 14:44:19 +0800
+Subject: [PATCH 046/171] nfs: fix wrong object type in lockowner_slab
+
+commit 3c40794b2dd0f355ef4e6bf8d85af5dcd7da7ece upstream.
+
+The object type in the cache of lockowner_slab is wrong, and it is
+better to fix it.
+
+Signed-off-by: Yanchuan Nian <ycnian@gmail.com>
+Signed-off-by: J. Bruce Fields <bfields@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfsd/nfs4state.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/nfsd/nfs4state.c b/fs/nfsd/nfs4state.c
+index d225b51..8b197d2 100644
+--- a/fs/nfsd/nfs4state.c
++++ b/fs/nfsd/nfs4state.c
+@@ -2309,7 +2309,7 @@ nfsd4_init_slabs(void)
+ 	if (openowner_slab == NULL)
+ 		goto out_nomem;
+ 	lockowner_slab = kmem_cache_create("nfsd4_lockowners",
+-			sizeof(struct nfs4_openowner), 0, 0, NULL);
++			sizeof(struct nfs4_lockowner), 0, 0, NULL);
+ 	if (lockowner_slab == NULL)
+ 		goto out_nomem;
+ 	file_slab = kmem_cache_create("nfsd4_files",
+-- 
+1.8.1.2
+

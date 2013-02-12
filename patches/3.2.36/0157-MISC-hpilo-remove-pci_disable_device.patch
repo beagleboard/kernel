@@ -1,0 +1,65 @@
+From c04c1b97b1734d1b2812531dd31219d87f400d8e Mon Sep 17 00:00:00 2001
+From: Jiri Slaby <jslaby@suse.cz>
+Date: Thu, 13 Sep 2012 16:06:48 +0200
+Subject: [PATCH 157/171] MISC: hpilo, remove pci_disable_device
+
+commit bcdee04ea7ae0406ae69094f6df1aacb66a69a0b upstream.
+
+pci_disable_device(pdev) used to be in pci remove function. But this
+PCI device has two functions with interrupt lines connected to a
+single pin. The other one is a USB host controller. So when we disable
+the PIN there e.g. by rmmod hpilo, the controller stops working. It is
+because the interrupt link is disabled in ACPI since it is not
+refcounted yet. See acpi_pci_link_free_irq called from
+acpi_pci_irq_disable.
+
+It is not the best solution whatsoever, but as a workaround until the
+ACPI irq link refcounting is sorted out this should fix the reported
+errors.
+
+References: https://lkml.org/lkml/2008/11/4/535
+
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Nobin Mathew <nobin.mathew@gmail.com>
+Cc: Robert Hancock <hancockr@shaw.ca>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: David Altobelli <david.altobelli@hp.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/misc/hpilo.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/misc/hpilo.c b/drivers/misc/hpilo.c
+index fffc227..9c99680 100644
+--- a/drivers/misc/hpilo.c
++++ b/drivers/misc/hpilo.c
+@@ -735,7 +735,14 @@ static void ilo_remove(struct pci_dev *pdev)
+ 	free_irq(pdev->irq, ilo_hw);
+ 	ilo_unmap_device(pdev, ilo_hw);
+ 	pci_release_regions(pdev);
+-	pci_disable_device(pdev);
++	/*
++	 * pci_disable_device(pdev) used to be here. But this PCI device has
++	 * two functions with interrupt lines connected to a single pin. The
++	 * other one is a USB host controller. So when we disable the PIN here
++	 * e.g. by rmmod hpilo, the controller stops working. It is because
++	 * the interrupt link is disabled in ACPI since it is not refcounted
++	 * yet. See acpi_pci_link_free_irq called from acpi_pci_irq_disable.
++	 */
+ 	kfree(ilo_hw);
+ 	ilo_hwdev[(minor / MAX_CCB)] = 0;
+ }
+@@ -820,7 +827,7 @@ unmap:
+ free_regions:
+ 	pci_release_regions(pdev);
+ disable:
+-	pci_disable_device(pdev);
++/*	pci_disable_device(pdev);  see comment in ilo_remove */
+ free:
+ 	kfree(ilo_hw);
+ out:
+-- 
+1.8.1.2
+

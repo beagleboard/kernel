@@ -1,0 +1,38 @@
+From f0d87f39fa36f7277db0878a3a43b07d79df8a43 Mon Sep 17 00:00:00 2001
+From: Maciej Patelczyk <maciej.patelczyk@intel.com>
+Date: Mon, 15 Oct 2012 14:29:03 +0200
+Subject: [PATCH 52/90] isci: copy fis 0x34 response into proper buffer
+
+commit 49bd665c5407a453736d3232ee58f2906b42e83c upstream.
+
+SATA MICROCODE DOWNALOAD fails on isci driver. After receiving Register
+Device to Host (FIS 0x34) frame Initiator resets phy.
+In the frame handler routine response (FIS 0x34) was copied into wrong
+buffer and upper layer did not receive any answer which resulted in
+timeout and reset.
+This patch corrects this bug.
+
+Signed-off-by: Maciej Patelczyk <maciej.patelczyk@intel.com>
+Signed-off-by: Lukasz Dorau <lukasz.dorau@intel.com>
+Signed-off-by: James Bottomley <JBottomley@Parallels.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/scsi/isci/request.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/scsi/isci/request.c b/drivers/scsi/isci/request.c
+index 192cb48..f3cbecc 100644
+--- a/drivers/scsi/isci/request.c
++++ b/drivers/scsi/isci/request.c
+@@ -1849,7 +1849,7 @@ sci_io_request_frame_handler(struct isci_request *ireq,
+ 								      frame_index,
+ 								      (void **)&frame_buffer);
+ 
+-			sci_controller_copy_sata_response(&ireq->stp.req,
++			sci_controller_copy_sata_response(&ireq->stp.rsp,
+ 							       frame_header,
+ 							       frame_buffer);
+ 
+-- 
+1.8.1.2
+

@@ -1,0 +1,31 @@
+From a17b946a8558de4e6a39a9ea8e9d81c138adb8a4 Mon Sep 17 00:00:00 2001
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Date: Sat, 10 Nov 2012 19:52:34 +0000
+Subject: [PATCH 25/90] ipv6: setsockopt(IPIPPROTO_IPV6, IPV6_MINHOPCOUNT)
+ forgot to set return value
+
+[ Upstream commit d4596bad2a713fcd0def492b1960e6d899d5baa8 ]
+
+Cc: Stephen Hemminger <shemminger@vyatta.com>
+Signed-off-by: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv6/ipv6_sockglue.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/ipv6/ipv6_sockglue.c b/net/ipv6/ipv6_sockglue.c
+index 26cb08c..b204df8 100644
+--- a/net/ipv6/ipv6_sockglue.c
++++ b/net/ipv6/ipv6_sockglue.c
+@@ -798,6 +798,7 @@ pref_skip_coa:
+ 		if (val < 0 || val > 255)
+ 			goto e_inval;
+ 		np->min_hopcount = val;
++		retv = 0;
+ 		break;
+ 	case IPV6_DONTFRAG:
+ 		np->dontfrag = valbool;
+-- 
+1.8.1.2
+

@@ -1,0 +1,42 @@
+From 31769df985d87751009c943f711b2afbb95532ac Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Sun, 18 Nov 2012 22:27:03 -0500
+Subject: [PATCH 60/90] sparc64: not any error from do_sigaltstack() should
+ fail rt_sigreturn()
+
+commit fae2ae2a900a5c7bb385fe4075f343e7e2d5daa2 upstream.
+
+If a signal handler is executed on altstack and another signal comes,
+we will end up with rt_sigreturn() on return from the second handler
+getting -EPERM from do_sigaltstack().  It's perfectly OK, since we
+are not asking to change the settings; in fact, they couldn't have been
+changed during the second handler execution exactly because we'd been
+on altstack all along.  64bit sigreturn on sparc treats any error from
+do_sigaltstack() as "SIGSEGV now"; we need to switch to the same semantics
+we are using on other architectures.
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/sparc/kernel/signal_64.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
+index f0836cd..d58d3ed 100644
+--- a/arch/sparc/kernel/signal_64.c
++++ b/arch/sparc/kernel/signal_64.c
+@@ -307,9 +307,7 @@ void do_rt_sigreturn(struct pt_regs *regs)
+ 		err |= restore_fpu_state(regs, fpu_save);
+ 
+ 	err |= __copy_from_user(&set, &sf->mask, sizeof(sigset_t));
+-	err |= do_sigaltstack(&sf->stack, NULL, (unsigned long)sf);
+-
+-	if (err)
++	if (err || do_sigaltstack(&sf->stack, NULL, (unsigned long)sf) == -EFAULT)
+ 		goto segv;
+ 
+ 	err |= __get_user(rwin_save, &sf->rwin_save);
+-- 
+1.8.1.2
+

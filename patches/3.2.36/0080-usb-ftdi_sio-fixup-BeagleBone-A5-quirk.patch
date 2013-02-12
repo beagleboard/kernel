@@ -1,0 +1,38 @@
+From 538a02b3bf37c7bf55e62bb0bfa7376e116393f7 Mon Sep 17 00:00:00 2001
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Date: Thu, 22 Nov 2012 16:30:46 +0100
+Subject: [PATCH 080/171] usb: ftdi_sio: fixup BeagleBone A5+ quirk
+
+commit 1a88d5eee2ef2ad1d3c4e32043e9c4c5347d4fc1 upstream.
+
+BeagleBone A5+ devices ended up getting shipped with the
+'BeagleBone/XDS100V2' product string, and not XDS100 like it
+was agreed, so adjust the quirk to match.
+
+For details, see the thread on the beagle list:
+
+https://groups.google.com/forum/#!msg/beagleboard/zrFPew9_Wvo/ibWr1-eE8JwJ
+
+Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/ftdi_sio.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/serial/ftdi_sio.c b/drivers/usb/serial/ftdi_sio.c
+index e29a664..fc194a2 100644
+--- a/drivers/usb/serial/ftdi_sio.c
++++ b/drivers/usb/serial/ftdi_sio.c
+@@ -1807,7 +1807,7 @@ static int ftdi_8u2232c_probe(struct usb_serial *serial)
+ 	dbg("%s", __func__);
+ 
+ 	if ((udev->manufacturer && !strcmp(udev->manufacturer, "CALAO Systems")) ||
+-	    (udev->product && !strcmp(udev->product, "BeagleBone/XDS100")))
++	    (udev->product && !strcmp(udev->product, "BeagleBone/XDS100V2")))
+ 		return ftdi_jtag_probe(serial);
+ 
+ 	return 0;
+-- 
+1.8.1.2
+
