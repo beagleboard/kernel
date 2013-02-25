@@ -1,0 +1,69 @@
+From f99384bd96574ffd35621cce2da82026f00af0c9 Mon Sep 17 00:00:00 2001
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Date: Sun, 24 Feb 2013 22:59:34 -0800
+Subject: [PATCH 2/5] W1: w1-gpio - switch to using dev_pm_ops
+
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
+ drivers/w1/masters/w1-gpio.c | 20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/w1/masters/w1-gpio.c b/drivers/w1/masters/w1-gpio.c
+index 799dafd..c45b9ae 100644
+--- a/drivers/w1/masters/w1-gpio.c
++++ b/drivers/w1/masters/w1-gpio.c
+@@ -176,11 +176,10 @@ static int w1_gpio_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_PM
+-
+-static int w1_gpio_suspend(struct platform_device *pdev, pm_message_t state)
++#ifdef CONFIG_PM_SLEEP
++static int w1_gpio_suspend(struct device *dev)
+ {
+-	struct w1_gpio_platform_data *pdata = pdev->dev.platform_data;
++	const struct w1_gpio_platform_data *pdata = dev_get_platdata(dev);
+ 
+ 	if (pdata->enable_external_pullup)
+ 		pdata->enable_external_pullup(0);
+@@ -188,31 +187,28 @@ static int w1_gpio_suspend(struct platform_device *pdev, pm_message_t state)
+ 	return 0;
+ }
+ 
+-static int w1_gpio_resume(struct platform_device *pdev)
++static int w1_gpio_resume(struct device *dev)
+ {
+-	struct w1_gpio_platform_data *pdata = pdev->dev.platform_data;
++	const struct w1_gpio_platform_data *pdata = dev_get_platdata(dev);
+ 
+ 	if (pdata->enable_external_pullup)
+ 		pdata->enable_external_pullup(1);
+ 
+ 	return 0;
+ }
+-
+-#else
+-#define w1_gpio_suspend	NULL
+-#define w1_gpio_resume	NULL
+ #endif
+ 
++static SIMPLE_DEV_PM_OPS(w1_gpio_pm_ops, w1_gpio_suspend, w1_gpio_resume);
++
+ static struct platform_driver w1_gpio_driver = {
+ 	.driver = {
+ 		.name	= "w1-gpio",
+ 		.owner	= THIS_MODULE,
++		.pm	= &w1_gpio_pm_ops,
+ 		.of_match_table = of_match_ptr(w1_gpio_dt_ids),
+ 	},
+ 	.probe = w1_gpio_probe,
+ 	.remove = w1_gpio_remove,
+-	.suspend = w1_gpio_suspend,
+-	.resume = w1_gpio_resume,
+ };
+ 
+ module_platform_driver(w1_gpio_driver);
+-- 
+1.8.1.4
+

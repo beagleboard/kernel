@@ -1,0 +1,53 @@
+From 72b351d228f5a4f54dd9ad1f327d9e039fad4f2e Mon Sep 17 00:00:00 2001
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Date: Sun, 24 Feb 2013 22:59:35 -0800
+Subject: [PATCH 3/5] W1: w1-gpio - guard DT IDs with CONFIG_OF
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This fixes the following warning:
+
+  CC      drivers/w1/masters/w1-gpio.o
+drivers/w1/masters/w1-gpio.c:50:28: warning: ‘w1_gpio_dt_ids’ defined but not used [-Wunused-variable]
+
+Also provide stub for w1_gpio_probe_dt() if device tree support is
+disabled.
+
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
+ drivers/w1/masters/w1-gpio.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/drivers/w1/masters/w1-gpio.c b/drivers/w1/masters/w1-gpio.c
+index c45b9ae..aa97a96 100644
+--- a/drivers/w1/masters/w1-gpio.c
++++ b/drivers/w1/masters/w1-gpio.c
+@@ -47,6 +47,8 @@ static u8 w1_gpio_read_bit(void *data)
+ 	return gpio_get_value(pdata->pin) ? 1 : 0;
+ }
+ 
++#ifdef CONFIG_OF
++
+ static struct of_device_id w1_gpio_dt_ids[] = {
+ 	{ .compatible = "w1-gpio" },
+ 	{}
+@@ -72,6 +74,15 @@ static int w1_gpio_probe_dt(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#else
++
++static inline int w1_gpio_probe_dt(struct platform_device *pdev)
++{
++	return -ENOSYS;
++}
++
++#endif
++
+ static int w1_gpio_probe(struct platform_device *pdev)
+ {
+ 	struct w1_bus_master *master;
+-- 
+1.8.1.4
+

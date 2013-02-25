@@ -1,0 +1,90 @@
+From db65ecf2979cd634dc0f3d3cb2e1d2835c41b345 Mon Sep 17 00:00:00 2001
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Date: Sun, 24 Feb 2013 22:59:37 -0800
+Subject: [PATCH 5/5] W1: w1-gpio - switch to using managed resources (devm)
+
+This simplifies error unwinding and device teardown.
+
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
+ drivers/w1/masters/w1-gpio.c | 32 +++++++++++---------------------
+ 1 file changed, 11 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/w1/masters/w1-gpio.c b/drivers/w1/masters/w1-gpio.c
+index 465ce52..464b1a8 100644
+--- a/drivers/w1/masters/w1-gpio.c
++++ b/drivers/w1/masters/w1-gpio.c
+@@ -111,25 +111,27 @@ static int w1_gpio_probe(struct platform_device *pdev)
+ 		return err;
+ 	}
+ 
+-	master = kzalloc(sizeof(struct w1_bus_master), GFP_KERNEL);
++	master = devm_kzalloc(&pdev->dev,
++			      sizeof(struct w1_bus_master), GFP_KERNEL);
+ 	if (!master) {
+ 		dev_err(&pdev->dev, "Out of memory\n");
+ 		return -ENOMEM;
+ 	}
+ 
+-	err = gpio_request(pdata->pin, "w1");
++	err = devm_gpio_request(&pdev->dev, pdata->pin, "w1");
+ 	if (err) {
+ 		dev_err(&pdev->dev, "gpio_request (pin) failed\n");
+-		goto free_master;
++		return err;
+ 	}
+ 
+ 	if (gpio_is_valid(pdata->ext_pullup_enable_pin)) {
+-		err = gpio_request_one(pdata->ext_pullup_enable_pin,
+-				       GPIOF_INIT_LOW, "w1 pullup");
++		err = devm_gpio_request_one(&pdev->dev,
++					    pdata->ext_pullup_enable_pin,
++					    GPIOF_INIT_LOW, "w1 pullup");
+ 		if (err < 0) {
+-			dev_err(&pdev->dev, "gpio_request_one "
+-					"(ext_pullup_enable_pin) failed\n");
+-			goto free_gpio;
++			dev_err(&pdev->dev,
++				"gpio_request_one (ext_pullup_enable_pin) failed\n");
++			return err;
+ 		}
+ 	}
+ 
+@@ -147,7 +149,7 @@ static int w1_gpio_probe(struct platform_device *pdev)
+ 	err = w1_add_master_device(master);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "w1_add_master device failed\n");
+-		goto free_gpio_ext_pu;
++		return err;
+ 	}
+ 
+ 	if (pdata->enable_external_pullup)
+@@ -159,16 +161,6 @@ static int w1_gpio_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, master);
+ 
+ 	return 0;
+-
+- free_gpio_ext_pu:
+-	if (gpio_is_valid(pdata->ext_pullup_enable_pin))
+-		gpio_free(pdata->ext_pullup_enable_pin);
+- free_gpio:
+-	gpio_free(pdata->pin);
+- free_master:
+-	kfree(master);
+-
+-	return err;
+ }
+ 
+ static int w1_gpio_remove(struct platform_device *pdev)
+@@ -183,8 +175,6 @@ static int w1_gpio_remove(struct platform_device *pdev)
+ 		gpio_set_value(pdata->ext_pullup_enable_pin, 0);
+ 
+ 	w1_remove_master_device(master);
+-	gpio_free(pdata->pin);
+-	kfree(master);
+ 
+ 	return 0;
+ }
+-- 
+1.8.1.4
+
