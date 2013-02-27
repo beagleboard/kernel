@@ -1,0 +1,134 @@
+From 95f2b9ec308f0e0b3fdfb5ea43b8c4d9d892dffe Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@vm-ubuntu.(none)>
+Date: Mon, 25 Feb 2013 00:48:01 +0200
+Subject: [PATCH 100/103] Pinmux helper driver.
+
+    That's just a hack to get a pinmux helper driver working.
+
+    Define in the DT
+
+    	helper {
+    		compatible = "bone-pinmux-helper";
+    		pinctrl-names = "default";
+    		pinctrl-0 = <&helper_pins>;
+    		status = "okay";
+    	};
+---
+ drivers/misc/cape/beaglebone/Kconfig              |  7 +++
+ drivers/misc/cape/beaglebone/Makefile             |  2 +
+ drivers/misc/cape/beaglebone/bone-pinmux-helper.c | 72 +++++++++++++++++++++++
+ 3 files changed, 81 insertions(+)
+ create mode 100644 drivers/misc/cape/beaglebone/bone-pinmux-helper.c
+
+diff --git a/drivers/misc/cape/beaglebone/Kconfig b/drivers/misc/cape/beaglebone/Kconfig
+index 8d4f73e..9bf5ac0 100644
+--- a/drivers/misc/cape/beaglebone/Kconfig
++++ b/drivers/misc/cape/beaglebone/Kconfig
+@@ -2,6 +2,13 @@
+ # Beaglebone capes
+ #
+ 
++config BEAGLEBONE_PINMUX_HELPER
++	tristate "Beaglebone Pinmux Helper"
++	depends on ARCH_OMAP2PLUS && OF
++	default n
++	help
++	  Say Y here to include support for the pinmux helper
++
+ config CAPE_BEAGLEBONE
+ 	tristate "Beaglebone cape support"
+ 	depends on ARCH_OMAP2PLUS && OF && I2C
+diff --git a/drivers/misc/cape/beaglebone/Makefile b/drivers/misc/cape/beaglebone/Makefile
+index 808fe14..508b931 100644
+--- a/drivers/misc/cape/beaglebone/Makefile
++++ b/drivers/misc/cape/beaglebone/Makefile
+@@ -2,6 +2,8 @@
+ # Makefile for beaglebone capes
+ #
+ 
++obj-$(CONFIG_BEAGLEBONE_PINMUX_HELPER)	+= bone-pinmux-helper.o
++
+ obj-$(CONFIG_CAPE_BEAGLEBONE)		+= capemgr.o
+ obj-$(CONFIG_CAPE_BEAGLEBONE_GEIGER)	+= cape-bone-geiger.o
+ obj-$(CONFIG_CAPE_BEAGLEBONE_NIXIE)	+= cape-bone-nixie.o
+diff --git a/drivers/misc/cape/beaglebone/bone-pinmux-helper.c b/drivers/misc/cape/beaglebone/bone-pinmux-helper.c
+new file mode 100644
+index 0000000..ba3922d
+--- /dev/null
++++ b/drivers/misc/cape/beaglebone/bone-pinmux-helper.c
+@@ -0,0 +1,72 @@
++/*
++ * Pinmux helper driver
++ *
++ * Copyright (C) 2013 Pantelis Antoniou <panto@antoniou-consulting.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/errno.h>
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/of_gpio.h>
++#include <linux/pinctrl/pinctrl.h>
++#include <linux/pinctrl/pinmux.h>
++#include <linux/pinctrl/consumer.h>
++
++static const struct of_device_id bone_pinmux_helper_of_match[] = {
++	{
++		.compatible = "bone-pinmux-helper",
++	},
++	{ },
++};
++MODULE_DEVICE_TABLE(of, bone_pinmux_helper_of_match);
++
++static int bone_pinmux_helper_probe(struct platform_device *pdev)
++{
++	struct pinctrl *pinctrl;
++
++	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
++
++	/* don't bother with anything */
++	return PTR_RET(pinctrl);
++}
++
++static int bone_pinmux_helper_remove(struct platform_device *pdev)
++{
++	/* nothing more is needed */
++	return 0;
++}
++
++struct platform_driver bone_pinmux_helper_driver = {
++	.probe		= bone_pinmux_helper_probe,
++	.remove		= bone_pinmux_helper_remove,
++	.driver = {
++		.name		= "bone-pinmux-helper",
++		.owner		= THIS_MODULE,
++		.of_match_table	= bone_pinmux_helper_of_match,
++	},
++};
++
++module_platform_driver(bone_pinmux_helper_driver);
++
++MODULE_AUTHOR("Pantelis Antoniou");
++MODULE_DESCRIPTION("Beaglebone pinmux helper driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:bone-pinmux-helper");
+-- 
+1.8.1.4
+

@@ -1,0 +1,40 @@
+From cbaab467c44db5f545ce19fba0889631cecd0bfe Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Wed, 13 Feb 2013 20:43:31 +0100
+Subject: [PATCH 099/103] beaglebone: switch eMMC to 8bit mode
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am335x-bonelt.dts   | 2 +-
+ firmware/capes/cape-bone-2g-emmc1.dts | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bonelt.dts b/arch/arm/boot/dts/am335x-bonelt.dts
+index 6cb2a51..e88723c 100644
+--- a/arch/arm/boot/dts/am335x-bonelt.dts
++++ b/arch/arm/boot/dts/am335x-bonelt.dts
+@@ -28,7 +28,7 @@
+ 
+ &mmc2 {
+ 	vmmc-supply = <&ldo3_reg>;
+-	bus-width = <4>;
++	bus-width = <8>;
+ 	ti,non-removable;
+ 	status = "okay";
+ };
+diff --git a/firmware/capes/cape-bone-2g-emmc1.dts b/firmware/capes/cape-bone-2g-emmc1.dts
+index e2a4a46..17ea449 100644
+--- a/firmware/capes/cape-bone-2g-emmc1.dts
++++ b/firmware/capes/cape-bone-2g-emmc1.dts
+@@ -44,7 +44,7 @@
+ 			pinctrl-names = "default";
+ 			pinctrl-0 = <&emmc2_pins>;	/* wrong numbering */
+ 			vmmc-supply = <&ldo3_reg>;
+-			bus-width = <4>;
++			bus-width = <8>;
+ 			ti,non-removable;
+ 			status = "okay";
+ 			reset-gpios = <&gpio2 20 1>;	/* active low */
+-- 
+1.8.1.4
+
