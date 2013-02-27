@@ -1,0 +1,28 @@
+From 95bf4418bb4b554d83bcbcaab2bad31662d5fdea Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 27 Feb 2013 11:26:34 +0200
+Subject: [PATCH 1/4] OF: Clear detach flag on attach
+
+When attaching a node always clear the detach flag. Without this change
+the sequence detach, attach fails.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/of/base.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index 526db99..5ebfc33 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -1355,6 +1355,7 @@ int of_attach_node(struct device_node *np)
+ 	np->allnext = of_allnodes;
+ 	np->parent->child = np;
+ 	of_allnodes = np;
++	of_node_clear_flag(np, OF_DETACHED);
+ 	write_unlock_irqrestore(&devtree_lock, flags);
+ 
+ 	of_add_proc_dt_entry(np);
+-- 
+1.7.8.6
+

@@ -1,24 +1,20 @@
-From f22abd9e618ecfe6bd11ca4516229a1fb3766479 Mon Sep 17 00:00:00 2001
-From: Pantelis Antoniou <panto@vm-ubuntu.(none)>
-Date: Mon, 25 Feb 2013 00:48:01 +0200
-Subject: [PATCH 99/99] Pinmux helper driver.
+From 81a1d2c5510c1bd5e7c88e3bfd9803b5e688e090 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 27 Feb 2013 11:33:50 +0200
+Subject: [PATCH 4/4] bone-capemgr: Introduce pinmux helper
 
-    That's just a hack to get a pinmux helper driver working.
+Introduce a very basic pinmux helper driver.
 
-    Define in the DT
-
-    	helper {
-    		compatible = "bone-pinmux-helper";
-    		pinctrl-names = "default";
-    		pinctrl-0 = <&helper_pins>;
-    		status = "okay";
-    	};
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
  drivers/misc/cape/beaglebone/Kconfig              |    7 ++
  drivers/misc/cape/beaglebone/Makefile             |    2 +
  drivers/misc/cape/beaglebone/bone-pinmux-helper.c |   72 +++++++++++++++++++++
- 3 files changed, 81 insertions(+), 0 deletions(-)
+ firmware/Makefile                                 |    1 +
+ firmware/capes/cape-bone-pinmux-test-00A0.dts     |   43 ++++++++++++
+ 5 files changed, 125 insertions(+), 0 deletions(-)
  create mode 100644 drivers/misc/cape/beaglebone/bone-pinmux-helper.c
+ create mode 100644 firmware/capes/cape-bone-pinmux-test-00A0.dts
 
 diff --git a/drivers/misc/cape/beaglebone/Kconfig b/drivers/misc/cape/beaglebone/Kconfig
 index 8d4f73e..9bf5ac0 100644
@@ -129,6 +125,67 @@ index 0000000..ba3922d
 +MODULE_DESCRIPTION("Beaglebone pinmux helper driver");
 +MODULE_LICENSE("GPL");
 +MODULE_ALIAS("platform:bone-pinmux-helper");
+diff --git a/firmware/Makefile b/firmware/Makefile
+index efe2b90..26e9323 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -145,6 +145,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	cape-bone-lcd3-00A0.dtbo \
+ 	cape-bone-lcd3-00A2.dtbo \
+ 	BB-BONE-LCD7-01-00A2.dtbo \
++	cape-bone-pinmux-test-00A0.dtbo
+ 
+ # the geiger cape
+ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_GEIGER) += \
+diff --git a/firmware/capes/cape-bone-pinmux-test-00A0.dts b/firmware/capes/cape-bone-pinmux-test-00A0.dts
+new file mode 100644
+index 0000000..76c9656
+--- /dev/null
++++ b/firmware/capes/cape-bone-pinmux-test-00A0.dts
+@@ -0,0 +1,43 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "pinctrl-test";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			pinctrl_test_7: pinctrl_test_7_pins {
++				pinctrl-single,pins = <
++					0x164 0x07	/* P9_42 muxRegOffset, OUTPUT | MODE7 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&ocp>;
++		__overlay__ {
++			/* avoid stupid warning */
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			test_helper: helper {
++				compatible = "bone-pinmux-helper";
++				pinctrl-names = "default";
++				pinctrl-0 = <&pinctrl_test_7>;
++				status = "okay";
++			};
++		};
++	};
++};
 -- 
 1.7.8.6
 
