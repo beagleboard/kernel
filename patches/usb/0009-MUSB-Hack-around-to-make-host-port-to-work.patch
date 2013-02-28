@@ -1,4 +1,4 @@
-From bb28e1cb3f9983724528b65f435360d0140a7876 Mon Sep 17 00:00:00 2001
+From 069f17ee9fc53d21e1bb162e747b2646e775a80e Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 22 Jan 2013 22:25:06 +0200
 Subject: [PATCH 9/9] MUSB: Hack around to make host port to work.
@@ -60,7 +60,7 @@ index 29ab2fd..1d27635 100644
  
  		mac: ethernet@4a100000 {
 diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index fd34867..cd738d1 100644
+index 60b41cc..4afa92a 100644
 --- a/drivers/usb/musb/musb_core.c
 +++ b/drivers/usb/musb/musb_core.c
 @@ -1955,11 +1955,43 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
@@ -124,7 +124,7 @@ index fd34867..cd738d1 100644
  fail3:
  	pm_runtime_put_sync(musb->controller);
 diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index f7d764d..29e28f6 100644
+index 341a4b5..85a4502 100644
 --- a/drivers/usb/musb/musb_dsps.c
 +++ b/drivers/usb/musb/musb_dsps.c
 @@ -415,19 +415,30 @@ static int dsps_musb_init(struct musb *musb)
@@ -143,7 +143,7 @@ index f7d764d..29e28f6 100644
 +#endif
 +	if (IS_ERR_OR_NULL(musb->xceiv)) {
 +		dev_err(dev, "%s:%d %s: FAIL\n", __FILE__, __LINE__, __func__);
- 		return -ENODEV;
+ 		return -EPROBE_DEFER;
 +	}
  
  	/* Returns zero if e.g. not clocked */
@@ -234,5 +234,5 @@ index e9f0fd9..86442a2 100644
  
  static int musb_bus_resume(struct usb_hcd *hcd)
 -- 
-1.8.1.2
+1.8.1.4
 

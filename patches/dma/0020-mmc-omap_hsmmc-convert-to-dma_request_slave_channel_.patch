@@ -1,0 +1,49 @@
+From 0bea1cd9fab67c5956913e6268b7f45310c43727 Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Thu, 6 Sep 2012 17:47:21 -0400
+Subject: [PATCH 20/34] mmc: omap_hsmmc: convert to
+ dma_request_slave_channel_compat()
+
+Convert dmaengine channel requests to use
+dma_request_slave_channel_compat(). This supports the DT case of
+platforms requiring channel selection from either the OMAP DMA or
+the EDMA engine. AM33xx only boots from DT and is the only user
+implementing EDMA so in the !DT case we can default to the OMAP DMA
+filter.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/mmc/host/omap_hsmmc.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index bc58078..e79b12d 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1915,14 +1915,20 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+ 	dma_cap_zero(mask);
+ 	dma_cap_set(DMA_SLAVE, mask);
+ 
+-	host->rx_chan = dma_request_channel(mask, omap_dma_filter_fn, &rx_req);
++	host->rx_chan =
++		dma_request_slave_channel_compat(mask, omap_dma_filter_fn,
++						 &rx_req, &pdev->dev, "rx");
++
+ 	if (!host->rx_chan) {
+ 		dev_err(mmc_dev(host->mmc), "unable to obtain RX DMA engine channel %u\n", rx_req);
+ 		ret = -ENXIO;
+ 		goto err_irq;
+ 	}
+ 
+-	host->tx_chan = dma_request_channel(mask, omap_dma_filter_fn, &tx_req);
++	host->tx_chan =
++		dma_request_slave_channel_compat(mask, omap_dma_filter_fn,
++						 &tx_req, &pdev->dev, "tx");
++
+ 	if (!host->tx_chan) {
+ 		dev_err(mmc_dev(host->mmc), "unable to obtain TX DMA engine channel %u\n", tx_req);
+ 		ret = -ENXIO;
+-- 
+1.8.1.4
+

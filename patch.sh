@@ -17,12 +17,12 @@ RECIPENAME="linux-mainline_3.8.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.8"
+TAG="v3.8.1"
 EXTRATAG=""
 
-EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
-EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="19f949f52599ba7c3f67a5897ac6be14bfcb1200"
+EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git"
+EXTERNAL_BRANCH="linux-3.8.y"
+EXTERNAL_SHA="ea0764cc76620af36a7490ee842571d842415632"
 
 PATCHSET="dma rtc pinctrl cpufreq adc i2c da8xx-fb pwm mmc crypto 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net drm not-capebus pru usb PG2 reboot iio w1"
 
@@ -69,6 +69,10 @@ if [ "${EXTERNAL_TREE}" ] ; then
 fi
 
 git describe
+
+# newer gits will run 'git gc' after every patch if you don't prune
+git gc
+git prune
 
 if [ -d ${EXPORTPATH} ] ; then
 	rm -rf ${EXPORTPATH} || true

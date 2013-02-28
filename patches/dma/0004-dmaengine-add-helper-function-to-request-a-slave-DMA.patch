@@ -1,0 +1,97 @@
+From e95cc3c227948c8da6e1e156c04274ef374d684d Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jon-hunter@ti.com>
+Date: Fri, 14 Sep 2012 17:41:57 -0500
+Subject: [PATCH 04/34] dmaengine: add helper function to request a slave DMA
+ channel
+
+Currently slave DMA channels are requested by calling dma_request_channel()
+and requires DMA clients to pass various filter parameters to obtain the
+appropriate channel.
+
+With device-tree being used by architectures such as arm and the addition of
+device-tree helper functions to extract the relevant DMA client information
+from device-tree, add a new function to request a slave DMA channel using
+device-tree. This function is currently a simple wrapper that calls the
+device-tree of_dma_request_slave_channel() function.
+
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Stephen Warren <swarren@nvidia.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Vinod Koul <vinod.koul@intel.com>
+Cc: Dan Williams <djbw@fb.com>
+
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Reviewed-by: Stephen Warren <swarren@wwwdotorg.org>
+Acked-by: Rob Herring <rob.herring@calxeda.com>
+Signed-off-by: Vinod Koul <vinod.koul@linux.intel.com>
+---
+ drivers/dma/dmaengine.c   | 16 ++++++++++++++++
+ include/linux/dmaengine.h |  6 ++++++
+ 2 files changed, 22 insertions(+)
+
+diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
+index a815d44..d37cf95 100644
+--- a/drivers/dma/dmaengine.c
++++ b/drivers/dma/dmaengine.c
+@@ -62,6 +62,7 @@
+ #include <linux/rculist.h>
+ #include <linux/idr.h>
+ #include <linux/slab.h>
++#include <linux/of_dma.h>
+ 
+ static DEFINE_MUTEX(dma_list_mutex);
+ static DEFINE_IDR(dma_idr);
+@@ -546,6 +547,21 @@ struct dma_chan *__dma_request_channel(dma_cap_mask_t *mask, dma_filter_fn fn, v
+ }
+ EXPORT_SYMBOL_GPL(__dma_request_channel);
+ 
++/**
++ * dma_request_slave_channel - try to allocate an exclusive slave channel
++ * @dev:	pointer to client device structure
++ * @name:	slave channel name
++ */
++struct dma_chan *dma_request_slave_channel(struct device *dev, char *name)
++{
++	/* If device-tree is present get slave info from here */
++	if (dev->of_node)
++		return of_dma_request_slave_channel(dev->of_node, name);
++
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(dma_request_slave_channel);
++
+ void dma_release_channel(struct dma_chan *chan)
+ {
+ 	mutex_lock(&dma_list_mutex);
+diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+index d3201e4..8cd0e25 100644
+--- a/include/linux/dmaengine.h
++++ b/include/linux/dmaengine.h
+@@ -974,6 +974,7 @@ enum dma_status dma_sync_wait(struct dma_chan *chan, dma_cookie_t cookie);
+ enum dma_status dma_wait_for_async_tx(struct dma_async_tx_descriptor *tx);
+ void dma_issue_pending_all(void);
+ struct dma_chan *__dma_request_channel(dma_cap_mask_t *mask, dma_filter_fn fn, void *fn_param);
++struct dma_chan *dma_request_slave_channel(struct device *dev, char *name);
+ void dma_release_channel(struct dma_chan *chan);
+ #else
+ static inline enum dma_status dma_wait_for_async_tx(struct dma_async_tx_descriptor *tx)
+@@ -988,6 +989,11 @@ static inline struct dma_chan *__dma_request_channel(dma_cap_mask_t *mask,
+ {
+ 	return NULL;
+ }
++static inline struct dma_chan *dma_request_slave_channel(struct device *dev,
++							 char *name)
++{
++	return NULL
++}
+ static inline void dma_release_channel(struct dma_chan *chan)
+ {
+ }
+-- 
+1.8.1.4
+

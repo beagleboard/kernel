@@ -1,0 +1,72 @@
+From 2f1b20d5412ec3c3d249793931de6d542b90d5dd Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Wed, 19 Sep 2012 10:49:48 -0400
+Subject: [PATCH 07/34] of: dma: fix typos in generic dma binding definition
+
+Some semicolons were left out in the examples.
+
+The #dma-channels and #dma-requests properties have a prefix
+that is, by convention, reserved for cell size properties.
+Rename those properties to dma-channels and dma-requests.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Jon Hunter <jon-hunter@ti.com>
+Signed-off-by: Vinod Koul <vinod.koul@linux.intel.com>
+---
+ Documentation/devicetree/bindings/dma/dma.txt | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/dma/dma.txt b/Documentation/devicetree/bindings/dma/dma.txt
+index a4f59a5..8f504e6 100644
+--- a/Documentation/devicetree/bindings/dma/dma.txt
++++ b/Documentation/devicetree/bindings/dma/dma.txt
+@@ -13,22 +13,22 @@ Required property:
+ 			more details.
+ 
+ Optional properties:
+-- #dma-channels: 	Number of DMA channels supported by the controller.
+-- #dma-requests: 	Number of DMA requests signals supported by the
++- dma-channels: 	Number of DMA channels supported by the controller.
++- dma-requests: 	Number of DMA requests signals supported by the
+ 			controller.
+ 
+ Example:
+ 
+ 	dma: dma@48000000 {
+-		compatible = "ti,omap-sdma"
++		compatible = "ti,omap-sdma";
+ 		reg = <0x48000000 0x1000>;
+ 		interrupts = <0 12 0x4
+ 			      0 13 0x4
+ 			      0 14 0x4
+ 			      0 15 0x4>;
+ 		#dma-cells = <1>;
+-		#dma-channels = <32>;
+-		#dma-requests = <127>;
++		dma-channels = <32>;
++		dma-requests = <127>;
+ 	};
+ 
+ 
+@@ -61,7 +61,7 @@ Examples:
+ 		...
+ 		dmas = <&dma 2		/* read channel */
+ 			&dma 3>;	/* write channel */
+-		dma-names = "rx", "tx"
++		dma-names = "rx", "tx";
+ 		...
+ 	};
+ 
+@@ -70,7 +70,7 @@ Examples:
+ 	dmas = <&dma1 5
+ 		&dma2 7
+ 		&dma3 2>;
+-	dma-names = "rx-tx", "rx-tx", "rx-tx"
++	dma-names = "rx-tx", "rx-tx", "rx-tx";
+ 
+ 3. A device with three channels, one of which has two alternatives:
+ 
+-- 
+1.8.1.4
+
