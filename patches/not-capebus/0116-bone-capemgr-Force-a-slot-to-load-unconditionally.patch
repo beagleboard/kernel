@@ -1,0 +1,31 @@
+From e07a09f279175e161369900986c0f51d8a587038 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 8 Mar 2013 14:31:40 +0200
+Subject: [PATCH 116/118] bone-capemgr: Force a slot to load unconditionally
+
+Use this option to force a slot override to load unconditionally.
+Useful for testing.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/misc/cape/beaglebone/capemgr.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/misc/cape/beaglebone/capemgr.c b/drivers/misc/cape/beaglebone/capemgr.c
+index 9f8da94..255c491 100644
+--- a/drivers/misc/cape/beaglebone/capemgr.c
++++ b/drivers/misc/cape/beaglebone/capemgr.c
+@@ -568,6 +568,10 @@ static int bone_is_compatible_override(struct device_node *node,
+ 	if (of_multi_prop_cmp(prop, compatible_name) == 0)
+ 		return 1;
+ 
++	/* forced override? */
++	if (of_multi_prop_cmp(prop, "force") == 0)
++		return 1;
++
+ 	/* final try, check if it's specified in the kernel command line */
+ 	if (extra_override == NULL)
+ 		return 0;
+-- 
+1.8.1.4
+

@@ -1,0 +1,108 @@
+From 3f8d629bc4d6b644286e9bd6561db67e2c151376 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 8 Mar 2013 16:39:10 +0200
+Subject: [PATCH 118/118] tilcdc: Enable reduced blanking check only on
+ DVI/slave
+
+There's no reason to enable the check for non EDID probe cases.
+Make sure it does not activate on fixed panel timings.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c   | 7 ++++---
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h    | 3 ++-
+ drivers/gpu/drm/tilcdc/tilcdc_panel.c  | 2 +-
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c  | 3 ++-
+ drivers/gpu/drm/tilcdc/tilcdc_tfp410.c | 3 ++-
+ 5 files changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+index 628d9aa..4d94daa 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+@@ -241,7 +241,7 @@ static int tilcdc_crtc_mode_set(struct drm_crtc *crtc,
+ 	uint32_t reg, hbp, hfp, hsw, vbp, vfp, vsw;
+ 	int ret;
+ 
+-	ret = tilcdc_crtc_mode_valid(crtc, mode);
++	ret = tilcdc_crtc_mode_valid(crtc, mode, 0);
+ 	if (WARN_ON(ret))
+ 		return ret;
+ 
+@@ -418,7 +418,8 @@ int tilcdc_crtc_max_width(struct drm_crtc *crtc)
+ 	return max_width;
+ }
+ 
+-int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode)
++int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
++		int rb_check)
+ {
+ 	struct tilcdc_drm_private *priv = crtc->dev->dev_private;
+ 	unsigned int bandwidth;
+@@ -439,7 +440,7 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode)
+ 	if (bandwidth > priv->max_bandwidth)
+ 		return MODE_BAD;
+ 
+-	if (priv->allow_non_rblank == 0) {
++	if (rb_check) {
+ 		/* we only support reduced blanking modes */
+ 		rb = (mode->htotal - mode->hdisplay == 160) &&
+ 		       (mode->hsync_end - mode->hdisplay == 80) &&
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.h b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+index c858f73..b04f94c 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.h
++++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+@@ -145,7 +145,8 @@ irqreturn_t tilcdc_crtc_irq(struct drm_crtc *crtc);
+ void tilcdc_crtc_update_clk(struct drm_crtc *crtc);
+ void tilcdc_crtc_set_panel_info(struct drm_crtc *crtc,
+ 		const struct tilcdc_panel_info *info);
+-int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode);
++int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
++		int rb_check);
+ int tilcdc_crtc_max_width(struct drm_crtc *crtc);
+ 
+ #endif /* __TILCDC_DRV_H__ */
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_panel.c b/drivers/gpu/drm/tilcdc/tilcdc_panel.c
+index f4b794d..2496ee4 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_panel.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_panel.c
+@@ -197,7 +197,7 @@ static int panel_connector_mode_valid(struct drm_connector *connector,
+ {
+ 	struct tilcdc_drm_private *priv = connector->dev->dev_private;
+ 	/* our only constraints are what the crtc can generate: */
+-	return tilcdc_crtc_mode_valid(priv->crtc, mode);
++	return tilcdc_crtc_mode_valid(priv->crtc, mode, 0);
+ }
+ 
+ static struct drm_encoder *panel_connector_best_encoder(
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+index 7d05c3d..a2d86ac 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+@@ -167,7 +167,8 @@ static int slave_connector_mode_valid(struct drm_connector *connector,
+ 	struct tilcdc_drm_private *priv = connector->dev->dev_private;
+ 	int ret;
+ 
+-	ret = tilcdc_crtc_mode_valid(priv->crtc, mode);
++	ret = tilcdc_crtc_mode_valid(priv->crtc, mode,
++			priv->allow_non_rblank ? 0 : 1);
+ 	if (ret != MODE_OK)
+ 		return ret;
+ 
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c b/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+index 7065dfa..6f9d727 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+@@ -213,7 +213,8 @@ static int tfp410_connector_mode_valid(struct drm_connector *connector,
+ {
+ 	struct tilcdc_drm_private *priv = connector->dev->dev_private;
+ 	/* our only constraints are what the crtc can generate: */
+-	return tilcdc_crtc_mode_valid(priv->crtc, mode);
++	return tilcdc_crtc_mode_valid(priv->crtc, mode,
++			priv->allow_non_rblank ? 0 : 1);
+ }
+ 
+ static struct drm_encoder *tfp410_connector_best_encoder(
+-- 
+1.8.1.4
+

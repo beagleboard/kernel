@@ -1,0 +1,35 @@
+From bf297091cd5bd9b4eaded6baefa2a5b851251b1b Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 7 Mar 2013 18:17:02 +0200
+Subject: [PATCH 115/118] am335x-bone-common: Remove SPI unused pinmux config
+
+Remove pinmux which is not used.
+The pinmux should be declared for a specific SPI configuration.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 23a8b01..816063c 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -27,14 +27,6 @@
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&userleds_pins>;
+ 
+-		spi1_pins_s0: spi1_pins_s0 {
+-			pinctrl-single,pins = <
+-				0x190 0x33	/* mcasp0_aclkx.spi1_sclk, INPUT_PULLUP | MODE3 */
+-				0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
+-				0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
+-				0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
+-			>;
+-		};
+ 		userled_pins: pinmux_userled_pins {
+ 			pinctrl-single,pins = <
+ 				0x54 0x7	/* gpmc_a5.gpio1_21, OUTPUT | MODE7 */
+-- 
+1.8.1.4
+
