@@ -1,0 +1,28 @@
+From e3ab5ca2e146f9d037c518d72f3bf0ef0d964cd5 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Sat, 9 Mar 2013 18:19:11 +0200
+Subject: [PATCH 119/122] cape-adafruit: Use the correct spi bus (spi1 no spi0)
+
+Use the correct SPI bus.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ firmware/capes/cape-bone-adafruit-lcd-00A0.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/firmware/capes/cape-bone-adafruit-lcd-00A0.dts b/firmware/capes/cape-bone-adafruit-lcd-00A0.dts
+index f891917..6fe5dcf 100644
+--- a/firmware/capes/cape-bone-adafruit-lcd-00A0.dts
++++ b/firmware/capes/cape-bone-adafruit-lcd-00A0.dts
+@@ -71,7 +71,7 @@
+ 
+ 
+ 	fragment@3 {
+-		target = <&spi0>;
++		target = <&spi1>;
+ 
+ 		__overlay__ {
+ 			#address-cells = <1>;
+-- 
+1.8.1.4
+

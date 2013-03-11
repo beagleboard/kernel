@@ -1,0 +1,52 @@
+From 00e0082a92a26099a5a53b0fd6595f875d958aad Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Mon, 11 Mar 2013 12:24:17 +0200
+Subject: [PATCH 122/122] bone-tester: Add overrides for BB-BONE-TESTER
+
+Add overrides for BB-BONE-TESTER
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/boot/dts/am335x-tester.dts | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-tester.dts b/arch/arm/boot/dts/am335x-tester.dts
+index c8d6900..1fdba03 100644
+--- a/arch/arm/boot/dts/am335x-tester.dts
++++ b/arch/arm/boot/dts/am335x-tester.dts
+@@ -177,6 +177,15 @@
+ 				part-number = "BB-BONE-NIXIE";
+ 			};
+ 
++			/* geiger cape version A0 without an EEPROM */
++			slot@8 {
++				ti,cape-override;
++				compatible = "kernel-command-line", "runtime";
++				board-name = "Bone-Tester";
++				version = "00A0";
++				part-number = "BB-BONE-TESTER";
++			};
++
+ 		};
+ 
+ 		/* mapping between board names and dtb objects */
+@@ -253,6 +262,16 @@
+ 					dtbo = "cape-bone-nixie-00A0.dtbo";
+ 				};
+ 			};
++
++			/* tester */
++			cape@7 {
++				part-number = "BB-BONE-TESTER";
++				version@00A0 {
++					version = "00A0";
++					dtbo = "cape-bone-tester-00A0.dtbo";
++				};
++			};
++
+ 		};
+ 	};
+ };
+-- 
+1.8.1.4
+
