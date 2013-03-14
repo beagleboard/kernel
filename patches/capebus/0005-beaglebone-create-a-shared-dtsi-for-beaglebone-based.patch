@@ -9,10 +9,10 @@ Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
  arch/arm/boot/dts/Makefile                |   3 +-
  arch/arm/boot/dts/am335x-bone-common.dtsi | 290 ++++++++++++++++++++++++++++++
  arch/arm/boot/dts/am335x-bone.dts         | 281 +----------------------------
- arch/arm/boot/dts/am335x-bonelt.dts       |  20 +++
+ arch/arm/boot/dts/am335x-boneblack.dts       |  20 +++
  4 files changed, 313 insertions(+), 281 deletions(-)
  create mode 100644 arch/arm/boot/dts/am335x-bone-common.dtsi
- create mode 100644 arch/arm/boot/dts/am335x-bonelt.dts
+ create mode 100644 arch/arm/boot/dts/am335x-boneblack.dts
 
 diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
 index 5ebb44f..5c0789d 100644
@@ -24,7 +24,7 @@ index 5ebb44f..5c0789d 100644
  	am335x-evmsk.dtb \
 -	am335x-bone.dtb
 +	am335x-bone.dtb \
-+	am335x-bonelt.dtb
++	am335x-boneblack.dtb
  dtb-$(CONFIG_ARCH_ORION5X) += orion5x-lacie-ethernet-disk-mini-v2.dtb
  dtb-$(CONFIG_ARCH_PRIMA2) += prima2-evb.dtb
  dtb-$(CONFIG_ARCH_U8500) += snowball.dtb \
@@ -613,11 +613,11 @@ index bf87ceb..9abc1f3 100644
 -	status = "okay";
 -};
 +/include/ "am335x-bone-common.dtsi"
-diff --git a/arch/arm/boot/dts/am335x-bonelt.dts b/arch/arm/boot/dts/am335x-bonelt.dts
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
 new file mode 100644
 index 0000000..cdc3dd0
 --- /dev/null
-+++ b/arch/arm/boot/dts/am335x-bonelt.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
 @@ -0,0 +1,20 @@
 +/*
 + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
