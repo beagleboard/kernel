@@ -1,4 +1,4 @@
-From 03ee5cec7942e9dea59ca8f4381f13de287ec296 Mon Sep 17 00:00:00 2001
+From 481b6b02a9b44ddec9caadbb4f1fe3b589fb63bd Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
 Date: Mon, 25 Jun 2012 19:45:45 +0000
 Subject: [PATCH 02/16] 6lowpan: next header is not properly set upon
@@ -12,7 +12,7 @@ Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
  1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
-index f651da6..44dab5b 100644
+index 76c3d0a..e77e455 100644
 --- a/net/ieee802154/6lowpan.c
 +++ b/net/ieee802154/6lowpan.c
 @@ -913,9 +913,12 @@ lowpan_process_data(struct sk_buff *skb)

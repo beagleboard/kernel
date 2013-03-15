@@ -1,4 +1,4 @@
-From 076dd5175dc598e1e33026ade09f2f8c26ecea87 Mon Sep 17 00:00:00 2001
+From 6bb54d1260df17b01c061d4274e4ba778614fd71 Mon Sep 17 00:00:00 2001
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Date: Sun, 24 Feb 2013 22:59:33 -0800
 Subject: [PATCH 1/5] W1: w1-gpio - fix incorrect __init/__exit markups
@@ -10,23 +10,14 @@ discarded.
 
 Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
- drivers/w1/masters/w1-gpio.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/w1/masters/w1-gpio.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/w1/masters/w1-gpio.c b/drivers/w1/masters/w1-gpio.c
-index 85b363a..799dafd 100644
+index d39dfa4..799dafd 100644
 --- a/drivers/w1/masters/w1-gpio.c
 +++ b/drivers/w1/masters/w1-gpio.c
-@@ -72,7 +72,7 @@ static int w1_gpio_probe_dt(struct platform_device *pdev)
- 	return 0;
- }
- 
--static int __init w1_gpio_probe(struct platform_device *pdev)
-+static int w1_gpio_probe(struct platform_device *pdev)
- {
- 	struct w1_bus_master *master;
- 	struct w1_gpio_platform_data *pdata;
-@@ -158,7 +158,7 @@ static int __init w1_gpio_probe(struct platform_device *pdev)
+@@ -158,7 +158,7 @@ static int w1_gpio_probe(struct platform_device *pdev)
  	return err;
  }
  
