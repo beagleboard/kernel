@@ -1,0 +1,126 @@
+From 1530bf722a8013ae7feaa03f5bf963cd53dd3928 Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Tue, 19 Mar 2013 17:04:06 +0000
+Subject: [PATCH 129/130] beaglebone: Add Adafruit RTC prototype cape
+
+Add support for a DS1307 RTC prototype cape with level logic
+shifted output. Some applications need an early RTC value and this
+achieves this.
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi      | 21 +++++++++++--
+ firmware/Makefile                              |  1 +
+ firmware/capes/cape-bone-adafruit-rtc-00A0.dts | 42 ++++++++++++++++++++++++++
+ 3 files changed, 62 insertions(+), 2 deletions(-)
+ create mode 100644 firmware/capes/cape-bone-adafruit-rtc-00A0.dts
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index bcd78a6..d3803e0 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -168,7 +168,7 @@
+ 				part-number = "BB-BONE-NIXIE";
+ 			};
+ 
+-			/* adafruit prototype cape */
++			/* adafruit 1.8" TFT prototype cape */
+ 			slot@8 {
+ 				ti,cape-override;
+ 				compatible = "kernel-command-line", "runtime";
+@@ -178,6 +178,16 @@
+ 				part-number = "BB-BONE-TFT-01";
+ 			};
+ 
++			/* adafruit RTC DS1307 prototype cape */
++			slot@9 {
++				ti,cape-override;
++				compatible = "kernel-command-line", "runtime";
++				board-name = "Bone-RTC";
++				version = "00A0";
++				manufacturer = "Adafruit";
++				part-number = "BB-BONE-RTC-01";
++			};
++
+ 		};
+ 
+ 		/* mapping between board names and dtb objects */
+@@ -262,7 +272,14 @@
+ 					dtbo = "cape-bone-adafruit-lcd-00A0.dtbo";
+ 				};
+ 			};
+- 
++
++			cape@8 {
++				part-number = "BB-BONE-RTC-01";
++				version@00A0 {
++					version = "00A0";
++					dtbo = "cape-bone-adafruit-rtc-00A0.dtbo";
++				};
++			};
+ 		};
+ 	};
+ };
+diff --git a/firmware/Makefile b/firmware/Makefile
+index 95067d2..2cc21d4 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -140,6 +140,7 @@ fw-shipped-$(CONFIG_YAM) += yam/1200.bin yam/9600.bin
+ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	cape-bone-2g-emmc1.dtbo \
+ 	cape-bone-adafruit-lcd-00A0.dtbo \
++	cape-bone-adafruit-rtc-00A0.dtbo \
+ 	cape-bone-dvi-00A0.dtbo \
+ 	cape-bone-dvi-00A1.dtbo \
+ 	cape-bone-dvi-00A2.dtbo \
+diff --git a/firmware/capes/cape-bone-adafruit-rtc-00A0.dts b/firmware/capes/cape-bone-adafruit-rtc-00A0.dts
+new file mode 100644
+index 0000000..9436fd4
+--- /dev/null
++++ b/firmware/capes/cape-bone-adafruit-rtc-00A0.dts
+@@ -0,0 +1,42 @@
++/*
++* Copyright (C) 2013 Matt Ranostay <mranostay@gmail.com>
++*
++* This program is free software; you can redistribute it and/or modify
++* it under the terms of the GNU General Public License version 2 as
++* published by the Free Software Foundation.
++*/
++/dts-v1/;
++/plugin/;
++
++/*
++ * Pin assignments
++ *
++ * Module     Connector
++ * SCL     -> P9.19
++ * SDA     <- P9.20
++ * SQW     <- NC
++ *
++ */
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++	part-number = "BB-BONE-RTC-01";
++	version = "00A0";
++
++
++	fragment@0 {
++		target = <&i2c2>;
++
++		__overlay__ {
++			/* shut up DTC warnings */
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			/* DS1307 RTC module */
++			rtc@68 {
++				compatible = "dallas,ds1307";
++				reg = <0x68>;
++			};
++		};
++	};
++};
+-- 
+1.8.1.4
+

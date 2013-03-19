@@ -1,0 +1,51 @@
+From eecc47af1c951d43178ed2366148f053092b7d8d Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Tue, 19 Mar 2013 17:05:44 +0000
+Subject: [PATCH 130/130] cape: vsense-scale division by zero check
+
+Catch corner case of division by zero when passing
+in vsense-scale property from the device tree.
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ drivers/misc/cape/beaglebone/cape-bone-geiger.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/misc/cape/beaglebone/cape-bone-geiger.c b/drivers/misc/cape/beaglebone/cape-bone-geiger.c
+index 6be383e..fa57be0 100644
+--- a/drivers/misc/cape/beaglebone/cape-bone-geiger.c
++++ b/drivers/misc/cape/beaglebone/cape-bone-geiger.c
+@@ -75,6 +75,9 @@ static const struct of_device_id bonegeiger_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, bonegeiger_of_match);
+ 
++
++#define	DEFAULT_VSENSE_SCALE	37325		/* 373.25 */
++
+ static int bonegeiger_start(struct platform_device *pdev)
+ {
+ 	struct bone_geiger_info *info = platform_get_drvdata(pdev);
+@@ -377,12 +380,19 @@ static int bonegeiger_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	if (of_property_read_u32(pnode, "vsense-scale", &info->vsense_scale) != 0) {
+-		info->vsense_scale = 37325;	/* 373.25 */
++		info->vsense_scale = DEFAULT_VSENSE_SCALE;
+ 		dev_warn(&pdev->dev, "Could not read vsense-scale property; "
+ 				"using default %u\n",
+ 					info->vsense_scale);
+ 	}
+ 
++	if (info->vsense_scale == 0) {
++		info->vsense_scale = DEFAULT_VSENSE_SCALE;
++		dev_warn(&pdev->dev, "Invalid vsense-scale property; "
++				"using default %u\n",
++					info->vsense_scale);
++	}
++
+ 	info->vsense_channel = iio_channel_get(NULL, info->vsense_name);
+ 	if (IS_ERR(info->vsense_channel)) {
+ 		dev_err(&pdev->dev, "Could not get %s analog input\n",
+-- 
+1.8.1.4
+

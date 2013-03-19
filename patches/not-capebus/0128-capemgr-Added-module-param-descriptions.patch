@@ -1,0 +1,27 @@
+From 3f0c7923a3535ff9b5929c307243eb35cc44dd82 Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Tue, 19 Mar 2013 17:05:02 +0000
+Subject: [PATCH 128/130] capemgr: Added module param descriptions
+
+Added a simple MODULE_PARM_DESC for the extra_override option
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ drivers/misc/cape/beaglebone/capemgr.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/misc/cape/beaglebone/capemgr.c b/drivers/misc/cape/beaglebone/capemgr.c
+index 255c491..2ee7b11 100644
+--- a/drivers/misc/cape/beaglebone/capemgr.c
++++ b/drivers/misc/cape/beaglebone/capemgr.c
+@@ -47,6 +47,7 @@
+ /* extra command line overrides */
+ static char *extra_override = NULL;
+ module_param(extra_override, charp, 0444);
++MODULE_PARM_DESC(extra_override, "Comma delimited list of PART-NUMBER[:REV] overrides");
+ 
+ struct bone_capemgr_info;
+ 
+-- 
+1.8.1.4
+

@@ -1,0 +1,70 @@
+From aa63c6acf6af2c15062736ed7754466245800cd7 Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Tue, 19 Mar 2013 17:06:04 +0000
+Subject: [PATCH 126/130] cape: Added example IIO tester dynamics overlay
+
+Added an example usage of the IIO exporter for an current sensor
+reading.
+
+Scale factor works with INA169 current sensor at 10k load.
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ firmware/Makefile                     |  1 +
+ firmware/capes/cape-bone-iio-00A0.dts | 32 ++++++++++++++++++++++++++++++++
+ 2 files changed, 33 insertions(+)
+ create mode 100644 firmware/capes/cape-bone-iio-00A0.dts
+
+diff --git a/firmware/Makefile b/firmware/Makefile
+index 4f51526..95067d2 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -146,6 +146,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	cape-bone-lcd3-00A0.dtbo \
+ 	cape-bone-lcd3-00A2.dtbo \
+ 	BB-BONE-LCD7-01-00A2.dtbo \
++	cape-bone-iio-00A0.dtbo \
+ 	cape-bone-pinmux-test-00A0.dtbo
+ 
+ # the geiger cape
+diff --git a/firmware/capes/cape-bone-iio-00A0.dts b/firmware/capes/cape-bone-iio-00A0.dts
+new file mode 100644
+index 0000000..3165702
+--- /dev/null
++++ b/firmware/capes/cape-bone-iio-00A0.dts
+@@ -0,0 +1,32 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "iio-test";
++
++	fragment@0 {
++		target = <&ocp>;
++		__overlay__ {
++			/* avoid stupid warning */
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			test_helper: helper {
++				compatible = "bone-iio-helper";
++				vsense-name = "AIN6";
++				vsense-scale = <100>;
++				status = "okay";
++			};
++		};
++	};
++};
+-- 
+1.8.1.4
+

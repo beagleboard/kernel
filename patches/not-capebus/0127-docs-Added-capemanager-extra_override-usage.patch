@@ -1,0 +1,29 @@
+From e189910899175c4f56220c92b4a666f91f44cc6f Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Tue, 19 Mar 2013 17:05:01 +0000
+Subject: [PATCH 127/130] docs: Added capemanager extra_override usage
+
+Gave an example on using the kernel-command-line override
+slot options for capemanager.
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ Documentation/devicetree/bindings/misc/capes-beaglebone.txt | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/devicetree/bindings/misc/capes-beaglebone.txt b/Documentation/devicetree/bindings/misc/capes-beaglebone.txt
+index f73cab5..1af627a 100644
+--- a/Documentation/devicetree/bindings/misc/capes-beaglebone.txt
++++ b/Documentation/devicetree/bindings/misc/capes-beaglebone.txt
+@@ -107,4 +107,7 @@ Example of the override syntax when used on a bone compatible foo board.
+ 	};
+ 
+ };
+-	
++
++Example of the same override syntax when used from the kernel command-line:
++
++	capemgr.extra_override=FOO-hardcoded:00A0,FOO-another-hardcoded:00A0
+-- 
+1.8.1.4
+
