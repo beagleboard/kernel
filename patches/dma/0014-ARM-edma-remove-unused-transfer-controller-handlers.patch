@@ -1,4 +1,4 @@
-From 5ed77de9f353f6d04d17a9576c7b11fcf838acca Mon Sep 17 00:00:00 2001
+From 89d01866090800cb27093344029675df1998619c Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Wed, 22 Aug 2012 09:31:49 -0400
 Subject: [PATCH 14/34] ARM: edma: remove unused transfer controller handlers
@@ -13,7 +13,7 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  1 file changed, 37 deletions(-)
 
 diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index be3c04a..2dce245 100644
+index 36a0676..3580eca 100644
 --- a/arch/arm/common/edma.c
 +++ b/arch/arm/common/edma.c
 @@ -494,26 +494,6 @@ static irqreturn_t dma_ccerr_handler(int irq, void *data)
@@ -43,7 +43,7 @@ index be3c04a..2dce245 100644
  static int reserve_contiguous_slots(int ctlr, unsigned int id,
  				     unsigned int num_slots,
  				     unsigned int start_slot)
-@@ -1538,23 +1518,6 @@ static int edma_probe(struct platform_device *pdev)
+@@ -1541,23 +1521,6 @@ static int edma_probe(struct platform_device *pdev)
  		arch_num_cc++;
  	}
  

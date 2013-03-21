@@ -12,7 +12,7 @@ FILESPATH =. "${FILE_DIRNAME}/linux-mainline-3.8:${FILE_DIRNAME}/linux-mainline-
 
 S = "${WORKDIR}/git"
 
-PV = "3.8.3"
+PV = "3.8.4"
 
 SRC_URI = "SEDMEURI"
 SRCREV_pn-${PN} = "SEDMEREV"

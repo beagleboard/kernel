@@ -1,4 +1,4 @@
-From 424eceb258317c5b7e62111c6a6241c8fb35fd5a Mon Sep 17 00:00:00 2001
+From f95fba24be6becd0d141046749f1361e9420c852 Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
 Date: Mon, 25 Jun 2012 19:45:33 +0000
 Subject: [PATCH 01/16] 6lowpan: lowpan_is_iid_16_bit_compressable() does not
@@ -13,11 +13,11 @@ Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
  1 file changed, 8 insertions(+), 6 deletions(-)
 
 diff --git a/net/ieee802154/6lowpan.h b/net/ieee802154/6lowpan.h
-index 8c2251f..efd1a57 100644
+index bba5f83..8f421a8 100644
 --- a/net/ieee802154/6lowpan.h
 +++ b/net/ieee802154/6lowpan.h
 @@ -87,14 +87,16 @@
- #define is_addr_link_local(a) (((a)->s6_addr16[0]) == 0x80FE)
+ #define is_addr_link_local(a) (((a)->s6_addr16[0]) == htons(0xFE80))
  
  /*
 - * check whether we can compress the IID to 16 bits,

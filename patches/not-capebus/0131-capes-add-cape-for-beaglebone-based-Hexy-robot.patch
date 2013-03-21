@@ -1,75 +1,71 @@
-From 761ae90df09d69bfddce64f32f109f9423cf72d0 Mon Sep 17 00:00:00 2001
-From: Matt Ranostay <mranostay@gmail.com>
-Date: Tue, 22 Jan 2013 10:10:13 -0800
-Subject: [PATCH 117/131] beaglebone: Added Adafruit prototype cape
+From 81c496195c3d8c2c345a9400de0a869e1492b3c1 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Wed, 20 Mar 2013 13:13:41 +0100
+Subject: [PATCH 131/131] capes: add cape for beaglebone based Hexy robot
 
-Added 1.8" Adafruit prototype cape using DT overlays + cape manager
-
-Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
- arch/arm/boot/dts/am335x-bone-common.dtsi      |  19 ++++
- firmware/Makefile                              |   1 +
- firmware/capes/cape-bone-adafruit-lcd-00A0.dts | 126 +++++++++++++++++++++++++
- 3 files changed, 146 insertions(+)
- create mode 100644 firmware/capes/cape-bone-adafruit-lcd-00A0.dts
+ arch/arm/boot/dts/am335x-bone-common.dtsi |  16 ++++
+ firmware/Makefile                         |   1 +
+ firmware/capes/cape-bone-hexy-00A0.dts    | 150 ++++++++++++++++++++++++++++++
+ 3 files changed, 167 insertions(+)
+ create mode 100644 firmware/capes/cape-bone-hexy-00A0.dts
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 816063c..bcd78a6 100644
+index d3803e0..3dfbb86 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -168,6 +168,16 @@
- 				part-number = "BB-BONE-NIXIE";
+@@ -188,6 +188,14 @@
+ 				part-number = "BB-BONE-RTC-01";
  			};
  
-+			/* adafruit prototype cape */
-+			slot@8 {
++			slot@10 {
 +				ti,cape-override;
 +				compatible = "kernel-command-line", "runtime";
-+				board-name = "Bone-TFT";
++				board-name = "Bone-Hexy";
 +				version = "00A0";
-+				manufacturer = "Adafruit";
-+				part-number = "BB-BONE-TFT-01";
++				manufacturer = "Koen Kooi";
++				part-number = "BB-BONE-HEXY-01";
 +			};
-+
  		};
  
  		/* mapping between board names and dtb objects */
-@@ -244,6 +254,15 @@
- 					dtbo = "cape-bone-nixie-00A0.dtbo";
+@@ -280,6 +288,14 @@
+ 					dtbo = "cape-bone-adafruit-rtc-00A0.dtbo";
  				};
  			};
 +
-+			cape@7 {
-+				part-number = "BB-BONE-TFT-01";
++			cape@9 {
++				part-number = "BB-BONE-HEXY-01";
 +				version@00A0 {
 +					version = "00A0";
-+					dtbo = "cape-bone-adafruit-lcd-00A0.dtbo";
++					dtbo = "cape-bone-hexy-00A0.dtbo";
 +				};
 +			};
-+ 
  		};
  	};
  };
 diff --git a/firmware/Makefile b/firmware/Makefile
-index 26e9323..0fd76b3 100644
+index 2cc21d4..1a81f3f 100644
 --- a/firmware/Makefile
 +++ b/firmware/Makefile
-@@ -139,6 +139,7 @@ fw-shipped-$(CONFIG_YAM) += yam/1200.bin yam/9600.bin
- # all the generic capes
- fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
- 	cape-bone-2g-emmc1.dtbo \
-+	cape-bone-adafruit-lcd-00A0.dtbo \
+@@ -144,6 +144,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
  	cape-bone-dvi-00A0.dtbo \
  	cape-bone-dvi-00A1.dtbo \
  	cape-bone-dvi-00A2.dtbo \
-diff --git a/firmware/capes/cape-bone-adafruit-lcd-00A0.dts b/firmware/capes/cape-bone-adafruit-lcd-00A0.dts
++	cape-bone-hexy-00A0.dtbo \
+ 	cape-bone-lcd3-00A0.dtbo \
+ 	cape-bone-lcd3-00A2.dtbo \
+ 	BB-BONE-LCD7-01-00A2.dtbo \
+diff --git a/firmware/capes/cape-bone-hexy-00A0.dts b/firmware/capes/cape-bone-hexy-00A0.dts
 new file mode 100644
-index 0000000..f891917
+index 0000000..4a13484
 --- /dev/null
-+++ b/firmware/capes/cape-bone-adafruit-lcd-00A0.dts
-@@ -0,0 +1,126 @@
++++ b/firmware/capes/cape-bone-hexy-00A0.dts
+@@ -0,0 +1,150 @@
 +/*
 +* Copyright (C) 2013 Matt Ranostay <mranostay@gmail.com>
++* Copyright (C) 2013 Koen Kooi <koen@circuitco.com>
 +*
 +* This program is free software; you can redistribute it and/or modify
 +* it under the terms of the GNU General Public License version 2 as
@@ -95,7 +91,7 @@ index 0000000..f891917
 +
 +/ {
 +       compatible = "ti,beaglebone", "ti,beaglebone-black";
-+       part-number = "BB-BONE-TFT-01";
++       part-number = "BB-BONE-HEXY-01";
 +       version = "00A0";
 +
 +       fragment@0 {
@@ -107,14 +103,14 @@ index 0000000..f891917
 +				>;
 +			};
 +
-+			bone_adafruit_lcd_pins: pinmux_bone_adafruit_lcd_pins {
++			bone_hexy_lcd_pins: pinmux_bone_hexy_lcd_pins {
 +				pinctrl-single,pins = <
 +					0x1a4 0x17      /* mcasp0_fsr.gpio3_19, OUTPUT_PULLUP | MODE7 */
 +					0x1ac 0x17      /* mcasp0_ahclkx.gpio3_21, OUTPUT_PULLUP | MODE7 */
 +				>;
 +			};
 +
-+			bone_adafruit_spi1_pins: pinmux_adafruit_spi1_pins {
++			bone_hexy_spi1_pins: pinmux_adafruit_spi1_pins {
 +				pinctrl-single,pins = <
 +					0x190 0x33	/* mcasp0_aclkx.spi1_sclk, INPUT_PULLUP | MODE3 */
 +					0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
@@ -141,7 +137,7 @@ index 0000000..f891917
 +
 +
 +	fragment@3 {
-+		target = <&spi0>;
++		target = <&spi1>;
 +
 +		__overlay__ {
 +			#address-cells = <1>;
@@ -149,21 +145,21 @@ index 0000000..f891917
 +
 +			status		= "okay";
 +			pinctrl-names	= "default";
-+			pinctrl-0	= <&bone_adafruit_spi1_pins>;
++			pinctrl-0	= <&bone_hexy_spi1_pins>;
 +
 +			lcd@0 {
 +				#address-cells = <1>;
 +				#size-cells = <0>;
 +
-+				compatible = "adafruit,tft-lcd-1.8-red", "sitronix,st7735";
++				compatible = "adafruit,tft-lcd-1.8-green", "sitronix,st7735";
 +				reg = <0>;
 +
-+				spi-max-frequency = <8000000>;
++				spi-max-frequency = <16000000>;
 +				spi-cpol;
 +				spi-cpha;
 +
 +				pinctrl-names = "default";
-+				pinctrl-0 = <&bone_adafruit_lcd_pins>;
++				pinctrl-0 = <&bone_hexy_lcd_pins>;
 +
 +				st7735-rst = <&gpio4 19 0>;
 +				st7735-dc = <&gpio4 21 0>;
@@ -179,7 +175,7 @@ index 0000000..f891917
 +		#size-cells = <1>;
 +
 +		__overlay__ {
-+			adafruit-tft-backlight {
++			hexy_display {
 +				compatible	= "pwm-backlight";
 +				pinctrl-names	= "default";
 +				pinctrl-0	= <&pwm_backlight_pins>;
@@ -193,6 +189,29 @@ index 0000000..f891917
 +		};
 +	};
 +
++	fragment@5 {
++               target = <&i2c2>;
++
++               __overlay__ {
++		       /* needed to avoid gripping by DTC */
++		       #address-cells = <1>;
++		       #size-cells = <0>;
++
++		       lsm303dlhc_magn@1e {
++			       compatible = "st,lsm303dlhc_magn";
++			       reg = <0x1E>;
++		       };
++
++		       lsm303dlh_accel@1e {
++			       compatible = "st,lsm303dlhc_accel";
++			       reg = <0x19>;
++		       };
++		       vcnl4000@13 {
++			       compatible = "vishay,vcnl4000";
++			       reg = <0x13>;
++		       };
++               };
++	};
 +};
 -- 
 1.8.1.4
