@@ -1,0 +1,25 @@
+From 7ef623442aeeca66a95385ea12cf878da9175893 Mon Sep 17 00:00:00 2001
+From: Darren Etheridge <detheridge@ti.com>
+Date: Thu, 21 Mar 2013 13:53:54 -0500
+Subject: [PATCH 135/136] Changing DT data to make selection of standard (i.e.
+ non-reduced blanking) modes the default
+
+---
+ firmware/capes/cape-boneblack-hdmi-00A0.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/firmware/capes/cape-boneblack-hdmi-00A0.dts b/firmware/capes/cape-boneblack-hdmi-00A0.dts
+index b080907..02bcb93 100644
+--- a/firmware/capes/cape-boneblack-hdmi-00A0.dts
++++ b/firmware/capes/cape-boneblack-hdmi-00A0.dts
+@@ -65,6 +65,7 @@
+ 				interrupt-parent = <&intc>;
+ 				interrupts = <36>;
+ 				ti,hwmods = "lcdc";
++				ti,allow-non-reduced-blanking-modes;
+ 			};
+ 
+ 		};
+-- 
+1.8.1.4
+

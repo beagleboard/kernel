@@ -1,0 +1,52 @@
+From 33a02f4e59a7de83fd9db78afc5d63ae88b37093 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 21 Mar 2013 17:08:58 +0200
+Subject: [PATCH 134/136] Add ADC IIO helper
+
+---
+ firmware/capes/cape-bone-tester-00A0.dts | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+
+diff --git a/firmware/capes/cape-bone-tester-00A0.dts b/firmware/capes/cape-bone-tester-00A0.dts
+index d5b7607..047c30b 100644
+--- a/firmware/capes/cape-bone-tester-00A0.dts
++++ b/firmware/capes/cape-bone-tester-00A0.dts
+@@ -450,5 +450,35 @@
+ 		};
+ 	};
+ 
++	fragment@6 {
++		target = <&ocp>;
++		__overlay__ {
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			tscadc {
++				compatible = "ti,ti-tscadc";
++				reg = <0x44e0d000 0x1000>;
++
++				interrupt-parent = <&intc>;
++				interrupts = <16>;
++				ti,hwmods = "adc_tsc";
++				status = "okay";
++
++				adc {
++					ti,adc-channels = <8>;
++				};
++			};
++
++			tester_iio_helper {
++				compatible = "bone-iio-helper";
++				vsense-name  = "AIN0", "AIN1", "AIN2", "AIN3", "AIN4", "AIN5", "AIN6", "AIN7";
++				vsense-scale = <100     100     100     100     100     100     100     100>;
++				// vsense-scale = <200     200     296     296     296     296     100     100>;
++					      /* 3.3V   3.3V    5V      5V      5V      5V      1.8V */
++				status = "okay";
++			};
++		};
++	};
+ };
+ 
+-- 
+1.8.1.4
+
