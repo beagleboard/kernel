@@ -1,0 +1,35 @@
+From 7d160af9a85d012222ada21005340627ef18b048 Mon Sep 17 00:00:00 2001
+From: Benson Leung <bleung@chromium.org>
+Date: Wed, 4 Apr 2012 19:34:52 -0700
+Subject: [PATCH 11/57] CHROMIUM: Input: atmel_mxt_ts - Increase FWRESET_TIME
+
+175ms is not enough time to update the firmware. Set to
+500ms.
+
+BUG=chrome-os-partner:8731
+TEST=firmware update. ensure that transitions back to app mode at the end.
+
+Change-Id: Idaec72cb4f326a10d3513ffb82bf4b144c68b30c
+Signed-off-by: Benson Leung <bleung@chromium.org>
+Reviewed-on: https://gerrit.chromium.org/gerrit/19640
+Reviewed-by: Daniel Kurtz <djkurtz@chromium.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 0aae3fb..b9b9b3f 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -184,7 +184,7 @@
+ #define MXT_BACKUP_TIME		25	/* msec */
+ #define MXT_RESET_TIME		65	/* msec */
+ 
+-#define MXT_FWRESET_TIME	175	/* msec */
++#define MXT_FWRESET_TIME	500	/* msec */
+ 
+ /* Command to unlock bootloader */
+ #define MXT_UNLOCK_CMD_MSB	0xaa
+-- 
+1.8.1.4
+

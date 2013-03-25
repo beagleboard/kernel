@@ -1,0 +1,53 @@
+From e1b93ec6317add33d6a3ca7f3ab60ea3947e1450 Mon Sep 17 00:00:00 2001
+From: Benson Leung <bleung@chromium.org>
+Date: Fri, 10 Aug 2012 18:43:52 -0700
+Subject: [PATCH 44/57] CHROMIUM: Input: atmel_mxt_ts - disable reporting on
+ stop
+
+Leave the touch device scanning and enabled, but disable reporting
+on mxt_stop. This will prevent a needless recalibration due to the T9_ctrl
+register being set to 0 (disabling the object) and then set back to 0x83.
+
+BUG=chrome-os-partner:12042,chrome-os-partner:9717
+TEST=Log in to guest mode. Test the touch screen.
+Log out. Verify that in the next session (after X has restarted)
+touch performance is still good.
+
+Change-Id: If5556325d69390a329d1ed406b5bba9f0d494896
+Signed-off-by: Benson Leung <bleung@chromium.org>
+Reviewed-on: https://gerrit.chromium.org/gerrit/29951
+
+v3.7 rebase:
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index f13ef67..33b564b 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -2458,16 +2458,16 @@ static int mxt_set_regs(struct mxt_data *data, u8 type, u8 instance,
+ 
+ static void mxt_start(struct mxt_data *data)
+ {
+-	/* Touch enable */
++	/* Enable touch reporting */
+ 	mxt_write_object(data, MXT_TOUCH_MULTI_T9, MXT_TOUCH_CTRL,
+ 			 MXT_TOUCH_CTRL_OPERATIONAL);
+ }
+ 
+ static void mxt_stop(struct mxt_data *data)
+ {
+-	/* Touch disable */
+-	mxt_write_object(data,
+-			MXT_TOUCH_MULTI_T9, MXT_TOUCH_CTRL, 0);
++	/* Disable touch reporting */
++	mxt_write_object(data, MXT_TOUCH_MULTI_T9, MXT_TOUCH_CTRL,
++			 MXT_TOUCH_CTRL_SCANNING);
+ }
+ 
+ static int mxt_input_open(struct input_dev *dev)
+-- 
+1.8.1.4
+

@@ -1,0 +1,112 @@
+From 79afdc7763ef2c7e133c2686db661c0532aaf5d2 Mon Sep 17 00:00:00 2001
+From: Daniel Kurtz <djkurtz@chromium.org>
+Date: Mon, 19 Mar 2012 09:39:12 +0800
+Subject: [PATCH 27/57] CHROMIUM: Input: atmel_mxt_ts - allow writing to object
+ sysfs entry
+
+Userspace can write a 32-bit value (encoded as a 8 character hex string)
+to the 'object' sysfs entry to modify a single byte of the object table.
+The hex string encodes 4 bytes, in the following format:
+
+ TTIIFFVV
+
+Where:
+ TT = object type (atmel 'T' number)
+ II = object instance (0-indexes, so 0 is the first instance)
+ FF = object offset
+ VV = byte value
+
+The object table is modified in device ram, which means the change is
+volatile, and will be overwritten on the next device reset.  To make
+changes permanent, the new settings should be persisted in the device's
+Non-Voltatile Memory using the updatenv sysfs entry.
+
+Also, since the device driver initializes itself by reading some values
+from the object table, the entire driver may need to be unloaded and
+reloaded after writing the values for the driver to stay in sync.  Whether
+this is required depends on exactly which values were updated.
+
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+
+BUG=chromium-os:27713
+TEST=ls -l /sys/.../object
+  --wr--r--r 1 root root 4096 Feb 14 20:54 update_fw
+
+  (0) confirm current number of fingers (look for (Type 9, Offset 14)):
+  $ cat /sys/.../object
+  (1) Change number of reported fingers (Type: 0x09, Offset: 0x0e) to 7:
+  $ echo -n "090e07" > /sys/.../object
+  (2) confirm current number of fingers (look for (Type 9, Offset 14)):
+  $ cat /sys/.../object
+  (3) using mtplot, notice that there now up to 7 fingers are reported.
+  (4) reboot, and verify that the old number of fingers is restored.
+TEST=Trying to write to a non-existant instance, or past the length of
+     an object, should fail.  For example:
+   echo -n "070005ab" > /sys/bus/i2c/devices/<dev>/object
+  => -bash: echo: write error: Invalid argument
+
+Change-Id: I8149770f762a84ef457c7bf4aefdb310d07c52c5
+Reviewed-on: https://gerrit.chromium.org/gerrit/17944
+Commit-Ready: Daniel Kurtz <djkurtz@chromium.org>
+Reviewed-by: Daniel Kurtz <djkurtz@chromium.org>
+Tested-by: Daniel Kurtz <djkurtz@chromium.org>
+
+v3.7 rebase:
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 32 +++++++++++++++++++++++++++++++-
+ 1 file changed, 31 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index d07732d..120d766 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -1552,6 +1552,35 @@ done:
+ 	return error ?: count;
+ }
+ 
++static ssize_t mxt_object_store(struct device *dev,
++				struct device_attribute *attr,
++				const char *buf, size_t count)
++{
++	struct mxt_data *data = dev_get_drvdata(dev);
++	int ret;
++	u32 param;
++	u8 type, instance, offset, val;
++
++	ret = kstrtou32(buf, 16, &param);
++	if (ret < 0)
++		return -EINVAL;
++
++	/*
++	 * Byte Write Command is encoded in 32-bit word: TTIIOOVV:
++	 * <Type> <Instance> <Offset> <Value>
++	 */
++	type = (param & 0xff000000) >> 24;
++	instance = (param & 0x00ff0000) >> 16;
++	offset = (param & 0x0000ff00) >> 8;
++	val = param & 0x000000ff;
++
++	ret = mxt_write_obj_instance(data, type, instance, offset, val);
++	if (ret)
++		return ret;
++
++	return count;
++}
++
+ static int mxt_load_fw(struct device *dev, const char *fn)
+ {
+ 	struct mxt_data *data = dev_get_drvdata(dev);
+@@ -1639,7 +1668,8 @@ static DEVICE_ATTR(fw_version, S_IRUGO, mxt_fw_version_show, NULL);
+ static DEVICE_ATTR(hw_version, S_IRUGO, mxt_hw_version_show, NULL);
+ static DEVICE_ATTR(info_csum, S_IRUGO, mxt_info_csum_show, NULL);
+ static DEVICE_ATTR(matrix_size, S_IRUGO, mxt_matrix_size_show, NULL);
+-static DEVICE_ATTR(object, S_IRUGO, mxt_object_show, NULL);
++static DEVICE_ATTR(object, S_IRUGO | S_IWUSR, mxt_object_show,
++		   mxt_object_store);
+ static DEVICE_ATTR(update_fw, S_IWUSR, NULL, mxt_update_fw_store);
+ 
+ static struct attribute *mxt_attrs[] = {
+-- 
+1.8.1.4
+

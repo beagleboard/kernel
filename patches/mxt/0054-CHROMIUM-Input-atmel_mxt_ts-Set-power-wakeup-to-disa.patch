@@ -1,0 +1,43 @@
+From 3d69c8fd0758e1e5a7fe2a30276012cf3df872e3 Mon Sep 17 00:00:00 2001
+From: Benson Leung <bleung@chromium.org>
+Date: Fri, 18 Jan 2013 17:35:52 -0800
+Subject: [PATCH 54/57] CHROMIUM: Input: atmel_mxt_ts : Set power/wakeup to
+ disabled by default.
+
+Userspace will change it to enabled if needed.
+
+Signed-off-by: Benson Leung <bleung@chromium.org>
+
+BUG=chrome-os-partner:17336
+TEST=cat /sys/bus/i2c/devices/2-004a/power/wakeup
+Check that it returns "disabled"
+Suspend the system using powerd_suspend.
+Check that the touch device 2-004a does not wake the system.
+
+Change-Id: If5ac3b30c137d16e5592d4a2ee555fd2533b0caa
+Reviewed-on: https://gerrit.chromium.org/gerrit/41679
+Reviewed-by: Vincent Palatin <vpalatin@chromium.org>
+Reviewed-by: Puneet Kumar <puneetster@chromium.org>
+Commit-Queue: Benson Leung <bleung@chromium.org>
+Tested-by: Benson Leung <bleung@chromium.org>
+(cherry picked from commit 6625e780bacf270b6da346751819d2825f09c20a)
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 8077000..3f14d3b 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -2792,6 +2792,8 @@ static int mxt_probe(struct i2c_client *client,
+ 	if (error)
+ 		goto err_free_fw_file;
+ 
++	device_set_wakeup_enable(&client->dev, false);
++
+ 	async_schedule(mxt_initialize_async, data);
+ 
+ 	return 0;
+-- 
+1.8.1.4
+

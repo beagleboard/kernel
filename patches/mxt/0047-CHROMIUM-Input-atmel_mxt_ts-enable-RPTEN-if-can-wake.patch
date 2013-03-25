@@ -1,0 +1,99 @@
+From 2542dbf848f80ea6a1613eb233c198d90471f552 Mon Sep 17 00:00:00 2001
+From: Yufeng Shen <miletus@chromium.org>
+Date: Wed, 12 Sep 2012 12:42:16 -0400
+Subject: [PATCH 47/57] CHROMIUM: Input: atmel_mxt_ts - enable RPTEN if can
+ wakeup from suspend
+
+Currently when going into suspend and if wakeup is enabled,
+the driver will check whether the T9_ctrl ENABLE bit is set and
+if not, it will toggle the bit so that T9 object is enabled
+to make wakeup possible during suspend.
+
+With recent change to T9_ctrl's default value to be 0x81, it
+is enabled (ENABLE bit set) but not reporting (RPTEN bit not
+set) which prevents touches reported back during suspend.
+
+To fix this, this patches adds checking that whether both ENABLE
+and RPTEN bits are set, and if not, set both of them.
+
+Signed-off-by: Yufeng Shen <miletus@chromium.org>
+
+BUG=chrome-os-partner:9192
+TEST=Use powerd_suspend to supend the device and then make sure
+     touching the touch device wakes up the system.
+
+Change-Id: I234531ae91627f7e1cccbef5810a18a5af6cbae9
+Reviewed-on: https://gerrit.chromium.org/gerrit/33088
+Reviewed-by: Vadim Bendebury <vbendeb@chromium.org>
+Reviewed-by: Benson Leung <bleung@chromium.org>
+Commit-Ready: Yufeng Shen <miletus@chromium.org>
+Tested-by: Yufeng Shen <miletus@chromium.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 35 ++++++++++++++++++++++++--------
+ 1 file changed, 26 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index ae8a6f3..d7cd1a5 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -2709,10 +2709,26 @@ static void mxt_suspend_enable_T9(struct mxt_data *data)
+ 	u8 T9_ctrl = MXT_TOUCH_CTRL_ENABLE | MXT_TOUCH_CTRL_RPTEN;
+ 	int ret;
+ 	unsigned long timeout = msecs_to_jiffies(350);
++	bool need_enable = false;
++	bool need_report = false;
+ 
+-	INIT_COMPLETION(data->auto_cal_completion);
++	dev_dbg(dev, "Current T9_Ctrl is %x\n", data->T9_ctrl);
+ 
+-	/* Enable T9 object */
++	need_enable = !(data->T9_ctrl & MXT_TOUCH_CTRL_ENABLE);
++	need_report = !(data->T9_ctrl & MXT_TOUCH_CTRL_RPTEN);
++
++	/* If already enabled and reporting, do nothing */
++	if (!need_enable && !need_report)
++		return;
++
++	/* If the ENABLE bit is toggled, there will be auto-calibration msg.
++	 * We will have to clear this msg before going into suspend otherwise
++	 * it will wake up the device immediately
++	 */
++	if (need_enable)
++		INIT_COMPLETION(data->auto_cal_completion);
++
++	/* Enable T9 object (ENABLE and REPORT) */
+ 	ret = mxt_set_regs(data, MXT_TOUCH_MULTI_T9, 0, 0,
+ 			   &T9_ctrl, 1);
+ 	if (ret) {
+@@ -2720,10 +2736,12 @@ static void mxt_suspend_enable_T9(struct mxt_data *data)
+ 		return;
+ 	}
+ 
+-	ret = wait_for_completion_interruptible_timeout(
+-		&data->auto_cal_completion, timeout);
+-	if (ret <= 0)
+-		dev_err(dev, "Wait for auto cal completion failed.\n");
++	if (need_enable) {
++		ret = wait_for_completion_interruptible_timeout(
++			&data->auto_cal_completion, timeout);
++		if (ret <= 0)
++			dev_err(dev, "Wait for auto cal completion failed.\n");
++	}
+ }
+ 
+ static int mxt_suspend(struct device *dev)
+@@ -2773,9 +2791,8 @@ static int mxt_suspend(struct device *dev)
+ 		 * that IRQ can be generated from touch
+ 		 */
+ 
+-		/* Enable T9 only if it is not currently enabled */
+-		if (data->T9_ctrl_valid &&
+-		    !(data->T9_ctrl & MXT_TOUCH_CTRL_ENABLE))
++		/* Set proper T9 ENABLE & REPTN bits */
++		if (data->T9_ctrl_valid)
+ 			mxt_suspend_enable_T9(data);
+ 
+ 		/* Enable wake from IRQ */
+-- 
+1.8.1.4
+

@@ -1,0 +1,74 @@
+From 19c04e24969e12b1f8151b5170d43f38e1c8fbb4 Mon Sep 17 00:00:00 2001
+From: Benson Leung <bleung@chromium.org>
+Date: Thu, 23 Aug 2012 15:43:55 -0700
+Subject: [PATCH 46/57] CHROMIUM: Input: atmel_mxt_ts - save and restore
+ t9_ctrl on wakeup disabled
+
+Signed-off-by: Benson Leung <bleung@chromium.org>
+
+BUG=chrome-os-partner:12318
+TEST=Close and open the lid to suspend and resume the system.
+Make sure that the touchscreen does not generate a lot of
+stray events on resume.
+
+Change-Id: I57b34aab52149cc78cd55a79640b496239bbfa5e
+Reviewed-on: https://gerrit.chromium.org/gerrit/31270
+Reviewed-by: Yufeng Shen <miletus@chromium.org>
+Commit-Ready: Benson Leung <bleung@chromium.org>
+Tested-by: Benson Leung <bleung@chromium.org>
+
+v3.7 rebase:
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index af92d8d..ae8a6f3 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -2760,19 +2760,19 @@ static int mxt_suspend(struct device *dev)
+ 	if (ret)
+ 		dev_err(dev, "Set T7 Power config failed, %d\n", ret);
+ 
++	/* Save 1 byte T9 Ctrl config */
++	ret = mxt_save_regs(data, MXT_TOUCH_MULTI_T9, 0, 0,
++			    &data->T9_ctrl, 1);
++	if (ret)
++		dev_err(dev, "Save T9 ctrl config failed, %d\n", ret);
++	data->T9_ctrl_valid = (ret == 0);
++
+ 	if (device_may_wakeup(dev)) {
+ 		/*
+ 		 * If we allow wakeup from touch, we have to enable T9 so
+ 		 * that IRQ can be generated from touch
+ 		 */
+ 
+-		/* Save 1 byte T9 Ctrl config */
+-		ret = mxt_save_regs(data, MXT_TOUCH_MULTI_T9, 0, 0,
+-				    &data->T9_ctrl, 1);
+-		if (ret)
+-			dev_err(dev, "Save T9 ctrl config failed, %d\n", ret);
+-		data->T9_ctrl_valid = (ret == 0);
+-
+ 		/* Enable T9 only if it is not currently enabled */
+ 		if (data->T9_ctrl_valid &&
+ 		    !(data->T9_ctrl & MXT_TOUCH_CTRL_ENABLE))
+@@ -2814,13 +2814,11 @@ static int mxt_resume(struct device *dev)
+ 		disable_irq_wake(data->irq);
+ 
+ 	/* Restore the T9 Ctrl config to before-suspend value */
+-	if (device_may_wakeup(dev) && data->T9_ctrl_valid) {
++	if (data->T9_ctrl_valid) {
+ 		ret = mxt_set_regs(data, MXT_TOUCH_MULTI_T9, 0, 0,
+ 				   &data->T9_ctrl, 1);
+ 		if (ret)
+ 			dev_err(dev, "Set T9 ctrl config failed, %d\n", ret);
+-	} else if (input_dev->users) {
+-		mxt_start(data);
+ 	}
+ 
+ 	/* Restore the T7 Power config to before-suspend value */
+-- 
+1.8.1.4
+

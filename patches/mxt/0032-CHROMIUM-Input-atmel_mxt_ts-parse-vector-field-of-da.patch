@@ -1,0 +1,73 @@
+From e4a6d59b72be8feba849771b11ba2d4b146b8799 Mon Sep 17 00:00:00 2001
+From: Daniel Kurtz <djkurtz@chromium.org>
+Date: Mon, 20 Feb 2012 23:35:06 +0800
+Subject: [PATCH 32/57] CHROMIUM: Input: atmel_mxt_ts - parse vector field of
+ data packets
+
+The atmel_mxt_ts T9 data contains information orientation in its 'vector'
+field. Parse and debug print its contents, although its value isn't
+actually used yet.
+
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+
+BUG=chromium-os:27713
+TEST=builds clean; vector values are reported when DEBUG is defined.
+
+Change-Id: Ida4d9aa167e5134c76d044599240a6c7e329a62c
+Reviewed-on: https://gerrit.chromium.org/gerrit/17951
+Commit-Ready: Daniel Kurtz <djkurtz@chromium.org>
+Reviewed-by: Daniel Kurtz <djkurtz@chromium.org>
+Tested-by: Daniel Kurtz <djkurtz@chromium.org>
+
+v3.7 rebase:
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 71a5317..1882e14 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -719,6 +719,7 @@ static void mxt_input_touchevent(struct mxt_data *data,
+ 	int area;
+ 	int pressure;
+ 	int touch_major;
++	int vector1, vector2;
+ 
+ 	x = (message->message[1] << 4) | ((message->message[3] >> 4) & 0xf);
+ 	y = (message->message[2] << 4) | ((message->message[3] & 0xf));
+@@ -731,8 +732,12 @@ static void mxt_input_touchevent(struct mxt_data *data,
+ 	touch_major = get_touch_major_pixels(data, area);
+ 	pressure = message->message[5];
+ 
++	/* The two vector components are 4-bit signed ints (2s complement) */
++	vector1 = (signed)((signed char)message->message[6]) >> 4;
++	vector2 = (signed)((signed char)(message->message[6] << 4)) >> 4;
++
+ 	dev_dbg(dev,
+-		"[%u] %c%c%c%c%c%c%c%c x: %5u y: %5u area: %3u amp: %3u\n",
++		"[%u] %c%c%c%c%c%c%c%c x: %5u y: %5u area: %3u amp: %3u vector: [%d,%d]\n",
+ 		id,
+ 		(status & MXT_DETECT) ? 'D' : '.',
+ 		(status & MXT_PRESS) ? 'P' : '.',
+@@ -742,7 +747,7 @@ static void mxt_input_touchevent(struct mxt_data *data,
+ 		(status & MXT_AMP) ? 'A' : '.',
+ 		(status & MXT_SUPPRESS) ? 'S' : '.',
+ 		(status & MXT_UNGRIP) ? 'U' : '.',
+-		x, y, area, pressure);
++		x, y, area, pressure, vector1, vector2);
+ 
+ 	input_mt_slot(input_dev, id);
+ 	input_mt_report_slot_state(input_dev, MT_TOOL_FINGER,
+@@ -753,6 +758,7 @@ static void mxt_input_touchevent(struct mxt_data *data,
+ 		input_report_abs(input_dev, ABS_MT_POSITION_Y, y);
+ 		input_report_abs(input_dev, ABS_MT_PRESSURE, pressure);
+ 		input_report_abs(input_dev, ABS_MT_TOUCH_MAJOR, touch_major);
++		/* TODO: Use vector to report ORIENTATION & TOUCH_MINOR */
+ 	}
+ }
+ 
+-- 
+1.8.1.4
+

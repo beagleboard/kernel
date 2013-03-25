@@ -1,0 +1,85 @@
+From a2e702899a457d7890e352b2355f9329c02df6e6 Mon Sep 17 00:00:00 2001
+From: Yufeng Shen <miletus@chromium.org>
+Date: Wed, 14 Nov 2012 16:13:59 -0500
+Subject: [PATCH 50/57] CHROMIUM: Input: atmel_mxt_ts - recalibrate on system
+ resume
+
+In the suspend path, if we don't allow device wakeup, we put the
+chip into deepsleep mode and the chip stops scanning during suspen.
+On resume if the environment changes, the calibrated baseline before
+suspend will no longer be valid.
+
+In this patch we force a recalibration on resume if device wakeup is
+disabled during suspend to handle the environment change.
+
+Signed-off-by: Yufeng Shen <miletus@chromium.org>
+
+BUG=chrome-os-partner:16171
+TEST=I don't have a controlled environment to test this. So I only test
+     normal suspend/resume to make sure no noise touches happen on resume
+     and touch devices work as expected.
+     1. With lid open, using powerd_suspend to suspend the system. Wakeup
+     the system and make sure the touch device still works.
+     Run "demsg | grep atmel"  to make sure no calibration message reported.
+     2. Use lid close to suspend the system. Wakeup the system and make
+     sure touch device still works.
+     Run "demsg | grep atmel"  to make sure calibration message are reported.
+     3. Also notice the case of lid open caused system resume, if something is
+     on the touch surface (like opening the lid and quickly put the palm on the
+     touch surface for a while), the system will get calibrated into a wrong
+     baseline and touch device then won't work.
+
+Change-Id: I62cb47fa1c97917a2c0f968e41ee4cd13f12187c
+Reviewed-on: https://gerrit.chromium.org/gerrit/38051
+Reviewed-by: Benson Leung <bleung@chromium.org>
+Commit-Ready: Yufeng Shen <miletus@chromium.org>
+Tested-by: Yufeng Shen <miletus@chromium.org>
+
+v3.7 rebase:
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 8ca5288..9196e94 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -2936,11 +2936,6 @@ static int mxt_resume(struct device *dev)
+ 
+ 	mutex_lock(&input_dev->mutex);
+ 
+-	enable_irq(data->irq);
+-
+-	if (device_may_wakeup(dev) && data->irq_wake)
+-		disable_irq_wake(data->irq);
+-
+ 	/* Restore the T9 Ctrl config to before-suspend value */
+ 	if (data->T9_ctrl_valid) {
+ 		ret = mxt_set_regs(data, MXT_TOUCH_MULTI_T9, 0, 0,
+@@ -2957,8 +2952,22 @@ static int mxt_resume(struct device *dev)
+ 			dev_err(dev, "Set T7 power config failed, %d\n", ret);
+ 	}
+ 
++	if (!device_may_wakeup(dev)) {
++		/* Recalibration in case of environment change */
++		ret = mxt_write_object(data, MXT_GEN_COMMAND_T6,
++				       MXT_COMMAND_CALIBRATE, 1);
++		if (ret)
++			dev_err(dev, "Resume recalibration failed %d\n", ret);
++		msleep(MXT_CAL_TIME);
++	}
++
+ 	mutex_unlock(&input_dev->mutex);
+ 
++	enable_irq(data->irq);
++
++	if (device_may_wakeup(dev) && data->irq_wake)
++		disable_irq_wake(data->irq);
++
+ 	return 0;
+ }
+ #endif
+-- 
+1.8.1.4
+

@@ -1,0 +1,77 @@
+From 20309c599831af12d20c87c4b73fe9bd6bffaef7 Mon Sep 17 00:00:00 2001
+From: Benson Leung <bleung@chromium.org>
+Date: Mon, 28 Jan 2013 15:26:25 -0800
+Subject: [PATCH 57/57] CHROMIUM: Input: atmel_mxt_ts - Set T9 in mxt_resume
+ based on lid state
+
+This is an x86 specific change for the short term.
+When the lid is closed on resume, make sure T9 is disabled.
+to prevent the lid from affecting the touch device and causing
+stray touches. If lid is open, restore operational settings for T9.
+
+Signed-off-by: Benson Leung <bleung@chromium.org>
+
+BUG=chrome-os-partner:17465
+TEST=Close the lid to suspend in guest mode.
+Open the lid slowly, until you see the lights indicating resuming.
+Close the lid immediately upon seeing the system resume from
+the status light.
+The system should stay in S0. Check via ssh:
+cat /sys/kernel/debug/atmel_mxt_ts/2-004a/object
+Check that T9 is 0x00.
+On a normal suspend/resume, where the lid is opened,
+check that touch device is functional.
+
+Change-Id: Ibce1c8c000e4bd2a8f360bea2b116051eee35be7
+Reviewed-on: https://gerrit.chromium.org/gerrit/42184
+Reviewed-by: Puneet Kumar <puneetster@chromium.org>
+Commit-Queue: Benson Leung <bleung@chromium.org>
+Tested-by: Benson Leung <bleung@chromium.org>
+(cherry picked from commit 4201ff9f7a9e114c453932662d49e34047dee59c)
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 0865842..ca94635 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -2951,15 +2951,6 @@ static int mxt_suspend(struct device *dev)
+ 		dev_err(dev, "Save T9 ctrl config failed, %d\n", ret);
+ 	data->T9_ctrl_valid = (ret == 0);
+ 
+-#if defined(CONFIG_ACPI_BUTTON)
+-	ret = acpi_lid_open();
+-	if (ret == 0) {
+-		/* lid is closed. set T9_ctrl to operational on resume */
+-		data->T9_ctrl = MXT_TOUCH_CTRL_OPERATIONAL;
+-		data->T9_ctrl_valid = true;
+-	}
+-#endif
+-
+ 	/*
+ 	 *  For tpads, save T42 and T19 ctrl registers if may wakeup,
+ 	 *  enable large object suppression, and disable button wake.
+@@ -3040,6 +3031,19 @@ static int mxt_resume(struct device *dev)
+ 
+ 	mutex_lock(&input_dev->mutex);
+ 
++#if defined(CONFIG_ACPI_BUTTON)
++	ret = acpi_lid_open();
++	if (ret == 0) {
++		/* lid is closed. set T9_ctrl to non operational resume */
++		data->T9_ctrl = MXT_TOUCH_CTRL_OFF;
++		data->T9_ctrl_valid = true;
++	} else if (ret == 1) {
++		/* lid is open. Set to operational */
++		data->T9_ctrl = MXT_TOUCH_CTRL_OPERATIONAL;
++		data->T9_ctrl_valid = true;
++	}
++#endif
++
+ 	/* Restore the T9 Ctrl config to before-suspend value */
+ 	if (data->T9_ctrl_valid) {
+ 		ret = mxt_set_regs(data, MXT_TOUCH_MULTI_T9, 0, 0,
+-- 
+1.8.1.4
+

@@ -1,0 +1,125 @@
+From 6d30e9f66fccf512c5d064a9c8d49b6e9bcf5982 Mon Sep 17 00:00:00 2001
+From: Benson Leung <bleung@chromium.org>
+Date: Fri, 25 Jan 2013 17:45:56 -0800
+Subject: [PATCH 55/57] CHROMIUM: Input: atmel_mxt_ts - mxt_stop on lid close
+
+This is an x86 specific change for the short term.
+When the lid is closed, issue an mxt_stop to turn off scanning
+to prevent the lid from affecting the touch device and causing
+stray touches.
+
+Signed-off-by: Benson Leung <bleung@chromium.org>
+
+BUG=chrome-os-partner:17465
+TEST=From test mode, run evtest, and watch the atmel_mxt device.
+Close and open the lid. Make sure there are no touch data comes
+from the atmel driver when the lid is being closed.
+
+Change-Id: I2163384fc7cbd45c63d05983c50d2a869975a3c9
+Reviewed-on: https://gerrit.chromium.org/gerrit/42080
+Reviewed-by: Vincent Palatin <vpalatin@chromium.org>
+Commit-Queue: Benson Leung <bleung@chromium.org>
+Tested-by: Benson Leung <bleung@chromium.org>
+(cherry picked from commit 5391ebafb8f9b72475795445ca71b02815a2a229)
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 49 ++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 3f14d3b..cd900ee 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -25,6 +25,11 @@
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
+ 
++#if defined(CONFIG_ACPI_BUTTON)
++#include <acpi/button.h>
++#endif
++
++
+ /* Version */
+ #define MXT_VER_20		20
+ #define MXT_VER_21		21
+@@ -388,6 +393,11 @@ struct mxt_data {
+ 
+ 	/* map for the tracking id currently being used */
+ 	bool current_id[MXT_MAX_FINGER];
++
++#if defined(CONFIG_ACPI_BUTTON)
++	/* notifier block for acpi_lid_notifier */
++	struct notifier_block lid_notifier;
++#endif
+ };
+ 
+ /* global root node of the atmel_mxt_ts debugfs directory. */
+@@ -2601,6 +2611,24 @@ static void mxt_input_close(struct input_dev *dev)
+ 	mxt_stop(data);
+ }
+ 
++#if defined(CONFIG_ACPI_BUTTON)
++static int mxt_lid_notify(struct notifier_block *nb, unsigned long val,
++			   void *unused)
++{
++	struct mxt_data *data = container_of(nb, struct mxt_data, lid_notifier);
++
++	if (mxt_in_bootloader(data))
++		return NOTIFY_OK;
++
++	if (val == 0)
++		mxt_stop(data);
++	else
++		mxt_start(data);
++
++	return NOTIFY_OK;
++}
++#endif
++
+ static int mxt_input_dev_create(struct mxt_data *data)
+ {
+ 	struct input_dev *input_dev;
+@@ -2796,6 +2824,14 @@ static int mxt_probe(struct i2c_client *client,
+ 
+ 	async_schedule(mxt_initialize_async, data);
+ 
++#if defined(CONFIG_ACPI_BUTTON)
++	data->lid_notifier.notifier_call = mxt_lid_notify;
++	if (acpi_lid_notifier_register(&data->lid_notifier)) {
++		pr_info("lid notifier registration failed\n");
++		data->lid_notifier.notifier_call = NULL;
++	}
++#endif
++
+ 	return 0;
+ 
+ err_free_fw_file:
+@@ -2815,6 +2851,10 @@ static int mxt_remove(struct i2c_client *client)
+ 	free_irq(data->irq, data);
+ 	if (data->input_dev)
+ 		input_unregister_device(data->input_dev);
++#if defined(CONFIG_ACPI_BUTTON)
++	if (data->lid_notifier.notifier_call)
++		acpi_lid_notifier_unregister(&data->lid_notifier);
++#endif
+ 	kfree(data->object_table);
+ 	kfree(data->fw_file);
+ 	kfree(data->config_file);
+@@ -2910,6 +2950,15 @@ static int mxt_suspend(struct device *dev)
+ 		dev_err(dev, "Save T9 ctrl config failed, %d\n", ret);
+ 	data->T9_ctrl_valid = (ret == 0);
+ 
++#if defined(CONFIG_ACPI_BUTTON)
++	ret = acpi_lid_open();
++	if (ret == 0) {
++		/* lid is closed. set T9_ctrl to operational on resume */
++		data->T9_ctrl = MXT_TOUCH_CTRL_OPERATIONAL;
++		data->T9_ctrl_valid = true;
++	}
++#endif
++
+ 	/*
+ 	 *  For tpads, save T42 and T19 ctrl registers if may wakeup,
+ 	 *  enable large object suppression, and disable button wake.
+-- 
+1.8.1.4
+

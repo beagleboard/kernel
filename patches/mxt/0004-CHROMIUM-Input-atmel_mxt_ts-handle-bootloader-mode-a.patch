@@ -1,0 +1,184 @@
+From 5690c5d3a9aee1c233c6552b6ed47775c5d6e507 Mon Sep 17 00:00:00 2001
+From: Daniel Kurtz <djkurtz@chromium.org>
+Date: Fri, 21 Dec 2012 09:26:54 +0800
+Subject: [PATCH 04/57] CHROMIUM: Input: atmel_mxt_ts - handle bootloader mode
+ at probe
+
+In some cases it is possible for a device to be in its bootloader at
+driver probe time.  This is detected by the driver when probe() is called
+with an i2c_client which has one of the Atmel Bootloader i2c addresses.
+
+In this case, we should load enough driver functionality to still loading
+new firmware using:
+  echo 1 > update_fw
+
+However, we must be very careful not to follow any code paths that would try
+to access the as-yet uninitialized object table or input device.
+In particular:
+ 1) mxt_remove calls input_unregister_device on input_dev.
+ 2) mxt_suspend/resume reads and writes from the object table.
+ 3) Spurious or bootloader induced interrupts
+
+Signed-off-by: Benson Leung <bleung@chromium.org>
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+
+BUG=chrome-os-partner:8733, chrome-os-partner:16507
+TEST=Interrupt a firmware update. Boot the system. Ensure
+ that the atmel_mxt_ts driver brings up the device using one of
+ the two MXT_BOOT i2c addresses. From there, it should be possible
+ to echo 1 > update_fw and recover.
+TEST=First, get the touch device into a bad state by doing the following:
+ 1. Modify chromeos/config/base.config and set CONFIG_TOUCHSCREEN_ATMEL_MXT=m
+ 2. Build, boot this kernel, and make sure that the touch device works.
+ 3. /opt/google/touch/firmware/chromeos-touch-firmwareupdate.sh \
+	-d atmel_mxt_ts -n maxtouch-ts.fw -f
+ 4. Before it can finish, CTRL-C to interrupt the firmware update.
+   This will ensure that the touch device is stuck in bootloader mode.
+TEST=No crash on mxt_remove:
+ 1. rmmod atmel_mxt_ts
+ 2. check that the system does not reboot.
+ 3. modprobe chromeos_mxt_ts
+TEST=No crash on suspend/resume:
+ 1. Close the lid to suspend the system.
+ 2. Open the lid to suspend the system.
+ 3. Check that the system did not reboot.
+
+Original-Change-Id: If86e6f0065bb24a5da340ac69adca4ac61d675c9
+Reviewed-on: https://gerrit.chromium.org/gerrit/19637
+Original-Change-Id: I83e517d21738cb75d0c2b0ab8bf16398044e52f3
+Reviewed-on: https://gerrit.chromium.org/gerrit/39022
+Reviewed-by: Yufeng Shen <miletus@chromium.org>
+Commit-Ready: Benson Leung <bleung@chromium.org>
+Tested-by: Benson Leung <bleung@chromium.org>
+
+v3.7 rebase:
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+
+Change-Id: I2b65ec6cc3c9506372499785f4f8599faf4aa353
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 51 +++++++++++++++++++++++++-------
+ 1 file changed, 40 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 9afc26e..6c2c712 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -324,6 +324,12 @@ static void mxt_dump_message(struct device *dev,
+ 		message->reportid, 7, message->message);
+ }
+ 
++static bool mxt_in_bootloader(struct mxt_data *data)
++{
++	struct i2c_client *client = data->client;
++	return (client->addr == MXT_BOOT_LOW || client->addr == MXT_BOOT_HIGH);
++}
++
+ static int mxt_i2c_recv(struct i2c_client *client, u8 *buf, size_t count)
+ {
+ 	int ret;
+@@ -584,6 +590,9 @@ static irqreturn_t mxt_interrupt(int irq, void *dev_id)
+ 	u8 reportid;
+ 	bool update_input = false;
+ 
++	if (mxt_in_bootloader(data))
++		goto end;
++
+ 	do {
+ 		if (mxt_read_message(data, &message)) {
+ 			dev_err(dev, "Failed to read message\n");
+@@ -975,6 +984,9 @@ static int mxt_load_fw(struct device *dev, const char *fn)
+ 		return ret;
+ 	}
+ 
++	if (mxt_in_bootloader(data))
++		goto bootloader_ready;
++
+ 	/* Change to the bootloader mode */
+ 	mxt_write_object(data, MXT_GEN_COMMAND_T6,
+ 			MXT_COMMAND_RESET, MXT_BOOT_VALUE);
+@@ -986,6 +998,7 @@ static int mxt_load_fw(struct device *dev, const char *fn)
+ 	else
+ 		client->addr = MXT_BOOT_HIGH;
+ 
++bootloader_ready:
+ 	ret = mxt_check_bootloader(client, MXT_WAITING_BOOTLOAD_CMD);
+ 	if (ret)
+ 		goto out;
+@@ -1196,25 +1209,34 @@ static int __devinit mxt_probe(struct i2c_client *client,
+ 
+ 	mxt_calc_resolution(data);
+ 
+-	error = mxt_initialize(data);
+-	if (error)
+-		goto err_free_mem;
++	if (mxt_in_bootloader(data)) {
++		dev_info(&client->dev, "Device in bootloader at probe\n");
++	} else {
++		error = mxt_initialize(data);
++		if (error)
++			goto err_free_mem;
+ 
+-	error = mxt_input_dev_create(data);
+-	if (error)
+-		goto err_free_object;
++		error = mxt_input_dev_create(data);
++		if (error)
++			goto err_free_object;
++	}
+ 
+ 	error = request_threaded_irq(client->irq, NULL, mxt_interrupt,
+ 				     pdata->irqflags | IRQF_ONESHOT,
+ 				     client->name, data);
+ 	if (error) {
+ 		dev_err(&client->dev, "Failed to register interrupt\n");
+-		goto err_unregister_device;
++		if (mxt_in_bootloader(data))
++			goto err_free_mem;
++		else
++			goto err_unregister_device;
+ 	}
+ 
+-	error = mxt_make_highchg(data);
+-	if (error)
+-		goto err_free_irq;
++	if (!mxt_in_bootloader(data)) {
++		error = mxt_make_highchg(data);
++		if (error)
++			goto err_free_irq;
++	}
+ 
+ 	error = sysfs_create_group(&client->dev.kobj, &mxt_attr_group);
+ 	if (error)
+@@ -1239,7 +1261,8 @@ static int mxt_remove(struct i2c_client *client)
+ 
+ 	sysfs_remove_group(&client->dev.kobj, &mxt_attr_group);
+ 	free_irq(data->irq, data);
+-	input_unregister_device(data->input_dev);
++	if (data->input_dev)
++		input_unregister_device(data->input_dev);
+ 	kfree(data->object_table);
+ 	kfree(data);
+ 
+@@ -1253,6 +1276,9 @@ static int mxt_suspend(struct device *dev)
+ 	struct mxt_data *data = i2c_get_clientdata(client);
+ 	struct input_dev *input_dev = data->input_dev;
+ 
++	if (mxt_in_bootloader(data))
++		return 0;
++
+ 	mutex_lock(&input_dev->mutex);
+ 
+ 	if (input_dev->users)
+@@ -1269,6 +1295,9 @@ static int mxt_resume(struct device *dev)
+ 	struct mxt_data *data = i2c_get_clientdata(client);
+ 	struct input_dev *input_dev = data->input_dev;
+ 
++	if (mxt_in_bootloader(data))
++		return 0;
++
+ 	/* Soft reset */
+ 	mxt_write_object(data, MXT_GEN_COMMAND_T6,
+ 			MXT_COMMAND_RESET, 1);
+-- 
+1.8.1.4
+

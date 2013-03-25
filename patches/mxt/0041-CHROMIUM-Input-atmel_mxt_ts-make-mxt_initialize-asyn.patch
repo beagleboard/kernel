@@ -1,0 +1,228 @@
+From c050f18ca343a8bf09b8a2e9ff51cf19c5eee7ad Mon Sep 17 00:00:00 2001
+From: Yufeng Shen <miletus@chromium.org>
+Date: Tue, 30 Oct 2012 16:06:51 -0400
+Subject: [PATCH 41/57] CHROMIUM: Input: atmel_mxt_ts - make mxt_initialize
+ async
+
+mxt_probe() calles mxt_initialize() to initialize the device, which includes
+a soft reset and then msleep for the reset to finish. This has big impact on
+the system boot time. This patch makes the mxt_initizlize() call async to
+reduce the system boot time.
+
+BUG=chrome-os-partner:15743
+TEST=Boot the device and check the kernel timestamp in dmesg to see that
+     the device initialization is parallelized.
+
+Signed-off-by: Yufeng Shen <miletus@chromium.org>
+
+Original-Change-Id: If106af37a52a0fa874cdc8255c91fdde36776e1f
+Reviewed-on: https://gerrit.chromium.org/gerrit/36964
+Reviewed-by: Benson Leung <bleung@chromium.org>
+Tested-by: Simon Que <sque@chromium.org>
+Commit-Ready: Yufeng Shen <miletus@chromium.org>
+
+v3.7 rebase:
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+[sonnyrao: removed __devinit for 3.8 rebase]
+
+Change-Id: I81785546c6a0ff87486e7ee92cb8bab8aefe2594
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 123 +++++++++++++++++++------------
+ 1 file changed, 74 insertions(+), 49 deletions(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 8f1a33f..315dcb9 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -13,6 +13,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/async.h>
+ #include <linux/completion.h>
+ #include <linux/debugfs.h>
+ #include <linux/delay.h>
+@@ -1286,14 +1287,14 @@ static int mxt_initialize(struct mxt_data *data)
+ 	error = mxt_write_object(data, MXT_GEN_COMMAND_T6,
+ 				 MXT_COMMAND_BACKUPNV, MXT_BACKUP_VALUE);
+ 	if (error)
+-		return error;
++		goto err_free_object_table;
+ 	msleep(MXT_BACKUP_TIME);
+ 
+ 	/* Soft reset */
+ 	error = mxt_write_object(data, MXT_GEN_COMMAND_T6,
+ 				 MXT_COMMAND_RESET, 1);
+ 	if (error)
+-		return error;
++		goto err_free_object_table;
+ 	msleep(MXT_RESET_TIME);
+ 
+ 	dev_info(&client->dev,
+@@ -2549,92 +2550,116 @@ err_free_device:
+ 	return error;
+ }
+ 
+-static int __devinit mxt_probe(struct i2c_client *client,
+-		const struct i2c_device_id *id)
++static void mxt_initialize_async(void *closure, async_cookie_t cookie)
+ {
+-	const struct mxt_platform_data *pdata = client->dev.platform_data;
+-	struct mxt_data *data;
++	struct mxt_data *data = closure;
++	struct i2c_client *client = data->client;
+ 	unsigned long irqflags;
+ 	int error;
+ 
+-	data = kzalloc(sizeof(struct mxt_data), GFP_KERNEL);
+-	if (!data) {
+-		dev_err(&client->dev, "Failed to allocate memory\n");
+-		return -ENOMEM;
+-	}
+-
+-	data->is_tp = !strcmp(id->name, "atmel_mxt_tp");
+-	snprintf(data->phys, sizeof(data->phys), "i2c-%u-%04x/input0",
+-		 client->adapter->nr, client->addr);
+-
+-	data->client = client;
+-	i2c_set_clientdata(client, data);
+-
+-	data->pdata = pdata;
+-	data->irq = client->irq;
+-
+-	init_completion(&data->bl_completion);
+-	init_completion(&data->auto_cal_completion);
+-
+-	error = mxt_update_file_name(&client->dev, &data->fw_file, MXT_FW_NAME,
+-				     strlen(MXT_FW_NAME));
+-	if (error)
+-		goto err_free_mem;
+-
+-	error = mxt_update_file_name(&client->dev, &data->config_file,
+-				     MXT_CONFIG_NAME, strlen(MXT_CONFIG_NAME));
+-	if (error)
+-		goto err_free_fw_file;
+-
+ 	if (mxt_in_bootloader(data)) {
+-		dev_info(&client->dev, "Device in bootloader at probe\n");
++		dev_info(&client->dev, "device in bootloader at probe\n");
+ 	} else {
+ 		error = mxt_initialize(data);
+ 		if (error)
+-			goto err_free_cfg_file;
++			goto error_free_mem;
+ 
+ 		error = mxt_input_dev_create(data);
+ 		if (error)
+-			goto err_free_object;
++			goto error_free_object;
+ 	}
+ 
+ 	/* Default to falling edge if no platform data provided */
+-	irqflags = pdata ? pdata->irqflags : IRQF_TRIGGER_FALLING;
++	irqflags = data->pdata ? data->pdata->irqflags : IRQF_TRIGGER_FALLING;
+ 	error = request_threaded_irq(client->irq, NULL, mxt_interrupt,
+ 				     irqflags | IRQF_ONESHOT,
+ 				     client->name, data);
+ 	if (error) {
+ 		dev_err(&client->dev, "Failed to register interrupt\n");
+ 		if (mxt_in_bootloader(data))
+-			goto err_free_mem;
++			goto error_free_mem;
+ 		else
+-			goto err_unregister_device;
++			goto error_unregister_device;
+ 	}
+ 
+ 	if (!mxt_in_bootloader(data)) {
+ 		error = mxt_handle_messages(data);
+ 		if (error)
+-			goto err_free_irq;
++			goto error_free_irq;
+ 	}
+ 
+-	error = sysfs_create_group(&client->dev.kobj, &mxt_attr_group);
++	/* Force the device to report back status so we can cache the device
++	 * config checksum
++	 */
++	error = mxt_write_object(data, MXT_GEN_COMMAND_T6,
++				 MXT_COMMAND_REPORTALL, 1);
+ 	if (error)
+-		goto err_free_irq;
++		dev_warn(&client->dev, "error making device report status.\n");
++
++	error = sysfs_create_group(&client->dev.kobj, &mxt_attr_group);
++	if (error) {
++		dev_err(&client->dev, "error creating sysfs entries.\n");
++		goto error_free_irq;
++	}
+ 
+ 	error = mxt_debugfs_init(data);
+ 	if (error)
+ 		dev_warn(&client->dev, "error creating debugfs entries.\n");
+ 
+-	return 0;
++	return;
+ 
+-err_free_irq:
++error_free_irq:
+ 	free_irq(client->irq, data);
+-err_unregister_device:
++error_unregister_device:
+ 	input_unregister_device(data->input_dev);
+-err_free_object:
++error_free_object:
+ 	kfree(data->object_table);
+-err_free_cfg_file:
++error_free_mem:
++	kfree(data->fw_file);
+ 	kfree(data->config_file);
++	kfree(data);
++}
++
++static int mxt_probe(struct i2c_client *client,
++		const struct i2c_device_id *id)
++{
++	const struct mxt_platform_data *pdata = client->dev.platform_data;
++	struct mxt_data *data;
++	int error;
++
++	data = kzalloc(sizeof(struct mxt_data), GFP_KERNEL);
++	if (!data) {
++		dev_err(&client->dev, "Failed to allocate memory\n");
++		return -ENOMEM;
++	}
++
++	data->is_tp = !strcmp(id->name, "atmel_mxt_tp");
++	snprintf(data->phys, sizeof(data->phys), "i2c-%u-%04x/input0",
++		 client->adapter->nr, client->addr);
++
++	data->client = client;
++	i2c_set_clientdata(client, data);
++
++	data->pdata = pdata;
++	data->irq = client->irq;
++
++	init_completion(&data->bl_completion);
++	init_completion(&data->auto_cal_completion);
++
++	error = mxt_update_file_name(&client->dev, &data->fw_file, MXT_FW_NAME,
++				     strlen(MXT_FW_NAME));
++	if (error)
++		goto err_free_mem;
++
++	error = mxt_update_file_name(&client->dev, &data->config_file,
++				     MXT_CONFIG_NAME, strlen(MXT_CONFIG_NAME));
++	if (error)
++		goto err_free_fw_file;
++
++	async_schedule(mxt_initialize_async, data);
++
++	return 0;
++
+ err_free_fw_file:
+ 	kfree(data->fw_file);
+ err_free_mem:
+-- 
+1.8.1.4
+

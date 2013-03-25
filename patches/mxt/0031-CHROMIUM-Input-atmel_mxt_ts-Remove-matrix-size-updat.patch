@@ -1,0 +1,69 @@
+From a955d29cdd5d1a203f10c5e798c6f402d24f4a01 Mon Sep 17 00:00:00 2001
+From: Yufeng Shen <miletus@chromium.org>
+Date: Tue, 1 May 2012 17:31:04 -0400
+Subject: [PATCH 31/57] CHROMIUM: Input: atmel_mxt_ts - Remove matrix size
+ update
+
+The matrix x/y size in the Info Block represents the max x/y lines
+availble on the device and it will only be updated by the firmware
+but not the platform data configuration, which sets the x/y lines
+in T9 object.
+
+BUG=None
+TEST=None
+
+Change-Id: I18e4f9855fe2018c2b55256ce25821a6197b9f81
+Signed-off-by: Yufeng Shen <miletus@chromium.org>
+Reviewed-on: https://gerrit.chromium.org/gerrit/21547
+
+v3.7 rebase:
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 17 -----------------
+ 1 file changed, 17 deletions(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 8dfdba9..71a5317 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -603,11 +603,6 @@ static int __mxt_read_reg(struct i2c_client *client,
+ 	return ret;
+ }
+ 
+-static int mxt_read_reg(struct i2c_client *client, u16 reg, u8 *val)
+-{
+-	return __mxt_read_reg(client, reg, 1, val);
+-}
+-
+ static int __mxt_write_reg(struct i2c_client *client, u16 reg, u16 len,
+ 			   const void *val)
+ {
+@@ -1195,7 +1190,6 @@ static int mxt_initialize(struct mxt_data *data)
+ 	struct i2c_client *client = data->client;
+ 	struct mxt_info *info = &data->info;
+ 	int error;
+-	u8 val;
+ 
+ 	error = mxt_get_info(data);
+ 	if (error)
+@@ -1235,17 +1229,6 @@ static int mxt_initialize(struct mxt_data *data)
+ 		return error;
+ 	msleep(MXT_RESET_TIME);
+ 
+-	/* Update matrix size at info struct */
+-	error = mxt_read_reg(client, MXT_MATRIX_X_SIZE, &val);
+-	if (error)
+-		goto err_free_object_table;
+-	info->matrix_xsize = val;
+-
+-	error = mxt_read_reg(client, MXT_MATRIX_Y_SIZE, &val);
+-	if (error)
+-		goto err_free_object_table;
+-	info->matrix_ysize = val;
+-
+ 	dev_info(&client->dev,
+ 			"Family ID: %u Variant ID: %u Major.Minor.Build: %u.%u.%02X\n",
+ 			info->family_id, info->variant_id, info->version >> 4,
+-- 
+1.8.1.4
+

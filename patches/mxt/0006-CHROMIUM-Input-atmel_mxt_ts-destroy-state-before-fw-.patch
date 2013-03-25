@@ -1,0 +1,55 @@
+From 643958c146035007757ebf4a34d873aa9413cbc3 Mon Sep 17 00:00:00 2001
+From: Daniel Kurtz <djkurtz@chromium.org>
+Date: Thu, 20 Dec 2012 23:38:08 +0800
+Subject: [PATCH 06/57] CHROMIUM: Input: atmel_mxt_ts - destroy state before fw
+ update and restore after
+
+After firmware update, the device may have a completely different object
+table which corresponds to an input device with different properties.
+So, destroy the old state before firmware update, and completely
+reinitialize the driver afterward.
+
+Two benefits of this:
+ 1) Since there is no input device during fw update, no need to worry
+about device open/close events.
+ 2) If firmware update fails, the device and driver will still be in
+bootloader mode and an improperly configured input device will not exist.
+
+Change-Id: I42e6b946e2206b4957c313be00b9b45b9dd02b60
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 76a25d3..c74f5a5 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -1001,6 +1001,13 @@ static int mxt_load_fw(struct device *dev, const char *fn)
+ 		client->addr = MXT_BOOT_HIGH;
+ 
+ bootloader_ready:
++	/* Free any driver state. It will get reinitialized after fw update. */
++	mxt_free_object_table(data);
++	if (data->input_dev) {
++		input_unregister_device(data->input_dev);
++		data->input_dev = NULL;
++	}
++
+ 	ret = mxt_check_bootloader(client, MXT_WAITING_BOOTLOAD_CMD);
+ 	if (ret)
+ 		goto out;
+@@ -1068,9 +1075,8 @@ static ssize_t mxt_update_fw_store(struct device *dev,
+ 		/* Wait for reset */
+ 		msleep(MXT_FWRESET_TIME);
+ 
+-		mxt_free_object_table(data);
+-
+ 		mxt_initialize(data);
++		mxt_input_dev_create(data);
+ 	}
+ 
+ 	enable_irq(data->irq);
+-- 
+1.8.1.4
+

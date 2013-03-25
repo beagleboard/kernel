@@ -1,0 +1,53 @@
+From b6b63e04312bfede1e9dab39cb25abfef3d1a3aa Mon Sep 17 00:00:00 2001
+From: Daniel Kurtz <djkurtz@chromium.org>
+Date: Thu, 31 Jan 2013 17:43:07 +0800
+Subject: [PATCH 56/57] CHROMIUM: Input: atmel_mxt_ts - Disable T9 on mxt_stop
+
+Instead of using 0x81 to keep the object enabled,
+disable T9 on mxt_stop by writing 0x00 to it.
+
+Signed-off-by: Benson Leung <bleung@chromium.org>
+
+BUG=chrome-os-partner:17465
+TEST=stop powerd (on R25 also stop powerm)
+close the lid, or use a magnet to trigger the lid sensor.
+cat /sys/kernel/debug/atmel_mxt_ts/2-004a/object
+Look for Type: 9, byte 0. Check that this is 0x00
+when lid is closed. When opened, this should return
+to 0x83.
+
+Change-Id: If794e121d1b61186fee9e5b9f97b922549d7beb8
+Reviewed-on: https://gerrit.chromium.org/gerrit/42183
+Reviewed-by: Puneet Kumar <puneetster@chromium.org>
+Commit-Queue: Benson Leung <bleung@chromium.org>
+Tested-by: Benson Leung <bleung@chromium.org>
+(cherry picked from commit 65caaf9e0697899cd5e21eb643e018298adc781a)
+[djkurtz: v3.6 merge]
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index cd900ee..0865842 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -174,6 +174,7 @@
+ 					 MXT_TOUCH_CTRL_RPTEN)
+ #define MXT_TOUCH_CTRL_SCANNING		(MXT_TOUCH_CTRL_ENABLE | \
+ 					 MXT_TOUCH_CTRL_SCANEN)
++#define MXT_TOUCH_CTRL_OFF		0x0
+ 
+ /* MXT_PROCI_GRIPFACE_T20 field */
+ #define MXT_GRIPFACE_CTRL	0
+@@ -2592,7 +2593,7 @@ static void mxt_stop(struct mxt_data *data)
+ {
+ 	/* Disable touch reporting */
+ 	mxt_write_object(data, MXT_TOUCH_MULTI_T9, MXT_TOUCH_CTRL,
+-			 MXT_TOUCH_CTRL_SCANNING);
++			 MXT_TOUCH_CTRL_OFF);
+ }
+ 
+ static int mxt_input_open(struct input_dev *dev)
+-- 
+1.8.1.4
+

@@ -1,0 +1,66 @@
+From 63dcd1d1ba5838aa11329fa4492291fac42a7f69 Mon Sep 17 00:00:00 2001
+From: Benson Leung <bleung@chromium.org>
+Date: Tue, 7 Aug 2012 19:48:12 -0700
+Subject: [PATCH 42/57] CHROMIUM: Input: atmel_mxt_ts - move backup_nv to
+ handle_pdata
+
+Now that we conditionally load configs from pdata only if pdata exists,
+we no longer need to backup_nv in mxt_initialize.
+Backup nv should only be done if config data
+was provided as a part of platform data. This will save 270ms for
+backup to nv wait.
+
+Signed-off-by: Benson Leung <bleung@chromium.org>
+
+BUG=chromium-os:33370
+TEST=Boot on a system with a touch device instantiated without
+pdata. Ensure that device is still functional, but that
+270ms has been saved until the input device is created.
+
+Change-Id: I44ecf9237db2f866787c72e03e8962ca285db865
+Reviewed-on: https://gerrit.chromium.org/gerrit/29571
+Commit-Ready: Benson Leung <bleung@chromium.org>
+Reviewed-by: Benson Leung <bleung@chromium.org>
+Tested-by: Benson Leung <bleung@chromium.org>
+
+v3.7 rebase:
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 315dcb9..bdbcc60 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -1084,6 +1084,13 @@ static int mxt_handle_pdata(struct mxt_data *data)
+ 				MXT_CTE_VOLTAGE, voltage);
+ 	}
+ 
++	/* Backup to memory */
++	ret = mxt_write_object(data, MXT_GEN_COMMAND_T6,
++			       MXT_COMMAND_BACKUPNV, MXT_BACKUP_VALUE);
++	if (ret)
++		return ret;
++	msleep(MXT_BACKUP_TIME);
++
+ 	return 0;
+ }
+ 
+@@ -1283,13 +1290,6 @@ static int mxt_initialize(struct mxt_data *data)
+ 	if (error)
+ 		goto err_free_object_table;
+ 
+-	/* Backup to memory */
+-	error = mxt_write_object(data, MXT_GEN_COMMAND_T6,
+-				 MXT_COMMAND_BACKUPNV, MXT_BACKUP_VALUE);
+-	if (error)
+-		goto err_free_object_table;
+-	msleep(MXT_BACKUP_TIME);
+-
+ 	/* Soft reset */
+ 	error = mxt_write_object(data, MXT_GEN_COMMAND_T6,
+ 				 MXT_COMMAND_RESET, 1);
+-- 
+1.8.1.4
+

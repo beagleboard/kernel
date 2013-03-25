@@ -1,0 +1,59 @@
+From 61e237112542e9b70fea1a97f5b7b2d4ba2c9fc5 Mon Sep 17 00:00:00 2001
+From: Yufeng Shen <miletus@chromium.org>
+Date: Mon, 14 May 2012 12:06:29 -0400
+Subject: [PATCH 35/57] CHROMIUM: Input: atmel_mxt_ts - Set default irqflags
+ when there is no pdata
+
+This is the preparation for supporting the code path when there is
+platform data provided and still boot the device into a sane state
+with backup NVRAM config.
+
+This CL makes the irqflags default to be IRQF_TRIGGER_FALLING if no
+platform data is provided.
+
+Signed-off-by: Yufeng Shen <miletus@chromium.org>
+
+BUG=chrome-os-partner:9103
+TEST=The code path for no pdata is not supported yet, so no test can
+     be done at this point. And no funtional change along the normal
+     code path with platform data provided.
+
+Change-Id: Icea0fff544c77b38eb380851d7e7d8f857b76745
+Reviewed-on: https://gerrit.chromium.org/gerrit/22417
+Reviewed-by: Daniel Kurtz <djkurtz@chromium.org>
+Commit-Ready: Yufeng Shen <miletus@chromium.org>
+Tested-by: Yufeng Shen <miletus@chromium.org>
+
+v3.7 rebase:
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 3ea35d1..ec1077b 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -2139,6 +2139,7 @@ static int __devinit mxt_probe(struct i2c_client *client,
+ {
+ 	const struct mxt_platform_data *pdata = client->dev.platform_data;
+ 	struct mxt_data *data;
++	unsigned long irqflags;
+ 	int error;
+ 
+ 	if (!pdata)
+@@ -2174,8 +2175,10 @@ static int __devinit mxt_probe(struct i2c_client *client,
+ 			goto err_free_object;
+ 	}
+ 
++	/* Default to falling edge if no platform data provided */
++	irqflags = pdata ? pdata->irqflags : IRQF_TRIGGER_FALLING;
+ 	error = request_threaded_irq(client->irq, NULL, mxt_interrupt,
+-				     pdata->irqflags | IRQF_ONESHOT,
++				     irqflags | IRQF_ONESHOT,
+ 				     client->name, data);
+ 	if (error) {
+ 		dev_err(&client->dev, "Failed to register interrupt\n");
+-- 
+1.8.1.4
+

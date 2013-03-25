@@ -1,0 +1,114 @@
+From 9b5862b00c674ce6b4f4bc4d37cfc6b9225f1cff Mon Sep 17 00:00:00 2001
+From: Yufeng Shen <miletus@chromium.org>
+Date: Mon, 14 May 2012 12:29:52 -0400
+Subject: [PATCH 36/57] CHROMIUM: Input: atmel_mxt_ts - Support the case with
+ no platform data
+
+Add the support that the device finishes initialization even when no
+platform data is provided. Most of the time the device needs configured
+only once and later on it can just use backed up config from NVRAM.
+So the code path with no platform saves on device initialization time.
+
+Rename mxt_check_reg_init() to be mxt_apply_pdata_config() and move it
+into mxt_handle_pdata() so that all the platform data processing is in
+one fucntion.
+
+Signed-off-by: Yufeng Shen <miletus@chromium.org>
+
+BUG=chrome-os-partner:9103
+TEST=Rebuild the kernel with no platform data provided, boot the device
+     with a previously working atmel chip, and make sure the atmel chip
+     still works.
+
+Change-Id: I2440c58ab9b9baa1160406827ba9d08aee52a554
+Reviewed-on: https://gerrit.chromium.org/gerrit/22587
+Commit-Ready: Yufeng Shen <miletus@chromium.org>
+Reviewed-by: Yufeng Shen <miletus@chromium.org>
+Tested-by: Yufeng Shen <miletus@chromium.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index ec1077b..3dbaa3c 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -959,7 +959,7 @@ static irqreturn_t mxt_interrupt(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int mxt_check_reg_init(struct mxt_data *data)
++static int mxt_apply_pdata_config(struct mxt_data *data)
+ {
+ 	const struct mxt_platform_data *pdata = data->pdata;
+ 	struct mxt_object *object;
+@@ -969,7 +969,7 @@ static int mxt_check_reg_init(struct mxt_data *data)
+ 	int ret;
+ 
+ 	if (!pdata->config) {
+-		dev_dbg(dev, "No cfg data defined, skipping reg init\n");
++		dev_info(dev, "No cfg data defined, skipping reg init\n");
+ 		return 0;
+ 	}
+ 
+@@ -995,10 +995,21 @@ static int mxt_check_reg_init(struct mxt_data *data)
+ 	return 0;
+ }
+ 
+-static void mxt_handle_pdata(struct mxt_data *data)
++static int mxt_handle_pdata(struct mxt_data *data)
+ {
+ 	const struct mxt_platform_data *pdata = data->pdata;
++	struct device *dev = &data->client->dev;
+ 	u8 voltage;
++	int ret;
++
++	if (!pdata) {
++		dev_info(dev, "No platform data provided\n");
++		return 0;
++	}
++
++	ret = mxt_apply_pdata_config(data);
++	if (ret)
++		return ret;
+ 
+ 	/* Set touchscreen lines */
+ 	mxt_write_object(data, MXT_TOUCH_MULTI_T9, MXT_TOUCH_XSIZE,
+@@ -1041,6 +1052,8 @@ static void mxt_handle_pdata(struct mxt_data *data)
+ 		mxt_write_object(data, MXT_SPT_CTECONFIG_T28,
+ 				MXT_CTE_VOLTAGE, voltage);
+ 	}
++
++	return 0;
+ }
+ 
+ /* Update 24-bit CRC with two new bytes of data */
+@@ -1234,13 +1247,11 @@ static int mxt_initialize(struct mxt_data *data)
+ 	if (error)
+ 		goto err_free_object_table;
+ 
+-	/* Check register init values */
+-	error = mxt_check_reg_init(data);
++	/* Apply config from platform data */
++	error = mxt_handle_pdata(data);
+ 	if (error)
+ 		goto err_free_object_table;
+ 
+-	mxt_handle_pdata(data);
+-
+ 	/* Backup to memory */
+ 	error = mxt_write_object(data, MXT_GEN_COMMAND_T6,
+ 				 MXT_COMMAND_BACKUPNV, MXT_BACKUP_VALUE);
+@@ -2142,9 +2153,6 @@ static int __devinit mxt_probe(struct i2c_client *client,
+ 	unsigned long irqflags;
+ 	int error;
+ 
+-	if (!pdata)
+-		return -EINVAL;
+-
+ 	data = kzalloc(sizeof(struct mxt_data), GFP_KERNEL);
+ 	if (!data) {
+ 		dev_err(&client->dev, "Failed to allocate memory\n");
+-- 
+1.8.1.4
+

@@ -1,0 +1,63 @@
+From ec27473b1ed2d70cb44ba0cb7114f22ef61b2d5b Mon Sep 17 00:00:00 2001
+From: Yufeng Shen <miletus@chromium.org>
+Date: Thu, 10 Jan 2013 15:00:42 -0500
+Subject: [PATCH 51/57] CHROMIUM: Input: atmel_mxt_ts: Use correct max
+ touch_major in mxt_release_all_fingers()
+
+We hard-coded the maximal touch_major value to be 255 in mxt_release_all_fingers().
+Fixing this by using the queried actual maximal touch_major value.
+
+Signed-off-by: Yufeng Shen <miletus@chromium.org>
+
+BUG=chrome-os-partner:17176
+TEST=1. Run evtest on the touch device
+     2. Keep touching the device while closing the lid.
+     3. Release the touch after the system suspends.
+     4. Open the lid to resume the system
+     5. Check evtest result and see that there is release events with correct
+        touch major value.
+
+Change-Id: I4c3bbb37c25c0df67c752a8b6943f6c127f01aa7
+Reviewed-on: https://gerrit.chromium.org/gerrit/41031
+Reviewed-by: Benson Leung <bleung@chromium.org>
+Commit-Queue: Yufeng Shen <miletus@chromium.org>
+Tested-by: Yufeng Shen <miletus@chromium.org>
+(cherry picked from commit 0a962d62165755547e4802da837ca9004f5d246b)
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 9196e94..893d59d 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -389,6 +389,7 @@ static int mxt_calc_resolution(struct mxt_data *data);
+ static void mxt_free_object_table(struct mxt_data *data);
+ static int mxt_initialize(struct mxt_data *data);
+ static int mxt_input_dev_create(struct mxt_data *data);
++static int get_touch_major_pixels(struct mxt_data *data, int touch_channels);
+ 
+ static inline size_t mxt_obj_size(const struct mxt_object *obj)
+ {
+@@ -492,6 +493,8 @@ static void mxt_release_all_fingers(struct mxt_data *data)
+ 	struct device *dev = &data->client->dev;
+ 	struct input_dev *input_dev = data->input_dev;
+ 	int id;
++	int max_area_channels = min(255U, data->max_area_channels);
++	int max_touch_major = get_touch_major_pixels(data, max_area_channels);
+ 	bool need_update = false;
+ 	for (id = 0; id < MXT_MAX_FINGER; id++) {
+ 		if (data->current_id[id]) {
+@@ -502,7 +505,8 @@ static void mxt_release_all_fingers(struct mxt_data *data)
+ 			input_report_abs(input_dev, ABS_MT_POSITION_X, 0);
+ 			input_report_abs(input_dev, ABS_MT_POSITION_Y, 0);
+ 			input_report_abs(input_dev, ABS_MT_PRESSURE, 255);
+-			input_report_abs(input_dev, ABS_MT_TOUCH_MAJOR, 255);
++			input_report_abs(input_dev, ABS_MT_TOUCH_MAJOR,
++					 max_touch_major);
+ 			need_update = true;
+ 		}
+ 	}
+-- 
+1.8.1.4
+

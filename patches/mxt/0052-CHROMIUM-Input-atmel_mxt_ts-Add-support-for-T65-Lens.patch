@@ -1,0 +1,74 @@
+From 30eda839cef35658487cfe3da403ce847af83089 Mon Sep 17 00:00:00 2001
+From: Benson Leung <bleung@chromium.org>
+Date: Wed, 9 Jan 2013 17:30:44 -0800
+Subject: [PATCH 52/57] CHROMIUM: Input: atmel_mxt_ts - Add support for T65,
+ Lensbending Correction
+
+Add T65 object to list of supported objects, and mark it readable
+and writable.
+
+Signed-off-by: Benson Leung <bleung@chromium.org>
+
+BUG=chrome-os-partner:17253
+TEST=cat /sys/kernel/debug/atmel_mxt_ts/2-004a/object
+Check that the following object appears:
+Type: 65
+	[ 0]: 00 (0)
+	[ 1]: 00 (0)
+	[ 2]: 00 (0)
+	[ 3]: 00 (0)
+	[ 4]: 00 (0)
+	[ 5]: 00 (0)
+	[ 6]: 00 (0)
+	[ 7]: 00 (0)
+	[ 8]: 00 (0)
+	[ 9]: 00 (0)
+	[10]: 00 (0)
+	[11]: 00 (0)
+	[12]: 00 (0)
+	[13]: 00 (0)
+	[14]: 00 (0)
+	[15]: 00 (0)
+	[16]: 00 (0)
+
+Change-Id: I8400bd53d619ff0e4af4c4d5ae7f54bb5dc6e9b8
+Reviewed-on: https://gerrit.chromium.org/gerrit/41310
+Reviewed-by: Yufeng Shen <miletus@chromium.org>
+Commit-Queue: Benson Leung <bleung@chromium.org>
+Tested-by: Benson Leung <bleung@chromium.org>
+(cherry picked from commit 5fd7e4778bd22252de5611a894d061a3bb64c4a2)
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 893d59d..fdf61b8 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -86,6 +86,7 @@
+ #define MXT_PROCI_SHIELDLESS_T56	56
+ #define MXT_PROCI_EXTRATOUCHSCREENDATA_T57	57
+ #define MXT_PROCG_NOISESUPPRESSION_T62	62
++#define MXT_PROCI_LENSBENDING_T65	65
+ #define MXT_SPT_COMMSCONFIG_T18		18
+ #define MXT_SPT_GPIOPWM_T19		19
+ #define MXT_SPT_SELFTEST_T25		25
+@@ -425,6 +426,7 @@ static bool mxt_object_readable(unsigned int type)
+ 	case MXT_PROCI_SHIELDLESS_T56:
+ 	case MXT_PROCI_EXTRATOUCHSCREENDATA_T57:
+ 	case MXT_PROCG_NOISESUPPRESSION_T62:
++	case MXT_PROCI_LENSBENDING_T65:
+ 	case MXT_SPT_COMMSCONFIG_T18:
+ 	case MXT_SPT_GPIOPWM_T19:
+ 	case MXT_SPT_SELFTEST_T25:
+@@ -462,6 +464,7 @@ static bool mxt_object_writable(unsigned int type)
+ 	case MXT_PROCI_SHIELDLESS_T56:
+ 	case MXT_PROCI_EXTRATOUCHSCREENDATA_T57:
+ 	case MXT_PROCG_NOISESUPPRESSION_T62:
++	case MXT_PROCI_LENSBENDING_T65:
+ 	case MXT_SPT_COMMSCONFIG_T18:
+ 	case MXT_SPT_GPIOPWM_T19:
+ 	case MXT_SPT_SELFTEST_T25:
+-- 
+1.8.1.4
+

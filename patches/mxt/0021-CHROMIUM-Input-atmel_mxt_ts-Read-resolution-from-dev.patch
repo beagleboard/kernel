@@ -1,0 +1,134 @@
+From b14c4f82d5bc81f20828c425d35ebb87b52f9e0b Mon Sep 17 00:00:00 2001
+From: Yufeng Shen <miletus@chromium.org>
+Date: Tue, 1 May 2012 16:58:46 -0400
+Subject: [PATCH 21/57] CHROMIUM: Input: atmel_mxt_ts - Read resolution from
+ device memory
+
+Currently mxt_calc_resolution() computes device resolution from
+provided platform data. Since we are going to support loading
+configuration data from file instead of platform data, we rework
+mxt_calc_resolution() so it reads the actual resolution from the
+configured device memory.
+
+And also move mxt_calc_resolution() into mxt_initialize() after
+the device is configured.
+
+BUG=chrome-os-partner:9103
+TEST=Use evtest to check that the range of ABS_X/Y and
+     ABS_MT_POSITION_X/Y are correct.
+
+Change-Id: Ibf66af4c656b138b52ce5608d7357bf15ee423ac
+Signed-off-by: Yufeng Shen <miletus@chromium.org>
+Reviewed-on: https://gerrit.chromium.org/gerrit/21544
+Reviewed-by: Daniel Kurtz <djkurtz@chromium.org>
+
+v3.7 rebase:
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 51 +++++++++++++++++++++++++-------
+ 1 file changed, 40 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 3b9007c..95abf18 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -299,6 +299,7 @@ struct mxt_data {
+ /* global root node of the atmel_mxt_ts debugfs directory. */
+ static struct dentry *mxt_debugfs_root;
+ 
++static int mxt_calc_resolution(struct mxt_data *data);
+ static void mxt_free_object_table(struct mxt_data *data);
+ static int mxt_initialize(struct mxt_data *data);
+ static int mxt_input_dev_create(struct mxt_data *data);
+@@ -1131,14 +1132,17 @@ static int mxt_initialize(struct mxt_data *data)
+ 	mxt_handle_pdata(data);
+ 
+ 	/* Backup to memory */
+-	mxt_write_object(data, MXT_GEN_COMMAND_T6,
+-			MXT_COMMAND_BACKUPNV,
+-			MXT_BACKUP_VALUE);
++	error = mxt_write_object(data, MXT_GEN_COMMAND_T6,
++				 MXT_COMMAND_BACKUPNV, MXT_BACKUP_VALUE);
++	if (error)
++		return error;
+ 	msleep(MXT_BACKUP_TIME);
+ 
+ 	/* Soft reset */
+-	mxt_write_object(data, MXT_GEN_COMMAND_T6,
+-			MXT_COMMAND_RESET, 1);
++	error = mxt_write_object(data, MXT_GEN_COMMAND_T6,
++				 MXT_COMMAND_RESET, 1);
++	if (error)
++		return error;
+ 	msleep(MXT_RESET_TIME);
+ 
+ 	/* Update matrix size at info struct */
+@@ -1162,6 +1166,10 @@ static int mxt_initialize(struct mxt_data *data)
+ 			info->matrix_xsize, info->matrix_ysize,
+ 			info->object_num);
+ 
++	error = mxt_calc_resolution(data);
++	if (error)
++		return error;
++
+ 	return 0;
+ 
+ err_free_object_table:
+@@ -1169,18 +1177,41 @@ err_free_object_table:
+ 	return error;
+ }
+ 
+-static void mxt_calc_resolution(struct mxt_data *data)
++static int mxt_calc_resolution(struct mxt_data *data)
+ {
+-	unsigned int max_x = data->pdata->x_size - 1;
+-	unsigned int max_y = data->pdata->y_size - 1;
++	struct i2c_client *client = data->client;
++	u8 orient;
++	__le16 xyrange[2];
++	unsigned int max_x, max_y;
++	int ret;
+ 
+-	if (data->pdata->orient & MXT_XY_SWITCH) {
++	struct mxt_object *T9 = mxt_get_object(data, MXT_TOUCH_MULTI_T9);
++	if (T9 == NULL)
++		return -EINVAL;
++
++	/* Get touchscreen resolution */
++	ret = __mxt_read_reg(client, T9->start_address + MXT_TOUCH_XRANGE_LSB,
++			4, xyrange);
++	if (ret)
++		return ret;
++
++	ret = __mxt_read_reg(client, T9->start_address + MXT_TOUCH_ORIENT,
++			1, &orient);
++	if (ret)
++		return ret;
++
++	max_x = le16_to_cpu(xyrange[0]);
++	max_y = le16_to_cpu(xyrange[1]);
++
++	if (orient & MXT_XY_SWITCH) {
+ 		data->max_x = max_y;
+ 		data->max_y = max_x;
+ 	} else {
+ 		data->max_x = max_x;
+ 		data->max_y = max_y;
+ 	}
++
++	return 0;
+ }
+ 
+ /*
+@@ -1789,8 +1820,6 @@ static int __devinit mxt_probe(struct i2c_client *client,
+ 
+ 	init_completion(&data->bl_completion);
+ 
+-	mxt_calc_resolution(data);
+-
+ 	if (mxt_in_bootloader(data)) {
+ 		dev_info(&client->dev, "Device in bootloader at probe\n");
+ 	} else {
+-- 
+1.8.1.4
+
