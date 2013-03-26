@@ -1,0 +1,40 @@
+From fddfc56e770aca17b4173eb5aa1bee109f55f1b5 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Mon, 25 Mar 2013 15:47:28 +0200
+Subject: [PATCH 141/144] Remove I2C2 pins from expansion test
+
+It's too difficult for now to see how to test those.
+Temporarily take it out.
+---
+ firmware/capes/cape-bone-tester-00A0.dts | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/firmware/capes/cape-bone-tester-00A0.dts b/firmware/capes/cape-bone-tester-00A0.dts
+index a32165f..46f39bc 100644
+--- a/firmware/capes/cape-bone-tester-00A0.dts
++++ b/firmware/capes/cape-bone-tester-00A0.dts
+@@ -86,8 +86,8 @@
+ 
+ 					/* err, those two are used for I2C2 on the beaglebone */
+ 					/* you should boot with I2C2 disabled on the tester */
+-					0x17C 0x2f /* 19 I2C2_SCL   uart1_rtsn.gpio0[13]   */
+-					0x178 0x2f /* 20 I2C2_SDA   uart1_ctsn.gpio0[12]   */
++					// 0x17C 0x2f /* 19 I2C2_SCL   uart1_rtsn.gpio0[13]   */
++					// 0x178 0x2f /* 20 I2C2_SDA   uart1_ctsn.gpio0[12]   */
+ 
+ 					0x154 0x2f /* 21 UART2_TXD  spi0_d0.gpio0[3]       */
+ 					0x150 0x2f /* 22 UART2_RXD  spi0_sclk.gpio0[2]     */
+@@ -166,8 +166,8 @@
+ 
+ 					/* err, those two are used for I2C2 on the beaglebone */
+ 					/* you should boot with I2C2 disabled on the tester */
+-					0x17C 0x07 /* 19 I2C2_SCL   uart1_rtsn.gpio0[13]   */
+-					0x178 0x07 /* 20 I2C2_SDA   uart1_ctsn.gpio0[12]   */
++					// 0x17C 0x07 /* 19 I2C2_SCL   uart1_rtsn.gpio0[13]   */
++					// 0x178 0x07 /* 20 I2C2_SDA   uart1_ctsn.gpio0[12]   */
+ 
+ 					0x154 0x07 /* 21 UART2_TXD  spi0_d0.gpio0[3]       */
+ 					0x150 0x07 /* 22 UART2_RXD  spi0_sclk.gpio0[2]     */
+-- 
+1.8.1.4
+

@@ -1,0 +1,86 @@
+From 21f234b42b90bf4d24ad7beafc3c167429ccb2fb Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Mon, 25 Mar 2013 19:48:34 +0100
+Subject: [PATCH 138/144] add eMMC cape support
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ firmware/Makefile                        |  1 +
+ firmware/capes/BB-BONE-eMMC1-01-00A0.dts | 53 ++++++++++++++++++++++++++++++++
+ 2 files changed, 54 insertions(+)
+ create mode 100644 firmware/capes/BB-BONE-eMMC1-01-00A0.dts
+
+diff --git a/firmware/Makefile b/firmware/Makefile
+index 68f620c..3f41d45 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -149,6 +149,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	cape-bone-lcd3-00A2.dtbo \
+ 	BB-BONE-LCD7-01-00A2.dtbo \
+ 	BB-BONE-LCD7-01-00A4.dtbo \
++	BB-BONE-eMMC1-01-00A0.dtbo \
+ 	cape-bone-iio-00A0.dtbo \
+ 	cape-bone-pinmux-test-00A0.dtbo
+ 
+diff --git a/firmware/capes/BB-BONE-eMMC1-01-00A0.dts b/firmware/capes/BB-BONE-eMMC1-01-00A0.dts
+new file mode 100644
+index 0000000..ebac267
+--- /dev/null
++++ b/firmware/capes/BB-BONE-eMMC1-01-00A0.dts
+@@ -0,0 +1,53 @@
++/*
++* Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++*
++* This program is free software; you can redistribute it and/or modify
++* it under the terms of the GNU General Public License version 2 as
++* published by the Free Software Foundation.
++*/
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone";
++
++	/* identification */
++	part-number = "BB-BONE-eMMC1-01";
++	version = "00A0";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			emmc2_pins: pinmux_emmc2_pins {
++				pinctrl-single,pins = <
++					0x80 0x32	/* gpmc_csn1.mmc1_clk, INPUT_PULLUP | MODE2 */
++					0x84 0x32	/* gpmc_csn1.mmc1_cmd, INPUT_PULLUP | MODE2 */
++					0x00 0x31	/* gpmc_ad0.mmc1_dat0, INPUT_PULLUP | MODE1 */
++					0x04 0x31	/* gpmc_ad1.mmc1_dat1, INPUT_PULLUP | MODE1 */
++					0x08 0x31	/* gpmc_ad2.mmc1_dat2, INPUT_PULLUP | MODE1 */
++					0x0c 0x31	/* gpmc_ad3.mmc1_dat3, INPUT_PULLUP | MODE1 */
++					0x10 0x31	/* gpmc_ad4.mmc1_dat4, INPUT_PULLUP | MODE1 */
++					0x14 0x31	/* gpmc_ad5.mmc1_dat5, INPUT_PULLUP | MODE1 */
++					0x18 0x31	/* gpmc_ad6.mmc1_dat6, INPUT_PULLUP | MODE1 */
++					0x1c 0x31	/* gpmc_ad7.mmc1_dat7, INPUT_PULLUP | MODE1 */
++
++					/* the reset */
++					0x50 0x17	/* gpmc_a4.gpio1_20, OUTPUT | MODE7 | PULLUP */
++				>;
++			};
++		};
++	};
++	fragment@1 {
++		target = <&mmc2>;
++		__overlay__ {
++			pinctrl-names = "default";
++			pinctrl-0 = <&emmc2_pins>;	/* wrong numbering */
++			vmmc-supply = <&ldo3_reg>;
++			bus-width = <8>;
++			ti,non-removable;
++			status = "okay";
++			reset-gpios = <&gpio2 20 1>;	/* active low */
++			ti,vcc-aux-disable-is-sleep;
++		};
++	};
++};
+-- 
+1.8.1.4
+
