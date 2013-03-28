@@ -1,4 +1,4 @@
-From 065a48a80a920bd5797ccdfcb0fde678de5e8ba4 Mon Sep 17 00:00:00 2001
+From f097739c09b1f5c41b79ce0a84d7478f25e95b5d Mon Sep 17 00:00:00 2001
 From: "David S. Miller" <davem@davemloft.net>
 Date: Mon, 6 Feb 2012 15:14:37 -0500
 Subject: [PATCH 29/72] net: Make qdisc_skb_cb upper size bound explicit.
@@ -15,10 +15,10 @@ it can fetch when the packet gets to the transmit routine.
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- include/net/sch_generic.h |    9 ++++++++-
- net/sched/sch_choke.c     |    3 +--
- net/sched/sch_netem.c     |    3 +--
- net/sched/sch_sfb.c       |    3 +--
+ include/net/sch_generic.h | 9 ++++++++-
+ net/sched/sch_choke.c     | 3 +--
+ net/sched/sch_netem.c     | 3 +--
+ net/sched/sch_sfb.c       | 3 +--
  4 files changed, 11 insertions(+), 7 deletions(-)
 
 diff --git a/include/net/sch_generic.h b/include/net/sch_generic.h
@@ -86,5 +86,5 @@ index e83c272..17859ea 100644
  }
  
 -- 
-1.7.7.6
+1.8.1.4
 

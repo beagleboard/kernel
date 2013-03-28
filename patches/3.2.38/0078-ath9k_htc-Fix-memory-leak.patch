@@ -1,0 +1,36 @@
+From 3bf37ee38347413f9a59aab35f3cf230cbb0dc22 Mon Sep 17 00:00:00 2001
+From: Sujith Manoharan <c_manoha@qca.qualcomm.com>
+Date: Wed, 9 Jan 2013 16:07:48 +0530
+Subject: [PATCH 078/127] ath9k_htc: Fix memory leak
+
+commit 0981c3b24ef664f5611008a6e6d0622fac6d892b upstream.
+
+SKBs that are allocated in the HTC layer do not have callbacks
+registered and hence ended up not being freed, Fix this by freeing
+them properly in the TX completion routine.
+
+Reported-by: Larry Finger <Larry.Finger@lwfinger.net>
+Signed-off-by: Sujith Manoharan <c_manoha@qca.qualcomm.com>
+Tested-by: Larry Finger <Larry.Finger@lwfinger.net>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/ath/ath9k/htc_hst.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/net/wireless/ath/ath9k/htc_hst.c b/drivers/net/wireless/ath/ath9k/htc_hst.c
+index 1b90ed8..4f7843a 100644
+--- a/drivers/net/wireless/ath/ath9k/htc_hst.c
++++ b/drivers/net/wireless/ath/ath9k/htc_hst.c
+@@ -342,6 +342,8 @@ void ath9k_htc_txcompletion_cb(struct htc_target *htc_handle,
+ 			endpoint->ep_callbacks.tx(endpoint->ep_callbacks.priv,
+ 						  skb, htc_hdr->endpoint_id,
+ 						  txok);
++		} else {
++			kfree_skb(skb);
+ 		}
+ 	}
+ 
+-- 
+1.8.1.4
+

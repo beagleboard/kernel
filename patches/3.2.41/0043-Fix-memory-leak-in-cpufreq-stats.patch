@@ -1,0 +1,34 @@
+From abd0673ece9c2fce1acb194e91e83d9671d2e7ad Mon Sep 17 00:00:00 2001
+From: "Tu, Xiaobing" <xiaobing.tu@intel.com>
+Date: Tue, 23 Oct 2012 01:03:00 +0200
+Subject: [PATCH 43/82] Fix memory leak in cpufreq stats.
+
+commit e37736777254ce1abc85493a5cacbefe5983b896 upstream.
+
+When system enters sleep, non-boot CPUs will be disabled.
+Cpufreq stats sysfs is created when the CPU is up, but it is not
+freed when the CPU is going down. This will cause memory leak.
+
+Signed-off-by: xiaobing tu <xiaobing.tu@intel.com>
+Signed-off-by: guifang tang <guifang.tang@intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/cpufreq/cpufreq_stats.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/cpufreq/cpufreq_stats.c b/drivers/cpufreq/cpufreq_stats.c
+index c5072a9..4bf374d 100644
+--- a/drivers/cpufreq/cpufreq_stats.c
++++ b/drivers/cpufreq/cpufreq_stats.c
+@@ -330,6 +330,7 @@ static int __cpuinit cpufreq_stat_cpu_callback(struct notifier_block *nfb,
+ 		cpufreq_update_policy(cpu);
+ 		break;
+ 	case CPU_DOWN_PREPARE:
++	case CPU_DOWN_PREPARE_FROZEN:
+ 		cpufreq_stats_free_sysfs(cpu);
+ 		break;
+ 	case CPU_DEAD:
+-- 
+1.8.1.4
+

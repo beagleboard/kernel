@@ -1,4 +1,4 @@
-From 9f518678d9c2dcea7cdbbf66d0952ad88b663f0c Mon Sep 17 00:00:00 2001
+From 9ae9a04de61e7c96c42032a5d4dd0155a512f9bb Mon Sep 17 00:00:00 2001
 From: Nicholas Bellinger <nab@linux-iscsi.org>
 Date: Sat, 22 Sep 2012 17:21:06 -0700
 Subject: [PATCH 042/146] iscsi-target: Correctly set 0xffffffff field within
@@ -18,7 +18,7 @@ Reported-by: Ronnie Sahlberg <ronniesahlberg@gmail.com>
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/target/iscsi/iscsi_target.c |    1 +
+ drivers/target/iscsi/iscsi_target.c | 1 +
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/target/iscsi/iscsi_target.c b/drivers/target/iscsi/iscsi_target.c
@@ -34,5 +34,5 @@ index 2ff1255..81cf25f 100644
  	hdr->statsn		= cpu_to_be32(cmd->stat_sn);
  	hdr->exp_cmdsn	= cpu_to_be32(conn->sess->exp_cmd_sn);
 -- 
-1.7.10.4
+1.8.1.4
 

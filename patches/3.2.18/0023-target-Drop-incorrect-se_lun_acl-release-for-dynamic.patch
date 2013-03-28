@@ -1,4 +1,4 @@
-From 3a60d47534d8384332bade9bc8f40a1aeb2403f9 Mon Sep 17 00:00:00 2001
+From 5ab775b68d5a5a346a195f81f6118c252c20a629 Mon Sep 17 00:00:00 2001
 From: Nicholas Bellinger <nab@linux-iscsi.org>
 Date: Thu, 10 May 2012 22:05:49 -0700
 Subject: [PATCH 23/56] target: Drop incorrect se_lun_acl release for dynamic
@@ -21,8 +21,8 @@ Cc: Andy Grover <agrover@redhat.com>
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/target/target_core_tpg.c |   22 ----------------------
- 1 files changed, 0 insertions(+), 22 deletions(-)
+ drivers/target/target_core_tpg.c | 22 ----------------------
+ 1 file changed, 22 deletions(-)
 
 diff --git a/drivers/target/target_core_tpg.c b/drivers/target/target_core_tpg.c
 index 8ddd133..d91fe44 100644
@@ -66,5 +66,5 @@ index 8ddd133..d91fe44 100644
  	spin_unlock_irq(&nacl->device_list_lock);
  }
 -- 
-1.7.7.6
+1.8.1.4
 

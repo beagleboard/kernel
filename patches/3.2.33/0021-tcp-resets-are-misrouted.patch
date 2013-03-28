@@ -1,4 +1,4 @@
-From 7b83fe070ae5749eb64289651aed4fb220138b37 Mon Sep 17 00:00:00 2001
+From 4ac71b485b12f8dbebc5ab145b116dfb1f3f5614 Mon Sep 17 00:00:00 2001
 From: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
 Date: Fri, 12 Oct 2012 04:34:17 +0000
 Subject: [PATCH 021/105] tcp: resets are misrouted
@@ -28,8 +28,8 @@ asymmetric routing.
 Signed-off-by: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/ipv4/tcp_ipv4.c |    7 ++++---
- net/ipv6/tcp_ipv6.c |    3 ++-
+ net/ipv4/tcp_ipv4.c | 7 ++++---
+ net/ipv6/tcp_ipv6.c | 3 ++-
  2 files changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
@@ -66,5 +66,5 @@ index 4a56574..ccab3c8 100644
  	fl6.fl6_sport = t1->source;
  	security_skb_classify_flow(skb, flowi6_to_flowi(&fl6));
 -- 
-1.7.7.6
+1.8.1.4
 

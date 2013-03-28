@@ -1,4 +1,4 @@
-From 92cb6a978e5214e37615ccb75af1569fb3559df4 Mon Sep 17 00:00:00 2001
+From c2f49c075653b7de112ea68540f9fec79886d5f9 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 10 Jul 2012 18:43:23 -0400
 Subject: [PATCH 081/109] hrtimers: Move lock held region in
@@ -20,8 +20,8 @@ Link: http://lkml.kernel.org/r/1341960205-56738-6-git-send-email-johnstul@us.ibm
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/hrtimer.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ kernel/hrtimer.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/kernel/hrtimer.c b/kernel/hrtimer.c
 index 3c24fb2..8f320af 100644
@@ -57,5 +57,5 @@ index 3c24fb2..8f320af 100644
  	if (delta.tv64 > cpu_base->max_hang_time.tv64)
  		cpu_base->max_hang_time = delta;
 -- 
-1.7.7.6
+1.8.1.4
 

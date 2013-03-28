@@ -1,4 +1,4 @@
-From 57e877088dac0f976a67bb0446470a7e3d76acce Mon Sep 17 00:00:00 2001
+From 9db6ca8ef08357e899594c00e9a347441a14687d Mon Sep 17 00:00:00 2001
 From: Denys Vlasenko <vda.linux@googlemail.com>
 Date: Wed, 26 Sep 2012 11:34:50 +1000
 Subject: [PATCH 068/146] coredump: prevent double-free on an error path in
@@ -21,7 +21,7 @@ Cc: Venu Byravarasu <vbyravarasu@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/binfmt_elf.c |   19 ++++---------------
+ fs/binfmt_elf.c | 19 ++++---------------
  1 file changed, 4 insertions(+), 15 deletions(-)
 
 diff --git a/fs/binfmt_elf.c b/fs/binfmt_elf.c
@@ -64,5 +64,5 @@ index 6ff96c6..8dd615c 100644
  
  static int fill_note_info(struct elfhdr *elf, int phdrs,
 -- 
-1.7.10.4
+1.8.1.4
 

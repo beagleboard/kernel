@@ -1,4 +1,4 @@
-From c6259fd851a43b02da3ff0d9ec313531b93fece8 Mon Sep 17 00:00:00 2001
+From 227fa0b97a80fa46d4276ab7986d30f41302856a Mon Sep 17 00:00:00 2001
 From: Ian Abbott <abbotti@mev.co.uk>
 Date: Wed, 19 Sep 2012 19:37:39 +0100
 Subject: [PATCH 038/146] staging: comedi: fix memory leak for saved channel
@@ -28,7 +28,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/staging/comedi/comedi_fops.c |    3 ++-
+ drivers/staging/comedi/comedi_fops.c | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/staging/comedi/comedi_fops.c b/drivers/staging/comedi/comedi_fops.c
@@ -53,5 +53,5 @@ index c08c719..9465bce 100644
  		printk(KERN_ERR
  		       "BUG: (?) do_become_nonbusy called with async=0\n");
 -- 
-1.7.10.4
+1.8.1.4
 

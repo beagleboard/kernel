@@ -1,4 +1,4 @@
-From 412d3e43b57f8e341efe0ab2cbf3d60ed39b2f6c Mon Sep 17 00:00:00 2001
+From e66d88b2aa5901f4bd4189dd36484b24aebd2dea Mon Sep 17 00:00:00 2001
 From: Dan Rosenberg <drosenberg@vsecurity.com>
 Date: Mon, 30 Jul 2012 14:40:26 -0700
 Subject: [PATCH 43/70] lib/vsprintf.c: kptr_restrict: fix pK-error in SysRq
@@ -26,8 +26,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- lib/vsprintf.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ lib/vsprintf.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/lib/vsprintf.c b/lib/vsprintf.c
 index 993599e..d74c317 100644
@@ -44,5 +44,5 @@ index 993599e..d74c317 100644
  				spec.field_width = 2 * sizeof(void *);
  			return string(buf, end, "pK-error", spec);
 -- 
-1.7.7.6
+1.8.1.4
 

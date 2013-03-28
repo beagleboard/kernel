@@ -1,4 +1,4 @@
-From e669fee5f4e031e7bb5001f4bcf8c234374f869b Mon Sep 17 00:00:00 2001
+From 9dff4bb850e40bd8fe14c201d19d5d4812c6794a Mon Sep 17 00:00:00 2001
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Date: Thu, 12 Apr 2012 19:47:11 +0100
 Subject: [PATCH 096/165] ASoC: wm8994: Improve sequencing of AIF channel
@@ -12,8 +12,8 @@ use cases could result in issues in a small proportion of cases.
 Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- sound/soc/codecs/wm8994.c |  276 ++++++++++++++++++++++++++++++++++++---------
- 1 files changed, 222 insertions(+), 54 deletions(-)
+ sound/soc/codecs/wm8994.c | 276 +++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 222 insertions(+), 54 deletions(-)
 
 diff --git a/sound/soc/codecs/wm8994.c b/sound/soc/codecs/wm8994.c
 index 2f1f5f8..7806301 100644
@@ -385,5 +385,5 @@ index 2f1f5f8..7806301 100644
  
  SND_SOC_DAPM_AIF_IN("AIF1DACDAT", "AIF1 Playback", 0, SND_SOC_NOPM, 0, 0),
 -- 
-1.7.7.6
+1.8.1.4
 

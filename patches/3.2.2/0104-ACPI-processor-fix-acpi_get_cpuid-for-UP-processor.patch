@@ -1,4 +1,4 @@
-From 537bd38a01ae3a55f2c511609ce73f05c40f3c77 Mon Sep 17 00:00:00 2001
+From 26889c17a338a1d52dc350d94ea65c5f3ebd32c1 Mon Sep 17 00:00:00 2001
 From: Lin Ming <ming.m.lin@intel.com>
 Date: Tue, 13 Dec 2011 09:36:03 +0800
 Subject: [PATCH 104/129] ACPI: processor: fix acpi_get_cpuid for UP processor
@@ -30,8 +30,8 @@ Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/acpi/processor_core.c |   26 ++++++++++++++++++++++++--
- 1 files changed, 24 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_core.c | 26 ++++++++++++++++++++++++--
+ 1 file changed, 24 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
 index 3a0428e..c850de4 100644
@@ -71,5 +71,5 @@ index 3a0428e..c850de4 100644
  #ifdef CONFIG_SMP
  	for_each_possible_cpu(i) {
 -- 
-1.7.7.6
+1.8.1.4
 

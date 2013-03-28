@@ -1,4 +1,4 @@
-From ab0b91ed596c53ed556abb14de45da1fbb4d6054 Mon Sep 17 00:00:00 2001
+From e7309e52695f9cde5de4e48100640d92b67f24f3 Mon Sep 17 00:00:00 2001
 From: Asias He <asias@redhat.com>
 Date: Fri, 25 May 2012 16:03:27 +0800
 Subject: [PATCH 38/70] virtio-blk: Use block layer provided spinlock
@@ -47,8 +47,8 @@ Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/block/virtio_blk.c |    9 +++------
- 1 files changed, 3 insertions(+), 6 deletions(-)
+ drivers/block/virtio_blk.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/block/virtio_blk.c b/drivers/block/virtio_blk.c
 index e46f2f7..650a308 100644
@@ -99,5 +99,5 @@ index e46f2f7..650a308 100644
  		err = -ENOMEM;
  		goto out_put_disk;
 -- 
-1.7.7.6
+1.8.1.4
 

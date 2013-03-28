@@ -1,4 +1,4 @@
-From 5efaa01bd8c416d5e678f25ec8243612a8c121ea Mon Sep 17 00:00:00 2001
+From 73ac7879ac19e657461db029df88a27fac4ef656 Mon Sep 17 00:00:00 2001
 From: NeilBrown <neilb@suse.de>
 Date: Mon, 19 Mar 2012 12:46:37 +1100
 Subject: [PATCH 067/147] md: don't set md arrays to readonly on shutdown.
@@ -24,8 +24,8 @@ conflicts with obvious fixes in earlier kernels).
 Signed-off-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/md/md.c |   37 +++++++++++++++----------------------
- 1 files changed, 15 insertions(+), 22 deletions(-)
+ drivers/md/md.c | 37 +++++++++++++++----------------------
+ 1 file changed, 15 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/md/md.c b/drivers/md/md.c
 index f47f1f8..65d552a 100644
@@ -78,5 +78,5 @@ index f47f1f8..65d552a 100644
  }
  
 -- 
-1.7.7.6
+1.8.1.4
 

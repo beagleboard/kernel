@@ -1,4 +1,4 @@
-From 7bbfff3dd5ac9cbd6cbc60ba2ab40209495e1ace Mon Sep 17 00:00:00 2001
+From aaaeb681f5e0b59e6dfa470cded2e09a04d7d67e Mon Sep 17 00:00:00 2001
 From: Mikulas Patocka <mpatocka@redhat.com>
 Date: Fri, 20 Jul 2012 14:25:03 +0100
 Subject: [PATCH 072/109] dm raid1: fix crash with mirror recovery and discard
@@ -69,8 +69,8 @@ Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/md/dm-raid1.c       |    2 +-
- drivers/md/dm-region-hash.c |    5 ++++-
+ drivers/md/dm-raid1.c       | 2 +-
+ drivers/md/dm-region-hash.c | 5 ++++-
  2 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/md/dm-raid1.c b/drivers/md/dm-raid1.c
@@ -110,5 +110,5 @@ index 7771ed2..69732e0 100644
  		rh_inc(rh, dm_rh_bio_to_region(rh, bio));
  	}
 -- 
-1.7.7.6
+1.8.1.4
 

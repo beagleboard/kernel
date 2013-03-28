@@ -1,8 +1,7 @@
-From b8992271e0d731d1a20fea3f769132e4f4168331 Mon Sep 17 00:00:00 2001
+From 544c18af045ffd2f5a6cb0d2e1a56e34bc7e9fe9 Mon Sep 17 00:00:00 2001
 From: Matthew Garrett <mjg@redhat.com>
 Date: Tue, 6 Mar 2012 13:41:49 -0500
-Subject: [PATCH 06/42] PCI: ignore pre-1.1 ASPM quirking when ASPM is
- disabled
+Subject: [PATCH 06/42] PCI: ignore pre-1.1 ASPM quirking when ASPM is disabled
 
 commit 4949be16822e92a18ea0cc1616319926628092ee upstream.
 
@@ -16,8 +15,8 @@ Signed-off-by: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/pci/pcie/aspm.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ drivers/pci/pcie/aspm.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/drivers/pci/pcie/aspm.c b/drivers/pci/pcie/aspm.c
 index 1cfbf22..24f049e 100644
@@ -34,5 +33,5 @@ index 1cfbf22..24f049e 100644
  	 * Some functions in a slot might not all be PCIe functions,
  	 * very strange. Disable ASPM for the whole slot
 -- 
-1.7.7.6
+1.8.1.4
 

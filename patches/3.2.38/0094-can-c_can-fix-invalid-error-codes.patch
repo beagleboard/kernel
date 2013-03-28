@@ -1,0 +1,43 @@
+From 8cde7e761ad76ca9ca761099acc4f50ee24044fd Mon Sep 17 00:00:00 2001
+From: Olivier Sobrie <olivier@sobrie.be>
+Date: Fri, 18 Jan 2013 09:32:39 +0100
+Subject: [PATCH 094/127] can: c_can: fix invalid error codes
+
+commit 6ea45886865c1abb01bb861f7f6bdd5d0f398cb3 upstream.
+
+Errors in CAN protocol (location) are reported in data[3] of the can
+frame instead of data[2].
+
+Cc: Bhupesh Sharma <bhupesh.sharma@st.com>
+Signed-off-by: Olivier Sobrie <olivier@sobrie.be>
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/can/c_can/c_can.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
+index 86cd532..21a3d77 100644
+--- a/drivers/net/can/c_can/c_can.c
++++ b/drivers/net/can/c_can/c_can.c
+@@ -914,7 +914,7 @@ static int c_can_handle_bus_err(struct net_device *dev,
+ 		break;
+ 	case LEC_ACK_ERROR:
+ 		netdev_dbg(dev, "ack error\n");
+-		cf->data[2] |= (CAN_ERR_PROT_LOC_ACK |
++		cf->data[3] |= (CAN_ERR_PROT_LOC_ACK |
+ 				CAN_ERR_PROT_LOC_ACK_DEL);
+ 		break;
+ 	case LEC_BIT1_ERROR:
+@@ -927,7 +927,7 @@ static int c_can_handle_bus_err(struct net_device *dev,
+ 		break;
+ 	case LEC_CRC_ERROR:
+ 		netdev_dbg(dev, "CRC error\n");
+-		cf->data[2] |= (CAN_ERR_PROT_LOC_CRC_SEQ |
++		cf->data[3] |= (CAN_ERR_PROT_LOC_CRC_SEQ |
+ 				CAN_ERR_PROT_LOC_CRC_DEL);
+ 		break;
+ 	default:
+-- 
+1.8.1.4
+

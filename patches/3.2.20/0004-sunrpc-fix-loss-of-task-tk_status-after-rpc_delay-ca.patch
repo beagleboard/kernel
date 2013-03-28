@@ -1,4 +1,4 @@
-From bb9b67eae597132fd9d9ff8ed5ee958881e7e5dd Mon Sep 17 00:00:00 2001
+From e01f331fce64d66795f75edf7379b10d54989644 Mon Sep 17 00:00:00 2001
 From: Trond Myklebust <Trond.Myklebust@netapp.com>
 Date: Sat, 19 May 2012 12:12:53 -0400
 Subject: [PATCH 04/86] sunrpc: fix loss of task->tk_status after rpc_delay
@@ -18,8 +18,8 @@ Reported-by: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/sunrpc/clnt.c |    2 ++
- net/sunrpc/xprt.c |    5 +++--
+ net/sunrpc/clnt.c | 2 ++
+ net/sunrpc/xprt.c | 5 +++--
  2 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/net/sunrpc/clnt.c b/net/sunrpc/clnt.c
@@ -59,5 +59,5 @@ index c64c0ef..3ac9789 100644
  out_init_req:
  	task->tk_status = 0;
 -- 
-1.7.7.6
+1.8.1.4
 

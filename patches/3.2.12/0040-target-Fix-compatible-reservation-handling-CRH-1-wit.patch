@@ -1,4 +1,4 @@
-From 7c72357aea74e70bae7f40921d6828fba13dd8ed Mon Sep 17 00:00:00 2001
+From 8e75545d2c49da5066ca14b7b037e5a3bdc328d9 Mon Sep 17 00:00:00 2001
 From: Nicholas Bellinger <nab@linux-iscsi.org>
 Date: Tue, 13 Mar 2012 21:29:06 -0700
 Subject: [PATCH 40/42] target: Fix compatible reservation handling (CRH=1)
@@ -31,8 +31,8 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/target/target_core_pr.c        |   34 ++++++++++++++++++++-----------
- drivers/target/target_core_transport.c |    1 +
+ drivers/target/target_core_pr.c        | 34 ++++++++++++++++++++++------------
+ drivers/target/target_core_transport.c |  1 +
  2 files changed, 23 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/target/target_core_pr.c b/drivers/target/target_core_pr.c
@@ -148,5 +148,5 @@ index e4ddb93..cdb774b 100644
  			return -EBUSY;
  		}
 -- 
-1.7.7.6
+1.8.1.4
 

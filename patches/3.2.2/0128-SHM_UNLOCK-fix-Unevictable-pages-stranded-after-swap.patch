@@ -1,8 +1,7 @@
-From 174b196d4e2567510948060c88e2b88f186ea963 Mon Sep 17 00:00:00 2001
+From 451e9703afeac1bbf8c5b5d5e6b8cdf3db1c15b2 Mon Sep 17 00:00:00 2001
 From: Hugh Dickins <hughd@google.com>
 Date: Fri, 20 Jan 2012 14:34:21 -0800
-Subject: [PATCH 128/129] SHM_UNLOCK: fix Unevictable pages stranded after
- swap
+Subject: [PATCH 128/129] SHM_UNLOCK: fix Unevictable pages stranded after swap
 
 commit 245132643e1cfcd145bbc86a716c1818371fcb93 upstream.
 
@@ -46,11 +45,11 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- include/linux/shmem_fs.h |    1 +
- include/linux/swap.h     |    2 +-
- ipc/shm.c                |    2 +-
- mm/shmem.c               |   46 +++++++++++++++--
- mm/vmscan.c              |  122 ++++++++++++++--------------------------------
+ include/linux/shmem_fs.h |   1 +
+ include/linux/swap.h     |   2 +-
+ ipc/shm.c                |   2 +-
+ mm/shmem.c               |  46 ++++++++++++++++--
+ mm/vmscan.c              | 122 ++++++++++++++---------------------------------
  5 files changed, 81 insertions(+), 92 deletions(-)
 
 diff --git a/include/linux/shmem_fs.h b/include/linux/shmem_fs.h
@@ -338,5 +337,5 @@ index 824676a..cb33d9c 100644
  
  static void warn_scan_unevictable_pages(void)
 -- 
-1.7.7.6
+1.8.1.4
 

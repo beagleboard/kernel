@@ -1,4 +1,4 @@
-From 0930891336219a42b0137c143a3ff9527fa53c00 Mon Sep 17 00:00:00 2001
+From 147c6220294e606b43fc0cd40ff527e636e9dafa Mon Sep 17 00:00:00 2001
 From: Peng Tao <bergwolf@gmail.com>
 Date: Fri, 24 Aug 2012 00:27:51 +0800
 Subject: [PATCH 086/146] pnfsblock: fix partial page buffer wirte
@@ -19,8 +19,8 @@ Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
  - Drop change in missing out_mds exit path]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/nfs/blocklayout/blocklayout.c |  176 +++++++++++++++++++++++++++++++++++---
- fs/nfs/blocklayout/blocklayout.h |    1 +
+ fs/nfs/blocklayout/blocklayout.c | 176 ++++++++++++++++++++++++++++++++++++---
+ fs/nfs/blocklayout/blocklayout.h |   1 +
  2 files changed, 165 insertions(+), 12 deletions(-)
 
 diff --git a/fs/nfs/blocklayout/blocklayout.c b/fs/nfs/blocklayout/blocklayout.c
@@ -300,5 +300,5 @@ index 42acf7e..519a9de 100644
  struct block_mount_id {
  	spinlock_t			bm_lock;    /* protects list */
 -- 
-1.7.10.4
+1.8.1.4
 

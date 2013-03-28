@@ -1,0 +1,83 @@
+From aefc1ec345e03444d4a6b4086f02776e0be90092 Mon Sep 17 00:00:00 2001
+From: Oleg Nesterov <oleg@redhat.com>
+Date: Fri, 23 Mar 2012 15:02:50 -0700
+Subject: [PATCH 147/153] kmod: make __request_module() killable
+
+commit 1cc684ab75123efe7ff446eb821d44375ba8fa30 upstream.
+
+As Tetsuo Handa pointed out, request_module() can stress the system
+while the oom-killed caller sleeps in TASK_UNINTERRUPTIBLE.
+
+The task T uses "almost all" memory, then it does something which
+triggers request_module().  Say, it can simply call sys_socket().  This
+in turn needs more memory and leads to OOM.  oom-killer correctly
+chooses T and kills it, but this can't help because it sleeps in
+TASK_UNINTERRUPTIBLE and after that oom-killer becomes "disabled" by the
+TIF_MEMDIE task T.
+
+Make __request_module() killable.  The only necessary change is that
+call_modprobe() should kmalloc argv and module_name, they can't live in
+the stack if we use UMH_KILLABLE.  This memory is freed via
+call_usermodehelper_freeinfo()->cleanup.
+
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/kmod.c | 26 ++++++++++++++++++++++++--
+ 1 file changed, 24 insertions(+), 2 deletions(-)
+
+diff --git a/kernel/kmod.c b/kernel/kmod.c
+index 135041f..d6fe08a 100644
+--- a/kernel/kmod.c
++++ b/kernel/kmod.c
+@@ -58,6 +58,12 @@ static DEFINE_SPINLOCK(umh_sysctl_lock);
+ */
+ char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
+ 
++static void free_modprobe_argv(struct subprocess_info *info)
++{
++	kfree(info->argv[3]); /* check call_modprobe() */
++	kfree(info->argv);
++}
++
+ static int call_modprobe(char *module_name, int wait)
+ {
+ 	static char *envp[] = {
+@@ -67,10 +73,26 @@ static int call_modprobe(char *module_name, int wait)
+ 		NULL
+ 	};
+ 
+-	char *argv[] = { modprobe_path, "-q", "--", module_name, NULL };
++	char **argv = kmalloc(sizeof(char *[5]), GFP_KERNEL);
++	if (!argv)
++		goto out;
++
++	module_name = kstrdup(module_name, GFP_KERNEL);
++	if (!module_name)
++		goto free_argv;
++
++	argv[0] = modprobe_path;
++	argv[1] = "-q";
++	argv[2] = "--";
++	argv[3] = module_name;	/* check free_modprobe_argv() */
++	argv[4] = NULL;
+ 
+ 	return call_usermodehelper_fns(modprobe_path, argv, envp,
+-					wait, NULL, NULL, NULL);
++		wait | UMH_KILLABLE, NULL, free_modprobe_argv, NULL);
++free_argv:
++	kfree(argv);
++out:
++	return -ENOMEM;
+ }
+ 
+ /**
+-- 
+1.8.1.4
+

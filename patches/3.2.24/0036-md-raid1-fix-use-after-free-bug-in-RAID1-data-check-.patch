@@ -1,4 +1,4 @@
-From 7944318ff9832569da48b50715b43b262e37a5f5 Mon Sep 17 00:00:00 2001
+From f5f8d3504c516ed8661bc1f93e9acc216196a693 Mon Sep 17 00:00:00 2001
 From: NeilBrown <neilb@suse.de>
 Date: Mon, 9 Jul 2012 11:34:13 +1000
 Subject: [PATCH 036/109] md/raid1: fix use-after-free bug in RAID1 data-check
@@ -34,8 +34,8 @@ Signed-off-by: NeilBrown <neilb@suse.de>
  hot-replace support]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/md/raid1.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/md/raid1.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/md/raid1.c b/drivers/md/raid1.c
 index 7af60ec..58f0055 100644
@@ -54,5 +54,5 @@ index 7af60ec..58f0055 100644
  				generic_make_request(bio);
  			}
 -- 
-1.7.7.6
+1.8.1.4
 

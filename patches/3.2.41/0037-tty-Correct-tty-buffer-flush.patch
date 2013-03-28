@@ -1,0 +1,46 @@
+From 303fdbf33ac706175d5253c4e5cd6ed1e7580cd5 Mon Sep 17 00:00:00 2001
+From: Ilya Zykov <ilya@ilyx.ru>
+Date: Mon, 4 Mar 2013 23:19:41 +0400
+Subject: [PATCH 37/82] tty: Correct tty buffer flush.
+
+commit 64325a3be08d364a62ee8f84b2cf86934bc2544a upstream.
+
+  The root of problem is carelessly zeroing pointer(in function __tty_buffer_flush()),
+when another thread can use it. It can be cause of "NULL pointer dereference".
+  Main idea of the patch, this is never free last (struct tty_buffer) in the active buffer.
+Only flush the data for ldisc(buf->head->read = buf->head->commit).
+At that moment driver can collect(write) data in buffer without conflict.
+It is repeat behavior of flush_to_ldisc(), only without feeding data to ldisc.
+
+Signed-off-by: Ilya Zykov <ilya@ilyx.ru>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/tty/tty_buffer.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/tty/tty_buffer.c b/drivers/tty/tty_buffer.c
+index 6c9b7cd..4f02f9c 100644
+--- a/drivers/tty/tty_buffer.c
++++ b/drivers/tty/tty_buffer.c
+@@ -114,11 +114,14 @@ static void __tty_buffer_flush(struct tty_struct *tty)
+ {
+ 	struct tty_buffer *thead;
+ 
+-	while ((thead = tty->buf.head) != NULL) {
+-		tty->buf.head = thead->next;
+-		tty_buffer_free(tty, thead);
++	if (tty->buf.head == NULL)
++		return;
++	while ((thead = tty->buf.head->next) != NULL) {
++		tty_buffer_free(tty, tty->buf.head);
++		tty->buf.head = thead;
+ 	}
+-	tty->buf.tail = NULL;
++	WARN_ON(tty->buf.head != tty->buf.tail);
++	tty->buf.head->read = tty->buf.head->commit;
+ }
+ 
+ /**
+-- 
+1.8.1.4
+

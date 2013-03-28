@@ -1,4 +1,4 @@
-From f2c214b8fc78ebd25c7c5d309af853d4b2bba680 Mon Sep 17 00:00:00 2001
+From 559eb0f6de8d2e28d785ab183feae62b5465d1ec Mon Sep 17 00:00:00 2001
 From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
 Date: Sat, 16 Jun 2012 15:30:45 +0200
 Subject: [PATCH 30/73] ftrace: Disable function tracing during suspend/resume
@@ -24,9 +24,9 @@ Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/power/hibernate.c |    6 ++++++
- kernel/power/suspend.c   |    3 +++
- 2 files changed, 9 insertions(+), 0 deletions(-)
+ kernel/power/hibernate.c | 6 ++++++
+ kernel/power/suspend.c   | 3 +++
+ 2 files changed, 9 insertions(+)
 
 diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
 index 7c0d578..013bd2e 100644
@@ -109,5 +109,5 @@ index 4953dc0..af48faa 100644
   Close:
  	if (suspend_ops->end)
 -- 
-1.7.7.6
+1.8.1.4
 

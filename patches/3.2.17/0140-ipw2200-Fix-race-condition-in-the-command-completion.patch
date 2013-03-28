@@ -1,8 +1,8 @@
-From a41e61f671884f303a97b813cb7ec683d277a043 Mon Sep 17 00:00:00 2001
+From 2699ad0f9f32f84d49edfff4da952ce1c0910eac Mon Sep 17 00:00:00 2001
 From: Stanislav Yakovlev <stas.yakovlev@gmail.com>
 Date: Thu, 19 Apr 2012 15:55:09 -0400
-Subject: [PATCH 140/165] ipw2200: Fix race condition in the command
- completion acknowledge
+Subject: [PATCH 140/165] ipw2200: Fix race condition in the command completion
+ acknowledge
 
 commit dd447319895d0c0af423e483d9b63f84f3f8869a upstream.
 
@@ -32,8 +32,8 @@ Signed-off-by: Stanislav Yakovlev <stas.yakovlev@gmail.com>
 Signed-off-by: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/wireless/ipw2x00/ipw2200.c |   13 ++++++++++++-
- 1 files changed, 12 insertions(+), 1 deletions(-)
+ drivers/net/wireless/ipw2x00/ipw2200.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/net/wireless/ipw2x00/ipw2200.c b/drivers/net/wireless/ipw2x00/ipw2200.c
 index 99a710d..827889b 100644
@@ -70,5 +70,5 @@ index 99a710d..827889b 100644
  		spin_lock_irqsave(&priv->lock, flags);
  		if (priv->status & STATUS_HCMD_ACTIVE) {
 -- 
-1.7.7.6
+1.8.1.4
 

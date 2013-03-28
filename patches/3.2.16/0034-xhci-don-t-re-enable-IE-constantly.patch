@@ -1,4 +1,4 @@
-From 1242b416fbc49183c9b79384643c86dae8732acb Mon Sep 17 00:00:00 2001
+From 06cb05cd6664d8b541d35f70ac1478c0ac8681df Mon Sep 17 00:00:00 2001
 From: Felipe Balbi <balbi@ti.com>
 Date: Thu, 15 Mar 2012 16:37:08 +0200
 Subject: [PATCH 34/68] xhci: don't re-enable IE constantly
@@ -21,9 +21,9 @@ Signed-off-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/host/xhci-ring.c |    2 +-
- drivers/usb/host/xhci.h      |    4 ++++
- 2 files changed, 5 insertions(+), 1 deletions(-)
+ drivers/usb/host/xhci-ring.c | 2 +-
+ drivers/usb/host/xhci.h      | 4 ++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
 index ae92dc4..43b3447 100644
@@ -54,5 +54,5 @@ index 09eda3a..4850c4d 100644
  /* HC not running - set to 1 when run/stop bit is cleared. */
  #define STS_HALT	XHCI_STS_HALT
 -- 
-1.7.7.6
+1.8.1.4
 

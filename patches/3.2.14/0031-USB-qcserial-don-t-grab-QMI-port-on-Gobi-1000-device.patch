@@ -1,4 +1,4 @@
-From 5801916842e2f6cfe84d3404ca67dd80dbfde0b0 Mon Sep 17 00:00:00 2001
+From ba7c27e544750b3449bde885827d990006feef17 Mon Sep 17 00:00:00 2001
 From: Dan Williams <dcbw@redhat.com>
 Date: Fri, 24 Feb 2012 13:08:43 -0600
 Subject: [PATCH 031/147] USB: qcserial: don't grab QMI port on Gobi 1000
@@ -17,8 +17,8 @@ respond.
 Signed-off-by: Dan Williams <dcbw@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/serial/qcserial.c |  105 ++++++++++++++++++++++++-----------------
- 1 files changed, 62 insertions(+), 43 deletions(-)
+ drivers/usb/serial/qcserial.c | 105 +++++++++++++++++++++++++-----------------
+ 1 file changed, 62 insertions(+), 43 deletions(-)
 
 diff --git a/drivers/usb/serial/qcserial.c b/drivers/usb/serial/qcserial.c
 index 1e87d49..3187d8b 100644
@@ -173,5 +173,5 @@ index 1e87d49..3187d8b 100644
  			if (retval < 0) {
  				dev_err(&serial->dev->dev,
 -- 
-1.7.7.6
+1.8.1.4
 

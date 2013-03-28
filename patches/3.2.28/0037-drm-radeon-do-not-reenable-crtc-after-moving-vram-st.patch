@@ -1,4 +1,4 @@
-From 23ea46da947f3d53b156109ccf4a8eef39ebb7ed Mon Sep 17 00:00:00 2001
+From 2179c3934914ef0408a05c5be7b0aa3d5f2ba57f Mon Sep 17 00:00:00 2001
 From: Jerome Glisse <jglisse@redhat.com>
 Date: Fri, 27 Jul 2012 16:32:24 -0400
 Subject: [PATCH 37/38] drm/radeon: do not reenable crtc after moving vram
@@ -26,9 +26,9 @@ https://bugs.freedesktop.org/show_bug.cgi?id=42373
 Signed-off-by: Jerome Glisse <jglisse@redhat.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/radeon/evergreen.c   |   57 ----------------------------------
- drivers/gpu/drm/radeon/radeon_asic.h |    8 +---
- drivers/gpu/drm/radeon/rv515.c       |   13 --------
+ drivers/gpu/drm/radeon/evergreen.c   | 57 ------------------------------------
+ drivers/gpu/drm/radeon/radeon_asic.h |  8 ++---
+ drivers/gpu/drm/radeon/rv515.c       | 13 --------
  3 files changed, 2 insertions(+), 76 deletions(-)
 
 diff --git a/drivers/gpu/drm/radeon/evergreen.c b/drivers/gpu/drm/radeon/evergreen.c
@@ -174,5 +174,5 @@ index 6613ee9..d5f45b4 100644
  }
  
 -- 
-1.7.7.6
+1.8.1.4
 

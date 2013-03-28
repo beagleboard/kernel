@@ -1,4 +1,4 @@
-From 1fa09902100e51be8b7b168741829c8c8c1e1261 Mon Sep 17 00:00:00 2001
+From 5908e7f5aa2b08a2a643ec8d737aade5da5644e4 Mon Sep 17 00:00:00 2001
 From: Marc Zyngier <Marc.Zyngier@arm.com>
 Date: Wed, 11 Apr 2012 14:52:55 +0100
 Subject: [PATCH 08/68] ARM: 7379/1: DT: fix atags_to_fdt() second call site
@@ -16,8 +16,8 @@ Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/arm/boot/compressed/head.S |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/boot/compressed/head.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
 index c2effc9..9c18ebd 100644
@@ -33,5 +33,5 @@ index c2effc9..9c18ebd 100644
  		ldmfd	sp!, {r0-r3, ip, lr}
  		sub	sp, sp, #0x10000
 -- 
-1.7.7.6
+1.8.1.4
 

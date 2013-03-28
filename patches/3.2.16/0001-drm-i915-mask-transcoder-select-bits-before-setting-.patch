@@ -1,4 +1,4 @@
-From 5e49a1f68a408b95e10a76beaa6a355a6482afdc Mon Sep 17 00:00:00 2001
+From 1316fc526328517bcbfc1d94aa24b98a659fc1a7 Mon Sep 17 00:00:00 2001
 From: Jesse Barnes <jbarnes@virtuousgeek.org>
 Date: Thu, 12 Jan 2012 14:51:17 -0800
 Subject: [PATCH 01/68] drm/i915: mask transcoder select bits before setting
@@ -17,8 +17,8 @@ Signed-off-by: Keith Packard <keithp@keithp.com>
 Cc: Jonathan Nieder <jrnieder@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/gpu/drm/i915/intel_display.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+ drivers/gpu/drm/i915/intel_display.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
 index 9011f48..390768f 100644
@@ -46,5 +46,5 @@ index 9011f48..390768f 100644
  		/* set the corresponsding LVDS_BORDER bit */
  		temp |= dev_priv->lvds_border_bits;
 -- 
-1.7.7.6
+1.8.1.4
 

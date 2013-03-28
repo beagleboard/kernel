@@ -1,4 +1,4 @@
-From a8df5c8bd8f262b8bce91779134721bc96bccbe9 Mon Sep 17 00:00:00 2001
+From 68971c608815f525cce3b22e356124156a854989 Mon Sep 17 00:00:00 2001
 From: "Arnaud Patard (Rtp)" <arnaud.patard@rtp-net.org>
 Date: Thu, 26 Jul 2012 12:15:46 +0200
 Subject: [PATCH 003/135] ARM: Orion: Set eth packet size csum offload limit
@@ -19,13 +19,13 @@ Signed-off-by: Jason Cooper <jason@lakedaemon.net>
  orion_ge0{0,1}_init()]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/arm/mach-dove/common.c               |    2 +-
- arch/arm/mach-kirkwood/common.c           |    4 ++--
- arch/arm/mach-mv78xx0/common.c            |    6 ++++--
- arch/arm/mach-orion5x/common.c            |    3 ++-
- arch/arm/plat-orion/common.c              |    8 ++++++--
- arch/arm/plat-orion/include/plat/common.h |    6 ++++--
- include/linux/mv643xx_eth.h               |    2 ++
+ arch/arm/mach-dove/common.c               | 2 +-
+ arch/arm/mach-kirkwood/common.c           | 4 ++--
+ arch/arm/mach-mv78xx0/common.c            | 6 ++++--
+ arch/arm/mach-orion5x/common.c            | 3 ++-
+ arch/arm/plat-orion/common.c              | 8 ++++++--
+ arch/arm/plat-orion/include/plat/common.h | 6 ++++--
+ include/linux/mv643xx_eth.h               | 2 ++
  7 files changed, 21 insertions(+), 10 deletions(-)
 
 diff --git a/arch/arm/mach-dove/common.c b/arch/arm/mach-dove/common.c
@@ -170,5 +170,5 @@ index 30b0c4e..43e038a 100644
  	struct mbus_dram_target_info	*dram;
  	struct platform_device	*shared_smi;
 -- 
-1.7.7.6
+1.8.1.4
 

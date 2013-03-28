@@ -1,4 +1,4 @@
-From 366e0a082de105e7e867d4849218f38a3f5dbd4f Mon Sep 17 00:00:00 2001
+From 3e24ca2fba696e19f3fd142312d0cd396a568c01 Mon Sep 17 00:00:00 2001
 From: Li Wei <lw@cn.fujitsu.com>
 Date: Thu, 9 Feb 2012 21:15:25 +0000
 Subject: [PATCH 28/72] ipv4: Fix wrong order of ip_rt_get_source() and update
@@ -16,8 +16,8 @@ Signed-off-by: Li Wei <lw@cn.fujitsu.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/ipv4/ip_options.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/ipv4/ip_options.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/ipv4/ip_options.c b/net/ipv4/ip_options.c
 index 1e60f76..42dd1a9 100644
@@ -34,5 +34,5 @@ index 1e60f76..42dd1a9 100644
  		} else if (net_ratelimit())
  			printk(KERN_CRIT "ip_forward(): Argh! Destination lost!\n");
 -- 
-1.7.7.6
+1.8.1.4
 

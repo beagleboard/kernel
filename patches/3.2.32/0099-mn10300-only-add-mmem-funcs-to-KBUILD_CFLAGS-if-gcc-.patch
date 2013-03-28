@@ -1,8 +1,8 @@
-From 08d0a734115b3ab226c2a9155906f90c9a9ea5db Mon Sep 17 00:00:00 2001
+From 18078bb5a80643b644881ae3983b54d862241973 Mon Sep 17 00:00:00 2001
 From: Geert Uytterhoeven <geert@linux-m68k.org>
 Date: Thu, 4 Oct 2012 17:11:13 -0700
-Subject: [PATCH 099/146] mn10300: only add -mmem-funcs to KBUILD_CFLAGS if
- gcc supports it
+Subject: [PATCH 099/146] mn10300: only add -mmem-funcs to KBUILD_CFLAGS if gcc
+ supports it
 
 commit 9957423f035c2071f6d1c5d2f095cdafbeb25ad7 upstream.
 
@@ -20,7 +20,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/mn10300/Makefile |    2 +-
+ arch/mn10300/Makefile | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/mn10300/Makefile b/arch/mn10300/Makefile
@@ -37,5 +37,5 @@ index 7120282..3eb4a52 100644
  
  ifeq ($(CONFIG_MN10300_CURRENT_IN_E2),y)
 -- 
-1.7.10.4
+1.8.1.4
 

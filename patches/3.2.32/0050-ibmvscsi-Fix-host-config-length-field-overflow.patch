@@ -1,4 +1,4 @@
-From a22052830e925055f597794bed2059999109dbb2 Mon Sep 17 00:00:00 2001
+From d8e544601599007046101c229e43474e5c9940af Mon Sep 17 00:00:00 2001
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Date: Mon, 30 Jul 2012 11:33:05 +1000
 Subject: [PATCH 050/146] ibmvscsi: Fix host config length field overflow
@@ -14,7 +14,7 @@ Acked-by: Robert Jennings <rcj@linux.vnet.ibm.com>
 Signed-off-by: James Bottomley <JBottomley@Parallels.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/scsi/ibmvscsi/ibmvscsi.c |    3 +++
+ drivers/scsi/ibmvscsi/ibmvscsi.c | 3 +++
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/scsi/ibmvscsi/ibmvscsi.c b/drivers/scsi/ibmvscsi/ibmvscsi.c
@@ -32,5 +32,5 @@ index 3d391dc..36aca4b 100644
  	memset(host_config, 0x00, sizeof(*host_config));
  	host_config->common.type = VIOSRP_HOST_CONFIG_TYPE;
 -- 
-1.7.10.4
+1.8.1.4
 

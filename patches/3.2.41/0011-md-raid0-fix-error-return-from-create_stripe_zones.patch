@@ -1,0 +1,42 @@
+From 6a2c2fe9f763228501bea7391bdd5634d3da94e3 Mon Sep 17 00:00:00 2001
+From: NeilBrown <neilb@suse.de>
+Date: Thu, 21 Feb 2013 15:36:38 +1100
+Subject: [PATCH 11/82] md: raid0: fix error return from create_stripe_zones.
+
+commit 58ebb34c49fcfcaa029e4b1c1453d92583900f9a upstream.
+
+Create_stripe_zones returns an error slightly differently to
+raid0_run and to raid0_takeover_*.
+
+The error returned used by the second was wrong and an error would
+result in mddev->private being set to NULL and sooner or later a
+crash.
+
+So never return NULL, return ERR_PTR(err), not NULL from
+create_stripe_zones.
+
+This bug has been present since 2.6.35 so the fix is suitable
+for any kernel since then.
+
+Signed-off-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/md/raid0.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/md/raid0.c b/drivers/md/raid0.c
+index 0c7bff9..d3e6f35 100644
+--- a/drivers/md/raid0.c
++++ b/drivers/md/raid0.c
+@@ -286,7 +286,7 @@ abort:
+ 	kfree(conf->strip_zone);
+ 	kfree(conf->devlist);
+ 	kfree(conf);
+-	*private_conf = NULL;
++	*private_conf = ERR_PTR(err);
+ 	return err;
+ }
+ 
+-- 
+1.8.1.4
+

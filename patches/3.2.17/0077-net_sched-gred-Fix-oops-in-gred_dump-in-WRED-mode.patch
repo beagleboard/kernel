@@ -1,8 +1,7 @@
-From 5a502d45a2ea5ce03c2eb9fc60ee0ee955cb012a Mon Sep 17 00:00:00 2001
+From 876700a151d1077977a69ad3428d2557c9a841ae Mon Sep 17 00:00:00 2001
 From: David Ward <david.ward@ll.mit.edu>
 Date: Sun, 15 Apr 2012 12:31:45 +0000
-Subject: [PATCH 077/165] net_sched: gred: Fix oops in gred_dump() in WRED
- mode
+Subject: [PATCH 077/165] net_sched: gred: Fix oops in gred_dump() in WRED mode
 
 [ Upstream commit 244b65dbfede788f2fa3fe2463c44d0809e97c6b ]
 
@@ -28,8 +27,8 @@ Signed-off-by: David Ward <david.ward@ll.mit.edu>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/sched/sch_gred.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+ net/sched/sch_gred.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
 diff --git a/net/sched/sch_gred.c b/net/sched/sch_gred.c
 index 6cd8ddf..e1afe0c 100644
@@ -50,5 +49,5 @@ index 6cd8ddf..e1afe0c 100644
  		opt.qave = red_calc_qavg(&q->parms, q->parms.qavg);
  
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,8 +1,7 @@
-From dc689b147c52fa5157d489fcaece1124e185d4bb Mon Sep 17 00:00:00 2001
+From f85937a7e3bd2cd27daa763af203ba471a429c0b Mon Sep 17 00:00:00 2001
 From: Takashi Iwai <tiwai@suse.de>
 Date: Thu, 16 Feb 2012 16:38:07 +0100
-Subject: [PATCH 47/72] ALSA: hda/realtek - Fix overflow of vol/sw check
- bitmap
+Subject: [PATCH 47/72] ALSA: hda/realtek - Fix overflow of vol/sw check bitmap
 
 commit c14c95f62ecb8710af14ae0d48e01991b70bb6f4 upstream.
 
@@ -17,8 +16,8 @@ to be safer.
 Signed-off-by: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- sound/pci/hda/patch_realtek.c |   11 ++++++++---
- 1 files changed, 8 insertions(+), 3 deletions(-)
+ sound/pci/hda/patch_realtek.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
 index 9c197d4..ceda0ac 100644
@@ -57,5 +56,5 @@ index 9c197d4..ceda0ac 100644
  }
  
 -- 
-1.7.7.6
+1.8.1.4
 

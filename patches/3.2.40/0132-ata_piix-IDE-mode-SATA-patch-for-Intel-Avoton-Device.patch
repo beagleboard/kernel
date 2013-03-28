@@ -1,0 +1,39 @@
+From 9d833178160d6e89910ea9c6dfe94dad3e81e32e Mon Sep 17 00:00:00 2001
+From: Seth Heasley <seth.heasley@intel.com>
+Date: Fri, 25 Jan 2013 11:57:05 -0800
+Subject: [PATCH 132/153] ata_piix: IDE-mode SATA patch for Intel Avoton
+ DeviceIDs
+
+commit aaa515277db9585eeb4fdeb4637b9f9df50a1dd9 upstream.
+
+This patch adds the IDE-mode SATA DeviceIDs for the Intel Avoton SOC.
+
+Signed-off-by: Seth Heasley <seth.heasley@intel.com>
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/ata/ata_piix.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/ata/ata_piix.c b/drivers/ata/ata_piix.c
+index d66fd43..2d6c81e 100644
+--- a/drivers/ata/ata_piix.c
++++ b/drivers/ata/ata_piix.c
+@@ -339,6 +339,14 @@ static const struct pci_device_id piix_pci_tbl[] = {
+ 	{ 0x8086, 0x9c09, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_2port_sata },
+ 	/* SATA Controller IDE (DH89xxCC) */
+ 	{ 0x8086, 0x2326, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_2port_sata },
++	/* SATA Controller IDE (Avoton) */
++	{ 0x8086, 0x1f20, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_snb },
++	/* SATA Controller IDE (Avoton) */
++	{ 0x8086, 0x1f21, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_snb },
++	/* SATA Controller IDE (Avoton) */
++	{ 0x8086, 0x1f30, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_2port_sata },
++	/* SATA Controller IDE (Avoton) */
++	{ 0x8086, 0x1f31, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_2port_sata },
+ 	{ }	/* terminate list */
+ };
+ 
+-- 
+1.8.1.4
+

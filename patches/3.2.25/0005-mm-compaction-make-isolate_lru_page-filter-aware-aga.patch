@@ -1,4 +1,4 @@
-From 53e552cf521f823de8bb571aff8689dcf23aeb93 Mon Sep 17 00:00:00 2001
+From 921b85a86977f2f1afda9335d96b5d3d1e366eb9 Mon Sep 17 00:00:00 2001
 From: Mel Gorman <mgorman@suse.de>
 Date: Thu, 12 Jan 2012 17:19:38 -0800
 Subject: [PATCH 05/73] mm: compaction: make isolate_lru_page() filter-aware
@@ -34,9 +34,9 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/mmzone.h |    2 ++
- mm/compaction.c        |    3 +++
- mm/vmscan.c            |   35 +++++++++++++++++++++++++++++++++--
+ include/linux/mmzone.h |  2 ++
+ mm/compaction.c        |  3 +++
+ mm/vmscan.c            | 35 +++++++++++++++++++++++++++++++++--
  3 files changed, 38 insertions(+), 2 deletions(-)
 
 diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
@@ -113,5 +113,5 @@ index 8342119..1b95e4c 100644
  	if ((mode & ISOLATE_UNMAPPED) && page_mapped(page))
  		return ret;
 -- 
-1.7.7.6
+1.8.1.4
 

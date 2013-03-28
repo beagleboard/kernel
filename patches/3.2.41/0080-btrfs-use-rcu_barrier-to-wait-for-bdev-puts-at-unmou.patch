@@ -1,0 +1,61 @@
+From 8e61b44db9cd59b4c82a5f05bdaa1e893942e9c7 Mon Sep 17 00:00:00 2001
+From: Eric Sandeen <sandeen@redhat.com>
+Date: Sat, 9 Mar 2013 15:18:39 +0000
+Subject: [PATCH 80/82] btrfs: use rcu_barrier() to wait for bdev puts at
+ unmount
+
+commit bc178622d40d87e75abc131007342429c9b03351 upstream.
+
+Doing this would reliably fail with -EBUSY for me:
+
+# mount /dev/sdb2 /mnt/scratch; umount /mnt/scratch; mkfs.btrfs -f /dev/sdb2
+...
+unable to open /dev/sdb2: Device or resource busy
+
+because mkfs.btrfs tries to open the device O_EXCL, and somebody still has it.
+
+Using systemtap to track bdev gets & puts shows a kworker thread doing a
+blkdev put after mkfs attempts a get; this is left over from the unmount
+path:
+
+btrfs_close_devices
+	__btrfs_close_devices
+		call_rcu(&device->rcu, free_device);
+			free_device
+				INIT_WORK(&device->rcu_work, __free_device);
+				schedule_work(&device->rcu_work);
+
+so unmount might complete before __free_device fires & does its blkdev_put.
+
+Adding an rcu_barrier() to btrfs_close_devices() causes unmount to wait
+until all blkdev_put()s are done, and the device is truly free once
+unmount completes.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Josef Bacik <jbacik@fusionio.com>
+Signed-off-by: Chris Mason <chris.mason@fusionio.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/btrfs/volumes.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/fs/btrfs/volumes.c b/fs/btrfs/volumes.c
+index d544035..9899205 100644
+--- a/fs/btrfs/volumes.c
++++ b/fs/btrfs/volumes.c
+@@ -577,6 +577,12 @@ int btrfs_close_devices(struct btrfs_fs_devices *fs_devices)
+ 		__btrfs_close_devices(fs_devices);
+ 		free_fs_devices(fs_devices);
+ 	}
++	/*
++	 * Wait for rcu kworkers under __btrfs_close_devices
++	 * to finish all blkdev_puts so device is really
++	 * free when umount is done.
++	 */
++	rcu_barrier();
+ 	return ret;
+ }
+ 
+-- 
+1.8.1.4
+

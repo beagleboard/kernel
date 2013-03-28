@@ -1,4 +1,4 @@
-From 7c9deda8626f3a9054c953b329c792ea0b96091a Mon Sep 17 00:00:00 2001
+From f549926146764de8c101897566b6771fd8841a5b Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <edumazet@google.com>
 Date: Thu, 18 Oct 2012 09:14:12 +0000
 Subject: [PATCH 69/83] tcp: fix FIONREAD/SIOCINQ
@@ -20,8 +20,8 @@ Cc: Tom Herbert <therbert@google.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/ipv4/tcp.c |    8 +++-----
- 1 files changed, 3 insertions(+), 5 deletions(-)
+ net/ipv4/tcp.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
 diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
 index 7397ad8..52edbb8 100644
@@ -46,5 +46,5 @@ index 7397ad8..52edbb8 100644
  			answ = tp->urg_seq - tp->copied_seq;
  		release_sock(sk);
 -- 
-1.7.7.6
+1.8.1.4
 

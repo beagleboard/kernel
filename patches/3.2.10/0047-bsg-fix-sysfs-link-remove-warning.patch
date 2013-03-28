@@ -1,4 +1,4 @@
-From 535698461a2ab83e2d48de87f032f6e14a0e759a Mon Sep 17 00:00:00 2001
+From 8c72889536c5fe0c1e83a7d7cf95555c184325b5 Mon Sep 17 00:00:00 2001
 From: Stanislaw Gruszka <sgruszka@redhat.com>
 Date: Wed, 8 Feb 2012 20:02:03 +0100
 Subject: [PATCH 47/95] bsg: fix sysfs link remove warning
@@ -36,8 +36,8 @@ Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- block/bsg.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ block/bsg.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/block/bsg.c b/block/bsg.c
 index 702f131..c0ab25c 100644
@@ -54,5 +54,5 @@ index 702f131..c0ab25c 100644
  	bcd->class_dev = NULL;
  	kref_put(&bcd->ref, bsg_kref_release_function);
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From a93eb355a81395d0c6e6e2e64cb52661e34c881c Mon Sep 17 00:00:00 2001
+From f62d873c5153ff86a12c71c2caab551fcb38d440 Mon Sep 17 00:00:00 2001
 From: Johannes Berg <johannes.berg@intel.com>
 Date: Wed, 27 Jun 2012 15:38:56 +0200
 Subject: [PATCH 10/49] mac80211: correct behaviour on unrecognised action
@@ -17,8 +17,8 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 Signed-off-by: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/mac80211/rx.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ net/mac80211/rx.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/net/mac80211/rx.c b/net/mac80211/rx.c
 index 064d20f..cda4875 100644
@@ -44,5 +44,5 @@ index 064d20f..cda4875 100644
  	if (mgmt->u.action.category & 0x80)
  		return RX_DROP_UNUSABLE;
 -- 
-1.7.7.6
+1.8.1.4
 

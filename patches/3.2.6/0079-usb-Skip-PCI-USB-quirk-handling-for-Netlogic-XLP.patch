@@ -1,4 +1,4 @@
-From 35fd0486f096cc2be5e97b58d7bd1da212c705bd Mon Sep 17 00:00:00 2001
+From 8c322f77185451b6b415b27b1fe866b80170400a Mon Sep 17 00:00:00 2001
 From: Jayachandran C <jayachandranc@netlogicmicro.com>
 Date: Fri, 27 Jan 2012 20:27:32 +0530
 Subject: [PATCH 79/87] usb: Skip PCI USB quirk handling for Netlogic XLP
@@ -20,8 +20,8 @@ Signed-off-by: Jayachandran C <jayachandranc@netlogicmicro.com>
 Acked-by: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/host/pci-quirks.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ drivers/usb/host/pci-quirks.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/drivers/usb/host/pci-quirks.c b/drivers/usb/host/pci-quirks.c
 index caf8742..ac53a66 100644
@@ -41,5 +41,5 @@ index caf8742..ac53a66 100644
  		quirk_usb_handoff_uhci(pdev);
  	else if (pdev->class == PCI_CLASS_SERIAL_USB_OHCI)
 -- 
-1.7.7.6
+1.8.1.4
 

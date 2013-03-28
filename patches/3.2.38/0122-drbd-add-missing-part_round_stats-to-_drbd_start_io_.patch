@@ -1,0 +1,32 @@
+From faf7c7bc670c3dc2cdc498d8d217be8133830b58 Mon Sep 17 00:00:00 2001
+From: Philipp Reisner <philipp.reisner@linbit.com>
+Date: Thu, 23 Feb 2012 12:56:26 +0100
+Subject: [PATCH 122/127] drbd: add missing part_round_stats to
+ _drbd_start_io_acct
+
+commit 72585d2428fa3a0daab02ebad1f41e5ef517dbaa upstream.
+
+Without this, iostat frequently sees bogus svctime and >= 100% "utilization".
+
+Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
+Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/block/drbd/drbd_req.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/block/drbd/drbd_req.c b/drivers/block/drbd/drbd_req.c
+index 4a0f314..be984e0 100644
+--- a/drivers/block/drbd/drbd_req.c
++++ b/drivers/block/drbd/drbd_req.c
+@@ -37,6 +37,7 @@ static void _drbd_start_io_acct(struct drbd_conf *mdev, struct drbd_request *req
+ 	const int rw = bio_data_dir(bio);
+ 	int cpu;
+ 	cpu = part_stat_lock();
++	part_round_stats(cpu, &mdev->vdisk->part0);
+ 	part_stat_inc(cpu, &mdev->vdisk->part0, ios[rw]);
+ 	part_stat_add(cpu, &mdev->vdisk->part0, sectors[rw], bio_sectors(bio));
+ 	part_inc_in_flight(&mdev->vdisk->part0, rw);
+-- 
+1.8.1.4
+

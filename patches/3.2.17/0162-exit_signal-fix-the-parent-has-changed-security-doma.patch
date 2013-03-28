@@ -1,4 +1,4 @@
-From 7ee631980a4b6bc7277bbbbd72b9f7b5b8d91c89 Mon Sep 17 00:00:00 2001
+From 426c3e2739c320c84483b27d88f6485e0303196a Mon Sep 17 00:00:00 2001
 From: Oleg Nesterov <oleg@redhat.com>
 Date: Mon, 19 Mar 2012 17:03:41 +0100
 Subject: [PATCH 162/165] exit_signal: fix the "parent has changed security
@@ -23,8 +23,8 @@ Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/exit.c   |   14 --------------
- kernel/signal.c |    9 +++++++++
+ kernel/exit.c   | 14 --------------
+ kernel/signal.c |  9 +++++++++
  2 files changed, 9 insertions(+), 14 deletions(-)
 
 diff --git a/kernel/exit.c b/kernel/exit.c
@@ -73,5 +73,5 @@ index 2065515..08e0b97 100644
  	info.si_errno = 0;
  	/*
 -- 
-1.7.7.6
+1.8.1.4
 

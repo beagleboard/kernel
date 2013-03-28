@@ -1,4 +1,4 @@
-From 00ab18341eac35f88e32d7ae7b6b9948da9edf57 Mon Sep 17 00:00:00 2001
+From 7364595a5a4793a2b6da3730f08d0c5fffddf02b Mon Sep 17 00:00:00 2001
 From: James Bottomley <JBottomley@Parallels.com>
 Date: Wed, 16 May 2012 11:10:27 +0100
 Subject: [PATCH 013/117] fix panic on prefetch(NULL) on PA7300LC
@@ -13,8 +13,8 @@ address of prefetch against NULL before doing the prefetch.
 Signed-off-by: James Bottomley <JBottomley@Parallels.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/parisc/include/asm/prefetch.h |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+ arch/parisc/include/asm/prefetch.h | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/arch/parisc/include/asm/prefetch.h b/arch/parisc/include/asm/prefetch.h
 index c5edc60..1ee7c82 100644
@@ -35,5 +35,5 @@ index c5edc60..1ee7c82 100644
  
  /* LDD is a PA2.0 addition. */
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 3c93483a5d4f4d47c18b6581c3a27a87c0634a08 Mon Sep 17 00:00:00 2001
+From 381a2b12df3de2d92d725a80276916312b5a3633 Mon Sep 17 00:00:00 2001
 From: Carsten Otte <carsteno@de.ibm.com>
 Date: Fri, 3 Feb 2012 15:37:14 -0800
 Subject: [PATCH 27/87] mm/filemap_xip.c: fix race condition in
@@ -32,8 +32,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- mm/filemap_xip.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+ mm/filemap_xip.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/mm/filemap_xip.c b/mm/filemap_xip.c
 index f91b2f6..a4eb311 100644
@@ -54,5 +54,5 @@ index f91b2f6..a4eb311 100644
  	} else {
  		int err, ret = VM_FAULT_OOM;
 -- 
-1.7.7.6
+1.8.1.4
 

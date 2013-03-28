@@ -1,4 +1,4 @@
-From 744b4a6cb8204f133bb1464bd5b133f9cc373b84 Mon Sep 17 00:00:00 2001
+From 1f30d12bdd72149d2ed65af9460ab21c503cc5dc Mon Sep 17 00:00:00 2001
 From: Xinyu Chen <xinyu.chen@freescale.com>
 Date: Mon, 27 Aug 2012 09:36:51 +0200
 Subject: [PATCH 109/135] tty: serial: imx: console write routing is unsafe on
@@ -31,8 +31,8 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/tty/serial/imx.c |   12 +++++++++++-
- 1 files changed, 11 insertions(+), 1 deletions(-)
+ drivers/tty/serial/imx.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/tty/serial/imx.c b/drivers/tty/serial/imx.c
 index 163fc90..2351ebe 100644
@@ -103,5 +103,5 @@ index 163fc90..2351ebe 100644
  
  /*
 -- 
-1.7.7.6
+1.8.1.4
 

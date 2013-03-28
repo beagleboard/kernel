@@ -1,0 +1,67 @@
+From afd48e914eee2991d9cdfde57836ac0c3da2aadb Mon Sep 17 00:00:00 2001
+From: David Henningsson <david.henningsson@canonical.com>
+Date: Wed, 19 Dec 2012 09:44:47 +0100
+Subject: [PATCH 029/127] Revert "ALSA: hda - Shut up pins at power-saving mode
+ with Conexnat codecs"
+
+commit 7ed4165e2d01bdbbb4c1086eb73eadf0f64cbbf0 upstream.
+
+This reverts commit 697c373e34613609cb5450f98b91fefb6e910588.
+
+The original patch was meant to remove clicking, but in fact caused even
+more clicking instead.
+
+Thanks to c4pp4 for doing most of the work with this bug.
+
+BugLink: https://bugs.launchpad.net/bugs/886975
+Signed-off-by: David Henningsson <david.henningsson@canonical.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/pci/hda/patch_conexant.c | 16 ----------------
+ 1 file changed, 16 deletions(-)
+
+diff --git a/sound/pci/hda/patch_conexant.c b/sound/pci/hda/patch_conexant.c
+index 498b62e..7f00c07 100644
+--- a/sound/pci/hda/patch_conexant.c
++++ b/sound/pci/hda/patch_conexant.c
+@@ -592,24 +592,12 @@ static int conexant_build_controls(struct hda_codec *codec)
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_SND_HDA_POWER_SAVE
+-static int conexant_suspend(struct hda_codec *codec, pm_message_t state)
+-{
+-	snd_hda_shutup_pins(codec);
+-	return 0;
+-}
+-#endif
+-
+ static const struct hda_codec_ops conexant_patch_ops = {
+ 	.build_controls = conexant_build_controls,
+ 	.build_pcms = conexant_build_pcms,
+ 	.init = conexant_init,
+ 	.free = conexant_free,
+ 	.set_power_state = conexant_set_power,
+-#ifdef CONFIG_SND_HDA_POWER_SAVE
+-	.suspend = conexant_suspend,
+-#endif
+-	.reboot_notify = snd_hda_shutup_pins,
+ };
+ 
+ #ifdef CONFIG_SND_HDA_INPUT_BEEP
+@@ -4429,10 +4417,6 @@ static const struct hda_codec_ops cx_auto_patch_ops = {
+ 	.init = cx_auto_init,
+ 	.free = conexant_free,
+ 	.unsol_event = cx_auto_unsol_event,
+-#ifdef CONFIG_SND_HDA_POWER_SAVE
+-	.suspend = conexant_suspend,
+-#endif
+-	.reboot_notify = snd_hda_shutup_pins,
+ };
+ 
+ /*
+-- 
+1.8.1.4
+

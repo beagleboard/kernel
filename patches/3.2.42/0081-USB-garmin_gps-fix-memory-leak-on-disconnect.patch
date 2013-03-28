@@ -1,0 +1,48 @@
+From 4810c7e8e04c045389b3b4c88c276379fbef159c Mon Sep 17 00:00:00 2001
+From: Johan Hovold <jhovold@gmail.com>
+Date: Tue, 19 Mar 2013 09:21:07 +0100
+Subject: [PATCH 81/92] USB: garmin_gps: fix memory leak on disconnect
+
+commit 618aa1068df29c37a58045fe940f9106664153fd upstream.
+
+Remove bogus disconnect test introduced by 95bef012e ("USB: more serial
+drivers writing after disconnect") which prevented queued data from
+being freed on disconnect.
+
+The possible IO it was supposed to prevent is long gone.
+
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/garmin_gps.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/drivers/usb/serial/garmin_gps.c b/drivers/usb/serial/garmin_gps.c
+index 1a49ca9..e664bac 100644
+--- a/drivers/usb/serial/garmin_gps.c
++++ b/drivers/usb/serial/garmin_gps.c
+@@ -973,10 +973,7 @@ static void garmin_close(struct usb_serial_port *port)
+ 	if (!serial)
+ 		return;
+ 
+-	mutex_lock(&port->serial->disc_mutex);
+-
+-	if (!port->serial->disconnected)
+-		garmin_clear(garmin_data_p);
++	garmin_clear(garmin_data_p);
+ 
+ 	/* shutdown our urbs */
+ 	usb_kill_urb(port->read_urb);
+@@ -985,8 +982,6 @@ static void garmin_close(struct usb_serial_port *port)
+ 	/* keep reset state so we know that we must start a new session */
+ 	if (garmin_data_p->state != STATE_RESET)
+ 		garmin_data_p->state = STATE_DISCONNECTED;
+-
+-	mutex_unlock(&port->serial->disc_mutex);
+ }
+ 
+ 
+-- 
+1.8.1.4
+

@@ -1,8 +1,7 @@
-From 77d97bd4f5919eb5fe9f6ff698a625aa03042da3 Mon Sep 17 00:00:00 2001
+From 1595b3820ca68b0d7bfb6f0a3fbe85062a0f9abd Mon Sep 17 00:00:00 2001
 From: Alan Stern <stern@rowland.harvard.edu>
 Date: Thu, 26 Apr 2012 11:31:57 -0400
-Subject: [PATCH 6/6] usb: gadget: udc-core: fix incompatibility with
- dummy-hcd
+Subject: [PATCH 6/6] usb: gadget: udc-core: fix incompatibility with dummy-hcd
 
 This patch (as1548) fixes a recently-introduced incompatibility
 between the UDC core and the dummy-hcd driver.  Commit
@@ -24,8 +23,8 @@ Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
 Tested-by: Alexander Shishkin <alexander.shishkin@linux.intel.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/usb/gadget/udc-core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/usb/gadget/udc-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/usb/gadget/udc-core.c b/drivers/usb/gadget/udc-core.c
 index 3ea783d..4e2e13e 100644
@@ -42,5 +41,5 @@ index 3ea783d..4e2e13e 100644
  	} else {
  		usb_gadget_stop(udc->gadget, udc->driver);
 -- 
-1.7.7.6
+1.8.1.4
 

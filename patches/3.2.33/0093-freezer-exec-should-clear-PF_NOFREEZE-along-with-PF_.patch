@@ -1,4 +1,4 @@
-From 3e915423fbd29d3919acbf19256024c1fdc2c62f Mon Sep 17 00:00:00 2001
+From 3538f2779ebc574d071404d27055290eb5570b75 Mon Sep 17 00:00:00 2001
 From: Oleg Nesterov <oleg@redhat.com>
 Date: Thu, 25 Oct 2012 22:28:12 +0200
 Subject: [PATCH 093/105] freezer: exec should clear PF_NOFREEZE along with
@@ -14,8 +14,8 @@ Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 [bwh: Backported to 3.2: PF_FORKNOEXEC is cleared elsewhere]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/exec.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ fs/exec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/fs/exec.c b/fs/exec.c
 index 160cd2f..121ccae 100644
@@ -31,5 +31,5 @@ index 160cd2f..121ccae 100644
  	current->personality &= ~bprm->per_clear;
  
 -- 
-1.7.7.6
+1.8.1.4
 

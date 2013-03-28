@@ -1,4 +1,4 @@
-From 552088583a8efdd0a149498a2870ee8512bd7462 Mon Sep 17 00:00:00 2001
+From 0a0723f690f02cafb19c3c3054f2d945c31fabd4 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Tue, 6 Mar 2012 17:16:09 -0800
 Subject: [PATCH 143/147] rtc: Provide flag for rtc devices that don't support
@@ -23,10 +23,10 @@ Tested-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: John Stultz <john.stultz@linaro.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/rtc/interface.c   |    5 +++++
- drivers/rtc/rtc-mpc5121.c |    2 ++
- include/linux/rtc.h       |    3 ++-
- 3 files changed, 9 insertions(+), 1 deletions(-)
+ drivers/rtc/interface.c   | 5 +++++
+ drivers/rtc/rtc-mpc5121.c | 2 ++
+ include/linux/rtc.h       | 3 ++-
+ 3 files changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/rtc/interface.c b/drivers/rtc/interface.c
 index c1edbf8..565742b 100644
@@ -72,5 +72,5 @@ index 93f4d03..fcabfb4 100644
  #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
  	struct work_struct uie_task;
 -- 
-1.7.7.6
+1.8.1.4
 

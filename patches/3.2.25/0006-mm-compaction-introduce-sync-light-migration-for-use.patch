@@ -1,4 +1,4 @@
-From a975fa0cf65283d392dbf0e26949339f68a2e98c Mon Sep 17 00:00:00 2001
+From a19f1e1958ce3007072386a71992b9c3fa925eec Mon Sep 17 00:00:00 2001
 From: Mel Gorman <mgorman@suse.de>
 Date: Thu, 12 Jan 2012 17:19:43 -0800
 Subject: [PATCH 06/73] mm: compaction: introduce sync-light migration for use
@@ -38,17 +38,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/btrfs/disk-io.c      |    5 ++-
- fs/hugetlbfs/inode.c    |    2 +-
- fs/nfs/internal.h       |    2 +-
- fs/nfs/write.c          |    4 +-
- include/linux/fs.h      |    6 ++-
- include/linux/migrate.h |   23 +++++++++++---
- mm/compaction.c         |    2 +-
- mm/memory-failure.c     |    2 +-
- mm/memory_hotplug.c     |    2 +-
- mm/mempolicy.c          |    2 +-
- mm/migrate.c            |   78 ++++++++++++++++++++++++++---------------------
+ fs/btrfs/disk-io.c      |  5 ++--
+ fs/hugetlbfs/inode.c    |  2 +-
+ fs/nfs/internal.h       |  2 +-
+ fs/nfs/write.c          |  4 +--
+ include/linux/fs.h      |  6 ++--
+ include/linux/migrate.h | 23 +++++++++++----
+ mm/compaction.c         |  2 +-
+ mm/memory-failure.c     |  2 +-
+ mm/memory_hotplug.c     |  2 +-
+ mm/mempolicy.c          |  2 +-
+ mm/migrate.c            | 78 +++++++++++++++++++++++++++----------------------
  11 files changed, 76 insertions(+), 52 deletions(-)
 
 diff --git a/fs/btrfs/disk-io.c b/fs/btrfs/disk-io.c
@@ -543,5 +543,5 @@ index 65c12d2..180d97f 100644
  			putback_lru_pages(&pagelist);
  	}
 -- 
-1.7.7.6
+1.8.1.4
 

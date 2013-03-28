@@ -1,4 +1,4 @@
-From c4be75d2b1eb842732c9ded5b47b44fecc7a4004 Mon Sep 17 00:00:00 2001
+From b9f50ad116600127441fd75ae65e4e7b7ce9c0b6 Mon Sep 17 00:00:00 2001
 From: Benjamin Poirier <bpoirier@suse.de>
 Date: Thu, 24 May 2012 11:32:38 +0000
 Subject: [PATCH 74/86] xfrm: take net hdr len into account for esp payload
@@ -18,8 +18,8 @@ Signed-off-by: Benjamin Poirier <bpoirier@suse.de>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/ipv4/esp4.c |   24 +++++++++---------------
- net/ipv6/esp6.c |   18 +++++++-----------
+ net/ipv4/esp4.c | 24 +++++++++---------------
+ net/ipv6/esp6.c | 18 +++++++-----------
  2 files changed, 16 insertions(+), 26 deletions(-)
 
 diff --git a/net/ipv4/esp4.c b/net/ipv4/esp4.c
@@ -96,5 +96,5 @@ index 1ac7938..65dd543 100644
  
  static void esp6_err(struct sk_buff *skb, struct inet6_skb_parm *opt,
 -- 
-1.7.7.6
+1.8.1.4
 

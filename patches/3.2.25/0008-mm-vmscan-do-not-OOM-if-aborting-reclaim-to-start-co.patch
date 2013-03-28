@@ -1,4 +1,4 @@
-From dba80c3b316a6b6e7bb09f34437f14668f5dfab8 Mon Sep 17 00:00:00 2001
+From 276127d3d520ecffe377b38a3f9d21fa2f877214 Mon Sep 17 00:00:00 2001
 From: Mel Gorman <mgorman@suse.de>
 Date: Thu, 12 Jan 2012 17:19:33 -0800
 Subject: [PATCH 08/73] mm: vmscan: do not OOM if aborting reclaim to start
@@ -30,8 +30,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- mm/vmscan.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+ mm/vmscan.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/mm/vmscan.c b/mm/vmscan.c
 index fd47744..662a5ea 100644
@@ -67,5 +67,5 @@ index fd47744..662a5ea 100644
  	if (scanning_global_lru(sc) && !all_unreclaimable(zonelist, sc))
  		return 1;
 -- 
-1.7.7.6
+1.8.1.4
 

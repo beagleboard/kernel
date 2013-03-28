@@ -1,0 +1,57 @@
+From 9ef6fc71cdbaff59f514b5f4df3d617d70587c15 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@helsinki.fi>
+Date: Mon, 4 Feb 2013 02:14:25 +0000
+Subject: [PATCH 61/67] tcp: fix for zero packets_in_flight was too broad
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+[ Upstream commit 6731d2095bd4aef18027c72ef845ab1087c3ba63 ]
+
+There are transients during normal FRTO procedure during which
+the packets_in_flight can go to zero between write_queue state
+updates and firing the resulting segments out. As FRTO processing
+occurs during that window the check must be more precise to
+not match "spuriously" :-). More specificly, e.g., when
+packets_in_flight is zero but FLAG_DATA_ACKED is true the problematic
+branch that set cwnd into zero would not be taken and new segments
+might be sent out later.
+
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@helsinki.fi>
+Tested-by: Eric Dumazet <edumazet@google.com>
+Acked-by: Neal Cardwell <ncardwell@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv4/tcp_input.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
+index 308b5b4..e865ed1 100644
+--- a/net/ipv4/tcp_input.c
++++ b/net/ipv4/tcp_input.c
+@@ -3635,8 +3635,7 @@ static int tcp_process_frto(struct sock *sk, int flag)
+ 	    ((tp->frto_counter >= 2) && (flag & FLAG_RETRANS_DATA_ACKED)))
+ 		tp->undo_marker = 0;
+ 
+-	if (!before(tp->snd_una, tp->frto_highmark) ||
+-	    !tcp_packets_in_flight(tp)) {
++	if (!before(tp->snd_una, tp->frto_highmark)) {
+ 		tcp_enter_frto_loss(sk, (tp->frto_counter == 1 ? 2 : 3), flag);
+ 		return 1;
+ 	}
+@@ -3656,6 +3655,11 @@ static int tcp_process_frto(struct sock *sk, int flag)
+ 		}
+ 	} else {
+ 		if (!(flag & FLAG_DATA_ACKED) && (tp->frto_counter == 1)) {
++			if (!tcp_packets_in_flight(tp)) {
++				tcp_enter_frto_loss(sk, 2, flag);
++				return true;
++			}
++
+ 			/* Prevent sending of new data. */
+ 			tp->snd_cwnd = min(tp->snd_cwnd,
+ 					   tcp_packets_in_flight(tp));
+-- 
+1.8.1.4
+

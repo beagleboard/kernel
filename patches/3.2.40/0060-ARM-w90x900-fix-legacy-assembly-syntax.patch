@@ -1,0 +1,45 @@
+From 7562fc9a64255f416b66830173f84d5cd2f6b2bc Mon Sep 17 00:00:00 2001
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Mon, 14 Jan 2013 12:49:02 +0000
+Subject: [PATCH 060/153] ARM: w90x900: fix legacy assembly syntax
+
+commit fa5ce5f94c0f2bfa41ba68d2d2524298e1fc405e upstream.
+
+New ARM binutils don't allow extraneous whitespace inside
+of brackets, which causes this error on all mach-w90x900
+defconfigs:
+
+arch/arm/kernel/entry-armv.S: Assembler messages:
+arch/arm/kernel/entry-armv.S:214: Error: ARM register expected -- `ldr r0,[ r6,#(0x10C)]'
+arch/arm/kernel/entry-armv.S:214: Error: ARM register expected -- `ldr r0,[ r6,#(0x110)]'
+arch/arm/kernel/entry-armv.S:430: Error: ARM register expected -- `ldr r0,[ r6,#(0x10C)]'
+arch/arm/kernel/entry-armv.S:430: Error: ARM register expected -- `ldr r0,[ r6,#(0x110)]'
+
+This removes the whitespace in order to build the kernel
+again.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Wan ZongShun <mcuos.com@gmail.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/arm/mach-w90x900/include/mach/entry-macro.S | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-w90x900/include/mach/entry-macro.S b/arch/arm/mach-w90x900/include/mach/entry-macro.S
+index d39aca5..08436cf 100644
+--- a/arch/arm/mach-w90x900/include/mach/entry-macro.S
++++ b/arch/arm/mach-w90x900/include/mach/entry-macro.S
+@@ -22,8 +22,8 @@
+ 
+ 		mov	\base, #AIC_BA
+ 
+-		ldr	\irqnr, [ \base, #AIC_IPER]
+-		ldr	\irqnr, [ \base, #AIC_ISNR]
++		ldr	\irqnr, [\base, #AIC_IPER]
++		ldr	\irqnr, [\base, #AIC_ISNR]
+ 		cmp	\irqnr, #0
+ 
+ 	.endm
+-- 
+1.8.1.4
+

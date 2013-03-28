@@ -1,4 +1,4 @@
-From 07f2c3af06c1cddf0ccd50594fdef4241396fa79 Mon Sep 17 00:00:00 2001
+From 06d30adbfb66e03e27bfdf8c8e3073b7c9777294 Mon Sep 17 00:00:00 2001
 From: Jason Baron <jbaron@redhat.com>
 Date: Wed, 25 Apr 2012 16:01:47 -0700
 Subject: [PATCH 023/109] epoll: clear the tfile_check_list on -ELOOP
@@ -19,8 +19,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/eventpoll.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ fs/eventpoll.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/fs/eventpoll.c b/fs/eventpoll.c
 index 4d9d3a4..a6f3763 100644
@@ -39,5 +39,5 @@ index 4d9d3a4..a6f3763 100644
  			list_add(&tfile->f_tfile_llink, &tfile_check_list);
  	}
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,0 +1,46 @@
+From 4442dd8677364ecf0567eb5eb1bc411d001e5f5e Mon Sep 17 00:00:00 2001
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Date: Wed, 2 Jan 2013 10:31:22 +0000
+Subject: [PATCH 018/127] drm/i915; Only increment the user-pin-count after
+ successfully pinning the bo
+
+commit 93be8788e648817d62fda33e2998eb6ca6ebf3a3 upstream.
+
+As along the error path we do not correct the user pin-count for the
+failure, we may end up with userspace believing that it has a pinned
+object at offset 0 (when interrupted by a signal for example).
+
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_gem.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index 5950ba3..b0186b8 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -3456,14 +3456,15 @@ i915_gem_pin_ioctl(struct drm_device *dev, void *data,
+ 		goto out;
+ 	}
+ 
+-	obj->user_pin_count++;
+-	obj->pin_filp = file;
+-	if (obj->user_pin_count == 1) {
++	if (obj->user_pin_count == 0) {
+ 		ret = i915_gem_object_pin(obj, args->alignment, true);
+ 		if (ret)
+ 			goto out;
+ 	}
+ 
++	obj->user_pin_count++;
++	obj->pin_filp = file;
++
+ 	/* XXX - flush the CPU caches for pinned objects
+ 	 * as the X server doesn't manage domains yet
+ 	 */
+-- 
+1.8.1.4
+

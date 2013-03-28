@@ -1,0 +1,83 @@
+From 71fa9b8dc7bdd90d70b169cac3cf343016a62e96 Mon Sep 17 00:00:00 2001
+From: Adam Thomas <adamthomas1111@gmail.com>
+Date: Sat, 2 Feb 2013 22:35:08 +0000
+Subject: [PATCH 025/153] UBIFS: fix double free of ubifs_orphan objects
+
+commit 8afd500cb52a5d00bab4525dd5a560d199f979b9 upstream.
+
+The last orphan in the dnext list has its dnext set to NULL. Because
+of that, ubifs_delete_orphan assumes that it is not on the dnext list
+and frees it immediately instead ignoring it as a second delete. The
+orphan is later freed again by erase_deleted.
+
+This change adds an explicit flag to ubifs_orphan indicating whether
+it is pending delete.
+
+Signed-off-by: Adam Thomas <adamthomas1111@gmail.com>
+Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ubifs/orphan.c | 5 ++++-
+ fs/ubifs/ubifs.h  | 2 ++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/fs/ubifs/orphan.c b/fs/ubifs/orphan.c
+index c542c73..f9c90b5 100644
+--- a/fs/ubifs/orphan.c
++++ b/fs/ubifs/orphan.c
+@@ -130,13 +130,14 @@ void ubifs_delete_orphan(struct ubifs_info *c, ino_t inum)
+ 		else if (inum > o->inum)
+ 			p = p->rb_right;
+ 		else {
+-			if (o->dnext) {
++			if (o->del) {
+ 				spin_unlock(&c->orphan_lock);
+ 				dbg_gen("deleted twice ino %lu",
+ 					(unsigned long)inum);
+ 				return;
+ 			}
+ 			if (o->cnext) {
++				o->del = 1;
+ 				o->dnext = c->orph_dnext;
+ 				c->orph_dnext = o;
+ 				spin_unlock(&c->orphan_lock);
+@@ -447,6 +448,7 @@ static void erase_deleted(struct ubifs_info *c)
+ 		orphan = dnext;
+ 		dnext = orphan->dnext;
+ 		ubifs_assert(!orphan->new);
++		ubifs_assert(orphan->del);
+ 		rb_erase(&orphan->rb, &c->orph_tree);
+ 		list_del(&orphan->list);
+ 		c->tot_orphans -= 1;
+@@ -536,6 +538,7 @@ static int insert_dead_orphan(struct ubifs_info *c, ino_t inum)
+ 	rb_link_node(&orphan->rb, parent, p);
+ 	rb_insert_color(&orphan->rb, &c->orph_tree);
+ 	list_add_tail(&orphan->list, &c->orph_list);
++	orphan->del = 1;
+ 	orphan->dnext = c->orph_dnext;
+ 	c->orph_dnext = orphan;
+ 	dbg_mnt("ino %lu, new %d, tot %d", (unsigned long)inum,
+diff --git a/fs/ubifs/ubifs.h b/fs/ubifs/ubifs.h
+index 8bbc99e..a39fce5 100644
+--- a/fs/ubifs/ubifs.h
++++ b/fs/ubifs/ubifs.h
+@@ -908,6 +908,7 @@ struct ubifs_budget_req {
+  * @dnext: next orphan to delete
+  * @inum: inode number
+  * @new: %1 => added since the last commit, otherwise %0
++ * @del: %1 => delete pending, otherwise %0
+  */
+ struct ubifs_orphan {
+ 	struct rb_node rb;
+@@ -917,6 +918,7 @@ struct ubifs_orphan {
+ 	struct ubifs_orphan *dnext;
+ 	ino_t inum;
+ 	int new;
++	unsigned del:1;
+ };
+ 
+ /**
+-- 
+1.8.1.4
+

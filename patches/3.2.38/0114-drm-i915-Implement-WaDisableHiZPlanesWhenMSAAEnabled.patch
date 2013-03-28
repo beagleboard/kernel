@@ -1,0 +1,59 @@
+From c10598731bdfcf180a00ad1858a715d0b9f7a628 Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Fri, 14 Dec 2012 23:38:28 +0100
+Subject: [PATCH 114/127] drm/i915: Implement WaDisableHiZPlanesWhenMSAAEnabled
+
+commit 4283908ef7f11a72c3b80dd4cf026f1a86429f82 upstream.
+
+Quoting from Bspec, 3D_CHICKEN1, bit 10
+
+This bit needs to be set always to "1", Project: DevSNB "
+
+Reviewed-by: Rodrigo Vivi <rodrigo.vivi@gmail.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Abdallah Chatila <abdallah.chatila@ericsson.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_reg.h      | 3 +++
+ drivers/gpu/drm/i915/intel_display.c | 4 ++++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/i915_reg.h b/drivers/gpu/drm/i915/i915_reg.h
+index a632513..124dd87 100644
+--- a/drivers/gpu/drm/i915/i915_reg.h
++++ b/drivers/gpu/drm/i915/i915_reg.h
+@@ -27,6 +27,8 @@
+ 
+ #define _PIPE(pipe, a, b) ((a) + (pipe)*((b)-(a)))
+ 
++#define _MASKED_BIT_ENABLE(a) (((a) << 16) | (a))
++
+ /*
+  * The Bridge device's PCI config space has information about the
+  * fb aperture size and the amount of pre-reserved memory.
+@@ -389,6 +391,7 @@
+  * the enables for writing to the corresponding low bit.
+  */
+ #define _3D_CHICKEN	0x02084
++#define _3D_CHICKEN_HIZ_PLANE_DISABLE_MSAA_4X_SNB	(1 << 10)
+ #define _3D_CHICKEN2	0x0208c
+ /* Disables pipelining of read flushes past the SF-WIZ interface.
+  * Required on all Ironlake steppings according to the B-Spec, but the
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index fa9639b..c05e825 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -8279,6 +8279,10 @@ static void gen6_init_clock_gating(struct drm_device *dev)
+ 		   I915_READ(ILK_DISPLAY_CHICKEN2) |
+ 		   ILK_ELPIN_409_SELECT);
+ 
++	/* WaDisableHiZPlanesWhenMSAAEnabled */
++	I915_WRITE(_3D_CHICKEN,
++		   _MASKED_BIT_ENABLE(_3D_CHICKEN_HIZ_PLANE_DISABLE_MSAA_4X_SNB));
++
+ 	I915_WRITE(WM3_LP_ILK, 0);
+ 	I915_WRITE(WM2_LP_ILK, 0);
+ 	I915_WRITE(WM1_LP_ILK, 0);
+-- 
+1.8.1.4
+

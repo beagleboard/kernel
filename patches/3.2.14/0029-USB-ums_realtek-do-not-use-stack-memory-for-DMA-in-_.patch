@@ -1,4 +1,4 @@
-From 866a912ffce324ef14cb8ea12ab4a1a81a4bceb0 Mon Sep 17 00:00:00 2001
+From fa35d2b64f0b91375e2be84d5d9a7de1883a94f9 Mon Sep 17 00:00:00 2001
 From: Josh Boyer <jwboyer@redhat.com>
 Date: Mon, 20 Feb 2012 15:34:34 -0500
 Subject: [PATCH 029/147] USB: ums_realtek: do not use stack memory for DMA in
@@ -14,8 +14,8 @@ this by calling kmemdup for the passed data instead.
 Signed-off-by: Josh Boyer <jwboyer@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/storage/realtek_cr.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+ drivers/usb/storage/realtek_cr.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/storage/realtek_cr.c b/drivers/usb/storage/realtek_cr.c
 index 32c93d7..e39b188 100644
@@ -47,5 +47,5 @@ index 32c93d7..e39b188 100644
  		return -EIO;
  	}
 -- 
-1.7.7.6
+1.8.1.4
 

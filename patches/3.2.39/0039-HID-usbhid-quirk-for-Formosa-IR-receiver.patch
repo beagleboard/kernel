@@ -1,0 +1,51 @@
+From 09f53b4b810cde678360fba93bf1cfada3bf6ced Mon Sep 17 00:00:00 2001
+From: Nicholas Santos <nicholas.santos@gmail.com>
+Date: Fri, 28 Dec 2012 22:07:02 -0500
+Subject: [PATCH 39/67] HID: usbhid: quirk for Formosa IR receiver
+
+commit 320cde19a4e8f122b19d2df7a5c00636e11ca3fb upstream.
+
+Patch to add the Formosa Industrial Computing, Inc. Infrared Receiver
+[IR605A/Q] to hid-ids.h and hid-quirks.c.  This IR receiver causes about a 10
+second timeout when the usbhid driver attempts to initialze the device.  Adding
+this device to the quirks list with HID_QUIRK_NO_INIT_REPORTS removes the
+delay.
+
+Signed-off-by: Nicholas Santos <nicholas.santos@gmail.com>
+[jkosina@suse.cz: fix ordering]
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/hid/hid-ids.h           | 3 +++
+ drivers/hid/usbhid/hid-quirks.c | 1 +
+ 2 files changed, 4 insertions(+)
+
+diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
+index 2d41336..c15c38e 100644
+--- a/drivers/hid/hid-ids.h
++++ b/drivers/hid/hid-ids.h
+@@ -278,6 +278,9 @@
+ #define USB_VENDOR_ID_EZKEY		0x0518
+ #define USB_DEVICE_ID_BTC_8193		0x0002
+ 
++#define USB_VENDOR_ID_FORMOSA          0x147a
++#define USB_DEVICE_ID_FORMOSA_IR_RECEIVER      0xe03e
++
+ #define USB_VENDOR_ID_FREESCALE		0x15A2
+ #define USB_DEVICE_ID_FREESCALE_MX28	0x004F
+ 
+diff --git a/drivers/hid/usbhid/hid-quirks.c b/drivers/hid/usbhid/hid-quirks.c
+index aec3fa3..e26eddf 100644
+--- a/drivers/hid/usbhid/hid-quirks.c
++++ b/drivers/hid/usbhid/hid-quirks.c
+@@ -68,6 +68,7 @@ static const struct hid_blacklist {
+ 	{ USB_VENDOR_ID_CH, USB_DEVICE_ID_CH_AXIS_295, HID_QUIRK_NOGET },
+ 	{ USB_VENDOR_ID_DMI, USB_DEVICE_ID_DMI_ENC, HID_QUIRK_NOGET },
+ 	{ USB_VENDOR_ID_ELO, USB_DEVICE_ID_ELO_TS2700, HID_QUIRK_NOGET },
++	{ USB_VENDOR_ID_FORMOSA, USB_DEVICE_ID_FORMOSA_IR_RECEIVER, HID_QUIRK_NO_INIT_REPORTS },
+ 	{ USB_VENDOR_ID_FREESCALE, USB_DEVICE_ID_FREESCALE_MX28, HID_QUIRK_NOGET },
+ 	{ USB_VENDOR_ID_MGE, USB_DEVICE_ID_MGE_UPS, HID_QUIRK_NOGET },
+ 	{ USB_VENDOR_ID_PIXART, USB_DEVICE_ID_PIXART_OPTICAL_TOUCH_SCREEN, HID_QUIRK_NO_INIT_REPORTS },
+-- 
+1.8.1.4
+

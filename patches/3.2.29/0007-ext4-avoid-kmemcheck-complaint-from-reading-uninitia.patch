@@ -1,4 +1,4 @@
-From ba6a3b470521d26d9b0793f427670501e6b7cd4b Mon Sep 17 00:00:00 2001
+From d609b868f7825932b05fcb866b10240576e14ced Mon Sep 17 00:00:00 2001
 From: Theodore Ts'o <tytso@mit.edu>
 Date: Sun, 5 Aug 2012 23:28:16 -0400
 Subject: [PATCH 07/94] ext4: avoid kmemcheck complaint from reading
@@ -20,8 +20,8 @@ Addresses https://bugzilla.kernel.org/show_bug.cgi?id=45631
 Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ext4/super.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ fs/ext4/super.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/fs/ext4/super.c b/fs/ext4/super.c
 index a071348..129925a 100644
@@ -36,5 +36,5 @@ index a071348..129925a 100644
  #ifdef CONFIG_QUOTA
  	ei->i_reserved_quota = 0;
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 85e15e84302f975d9aaa3fbf8025a76aba59d154 Mon Sep 17 00:00:00 2001
+From 5474d9f543afe64c013f42b25c732eea811e962d Mon Sep 17 00:00:00 2001
 From: Phil Sutter <phil.sutter@viprinet.com>
 Date: Mon, 26 Mar 2012 09:01:30 +0000
 Subject: [PATCH 066/165] wimax: i2400m - prevent a possible kernel bug due to
@@ -15,8 +15,8 @@ Signed-off-by: Phil Sutter <phil.sutter@viprinet.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/wimax/i2400m/netdev.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/net/wimax/i2400m/netdev.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/net/wimax/i2400m/netdev.c b/drivers/net/wimax/i2400m/netdev.c
 index 64a1106..4697cf3 100644
@@ -33,5 +33,5 @@ index 64a1106..4697cf3 100644
  		strncpy(info->bus_info, dev_name(net_dev->dev.parent),
  			sizeof(info->bus_info) - 1);
 -- 
-1.7.7.6
+1.8.1.4
 

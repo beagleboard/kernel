@@ -1,4 +1,4 @@
-From 81af45192febab5f7a061ca028009bbd6a14eabf Mon Sep 17 00:00:00 2001
+From d258ca696de6a15e806f7c956b37b8ce061daca2 Mon Sep 17 00:00:00 2001
 From: Mike Snitzer <snitzer@redhat.com>
 Date: Wed, 26 Sep 2012 23:45:42 +0100
 Subject: [PATCH 045/109] dm: handle requests beyond end of device instead of
@@ -26,7 +26,7 @@ Signed-off-by: Jun'ichi Nomura <j-nomura@ce.jp.nec.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/md/dm.c |   56 +++++++++++++++++++++++++++++++++++++------------------
+ drivers/md/dm.c | 56 ++++++++++++++++++++++++++++++++++++++------------------
  1 file changed, 38 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/md/dm.c b/drivers/md/dm.c
@@ -130,5 +130,5 @@ index 4720f68..502dcf7 100644
  
  int dm_underlying_device_busy(struct request_queue *q)
 -- 
-1.7.10.4
+1.8.1.4
 

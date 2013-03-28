@@ -1,4 +1,4 @@
-From f378eda32e5958b0352a65ca768e80b378838034 Mon Sep 17 00:00:00 2001
+From 7deee138091a80534744a24727aba8b6f1cbdacf Mon Sep 17 00:00:00 2001
 From: Shawn Lu <shawn.lu@ericsson.com>
 Date: Sat, 4 Feb 2012 12:38:09 +0000
 Subject: [PATCH 27/72] tcp_v4_send_reset: binding oif to iif in no sock case
@@ -23,8 +23,8 @@ Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/ipv4/tcp_ipv4.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ net/ipv4/tcp_ipv4.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
 index c89e354..eb90aa8 100644
@@ -43,5 +43,5 @@ index c89e354..eb90aa8 100644
  	net = dev_net(skb_dst(skb)->dev);
  	arg.tos = ip_hdr(skb)->tos;
 -- 
-1.7.7.6
+1.8.1.4
 

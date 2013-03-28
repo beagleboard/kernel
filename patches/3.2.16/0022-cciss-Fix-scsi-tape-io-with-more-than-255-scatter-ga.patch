@@ -1,4 +1,4 @@
-From 49eccaa3f488a0e080e60f827e957da0c013a552 Mon Sep 17 00:00:00 2001
+From 14af69f8d2183e182ec80ccd77a6934c87822d7b Mon Sep 17 00:00:00 2001
 From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
 Date: Thu, 22 Mar 2012 21:40:09 +0100
 Subject: [PATCH 22/68] cciss: Fix scsi tape io with more than 255 scatter
@@ -17,8 +17,8 @@ Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/block/cciss_scsi.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/block/cciss_scsi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/block/cciss_scsi.c b/drivers/block/cciss_scsi.c
 index f510a9c..acda773 100644
@@ -34,5 +34,5 @@ index f510a9c..acda773 100644
  		c->Header.SGList = h->max_cmd_sgentries;
  	else
 -- 
-1.7.7.6
+1.8.1.4
 

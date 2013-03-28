@@ -1,4 +1,4 @@
-From 11b9bbd88f2a6b3cb0c03734a77b447882555e47 Mon Sep 17 00:00:00 2001
+From 072bc843d0d4fb02fa1d621a5d6e48fe20a8d74f Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Thu, 24 May 2012 15:42:53 +0530
 Subject: [PATCH 11/19] usb: musb: host: Flush txfifo only if TxPktRdy bit set
@@ -7,8 +7,8 @@ This is needed as per mentor core documents.
 
 Signed-off-by: Ravi B <ravibabu@ti.com>
 ---
- drivers/usb/musb/musb_host.c |   23 ++++++++++++-----------
- 1 files changed, 12 insertions(+), 11 deletions(-)
+ drivers/usb/musb/musb_host.c | 23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
 index c3629bd..7545a65 100644
@@ -53,5 +53,5 @@ index c3629bd..7545a65 100644
  }
  
 -- 
-1.7.7.6
+1.8.1.4
 

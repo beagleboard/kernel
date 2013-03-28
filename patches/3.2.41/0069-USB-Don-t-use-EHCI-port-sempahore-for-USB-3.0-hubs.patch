@@ -1,0 +1,62 @@
+From 1ef437c3439d451d286709ddc072885f6c6dc191 Mon Sep 17 00:00:00 2001
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Date: Thu, 7 Mar 2013 16:24:45 -0800
+Subject: [PATCH 69/82] USB: Don't use EHCI port sempahore for USB 3.0 hubs.
+
+commit 0fe51aa5eee51db7c7ecd201d42a977ad79c58b6 upstream.
+
+The EHCI host controller needs to prevent EHCI initialization when the
+UHCI or OHCI companion controller is in the middle of a port reset.  It
+uses ehci_cf_port_reset_rwsem to do this.  USB 3.0 hubs can't be under
+an EHCI host controller, so it makes no sense to down the semaphore for
+USB 3.0 hubs.  It also makes the warm port reset code more complex.
+
+Don't down ehci_cf_port_reset_rwsem for USB 3.0 hubs.
+
+Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/core/hub.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+index 8ab3094..fb9ae29 100644
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -2271,17 +2271,16 @@ static int hub_port_reset(struct usb_hub *hub, int port1,
+ {
+ 	int i, status;
+ 
+-	if (!warm) {
+-		/* Block EHCI CF initialization during the port reset.
+-		 * Some companion controllers don't like it when they mix.
+-		 */
+-		down_read(&ehci_cf_port_reset_rwsem);
+-	} else {
+-		if (!hub_is_superspeed(hub->hdev)) {
++	if (!hub_is_superspeed(hub->hdev)) {
++		if (warm) {
+ 			dev_err(hub->intfdev, "only USB3 hub support "
+ 						"warm reset\n");
+ 			return -EINVAL;
+ 		}
++		/* Block EHCI CF initialization during the port reset.
++		 * Some companion controllers don't like it when they mix.
++		 */
++		down_read(&ehci_cf_port_reset_rwsem);
+ 	}
+ 
+ 	/* Reset the port */
+@@ -2319,7 +2318,7 @@ static int hub_port_reset(struct usb_hub *hub, int port1,
+ 		port1);
+ 
+ done:
+-	if (!warm)
++	if (!hub_is_superspeed(hub->hdev))
+ 		up_read(&ehci_cf_port_reset_rwsem);
+ 
+ 	return status;
+-- 
+1.8.1.4
+

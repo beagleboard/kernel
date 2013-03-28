@@ -1,4 +1,4 @@
-From c315fb62d198f8ea1c219009a94c666e081f1282 Mon Sep 17 00:00:00 2001
+From 31312202111828f84f5b906eb2326501ca6b3d60 Mon Sep 17 00:00:00 2001
 From: Paolo Bonzini <pbonzini@redhat.com>
 Date: Thu, 12 Jan 2012 16:01:28 +0100
 Subject: [PATCH 091/129] block: fail SCSI passthrough ioctls on partition
@@ -42,9 +42,9 @@ Signed-off-by: Paolo Bonzini <pbonzini@redhat.com>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- block/scsi_ioctl.c     |   45 +++++++++++++++++++++++++++++++++++++++++++++
- drivers/scsi/sd.c      |   11 +++++++++--
- include/linux/blkdev.h |    1 +
+ block/scsi_ioctl.c     | 45 +++++++++++++++++++++++++++++++++++++++++++++
+ drivers/scsi/sd.c      | 11 +++++++++--
+ include/linux/blkdev.h |  1 +
  3 files changed, 55 insertions(+), 2 deletions(-)
 
 diff --git a/block/scsi_ioctl.c b/block/scsi_ioctl.c
@@ -162,5 +162,5 @@ index ca7b869..0ed1eb0 100644
  			      unsigned int, void __user *);
  extern int scsi_cmd_ioctl(struct request_queue *, struct gendisk *, fmode_t,
 -- 
-1.7.7.6
+1.8.1.4
 

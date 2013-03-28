@@ -1,4 +1,4 @@
-From 898944cec87ebd2188480bf8e21bb8c0b5200a11 Mon Sep 17 00:00:00 2001
+From 16d191eeb73554ed857aea83e34084bd6a54da78 Mon Sep 17 00:00:00 2001
 From: Hans de Goede <hdegoede@redhat.com>
 Date: Wed, 4 Jul 2012 09:18:01 +0200
 Subject: [PATCH 33/73] usbdevfs: Correct amount of data copied to user in
@@ -15,8 +15,8 @@ Acked-by: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/core/devio.c |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
+ drivers/usb/core/devio.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/usb/core/devio.c b/drivers/usb/core/devio.c
 index f6ff837..a9df218 100644
@@ -41,5 +41,5 @@ index f6ff837..a9df218 100644
  		return -EFAULT;
  	if (put_user(urb->actual_length, &userurb->actual_length))
 -- 
-1.7.7.6
+1.8.1.4
 

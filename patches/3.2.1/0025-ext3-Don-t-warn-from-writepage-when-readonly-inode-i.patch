@@ -1,4 +1,4 @@
-From b09b8bc34a78b11da0e5a1b4844d93e95c0983ff Mon Sep 17 00:00:00 2001
+From a5f88bd5ef451b731a16f918ac0fa9348120571e Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Thu, 22 Dec 2011 16:49:05 +0100
 Subject: [PATCH 25/49] ext3: Don't warn from writepage when readonly inode is
@@ -16,8 +16,8 @@ cycles in the common case so that's what we do.
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- fs/ext3/inode.c |   24 +++++++++++++++++++++---
- 1 files changed, 21 insertions(+), 3 deletions(-)
+ fs/ext3/inode.c | 24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
 diff --git a/fs/ext3/inode.c b/fs/ext3/inode.c
 index 85fe655..5b3f907 100644
@@ -69,5 +69,5 @@ index 85fe655..5b3f907 100644
  	if (ext3_journal_current_handle())
  		goto no_write;
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From dc24a4dd21d88cc8e8ecfb1f8b8b8fb081bfacb9 Mon Sep 17 00:00:00 2001
+From 8c4997cdb173f377b8539148186ab72d3fc23505 Mon Sep 17 00:00:00 2001
 From: Daniel Vetter <daniel.vetter@ffwll.ch>
 Date: Sun, 20 May 2012 17:14:50 +0200
 Subject: [PATCH 10/86] drm/i915: enable vdd when switching off the eDP panel
@@ -36,8 +36,8 @@ Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 [bwh: Backported to 3.2: nothing to revert here]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/i915/intel_dp.c |   17 ++++++++---------
- 1 files changed, 8 insertions(+), 9 deletions(-)
+ drivers/gpu/drm/i915/intel_dp.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
 index 12eb789..d4c4937 100644
@@ -93,5 +93,5 @@ index 12eb789..d4c4937 100644
  		intel_dp_link_down(intel_dp);
  		ironlake_edp_panel_vdd_off(intel_dp, false);
 -- 
-1.7.7.6
+1.8.1.4
 

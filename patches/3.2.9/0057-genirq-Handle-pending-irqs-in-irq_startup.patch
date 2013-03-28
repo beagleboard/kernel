@@ -1,4 +1,4 @@
-From 55661be57fc6c246c3ed813396a9cceaccb9981e Mon Sep 17 00:00:00 2001
+From a6660a455c278c4f97675e6c49b1321edde6eb88 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Wed, 8 Feb 2012 11:57:52 +0100
 Subject: [PATCH 57/72] genirq: Handle pending irqs in irq_startup()
@@ -16,10 +16,10 @@ Reported-and-tested-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- kernel/irq/autoprobe.c |    4 ++--
- kernel/irq/chip.c      |   17 ++++++++++-------
- kernel/irq/internals.h |    2 +-
- kernel/irq/manage.c    |    2 +-
+ kernel/irq/autoprobe.c |  4 ++--
+ kernel/irq/chip.c      | 17 ++++++++++-------
+ kernel/irq/internals.h |  2 +-
+ kernel/irq/manage.c    |  2 +-
  4 files changed, 14 insertions(+), 11 deletions(-)
 
 diff --git a/kernel/irq/autoprobe.c b/kernel/irq/autoprobe.c
@@ -113,5 +113,5 @@ index 1da999f..cf2d7ae 100644
  			/* Undo nested disables: */
  			desc->depth = 1;
 -- 
-1.7.7.6
+1.8.1.4
 

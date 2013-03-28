@@ -1,0 +1,212 @@
+From 72b895729e68971f05bc6a08e323a92dc9961744 Mon Sep 17 00:00:00 2001
+From: Takashi Iwai <tiwai@suse.de>
+Date: Fri, 25 Jan 2013 10:28:18 +1000
+Subject: [PATCH 037/153] fb: Yet another band-aid for fixing lockdep mess
+
+commit e93a9a868792ad71cdd09d75e5a02d8067473c4e upstream.
+
+I've still got lockdep warnings even after Alan's patch, and it seems that
+yet more band aids are required to paper over similar paths for
+unbind_con_driver() and unregister_con_driver().  After this hack, lockdep
+warnings are finally gone.
+
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/tty/vt/vt.c           | 43 ++++++++++++++++++++++++++++---------------
+ drivers/video/console/fbcon.c |  4 ++--
+ drivers/video/fbmem.c         |  4 ++++
+ include/linux/console.h       |  1 +
+ include/linux/vt_kern.h       |  2 ++
+ 5 files changed, 37 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/tty/vt/vt.c b/drivers/tty/vt/vt.c
+index e2345d4..632df54 100644
+--- a/drivers/tty/vt/vt.c
++++ b/drivers/tty/vt/vt.c
+@@ -3164,6 +3164,18 @@ static int con_is_graphics(const struct consw *csw, int first, int last)
+  */
+ int unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
+ {
++	int retval;
++
++	console_lock();
++	retval = do_unbind_con_driver(csw, first, last, deflt);
++	console_unlock();
++	return retval;
++}
++EXPORT_SYMBOL(unbind_con_driver);
++
++/* unlocked version of unbind_con_driver() */
++int do_unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
++{
+ 	struct module *owner = csw->owner;
+ 	const struct consw *defcsw = NULL;
+ 	struct con_driver *con_driver = NULL, *con_back = NULL;
+@@ -3172,7 +3184,7 @@ int unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
+ 	if (!try_module_get(owner))
+ 		return -ENODEV;
+ 
+-	console_lock();
++	WARN_CONSOLE_UNLOCKED();
+ 
+ 	/* check if driver is registered and if it is unbindable */
+ 	for (i = 0; i < MAX_NR_CON_DRIVER; i++) {
+@@ -3185,10 +3197,8 @@ int unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
+ 		}
+ 	}
+ 
+-	if (retval) {
+-		console_unlock();
++	if (retval)
+ 		goto err;
+-	}
+ 
+ 	retval = -ENODEV;
+ 
+@@ -3204,15 +3214,11 @@ int unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
+ 		}
+ 	}
+ 
+-	if (retval) {
+-		console_unlock();
++	if (retval)
+ 		goto err;
+-	}
+ 
+-	if (!con_is_bound(csw)) {
+-		console_unlock();
++	if (!con_is_bound(csw))
+ 		goto err;
+-	}
+ 
+ 	first = max(first, con_driver->first);
+ 	last = min(last, con_driver->last);
+@@ -3241,13 +3247,12 @@ int unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
+ 
+ 	/* ignore return value, binding should not fail */
+ 	do_bind_con_driver(defcsw, first, last, deflt);
+-	console_unlock();
+ err:
+ 	module_put(owner);
+ 	return retval;
+ 
+ }
+-EXPORT_SYMBOL(unbind_con_driver);
++EXPORT_SYMBOL_GPL(do_unbind_con_driver);
+ 
+ static int vt_bind(struct con_driver *con)
+ {
+@@ -3621,9 +3626,18 @@ EXPORT_SYMBOL(register_con_driver);
+  */
+ int unregister_con_driver(const struct consw *csw)
+ {
+-	int i, retval = -ENODEV;
++	int retval;
+ 
+ 	console_lock();
++	retval = do_unregister_con_driver(csw);
++	console_unlock();
++	return retval;
++}
++EXPORT_SYMBOL(unregister_con_driver);
++
++int do_unregister_con_driver(const struct consw *csw)
++{
++	int i, retval = -ENODEV;
+ 
+ 	/* cannot unregister a bound driver */
+ 	if (con_is_bound(csw))
+@@ -3649,10 +3663,9 @@ int unregister_con_driver(const struct consw *csw)
+ 		}
+ 	}
+ err:
+-	console_unlock();
+ 	return retval;
+ }
+-EXPORT_SYMBOL(unregister_con_driver);
++EXPORT_SYMBOL_GPL(do_unregister_con_driver);
+ 
+ /*
+  *	If we support more console drivers, this function is used
+diff --git a/drivers/video/console/fbcon.c b/drivers/video/console/fbcon.c
+index 18d02c6..9b8bcab 100644
+--- a/drivers/video/console/fbcon.c
++++ b/drivers/video/console/fbcon.c
+@@ -3011,7 +3011,7 @@ static int fbcon_unbind(void)
+ {
+ 	int ret;
+ 
+-	ret = unbind_con_driver(&fb_con, first_fb_vc, last_fb_vc,
++	ret = do_unbind_con_driver(&fb_con, first_fb_vc, last_fb_vc,
+ 				fbcon_is_default);
+ 
+ 	if (!ret)
+@@ -3084,7 +3084,7 @@ static int fbcon_fb_unregistered(struct fb_info *info)
+ 		primary_device = -1;
+ 
+ 	if (!num_registered_fb)
+-		unregister_con_driver(&fb_con);
++		do_unregister_con_driver(&fb_con);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/video/fbmem.c b/drivers/video/fbmem.c
+index a94edc3..c133dde 100644
+--- a/drivers/video/fbmem.c
++++ b/drivers/video/fbmem.c
+@@ -1646,8 +1646,10 @@ static int do_unregister_framebuffer(struct fb_info *fb_info)
+ 
+ 	if (!lock_fb_info(fb_info))
+ 		return -ENODEV;
++	console_lock();
+ 	event.info = fb_info;
+ 	ret = fb_notifier_call_chain(FB_EVENT_FB_UNBIND, &event);
++	console_unlock();
+ 	unlock_fb_info(fb_info);
+ 
+ 	if (ret)
+@@ -1662,7 +1664,9 @@ static int do_unregister_framebuffer(struct fb_info *fb_info)
+ 	num_registered_fb--;
+ 	fb_cleanup_device(fb_info);
+ 	event.info = fb_info;
++	console_lock();
+ 	fb_notifier_call_chain(FB_EVENT_FB_UNREGISTERED, &event);
++	console_unlock();
+ 
+ 	/* this may free fb info */
+ 	put_fb_info(fb_info);
+diff --git a/include/linux/console.h b/include/linux/console.h
+index 49b1061..6ae6a15 100644
+--- a/include/linux/console.h
++++ b/include/linux/console.h
+@@ -77,6 +77,7 @@ extern const struct consw prom_con;	/* SPARC PROM console */
+ int con_is_bound(const struct consw *csw);
+ int register_con_driver(const struct consw *csw, int first, int last);
+ int unregister_con_driver(const struct consw *csw);
++int do_unregister_con_driver(const struct consw *csw);
+ int take_over_console(const struct consw *sw, int first, int last, int deflt);
+ int do_take_over_console(const struct consw *sw, int first, int last, int deflt);
+ void give_up_console(const struct consw *sw);
+diff --git a/include/linux/vt_kern.h b/include/linux/vt_kern.h
+index 932276d..644921f 100644
+--- a/include/linux/vt_kern.h
++++ b/include/linux/vt_kern.h
+@@ -132,6 +132,8 @@ void vt_event_post(unsigned int event, unsigned int old, unsigned int new);
+ int vt_waitactive(int n);
+ void change_console(struct vc_data *new_vc);
+ void reset_vc(struct vc_data *vc);
++extern int do_unbind_con_driver(const struct consw *csw, int first, int last,
++			     int deflt);
+ extern int unbind_con_driver(const struct consw *csw, int first, int last,
+ 			     int deflt);
+ int vty_init(const struct file_operations *console_fops);
+-- 
+1.8.1.4
+

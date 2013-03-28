@@ -1,4 +1,4 @@
-From e8a8ae654b6e2485712b2c4f2dee162c7671140b Mon Sep 17 00:00:00 2001
+From 3898ec4b89466f1ad15dff8684d08b928705c51e Mon Sep 17 00:00:00 2001
 From: Chris Wilson <chris@chris-wilson.co.uk>
 Date: Fri, 11 May 2012 18:01:33 +0100
 Subject: [PATCH 088/135] drm/i915: SDVO hotplug have different interrupt
@@ -22,9 +22,9 @@ Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
  - Carry on using IS_SDVOB() in intel_sdvo_init()]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/i915/i915_irq.c   |   20 ++++++++++++++++----
- drivers/gpu/drm/i915/i915_reg.h   |   10 ++++++++--
- drivers/gpu/drm/i915/intel_sdvo.c |   17 +++++++++++++----
+ drivers/gpu/drm/i915/i915_irq.c   | 20 ++++++++++++++++----
+ drivers/gpu/drm/i915/i915_reg.h   | 10 ++++++++--
+ drivers/gpu/drm/i915/intel_sdvo.c | 17 +++++++++++++----
  3 files changed, 37 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/i915_irq.c b/drivers/gpu/drm/i915/i915_irq.c
@@ -121,5 +121,5 @@ index a8d8ee5..66d5017 100644
  	drm_encoder_helper_add(&intel_encoder->base, &intel_sdvo_helper_funcs);
  
 -- 
-1.7.7.6
+1.8.1.4
 

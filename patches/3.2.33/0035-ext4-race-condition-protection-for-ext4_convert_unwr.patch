@@ -1,4 +1,4 @@
-From 417c3b59d40744b30f3bd87e131072b0b6316d19 Mon Sep 17 00:00:00 2001
+From e239b594a1b461a8d55475a094709a44c11a89c2 Mon Sep 17 00:00:00 2001
 From: Dmitry Monakhov <dmonakhov@openvz.org>
 Date: Wed, 10 Oct 2012 01:04:58 -0400
 Subject: [PATCH 035/105] ext4: race-condition protection for
@@ -20,8 +20,8 @@ Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ext4/extents.c |   57 ++++++++++++++++++++++++++++++++++++++++++----------
- 1 files changed, 46 insertions(+), 11 deletions(-)
+ fs/ext4/extents.c | 57 ++++++++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 46 insertions(+), 11 deletions(-)
 
 diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
 index 54f2bdc..191580a 100644
@@ -153,5 +153,5 @@ index 54f2bdc..191580a 100644
  		if (ret >= 0) {
  			ext4_update_inode_fsync_trans(handle, inode, 1);
 -- 
-1.7.7.6
+1.8.1.4
 

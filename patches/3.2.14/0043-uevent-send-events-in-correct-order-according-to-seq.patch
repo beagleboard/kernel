@@ -1,4 +1,4 @@
-From d9fc3d9a2fb1c722f124ebdcea099a944049d30d Mon Sep 17 00:00:00 2001
+From 76a5e70dea394ec12180881ddb7e964371369b74 Mon Sep 17 00:00:00 2001
 From: Andrew Vagin <avagin@openvz.org>
 Date: Wed, 7 Mar 2012 14:49:56 +0400
 Subject: [PATCH 043/147] uevent: send events in correct order according to
@@ -24,8 +24,8 @@ Signed-off-by: Andrew Vagin <avagin@openvz.org>
 Tested-By: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- lib/kobject_uevent.c |   19 +++++++++----------
- 1 files changed, 9 insertions(+), 10 deletions(-)
+ lib/kobject_uevent.c | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
 diff --git a/lib/kobject_uevent.c b/lib/kobject_uevent.c
 index ad72a03..6d40244 100644
@@ -93,5 +93,5 @@ index ad72a03..6d40244 100644
  	/* call uevent_helper, usually only enabled during early boot */
  	if (uevent_helper[0] && !kobj_usermode_filter(kobj)) {
 -- 
-1.7.7.6
+1.8.1.4
 

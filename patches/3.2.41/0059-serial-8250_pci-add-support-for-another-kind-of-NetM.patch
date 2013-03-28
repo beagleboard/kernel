@@ -1,0 +1,46 @@
+From 3afaf18c75d42452d35c0c2461d8244e2f352bca Mon Sep 17 00:00:00 2001
+From: Wang YanQing <udknight@gmail.com>
+Date: Fri, 1 Mar 2013 11:47:20 +0800
+Subject: [PATCH 59/82] serial: 8250_pci: add support for another kind of
+ NetMos Technology PCI 9835 Multi-I/O Controller
+
+commit 8d2f8cd424ca0b99001f3ff4f5db87c4e525f366 upstream.
+
+01:08.0 Communication controller: NetMos Technology PCI 9835 Multi-I/O Controller (rev 01)
+	Subsystem: Device [1000:0012]
+	Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Interrupt: pin A routed to IRQ 20
+	Region 0: I/O ports at e050 [size=8]
+	Region 1: I/O ports at e040 [size=8]
+	Region 2: I/O ports at e030 [size=8]
+	Region 3: I/O ports at e020 [size=8]
+	Region 4: I/O ports at e010 [size=8]
+	Region 5: I/O ports at e000 [size=16]
+
+Signed-off-by: Wang YanQing <udknight@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+[bwh: Backported to 3.2: adjust filename]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/tty/serial/8250_pci.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/tty/serial/8250_pci.c b/drivers/tty/serial/8250_pci.c
+index 6c9bcdf..6986256 100644
+--- a/drivers/tty/serial/8250_pci.c
++++ b/drivers/tty/serial/8250_pci.c
+@@ -4083,6 +4083,10 @@ static struct pci_device_id serial_pci_tbl[] = {
+ 		PCI_VENDOR_ID_IBM, 0x0299,
+ 		0, 0, pbn_b0_bt_2_115200 },
+ 
++	{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9835,
++		0x1000, 0x0012,
++		0, 0, pbn_b0_bt_2_115200 },
++
+ 	{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9901,
+ 		0xA000, 0x1000,
+ 		0, 0, pbn_b0_1_115200 },
+-- 
+1.8.1.4
+

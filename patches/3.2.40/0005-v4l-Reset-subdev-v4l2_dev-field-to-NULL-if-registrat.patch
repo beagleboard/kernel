@@ -1,0 +1,84 @@
+From cf929de461bc0a52ab6b73ae3d296eb827d41456 Mon Sep 17 00:00:00 2001
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Sat, 24 Nov 2012 21:35:48 -0300
+Subject: [PATCH 005/153] v4l: Reset subdev v4l2_dev field to NULL if
+ registration fails
+
+commit 317efce991620adc589b3005b9baed433dcb2a56 upstream.
+
+When subdev registration fails the subdev v4l2_dev field is left to a
+non-NULL value. Later calls to v4l2_device_unregister_subdev() will
+consider the subdev as registered and will module_put() the subdev
+module without any matching module_get().
+Fix this by setting the subdev v4l2_dev field to NULL in
+v4l2_device_register_subdev() when the function fails.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+[bwh: Backported to 3.2: adjust context, filename]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/media/video/v4l2-device.c | 30 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 0edd618..8b0777f 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -159,31 +159,21 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 	sd->v4l2_dev = v4l2_dev;
+ 	if (sd->internal_ops && sd->internal_ops->registered) {
+ 		err = sd->internal_ops->registered(sd);
+-		if (err) {
+-			module_put(sd->owner);
+-			return err;
+-		}
++		if (err)
++			goto error_module;
+ 	}
+ 
+ 	/* This just returns 0 if either of the two args is NULL */
+ 	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler);
+-	if (err) {
+-		if (sd->internal_ops && sd->internal_ops->unregistered)
+-			sd->internal_ops->unregistered(sd);
+-		module_put(sd->owner);
+-		return err;
+-	}
++	if (err)
++		goto error_unregister;
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	/* Register the entity. */
+ 	if (v4l2_dev->mdev) {
+ 		err = media_device_register_entity(v4l2_dev->mdev, entity);
+-		if (err < 0) {
+-			if (sd->internal_ops && sd->internal_ops->unregistered)
+-				sd->internal_ops->unregistered(sd);
+-			module_put(sd->owner);
+-			return err;
+-		}
++		if (err < 0)
++			goto error_unregister;
+ 	}
+ #endif
+ 
+@@ -192,6 +182,14 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 	spin_unlock(&v4l2_dev->lock);
+ 
+ 	return 0;
++
++error_unregister:
++	if (sd->internal_ops && sd->internal_ops->unregistered)
++		sd->internal_ops->unregistered(sd);
++error_module:
++	module_put(sd->owner);
++	sd->v4l2_dev = NULL;
++	return err;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+ 
+-- 
+1.8.1.4
+

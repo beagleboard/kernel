@@ -1,8 +1,7 @@
-From ea4f57e2c23efe0d822703d65e388db57942e2ee Mon Sep 17 00:00:00 2001
+From 319add77c4eaf888017a068796fab1f30e01a3ca Mon Sep 17 00:00:00 2001
 From: Daniel Vetter <daniel.vetter@ffwll.ch>
 Date: Wed, 25 Jan 2012 16:32:49 +0100
-Subject: [PATCH 16/38] drm/i915: fixup seqno allocation logic for
- lazy_request
+Subject: [PATCH 16/38] drm/i915: fixup seqno allocation logic for lazy_request
 
 commit 53d227f282eb9fa4c7cdbfd691fa372b7ca8c4c3 upstream.
 
@@ -50,9 +49,9 @@ Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
 Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/i915/i915_drv.h         |    7 +------
- drivers/gpu/drm/i915/i915_gem.c         |   23 +++++++++++++++++++++++
- drivers/gpu/drm/i915/intel_ringbuffer.c |   24 ++++--------------------
+ drivers/gpu/drm/i915/i915_drv.h         |  7 +------
+ drivers/gpu/drm/i915/i915_gem.c         | 23 +++++++++++++++++++++++
+ drivers/gpu/drm/i915/intel_ringbuffer.c | 24 ++++--------------------
  3 files changed, 28 insertions(+), 26 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
@@ -178,5 +177,5 @@ index f6613dc..d2cbe5d 100644
  	intel_ring_emit(ring, MI_STORE_DWORD_INDEX);
  	intel_ring_emit(ring, I915_GEM_HWS_INDEX << MI_STORE_DWORD_INDEX_SHIFT);
 -- 
-1.7.7.6
+1.8.1.4
 

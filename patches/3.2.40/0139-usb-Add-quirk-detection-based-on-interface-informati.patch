@@ -1,0 +1,264 @@
+From 8884fdc7195f27041662f1c85451bcd20c31e203 Mon Sep 17 00:00:00 2001
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Thu, 19 Jul 2012 12:39:13 +0200
+Subject: [PATCH 139/153] usb: Add quirk detection based on interface
+ information
+
+commit 80da2e0df5af700518611b7d1cc4fc9945bcaf95 upstream.
+
+When a whole class of devices (possibly from a specific vendor, or
+across multiple vendors) require a quirk, explictly listing all devices
+in the class make the quirks table unnecessarily large. Fix this by
+allowing matching devices based on interface information.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/core/driver.c | 38 +++++++++++--------
+ drivers/usb/core/hub.c    | 10 +++--
+ drivers/usb/core/quirks.c | 93 ++++++++++++++++++++++++++++++++++++-----------
+ drivers/usb/core/usb.h    |  4 ++
+ 4 files changed, 106 insertions(+), 39 deletions(-)
+
+diff --git a/drivers/usb/core/driver.c b/drivers/usb/core/driver.c
+index c77f0d6..9f3003e 100644
+--- a/drivers/usb/core/driver.c
++++ b/drivers/usb/core/driver.c
+@@ -541,22 +541,10 @@ int usb_match_device(struct usb_device *dev, const struct usb_device_id *id)
+ }
+ 
+ /* returns 0 if no match, 1 if match */
+-int usb_match_one_id(struct usb_interface *interface,
+-		     const struct usb_device_id *id)
++int usb_match_one_id_intf(struct usb_device *dev,
++			  struct usb_host_interface *intf,
++			  const struct usb_device_id *id)
+ {
+-	struct usb_host_interface *intf;
+-	struct usb_device *dev;
+-
+-	/* proc_connectinfo in devio.c may call us with id == NULL. */
+-	if (id == NULL)
+-		return 0;
+-
+-	intf = interface->cur_altsetting;
+-	dev = interface_to_usbdev(interface);
+-
+-	if (!usb_match_device(dev, id))
+-		return 0;
+-
+ 	/* The interface class, subclass, and protocol should never be
+ 	 * checked for a match if the device class is Vendor Specific,
+ 	 * unless the match record specifies the Vendor ID. */
+@@ -581,6 +569,26 @@ int usb_match_one_id(struct usb_interface *interface,
+ 
+ 	return 1;
+ }
++
++/* returns 0 if no match, 1 if match */
++int usb_match_one_id(struct usb_interface *interface,
++		     const struct usb_device_id *id)
++{
++	struct usb_host_interface *intf;
++	struct usb_device *dev;
++
++	/* proc_connectinfo in devio.c may call us with id == NULL. */
++	if (id == NULL)
++		return 0;
++
++	intf = interface->cur_altsetting;
++	dev = interface_to_usbdev(interface);
++
++	if (!usb_match_device(dev, id))
++		return 0;
++
++	return usb_match_one_id_intf(dev, intf, id);
++}
+ EXPORT_SYMBOL_GPL(usb_match_one_id);
+ 
+ /**
+diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+index ed1bce1..8ab3094 100644
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -1883,7 +1883,7 @@ static int usb_enumerate_device(struct usb_device *udev)
+ 		if (err < 0) {
+ 			dev_err(&udev->dev, "can't read configurations, error %d\n",
+ 				err);
+-			goto fail;
++			return err;
+ 		}
+ 	}
+ 	if (udev->wusb == 1 && udev->authorized == 0) {
+@@ -1899,8 +1899,12 @@ static int usb_enumerate_device(struct usb_device *udev)
+ 		udev->serial = usb_cache_string(udev, udev->descriptor.iSerialNumber);
+ 	}
+ 	err = usb_enumerate_device_otg(udev);
+-fail:
+-	return err;
++	if (err < 0)
++		return err;
++
++	usb_detect_interface_quirks(udev);
++
++	return 0;
+ }
+ 
+ 
+diff --git a/drivers/usb/core/quirks.c b/drivers/usb/core/quirks.c
+index 3f08c09..2fb7993 100644
+--- a/drivers/usb/core/quirks.c
++++ b/drivers/usb/core/quirks.c
+@@ -15,17 +15,22 @@
+ #include <linux/usb/quirks.h>
+ #include "usb.h"
+ 
+-/* List of quirky USB devices.  Please keep this list ordered by:
++/* Lists of quirky USB devices, split in device quirks and interface quirks.
++ * Device quirks are applied at the very beginning of the enumeration process,
++ * right after reading the device descriptor. They can thus only match on device
++ * information.
++ *
++ * Interface quirks are applied after reading all the configuration descriptors.
++ * They can match on both device and interface information.
++ *
++ * Note that the DELAY_INIT and HONOR_BNUMINTERFACES quirks do not make sense as
++ * interface quirks, as they only influence the enumeration process which is run
++ * before processing the interface quirks.
++ *
++ * Please keep the lists ordered by:
+  * 	1) Vendor ID
+  * 	2) Product ID
+  * 	3) Class ID
+- *
+- * as we want specific devices to be overridden first, and only after that, any
+- * class specific quirks.
+- *
+- * Right now the logic aborts if it finds a valid device in the table, we might
+- * want to change that in the future if it turns out that a whole class of
+- * devices is broken...
+  */
+ static const struct usb_device_id usb_quirk_list[] = {
+ 	/* CBM - Flash disk */
+@@ -163,16 +168,53 @@ static const struct usb_device_id usb_quirk_list[] = {
+ 	{ }  /* terminating entry must be last */
+ };
+ 
+-static const struct usb_device_id *find_id(struct usb_device *udev)
++static const struct usb_device_id usb_interface_quirk_list[] = {
++	{ }  /* terminating entry must be last */
++};
++
++static bool usb_match_any_interface(struct usb_device *udev,
++				    const struct usb_device_id *id)
++{
++	unsigned int i;
++
++	for (i = 0; i < udev->descriptor.bNumConfigurations; ++i) {
++		struct usb_host_config *cfg = &udev->config[i];
++		unsigned int j;
++
++		for (j = 0; j < cfg->desc.bNumInterfaces; ++j) {
++			struct usb_interface_cache *cache;
++			struct usb_host_interface *intf;
++
++			cache = cfg->intf_cache[j];
++			if (cache->num_altsetting == 0)
++				continue;
++
++			intf = &cache->altsetting[0];
++			if (usb_match_one_id_intf(udev, intf, id))
++				return true;
++		}
++	}
++
++	return false;
++}
++
++static u32 __usb_detect_quirks(struct usb_device *udev,
++			       const struct usb_device_id *id)
+ {
+-	const struct usb_device_id *id = usb_quirk_list;
++	u32 quirks = 0;
+ 
+-	for (; id->idVendor || id->bDeviceClass || id->bInterfaceClass ||
+-			id->driver_info; id++) {
+-		if (usb_match_device(udev, id))
+-			return id;
++	for (; id->match_flags; id++) {
++		if (!usb_match_device(udev, id))
++			continue;
++
++		if ((id->match_flags & USB_DEVICE_ID_MATCH_INT_INFO) &&
++		    !usb_match_any_interface(udev, id))
++			continue;
++
++		quirks |= (u32)(id->driver_info);
+ 	}
+-	return NULL;
++
++	return quirks;
+ }
+ 
+ /*
+@@ -180,14 +222,10 @@ static const struct usb_device_id *find_id(struct usb_device *udev)
+  */
+ void usb_detect_quirks(struct usb_device *udev)
+ {
+-	const struct usb_device_id *id = usb_quirk_list;
+-
+-	id = find_id(udev);
+-	if (id)
+-		udev->quirks = (u32)(id->driver_info);
++	udev->quirks = __usb_detect_quirks(udev, usb_quirk_list);
+ 	if (udev->quirks)
+ 		dev_dbg(&udev->dev, "USB quirks for this device: %x\n",
+-				udev->quirks);
++			udev->quirks);
+ 
+ 	/* For the present, all devices default to USB-PERSIST enabled */
+ #if 0		/* was: #ifdef CONFIG_PM */
+@@ -204,3 +242,16 @@ void usb_detect_quirks(struct usb_device *udev)
+ 		udev->persist_enabled = 1;
+ #endif	/* CONFIG_PM */
+ }
++
++void usb_detect_interface_quirks(struct usb_device *udev)
++{
++	u32 quirks;
++
++	quirks = __usb_detect_quirks(udev, usb_interface_quirk_list);
++	if (quirks == 0)
++		return;
++
++	dev_dbg(&udev->dev, "USB interface quirks for this device: %x\n",
++		quirks);
++	udev->quirks |= quirks;
++}
+diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
+index 45e8479..3e1159b 100644
+--- a/drivers/usb/core/usb.h
++++ b/drivers/usb/core/usb.h
+@@ -24,6 +24,7 @@ extern void usb_disable_device(struct usb_device *dev, int skip_ep0);
+ extern int usb_deauthorize_device(struct usb_device *);
+ extern int usb_authorize_device(struct usb_device *);
+ extern void usb_detect_quirks(struct usb_device *udev);
++extern void usb_detect_interface_quirks(struct usb_device *udev);
+ extern int usb_remove_device(struct usb_device *udev);
+ 
+ extern int usb_get_device_descriptor(struct usb_device *dev,
+@@ -35,6 +36,9 @@ extern int usb_set_configuration(struct usb_device *dev, int configuration);
+ extern int usb_choose_configuration(struct usb_device *udev);
+ 
+ extern void usb_kick_khubd(struct usb_device *dev);
++extern int usb_match_one_id_intf(struct usb_device *dev,
++				 struct usb_host_interface *intf,
++				 const struct usb_device_id *id);
+ extern int usb_match_device(struct usb_device *dev,
+ 			    const struct usb_device_id *id);
+ extern void usb_forced_unbind_intf(struct usb_interface *intf);
+-- 
+1.8.1.4
+

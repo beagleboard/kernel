@@ -1,4 +1,4 @@
-From 4a9310b5e7009dd5ac8518a609394cf042c26b30 Mon Sep 17 00:00:00 2001
+From 984b065156fa289c5fcec50ea021455efe0a0d8d Mon Sep 17 00:00:00 2001
 From: "tom.leiming@gmail.com" <tom.leiming@gmail.com>
 Date: Thu, 22 Mar 2012 03:22:18 +0000
 Subject: [PATCH 094/147] usbnet: increase URB reference count before
@@ -27,8 +27,8 @@ Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/usb/usbnet.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ drivers/net/usb/usbnet.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
 diff --git a/drivers/net/usb/usbnet.c b/drivers/net/usb/usbnet.c
 index 81b96e3..cf6a515 100644
@@ -58,5 +58,5 @@ index 81b96e3..cf6a515 100644
  	}
  	spin_unlock_irqrestore (&q->lock, flags);
 -- 
-1.7.7.6
+1.8.1.4
 

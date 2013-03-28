@@ -1,4 +1,4 @@
-From 48bd9381cc5447de4c63e56af25dc658e78958d9 Mon Sep 17 00:00:00 2001
+From a2abdfc8234eafadc06a273cf7bc433590d15715 Mon Sep 17 00:00:00 2001
 From: "David S. Miller" <davem@davemloft.net>
 Date: Thu, 10 May 2012 23:03:34 -0400
 Subject: [PATCH 71/86] Revert "net: maintain namespace isolation between vlan
@@ -24,10 +24,10 @@ Conflicts:
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/macvlan.c     |    2 +-
- include/linux/netdevice.h |    9 ---------
- net/8021q/vlan_dev.c      |    2 +-
- net/core/dev.c            |   36 +++++-------------------------------
+ drivers/net/macvlan.c     |  2 +-
+ include/linux/netdevice.h |  9 ---------
+ net/8021q/vlan_dev.c      |  2 +-
+ net/core/dev.c            | 36 +++++-------------------------------
  4 files changed, 7 insertions(+), 42 deletions(-)
 
 diff --git a/drivers/net/macvlan.c b/drivers/net/macvlan.c
@@ -134,5 +134,5 @@ index 61a7baa..1cbddc9 100644
   * Invalidate hardware checksum when packet is to be mangled, and
   * complete checksum manually on outgoing path.
 -- 
-1.7.7.6
+1.8.1.4
 

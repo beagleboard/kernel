@@ -1,0 +1,64 @@
+From 599bfdd32dc201a3a9f08a3c1651177b0fd2d0d0 Mon Sep 17 00:00:00 2001
+From: Guo Chao <yan@linux.vnet.ibm.com>
+Date: Thu, 21 Feb 2013 15:16:45 -0800
+Subject: [PATCH 78/82] loopdev: fix a deadlock
+
+commit 5370019dc2d2c2ff90e95d181468071362934f3a upstream.
+
+bd_mutex and lo_ctl_mutex can be held in different order.
+
+Path #1:
+
+blkdev_open
+ blkdev_get
+  __blkdev_get (hold bd_mutex)
+   lo_open (hold lo_ctl_mutex)
+
+Path #2:
+
+blkdev_ioctl
+ lo_ioctl (hold lo_ctl_mutex)
+  lo_set_capacity (hold bd_mutex)
+
+Lockdep does not report it, because path #2 actually holds a subclass of
+lo_ctl_mutex.  This subclass seems creep into the code by mistake.  The
+patch author actually just mentioned it in the changelog, see commit
+f028f3b2 ("loop: fix circular locking in loop_clr_fd()"), also see:
+
+	http://marc.info/?l=linux-kernel&m=123806169129727&w=2
+
+Path #2 hold bd_mutex to call bd_set_size(), I've protected it
+with i_mutex in a previous patch, so drop bd_mutex at this site.
+
+Signed-off-by: Guo Chao <yan@linux.vnet.ibm.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Guo Chao <yan@linux.vnet.ibm.com>
+Cc: M. Hindess <hindessm@uk.ibm.com>
+Cc: Nikanth Karthikesan <knikanth@suse.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/block/loop.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/block/loop.c b/drivers/block/loop.c
+index 1e888c9..954be47 100644
+--- a/drivers/block/loop.c
++++ b/drivers/block/loop.c
+@@ -1262,11 +1262,9 @@ static int loop_set_capacity(struct loop_device *lo, struct block_device *bdev)
+ 	/* the width of sector_t may be narrow for bit-shift */
+ 	sz = sec;
+ 	sz <<= 9;
+-	mutex_lock(&bdev->bd_mutex);
+ 	bd_set_size(bdev, sz);
+ 	/* let user-space know about the new size */
+ 	kobject_uevent(&disk_to_dev(bdev->bd_disk)->kobj, KOBJ_CHANGE);
+-	mutex_unlock(&bdev->bd_mutex);
+ 
+  out:
+ 	return err;
+-- 
+1.8.1.4
+

@@ -1,0 +1,38 @@
+From b82281ddab11ef6678ad9e15c73774b5e36e67e7 Mon Sep 17 00:00:00 2001
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date: Fri, 4 Jan 2013 21:06:08 +0000
+Subject: [PATCH 013/127] ASoC: wm5100: Remove DSP B and left justified formats
+
+commit 5f960294e2031d12f10c8488c3446fecbf59628d upstream.
+
+These are not supported
+
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/soc/codecs/wm5100.c | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/sound/soc/codecs/wm5100.c b/sound/soc/codecs/wm5100.c
+index 42d9039..a0cda1b 100644
+--- a/sound/soc/codecs/wm5100.c
++++ b/sound/soc/codecs/wm5100.c
+@@ -1446,15 +1446,9 @@ static int wm5100_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
+ 	case SND_SOC_DAIFMT_DSP_A:
+ 		mask = 0;
+ 		break;
+-	case SND_SOC_DAIFMT_DSP_B:
+-		mask = 1;
+-		break;
+ 	case SND_SOC_DAIFMT_I2S:
+ 		mask = 2;
+ 		break;
+-	case SND_SOC_DAIFMT_LEFT_J:
+-		mask = 3;
+-		break;
+ 	default:
+ 		dev_err(codec->dev, "Unsupported DAI format %d\n",
+ 			fmt & SND_SOC_DAIFMT_FORMAT_MASK);
+-- 
+1.8.1.4
+

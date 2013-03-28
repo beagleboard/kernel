@@ -1,4 +1,4 @@
-From 1b968eb6589abd61282a7a402c7ca937fcebe5ce Mon Sep 17 00:00:00 2001
+From 23a16b551c53939c18b95f79d503fdf0c92e5f7c Mon Sep 17 00:00:00 2001
 From: Chris Wilson <chris@chris-wilson.co.uk>
 Date: Wed, 21 Mar 2012 10:48:18 +0000
 Subject: [PATCH 144/146] drm/i915: Mark untiled BLT commands as fenced on
@@ -29,8 +29,8 @@ Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
  adjust the boolean expression as recommended by Daniel Vetter.]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/i915/i915_gem.c            |   15 +++++++++------
- drivers/gpu/drm/i915/i915_gem_execbuffer.c |    3 ++-
+ drivers/gpu/drm/i915/i915_gem.c            | 15 +++++++++------
+ drivers/gpu/drm/i915/i915_gem_execbuffer.c |  3 ++-
  2 files changed, 11 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
@@ -78,5 +78,5 @@ index a6c2f7a..1202198 100644
  
  			entry->offset = obj->gtt_offset;
 -- 
-1.7.10.4
+1.8.1.4
 

@@ -1,0 +1,85 @@
+From c8bb2444278fdcd9be1d27bce75f71bce09fc0f1 Mon Sep 17 00:00:00 2001
+From: fangxiaozhi <huananhu@huawei.com>
+Date: Mon, 4 Feb 2013 15:14:46 +0800
+Subject: [PATCH 21/67] USB: storage: Define a new macro for USB storage match
+ rules
+
+commit 07c7be3d87e5cdaf5f94c271c516456364ef286c upstream.
+
+1. Define a new macro for USB storage match rules:
+    matching with Vendor ID and interface descriptors.
+
+Signed-off-by: fangxiaozhi <huananhu@huawei.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/storage/usb.c          | 12 ++++++++++++
+ drivers/usb/storage/usual-tables.c | 15 +++++++++++++++
+ 2 files changed, 27 insertions(+)
+
+diff --git a/drivers/usb/storage/usb.c b/drivers/usb/storage/usb.c
+index db51ba1..d582af4 100644
+--- a/drivers/usb/storage/usb.c
++++ b/drivers/usb/storage/usb.c
+@@ -120,6 +120,17 @@ MODULE_PARM_DESC(quirks, "supplemental list of device IDs and their quirks");
+ 	.useTransport = use_transport,	\
+ }
+ 
++#define UNUSUAL_VENDOR_INTF(idVendor, cl, sc, pr, \
++		vendor_name, product_name, use_protocol, use_transport, \
++		init_function, Flags) \
++{ \
++	.vendorName = vendor_name,	\
++	.productName = product_name,	\
++	.useProtocol = use_protocol,	\
++	.useTransport = use_transport,	\
++	.initFunction = init_function,	\
++}
++
+ static struct us_unusual_dev us_unusual_dev_list[] = {
+ #	include "unusual_devs.h" 
+ 	{ }		/* Terminating entry */
+@@ -128,6 +139,7 @@ static struct us_unusual_dev us_unusual_dev_list[] = {
+ #undef UNUSUAL_DEV
+ #undef COMPLIANT_DEV
+ #undef USUAL_DEV
++#undef UNUSUAL_VENDOR_INTF
+ 
+ 
+ #ifdef CONFIG_PM	/* Minimal support for suspend and resume */
+diff --git a/drivers/usb/storage/usual-tables.c b/drivers/usb/storage/usual-tables.c
+index b969279..a9b5f2e 100644
+--- a/drivers/usb/storage/usual-tables.c
++++ b/drivers/usb/storage/usual-tables.c
+@@ -46,6 +46,20 @@
+ { USB_INTERFACE_INFO(USB_CLASS_MASS_STORAGE, useProto, useTrans), \
+   .driver_info = ((useType)<<24) }
+ 
++/* Define the device is matched with Vendor ID and interface descriptors */
++#define UNUSUAL_VENDOR_INTF(id_vendor, cl, sc, pr, \
++			vendorName, productName, useProtocol, useTransport, \
++			initFunction, flags) \
++{ \
++	.match_flags = USB_DEVICE_ID_MATCH_INT_INFO \
++				| USB_DEVICE_ID_MATCH_VENDOR, \
++	.idVendor    = (id_vendor), \
++	.bInterfaceClass = (cl), \
++	.bInterfaceSubClass = (sc), \
++	.bInterfaceProtocol = (pr), \
++	.driver_info = (flags) \
++}
++
+ struct usb_device_id usb_storage_usb_ids[] = {
+ #	include "unusual_devs.h"
+ 	{ }		/* Terminating entry */
+@@ -57,6 +71,7 @@ MODULE_DEVICE_TABLE(usb, usb_storage_usb_ids);
+ #undef UNUSUAL_DEV
+ #undef COMPLIANT_DEV
+ #undef USUAL_DEV
++#undef UNUSUAL_VENDOR_INTF
+ 
+ 
+ /*
+-- 
+1.8.1.4
+

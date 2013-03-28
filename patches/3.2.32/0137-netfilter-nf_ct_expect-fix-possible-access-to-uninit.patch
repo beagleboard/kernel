@@ -1,4 +1,4 @@
-From 11dc9e51098c28c5eabd1137fb6e506c2cc1174a Mon Sep 17 00:00:00 2001
+From a553d91477c167646e59b95ed3075ff9bd338c70 Mon Sep 17 00:00:00 2001
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Date: Thu, 16 Aug 2012 02:25:24 +0200
 Subject: [PATCH 137/146] netfilter: nf_ct_expect: fix possible access to
@@ -61,7 +61,7 @@ Acked-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/netfilter/nf_conntrack_expect.c |   29 ++++++-----------------------
+ net/netfilter/nf_conntrack_expect.c | 29 ++++++-----------------------
  1 file changed, 6 insertions(+), 23 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
@@ -120,5 +120,5 @@ index 340c80d..7918eb7 100644
  		} else if (expect_clash(i, expect)) {
  			ret = -EBUSY;
 -- 
-1.7.10.4
+1.8.1.4
 

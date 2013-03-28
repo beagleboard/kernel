@@ -1,4 +1,4 @@
-From ea876a123361e9636c4ea2013af875adcf717d5a Mon Sep 17 00:00:00 2001
+From 5d70a9c035f1e21ea638ffcabf790f526ce6903a Mon Sep 17 00:00:00 2001
 From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 Date: Sat, 18 Aug 2012 14:11:42 +0200
 Subject: [PATCH 015/146] UBI: fix autoresize handling in R/O mode
@@ -16,7 +16,7 @@ Reported-by: Pali Rohár <pali.rohar@gmail.com>
 Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/mtd/ubi/build.c |    5 +++++
+ drivers/mtd/ubi/build.c | 5 +++++
  1 file changed, 5 insertions(+)
 
 diff --git a/drivers/mtd/ubi/build.c b/drivers/mtd/ubi/build.c
@@ -36,5 +36,5 @@ index 6c3fb5a..1f9c363 100644
  	 * Clear the auto-resize flag in the volume in-memory copy of the
  	 * volume table, and 'ubi_resize_volume()' will propagate this change
 -- 
-1.7.10.4
+1.8.1.4
 

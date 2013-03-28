@@ -1,13 +1,13 @@
-From 96825bdba8cbe141261ed72296e7027f2eddd764 Mon Sep 17 00:00:00 2001
+From d24664c6e279d1babd28cc4d3e048b60dff9a245 Mon Sep 17 00:00:00 2001
 From: Dan Aizenstros <daizenstros@quicklogic.com>
 Date: Fri, 19 Oct 2012 16:06:45 -0400
-Subject: [PATCH 97/98] beaglebone: improve performance of mt9t112 driver for
+Subject: [PATCH 097/102] beaglebone: improve performance of mt9t112 driver for
  Camera Cape
 
 Signed-off-by: Dan Aizenstros <daizenstros@quicklogic.com>
 ---
- drivers/media/video/mt9t112.c |  682 +++++++++++++++++++++++------------------
- 1 files changed, 380 insertions(+), 302 deletions(-)
+ drivers/media/video/mt9t112.c | 682 +++++++++++++++++++++++-------------------
+ 1 file changed, 380 insertions(+), 302 deletions(-)
 
 diff --git a/drivers/media/video/mt9t112.c b/drivers/media/video/mt9t112.c
 index 13cc934..2bcc04b 100644
@@ -818,5 +818,5 @@ index 13cc934..2bcc04b 100644
  		ECHECKER(ret, mt9t112_set_orientation(client, 2));
  	}
 -- 
-1.7.7.6
+1.8.1.4
 

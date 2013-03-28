@@ -1,4 +1,4 @@
-From 20ddf2e9fafc550d9be075d5f404b5faa0611190 Mon Sep 17 00:00:00 2001
+From 68cf2fef91f6041ecf291adb4a63841f0c6f6f34 Mon Sep 17 00:00:00 2001
 From: "J. Bruce Fields" <bfields@redhat.com>
 Date: Thu, 9 Aug 2012 18:12:28 -0400
 Subject: [PATCH 64/94] svcrpc: fix BUG() in svc_tcp_clear_pages
@@ -21,8 +21,8 @@ Symptoms were a BUG() in svc_tcp_clear_pages.
 Signed-off-by: J. Bruce Fields <bfields@redhat.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/sunrpc/svcsock.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/sunrpc/svcsock.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/sunrpc/svcsock.c b/net/sunrpc/svcsock.c
 index 71bed1c..296192c 100644
@@ -40,5 +40,5 @@ index 71bed1c..296192c 100644
  			svsk->sk_tcplen, svsk->sk_reclen);
  		goto err_noclose;
 -- 
-1.7.7.6
+1.8.1.4
 

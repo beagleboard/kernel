@@ -1,0 +1,54 @@
+From d1c4eeb9601c98b78c55dc0c05245478adc51136 Mon Sep 17 00:00:00 2001
+From: Oliver Neukum <oliver@neukum.org>
+Date: Thu, 29 Nov 2012 15:05:57 +0100
+Subject: [PATCH 040/127] USB: hub: handle claim of enabled remote wakeup after
+ reset
+
+commit 07e72b95f5038cc82304b9a4a2eb7f9fc391ea68 upstream.
+
+Some touchscreens have buggy firmware which claims
+remote wakeup to be enabled after a reset. They nevertheless
+crash if the feature is cleared by the host.
+Add a check for reset resume before checking for
+an enabled remote wakeup feature. On compliant
+devices the feature must be cleared after a reset anyway.
+
+Signed-off-by: Oliver Neukum <oneukum@suse.de>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/core/hub.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+index 10b4135..ed1bce1 100644
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -2530,7 +2530,7 @@ int usb_port_suspend(struct usb_device *udev, pm_message_t msg)
+ static int finish_port_resume(struct usb_device *udev)
+ {
+ 	int	status = 0;
+-	u16	devstatus;
++	u16	devstatus = 0;
+ 
+ 	/* caller owns the udev device lock */
+ 	dev_dbg(&udev->dev, "%s\n",
+@@ -2575,7 +2575,13 @@ static int finish_port_resume(struct usb_device *udev)
+ 	if (status) {
+ 		dev_dbg(&udev->dev, "gone after usb resume? status %d\n",
+ 				status);
+-	} else if (udev->actconfig) {
++	/*
++	 * There are a few quirky devices which violate the standard
++	 * by claiming to have remote wakeup enabled after a reset,
++	 * which crash if the feature is cleared, hence check for
++	 * udev->reset_resume
++	 */
++	} else if (udev->actconfig && !udev->reset_resume) {
+ 		le16_to_cpus(&devstatus);
+ 		if (devstatus & (1 << USB_DEVICE_REMOTE_WAKEUP)) {
+ 			status = usb_control_msg(udev,
+-- 
+1.8.1.4
+

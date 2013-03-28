@@ -1,0 +1,34 @@
+From b615dbf75eb06c58245f8173f2932334432ad4ea Mon Sep 17 00:00:00 2001
+From: Felix Fietkau <nbd@openwrt.org>
+Date: Wed, 9 Jan 2013 16:16:53 +0100
+Subject: [PATCH 080/127] ath9k: fix double-free bug on beacon generate failure
+
+commit 1adb2e2b5f85023d17eb4f95386a57029df27c88 upstream.
+
+When the next beacon is sent, the ath_buf from the previous run is reused.
+If getting a new beacon from mac80211 fails, bf->bf_mpdu is not reset, yet
+the skb is freed, leading to a double-free on the next beacon tx attempt,
+resulting in a system crash.
+
+Signed-off-by: Felix Fietkau <nbd@openwrt.org>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/ath/ath9k/beacon.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/net/wireless/ath/ath9k/beacon.c b/drivers/net/wireless/ath/ath9k/beacon.c
+index a13cabb..2bbc83e 100644
+--- a/drivers/net/wireless/ath/ath9k/beacon.c
++++ b/drivers/net/wireless/ath/ath9k/beacon.c
+@@ -155,6 +155,7 @@ static struct ath_buf *ath_beacon_generate(struct ieee80211_hw *hw,
+ 				 skb->len, DMA_TO_DEVICE);
+ 		dev_kfree_skb_any(skb);
+ 		bf->bf_buf_addr = 0;
++		bf->bf_mpdu = NULL;
+ 	}
+ 
+ 	/* Get a new beacon from mac80211 */
+-- 
+1.8.1.4
+

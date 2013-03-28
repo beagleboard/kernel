@@ -1,4 +1,4 @@
-From 25f8b20ff6fd1515ac57329e80422b43ed7ba0b9 Mon Sep 17 00:00:00 2001
+From d07e44cbbc6f374eb37001ca4174e03c225971db Mon Sep 17 00:00:00 2001
 From: Oliver Hartkopp <socketcan@hartkopp.net>
 Date: Wed, 15 Feb 2012 17:51:56 +0100
 Subject: [PATCH 64/72] can: sja1000: fix isr hang when hw is unplugged under
@@ -17,8 +17,8 @@ Acked-by: Wolfgang Grandegger <wg@grandegger.com>
 Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/can/sja1000/sja1000.c |   13 ++++++++++++-
- 1 files changed, 12 insertions(+), 1 deletions(-)
+ drivers/net/can/sja1000/sja1000.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/net/can/sja1000/sja1000.c b/drivers/net/can/sja1000/sja1000.c
 index 04a3f1b..192b0d1 100644
@@ -63,5 +63,5 @@ index 04a3f1b..192b0d1 100644
  		}
  		if (isrc & (IRQ_DOI | IRQ_EI | IRQ_BEI | IRQ_EPI | IRQ_ALI)) {
 -- 
-1.7.7.6
+1.8.1.4
 

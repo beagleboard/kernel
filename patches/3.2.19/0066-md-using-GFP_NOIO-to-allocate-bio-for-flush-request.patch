@@ -1,4 +1,4 @@
-From e46d24f13551ac4734f8501a908dc453f0e1f429 Mon Sep 17 00:00:00 2001
+From 0489617c8ef77ba74d14f98c7825a3b2c29f8218 Mon Sep 17 00:00:00 2001
 From: Shaohua Li <shli@kernel.org>
 Date: Mon, 21 May 2012 09:26:59 +1000
 Subject: [PATCH 066/117] md: using GFP_NOIO to allocate bio for flush request
@@ -16,8 +16,8 @@ Signed-off-by: Shaohua Li <shli@fusionio.com>
 Signed-off-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/md/md.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/md/md.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/md/md.c b/drivers/md/md.c
 index adcd850..700ecae 100644
@@ -33,5 +33,5 @@ index adcd850..700ecae 100644
  			bi->bi_private = rdev;
  			bi->bi_bdev = rdev->bdev;
 -- 
-1.7.7.6
+1.8.1.4
 

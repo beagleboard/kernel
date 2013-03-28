@@ -1,4 +1,4 @@
-From 3331e29115be6817ed995f70f9a57b6b41ae4be2 Mon Sep 17 00:00:00 2001
+From d07bd8823e198dacf1b52c58445a46365dc07a25 Mon Sep 17 00:00:00 2001
 From: Heiko Carstens <heiko.carstens@de.ibm.com>
 Date: Mon, 27 Feb 2012 10:01:52 +0100
 Subject: [PATCH 03/95] compat: fix compile breakage on s390
@@ -16,19 +16,19 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Jonathan Nieder <jrnieder@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/s390/include/asm/compat.h  |    7 -------
- arch/s390/kernel/process.c      |    1 -
- arch/s390/kernel/ptrace.c       |    2 +-
- arch/s390/kernel/setup.c        |    2 +-
- arch/s390/kernel/signal.c       |    1 -
- arch/s390/mm/fault.c            |    1 -
- arch/s390/mm/mmap.c             |    2 +-
- drivers/s390/block/dasd_eckd.c  |    2 +-
- drivers/s390/block/dasd_ioctl.c |    1 +
- drivers/s390/char/fs3270.c      |    1 +
- drivers/s390/char/vmcp.c        |    1 +
- drivers/s390/cio/chsc_sch.c     |    1 +
- drivers/s390/scsi/zfcp_cfdc.c   |    1 +
+ arch/s390/include/asm/compat.h  | 7 -------
+ arch/s390/kernel/process.c      | 1 -
+ arch/s390/kernel/ptrace.c       | 2 +-
+ arch/s390/kernel/setup.c        | 2 +-
+ arch/s390/kernel/signal.c       | 1 -
+ arch/s390/mm/fault.c            | 1 -
+ arch/s390/mm/mmap.c             | 2 +-
+ drivers/s390/block/dasd_eckd.c  | 2 +-
+ drivers/s390/block/dasd_ioctl.c | 1 +
+ drivers/s390/char/fs3270.c      | 1 +
+ drivers/s390/char/vmcp.c        | 1 +
+ drivers/s390/cio/chsc_sch.c     | 1 +
+ drivers/s390/scsi/zfcp_cfdc.c   | 1 +
  13 files changed, 9 insertions(+), 14 deletions(-)
 
 diff --git a/arch/s390/include/asm/compat.h b/arch/s390/include/asm/compat.h
@@ -212,5 +212,5 @@ index 303dde0..fab2c25 100644
  #include <linux/types.h>
  #include <linux/miscdevice.h>
 -- 
-1.7.7.6
+1.8.1.4
 

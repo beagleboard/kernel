@@ -1,0 +1,42 @@
+From 92bfff00e63d93abbe92f4d44b8759686a7dee3a Mon Sep 17 00:00:00 2001
+From: Dzianis Kahanovich <mahatma@bspu.unibel.by>
+Date: Mon, 3 Dec 2012 16:06:26 +0300
+Subject: [PATCH 038/127] USB: option: add Nexpring NP10T terminal id
+
+commit ad86e58661b38b279b7519d4e49c7a19dc1654bb upstream.
+
+Hyundai Petatel Inc. Nexpring NP10T terminal (EV-DO rev.A USB modem) ID
+
+Signed-off-by: Denis Kaganovich <mahatma@eu.by>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/option.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/usb/serial/option.c b/drivers/usb/serial/option.c
+index dda696e3..f233bbb 100644
+--- a/drivers/usb/serial/option.c
++++ b/drivers/usb/serial/option.c
+@@ -445,6 +445,10 @@ static void option_instat_callback(struct urb *urb);
+ #define CELLIENT_VENDOR_ID			0x2692
+ #define CELLIENT_PRODUCT_MEN200			0x9005
+ 
++/* Hyundai Petatel Inc. products */
++#define PETATEL_VENDOR_ID			0x1ff4
++#define PETATEL_PRODUCT_NP10T			0x600e
++
+ /* some devices interfaces need special handling due to a number of reasons */
+ enum option_blacklist_reason {
+ 		OPTION_BLACKLIST_NONE = 0,
+@@ -1306,6 +1310,7 @@ static const struct usb_device_id option_ids[] = {
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(MEDIATEK_VENDOR_ID, MEDIATEK_PRODUCT_DC_4COM2, 0xff, 0x02, 0x01) },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(MEDIATEK_VENDOR_ID, MEDIATEK_PRODUCT_DC_4COM2, 0xff, 0x00, 0x00) },
+ 	{ USB_DEVICE(CELLIENT_VENDOR_ID, CELLIENT_PRODUCT_MEN200) },
++	{ USB_DEVICE(PETATEL_VENDOR_ID, PETATEL_PRODUCT_NP10T) },
+ 	{ } /* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, option_ids);
+-- 
+1.8.1.4
+

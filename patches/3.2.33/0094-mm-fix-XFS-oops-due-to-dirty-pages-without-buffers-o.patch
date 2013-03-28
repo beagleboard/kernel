@@ -1,4 +1,4 @@
-From b5156280e46667bd70c5e64ae87ad877d96c3f16 Mon Sep 17 00:00:00 2001
+From a8ca1da81b0499cb83d72dbc61d4fc13c3531991 Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Thu, 25 Oct 2012 13:37:31 -0700
 Subject: [PATCH 094/105] mm: fix XFS oops due to dirty pages without buffers
@@ -50,8 +50,8 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
  'anon' in page_remove_rmap()]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- mm/rmap.c |   21 ++++++++++++++++-----
- 1 files changed, 16 insertions(+), 5 deletions(-)
+ mm/rmap.c | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
 diff --git a/mm/rmap.c b/mm/rmap.c
 index a4fd368..8685697 100644
@@ -109,5 +109,5 @@ index a4fd368..8685697 100644
  		set_page_dirty(page);
  	/*
 -- 
-1.7.7.6
+1.8.1.4
 

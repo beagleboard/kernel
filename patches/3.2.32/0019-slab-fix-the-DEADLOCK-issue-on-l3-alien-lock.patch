@@ -1,4 +1,4 @@
-From b6ca448c556e4e2437c9f0372b9f221faedca0f8 Mon Sep 17 00:00:00 2001
+From 08a34e2a5f1f9af81d9f5b3754674aafae05c799 Mon Sep 17 00:00:00 2001
 From: Michael Wang <wangyun@linux.vnet.ibm.com>
 Date: Wed, 5 Sep 2012 10:33:18 +0800
 Subject: [PATCH 019/146] slab: fix the DEADLOCK issue on l3 alien lock
@@ -73,7 +73,7 @@ Signed-off-by: Pekka Enberg <penberg@kernel.org>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- mm/slab.c |    6 +++---
+ mm/slab.c | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/mm/slab.c b/mm/slab.c
@@ -101,5 +101,5 @@ index cd3ab93..4c3b671 100644
  	g_cpucache_up = FULL;
  
 -- 
-1.7.10.4
+1.8.1.4
 

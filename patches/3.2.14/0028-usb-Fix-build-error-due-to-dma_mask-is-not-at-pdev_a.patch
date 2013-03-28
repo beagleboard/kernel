@@ -1,4 +1,4 @@
-From cb10e9f442ce1bce0f9ed51a1de6e67269afca50 Mon Sep 17 00:00:00 2001
+From bc6c3fd287b6774fded3769a88a3924ca7368c9b Mon Sep 17 00:00:00 2001
 From: Peter Chen <peter.chen@freescale.com>
 Date: Thu, 16 Feb 2012 09:41:52 +0800
 Subject: [PATCH 028/147] usb: Fix build error due to dma_mask is not at
@@ -29,8 +29,8 @@ Tested-by: Ramneek Mehresh <ramneek.mehresh@freescale.com>
 Signed-off-by: Peter Chen <peter.chen@freescale.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/host/fsl-mph-dr-of.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ drivers/usb/host/fsl-mph-dr-of.c | 1 -
+ 1 file changed, 1 deletion(-)
 
 diff --git a/drivers/usb/host/fsl-mph-dr-of.c b/drivers/usb/host/fsl-mph-dr-of.c
 index 9037035..5a42cf0 100644
@@ -45,5 +45,5 @@ index 9037035..5a42cf0 100644
  
  	retval = platform_device_add_data(pdev, pdata, sizeof(*pdata));
 -- 
-1.7.7.6
+1.8.1.4
 

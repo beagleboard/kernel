@@ -1,4 +1,4 @@
-From 292fff1a1c29032ffe919cd7e6702eefffbd0d37 Mon Sep 17 00:00:00 2001
+From ee0244ce95f2bf0405ad0ef15e39eeffa765e16d Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 22 Jun 2012 13:36:05 +0200
 Subject: [PATCH 01/70] sched: Fix race in task_group()
@@ -27,9 +27,9 @@ Signed-off-by: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/init_task.h |   12 +++++++++++-
- include/linux/sched.h     |    5 ++++-
- kernel/sched.c            |   32 ++++++++++++++++++--------------
+ include/linux/init_task.h | 12 +++++++++++-
+ include/linux/sched.h     |  5 ++++-
+ kernel/sched.c            | 32 ++++++++++++++++++--------------
  3 files changed, 33 insertions(+), 16 deletions(-)
 
 diff --git a/include/linux/init_task.h b/include/linux/init_task.h
@@ -154,5 +154,5 @@ index 9cd8ca7..e0431c4 100644
  	if (tsk->sched_class->task_move_group)
  		tsk->sched_class->task_move_group(tsk, on_rq);
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From ac63cdff7f9404b072f2fc1b093d878941549649 Mon Sep 17 00:00:00 2001
+From c76447de78fd7db6191c90fa7b5839be3a844c93 Mon Sep 17 00:00:00 2001
 From: Alex Deucher <alexander.deucher@amd.com>
 Date: Thu, 31 May 2012 18:53:36 -0400
 Subject: [PATCH 46/86] drm/radeon: fix bank information in tiling config
@@ -18,9 +18,9 @@ Signed-off-by: Dave Airlie <airlied@redhat.com>
  IGP condition in ni.c]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/radeon/evergreen.c |    9 ++++++---
- drivers/gpu/drm/radeon/ni.c        |    6 ++++--
- drivers/gpu/drm/radeon/rv770.c     |    8 ++++++--
+ drivers/gpu/drm/radeon/evergreen.c | 9 ++++++---
+ drivers/gpu/drm/radeon/ni.c        | 6 ++++--
+ drivers/gpu/drm/radeon/rv770.c     | 8 ++++++--
  3 files changed, 16 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/gpu/drm/radeon/evergreen.c b/drivers/gpu/drm/radeon/evergreen.c
@@ -80,5 +80,5 @@ index 23ae1c6..e3f01b8 100644
  	gb_tiling_config |= GROUP_SIZE((mc_arb_ramcfg & BURSTLENGTH_MASK) >> BURSTLENGTH_SHIFT);
  	if ((mc_arb_ramcfg & BURSTLENGTH_MASK) >> BURSTLENGTH_SHIFT)
 -- 
-1.7.7.6
+1.8.1.4
 

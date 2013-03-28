@@ -1,0 +1,70 @@
+From 9fb1226d2eb70514defde1998cea8e997daa00a5 Mon Sep 17 00:00:00 2001
+From: Amitkumar Karwar <akarwar@marvell.com>
+Date: Wed, 1 Feb 2012 20:41:43 -0800
+Subject: [PATCH 014/127] mwifiex: handle association failure case correctly
+
+commit b7097eb75fa11c302dcdec83f1dbfa874e0af0d1 upstream.
+
+Currently even if association is failed "iw link" shows some
+information about connected BSS and "Tx timeout" error is seen in
+dmesg log.
+
+This patch fixes below issues in the code to handle assoc failure
+case correctly.
+1) "status" variable in mwifiex_wait_queue_complete() is not
+correctly updated. Hence driver doesn't inform cfg80211 stack
+about association failure.
+2) During association network queues are stopped but carrier is
+not cleared, which gives Tx timeout error in failure case
+
+Signed-off-by: Amitkumar Karwar <akarwar@marvell.com>
+Signed-off-by: Bing Zhao <bzhao@marvell.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/mwifiex/sta_ioctl.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/mwifiex/sta_ioctl.c b/drivers/net/wireless/mwifiex/sta_ioctl.c
+index 1679c25..d3c133e 100644
+--- a/drivers/net/wireless/mwifiex/sta_ioctl.c
++++ b/drivers/net/wireless/mwifiex/sta_ioctl.c
+@@ -54,7 +54,7 @@ int mwifiex_copy_mcast_addr(struct mwifiex_multicast_list *mlist,
+ int mwifiex_wait_queue_complete(struct mwifiex_adapter *adapter)
+ {
+ 	bool cancel_flag = false;
+-	int status = adapter->cmd_wait_q.status;
++	int status;
+ 	struct cmd_ctrl_node *cmd_queued;
+ 
+ 	if (!adapter->cmd_queued)
+@@ -79,6 +79,8 @@ int mwifiex_wait_queue_complete(struct mwifiex_adapter *adapter)
+ 		mwifiex_cancel_pending_ioctl(adapter);
+ 		dev_dbg(adapter->dev, "cmd cancel\n");
+ 	}
++
++	status = adapter->cmd_wait_q.status;
+ 	adapter->cmd_wait_q.status = 0;
+ 
+ 	return status;
+@@ -240,6 +242,8 @@ int mwifiex_bss_start(struct mwifiex_private *priv, struct cfg80211_bss *bss,
+ 
+ 		if (!netif_queue_stopped(priv->netdev))
+ 			netif_stop_queue(priv->netdev);
++		if (netif_carrier_ok(priv->netdev))
++			netif_carrier_off(priv->netdev);
+ 
+ 		/* Clear any past association response stored for
+ 		 * application retrieval */
+@@ -271,6 +275,8 @@ int mwifiex_bss_start(struct mwifiex_private *priv, struct cfg80211_bss *bss,
+ 
+ 		if (!netif_queue_stopped(priv->netdev))
+ 			netif_stop_queue(priv->netdev);
++		if (netif_carrier_ok(priv->netdev))
++			netif_carrier_off(priv->netdev);
+ 
+ 		if (!ret) {
+ 			dev_dbg(adapter->dev, "info: network found in scan"
+-- 
+1.8.1.4
+

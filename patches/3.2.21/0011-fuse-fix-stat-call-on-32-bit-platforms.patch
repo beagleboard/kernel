@@ -1,4 +1,4 @@
-From 20cdd4cbb8ab1d76191c8a882f7fb67f52f886ce Mon Sep 17 00:00:00 2001
+From 6ab5ecf552b0be125a9fcad84b45bbccbfb1a54d Mon Sep 17 00:00:00 2001
 From: Pavel Shilovsky <piastry@etersoft.ru>
 Date: Thu, 10 May 2012 19:49:38 +0400
 Subject: [PATCH 11/67] fuse: fix stat call on 32 bit platforms
@@ -18,10 +18,10 @@ Signed-off-by: Pavel Shilovsky <piastry@etersoft.ru>
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/fuse/dir.c    |    1 +
- fs/fuse/fuse_i.h |    3 +++
- fs/fuse/inode.c  |   17 ++++++++++++++++-
- 3 files changed, 20 insertions(+), 1 deletions(-)
+ fs/fuse/dir.c    |  1 +
+ fs/fuse/fuse_i.h |  3 +++
+ fs/fuse/inode.c  | 17 ++++++++++++++++-
+ 3 files changed, 20 insertions(+), 1 deletion(-)
 
 diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
 index 9f63e49..5ef7afb 100644
@@ -99,5 +99,5 @@ index aa83109..1f82d95 100644
  
  void fuse_change_attributes(struct inode *inode, struct fuse_attr *attr,
 -- 
-1.7.7.6
+1.8.1.4
 

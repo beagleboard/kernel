@@ -1,4 +1,4 @@
-From 0a00649dbebcbdf06f0887db4fa6e0b5db430d63 Mon Sep 17 00:00:00 2001
+From a83eff9d573b984cab63bff535f09e1ecc91d39a Mon Sep 17 00:00:00 2001
 From: Daniel Vetter <daniel.vetter@ffwll.ch>
 Date: Sat, 24 Mar 2012 23:51:30 +0100
 Subject: [PATCH 30/60] drm/i915: quirk away broken OpRegion VBT
@@ -15,8 +15,8 @@ Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=28812
 Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/gpu/drm/i915/intel_bios.c |   23 ++++++++++++++++++++++-
- 1 files changed, 22 insertions(+), 1 deletions(-)
+ drivers/gpu/drm/i915/intel_bios.c | 23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/i915/intel_bios.c b/drivers/gpu/drm/i915/intel_bios.c
 index 63880e2..22efb08 100644
@@ -67,5 +67,5 @@ index 63880e2..22efb08 100644
  		if (memcmp(vbt->signature, "$VBT", 4) == 0) {
  			DRM_DEBUG_KMS("Using VBT from OpRegion: %20s\n",
 -- 
-1.7.7.6
+1.8.1.4
 

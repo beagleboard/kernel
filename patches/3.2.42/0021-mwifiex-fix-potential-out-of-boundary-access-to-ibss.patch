@@ -1,0 +1,43 @@
+From a1ea499acce0e2730504e27ad8aa769b35f21395 Mon Sep 17 00:00:00 2001
+From: Bing Zhao <bzhao@marvell.com>
+Date: Thu, 7 Mar 2013 20:00:16 -0800
+Subject: [PATCH 21/92] mwifiex: fix potential out-of-boundary access to ibss
+ rate table
+
+commit 5f0fabf84d7b52f979dcbafa3d3c530c60d9a92c upstream.
+
+smatch found this error:
+
+CHECK   drivers/net/wireless/mwifiex/join.c
+  drivers/net/wireless/mwifiex/join.c:1121
+  mwifiex_cmd_802_11_ad_hoc_join()
+  error: testing array offset 'i' after use.
+
+Signed-off-by: Bing Zhao <bzhao@marvell.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/mwifiex/join.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/wireless/mwifiex/join.c b/drivers/net/wireless/mwifiex/join.c
+index 62b4c29..d48dfb7 100644
+--- a/drivers/net/wireless/mwifiex/join.c
++++ b/drivers/net/wireless/mwifiex/join.c
+@@ -1062,10 +1062,9 @@ mwifiex_cmd_802_11_ad_hoc_join(struct mwifiex_private *priv,
+ 				adhoc_join->bss_descriptor.bssid,
+ 				adhoc_join->bss_descriptor.ssid);
+ 
+-	for (i = 0; bss_desc->supported_rates[i] &&
+-			i < MWIFIEX_SUPPORTED_RATES;
+-			i++)
+-			;
++	for (i = 0; i < MWIFIEX_SUPPORTED_RATES &&
++		    bss_desc->supported_rates[i]; i++)
++		;
+ 	rates_size = i;
+ 
+ 	/* Copy Data Rates from the Rates recorded in scan response */
+-- 
+1.8.1.4
+

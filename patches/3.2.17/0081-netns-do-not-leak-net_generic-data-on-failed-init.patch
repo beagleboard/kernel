@@ -1,4 +1,4 @@
-From 27ff223bc8386537bb1978653851e3228f7be2fe Mon Sep 17 00:00:00 2001
+From a57b50efef494051928f05d2d4ae3ea75eb2d6ae Mon Sep 17 00:00:00 2001
 From: Julian Anastasov <ja@ssi.bg>
 Date: Mon, 16 Apr 2012 04:43:15 +0000
 Subject: [PATCH 081/165] netns: do not leak net_generic data on failed init
@@ -14,8 +14,8 @@ Reviewed-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/core/net_namespace.c |   33 ++++++++++++++++++---------------
- 1 files changed, 18 insertions(+), 15 deletions(-)
+ net/core/net_namespace.c | 33 ++++++++++++++++++---------------
+ 1 file changed, 18 insertions(+), 15 deletions(-)
 
 diff --git a/net/core/net_namespace.c b/net/core/net_namespace.c
 index 0e950fd..31a5ae5 100644
@@ -75,5 +75,5 @@ index 0e950fd..31a5ae5 100644
  
  static void __unregister_pernet_operations(struct pernet_operations *ops)
 -- 
-1.7.7.6
+1.8.1.4
 

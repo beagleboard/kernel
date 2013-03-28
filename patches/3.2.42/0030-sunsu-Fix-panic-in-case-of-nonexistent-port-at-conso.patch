@@ -1,0 +1,122 @@
+From 4d561b19214f474c50006d2fd9673bf1ed6041b8 Mon Sep 17 00:00:00 2001
+From: Tkhai Kirill <tkhai@yandex.ru>
+Date: Sat, 23 Feb 2013 23:01:15 +0000
+Subject: [PATCH 30/92] sunsu: Fix panic in case of nonexistent port at
+ "console=ttySY" cmdline option
+
+[ Upstream commit cb29529ea0030e60ef1bbbf8399a43d397a51526 ]
+
+If a machine has X (X < 4) sunsu ports and cmdline
+option "console=ttySY" is passed, where X < Y <= 4,
+than the following panic happens:
+
+Unable to handle kernel NULL pointer dereference
+TPC: <sunsu_console_setup+0x78/0xe0>
+RPC: <sunsu_console_setup+0x74/0xe0>
+I7: <register_console+0x378/0x3e0>
+Call Trace:
+ [0000000000453a38] register_console+0x378/0x3e0
+ [0000000000576fa0] uart_add_one_port+0x2e0/0x340
+ [000000000057af40] su_probe+0x160/0x2e0
+ [00000000005b8a4c] platform_drv_probe+0xc/0x20
+ [00000000005b6c2c] driver_probe_device+0x12c/0x220
+ [00000000005b6da8] __driver_attach+0x88/0xa0
+ [00000000005b4df4] bus_for_each_dev+0x54/0xa0
+ [00000000005b5a54] bus_add_driver+0x154/0x260
+ [00000000005b7190] driver_register+0x50/0x180
+ [00000000006d250c] sunsu_init+0x18c/0x1e0
+ [00000000006c2668] do_one_initcall+0xe8/0x160
+ [00000000006c282c] kernel_init_freeable+0x12c/0x1e0
+ [0000000000603764] kernel_init+0x4/0x100
+ [0000000000405f64] ret_from_syscall+0x1c/0x2c
+ [0000000000000000]           (null)
+
+1)Fix the panic;
+2)Increment registered port number every successful
+probe.
+
+Signed-off-by: Kirill Tkhai <tkhai@yandex.ru>
+CC: David Miller <davem@davemloft.net>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/tty/serial/sunsu.c | 21 +++++++++------------
+ 1 file changed, 9 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
+index ad0f8f5..2dc4d9b 100644
+--- a/drivers/tty/serial/sunsu.c
++++ b/drivers/tty/serial/sunsu.c
+@@ -968,6 +968,7 @@ static struct uart_ops sunsu_pops = {
+ #define UART_NR	4
+ 
+ static struct uart_sunsu_port sunsu_ports[UART_NR];
++static int nr_inst; /* Number of already registered ports */
+ 
+ #ifdef CONFIG_SERIO
+ 
+@@ -1337,13 +1338,8 @@ static int __init sunsu_console_setup(struct console *co, char *options)
+ 	printk("Console: ttyS%d (SU)\n",
+ 	       (sunsu_reg.minor - 64) + co->index);
+ 
+-	/*
+-	 * Check whether an invalid uart number has been specified, and
+-	 * if so, search for the first available port that does have
+-	 * console support.
+-	 */
+-	if (co->index >= UART_NR)
+-		co->index = 0;
++	if (co->index > nr_inst)
++		return -ENODEV;
+ 	port = &sunsu_ports[co->index].port;
+ 
+ 	/*
+@@ -1408,7 +1404,6 @@ static enum su_type __devinit su_get_type(struct device_node *dp)
+ 
+ static int __devinit su_probe(struct platform_device *op)
+ {
+-	static int inst;
+ 	struct device_node *dp = op->dev.of_node;
+ 	struct uart_sunsu_port *up;
+ 	struct resource *rp;
+@@ -1418,16 +1413,16 @@ static int __devinit su_probe(struct platform_device *op)
+ 
+ 	type = su_get_type(dp);
+ 	if (type == SU_PORT_PORT) {
+-		if (inst >= UART_NR)
++		if (nr_inst >= UART_NR)
+ 			return -EINVAL;
+-		up = &sunsu_ports[inst];
++		up = &sunsu_ports[nr_inst];
+ 	} else {
+ 		up = kzalloc(sizeof(*up), GFP_KERNEL);
+ 		if (!up)
+ 			return -ENOMEM;
+ 	}
+ 
+-	up->port.line = inst;
++	up->port.line = nr_inst;
+ 
+ 	spin_lock_init(&up->port.lock);
+ 
+@@ -1461,6 +1456,8 @@ static int __devinit su_probe(struct platform_device *op)
+ 		}
+ 		dev_set_drvdata(&op->dev, up);
+ 
++		nr_inst++;
++
+ 		return 0;
+ 	}
+ 
+@@ -1488,7 +1485,7 @@ static int __devinit su_probe(struct platform_device *op)
+ 
+ 	dev_set_drvdata(&op->dev, up);
+ 
+-	inst++;
++	nr_inst++;
+ 
+ 	return 0;
+ 
+-- 
+1.8.1.4
+

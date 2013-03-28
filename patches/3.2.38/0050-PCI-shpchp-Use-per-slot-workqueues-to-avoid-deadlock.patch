@@ -1,0 +1,189 @@
+From f1cd7d951c12591dcc5c7ee34d37a5b07646b9df Mon Sep 17 00:00:00 2001
+From: Bjorn Helgaas <bhelgaas@google.com>
+Date: Fri, 11 Jan 2013 12:21:15 -0700
+Subject: [PATCH 050/127] PCI: shpchp: Use per-slot workqueues to avoid
+ deadlock
+
+commit f652e7d2916fe2fcf9e7d709aa5b7476b431e2dd upstream.
+
+When we have an SHPC-capable bridge with a second SHPC-capable bridge
+below it, pushing the upstream bridge's attention button causes a
+deadlock.
+
+The deadlock happens because we use the shpchp_wq workqueue to run
+shpchp_pushbutton_thread(), which uses shpchp_disable_slot() to remove
+devices below the upstream bridge.  When we remove the downstream bridge,
+we call shpc_remove(), the shpchp driver's .remove() method.  That calls
+flush_workqueue(shpchp_wq), which deadlocks because the
+shpchp_pushbutton_thread() work item is still running.
+
+This patch avoids the deadlock by creating a workqueue for every slot
+and removing the single shared workqueue.
+
+Here's the call path that leads to the deadlock:
+
+  shpchp_queue_pushbutton_work
+    queue_work(shpchp_wq)		# shpchp_pushbutton_thread
+    ...
+
+  shpchp_pushbutton_thread
+    shpchp_disable_slot
+      remove_board
+        shpchp_unconfigure_device
+          pci_stop_and_remove_bus_device
+            ...
+              shpc_remove		# shpchp driver .remove method
+                hpc_release_ctlr
+                  cleanup_slots
+                    flush_workqueue(shpchp_wq)
+
+This change is based on code inspection, since we don't have hardware
+with this topology.
+
+Based-on-patch-by: Yijing Wang <wangyijing@huawei.com>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/pci/hotplug/shpchp.h      |  2 +-
+ drivers/pci/hotplug/shpchp_core.c | 26 ++++++++++++++------------
+ drivers/pci/hotplug/shpchp_ctrl.c |  6 +++---
+ 3 files changed, 18 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/pci/hotplug/shpchp.h b/drivers/pci/hotplug/shpchp.h
+index 0b9eb75..2c2ac80 100644
+--- a/drivers/pci/hotplug/shpchp.h
++++ b/drivers/pci/hotplug/shpchp.h
+@@ -46,7 +46,6 @@
+ extern int shpchp_poll_mode;
+ extern int shpchp_poll_time;
+ extern int shpchp_debug;
+-extern struct workqueue_struct *shpchp_wq;
+ 
+ #define dbg(format, arg...)						\
+ do {									\
+@@ -90,6 +89,7 @@ struct slot {
+ 	struct list_head	slot_list;
+ 	struct delayed_work work;	/* work for button event */
+ 	struct mutex lock;
++	struct workqueue_struct *wq;
+ 	u8 hp_slot;
+ };
+ 
+diff --git a/drivers/pci/hotplug/shpchp_core.c b/drivers/pci/hotplug/shpchp_core.c
+index e2b3536..754a7cd 100644
+--- a/drivers/pci/hotplug/shpchp_core.c
++++ b/drivers/pci/hotplug/shpchp_core.c
+@@ -39,7 +39,6 @@
+ int shpchp_debug;
+ int shpchp_poll_mode;
+ int shpchp_poll_time;
+-struct workqueue_struct *shpchp_wq;
+ 
+ #define DRIVER_VERSION	"0.4"
+ #define DRIVER_AUTHOR	"Dan Zink <dan.zink@compaq.com>, Greg Kroah-Hartman <greg@kroah.com>, Dely Sy <dely.l.sy@intel.com>"
+@@ -122,6 +121,14 @@ static int init_slots(struct controller *ctrl)
+ 		slot->device = ctrl->slot_device_offset + i;
+ 		slot->hpc_ops = ctrl->hpc_ops;
+ 		slot->number = ctrl->first_slot + (ctrl->slot_num_inc * i);
++
++		snprintf(name, sizeof(name), "shpchp-%d", slot->number);
++		slot->wq = alloc_workqueue(name, 0, 0);
++		if (!slot->wq) {
++			retval = -ENOMEM;
++			goto error_info;
++		}
++
+ 		mutex_init(&slot->lock);
+ 		INIT_DELAYED_WORK(&slot->work, shpchp_queue_pushbutton_work);
+ 
+@@ -141,7 +148,7 @@ static int init_slots(struct controller *ctrl)
+ 		if (retval) {
+ 			ctrl_err(ctrl, "pci_hp_register failed with error %d\n",
+ 				 retval);
+-			goto error_info;
++			goto error_slotwq;
+ 		}
+ 
+ 		get_power_status(hotplug_slot, &info->power_status);
+@@ -153,6 +160,8 @@ static int init_slots(struct controller *ctrl)
+ 	}
+ 
+ 	return 0;
++error_slotwq:
++	destroy_workqueue(slot->wq);
+ error_info:
+ 	kfree(info);
+ error_hpslot:
+@@ -173,7 +182,7 @@ void cleanup_slots(struct controller *ctrl)
+ 		slot = list_entry(tmp, struct slot, slot_list);
+ 		list_del(&slot->slot_list);
+ 		cancel_delayed_work(&slot->work);
+-		flush_workqueue(shpchp_wq);
++		destroy_workqueue(slot->wq);
+ 		pci_hp_deregister(slot->hotplug_slot);
+ 	}
+ }
+@@ -356,18 +365,12 @@ static struct pci_driver shpc_driver = {
+ 
+ static int __init shpcd_init(void)
+ {
+-	int retval = 0;
+-
+-	shpchp_wq = alloc_ordered_workqueue("shpchp", 0);
+-	if (!shpchp_wq)
+-		return -ENOMEM;
++	int retval;
+ 
+ 	retval = pci_register_driver(&shpc_driver);
+ 	dbg("%s: pci_register_driver = %d\n", __func__, retval);
+ 	info(DRIVER_DESC " version: " DRIVER_VERSION "\n");
+-	if (retval) {
+-		destroy_workqueue(shpchp_wq);
+-	}
++
+ 	return retval;
+ }
+ 
+@@ -375,7 +378,6 @@ static void __exit shpcd_cleanup(void)
+ {
+ 	dbg("unload_shpchpd()\n");
+ 	pci_unregister_driver(&shpc_driver);
+-	destroy_workqueue(shpchp_wq);
+ 	info(DRIVER_DESC " version: " DRIVER_VERSION " unloaded\n");
+ }
+ 
+diff --git a/drivers/pci/hotplug/shpchp_ctrl.c b/drivers/pci/hotplug/shpchp_ctrl.c
+index bba5b3e..3ffc1b2 100644
+--- a/drivers/pci/hotplug/shpchp_ctrl.c
++++ b/drivers/pci/hotplug/shpchp_ctrl.c
+@@ -51,7 +51,7 @@ static int queue_interrupt_event(struct slot *p_slot, u32 event_type)
+ 	info->p_slot = p_slot;
+ 	INIT_WORK(&info->work, interrupt_event_handler);
+ 
+-	queue_work(shpchp_wq, &info->work);
++	queue_work(p_slot->wq, &info->work);
+ 
+ 	return 0;
+ }
+@@ -456,7 +456,7 @@ void shpchp_queue_pushbutton_work(struct work_struct *work)
+ 		kfree(info);
+ 		goto out;
+ 	}
+-	queue_work(shpchp_wq, &info->work);
++	queue_work(p_slot->wq, &info->work);
+  out:
+ 	mutex_unlock(&p_slot->lock);
+ }
+@@ -504,7 +504,7 @@ static void handle_button_press_event(struct slot *p_slot)
+ 		p_slot->hpc_ops->green_led_blink(p_slot);
+ 		p_slot->hpc_ops->set_attention_status(p_slot, 0);
+ 
+-		queue_delayed_work(shpchp_wq, &p_slot->work, 5*HZ);
++		queue_delayed_work(p_slot->wq, &p_slot->work, 5*HZ);
+ 		break;
+ 	case BLINKINGOFF_STATE:
+ 	case BLINKINGON_STATE:
+-- 
+1.8.1.4
+

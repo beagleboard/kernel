@@ -1,4 +1,4 @@
-From 7c73275f08bb5aea7405e2c15a6be5cfb0d30aa6 Mon Sep 17 00:00:00 2001
+From af970fc4be5af82d9562e64cae403d8141c6d5e0 Mon Sep 17 00:00:00 2001
 From: Kazuya Mio <k-mio@sx.jp.nec.com>
 Date: Thu, 1 Dec 2011 16:51:07 +0900
 Subject: [PATCH 082/117] wake up s_wait_unfrozen when ->freeze_fs fails
@@ -21,8 +21,8 @@ Signed-off-by: Kazuya Mio <k-mio@sx.jp.nec.com>
 Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/super.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ fs/super.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/fs/super.c b/fs/super.c
 index afd0f1a..2a698f6 100644
@@ -38,5 +38,5 @@ index afd0f1a..2a698f6 100644
  			return ret;
  		}
 -- 
-1.7.7.6
+1.8.1.4
 

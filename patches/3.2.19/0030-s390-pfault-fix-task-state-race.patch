@@ -1,4 +1,4 @@
-From 0ef38e8342a5bac99b8971d1a940c74b9b5b4622 Mon Sep 17 00:00:00 2001
+From 8c61b42c1c532eb8d74f29224d5087cf9a2e058f Mon Sep 17 00:00:00 2001
 From: Heiko Carstens <heiko.carstens@de.ibm.com>
 Date: Wed, 9 May 2012 09:37:30 +0200
 Subject: [PATCH 030/117] s390/pfault: fix task state race
@@ -29,8 +29,8 @@ Reviewed-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/s390/mm/fault.c |   14 ++++++++++++--
- 1 files changed, 12 insertions(+), 2 deletions(-)
+ arch/s390/mm/fault.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
 diff --git a/arch/s390/mm/fault.c b/arch/s390/mm/fault.c
 index c7f0fbc..b28aaa4 100644
@@ -78,5 +78,5 @@ index c7f0fbc..b28aaa4 100644
  		spin_unlock_irq(&pfault_lock);
  		break;
 -- 
-1.7.7.6
+1.8.1.4
 

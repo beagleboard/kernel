@@ -1,4 +1,4 @@
-From 3e45ff9af96f8ea45a9e1600f370b0e0df32fb26 Mon Sep 17 00:00:00 2001
+From 26e53a78a4386902c0a0504c96c6d21b16b5fde4 Mon Sep 17 00:00:00 2001
 From: Jeff Moyer <jmoyer@redhat.com>
 Date: Mon, 5 Mar 2012 10:29:52 -0500
 Subject: [PATCH 110/147] ext4: fix race between sync and completed io work
@@ -43,9 +43,9 @@ Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/ext4/ext4.h    |    1 +
- fs/ext4/fsync.c   |    2 ++
- fs/ext4/page-io.c |    9 +++++++--
+ fs/ext4/ext4.h    | 1 +
+ fs/ext4/fsync.c   | 2 ++
+ fs/ext4/page-io.c | 9 +++++++--
  3 files changed, 10 insertions(+), 2 deletions(-)
 
 diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
@@ -115,5 +115,5 @@ index 924298a..24feb1c 100644
  	}
  	list_del_init(&io->list);
 -- 
-1.7.7.6
+1.8.1.4
 

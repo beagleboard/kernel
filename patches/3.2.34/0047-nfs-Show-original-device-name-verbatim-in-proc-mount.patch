@@ -1,4 +1,4 @@
-From b2eaae17f5351f7d1714f652affa96640d8ddb8b Mon Sep 17 00:00:00 2001
+From 7200d81866d211c535c8d787bb1c9be6c298f09b Mon Sep 17 00:00:00 2001
 From: Ben Hutchings <ben@decadent.org.uk>
 Date: Sun, 21 Oct 2012 19:23:52 +0100
 Subject: [PATCH 47/83] nfs: Show original device name verbatim in
@@ -25,10 +25,10 @@ Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
  - Adjust context
  - nfs_show_devname() still takes a pointer to struct vfsmount]
 ---
- fs/nfs/internal.h      |    5 +++--
- fs/nfs/namespace.c     |   19 ++++++++++++++-----
- fs/nfs/nfs4namespace.c |    3 ++-
- fs/nfs/super.c         |    2 +-
+ fs/nfs/internal.h      |  5 +++--
+ fs/nfs/namespace.c     | 19 ++++++++++++++-----
+ fs/nfs/nfs4namespace.c |  3 ++-
+ fs/nfs/super.c         |  2 +-
  4 files changed, 20 insertions(+), 9 deletions(-)
 
 diff --git a/fs/nfs/internal.h b/fs/nfs/internal.h
@@ -135,5 +135,5 @@ index e42d6f6..8150344 100644
  		err = PTR_ERR(devname);
  	else
 -- 
-1.7.7.6
+1.8.1.4
 

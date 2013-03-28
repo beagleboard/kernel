@@ -1,0 +1,39 @@
+From 81628568f79dfe219414e61bffa152044aa6f961 Mon Sep 17 00:00:00 2001
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Date: Wed, 14 Nov 2012 17:16:52 -0800
+Subject: [PATCH 009/127] USB: Increase reset timeout.
+
+commit 77c7f072c87fa951e9a74805febf26466f31170c upstream.
+
+John's NEC 0.96 xHCI host controller needs a longer timeout for a warm
+reset to complete.  The logs show it takes 650ms to complete the warm
+reset, so extend the hub reset timeout to 800ms to be on the safe side.
+
+This commit should be backported to kernels as old as 3.2, that contain
+the commit 75d7cf72ab9fa01dc70877aa5c68e8ef477229dc "usbcore: refine
+warm reset logic".
+
+Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Reported-by: John Covici <covici@ccs.covici.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/core/hub.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+index 2b92158..4d86f01 100644
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -2105,7 +2105,7 @@ static unsigned hub_is_wusb(struct usb_hub *hub)
+ #define HUB_SHORT_RESET_TIME	10
+ #define HUB_BH_RESET_TIME	50
+ #define HUB_LONG_RESET_TIME	200
+-#define HUB_RESET_TIMEOUT	500
++#define HUB_RESET_TIMEOUT	800
+ 
+ static int hub_port_reset(struct usb_hub *hub, int port1,
+ 			struct usb_device *udev, unsigned int delay, bool warm);
+-- 
+1.8.1.4
+

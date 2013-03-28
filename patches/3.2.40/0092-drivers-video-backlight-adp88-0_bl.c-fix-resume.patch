@@ -1,0 +1,50 @@
+From 01311342dfe4dfc0c4e2a55c881104934e039078 Mon Sep 17 00:00:00 2001
+From: Lars-Peter Clausen <lars@metafoo.de>
+Date: Thu, 21 Feb 2013 16:44:04 -0800
+Subject: [PATCH 092/153] drivers/video/backlight/adp88?0_bl.c: fix resume
+
+commit 5eb02c01bd1f3ef195989ab05e835e2b0711b5a9 upstream.
+
+Clearing the NSTBY bit in the control register also automatically clears
+the BLEN bit.  So we need to make sure to set it again during resume,
+otherwise the backlight will stay off.
+
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Acked-by: Michael Hennerich <michael.hennerich@analog.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/video/backlight/adp8860_bl.c | 2 +-
+ drivers/video/backlight/adp8870_bl.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/video/backlight/adp8860_bl.c b/drivers/video/backlight/adp8860_bl.c
+index 66bc74d..b35c857 100644
+--- a/drivers/video/backlight/adp8860_bl.c
++++ b/drivers/video/backlight/adp8860_bl.c
+@@ -791,7 +791,7 @@ static int adp8860_i2c_suspend(struct i2c_client *client, pm_message_t message)
+ 
+ static int adp8860_i2c_resume(struct i2c_client *client)
+ {
+-	adp8860_set_bits(client, ADP8860_MDCR, NSTBY);
++	adp8860_set_bits(client, ADP8860_MDCR, NSTBY | BLEN);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/video/backlight/adp8870_bl.c b/drivers/video/backlight/adp8870_bl.c
+index 6c68a68..25a9b3a 100644
+--- a/drivers/video/backlight/adp8870_bl.c
++++ b/drivers/video/backlight/adp8870_bl.c
+@@ -965,7 +965,7 @@ static int adp8870_i2c_suspend(struct i2c_client *client, pm_message_t message)
+ 
+ static int adp8870_i2c_resume(struct i2c_client *client)
+ {
+-	adp8870_set_bits(client, ADP8870_MDCR, NSTBY);
++	adp8870_set_bits(client, ADP8870_MDCR, NSTBY | BLEN);
+ 
+ 	return 0;
+ }
+-- 
+1.8.1.4
+

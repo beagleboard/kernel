@@ -1,4 +1,4 @@
-From 574f56dd725d8235f9b7b602d0962821a937ead7 Mon Sep 17 00:00:00 2001
+From ed7c2ba5566b0200133077d2cb85ee5f7c30cf73 Mon Sep 17 00:00:00 2001
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Date: Mon, 8 Oct 2012 16:29:19 -0700
 Subject: [PATCH 128/146] mempolicy: fix refcount leak in
@@ -24,7 +24,7 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- mm/mempolicy.c |   15 +++++++++------
+ mm/mempolicy.c | 15 +++++++++------
  1 file changed, 9 insertions(+), 6 deletions(-)
 
 diff --git a/mm/mempolicy.c b/mm/mempolicy.c
@@ -72,5 +72,5 @@ index 2ac1b38..0c13a1b 100644
  	mutex_unlock(&p->mutex);
  }
 -- 
-1.7.10.4
+1.8.1.4
 

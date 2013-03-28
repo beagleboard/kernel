@@ -1,4 +1,4 @@
-From f73797ca8aad00a1efda3c009cae57ba16dc08c4 Mon Sep 17 00:00:00 2001
+From 51f70a0f9c8dc25542ffd2f7443754ac475a6ed5 Mon Sep 17 00:00:00 2001
 From: James Chapman <jchapman@katalix.com>
 Date: Wed, 25 Jan 2012 02:39:05 +0000
 Subject: [PATCH 74/90] l2tp: l2tp_ip - fix possible oops on packet receive
@@ -49,8 +49,8 @@ Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/l2tp/l2tp_ip.c |    5 -----
- 1 files changed, 0 insertions(+), 5 deletions(-)
+ net/l2tp/l2tp_ip.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
 diff --git a/net/l2tp/l2tp_ip.c b/net/l2tp/l2tp_ip.c
 index d21e7eb..55670ec 100644
@@ -69,5 +69,5 @@ index d21e7eb..55670ec 100644
  	rc = sock_queue_rcv_skb(sk, skb);
  	if (rc < 0)
 -- 
-1.7.7.6
+1.8.1.4
 

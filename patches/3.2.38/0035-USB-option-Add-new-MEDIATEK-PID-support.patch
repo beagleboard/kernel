@@ -1,0 +1,48 @@
+From 35f13505e2557a78c3321a76400d113f2b931ff4 Mon Sep 17 00:00:00 2001
+From: "Quentin.Li" <snowmanli88@163.com>
+Date: Wed, 26 Dec 2012 16:58:22 +0800
+Subject: [PATCH 035/127] USB: option: Add new MEDIATEK PID support
+
+commit 94a85b633829b946eef53fc1825d526312fb856f upstream.
+
+In option.c, add some new MEDIATEK PIDs support for MEDIATEK new products. This
+is a MEDIATEK inc. release patch.
+
+Signed-off-by: Quentin.Li <snowmanli88@163.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/option.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/usb/serial/option.c b/drivers/usb/serial/option.c
+index 872807b..634988b 100644
+--- a/drivers/usb/serial/option.c
++++ b/drivers/usb/serial/option.c
+@@ -429,9 +429,12 @@ static void option_instat_callback(struct urb *urb);
+ #define MEDIATEK_VENDOR_ID			0x0e8d
+ #define MEDIATEK_PRODUCT_DC_1COM		0x00a0
+ #define MEDIATEK_PRODUCT_DC_4COM		0x00a5
++#define MEDIATEK_PRODUCT_DC_4COM2		0x00a7
+ #define MEDIATEK_PRODUCT_DC_5COM		0x00a4
+ #define MEDIATEK_PRODUCT_7208_1COM		0x7101
+ #define MEDIATEK_PRODUCT_7208_2COM		0x7102
++#define MEDIATEK_PRODUCT_7103_2COM		0x7103
++#define MEDIATEK_PRODUCT_7106_2COM		0x7106
+ #define MEDIATEK_PRODUCT_FP_1COM		0x0003
+ #define MEDIATEK_PRODUCT_FP_2COM		0x0023
+ #define MEDIATEK_PRODUCT_FPDC_1COM		0x0043
+@@ -1294,6 +1297,10 @@ static const struct usb_device_id option_ids[] = {
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(MEDIATEK_VENDOR_ID, MEDIATEK_PRODUCT_FP_2COM, 0x0a, 0x00, 0x00) },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(MEDIATEK_VENDOR_ID, MEDIATEK_PRODUCT_FPDC_1COM, 0x0a, 0x00, 0x00) },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(MEDIATEK_VENDOR_ID, MEDIATEK_PRODUCT_FPDC_2COM, 0x0a, 0x00, 0x00) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(MEDIATEK_VENDOR_ID, MEDIATEK_PRODUCT_7103_2COM, 0xff, 0x00, 0x00) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(MEDIATEK_VENDOR_ID, MEDIATEK_PRODUCT_7106_2COM, 0x02, 0x02, 0x01) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(MEDIATEK_VENDOR_ID, MEDIATEK_PRODUCT_DC_4COM2, 0xff, 0x02, 0x01) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(MEDIATEK_VENDOR_ID, MEDIATEK_PRODUCT_DC_4COM2, 0xff, 0x00, 0x00) },
+ 	{ USB_DEVICE(CELLIENT_VENDOR_ID, CELLIENT_PRODUCT_MEN200) },
+ 	{ } /* Terminating entry */
+ };
+-- 
+1.8.1.4
+

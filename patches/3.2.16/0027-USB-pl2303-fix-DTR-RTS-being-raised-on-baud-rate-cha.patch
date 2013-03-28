@@ -1,4 +1,4 @@
-From 7fb56ff5a414f7873034a69ffb4db4ed84c81af2 Mon Sep 17 00:00:00 2001
+From 66365cfb4220d8f6bb18bdea574882a720a74ccb Mon Sep 17 00:00:00 2001
 From: Johan Hovold <jhovold@gmail.com>
 Date: Fri, 23 Mar 2012 15:23:18 +0100
 Subject: [PATCH 27/68] USB: pl2303: fix DTR/RTS being raised on baud rate
@@ -16,8 +16,8 @@ Reported-by: Søren Holm <sgh@sgh.dk>
 Signed-off-by: Johan Hovold <jhovold@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/serial/pl2303.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/usb/serial/pl2303.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/usb/serial/pl2303.c b/drivers/usb/serial/pl2303.c
 index fc2d66f..5532ea5 100644
@@ -33,5 +33,5 @@ index fc2d66f..5532ea5 100644
  	if (control != priv->line_control) {
  		control = priv->line_control;
 -- 
-1.7.7.6
+1.8.1.4
 

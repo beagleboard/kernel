@@ -1,0 +1,44 @@
+From 6c525407d01b804003956dbfac347dfe5ac496e5 Mon Sep 17 00:00:00 2001
+From: "H. Peter Anvin" <hpa@linux.intel.com>
+Date: Sun, 13 Jan 2013 20:36:39 -0800
+Subject: [PATCH 108/127] x86/Sandy Bridge: mark arrays in __init functions as
+ __initconst
+
+commit ab3cd8670e0b3fcde7f029e1503ed3c5138e9571 upstream.
+
+Mark static arrays as __initconst so they get removed when the init
+sections are flushed.
+
+Reported-by: Mathias Krause <minipli@googlemail.com>
+Link: http://lkml.kernel.org/r/75F4BEE6-CB0E-4426-B40B-697451677738@googlemail.com
+Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kernel/setup.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 7e547bf..4c2e927 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -635,7 +635,7 @@ static bool __init snb_gfx_workaround_needed(void)
+ {
+ 	int i;
+ 	u16 vendor, devid;
+-	static const u16 snb_ids[] = {
++	static const __initconst u16 snb_ids[] = {
+ 		0x0102,
+ 		0x0112,
+ 		0x0122,
+@@ -667,7 +667,7 @@ static bool __init snb_gfx_workaround_needed(void)
+  */
+ static void __init trim_snb_memory(void)
+ {
+-	static const unsigned long bad_pages[] = {
++	static const __initconst unsigned long bad_pages[] = {
+ 		0x20050000,
+ 		0x20110000,
+ 		0x20130000,
+-- 
+1.8.1.4
+

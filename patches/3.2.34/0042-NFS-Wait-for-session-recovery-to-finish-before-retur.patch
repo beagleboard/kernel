@@ -1,4 +1,4 @@
-From bf31776599fe93adc218247d07d3993f23471475 Mon Sep 17 00:00:00 2001
+From 45ff152e0a7b242e3011ba2a5689089a25d363dd Mon Sep 17 00:00:00 2001
 From: Bryan Schumaker <bjschuma@netapp.com>
 Date: Tue, 30 Oct 2012 16:06:35 -0400
 Subject: [PATCH 42/83] NFS: Wait for session recovery to finish before
@@ -28,8 +28,8 @@ Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/nfs/nfs4proc.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ fs/nfs/nfs4proc.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
 index 61796a40..2468fac 100644
@@ -46,5 +46,5 @@ index 61796a40..2468fac 100644
  		case -NFS4ERR_FILE_OPEN:
  			if (exception->timeout > HZ) {
 -- 
-1.7.7.6
+1.8.1.4
 

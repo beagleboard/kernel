@@ -1,0 +1,44 @@
+From a90351d6b8614c325ccb1801b87d49cfb6b4a1c5 Mon Sep 17 00:00:00 2001
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Date: Sun, 20 Jan 2013 16:33:32 +0000
+Subject: [PATCH 089/127] drm/i915: GFX_MODE Flush TLB Invalidate Mode must be
+ '1' for scanline waits
+
+commit f05bb0c7b624252a5e768287e340e8e45df96e42 upstream.
+
+On SNB, if bit 13 of GFX_MODE, Flush TLB Invalidate Mode, is not set to 1,
+the hardware can not program the scanline values. Those scanline values
+then control when the signal is sent from the display engine to the render
+ring for MI_WAIT_FOR_EVENTs. Note setting this bit means that TLB
+invalidations must be performed explicitly through the appropriate bits
+being set in PIPE_CONTROL.
+
+References: https://bugzilla.kernel.org/show_bug.cgi?id=52311
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Reviewed-by: Ben Widawsky <ben@bwidawsk.net>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+[bwh: Backported to 3.2: s/_MASKED_BIT/GFX_MODE/]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_ringbuffer.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.c b/drivers/gpu/drm/i915/intel_ringbuffer.c
+index 38a7793..4fddd21 100644
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.c
++++ b/drivers/gpu/drm/i915/intel_ringbuffer.c
+@@ -408,6 +408,11 @@ static int init_render_ring(struct intel_ring_buffer *ring)
+ 	if (INTEL_INFO(dev)->gen >= 6)
+ 		I915_WRITE(MI_MODE, GFX_MODE_ENABLE(ASYNC_FLIP_PERF_DISABLE));
+ 
++	/* Required for the hardware to program scanline values for waiting */
++	if (INTEL_INFO(dev)->gen == 6)
++		I915_WRITE(GFX_MODE,
++			   GFX_MODE_ENABLE(GFX_TLB_INVALIDATE_ALWAYS));
++
+ 	if (IS_GEN7(dev))
+ 		I915_WRITE(GFX_MODE_GEN7,
+ 			   GFX_MODE_DISABLE(GFX_TLB_INVALIDATE_ALWAYS) |
+-- 
+1.8.1.4
+

@@ -1,4 +1,4 @@
-From 115c9ba9b7576b1bc6fbd3ec352ba0c491a3c3fa Mon Sep 17 00:00:00 2001
+From 960dc29f9199e9efba0bb1eac0fceac4fc605cd2 Mon Sep 17 00:00:00 2001
 From: Bernd Schubert <bernd.schubert@itwm.fraunhofer.de>
 Date: Fri, 20 Jan 2012 18:43:54 +0000
 Subject: [PATCH 22/87] RDMA/core: Fix kernel panic by always initializing
@@ -27,9 +27,9 @@ Signed-off-by: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Roland Dreier <roland@purestorage.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c |    1 +
- drivers/infiniband/core/verbs.c      |    2 +-
- 2 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 1 +
+ drivers/infiniband/core/verbs.c      | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
 index e3db8ef..a8445b8 100644
@@ -64,5 +64,5 @@ index 602b1bd..575b780 100644
  			real_qp = qp;
  			qp = __ib_open_qp(real_qp, qp_init_attr->event_handler,
 -- 
-1.7.7.6
+1.8.1.4
 

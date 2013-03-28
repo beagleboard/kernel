@@ -1,4 +1,4 @@
-From 8c75d8314e3d7aff4d0681c01191f092e0663fd4 Mon Sep 17 00:00:00 2001
+From ac9f76688f860774fea721bb392a7d5de9bc39b6 Mon Sep 17 00:00:00 2001
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Date: Wed, 15 Feb 2012 08:05:18 -0800
 Subject: [PATCH 03/11] i387: fix sense of sanity check
@@ -16,8 +16,8 @@ So if anybody did enable them, they'd get one spurious warning.
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/x86/include/asm/i387.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/x86/include/asm/i387.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/x86/include/asm/i387.h b/arch/x86/include/asm/i387.h
 index a436582..262bea9 100644
@@ -33,5 +33,5 @@ index a436582..262bea9 100644
  	__save_init_fpu(tsk);
  	stts();
 -- 
-1.7.7.6
+1.8.1.4
 

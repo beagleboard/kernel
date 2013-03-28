@@ -1,4 +1,4 @@
-From f3092fad7e0e4f8a0007678e1fd112b6f5cab261 Mon Sep 17 00:00:00 2001
+From b0b54464746a8069606d6c6f0da3f594bcc55900 Mon Sep 17 00:00:00 2001
 From: Marek Belisko <marek.belisko@open-nandra.com>
 Date: Thu, 12 Apr 2012 21:48:03 +0200
 Subject: [PATCH 17/68] staging: iio: hmc5843: Fix crash in probe function.
@@ -84,8 +84,8 @@ Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
 Acked-by: Jonathan Cameron <jic23@kernel.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/staging/iio/magnetometer/hmc5843.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/staging/iio/magnetometer/hmc5843.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/staging/iio/magnetometer/hmc5843.c b/drivers/staging/iio/magnetometer/hmc5843.c
 index fc9ee97..870db4f 100644
@@ -103,5 +103,5 @@ index fc9ee97..870db4f 100644
  	hmc5843_set_rate(client, data->rate);
  	hmc5843_configure(client, data->operating_mode);
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 64fe3ee9a3491c468a68252e4ab8fa65c55264e6 Mon Sep 17 00:00:00 2001
+From 0b5a27e48710eaeef8ae9a0b917b352798450ed0 Mon Sep 17 00:00:00 2001
 From: Matthew Leach <matthew.leach@arm.com>
 Date: Tue, 11 Sep 2012 17:56:57 +0100
 Subject: [PATCH 020/109] ARM: 7532/1: decompressor: reset SCTLR.TRE for VMSA
@@ -18,7 +18,7 @@ Signed-off-by: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/arm/boot/compressed/head.S |    1 +
+ arch/arm/boot/compressed/head.S | 1 +
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
@@ -34,5 +34,5 @@ index 9c18ebd..d63632f 100644
  		orr	r0, r0, #0x003c		@ write buffer
  #ifdef CONFIG_MMU
 -- 
-1.7.10.4
+1.8.1.4
 

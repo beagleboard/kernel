@@ -1,4 +1,4 @@
-From e177e2a2d82a507e63aa013a64fc42953b63464c Mon Sep 17 00:00:00 2001
+From 09c2ab5f7f450e412a474b07c13615f7d844f368 Mon Sep 17 00:00:00 2001
 From: Jiang Liu <liuj97@gmail.com>
 Date: Fri, 3 Feb 2012 15:37:16 -0800
 Subject: [PATCH 23/87] kprobes: fix a memory leak in function
@@ -26,8 +26,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- kernel/kprobes.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+ kernel/kprobes.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/kprobes.c b/kernel/kprobes.c
 index 52fd049..faa39d1 100644
@@ -48,5 +48,5 @@ index 52fd049..faa39d1 100644
  		arch_prepare_kretprobe(ri, regs);
  
 -- 
-1.7.7.6
+1.8.1.4
 

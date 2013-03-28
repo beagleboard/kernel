@@ -1,0 +1,37 @@
+From 568ce055758546a6f0c1d309fe522b1dd1f53cfe Mon Sep 17 00:00:00 2001
+From: Denis Efremov <yefremov.denis@gmail.com>
+Date: Mon, 11 Feb 2013 19:49:48 +0400
+Subject: [PATCH 045/153] ALSA: ali5451: remove irq enabling in pointer
+ callback
+
+commit dacae5a19b4cbe1b5e3a86de23ea74cbe9ec9652 upstream.
+
+snd_ali_pointer function is called with local
+interrupts disabled. However it seems very strange to
+reenable them in such way.
+
+Found by Linux Driver Verification project (linuxtesting.org).
+
+Signed-off-by: Denis Efremov <yefremov.denis@gmail.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/pci/ali5451/ali5451.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sound/pci/ali5451/ali5451.c b/sound/pci/ali5451/ali5451.c
+index ef85ac5..be662c9 100644
+--- a/sound/pci/ali5451/ali5451.c
++++ b/sound/pci/ali5451/ali5451.c
+@@ -1435,7 +1435,7 @@ static snd_pcm_uframes_t snd_ali_pointer(struct snd_pcm_substream *substream)
+ 
+ 	spin_lock(&codec->reg_lock);
+ 	if (!pvoice->running) {
+-		spin_unlock_irq(&codec->reg_lock);
++		spin_unlock(&codec->reg_lock);
+ 		return 0;
+ 	}
+ 	outb(pvoice->number, ALI_REG(codec, ALI_GC_CIR));
+-- 
+1.8.1.4
+

@@ -1,0 +1,45 @@
+From c8bc57ff4709d37ccd6f9d4f1f7cd900db851378 Mon Sep 17 00:00:00 2001
+From: Greg Pearson <greg.pearson@hp.com>
+Date: Tue, 24 Apr 2012 18:23:56 -0600
+Subject: [PATCH 042/153] x86/apic: Use x2apic physical mode based on FADT
+ setting
+
+commit ea0dcf903e7d76aa5d483d876215fedcfdfe140f upstream.
+
+Provide systems that do not support x2apic cluster mode
+a mechanism to select x2apic physical mode using the
+FADT FORCE_APIC_PHYSICAL_DESTINATION_MODE bit.
+
+Changes from v1: (based on Suresh's comments)
+ - removed #ifdef CONFIG_ACPI
+ - removed #include <linux/acpi.h>
+
+Signed-off-by: Greg Pearson <greg.pearson@hp.com>
+Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Link: http://lkml.kernel.org/r/1335313436-32020-1-git-send-email-greg.pearson@hp.com
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kernel/apic/x2apic_phys.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/arch/x86/kernel/apic/x2apic_phys.c b/arch/x86/kernel/apic/x2apic_phys.c
+index f5373df..b802439 100644
+--- a/arch/x86/kernel/apic/x2apic_phys.c
++++ b/arch/x86/kernel/apic/x2apic_phys.c
+@@ -24,6 +24,12 @@ static int x2apic_acpi_madt_oem_check(char *oem_id, char *oem_table_id)
+ {
+ 	if (x2apic_phys)
+ 		return x2apic_enabled();
++	else if ((acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID) &&
++		(acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL) &&
++		x2apic_enabled()) {
++		printk(KERN_DEBUG "System requires x2apic physical mode\n");
++		return 1;
++	}
+ 	else
+ 		return 0;
+ }
+-- 
+1.8.1.4
+

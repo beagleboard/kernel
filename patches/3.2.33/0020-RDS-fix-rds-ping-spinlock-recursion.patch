@@ -1,4 +1,4 @@
-From 1e23edb0487003897ba6b15acb1583c486b2e96a Mon Sep 17 00:00:00 2001
+From e8bf850a9656a9a9976a25cd7da67703965f372d Mon Sep 17 00:00:00 2001
 From: "jeff.liu" <jeff.liu@oracle.com>
 Date: Mon, 8 Oct 2012 18:57:27 +0000
 Subject: [PATCH 020/105] RDS: fix rds-ping spinlock recursion
@@ -27,8 +27,8 @@ Signed-off-by: Jie Liu <jeff.liu@oracle.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/rds/send.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/rds/send.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/rds/send.c b/net/rds/send.c
 index 96531d4..88eace5 100644
@@ -44,5 +44,5 @@ index 96531d4..88eace5 100644
  	rds_message_put(rm);
  	return 0;
 -- 
-1.7.7.6
+1.8.1.4
 

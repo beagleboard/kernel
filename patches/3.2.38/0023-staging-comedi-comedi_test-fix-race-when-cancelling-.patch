@@ -1,0 +1,52 @@
+From 124bed83b545980183204b226b3d95f039344b73 Mon Sep 17 00:00:00 2001
+From: Ian Abbott <abbotti@mev.co.uk>
+Date: Fri, 4 Jan 2013 11:33:21 +0000
+Subject: [PATCH 023/127] staging: comedi: comedi_test: fix race when
+ cancelling command
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit c0729eeefdcd76db338f635162bf0739fd2c5f6f upstream.
+
+Éric Piel reported a kernel oops in the "comedi_test" module.  It was a
+NULL pointer dereference within `waveform_ai_interrupt()` (actually a
+timer function) that sometimes occurred when a running asynchronous
+command is cancelled (either by the `COMEDI_CANCEL` ioctl or by closing
+the device file).
+
+This seems to be a race between the caller of `waveform_ai_cancel()`
+which on return from that function goes and tears down the running
+command, and the timer function which uses the command.  In particular,
+`async->cmd.chanlist` gets freed (and the pointer set to NULL) by
+`do_become_nonbusy()` in "comedi_fops.c" but a previously scheduled
+`waveform_ai_interrupt()` timer function will dereference that pointer
+regardless, leading to the oops.
+
+Fix it by replacing the `del_timer()` call in `waveform_ai_cancel()`
+with `del_timer_sync()`.
+
+Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
+Reported-by: Éric Piel <piel@delmic.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/comedi/drivers/comedi_test.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/comedi/drivers/comedi_test.c b/drivers/staging/comedi/drivers/comedi_test.c
+index a804742..2567f9a 100644
+--- a/drivers/staging/comedi/drivers/comedi_test.c
++++ b/drivers/staging/comedi/drivers/comedi_test.c
+@@ -461,7 +461,7 @@ static int waveform_ai_cancel(struct comedi_device *dev,
+ 			      struct comedi_subdevice *s)
+ {
+ 	devpriv->timer_running = 0;
+-	del_timer(&devpriv->timer);
++	del_timer_sync(&devpriv->timer);
+ 	return 0;
+ }
+ 
+-- 
+1.8.1.4
+

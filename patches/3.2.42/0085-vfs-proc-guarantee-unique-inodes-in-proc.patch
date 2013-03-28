@@ -1,0 +1,77 @@
+From dd4da1221de22d066be0cb12005276a394f9bb77 Mon Sep 17 00:00:00 2001
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Fri, 22 Mar 2013 11:44:04 -0700
+Subject: [PATCH 85/92] vfs,proc: guarantee unique inodes in /proc
+
+commit 51f0885e5415b4cc6535e9cdcc5145bfbc134353 upstream.
+
+Dave Jones found another /proc issue with his Trinity tool: thanks to
+the namespace model, we can have multiple /proc dentries that point to
+the same inode, aliasing directories in /proc/<pid>/net/ for example.
+
+This ends up being a total disaster, because it acts like hardlinked
+directories, and causes locking problems.  We rely on the topological
+sort of the inodes pointed to by dentries, and if we have aliased
+directories, that odering becomes unreliable.
+
+In short: don't do this.  Multiple dentries with the same (directory)
+inode is just a bad idea, and the namespace code should never have
+exposed things this way.  But we're kind of stuck with it.
+
+This solves things by just always allocating a new inode during /proc
+dentry lookup, instead of using "iget_locked()" to look up existing
+inodes by superblock and number.  That actually simplies the code a bit,
+at the cost of potentially doing more inode [de]allocations.
+
+That said, the inode lookup wasn't free either (and did a lot of locking
+of inodes), so it is probably not that noticeable.  We could easily keep
+the old lookup model for non-directory entries, but rather than try to
+be excessively clever this just implements the minimal and simplest
+workaround for the problem.
+
+Reported-and-tested-by: Dave Jones <davej@redhat.com>
+Analyzed-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+[bwh: Backported to 3.2:
+ - Adjust context
+ - Never drop the pde reference in proc_get_inode(), as callers only
+   expect this when we return an existing inode, and we never do that now]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/proc/inode.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/fs/proc/inode.c b/fs/proc/inode.c
+index 7737c54..00f08b3 100644
+--- a/fs/proc/inode.c
++++ b/fs/proc/inode.c
+@@ -427,12 +427,10 @@ static const struct file_operations proc_reg_file_ops_no_compat = {
+ 
+ struct inode *proc_get_inode(struct super_block *sb, struct proc_dir_entry *de)
+ {
+-	struct inode * inode;
++	struct inode *inode = new_inode_pseudo(sb);
+ 
+-	inode = iget_locked(sb, de->low_ino);
+-	if (!inode)
+-		return NULL;
+-	if (inode->i_state & I_NEW) {
++	if (inode) {
++		inode->i_ino = de->low_ino;
+ 		inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME;
+ 		PROC_I(inode)->fd = 0;
+ 		PROC_I(inode)->pde = de;
+@@ -461,9 +459,7 @@ struct inode *proc_get_inode(struct super_block *sb, struct proc_dir_entry *de)
+ 				inode->i_fop = de->proc_fops;
+ 			}
+ 		}
+-		unlock_new_inode(inode);
+-	} else
+-	       pde_put(de);
++	}
+ 	return inode;
+ }			
+ 
+-- 
+1.8.1.4
+

@@ -1,0 +1,33 @@
+From 50392f42cfd367d66ba10474073da4b232fe3eb7 Mon Sep 17 00:00:00 2001
+From: Seth Heasley <seth.heasley@intel.com>
+Date: Tue, 21 Feb 2012 10:45:26 -0800
+Subject: [PATCH 130/153] ata_piix: IDE-mode SATA patch for Intel DH89xxCC
+ DeviceIDs
+
+commit 96d5d96aedc29c75bb16433f6ecf8664ec3c1b46 upstream.
+
+This patch adds the IDE-mode SATA DeviceIDs for the Intel DH89xxCC PCH.
+
+Signed-off-by: Seth Heasley <seth.heasley@intel.com>
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/ata/ata_piix.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/ata/ata_piix.c b/drivers/ata/ata_piix.c
+index 9554f94..a4af970 100644
+--- a/drivers/ata/ata_piix.c
++++ b/drivers/ata/ata_piix.c
+@@ -329,6 +329,8 @@ static const struct pci_device_id piix_pci_tbl[] = {
+ 	{ 0x8086, 0x8c08, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_2port_sata },
+ 	/* SATA Controller IDE (Lynx Point) */
+ 	{ 0x8086, 0x8c09, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_2port_sata },
++	/* SATA Controller IDE (DH89xxCC) */
++	{ 0x8086, 0x2326, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_2port_sata },
+ 	{ }	/* terminate list */
+ };
+ 
+-- 
+1.8.1.4
+

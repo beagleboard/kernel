@@ -1,4 +1,4 @@
-From 1071e076a55f0451d80d61bb6a3a991a986a68de Mon Sep 17 00:00:00 2001
+From bf57b464a470262d9078b55c540b17fca20af4ba Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Mon, 3 Sep 2012 16:50:42 +0200
 Subject: [PATCH 028/135] ext3: Fix fdatasync() for files with only i_size
@@ -19,8 +19,8 @@ Signed-off-by: Jan Kara <jack@suse.cz>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ext3/inode.c |   17 ++++++++++++++---
- 1 files changed, 14 insertions(+), 3 deletions(-)
+ fs/ext3/inode.c | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
 diff --git a/fs/ext3/inode.c b/fs/ext3/inode.c
 index 5b3f907..71b263f 100644
@@ -72,5 +72,5 @@ index 5b3f907..71b263f 100644
  	brelse (bh);
  	ext3_std_error(inode->i_sb, err);
 -- 
-1.7.7.6
+1.8.1.4
 

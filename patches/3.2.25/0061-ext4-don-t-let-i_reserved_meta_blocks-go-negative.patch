@@ -1,4 +1,4 @@
-From 98c7e3d1240458a2019036b9a8d51c2ab2f68fe5 Mon Sep 17 00:00:00 2001
+From 7ea43043d1835e3ea09c1c539a8c3ae9f12f107d Mon Sep 17 00:00:00 2001
 From: Brian Foster <bfoster@redhat.com>
 Date: Sun, 22 Jul 2012 23:59:40 -0400
 Subject: [PATCH 61/73] ext4: don't let i_reserved_meta_blocks go negative
@@ -27,8 +27,8 @@ Signed-off-by: Brian Foster <bfoster@redhat.com>
 Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ext4/inode.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ fs/ext4/inode.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
 diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
 index d0dc109..03373c3 100644
@@ -51,5 +51,5 @@ index d0dc109..03373c3 100644
  	ei->i_reserved_data_blocks -= used;
  	ei->i_reserved_meta_blocks -= ei->i_allocated_meta_blocks;
 -- 
-1.7.7.6
+1.8.1.4
 

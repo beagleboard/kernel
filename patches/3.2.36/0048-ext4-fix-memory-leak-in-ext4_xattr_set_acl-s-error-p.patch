@@ -1,4 +1,4 @@
-From bce1882e77dbb989bb7bde1ba4b75a9054e48b12 Mon Sep 17 00:00:00 2001
+From 431ad1fbd96ed65e421b5e7a7f54cb049ab9678f Mon Sep 17 00:00:00 2001
 From: Eugene Shatokhin <eugene.shatokhin@rosalab.ru>
 Date: Thu, 8 Nov 2012 15:11:11 -0500
 Subject: [PATCH 048/171] ext4: fix memory leak in ext4_xattr_set_acl()'s error
@@ -38,5 +38,5 @@ index a5c29bb..8535c45 100644
  	ext4_journal_stop(handle);
  	if (error == -ENOSPC && ext4_should_retry_alloc(inode->i_sb, &retries))
 -- 
-1.8.1.2
+1.8.1.4
 

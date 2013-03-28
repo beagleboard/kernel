@@ -1,0 +1,44 @@
+From 85108762937d00aaa6b97447c354ab375829d8f2 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Date: Tue, 12 Mar 2013 02:59:49 +0000
+Subject: [PATCH 44/82] vfs: fix pipe counter breakage
+
+commit a930d8790552658140d7d0d2e316af4f0d76a512 upstream.
+
+If you open a pipe for neither read nor write, the pipe code will not
+add any usage counters to the pipe, causing the 'struct pipe_inode_info"
+to be potentially released early.
+
+That doesn't normally matter, since you cannot actually use the pipe,
+but the pipe release code - particularly fasync handling - still expects
+the actual pipe infrastructure to all be there.  And rather than adding
+NULL pointer checks, let's just disallow this case, the same way we
+already do for the named pipe ("fifo") case.
+
+This is ancient going back to pre-2.4 days, and until trinity, nobody
+naver noticed.
+
+Reported-by: Dave Jones <davej@redhat.com>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/pipe.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/fs/pipe.c b/fs/pipe.c
+index 05ed5ca..8ca88fc 100644
+--- a/fs/pipe.c
++++ b/fs/pipe.c
+@@ -859,6 +859,9 @@ pipe_rdwr_open(struct inode *inode, struct file *filp)
+ {
+ 	int ret = -ENOENT;
+ 
++	if (!(filp->f_mode & (FMODE_READ|FMODE_WRITE)))
++		return -EINVAL;
++
+ 	mutex_lock(&inode->i_mutex);
+ 
+ 	if (inode->i_pipe) {
+-- 
+1.8.1.4
+

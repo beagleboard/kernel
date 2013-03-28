@@ -1,4 +1,4 @@
-From 414252da9860fbb03f627460cdd4e940c18d7164 Mon Sep 17 00:00:00 2001
+From d7c338bdc800bf937720999c3e87fe9efb35c78d Mon Sep 17 00:00:00 2001
 From: Tyler Hicks <tyhicks@canonical.com>
 Date: Mon, 11 Jun 2012 10:21:34 -0700
 Subject: [PATCH 097/109] eCryptfs: Fix lockdep warning in miscdev operations
@@ -48,8 +48,8 @@ Addresses this lockdep warning:
 Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ecryptfs/miscdev.c |   25 +++++++++++++------------
- 1 files changed, 13 insertions(+), 12 deletions(-)
+ fs/ecryptfs/miscdev.c | 25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
 diff --git a/fs/ecryptfs/miscdev.c b/fs/ecryptfs/miscdev.c
 index a050e4b..de42310 100644
@@ -101,5 +101,5 @@ index a050e4b..de42310 100644
  
  /**
 -- 
-1.7.7.6
+1.8.1.4
 

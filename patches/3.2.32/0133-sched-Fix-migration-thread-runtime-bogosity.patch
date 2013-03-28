@@ -1,4 +1,4 @@
-From ca6359c0c4aeabea8baed28056b52eed47b47f39 Mon Sep 17 00:00:00 2001
+From 523b46d9138a4234ae751f1af867fa140b003dfa Mon Sep 17 00:00:00 2001
 From: Mike Galbraith <mgalbraith@suse.de>
 Date: Sat, 4 Aug 2012 05:44:14 +0200
 Subject: [PATCH 133/146] sched: Fix migration thread runtime bogosity
@@ -32,7 +32,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 [Steven Rostedt: backport for 3.2.]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/sched_stoptask.c |   22 +++++++++++++++++++++-
+ kernel/sched_stoptask.c | 22 +++++++++++++++++++++-
  1 file changed, 21 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/sched_stoptask.c b/kernel/sched_stoptask.c
@@ -84,5 +84,5 @@ index 8b44e7f..85e9da2 100644
  
  static void switched_to_stop(struct rq *rq, struct task_struct *p)
 -- 
-1.7.10.4
+1.8.1.4
 

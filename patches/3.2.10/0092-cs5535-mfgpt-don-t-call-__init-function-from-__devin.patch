@@ -1,8 +1,7 @@
-From fc8de88fcf401ddb11ad2220cd344937cb05be87 Mon Sep 17 00:00:00 2001
+From 86df3601f6085c7dbe6a1a8d90d1b66461331d87 Mon Sep 17 00:00:00 2001
 From: Danny Kukawka <danny.kukawka@bisect.de>
 Date: Thu, 2 Feb 2012 14:20:29 +0100
-Subject: [PATCH 92/95] cs5535-mfgpt: don't call __init function from
- __devinit
+Subject: [PATCH 92/95] cs5535-mfgpt: don't call __init function from __devinit
 
 commit 474de3bbadd9cb75ffc32cc759c40d868343d46c upstream.
 
@@ -13,8 +12,8 @@ __devinit.
 Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/misc/cs5535-mfgpt.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/misc/cs5535-mfgpt.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/misc/cs5535-mfgpt.c b/drivers/misc/cs5535-mfgpt.c
 index bc685bf..87a390d 100644
@@ -30,5 +29,5 @@ index bc685bf..87a390d 100644
  	struct cs5535_mfgpt_timer timer = { .chip = mfgpt };
  	unsigned long flags;
 -- 
-1.7.7.6
+1.8.1.4
 

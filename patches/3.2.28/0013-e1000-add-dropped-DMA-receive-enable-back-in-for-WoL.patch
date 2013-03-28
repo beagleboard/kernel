@@ -1,4 +1,4 @@
-From 98db8669552c3e2be2d62642d70676b7efbfed63 Mon Sep 17 00:00:00 2001
+From ea4b63168c627c085a87e7232272878c56ea7fd6 Mon Sep 17 00:00:00 2001
 From: Dean Nelson <dnelson@redhat.com>
 Date: Thu, 19 Jan 2012 17:47:24 +0000
 Subject: [PATCH 13/38] e1000: add dropped DMA receive enable back in for WoL
@@ -19,8 +19,8 @@ Tested-by: Aaron Brown <aaron.f.brown@intel.com>
 Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/ethernet/intel/e1000/e1000_main.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/intel/e1000/e1000_main.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/net/ethernet/intel/e1000/e1000_main.c b/drivers/net/ethernet/intel/e1000/e1000_main.c
 index de00805..0549261 100644
@@ -46,5 +46,5 @@ index de00805..0549261 100644
  		if (hw->mac_type >= e1000_82540) {
  			ctrl = er32(CTRL);
 -- 
-1.7.7.6
+1.8.1.4
 

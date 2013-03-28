@@ -1,0 +1,40 @@
+From 71f060f5f19d88f16a4eb9e2d4625e8bf729ebdb Mon Sep 17 00:00:00 2001
+From: Ben Hutchings <bhutchings@solarflare.com>
+Date: Wed, 27 Feb 2013 16:50:38 +0000
+Subject: [PATCH 49/92] sfc: Only use TX push if a single descriptor is to be
+ written
+
+[ Upstream commit fae8563b25f73dc584a07bcda7a82750ff4f7672 ]
+
+Using TX push when notifying the NIC of multiple new descriptors in
+the ring will very occasionally cause the TX DMA engine to re-use an
+old descriptor.  This can result in a duplicated or partly duplicated
+packet (new headers with old data), or an IOMMU page fault.  This does
+not happen when the pushed descriptor is the only one written.
+
+TX push also provides little latency benefit when a packet requires
+more than one descriptor.
+
+Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/sfc/nic.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/sfc/nic.c b/drivers/net/ethernet/sfc/nic.c
+index 9cca2a6..2e9ca10 100644
+--- a/drivers/net/ethernet/sfc/nic.c
++++ b/drivers/net/ethernet/sfc/nic.c
+@@ -371,7 +371,8 @@ efx_may_push_tx_desc(struct efx_tx_queue *tx_queue, unsigned int write_count)
+ 		return false;
+ 
+ 	tx_queue->empty_read_count = 0;
+-	return ((empty_read_count ^ write_count) & ~EFX_EMPTY_COUNT_VALID) == 0;
++	return ((empty_read_count ^ write_count) & ~EFX_EMPTY_COUNT_VALID) == 0
++		&& tx_queue->write_count - write_count == 1;
+ }
+ 
+ /* For each entry inserted into the software descriptor ring, create a
+-- 
+1.8.1.4
+

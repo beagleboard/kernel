@@ -1,4 +1,4 @@
-From fa47fcc606abd0f57002e6234dd8f33b7bdca469 Mon Sep 17 00:00:00 2001
+From da56b72aeeace63133ac1e66e5deb688d74272cb Mon Sep 17 00:00:00 2001
 From: Mel Gorman <mgorman@suse.de>
 Date: Wed, 21 Mar 2012 16:34:11 -0700
 Subject: [PATCH 15/73] cpuset: mm: reduce large amounts of memory barrier
@@ -90,18 +90,18 @@ Signed-off-by: Mel Gorman <mgorman@suse.de>
  to get_any_partial()]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/cpuset.h    |   47 +++++++++++++++++++-------------------------
- include/linux/init_task.h |    8 +++++++
- include/linux/sched.h     |    2 +-
- kernel/cpuset.c           |   43 +++++++---------------------------------
- kernel/fork.c             |    3 ++
- mm/filemap.c              |   11 ++++++---
- mm/hugetlb.c              |   15 ++++++++++---
- mm/mempolicy.c            |   28 ++++++++++++++++++++------
- mm/page_alloc.c           |   33 ++++++++++++++++++++++---------
- mm/slab.c                 |   13 +++++++----
- mm/slub.c                 |   40 +++++++++++++++++++++++--------------
- mm/vmscan.c               |    2 -
+ include/linux/cpuset.h    | 47 ++++++++++++++++++++---------------------------
+ include/linux/init_task.h |  8 ++++++++
+ include/linux/sched.h     |  2 +-
+ kernel/cpuset.c           | 43 ++++++++-----------------------------------
+ kernel/fork.c             |  3 +++
+ mm/filemap.c              | 11 +++++++----
+ mm/hugetlb.c              | 15 +++++++++++----
+ mm/mempolicy.c            | 28 +++++++++++++++++++++-------
+ mm/page_alloc.c           | 33 +++++++++++++++++++++++----------
+ mm/slab.c                 | 13 ++++++++-----
+ mm/slub.c                 | 40 +++++++++++++++++++++++++---------------
+ mm/vmscan.c               |  2 --
  12 files changed, 135 insertions(+), 110 deletions(-)
 
 diff --git a/include/linux/cpuset.h b/include/linux/cpuset.h
@@ -651,5 +651,5 @@ index ded1857..48febd7 100644
  	if (sc->nr_reclaimed)
  		return sc->nr_reclaimed;
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 0aa600497f0afc05e01c42b686efe99538f67e2f Mon Sep 17 00:00:00 2001
+From f697f286e82cda00d4ece591a6ec3f82a36f5d6e Mon Sep 17 00:00:00 2001
 From: Johannes Berg <johannes.berg@intel.com>
 Date: Fri, 26 Oct 2012 00:36:40 +0200
 Subject: [PATCH 30/83] mac80211: verify that skb data is present
@@ -17,9 +17,9 @@ able to use it in mac80211.
 Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/net/cfg80211.h |    9 +++++++++
- net/mac80211/rx.c      |   32 +++++++++++++++++++++++++++++++-
- net/wireless/util.c    |    3 ++-
+ include/net/cfg80211.h |  9 +++++++++
+ net/mac80211/rx.c      | 32 +++++++++++++++++++++++++++++++-
+ net/wireless/util.c    |  3 ++-
  3 files changed, 42 insertions(+), 2 deletions(-)
 
 diff --git a/include/net/cfg80211.h b/include/net/cfg80211.h
@@ -137,5 +137,5 @@ index 61a09e3..5fba039 100644
  int ieee80211_data_to_8023(struct sk_buff *skb, const u8 *addr,
  			   enum nl80211_iftype iftype)
 -- 
-1.7.7.6
+1.8.1.4
 

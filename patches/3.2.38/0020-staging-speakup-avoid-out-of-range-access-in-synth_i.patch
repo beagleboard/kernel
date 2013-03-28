@@ -1,0 +1,34 @@
+From d1afa6a15d313237a936f976c34b6922bd8c41ad Mon Sep 17 00:00:00 2001
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Date: Sat, 5 Jan 2013 14:17:45 -0500
+Subject: [PATCH 020/127] staging: speakup: avoid out-of-range access in
+ synth_init()
+
+commit ae428655b826f2755a8101b27beda42a275ef8ad upstream.
+
+Check that array index is in-bounds before accessing the synths[] array.
+
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/speakup/synth.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/speakup/synth.c b/drivers/staging/speakup/synth.c
+index c241074..b568803 100644
+--- a/drivers/staging/speakup/synth.c
++++ b/drivers/staging/speakup/synth.c
+@@ -342,7 +342,7 @@ int synth_init(char *synth_name)
+ 
+ 	mutex_lock(&spk_mutex);
+ 	/* First, check if we already have it loaded. */
+-	for (i = 0; synths[i] != NULL && i < MAXSYNTHS; i++)
++	for (i = 0; i < MAXSYNTHS && synths[i] != NULL; i++)
+ 		if (strcmp(synths[i]->name, synth_name) == 0)
+ 			synth = synths[i];
+ 
+-- 
+1.8.1.4
+

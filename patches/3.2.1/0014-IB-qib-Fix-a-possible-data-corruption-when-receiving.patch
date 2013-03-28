@@ -1,4 +1,4 @@
-From 809ed3ebdf0c15f84bf8729a3b27f68d507b6f53 Mon Sep 17 00:00:00 2001
+From 9aebe78fe4dca135b4ef82f4f1122b15ef1a12b9 Mon Sep 17 00:00:00 2001
 From: Ram Vepa <ram.vepa@qlogic.com>
 Date: Fri, 23 Dec 2011 08:01:43 -0500
 Subject: [PATCH 14/49] IB/qib: Fix a possible data corruption when receiving
@@ -15,9 +15,9 @@ Signed-off-by: Mike Marciniszyn <mike.marciniszyn@qlogic.com>
 Signed-off-by: Roland Dreier <roland@purestorage.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/infiniband/hw/qib/qib_iba6120.c |    4 +++-
- drivers/infiniband/hw/qib/qib_iba7220.c |    4 +++-
- drivers/infiniband/hw/qib/qib_iba7322.c |    6 ++++--
+ drivers/infiniband/hw/qib/qib_iba6120.c | 4 +++-
+ drivers/infiniband/hw/qib/qib_iba7220.c | 4 +++-
+ drivers/infiniband/hw/qib/qib_iba7322.c | 6 ++++--
  3 files changed, 10 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/hw/qib/qib_iba6120.c b/drivers/infiniband/hw/qib/qib_iba6120.c
@@ -74,5 +74,5 @@ index 1d58959..5a070e8 100644
  
  static u32 qib_7322_hdrqempty(struct qib_ctxtdata *rcd)
 -- 
-1.7.7.6
+1.8.1.4
 

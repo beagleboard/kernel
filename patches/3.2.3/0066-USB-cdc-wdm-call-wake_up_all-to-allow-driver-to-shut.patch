@@ -1,4 +1,4 @@
-From 82214a16ea2af6600936fd5a7c2fba1e934474c0 Mon Sep 17 00:00:00 2001
+From 3bbfe332a418ac6d1799fd8f8c2a3221e26563ac Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>
 Date: Mon, 16 Jan 2012 15:11:57 +0100
 Subject: [PATCH 66/90] USB: cdc-wdm: call wake_up_all to allow driver to
@@ -18,8 +18,8 @@ Cc: Oliver Neukum <oliver@neukum.org>
 Cc: stable <stable@vger.kernel.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/class/cdc-wdm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/usb/class/cdc-wdm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/usb/class/cdc-wdm.c b/drivers/usb/class/cdc-wdm.c
 index 4a29a80..d2cda26 100644
@@ -41,5 +41,5 @@ index 4a29a80..d2cda26 100644
  		cleanup(desc);
  	mutex_unlock(&wdm_mutex);
 -- 
-1.7.7.6
+1.8.1.4
 

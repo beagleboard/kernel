@@ -1,0 +1,51 @@
+From 6d8a175601c4fbf9e8ff0302b8abef01929d806c Mon Sep 17 00:00:00 2001
+From: Phileas Fogg <phileas-fogg@mail.ru>
+Date: Sat, 23 Feb 2013 00:32:19 +0100
+Subject: [PATCH 095/153] powerpc/kexec: Disable hard IRQ before kexec
+
+commit 8520e443aa56cc157b015205ea53e7b9fc831291 upstream.
+
+Disable hard IRQ before kexec a new kernel image.
+Not doing it can result in corrupted data in the memory segments
+reserved for the new kernel.
+
+Signed-off-by: Phileas Fogg <phileas-fogg@mail.ru>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/powerpc/kernel/machine_kexec_64.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/arch/powerpc/kernel/machine_kexec_64.c b/arch/powerpc/kernel/machine_kexec_64.c
+index 26ccbf7..4c0908d 100644
+--- a/arch/powerpc/kernel/machine_kexec_64.c
++++ b/arch/powerpc/kernel/machine_kexec_64.c
+@@ -162,6 +162,8 @@ static int kexec_all_irq_disabled = 0;
+ static void kexec_smp_down(void *arg)
+ {
+ 	local_irq_disable();
++	hard_irq_disable();
++
+ 	mb(); /* make sure our irqs are disabled before we say they are */
+ 	get_paca()->kexec_state = KEXEC_STATE_IRQS_OFF;
+ 	while(kexec_all_irq_disabled == 0)
+@@ -244,6 +246,8 @@ static void kexec_prepare_cpus(void)
+ 	wake_offline_cpus();
+ 	smp_call_function(kexec_smp_down, NULL, /* wait */0);
+ 	local_irq_disable();
++	hard_irq_disable();
++
+ 	mb(); /* make sure IRQs are disabled before we say they are */
+ 	get_paca()->kexec_state = KEXEC_STATE_IRQS_OFF;
+ 
+@@ -281,6 +285,7 @@ static void kexec_prepare_cpus(void)
+ 	if (ppc_md.kexec_cpu_down)
+ 		ppc_md.kexec_cpu_down(0, 0);
+ 	local_irq_disable();
++	hard_irq_disable();
+ }
+ 
+ #endif /* SMP */
+-- 
+1.8.1.4
+

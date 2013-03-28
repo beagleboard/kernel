@@ -1,4 +1,4 @@
-From d2ead045e86182ebc07ec6cf867f4e4c3a398a58 Mon Sep 17 00:00:00 2001
+From d4cda36e5656c254c499c635fb3bd49a9640fdd8 Mon Sep 17 00:00:00 2001
 From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Date: Fri, 18 Nov 2011 14:25:00 +0000
 Subject: [PATCH 096/147] e1000e: Avoid wrong check on TX hang
@@ -21,8 +21,8 @@ Tested-by: Aaron Brown <aaron.f.brown@intel.com>
 Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/ethernet/intel/e1000e/e1000.h  |    1 +
- drivers/net/ethernet/intel/e1000e/netdev.c |   23 ++++++++++++++++++++---
+ drivers/net/ethernet/intel/e1000e/e1000.h  |  1 +
+ drivers/net/ethernet/intel/e1000e/netdev.c | 23 ++++++++++++++++++++---
  2 files changed, 21 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/net/ethernet/intel/e1000e/e1000.h b/drivers/net/ethernet/intel/e1000e/e1000.h
@@ -94,5 +94,5 @@ index a855db1..4e933d1 100644
  
  	adapter->idle_check = true;
 -- 
-1.7.7.6
+1.8.1.4
 

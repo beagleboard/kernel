@@ -1,0 +1,55 @@
+From 24b3710974e267668b4f06c69db2be43c3884442 Mon Sep 17 00:00:00 2001
+From: Kees Cook <keescook@chromium.org>
+Date: Mon, 11 Mar 2013 17:31:45 -0700
+Subject: [PATCH 57/92] drm/i915: bounds check execbuffer relocation count
+
+commit 3118a4f652c7b12c752f3222af0447008f9b2368 upstream.
+
+It is possible to wrap the counter used to allocate the buffer for
+relocation copies. This could lead to heap writing overflows.
+
+CVE-2013-0913
+
+v3: collapse test, improve comment
+v2: move check into validate_exec_list
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Pinkie Pie
+Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_gem_execbuffer.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_gem_execbuffer.c b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+index 878b989..b1bb734 100644
+--- a/drivers/gpu/drm/i915/i915_gem_execbuffer.c
++++ b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+@@ -907,15 +907,20 @@ validate_exec_list(struct drm_i915_gem_exec_object2 *exec,
+ 		   int count)
+ {
+ 	int i;
++	int relocs_total = 0;
++	int relocs_max = INT_MAX / sizeof(struct drm_i915_gem_relocation_entry);
+ 
+ 	for (i = 0; i < count; i++) {
+ 		char __user *ptr = (char __user *)(uintptr_t)exec[i].relocs_ptr;
+ 		int length; /* limited by fault_in_pages_readable() */
+ 
+-		/* First check for malicious input causing overflow */
+-		if (exec[i].relocation_count >
+-		    INT_MAX / sizeof(struct drm_i915_gem_relocation_entry))
++		/* First check for malicious input causing overflow in
++		 * the worst case where we need to allocate the entire
++		 * relocation tree as a single array.
++		 */
++		if (exec[i].relocation_count > relocs_max - relocs_total)
+ 			return -EINVAL;
++		relocs_total += exec[i].relocation_count;
+ 
+ 		length = exec[i].relocation_count *
+ 			sizeof(struct drm_i915_gem_relocation_entry);
+-- 
+1.8.1.4
+

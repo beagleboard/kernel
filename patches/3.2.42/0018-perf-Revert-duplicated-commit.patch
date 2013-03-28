@@ -1,0 +1,37 @@
+From 872433a3de99742bd9c78ea5d73a40c6ece12b80 Mon Sep 17 00:00:00 2001
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Thu, 21 Mar 2013 03:25:51 +0000
+Subject: [PATCH 18/92] perf: Revert duplicated commit
+
+This reverts commit 923415295307845e614589c1cce62abedd4d1731
+'perf: Fix parsing of __print_flags() in TP_printk()'.  The same
+change was already included in 3.2 as commit
+d06c27b22aa66e48e32f03f9387328a9af9b0625 but in 3.2.1 this change
+was wrongly applied to similar code in a different function.
+
+Thanks to Jiri for pointing this out in 3.0.y.
+
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Andrew Vagin <avagin@openvz.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+---
+ tools/perf/util/trace-event-parse.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/tools/perf/util/trace-event-parse.c b/tools/perf/util/trace-event-parse.c
+index bf54c48..6c164dc 100644
+--- a/tools/perf/util/trace-event-parse.c
++++ b/tools/perf/util/trace-event-parse.c
+@@ -1582,8 +1582,6 @@ process_symbols(struct event *event, struct print_arg *arg, char **tok)
+ 	field = malloc_or_die(sizeof(*field));
+ 
+ 	type = process_arg(event, field, &token);
+-	while (type == EVENT_OP)
+-		type = process_op(event, field, &token);
+ 	if (test_type_token(type, token, EVENT_DELIM, ","))
+ 		goto out_free;
+ 
+-- 
+1.8.1.4
+

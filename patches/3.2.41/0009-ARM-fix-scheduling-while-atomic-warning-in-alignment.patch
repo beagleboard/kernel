@@ -1,0 +1,80 @@
+From 700db4a8b9cab2b9394418122617e2b06b626b9d Mon Sep 17 00:00:00 2001
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+Date: Mon, 25 Feb 2013 16:10:42 +0000
+Subject: [PATCH 09/82] ARM: fix scheduling while atomic warning in alignment
+ handling code
+
+commit b255188f90e2bade1bd11a986dd1ca4861869f4d upstream.
+
+Paolo Pisati reports that IPv6 triggers this warning:
+
+BUG: scheduling while atomic: swapper/0/0/0x40000100
+Modules linked in:
+[<c001b1c4>] (unwind_backtrace+0x0/0xf0) from [<c0503c5c>] (__schedule_bug+0x48/0x5c)
+[<c0503c5c>] (__schedule_bug+0x48/0x5c) from [<c0508608>] (__schedule+0x700/0x740)
+[<c0508608>] (__schedule+0x700/0x740) from [<c007007c>] (__cond_resched+0x24/0x34)
+[<c007007c>] (__cond_resched+0x24/0x34) from [<c05086dc>] (_cond_resched+0x3c/0x44)
+[<c05086dc>] (_cond_resched+0x3c/0x44) from [<c0021f6c>] (do_alignment+0x178/0x78c)
+[<c0021f6c>] (do_alignment+0x178/0x78c) from [<c00083e0>] (do_DataAbort+0x34/0x98)
+[<c00083e0>] (do_DataAbort+0x34/0x98) from [<c0509a60>] (__dabt_svc+0x40/0x60)
+Exception stack(0xc0763d70 to 0xc0763db8)
+3d60:                                     e97e805e e97e806e 2c000000 11000000
+3d80: ea86bb00 0000002c 00000011 e97e807e c076d2a8 e97e805e e97e806e 0000002c
+3da0: 3d000000 c0763dbc c04b98fc c02a8490 00000113 ffffffff
+[<c0509a60>] (__dabt_svc+0x40/0x60) from [<c02a8490>] (__csum_ipv6_magic+0x8/0xc8)
+
+Fix this by using probe_kernel_address() stead of __get_user().
+
+Reported-by: Paolo Pisati <p.pisati@gmail.com>
+Tested-by: Paolo Pisati <p.pisati@gmail.com>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/arm/mm/alignment.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm/mm/alignment.c b/arch/arm/mm/alignment.c
+index c335c76..a125c4b 100644
+--- a/arch/arm/mm/alignment.c
++++ b/arch/arm/mm/alignment.c
+@@ -749,7 +749,6 @@ do_alignment(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
+ 	unsigned long instr = 0, instrptr;
+ 	int (*handler)(unsigned long addr, unsigned long instr, struct pt_regs *regs);
+ 	unsigned int type;
+-	mm_segment_t fs;
+ 	unsigned int fault;
+ 	u16 tinstr = 0;
+ 	int isize = 4;
+@@ -760,16 +759,15 @@ do_alignment(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
+ 
+ 	instrptr = instruction_pointer(regs);
+ 
+-	fs = get_fs();
+-	set_fs(KERNEL_DS);
+ 	if (thumb_mode(regs)) {
+-		fault = __get_user(tinstr, (u16 *)(instrptr & ~1));
++		u16 *ptr = (u16 *)(instrptr & ~1);
++		fault = probe_kernel_address(ptr, tinstr);
+ 		if (!fault) {
+ 			if (cpu_architecture() >= CPU_ARCH_ARMv7 &&
+ 			    IS_T32(tinstr)) {
+ 				/* Thumb-2 32-bit */
+ 				u16 tinst2 = 0;
+-				fault = __get_user(tinst2, (u16 *)(instrptr+2));
++				fault = probe_kernel_address(ptr + 1, tinst2);
+ 				instr = (tinstr << 16) | tinst2;
+ 				thumb2_32b = 1;
+ 			} else {
+@@ -778,8 +776,7 @@ do_alignment(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
+ 			}
+ 		}
+ 	} else
+-		fault = __get_user(instr, (u32 *)instrptr);
+-	set_fs(fs);
++		fault = probe_kernel_address(instrptr, instr);
+ 
+ 	if (fault) {
+ 		type = TYPE_FAULT;
+-- 
+1.8.1.4
+

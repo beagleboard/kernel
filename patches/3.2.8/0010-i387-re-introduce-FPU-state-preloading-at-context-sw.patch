@@ -1,4 +1,4 @@
-From 84c89133680f4168b7dc6bc80e45f10bd0f7c019 Mon Sep 17 00:00:00 2001
+From 33a59ca39af0f7ab58cdfe4ba76cc9f17820aa75 Mon Sep 17 00:00:00 2001
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Date: Sat, 18 Feb 2012 12:56:35 -0800
 Subject: [PATCH 10/11] i387: re-introduce FPU state preloading at context
@@ -46,10 +46,10 @@ follow as a result.
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/x86/include/asm/i387.h  |  110 +++++++++++++++++++++++++++++++++++-------
- arch/x86/kernel/process_32.c |    5 ++-
- arch/x86/kernel/process_64.c |    5 ++-
- arch/x86/kernel/traps.c      |   55 ++++++++++++---------
+ arch/x86/include/asm/i387.h  | 110 ++++++++++++++++++++++++++++++++++++-------
+ arch/x86/kernel/process_32.c |   5 +-
+ arch/x86/kernel/process_64.c |   5 +-
+ arch/x86/kernel/traps.c      |  55 +++++++++++++---------
  4 files changed, 133 insertions(+), 42 deletions(-)
 
 diff --git a/arch/x86/include/asm/i387.h b/arch/x86/include/asm/i387.h
@@ -349,5 +349,5 @@ index a99badf..31d9d0f 100644
  	tsk->fpu_counter++;
  }
 -- 
-1.7.7.6
+1.8.1.4
 

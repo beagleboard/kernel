@@ -1,4 +1,4 @@
-From 13dbfa69e4767e02ef6f6b26b49d80b96056ed62 Mon Sep 17 00:00:00 2001
+From 80f5282665287d41eba690c2f386be51a42d2f01 Mon Sep 17 00:00:00 2001
 From: Sachin Prabhu <sprabhu@redhat.com>
 Date: Tue, 17 Apr 2012 14:35:39 +0100
 Subject: [PATCH 107/117] Avoid reading past buffer when calling GETACL
@@ -24,8 +24,8 @@ Reported-by: Jian Li <jiali@redhat.com>
 Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/nfs/nfs4proc.c |   16 ++++++++++------
- fs/nfs/nfs4xdr.c  |   18 +++++++++++-------
+ fs/nfs/nfs4proc.c | 16 ++++++++++------
+ fs/nfs/nfs4xdr.c  | 18 +++++++++++-------
  2 files changed, 21 insertions(+), 13 deletions(-)
 
 diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
@@ -119,5 +119,5 @@ index 68adab4..d7e6f7b 100644
  		}
  		xdr_read_pages(xdr, attrlen);
 -- 
-1.7.7.6
+1.8.1.4
 

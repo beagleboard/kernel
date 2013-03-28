@@ -1,4 +1,4 @@
-From 9ea49be9f69bdad86093cc916c2d701fe3bfc8fb Mon Sep 17 00:00:00 2001
+From 2d94cdcbf9096f023df238de60ea6b895495d01f Mon Sep 17 00:00:00 2001
 From: Idan Kedar <idank@tonian.com>
 Date: Thu, 2 Aug 2012 11:47:10 +0300
 Subject: [PATCH 06/94] pnfs: defer release of pages in layoutget
@@ -22,9 +22,9 @@ Signed-off-by: Benny Halevy <bhalevy@tonian.com>
 Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/nfs/nfs4proc.c |   57 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
- fs/nfs/pnfs.c     |   39 +-----------------------------------
- fs/nfs/pnfs.h     |    2 +-
+ fs/nfs/nfs4proc.c | 57 ++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ fs/nfs/pnfs.c     | 39 +------------------------------------
+ fs/nfs/pnfs.h     |  2 +-
  3 files changed, 58 insertions(+), 40 deletions(-)
 
 diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
@@ -206,5 +206,5 @@ index 53d593a..c946b1b 100644
  
  /* pnfs.c */
 -- 
-1.7.7.6
+1.8.1.4
 

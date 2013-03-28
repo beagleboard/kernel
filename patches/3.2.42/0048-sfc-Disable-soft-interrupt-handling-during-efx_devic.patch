@@ -1,0 +1,41 @@
+From 2e57cda90d32d1262e0bc4b0b3ada0b25fea3ffc Mon Sep 17 00:00:00 2001
+From: Ben Hutchings <bhutchings@solarflare.com>
+Date: Tue, 5 Mar 2013 01:03:47 +0000
+Subject: [PATCH 48/92] sfc: Disable soft interrupt handling during
+ efx_device_detach_sync()
+
+[ Upstream commit 35205b211c8d17a8a0b5e8926cb7c73e9a7ef1ad ]
+
+efx_device_detach_sync() locks all TX queues before marking the device
+detached and thus disabling further TX scheduling.  But it can still
+be interrupted by TX completions which then result in TX scheduling in
+soft interrupt context.  This will deadlock when it tries to acquire
+a TX queue lock that efx_device_detach_sync() already acquired.
+
+To avoid deadlock, we must use netif_tx_{,un}lock_bh().
+
+Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/sfc/efx.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/sfc/efx.h b/drivers/net/ethernet/sfc/efx.h
+index 55e72af..9668d29 100644
+--- a/drivers/net/ethernet/sfc/efx.h
++++ b/drivers/net/ethernet/sfc/efx.h
+@@ -157,9 +157,9 @@ static inline void efx_device_detach_sync(struct efx_nic *efx)
+ 	 * TX scheduler is stopped when we're done and before
+ 	 * netif_device_present() becomes false.
+ 	 */
+-	netif_tx_lock(dev);
++	netif_tx_lock_bh(dev);
+ 	netif_device_detach(dev);
+-	netif_tx_unlock(dev);
++	netif_tx_unlock_bh(dev);
+ }
+ 
+ #endif /* EFX_EFX_H */
+-- 
+1.8.1.4
+

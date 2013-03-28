@@ -1,0 +1,66 @@
+From bdca85510d8edb28ac1ccc39de76115cdac153aa Mon Sep 17 00:00:00 2001
+From: Haojian Zhuang <haojian.zhuang@linaro.org>
+Date: Mon, 4 Feb 2013 14:28:54 -0800
+Subject: [PATCH 25/67] drivers/rtc/rtc-pl031.c: fix the missing operation on
+ enable
+
+commit e7e034e18a0ab6bafb2425c3242cac311164f4d6 upstream.
+
+The RTC control register should be enabled in the process of
+initializing.
+
+Without this patch, I failed to enable RTC in Hisilicon Hi3620 SoC.  The
+register mapping section in RTC is always read as zero.  So I doubt that
+ST guys may already enable this register in bootloader.  So they won't
+meet this issue.
+
+Signed-off-by: Haojian Zhuang <haojian.zhuang@linaro.org>
+Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/rtc/rtc-pl031.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/rtc/rtc-pl031.c b/drivers/rtc/rtc-pl031.c
+index 1e80a48..73816d8 100644
+--- a/drivers/rtc/rtc-pl031.c
++++ b/drivers/rtc/rtc-pl031.c
+@@ -44,6 +44,7 @@
+ #define RTC_YMR		0x34	/* Year match register */
+ #define RTC_YLR		0x38	/* Year data load register */
+ 
++#define RTC_CR_EN	(1 << 0)	/* counter enable bit */
+ #define RTC_CR_CWEN	(1 << 26)	/* Clockwatch enable bit */
+ 
+ #define RTC_TCR_EN	(1 << 1) /* Periodic timer enable bit */
+@@ -312,7 +313,7 @@ static int pl031_probe(struct amba_device *adev, const struct amba_id *id)
+ 	int ret;
+ 	struct pl031_local *ldata;
+ 	struct rtc_class_ops *ops = id->data;
+-	unsigned long time;
++	unsigned long time, data;
+ 
+ 	ret = amba_request_regions(adev, NULL);
+ 	if (ret)
+@@ -339,10 +340,11 @@ static int pl031_probe(struct amba_device *adev, const struct amba_id *id)
+ 	dev_dbg(&adev->dev, "designer ID = 0x%02x\n", ldata->hw_designer);
+ 	dev_dbg(&adev->dev, "revision = 0x%01x\n", ldata->hw_revision);
+ 
++	data = readl(ldata->base + RTC_CR);
+ 	/* Enable the clockwatch on ST Variants */
+ 	if (ldata->hw_designer == AMBA_VENDOR_ST)
+-		writel(readl(ldata->base + RTC_CR) | RTC_CR_CWEN,
+-		       ldata->base + RTC_CR);
++		data |= RTC_CR_CWEN;
++	writel(data | RTC_CR_EN, ldata->base + RTC_CR);
+ 
+ 	/*
+ 	 * On ST PL031 variants, the RTC reset value does not provide correct
+-- 
+1.8.1.4
+

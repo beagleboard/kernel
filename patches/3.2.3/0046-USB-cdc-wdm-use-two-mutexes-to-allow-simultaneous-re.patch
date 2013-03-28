@@ -1,4 +1,4 @@
-From a6f4467f41fbb990f7b03901459b59d757f78b4b Mon Sep 17 00:00:00 2001
+From 36c96534e4f27521128514f7ba4a7d0c571f45e5 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>
 Date: Mon, 16 Jan 2012 12:41:48 +0100
 Subject: [PATCH 46/90] USB: cdc-wdm: use two mutexes to allow simultaneous
@@ -16,8 +16,8 @@ Signed-off-by: Bjørn Mork <bjorn@mork.no>
 Cc: Oliver Neukum <oneukum@suse.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/class/cdc-wdm.c |   49 +++++++++++++++++++++++++++---------------
- 1 files changed, 31 insertions(+), 18 deletions(-)
+ drivers/usb/class/cdc-wdm.c | 49 ++++++++++++++++++++++++++++-----------------
+ 1 file changed, 31 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/usb/class/cdc-wdm.c b/drivers/usb/class/cdc-wdm.c
 index 7e5e822..4a29a80 100644
@@ -174,5 +174,5 @@ index 7e5e822..4a29a80 100644
  }
  
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 8ca8ccf2858afff44967fefdb6f46e49068052cf Mon Sep 17 00:00:00 2001
+From b414a47a5785a538d1991c9665fc7a91b417c53d Mon Sep 17 00:00:00 2001
 From: Lai Jiangshan <laijs@cn.fujitsu.com>
 Date: Tue, 18 Sep 2012 10:40:00 -0700
 Subject: [PATCH 032/146] workqueue: fix possible stall on
@@ -37,7 +37,7 @@ Signed-off-by: Tejun Heo <tj@kernel.org>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/workqueue.c |   25 ++++++++++++++++++++++---
+ kernel/workqueue.c | 25 ++++++++++++++++++++++---
  1 file changed, 22 insertions(+), 3 deletions(-)
 
 diff --git a/kernel/workqueue.c b/kernel/workqueue.c
@@ -92,5 +92,5 @@ index 9954392..43a19c5 100644
  			cwq_dec_nr_in_flight(get_work_cwq(work),
  				get_work_color(work),
 -- 
-1.7.10.4
+1.8.1.4
 

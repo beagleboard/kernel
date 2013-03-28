@@ -1,4 +1,4 @@
-From c5dd9fb1c2c93efc8b5d44b72aae10cca09c3912 Mon Sep 17 00:00:00 2001
+From 3b6b8fa3fc2137f9e0d98e46744abbbbaee8d969 Mon Sep 17 00:00:00 2001
 From: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Date: Thu, 26 Jul 2012 08:53:06 +0200
 Subject: [PATCH 32/70] s390/mm: downgrade page table after fork of a 31 bit
@@ -17,10 +17,10 @@ Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/s390/include/asm/mmu_context.h |   14 +++++++++++++-
- arch/s390/include/asm/processor.h   |    2 ++
- arch/s390/mm/mmap.c                 |   12 ++++++++++--
- arch/s390/mm/pgtable.c              |    5 -----
+ arch/s390/include/asm/mmu_context.h | 14 +++++++++++++-
+ arch/s390/include/asm/processor.h   |  2 ++
+ arch/s390/mm/mmap.c                 | 12 ++++++++++--
+ arch/s390/mm/pgtable.c              |  5 -----
  4 files changed, 25 insertions(+), 8 deletions(-)
 
 diff --git a/arch/s390/include/asm/mmu_context.h b/arch/s390/include/asm/mmu_context.h
@@ -136,5 +136,5 @@ index f8ceac4..f8e92f8 100644
  #endif
  
 -- 
-1.7.7.6
+1.8.1.4
 

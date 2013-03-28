@@ -1,0 +1,56 @@
+From 8f45f51310c73c52e2babc2ad112e9c3f56d33c9 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Sun, 6 Jan 2013 18:21:49 +0000
+Subject: [PATCH 62/67] tcp: fix MSG_SENDPAGE_NOTLAST logic
+
+[ Upstream commit ae62ca7b03217be5e74759dc6d7698c95df498b3 ]
+
+commit 35f9c09fe9c72e (tcp: tcp_sendpages() should call tcp_push() once)
+added an internal flag : MSG_SENDPAGE_NOTLAST meant to be set on all
+frags but the last one for a splice() call.
+
+The condition used to set the flag in pipe_to_sendpage() relied on
+splice() user passing the exact number of bytes present in the pipe,
+or a smaller one.
+
+But some programs pass an arbitrary high value, and the test fails.
+
+The effect of this bug is a lack of tcp_push() at the end of a
+splice(pipe -> socket) call, and possibly very slow or erratic TCP
+sessions.
+
+We should both test sd->total_len and fact that another fragment
+is in the pipe (pipe->nrbufs > 1)
+
+Many thanks to Willy for providing very clear bug report, bisection
+and test programs.
+
+Reported-by: Willy Tarreau <w@1wt.eu>
+Bisected-by: Willy Tarreau <w@1wt.eu>
+Tested-by: Willy Tarreau <w@1wt.eu>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/splice.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/fs/splice.c b/fs/splice.c
+index 014fcb4..58ab918 100644
+--- a/fs/splice.c
++++ b/fs/splice.c
+@@ -697,8 +697,10 @@ static int pipe_to_sendpage(struct pipe_inode_info *pipe,
+ 		return -EINVAL;
+ 
+ 	more = (sd->flags & SPLICE_F_MORE) ? MSG_MORE : 0;
+-	if (sd->len < sd->total_len)
++
++	if (sd->len < sd->total_len && pipe->nrbufs > 1)
+ 		more |= MSG_SENDPAGE_NOTLAST;
++
+ 	return file->f_op->sendpage(file, buf->page, buf->offset,
+ 				    sd->len, &pos, more);
+ }
+-- 
+1.8.1.4
+

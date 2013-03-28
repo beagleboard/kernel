@@ -1,0 +1,61 @@
+From 54c370ea40072efc22c13488aad1876e1a44aeb0 Mon Sep 17 00:00:00 2001
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Sat, 23 Mar 2013 03:49:53 +0000
+Subject: [PATCH 89/92] efivars: pstore: Do not check size when erasing
+ variable
+
+In 3.2, unlike mainline, efi_pstore_erase() calls efi_pstore_write()
+with a size of 0, as the underlying EFI interface treats a size of 0
+as meaning deletion.
+
+This was not taken into account in my backport of commit d80a361d779a
+'efi_pstore: Check remaining space with QueryVariableInfo() before
+writing data'.  The size check should be omitted when erasing.
+
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/firmware/efivars.c | 28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/firmware/efivars.c b/drivers/firmware/efivars.c
+index 0b66b93..b15c0aa 100644
+--- a/drivers/firmware/efivars.c
++++ b/drivers/firmware/efivars.c
+@@ -787,19 +787,21 @@ static int efi_pstore_write(enum pstore_type_id type, u64 *id,
+ 
+ 	spin_lock_irqsave(&efivars->lock, flags);
+ 
+-	/*
+-	 * Check if there is a space enough to log.
+-	 * size: a size of logging data
+-	 * DUMP_NAME_LEN * 2: a maximum size of variable name
+-	 */
+-
+-	status = check_var_size_locked(efivars, PSTORE_EFI_ATTRIBUTES,
+-					 size + DUMP_NAME_LEN * 2);
+-
+-	if (status) {
+-		spin_unlock_irqrestore(&efivars->lock, flags);
+-		*id = part;
+-		return -ENOSPC;
++	if (size) {
++		/*
++		 * Check if there is a space enough to log.
++		 * size: a size of logging data
++		 * DUMP_NAME_LEN * 2: a maximum size of variable name
++		 */
++
++		status = check_var_size_locked(efivars, PSTORE_EFI_ATTRIBUTES,
++					       size + DUMP_NAME_LEN * 2);
++
++		if (status) {
++			spin_unlock_irqrestore(&efivars->lock, flags);
++			*id = part;
++			return -ENOSPC;
++		}
+ 	}
+ 
+ 	for (i = 0; i < DUMP_NAME_LEN; i++)
+-- 
+1.8.1.4
+

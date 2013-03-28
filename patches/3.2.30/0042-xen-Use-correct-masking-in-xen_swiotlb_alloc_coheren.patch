@@ -1,4 +1,4 @@
-From 909bc0284223ff726a2f1e2bf8589af14b61026b Mon Sep 17 00:00:00 2001
+From 542a02e43fdec15617bfc4d98098014de301fc8c Mon Sep 17 00:00:00 2001
 From: Ronny Hegewald <ronny.hegewald@online.de>
 Date: Fri, 31 Aug 2012 09:57:52 +0000
 Subject: [PATCH 042/135] xen: Use correct masking in
@@ -38,8 +38,8 @@ Acked-By: David Vrabel <david.vrabel@citrix.com>
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/xen/swiotlb-xen.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/xen/swiotlb-xen.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/xen/swiotlb-xen.c b/drivers/xen/swiotlb-xen.c
 index 284798a..89588e7 100644
@@ -55,5 +55,5 @@ index 284798a..89588e7 100644
  	phys = virt_to_phys(ret);
  	dev_addr = xen_phys_to_bus(phys);
 -- 
-1.7.7.6
+1.8.1.4
 

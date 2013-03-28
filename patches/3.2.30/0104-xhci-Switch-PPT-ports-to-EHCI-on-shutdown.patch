@@ -1,4 +1,4 @@
-From bcffa38d5b2deed064550a73d0ddd334dc4aecbb Mon Sep 17 00:00:00 2001
+From 7887553f71c87b981ffcde96bc5a0787c5d6db13 Mon Sep 17 00:00:00 2001
 From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Date: Mon, 23 Jul 2012 18:59:30 +0300
 Subject: [PATCH 104/135] xhci: Switch PPT ports to EHCI on shutdown.
@@ -35,12 +35,12 @@ Tested-by: Denis Turischev <denis@compulab.co.il>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/host/pci-quirks.c |    7 +++++++
- drivers/usb/host/pci-quirks.h |    1 +
- drivers/usb/host/xhci-pci.c   |    9 +++++++++
- drivers/usb/host/xhci.c       |    3 +++
- drivers/usb/host/xhci.h       |    1 +
- 5 files changed, 21 insertions(+), 0 deletions(-)
+ drivers/usb/host/pci-quirks.c | 7 +++++++
+ drivers/usb/host/pci-quirks.h | 1 +
+ drivers/usb/host/xhci-pci.c   | 9 +++++++++
+ drivers/usb/host/xhci.c       | 3 +++
+ drivers/usb/host/xhci.h       | 1 +
+ 5 files changed, 21 insertions(+)
 
 diff --git a/drivers/usb/host/pci-quirks.c b/drivers/usb/host/pci-quirks.c
 index 301f67f..21d0771 100644
@@ -119,5 +119,5 @@ index 7a56805..f3698a2 100644
  	unsigned int		limit_active_eps;
  	/* There are two roothubs to keep track of bus suspend info for */
 -- 
-1.7.7.6
+1.8.1.4
 

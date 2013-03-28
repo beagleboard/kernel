@@ -1,4 +1,4 @@
-From 7ed963f4406169dbd37102eb24dc10c5f89619ce Mon Sep 17 00:00:00 2001
+From f8a27021bbe0badb1dc969e54ff29ebbfc634a74 Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Sun, 4 Dec 2011 08:51:08 +0000
 Subject: [PATCH 071/165] tcp: fix tcp_trim_head()
@@ -18,8 +18,8 @@ Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/ipv4/tcp_output.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+ net/ipv4/tcp_output.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
 index 097e0c7..7413437 100644
@@ -53,5 +53,5 @@ index 097e0c7..7413437 100644
  	TCP_SKB_CB(skb)->seq += len;
  	skb->ip_summed = CHECKSUM_PARTIAL;
 -- 
-1.7.7.6
+1.8.1.4
 

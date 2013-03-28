@@ -1,4 +1,4 @@
-From 63f1936983792af588a18a0959b90cac256dc369 Mon Sep 17 00:00:00 2001
+From 91979e622128d5d2911daf9f5e49fd64ee456efa Mon Sep 17 00:00:00 2001
 From: Trond Myklebust <Trond.Myklebust@netapp.com>
 Date: Wed, 12 Sep 2012 16:49:15 -0400
 Subject: [PATCH 036/146] SUNRPC: Ensure that the TCP socket is closed when in
@@ -13,7 +13,7 @@ Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Tested-by: Simon Kirby <sim@hostway.ca>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/sunrpc/xprtsock.c |   21 ++++++++++++++++-----
+ net/sunrpc/xprtsock.c | 21 ++++++++++++++++-----
  1 file changed, 16 insertions(+), 5 deletions(-)
 
 diff --git a/net/sunrpc/xprtsock.c b/net/sunrpc/xprtsock.c
@@ -85,5 +85,5 @@ index c5391af..10a385b 100644
  	case -ECONNREFUSED:
  	case -ECONNRESET:
 -- 
-1.7.10.4
+1.8.1.4
 

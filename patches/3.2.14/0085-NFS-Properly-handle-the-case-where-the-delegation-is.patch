@@ -1,8 +1,8 @@
-From 3fd7f5041a5f7b97a044fa98abd90795889dd7c0 Mon Sep 17 00:00:00 2001
+From a9969735173e92b1abecac4a41f60491d58ca376 Mon Sep 17 00:00:00 2001
 From: Trond Myklebust <Trond.Myklebust@netapp.com>
 Date: Mon, 5 Mar 2012 19:56:44 -0500
-Subject: [PATCH 085/147] NFS: Properly handle the case where the delegation
- is revoked
+Subject: [PATCH 085/147] NFS: Properly handle the case where the delegation is
+ revoked
 
 commit a1d0b5eebc4fd6e0edb02688b35f17f67f42aea5 upstream.
 
@@ -20,11 +20,11 @@ a revoked delegation.
 Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/nfs/delegation.c |   11 +++++++++++
- fs/nfs/delegation.h |    1 +
- fs/nfs/nfs4_fs.h    |    2 ++
- fs/nfs/nfs4proc.c   |   18 ++++++++++++++++--
- fs/nfs/nfs4state.c  |   29 +++++++++++++++++++++++++++--
+ fs/nfs/delegation.c | 11 +++++++++++
+ fs/nfs/delegation.h |  1 +
+ fs/nfs/nfs4_fs.h    |  2 ++
+ fs/nfs/nfs4proc.c   | 18 ++++++++++++++++--
+ fs/nfs/nfs4state.c  | 29 +++++++++++++++++++++++++++--
  5 files changed, 57 insertions(+), 4 deletions(-)
 
 diff --git a/fs/nfs/delegation.c b/fs/nfs/delegation.c
@@ -189,5 +189,5 @@ index a58eed7..0596fd6 100644
  {
  	struct inode *inode = state->inode;
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From ce5a2275871f581d4747703ac6166b6f7d233771 Mon Sep 17 00:00:00 2001
+From 28d3aa002ce00bb44c02e15be6d67d69f4b9093e Mon Sep 17 00:00:00 2001
 From: Oliver Neukum <oliver@neukum.org>
 Date: Thu, 26 Apr 2012 21:59:10 +0200
 Subject: [PATCH 112/165] USB: cdc-wdm: fix race leading leading to memory
@@ -19,8 +19,8 @@ Tested-by: Bjørn Mork <bjorn@mork.no>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/class/cdc-wdm.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+ drivers/usb/class/cdc-wdm.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/usb/class/cdc-wdm.c b/drivers/usb/class/cdc-wdm.c
 index 9eb71d8..2db0327 100644
@@ -60,5 +60,5 @@ index 9eb71d8..2db0327 100644
  		dev_err(&desc->intf->dev, "Tx URB error: %d\n", rv);
  	} else {
 -- 
-1.7.7.6
+1.8.1.4
 

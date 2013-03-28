@@ -1,4 +1,4 @@
-From 0ed034fdecaa1533133c5411005d921697159ce3 Mon Sep 17 00:00:00 2001
+From 0c67b173c8dbb7c712bfb7b41357e982d1e16efd Mon Sep 17 00:00:00 2001
 From: Dan Williams <dan.j.williams@intel.com>
 Date: Thu, 21 Jun 2012 23:47:28 -0700
 Subject: [PATCH 55/73] fix hot unplug vs async scan race
@@ -31,8 +31,8 @@ Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: James Bottomley <JBottomley@Parallels.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/scsi/scsi_scan.c  |    3 +++
- drivers/scsi/scsi_sysfs.c |   41 ++++++++++++++++++++++++++---------------
+ drivers/scsi/scsi_scan.c  |  3 +++
+ drivers/scsi/scsi_sysfs.c | 41 ++++++++++++++++++++++++++---------------
  2 files changed, 29 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/scsi/scsi_scan.c b/drivers/scsi/scsi_scan.c
@@ -118,5 +118,5 @@ index 42c35ff..bb7c482 100644
  EXPORT_SYMBOL(scsi_remove_target);
  
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,0 +1,41 @@
+From d40e98e47d4220bf67f7a8cd37d00ad72888b05f Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Wed, 23 Jan 2013 16:16:35 +0100
+Subject: [PATCH 091/127] drm/i915: dump UTS_RELEASE into the error_state
+
+commit 4518f611ba21ba165ea3714055938a8984a44ff9 upstream.
+
+Useful for statistics or on overflowing bug reports to keep things all
+lined up.
+
+Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_debugfs.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/i915_debugfs.c b/drivers/gpu/drm/i915/i915_debugfs.c
+index d00f905..10fe480 100644
+--- a/drivers/gpu/drm/i915/i915_debugfs.c
++++ b/drivers/gpu/drm/i915/i915_debugfs.c
+@@ -30,6 +30,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/slab.h>
+ #include <linux/export.h>
++#include <generated/utsrelease.h>
+ #include "drmP.h"
+ #include "drm.h"
+ #include "intel_drv.h"
+@@ -755,6 +756,7 @@ static int i915_error_state(struct seq_file *m, void *unused)
+ 
+ 	seq_printf(m, "Time: %ld s %ld us\n", error->time.tv_sec,
+ 		   error->time.tv_usec);
++	seq_printf(m, "Kernel: " UTS_RELEASE);
+ 	seq_printf(m, "PCI ID: 0x%04x\n", dev->pci_device);
+ 	seq_printf(m, "EIR: 0x%08x\n", error->eir);
+ 	seq_printf(m, "PGTBL_ER: 0x%08x\n", error->pgtbl_er);
+-- 
+1.8.1.4
+

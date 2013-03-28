@@ -1,4 +1,4 @@
-From 056d0c5c64059410479e081408a706c0b766d08b Mon Sep 17 00:00:00 2001
+From 0cb9ea27c44e80311c157834a2749a90005bf9bb Mon Sep 17 00:00:00 2001
 From: Theodore Ts'o <tytso@mit.edu>
 Date: Mon, 16 Apr 2012 12:16:20 -0400
 Subject: [PATCH 13/68] ext4: address scalability issue by removing extent
@@ -13,10 +13,10 @@ cache line bounces.
 Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/ext4/ext4.h    |    3 ---
- fs/ext4/extents.c |    4 ----
- fs/ext4/super.c   |   16 ----------------
- 3 files changed, 0 insertions(+), 23 deletions(-)
+ fs/ext4/ext4.h    |  3 ---
+ fs/ext4/extents.c |  4 ----
+ fs/ext4/super.c   | 16 ----------------
+ 3 files changed, 23 deletions(-)
 
 diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
 index dbae4d9..7b1cd5c 100644
@@ -89,5 +89,5 @@ index 9281dbe..961059b 100644
  	ATTR_LIST(inode_goal),
  	ATTR_LIST(mb_stats),
 -- 
-1.7.7.6
+1.8.1.4
 

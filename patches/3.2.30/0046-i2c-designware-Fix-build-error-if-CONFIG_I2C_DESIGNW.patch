@@ -1,9 +1,8 @@
-From 422c0100468c6de0d389f66770d61f8103c04272 Mon Sep 17 00:00:00 2001
+From 62b9f6d736dc3857e56be12ef7fe2ee4ac067a35 Mon Sep 17 00:00:00 2001
 From: Axel Lin <axel.lin@gmail.com>
 Date: Mon, 10 Sep 2012 10:14:02 +0200
 Subject: [PATCH 046/135] i2c-designware: Fix build error if
- CONFIG_I2C_DESIGNWARE_PLATFORM=y &&
- CONFIG_I2C_DESIGNWARE_PCI=y
+ CONFIG_I2C_DESIGNWARE_PLATFORM=y && CONFIG_I2C_DESIGNWARE_PCI=y
 
 commit e68bb91baa0bb9817567bd45d560919e8e26373b upstream.
 
@@ -66,9 +65,9 @@ Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Tested-by: Jiri Slaby <jslaby@suse.cz>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/i2c/busses/Kconfig               |    5 +++++
- drivers/i2c/busses/Makefile              |    5 +++--
- drivers/i2c/busses/i2c-designware-core.c |   11 +++++++++++
+ drivers/i2c/busses/Kconfig               |  5 +++++
+ drivers/i2c/busses/Makefile              |  5 +++--
+ drivers/i2c/busses/i2c-designware-core.c | 11 +++++++++++
  3 files changed, 19 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
@@ -195,5 +194,5 @@ index df87992..6193349 100644
  }
 +EXPORT_SYMBOL_GPL(i2c_dw_read_comp_param);
 -- 
-1.7.7.6
+1.8.1.4
 

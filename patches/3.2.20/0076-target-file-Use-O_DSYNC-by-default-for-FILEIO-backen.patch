@@ -1,8 +1,7 @@
-From d1f3ed2486b37a0337fecb4bc909e8a2081d387d Mon Sep 17 00:00:00 2001
+From bafc3a4b19321d57bdfe258d4e2f6a0c020db4dd Mon Sep 17 00:00:00 2001
 From: Nicholas Bellinger <nab@linux-iscsi.org>
 Date: Wed, 30 May 2012 16:25:41 -0700
-Subject: [PATCH 76/86] target/file: Use O_DSYNC by default for FILEIO
- backends
+Subject: [PATCH 76/86] target/file: Use O_DSYNC by default for FILEIO backends
 
 commit a4dff3043c231d57f982af635c9d2192ee40e5ae upstream.
 
@@ -30,8 +29,8 @@ Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
  - Various fields are in struct se_task rather than struct se_cmd
  - fd_create_virtdevice() flags initialisation hasn't been cleaned up]
 ---
- drivers/target/target_core_file.c |   78 ++++++++-----------------------------
- drivers/target/target_core_file.h |    1 -
+ drivers/target/target_core_file.c | 78 +++++++++------------------------------
+ drivers/target/target_core_file.h |  1 -
  2 files changed, 17 insertions(+), 62 deletions(-)
 
 diff --git a/drivers/target/target_core_file.c b/drivers/target/target_core_file.c
@@ -184,5 +183,5 @@ index 59e6e73..53ece69 100644
  struct fd_dev {
  	u32		fbd_flags;
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From d4eb39f72b0b231d160a8896576b6fa7d5a534e5 Mon Sep 17 00:00:00 2001
+From cff0bbac5181364723d4b62b0781e80f2b5549e5 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>
 Date: Mon, 2 Jul 2012 10:33:14 +0200
 Subject: [PATCH 031/109] USB: cdc-wdm: fix lockup on error in wdm_read
@@ -57,8 +57,8 @@ Acked-by: Oliver Neukum <oneukum@suse.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/class/cdc-wdm.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/usb/class/cdc-wdm.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/usb/class/cdc-wdm.c b/drivers/usb/class/cdc-wdm.c
 index 19fb5fa..9aaed0d 100644
@@ -74,5 +74,5 @@ index 19fb5fa..9aaed0d 100644
  			goto retry;
  		}
 -- 
-1.7.7.6
+1.8.1.4
 

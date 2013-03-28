@@ -1,4 +1,4 @@
-From 14f77aa64b48820a15cef005402ab497e6427c13 Mon Sep 17 00:00:00 2001
+From e2d568d4a3eef3a143b10b9d9533ea12494c15a9 Mon Sep 17 00:00:00 2001
 From: Mike Galbraith <efault@gmx.de>
 Date: Thu, 10 May 2012 13:01:45 -0700
 Subject: [PATCH 08/56] namespaces, pid_ns: fix leakage on fork() failure
@@ -20,8 +20,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/fork.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ kernel/fork.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/kernel/fork.c b/kernel/fork.c
 index 0acf42c0..26f1ab0 100644
@@ -45,5 +45,5 @@ index 0acf42c0..26f1ab0 100644
  bad_fork_cleanup_mm:
  	if (p->mm)
 -- 
-1.7.7.6
+1.8.1.4
 

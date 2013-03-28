@@ -1,0 +1,37 @@
+From 7144e14c4eb45d3865f47dcbd5e74c6f542a788c Mon Sep 17 00:00:00 2001
+From: Will Deacon <will.deacon@arm.com>
+Date: Thu, 28 Feb 2013 17:49:11 +0100
+Subject: [PATCH 21/82] ARM: 7663/1: perf: fix ARMv7 EVTYPE_MASK to include NSH
+ bit
+
+commit f2fe09b055e2549de41fb107b34c60bac4a1b0cf upstream.
+
+Masked out PMXEVTYPER.NSH means that we can't enable profiling at PL2,
+regardless of the settings in the HDCR.
+
+This patch fixes the broken mask.
+
+Reported-by: Christoffer Dall <cdall@cs.columbia.edu>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/arm/kernel/perf_event_v7.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/kernel/perf_event_v7.c b/arch/arm/kernel/perf_event_v7.c
+index 2127ca3..dbc240b 100644
+--- a/arch/arm/kernel/perf_event_v7.c
++++ b/arch/arm/kernel/perf_event_v7.c
+@@ -623,7 +623,7 @@ static const unsigned armv7_a15_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
+ /*
+  * PMXEVTYPER: Event selection reg
+  */
+-#define	ARMV7_EVTYPE_MASK	0xc00000ff	/* Mask for writable bits */
++#define	ARMV7_EVTYPE_MASK	0xc80000ff	/* Mask for writable bits */
+ #define	ARMV7_EVTYPE_EVENT	0xff		/* Mask for EVENT bits */
+ 
+ /*
+-- 
+1.8.1.4
+

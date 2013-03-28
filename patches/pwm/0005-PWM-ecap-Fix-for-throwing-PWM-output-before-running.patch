@@ -1,4 +1,4 @@
-From cd8a4a36cfeb7b4615b3766646271c7682a41ee6 Mon Sep 17 00:00:00 2001
+From 8be7f28707394d16c19d415c6506b67c318586de Mon Sep 17 00:00:00 2001
 From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Tue, 14 Aug 2012 13:48:55 +0530
 Subject: [PATCH 5/6] PWM: ecap: Fix for throwing PWM output before running
@@ -9,8 +9,8 @@ running. This ensures PWM output is low if PWM device not running.
 
 Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
 ---
- drivers/pwm/ecap.c |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/pwm/ecap.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/pwm/ecap.c b/drivers/pwm/ecap.c
 index 670b32e..864f3ee 100644
@@ -48,5 +48,5 @@ index 670b32e..864f3ee 100644
  	return 0;
  }
 -- 
-1.7.7.6
+1.8.1.4
 

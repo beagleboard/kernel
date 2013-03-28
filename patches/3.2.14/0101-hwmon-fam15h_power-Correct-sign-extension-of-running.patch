@@ -1,4 +1,4 @@
-From c071d88c97dc5e5e380a4595d976dd134f88abb3 Mon Sep 17 00:00:00 2001
+From f5358cea02401dd1edafc4b87bd456b6b340248f Mon Sep 17 00:00:00 2001
 From: Andreas Herrmann <andreas.herrmann3@amd.com>
 Date: Fri, 23 Mar 2012 10:02:17 +0100
 Subject: [PATCH 101/147] hwmon: (fam15h_power) Correct sign extension of
@@ -15,8 +15,8 @@ Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/hwmon/fam15h_power.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/hwmon/fam15h_power.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
 index 523f8fb..930370d 100644
@@ -32,5 +32,5 @@ index 523f8fb..930370d 100644
  
  	pci_bus_read_config_dword(f4->bus, PCI_DEVFN(PCI_SLOT(f4->devfn), 5),
 -- 
-1.7.7.6
+1.8.1.4
 

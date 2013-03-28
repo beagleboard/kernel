@@ -1,4 +1,4 @@
-From 21404ad4abe6e52a0a9bd561bbb2a07ba5d63352 Mon Sep 17 00:00:00 2001
+From a939bda86131f0b15a2f27060aaa2ca17c05ed7d Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Wed, 18 Apr 2012 00:16:03 +0530
 Subject: [PATCH 13/19] usb: musb: cppi41: fix zero byte OUT issue
@@ -6,8 +6,8 @@ Subject: [PATCH 13/19] usb: musb: cppi41: fix zero byte OUT issue
 Fixes ZERO byte transfer in tx direction which was not being done in DMA mode.
 Used PIO mode for all zero byte tx transfer.
 ---
- drivers/usb/musb/musb_host.c |   12 +++++++++++-
- 1 files changed, 11 insertions(+), 1 deletions(-)
+ drivers/usb/musb/musb_host.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
 index 7545a65..8981586 100644
@@ -42,5 +42,5 @@ index 7545a65..8981586 100644
  		if (!dma_channel) {
  			dma_channel = dma_controller->channel_alloc(
 -- 
-1.7.7.6
+1.8.1.4
 

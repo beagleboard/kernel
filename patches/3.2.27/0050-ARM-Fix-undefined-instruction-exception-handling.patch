@@ -1,4 +1,4 @@
-From c75fc79d66fcdb1c3a115e698e196d86dc2f5d6d Mon Sep 17 00:00:00 2001
+From a8455835d5c6bce61772517797ddbd92170e0d19 Mon Sep 17 00:00:00 2001
 From: Russell King <rmk+kernel@arm.linux.org.uk>
 Date: Mon, 30 Jul 2012 19:42:10 +0100
 Subject: [PATCH 50/70] ARM: Fix undefined instruction exception handling
@@ -28,10 +28,10 @@ Acked-by: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/arm/kernel/entry-armv.S |  111 +++++++++++++++++++++++++++---------------
- arch/arm/kernel/traps.c      |    8 ---
- arch/arm/vfp/entry.S         |   16 +++---
- arch/arm/vfp/vfphw.S         |   19 ++++---
+ arch/arm/kernel/entry-armv.S | 111 ++++++++++++++++++++++++++++---------------
+ arch/arm/kernel/traps.c      |   8 ----
+ arch/arm/vfp/entry.S         |  16 ++++---
+ arch/arm/vfp/vfphw.S         |  19 ++++----
  4 files changed, 92 insertions(+), 62 deletions(-)
 
 diff --git a/arch/arm/kernel/entry-armv.S b/arch/arm/kernel/entry-armv.S
@@ -331,5 +331,5 @@ index 2d30c7f..3a0efaa 100644
  	get_thread_info	r10
  	ldr	r4, [r10, #TI_PREEMPT]	@ get preempt count
 -- 
-1.7.7.6
+1.8.1.4
 

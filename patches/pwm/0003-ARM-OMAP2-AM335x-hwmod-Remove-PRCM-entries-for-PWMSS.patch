@@ -1,8 +1,7 @@
-From 6ae907b72fc65ca57a0df9abc445715d0edc394b Mon Sep 17 00:00:00 2001
+From adc29712e51dbdd41a07e6e83843b525814ab1db Mon Sep 17 00:00:00 2001
 From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Tue, 7 Aug 2012 18:25:50 +0530
-Subject: [PATCH 3/6] ARM: OMAP2+: AM335x: hwmod: Remove PRCM entries for
- PWMSS
+Subject: [PATCH 3/6] ARM: OMAP2+: AM335x: hwmod: Remove PRCM entries for PWMSS
 
 PWMSS clock resources being used as a shared resource for eCAP & eHRPWM
 OMAP devices. However OMAP hwmod didn't protect the race condition for
@@ -17,8 +16,8 @@ care the race condition.
 
 Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   36 ----------------------------
- 1 files changed, 0 insertions(+), 36 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 36 ------------------------------
+ 1 file changed, 36 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
 index 9d3c9a5..832bba3 100644
@@ -103,5 +102,5 @@ index 9d3c9a5..832bba3 100644
  	.slaves_cnt	= ARRAY_SIZE(am33xx_ecap2_slaves),
  };
 -- 
-1.7.7.6
+1.8.1.4
 

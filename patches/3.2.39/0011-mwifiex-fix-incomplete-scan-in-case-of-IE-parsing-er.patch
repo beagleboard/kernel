@@ -1,0 +1,79 @@
+From b6ef1976a382df845683851f8fbddee9987e07f4 Mon Sep 17 00:00:00 2001
+From: Bing Zhao <bzhao@marvell.com>
+Date: Tue, 29 Jan 2013 14:38:02 -0800
+Subject: [PATCH 11/67] mwifiex: fix incomplete scan in case of IE parsing
+ error
+
+commit 8a7d7cbf7b5ff9912ef50b3e94c9ad9f37b1c75f upstream.
+
+A scan request is split into multiple scan commands queued in
+scan_pending_q. Each scan command will be sent to firmware and
+its response is handlded one after another.
+
+If any error is detected while parsing IE in command response
+buffer the remaining data will be ignored and error is returned.
+
+We should check if there is any more scan commands pending in
+the queue before returning error. This ensures that we will call
+cfg80211_scan_done if this is the last scan command, or send
+next scan command in scan_pending_q to firmware.
+
+Signed-off-by: Bing Zhao <bzhao@marvell.com>
+Signed-off-by: Amitkumar Karwar <akarwar@marvell.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/mwifiex/scan.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/wireless/mwifiex/scan.c b/drivers/net/wireless/mwifiex/scan.c
+index 8d3ab37..6618dd6 100644
+--- a/drivers/net/wireless/mwifiex/scan.c
++++ b/drivers/net/wireless/mwifiex/scan.c
+@@ -1594,7 +1594,7 @@ int mwifiex_ret_802_11_scan(struct mwifiex_private *priv,
+ 		dev_err(adapter->dev, "SCAN_RESP: too many AP returned (%d)\n",
+ 		       scan_rsp->number_of_sets);
+ 		ret = -1;
+-		goto done;
++		goto check_next_scan;
+ 	}
+ 
+ 	bytes_left = le16_to_cpu(scan_rsp->bss_descript_size);
+@@ -1663,7 +1663,8 @@ int mwifiex_ret_802_11_scan(struct mwifiex_private *priv,
+ 		if (!beacon_size || beacon_size > bytes_left) {
+ 			bss_info += bytes_left;
+ 			bytes_left = 0;
+-			return -1;
++			ret = -1;
++			goto check_next_scan;
+ 		}
+ 
+ 		/* Initialize the current working beacon pointer for this BSS
+@@ -1716,7 +1717,7 @@ int mwifiex_ret_802_11_scan(struct mwifiex_private *priv,
+ 				dev_err(priv->adapter->dev, "%s: in processing"
+ 					" IE, bytes left < IE length\n",
+ 					__func__);
+-				goto done;
++				goto check_next_scan;
+ 			}
+ 			if (element_id == WLAN_EID_DS_PARAMS) {
+ 				channel = *(u8 *) (current_ptr +
+@@ -1782,6 +1783,7 @@ int mwifiex_ret_802_11_scan(struct mwifiex_private *priv,
+ 		}
+ 	}
+ 
++check_next_scan:
+ 	spin_lock_irqsave(&adapter->scan_pending_q_lock, flags);
+ 	if (list_empty(&adapter->scan_pending_q)) {
+ 		spin_unlock_irqrestore(&adapter->scan_pending_q_lock, flags);
+@@ -1812,7 +1814,6 @@ int mwifiex_ret_802_11_scan(struct mwifiex_private *priv,
+ 		mwifiex_insert_cmd_to_pending_q(adapter, cmd_node, true);
+ 	}
+ 
+-done:
+ 	return ret;
+ }
+ 
+-- 
+1.8.1.4
+

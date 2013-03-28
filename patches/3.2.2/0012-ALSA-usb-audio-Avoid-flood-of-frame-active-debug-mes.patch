@@ -1,4 +1,4 @@
-From 2ea7f3bea167ec7f4ce384fa4268a39c5d77223a Mon Sep 17 00:00:00 2001
+From d019175595771007af1ded21666fbec4ac464110 Mon Sep 17 00:00:00 2001
 From: Takashi Iwai <tiwai@suse.de>
 Date: Mon, 9 Jan 2012 11:37:20 +0100
 Subject: [PATCH 012/129] ALSA: usb-audio - Avoid flood of frame-active debug
@@ -15,8 +15,8 @@ Bugzilla: https://bugzilla.novell.com/show_bug.cgi?id=738681
 Signed-off-by: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- sound/usb/endpoint.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ sound/usb/endpoint.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/sound/usb/endpoint.c b/sound/usb/endpoint.c
 index 81c6ede..08dcce5 100644
@@ -42,5 +42,5 @@ index 81c6ede..08dcce5 100644
  		}
  		bytes = urb->iso_frame_desc[i].actual_length;
 -- 
-1.7.7.6
+1.8.1.4
 

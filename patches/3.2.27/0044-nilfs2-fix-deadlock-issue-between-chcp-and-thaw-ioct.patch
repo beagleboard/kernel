@@ -1,8 +1,7 @@
-From 7a722972c61cc59ffc33a1b7c7cef32f12614cce Mon Sep 17 00:00:00 2001
+From 6fb2b097868ab069704efa55d3f9a2efe10c6968 Mon Sep 17 00:00:00 2001
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Date: Mon, 30 Jul 2012 14:42:07 -0700
-Subject: [PATCH 44/70] nilfs2: fix deadlock issue between chcp and thaw
- ioctls
+Subject: [PATCH 44/70] nilfs2: fix deadlock issue between chcp and thaw ioctls
 
 commit 572d8b3945a31bee7c40d21556803e4807fd9141 upstream.
 
@@ -58,10 +57,10 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/nilfs2/ioctl.c     |    4 ++--
- fs/nilfs2/super.c     |    3 +++
- fs/nilfs2/the_nilfs.c |    1 +
- fs/nilfs2/the_nilfs.h |    2 ++
+ fs/nilfs2/ioctl.c     | 4 ++--
+ fs/nilfs2/super.c     | 3 +++
+ fs/nilfs2/the_nilfs.c | 1 +
+ fs/nilfs2/the_nilfs.h | 2 ++
  4 files changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/fs/nilfs2/ioctl.c b/fs/nilfs2/ioctl.c
@@ -140,5 +139,5 @@ index 9992b11..de7435f 100644
  	/*
  	 * used for
 -- 
-1.7.7.6
+1.8.1.4
 

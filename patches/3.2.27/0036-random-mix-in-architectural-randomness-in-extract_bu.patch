@@ -1,4 +1,4 @@
-From 5b6b8617f04a04fb59b43478795d111de66f745e Mon Sep 17 00:00:00 2001
+From 388aaa15088ac60f664a0fbce5ba40386a36a862 Mon Sep 17 00:00:00 2001
 From: "H. Peter Anvin" <hpa@linux.intel.com>
 Date: Fri, 27 Jul 2012 22:26:08 -0400
 Subject: [PATCH 36/70] random: mix in architectural randomness in
@@ -21,8 +21,8 @@ Cc: DJ Johnston <dj.johnston@intel.com>
 Signed-off-by: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/char/random.c |   56 ++++++++++++++++++++++++++++---------------------
- 1 files changed, 32 insertions(+), 24 deletions(-)
+ drivers/char/random.c | 56 +++++++++++++++++++++++++++++----------------------
+ 1 file changed, 32 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/char/random.c b/drivers/char/random.c
 index f3200bf..631d4f6 100644
@@ -147,5 +147,5 @@ index f3200bf..631d4f6 100644
  
  static ssize_t extract_entropy(struct entropy_store *r, void *buf,
 -- 
-1.7.7.6
+1.8.1.4
 

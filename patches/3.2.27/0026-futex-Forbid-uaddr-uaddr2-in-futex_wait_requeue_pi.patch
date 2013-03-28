@@ -1,4 +1,4 @@
-From 9af0f43896fcda1eee8d560b059bdd530d61f117 Mon Sep 17 00:00:00 2001
+From 8287c6e710ca56cf482dd53009c1b7dab87aea47 Mon Sep 17 00:00:00 2001
 From: Darren Hart <dvhart@linux.intel.com>
 Date: Fri, 20 Jul 2012 11:53:31 -0700
 Subject: [PATCH 26/70] futex: Forbid uaddr == uaddr2 in
@@ -20,8 +20,8 @@ Link: http://lkml.kernel.org/r/ad82bfe7f7d130247fbe2b5b4275654807774227.13428096
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/futex.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+ kernel/futex.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/kernel/futex.c b/kernel/futex.c
 index 68e817a..80fb1c6 100644
@@ -55,5 +55,5 @@ index 68e817a..80fb1c6 100644
  		return -EINVAL;
  
 -- 
-1.7.7.6
+1.8.1.4
 

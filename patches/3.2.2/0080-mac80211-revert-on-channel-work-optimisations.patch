@@ -1,4 +1,4 @@
-From 682ee5444b755f18113206a5d4a32854ae0b0fc4 Mon Sep 17 00:00:00 2001
+From 0a0f233316d27c121dd0a64b7175d6db389f49e5 Mon Sep 17 00:00:00 2001
 From: Johannes Berg <johannes.berg@intel.com>
 Date: Tue, 29 Nov 2011 10:20:02 +0100
 Subject: [PATCH 080/129] mac80211: revert on-channel work optimisations
@@ -27,13 +27,13 @@ Signed-off-by: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- net/mac80211/ieee80211_i.h |   13 +++----
- net/mac80211/main.c        |   58 +++-----------------------------
- net/mac80211/offchannel.c  |   68 +++++++++++++++++---------------------
- net/mac80211/rx.c          |   10 ++++-
- net/mac80211/scan.c        |   77 ++++++++++++-------------------------------
- net/mac80211/tx.c          |    3 +-
- net/mac80211/work.c        |   77 ++++++-------------------------------------
+ net/mac80211/ieee80211_i.h | 13 ++++----
+ net/mac80211/main.c        | 58 ++++------------------------------
+ net/mac80211/offchannel.c  | 68 +++++++++++++++++++---------------------
+ net/mac80211/rx.c          | 10 ++++--
+ net/mac80211/scan.c        | 77 +++++++++++++---------------------------------
+ net/mac80211/tx.c          |  3 +-
+ net/mac80211/work.c        | 77 +++++++---------------------------------------
  7 files changed, 85 insertions(+), 221 deletions(-)
 
 diff --git a/net/mac80211/ieee80211_i.h b/net/mac80211/ieee80211_i.h
@@ -631,5 +631,5 @@ index 6c53b6d..99165ef 100644
  		/* give connection some time to breathe */
  		run_again(local, jiffies + HZ/2);
 -- 
-1.7.7.6
+1.8.1.4
 

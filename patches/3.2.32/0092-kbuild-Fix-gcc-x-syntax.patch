@@ -1,4 +1,4 @@
-From f848ae90fc8a59ce0ec9b355b2699dc6c70d4785 Mon Sep 17 00:00:00 2001
+From 98dc1bc097ac09b14cd921c92d378a0ba325d319 Mon Sep 17 00:00:00 2001
 From: Jean Delvare <jdelvare@suse.de>
 Date: Tue, 2 Oct 2012 16:42:36 +0200
 Subject: [PATCH 092/146] kbuild: Fix gcc -x syntax
@@ -27,16 +27,16 @@ Signed-off-by: Michal Marek <mmarek@suse.cz>
 [bwh: Backported to 3.2: drop unneeded change to arch/x86/Makefile]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/mips/Makefile                         |    2 +-
- arch/mips/kernel/Makefile                  |    2 +-
- scripts/Kbuild.include                     |   12 ++++++------
- scripts/gcc-version.sh                     |    6 +++---
- scripts/gcc-x86_32-has-stack-protector.sh  |    2 +-
- scripts/gcc-x86_64-has-stack-protector.sh  |    2 +-
- scripts/kconfig/check.sh                   |    2 +-
- scripts/kconfig/lxdialog/check-lxdialog.sh |    2 +-
- tools/perf/Makefile                        |    2 +-
- tools/power/cpupower/Makefile              |    2 +-
+ arch/mips/Makefile                         |  2 +-
+ arch/mips/kernel/Makefile                  |  2 +-
+ scripts/Kbuild.include                     | 12 ++++++------
+ scripts/gcc-version.sh                     |  6 +++---
+ scripts/gcc-x86_32-has-stack-protector.sh  |  2 +-
+ scripts/gcc-x86_64-has-stack-protector.sh  |  2 +-
+ scripts/kconfig/check.sh                   |  2 +-
+ scripts/kconfig/lxdialog/check-lxdialog.sh |  2 +-
+ tools/perf/Makefile                        |  2 +-
+ tools/power/cpupower/Makefile              |  2 +-
  10 files changed, 17 insertions(+), 17 deletions(-)
 
 diff --git a/arch/mips/Makefile b/arch/mips/Makefile
@@ -210,5 +210,5 @@ index e8a03ac..7db8da5 100644
  # use '-Os' optimization if available, else use -O2
  OPTIMIZATION := $(call cc-supports,-Os,-O2)
 -- 
-1.7.10.4
+1.8.1.4
 

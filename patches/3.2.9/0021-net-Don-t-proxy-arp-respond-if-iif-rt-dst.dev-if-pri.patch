@@ -1,4 +1,4 @@
-From ea392a636a18757dd6660a08c4fa2fb7d3640d98 Mon Sep 17 00:00:00 2001
+From d6c85b6dd2ccd353937618b3c5d418222c153155 Mon Sep 17 00:00:00 2001
 From: Thomas Graf <tgraf@suug.ch>
 Date: Fri, 10 Feb 2012 04:07:11 +0000
 Subject: [PATCH 21/72] net: Don't proxy arp respond if iif == rt->dst.dev if
@@ -21,8 +21,8 @@ Acked-by: Jesper Dangaard Brouer <hawk@comx.dk>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/ipv4/arp.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ net/ipv4/arp.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/net/ipv4/arp.c b/net/ipv4/arp.c
 index 96a164a..59a7041 100644
@@ -39,5 +39,5 @@ index 96a164a..59a7041 100644
  				if (n)
  					neigh_release(n);
 -- 
-1.7.7.6
+1.8.1.4
 

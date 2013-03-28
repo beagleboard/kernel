@@ -1,8 +1,7 @@
-From 5797169a86ea97d002429b6ef934a0c8b0ae69aa Mon Sep 17 00:00:00 2001
+From a36f646774b412c95ae6d162022520df424557b4 Mon Sep 17 00:00:00 2001
 From: Martin Peschke <mpeschke@linux.vnet.ibm.com>
 Date: Tue, 4 Sep 2012 15:23:36 +0200
-Subject: [PATCH 049/146] zfcp: only access zfcp_scsi_dev for valid
- scsi_device
+Subject: [PATCH 049/146] zfcp: only access zfcp_scsi_dev for valid scsi_device
 
 commit d436de8ce25f53a8a880a931886821f632247943 upstream.
 
@@ -33,7 +32,7 @@ Signed-off-by: Steffen Maier <maier@linux.vnet.ibm.com>
 Signed-off-by: James Bottomley <JBottomley@Parallels.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/s390/scsi/zfcp_fsf.c |   19 ++++++++++++++-----
+ drivers/s390/scsi/zfcp_fsf.c | 19 ++++++++++++++-----
  1 file changed, 14 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/s390/scsi/zfcp_fsf.c b/drivers/s390/scsi/zfcp_fsf.c
@@ -122,5 +121,5 @@ index dfe8790..8c849f0 100644
  	case FSF_HANDLE_MISMATCH:
  	case FSF_PORT_HANDLE_NOT_VALID:
 -- 
-1.7.10.4
+1.8.1.4
 

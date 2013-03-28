@@ -1,4 +1,4 @@
-From 8a38ce3ac309da82c81291896eeeefc48458a9b7 Mon Sep 17 00:00:00 2001
+From 9d176faa77ef5e461c151364acb9befe6edb0a0c Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Thu, 15 Mar 2012 09:34:02 +0000
 Subject: [PATCH 124/147] xfs: Fix oops on IO error during
@@ -23,8 +23,8 @@ Reviewed-by: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Ben Myers <bpm@sgi.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/xfs/xfs_log_recover.c |   33 +++++++++++----------------------
- 1 files changed, 11 insertions(+), 22 deletions(-)
+ fs/xfs/xfs_log_recover.c | 33 +++++++++++----------------------
+ 1 file changed, 11 insertions(+), 22 deletions(-)
 
 diff --git a/fs/xfs/xfs_log_recover.c b/fs/xfs/xfs_log_recover.c
 index 541a508..4f5d0ce 100644
@@ -80,5 +80,5 @@ index 541a508..4f5d0ce 100644
  
  	mp->m_dmevmask = mp_dmevmask;
 -- 
-1.7.7.6
+1.8.1.4
 

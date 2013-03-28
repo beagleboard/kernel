@@ -1,4 +1,4 @@
-From 9feb5b28a9675bf7b68eddfd98f19a8da4e881b4 Mon Sep 17 00:00:00 2001
+From 8d5d97e70824e95d865de14374700e34e4e0c9c7 Mon Sep 17 00:00:00 2001
 From: Jeff Layton <jlayton@redhat.com>
 Date: Mon, 2 Jul 2012 07:24:25 -0400
 Subject: [PATCH 42/49] cifs: when server doesn't set CAP_LARGE_READ_X, cap
@@ -26,8 +26,8 @@ Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: Steven French <sfrench@w500smf.(none)>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/cifs/connect.c |    9 +++------
- 1 files changed, 3 insertions(+), 6 deletions(-)
+ fs/cifs/connect.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
 diff --git a/fs/cifs/connect.c b/fs/cifs/connect.c
 index 9e0675a..b21670c 100644
@@ -56,5 +56,5 @@ index 9e0675a..b21670c 100644
  		defsize = server->maxBuf - sizeof(READ_RSP);
  
 -- 
-1.7.7.6
+1.8.1.4
 

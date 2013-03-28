@@ -1,4 +1,4 @@
-From 72d75c64bcc7ff0877e7cc7598b0df0a231227ce Mon Sep 17 00:00:00 2001
+From 9e4c761da10921dcd391b9efb839f0e49cd8aa8e Mon Sep 17 00:00:00 2001
 From: Al Viro <viro@zeniv.linux.org.uk>
 Date: Fri, 13 Apr 2012 12:27:11 -0400
 Subject: [PATCH 052/165] ocfs: ->rl_used breakage on big-endian
@@ -10,8 +10,8 @@ it's le16, not le32 or le64...
 Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ocfs2/refcounttree.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ fs/ocfs2/refcounttree.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/fs/ocfs2/refcounttree.c b/fs/ocfs2/refcounttree.c
 index a7b7217..bc90ebc 100644
@@ -54,5 +54,5 @@ index a7b7217..bc90ebc 100644
  				ref_blocks++;
  
 -- 
-1.7.7.6
+1.8.1.4
 

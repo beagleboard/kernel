@@ -1,4 +1,4 @@
-From 5eca26e7ad8eaa0591278354dca11151a1f90a26 Mon Sep 17 00:00:00 2001
+From 7f97ced7c566b499cc2730d5cf7b4907ac3638fc Mon Sep 17 00:00:00 2001
 From: Kees Cook <keescook@chromium.org>
 Date: Mon, 19 Mar 2012 16:12:53 -0700
 Subject: [PATCH 64/68] futex: Do not leak robust list to unprivileged process
@@ -31,8 +31,8 @@ Link: http://lkml.kernel.org/r/20120319231253.GA20893@www.outflux.net
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- kernel/futex.c        |   36 +++++++++++++-----------------------
- kernel/futex_compat.c |   36 +++++++++++++-----------------------
+ kernel/futex.c        | 36 +++++++++++++-----------------------
+ kernel/futex_compat.c | 36 +++++++++++++-----------------------
  2 files changed, 26 insertions(+), 46 deletions(-)
 
 diff --git a/kernel/futex.c b/kernel/futex.c
@@ -166,5 +166,5 @@ index 5f9e689..a9642d5 100644
  		return -EFAULT;
  	return put_user(ptr_to_compat(head), head_ptr);
 -- 
-1.7.7.6
+1.8.1.4
 

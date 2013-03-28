@@ -1,4 +1,4 @@
-From 711f9548d35129e274546a8e727a5f8e7366fe44 Mon Sep 17 00:00:00 2001
+From 8deef35c3fb6fcb49ff7201739eea05f0d41eafc Mon Sep 17 00:00:00 2001
 From: Russ Anderson <rja@sgi.com>
 Date: Thu, 10 May 2012 13:01:46 -0700
 Subject: [PATCH 09/56] mm: nobootmem: fix sign extend problem in
@@ -27,8 +27,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- mm/nobootmem.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ mm/nobootmem.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/mm/nobootmem.c b/mm/nobootmem.c
 index 7fa41b4..07c08c4 100644
@@ -45,5 +45,5 @@ index 7fa41b4..07c08c4 100644
  
  	start_aligned = (start + (BITS_PER_LONG - 1)) & ~(BITS_PER_LONG - 1);
 -- 
-1.7.7.6
+1.8.1.4
 

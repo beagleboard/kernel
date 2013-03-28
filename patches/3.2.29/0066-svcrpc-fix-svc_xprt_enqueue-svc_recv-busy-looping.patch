@@ -1,4 +1,4 @@
-From 16035a1f4d3514eb776f34151d6e2b0753354c45 Mon Sep 17 00:00:00 2001
+From b6f051317246dcb9eece05e5d52407ef041b8181 Mon Sep 17 00:00:00 2001
 From: "J. Bruce Fields" <bfields@redhat.com>
 Date: Fri, 17 Aug 2012 17:31:53 -0400
 Subject: [PATCH 66/94] svcrpc: fix svc_xprt_enqueue/svc_recv busy-looping
@@ -26,8 +26,8 @@ Tested-by: Michael Tokarev <mjt@tls.msk.ru>
 Signed-off-by: J. Bruce Fields <bfields@redhat.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/sunrpc/svc_xprt.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+ net/sunrpc/svc_xprt.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
 diff --git a/net/sunrpc/svc_xprt.c b/net/sunrpc/svc_xprt.c
 index 622ba40..3282453 100644
@@ -69,5 +69,5 @@ index 622ba40..3282453 100644
  	svc_xprt_received(xprt);
  
 -- 
-1.7.7.6
+1.8.1.4
 

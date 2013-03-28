@@ -1,8 +1,7 @@
-From 6c2e04d90d5fe7ac442d6b06c315d016683bddc3 Mon Sep 17 00:00:00 2001
+From 0d1338ba3e472080803844d9b84832316ff29583 Mon Sep 17 00:00:00 2001
 From: Jason Wessel <jason.wessel@windriver.com>
 Date: Fri, 23 Mar 2012 09:35:05 -0500
-Subject: [PATCH 37/60] x86,kgdb: Fix DEBUG_RODATA limitation using
- text_poke()
+Subject: [PATCH 37/60] x86,kgdb: Fix DEBUG_RODATA limitation using text_poke()
 
 commit 3751d3e85cf693e10e2c47c03c8caa65e171099b upstream.
 
@@ -29,9 +28,9 @@ Inspried-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
 Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/x86/kernel/kgdb.c |   60 ++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/misc/kgdbts.c  |   17 -------------
- include/linux/kgdb.h   |    3 +-
+ arch/x86/kernel/kgdb.c | 60 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/misc/kgdbts.c  | 17 --------------
+ include/linux/kgdb.h   |  3 ++-
  3 files changed, 62 insertions(+), 18 deletions(-)
 
 diff --git a/arch/x86/kernel/kgdb.c b/arch/x86/kernel/kgdb.c
@@ -162,5 +161,5 @@ index e5d689c..c4d2fc1 100644
  
  enum kgdb_bpstate {
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,8 +1,7 @@
-From 47b15911b9787d1b07c60fd0ce1ef09172041a35 Mon Sep 17 00:00:00 2001
+From 26fef722af8613417bf51feb33bca2c8134a1745 Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Tue, 10 Apr 2012 20:08:39 +0000
-Subject: [PATCH 070/165] net: allow pskb_expand_head() to get maximum
- tailroom
+Subject: [PATCH 070/165] net: allow pskb_expand_head() to get maximum tailroom
 
 [ Upstream commit 87151b8689d890dfb495081f7be9b9e257f7a2df ]
 
@@ -23,8 +22,8 @@ Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/core/skbuff.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ net/core/skbuff.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/net/core/skbuff.c b/net/core/skbuff.c
 index 29cb392..2ec200de 100644
@@ -44,5 +43,5 @@ index 29cb392..2ec200de 100644
  	/* Copy only real data... and, alas, header. This should be
  	 * optimized for the cases when header is void.
 -- 
-1.7.7.6
+1.8.1.4
 

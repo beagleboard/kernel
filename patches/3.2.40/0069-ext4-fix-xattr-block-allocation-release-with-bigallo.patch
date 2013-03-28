@@ -1,0 +1,65 @@
+From 17b18cc17e77413a73245a6cd33ef13606e86eea Mon Sep 17 00:00:00 2001
+From: Lukas Czerner <lczerner@redhat.com>
+Date: Mon, 18 Feb 2013 12:12:07 -0500
+Subject: [PATCH 069/153] ext4: fix xattr block allocation/release with
+ bigalloc
+
+commit 1231b3a1eb5740192aeebf5344dd6d6da000febf upstream.
+
+Currently when new xattr block is created or released we we would call
+dquot_free_block() or dquot_alloc_block() respectively, among the else
+decrementing or incrementing the number of blocks assigned to the
+inode by one block.
+
+This however does not work for bigalloc file system because we always
+allocate/free the whole cluster so we have to count with that in
+dquot_free_block() and dquot_alloc_block() as well.
+
+Use the clusters-to-blocks conversion EXT4_C2B() when passing number of
+blocks to the dquot_alloc/free functions to fix the problem.
+
+The problem has been revealed by xfstests #117 (and possibly others).
+
+Signed-off-by: Lukas Czerner <lczerner@redhat.com>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Reviewed-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ext4/xattr.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/fs/ext4/xattr.c b/fs/ext4/xattr.c
+index 1115dda..d5498b2 100644
+--- a/fs/ext4/xattr.c
++++ b/fs/ext4/xattr.c
+@@ -496,7 +496,7 @@ ext4_xattr_release_block(handle_t *handle, struct inode *inode,
+ 		error = ext4_handle_dirty_metadata(handle, inode, bh);
+ 		if (IS_SYNC(inode))
+ 			ext4_handle_sync(handle);
+-		dquot_free_block(inode, 1);
++		dquot_free_block(inode, EXT4_C2B(EXT4_SB(inode->i_sb), 1));
+ 		ea_bdebug(bh, "refcount now=%d; releasing",
+ 			  le32_to_cpu(BHDR(bh)->h_refcount));
+ 	}
+@@ -785,7 +785,8 @@ inserted:
+ 			else {
+ 				/* The old block is released after updating
+ 				   the inode. */
+-				error = dquot_alloc_block(inode, 1);
++				error = dquot_alloc_block(inode,
++						EXT4_C2B(EXT4_SB(sb), 1));
+ 				if (error)
+ 					goto cleanup;
+ 				error = ext4_journal_get_write_access(handle,
+@@ -881,7 +882,7 @@ cleanup:
+ 	return error;
+ 
+ cleanup_dquot:
+-	dquot_free_block(inode, 1);
++	dquot_free_block(inode, EXT4_C2B(EXT4_SB(sb), 1));
+ 	goto cleanup;
+ 
+ bad_block:
+-- 
+1.8.1.4
+

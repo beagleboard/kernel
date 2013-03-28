@@ -1,0 +1,76 @@
+From 1db5622cf276d006c6e251b927ecc296ea21281e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>
+Date: Wed, 23 Jan 2013 10:44:36 +0100
+Subject: [PATCH 013/153] USB: option: add and update Alcatel modems
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit f8f0302bbcbd1b14655bef29f6996a2152be559d upstream.
+
+Adding three currently unsupported modems based on information
+from .inf driver files:
+
+  Diag  VID_1BBB&PID_0052&MI_00
+  AGPS  VID_1BBB&PID_0052&MI_01
+  VOICE VID_1BBB&PID_0052&MI_02
+  AT    VID_1BBB&PID_0052&MI_03
+  Modem VID_1BBB&PID_0052&MI_05
+  wwan  VID_1BBB&PID_0052&MI_06
+
+  Diag  VID_1BBB&PID_00B6&MI_00
+  AT    VID_1BBB&PID_00B6&MI_01
+  Modem VID_1BBB&PID_00B6&MI_02
+  wwan  VID_1BBB&PID_00B6&MI_03
+
+  Diag  VID_1BBB&PID_00B7&MI_00
+  AGPS  VID_1BBB&PID_00B7&MI_01
+  VOICE VID_1BBB&PID_00B7&MI_02
+  AT    VID_1BBB&PID_00B7&MI_03
+  Modem VID_1BBB&PID_00B7&MI_04
+  wwan  VID_1BBB&PID_00B7&MI_05
+
+Updating the blacklist info for the X060S_X200 and X220_X500D,
+reserving interfaces for a wwan driver, based on
+
+  wwan VID_1BBB&PID_0000&MI_04
+  wwan VID_1BBB&PID_0017&MI_06
+
+Signed-off-by: Bjørn Mork <bjorn@mork.no>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/option.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/usb/serial/option.c b/drivers/usb/serial/option.c
+index 52cd814..19e1a80 100644
+--- a/drivers/usb/serial/option.c
++++ b/drivers/usb/serial/option.c
+@@ -479,6 +479,7 @@ static const struct option_blacklist_info four_g_w14_blacklist = {
+ 
+ static const struct option_blacklist_info alcatel_x200_blacklist = {
+ 	.sendsetup = BIT(0) | BIT(1),
++	.reserved = BIT(4),
+ };
+ 
+ static const struct option_blacklist_info zte_0037_blacklist = {
+@@ -1215,7 +1216,14 @@ static const struct usb_device_id option_ids[] = {
+ 	{ USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_X060S_X200),
+ 	  .driver_info = (kernel_ulong_t)&alcatel_x200_blacklist
+ 	},
+-	{ USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_X220_X500D) },
++	{ USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_X220_X500D),
++	  .driver_info = (kernel_ulong_t)&net_intf6_blacklist },
++	{ USB_DEVICE(ALCATEL_VENDOR_ID, 0x0052),
++	  .driver_info = (kernel_ulong_t)&net_intf6_blacklist },
++	{ USB_DEVICE(ALCATEL_VENDOR_ID, 0x00b6),
++	  .driver_info = (kernel_ulong_t)&net_intf3_blacklist },
++	{ USB_DEVICE(ALCATEL_VENDOR_ID, 0x00b7),
++	  .driver_info = (kernel_ulong_t)&net_intf5_blacklist },
+ 	{ USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_L100V),
+ 	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+ 	{ USB_DEVICE(AIRPLUS_VENDOR_ID, AIRPLUS_PRODUCT_MCD650) },
+-- 
+1.8.1.4
+

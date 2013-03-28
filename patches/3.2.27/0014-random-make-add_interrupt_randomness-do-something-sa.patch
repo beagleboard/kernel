@@ -1,4 +1,4 @@
-From 8a2657ff185861325d41f2a4a5b39d986fe8b022 Mon Sep 17 00:00:00 2001
+From 15cc588d457882b689310f311535c48ded035fc4 Mon Sep 17 00:00:00 2001
 From: Theodore Ts'o <tytso@mit.edu>
 Date: Mon, 2 Jul 2012 07:52:16 -0400
 Subject: [PATCH 14/70] random: make 'add_interrupt_randomness()' do something
@@ -31,10 +31,10 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/char/random.c     |  103 +++++++++++++++++++++++++++++++++++++-------
- drivers/mfd/ab3100-core.c |    2 -
- include/linux/random.h    |    2 +-
- kernel/irq/handle.c       |    7 +--
+ drivers/char/random.c     | 103 ++++++++++++++++++++++++++++++++++++++--------
+ drivers/mfd/ab3100-core.c |   2 -
+ include/linux/random.h    |   2 +-
+ kernel/irq/handle.c       |   7 ++--
  4 files changed, 90 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/char/random.c b/drivers/char/random.c
@@ -284,5 +284,5 @@ index 470d08c..10e0772 100644
  	if (!noirqdebug)
  		note_interrupt(irq, desc, retval);
 -- 
-1.7.7.6
+1.8.1.4
 

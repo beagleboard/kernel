@@ -1,8 +1,8 @@
-From 8f0cc7d91c58c64f2e1f29535ff72dee6ab1e38c Mon Sep 17 00:00:00 2001
+From c85897e11eb0d6436a888e85e58f11181cf0074b Mon Sep 17 00:00:00 2001
 From: Al Viro <viro@zeniv.linux.org.uk>
 Date: Fri, 27 Apr 2012 17:42:43 -0500
-Subject: [PATCH 046/165] nfsd: fix b0rken error value for setattr on
- read-only mount
+Subject: [PATCH 046/165] nfsd: fix b0rken error value for setattr on read-only
+ mount
 
 commit 96f6f98501196d46ce52c2697dd758d9300c63f5 upstream.
 
@@ -12,8 +12,8 @@ Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/nfsd/nfs4proc.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ fs/nfsd/nfs4proc.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/fs/nfsd/nfs4proc.c b/fs/nfsd/nfs4proc.c
 index fa38336..35840aa 100644
@@ -41,5 +41,5 @@ index fa38336..35840aa 100644
  
  	status = check_attr_support(rqstp, cstate, setattr->sa_bmval,
 -- 
-1.7.7.6
+1.8.1.4
 

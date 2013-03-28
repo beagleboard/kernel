@@ -1,4 +1,4 @@
-From a8baa7bf8e710d510cb929316595ccdf7648bf72 Mon Sep 17 00:00:00 2001
+From a293e7bef2579a7e4119dddaaeb7139c1f8a479e Mon Sep 17 00:00:00 2001
 From: Al Viro <viro@zeniv.linux.org.uk>
 Date: Fri, 13 Apr 2012 11:49:04 -0400
 Subject: [PATCH 050/165] btrfs: btrfs_root_readonly() broken on big-endian
@@ -12,8 +12,8 @@ checks bit 0 as in host-endian...
 Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/btrfs/ctree.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ fs/btrfs/ctree.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
 index 6738503..83a871f 100644
@@ -29,5 +29,5 @@ index 6738503..83a871f 100644
  
  /* struct btrfs_root_backup */
 -- 
-1.7.7.6
+1.8.1.4
 

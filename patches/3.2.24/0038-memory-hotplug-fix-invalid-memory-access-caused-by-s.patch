@@ -1,4 +1,4 @@
-From f36b9e24e9e02fb7f6a9fd86565f681c07fe0679 Mon Sep 17 00:00:00 2001
+From 240b0517763148e4db9f438ce2bc56befa7bc327 Mon Sep 17 00:00:00 2001
 From: Jiang Liu <jiang.liu@huawei.com>
 Date: Wed, 11 Jul 2012 14:01:52 -0700
 Subject: [PATCH 038/109] memory hotplug: fix invalid memory access caused by
@@ -68,8 +68,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/mmzone.h |    2 +-
- mm/vmscan.c            |    7 +++++--
+ include/linux/mmzone.h | 2 +-
+ mm/vmscan.c            | 7 +++++--
  2 files changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
@@ -110,5 +110,5 @@ index fbe2d2c..72cf498 100644
  
  static int __init kswapd_init(void)
 -- 
-1.7.7.6
+1.8.1.4
 

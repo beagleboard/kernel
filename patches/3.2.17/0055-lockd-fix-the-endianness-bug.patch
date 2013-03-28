@@ -1,4 +1,4 @@
-From 4e254ae9aeee0a1ac7b8a886b0c35fa63cb9c063 Mon Sep 17 00:00:00 2001
+From fff3efc5e454a05de742f4501f6f93b47af15918 Mon Sep 17 00:00:00 2001
 From: Al Viro <viro@zeniv.linux.org.uk>
 Date: Fri, 13 Apr 2012 13:49:47 -0400
 Subject: [PATCH 055/165] lockd: fix the endianness bug
@@ -10,8 +10,8 @@ comparing be32 values for < is not doing the right thing...
 Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/lockd/clnt4xdr.c |    2 +-
- fs/lockd/clntxdr.c  |    2 +-
+ fs/lockd/clnt4xdr.c | 2 +-
+ fs/lockd/clntxdr.c  | 2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/fs/lockd/clnt4xdr.c b/fs/lockd/clnt4xdr.c
@@ -41,5 +41,5 @@ index 180ac34..36057ce 100644
  	*stat = *p;
  	return 0;
 -- 
-1.7.7.6
+1.8.1.4
 

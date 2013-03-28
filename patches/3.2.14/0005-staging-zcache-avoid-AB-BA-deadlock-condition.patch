@@ -1,4 +1,4 @@
-From 0b126f22c2abb1e0fcbe7aa91c1d19d45fc0e473 Mon Sep 17 00:00:00 2001
+From 133d1fd0369185c6109095e55caa8f87bf9fe417 Mon Sep 17 00:00:00 2001
 From: Andrea Righi <andrea@betterlinux.com>
 Date: Mon, 20 Feb 2012 13:11:49 +0100
 Subject: [PATCH 005/147] staging: zcache: avoid AB-BA deadlock condition
@@ -25,8 +25,8 @@ Fix by grabbing the locks in opposite order in zbud_free_and_delist().
 Signed-off-by: Andrea Righi <andrea@betterlinux.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/staging/zcache/zcache-main.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/staging/zcache/zcache-main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/staging/zcache/zcache-main.c b/drivers/staging/zcache/zcache-main.c
 index f5e469d..16ad9fe 100644
@@ -62,5 +62,5 @@ index f5e469d..16ad9fe 100644
  		zcache_zbud_buddied_count--;
  		list_add_tail(&zbpg->bud_list, &zbud_unbuddied[chunks].list);
 -- 
-1.7.7.6
+1.8.1.4
 

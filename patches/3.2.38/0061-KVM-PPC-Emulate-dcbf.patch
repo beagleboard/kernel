@@ -1,0 +1,42 @@
+From e03ac3d793c9dfb98a6d688752a638f2865c88e5 Mon Sep 17 00:00:00 2001
+From: Alexander Graf <agraf@suse.de>
+Date: Thu, 17 Jan 2013 13:50:25 +0100
+Subject: [PATCH 061/127] KVM: PPC: Emulate dcbf
+
+commit d3286144c92ec876da9e30320afa875699b7e0f1 upstream.
+
+Guests can trigger MMIO exits using dcbf. Since we don't emulate cache
+incoherent MMIO, just do nothing and move on.
+
+Reported-by: Ben Collins <ben.c@servergy.com>
+Signed-off-by: Alexander Graf <agraf@suse.de>
+Tested-by: Ben Collins <ben.c@servergy.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/powerpc/kvm/emulate.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/powerpc/kvm/emulate.c b/arch/powerpc/kvm/emulate.c
+index 141dce3..2a73d82 100644
+--- a/arch/powerpc/kvm/emulate.c
++++ b/arch/powerpc/kvm/emulate.c
+@@ -35,6 +35,7 @@
+ #define OP_TRAP_64 2
+ 
+ #define OP_31_XOP_LWZX      23
++#define OP_31_XOP_DCBF      86
+ #define OP_31_XOP_LBZX      87
+ #define OP_31_XOP_STWX      151
+ #define OP_31_XOP_STBX      215
+@@ -370,6 +371,7 @@ int kvmppc_emulate_instruction(struct kvm_run *run, struct kvm_vcpu *vcpu)
+ 			kvmppc_set_exit_type(vcpu, EMULATED_MTSPR_EXITS);
+ 			break;
+ 
++		case OP_31_XOP_DCBF:
+ 		case OP_31_XOP_DCBI:
+ 			/* Do nothing. The guest is performing dcbi because
+ 			 * hardware DMA is not snooped by the dcache, but
+-- 
+1.8.1.4
+

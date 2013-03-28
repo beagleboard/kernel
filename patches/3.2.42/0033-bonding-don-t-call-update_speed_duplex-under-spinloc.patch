@@ -1,0 +1,60 @@
+From 254e864554fdccffbeede51efb2d91a0034d4f0e Mon Sep 17 00:00:00 2001
+From: Veaceslav Falico <vfalico@redhat.com>
+Date: Tue, 12 Mar 2013 06:31:32 +0000
+Subject: [PATCH 33/92] bonding: don't call update_speed_duplex() under
+ spinlocks
+
+[ Upstream commit 876254ae2758d50dcb08c7bd00caf6a806571178 ]
+
+bond_update_speed_duplex() might sleep while calling underlying slave's
+routines. Move it out of atomic context in bond_enslave() and remove it
+from bond_miimon_commit() - it was introduced by commit 546add79, however
+when the slave interfaces go up/change state it's their responsibility to
+fire NETDEV_UP/NETDEV_CHANGE events so that bonding can properly update
+their speed.
+
+I've tested it on all combinations of ifup/ifdown, autoneg/speed/duplex
+changes, remote-controlled and local, on (not) MII-based cards. All changes
+are visible.
+
+Signed-off-by: Veaceslav Falico <vfalico@redhat.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/bonding/bond_main.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
+index 202ae34..63e3c47 100644
+--- a/drivers/net/bonding/bond_main.c
++++ b/drivers/net/bonding/bond_main.c
+@@ -1715,6 +1715,8 @@ int bond_enslave(struct net_device *bond_dev, struct net_device *slave_dev)
+ 
+ 	bond_compute_features(bond);
+ 
++	bond_update_speed_duplex(new_slave);
++
+ 	read_lock(&bond->lock);
+ 
+ 	new_slave->last_arp_rx = jiffies;
+@@ -1758,8 +1760,6 @@ int bond_enslave(struct net_device *bond_dev, struct net_device *slave_dev)
+ 		new_slave->link  = BOND_LINK_DOWN;
+ 	}
+ 
+-	bond_update_speed_duplex(new_slave);
+-
+ 	if (USES_PRIMARY(bond->params.mode) && bond->params.primary[0]) {
+ 		/* if there is a primary slave, remember it */
+ 		if (strcmp(bond->params.primary, new_slave->dev->name) == 0) {
+@@ -2437,8 +2437,6 @@ static void bond_miimon_commit(struct bonding *bond)
+ 				bond_set_backup_slave(slave);
+ 			}
+ 
+-			bond_update_speed_duplex(slave);
+-
+ 			pr_info("%s: link status definitely up for interface %s, %u Mbps %s duplex.\n",
+ 				bond->dev->name, slave->dev->name,
+ 				slave->speed, slave->duplex ? "full" : "half");
+-- 
+1.8.1.4
+

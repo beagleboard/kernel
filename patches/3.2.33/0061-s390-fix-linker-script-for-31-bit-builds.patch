@@ -1,4 +1,4 @@
-From d173727d5d784510aae75a60906135e0bf69826a Mon Sep 17 00:00:00 2001
+From 82e49b856db66bede02f6c0399dc98bb67b1c071 Mon Sep 17 00:00:00 2001
 From: Heiko Carstens <heiko.carstens@de.ibm.com>
 Date: Thu, 18 Oct 2012 11:11:01 +0200
 Subject: [PATCH 061/105] s390: fix linker script for 31 bit builds
@@ -24,8 +24,8 @@ Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/s390/boot/compressed/vmlinux.lds.S |    2 +-
- arch/s390/kernel/vmlinux.lds.S          |    2 +-
+ arch/s390/boot/compressed/vmlinux.lds.S | 2 +-
+ arch/s390/kernel/vmlinux.lds.S          | 2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/s390/boot/compressed/vmlinux.lds.S b/arch/s390/boot/compressed/vmlinux.lds.S
@@ -55,5 +55,5 @@ index e4c79eb..e43d21e 100644
  jiffies = jiffies_64 + 4;
  #else
 -- 
-1.7.7.6
+1.8.1.4
 

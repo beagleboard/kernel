@@ -1,0 +1,56 @@
+From fca7c96142a33e8ae3cc757bb8203589299790dc Mon Sep 17 00:00:00 2001
+From: Laura Abbott <lauraa@codeaurora.org>
+Date: Fri, 11 Jan 2013 14:31:51 -0800
+Subject: [PATCH 042/127] mm: use aligned zone start for pfn_to_bitidx
+ calculation
+
+commit c060f943d0929f3e429c5d9522290584f6281d6e upstream.
+
+The current calculation in pfn_to_bitidx assumes that (pfn -
+zone->zone_start_pfn) >> pageblock_order will return the same bit for
+all pfn in a pageblock.  If zone_start_pfn is not aligned to
+pageblock_nr_pages, this may not always be correct.
+
+Consider the following with pageblock order = 10, zone start 2MB:
+
+  pfn     | pfn - zone start | (pfn - zone start) >> page block order
+  ----------------------------------------------------------------
+  0x26000 | 0x25e00	   |  0x97
+  0x26100 | 0x25f00	   |  0x97
+  0x26200 | 0x26000	   |  0x98
+  0x26300 | 0x26100	   |  0x98
+
+This means that calling {get,set}_pageblock_migratetype on a single page
+will not set the migratetype for the full block.  Fix this by rounding
+down zone_start_pfn when doing the bitidx calculation.
+
+For our use case, the effects of this bug were mostly tied to the fact
+that CMA allocations would either take a long time or fail to happen.
+Depending on the driver using CMA, this could result in anything from
+visual glitches to application failures.
+
+Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/page_alloc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index a88dded..4d3a697 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5532,7 +5532,7 @@ static inline int pfn_to_bitidx(struct zone *zone, unsigned long pfn)
+ 	pfn &= (PAGES_PER_SECTION-1);
+ 	return (pfn >> pageblock_order) * NR_PAGEBLOCK_BITS;
+ #else
+-	pfn = pfn - zone->zone_start_pfn;
++	pfn = pfn - round_down(zone->zone_start_pfn, pageblock_nr_pages);
+ 	return (pfn >> pageblock_order) * NR_PAGEBLOCK_BITS;
+ #endif /* CONFIG_SPARSEMEM */
+ }
+-- 
+1.8.1.4
+

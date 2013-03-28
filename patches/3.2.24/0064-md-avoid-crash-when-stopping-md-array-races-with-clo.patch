@@ -1,4 +1,4 @@
-From 6202cc354cc5f642c95265be4ad1c7ab1f2fa35a Mon Sep 17 00:00:00 2001
+From 6cea9bc7204bec1c4a1a4bbed958a317516ee21e Mon Sep 17 00:00:00 2001
 From: NeilBrown <neilb@suse.de>
 Date: Thu, 19 Jul 2012 15:59:18 +1000
 Subject: [PATCH 064/109] md: avoid crash when stopping md array races with
@@ -34,8 +34,8 @@ Reported-by: majianpeng <majianpeng@gmail.com>
 Signed-off-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/md/md.c |   36 +++++++++++++++++++++++-------------
- 1 files changed, 23 insertions(+), 13 deletions(-)
+ drivers/md/md.c | 36 +++++++++++++++++++++++-------------
+ 1 file changed, 23 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/md/md.c b/drivers/md/md.c
 index 700ecae..d8646d7 100644
@@ -160,5 +160,5 @@ index 700ecae..d8646d7 100644
  
  		case BLKROSET:
 -- 
-1.7.7.6
+1.8.1.4
 

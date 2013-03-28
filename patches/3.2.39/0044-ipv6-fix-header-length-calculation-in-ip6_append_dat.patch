@@ -1,0 +1,50 @@
+From df353e657acc9b5918574b460789b92fce4ab49d Mon Sep 17 00:00:00 2001
+From: Romain KUNTZ <r.kuntz@ipflavors.com>
+Date: Wed, 16 Jan 2013 12:47:40 +0000
+Subject: [PATCH 44/67] ipv6: fix header length calculation in
+ ip6_append_data()
+
+[ Upstream commit 7efdba5bd9a2f3e2059beeb45c9fa55eefe1bced ]
+
+Commit 299b0767 (ipv6: Fix IPsec slowpath fragmentation problem)
+has introduced a error in the header length calculation that
+provokes corrupted packets when non-fragmentable extensions
+headers (Destination Option or Routing Header Type 2) are used.
+
+rt->rt6i_nfheader_len is the length of the non-fragmentable
+extension header, and it should be substracted to
+rt->dst.header_len, and not to exthdrlen, as it was done before
+commit 299b0767.
+
+This patch reverts to the original and correct behavior. It has
+been successfully tested with and without IPsec on packets
+that include non-fragmentable extensions headers.
+
+Signed-off-by: Romain Kuntz <r.kuntz@ipflavors.com>
+Acked-by: Steffen Klassert <steffen.klassert@secunet.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv6/ip6_output.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
+index ae98e09..3ccd9b2 100644
+--- a/net/ipv6/ip6_output.c
++++ b/net/ipv6/ip6_output.c
+@@ -1284,10 +1284,10 @@ int ip6_append_data(struct sock *sk, int getfrag(void *from, char *to,
+ 		cork->length = 0;
+ 		sk->sk_sndmsg_page = NULL;
+ 		sk->sk_sndmsg_off = 0;
+-		exthdrlen = (opt ? opt->opt_flen : 0) - rt->rt6i_nfheader_len;
++		exthdrlen = (opt ? opt->opt_flen : 0);
+ 		length += exthdrlen;
+ 		transhdrlen += exthdrlen;
+-		dst_exthdrlen = rt->dst.header_len;
++		dst_exthdrlen = rt->dst.header_len - rt->rt6i_nfheader_len;
+ 	} else {
+ 		rt = (struct rt6_info *)cork->dst;
+ 		fl6 = &inet->cork.fl.u.ip6;
+-- 
+1.8.1.4
+

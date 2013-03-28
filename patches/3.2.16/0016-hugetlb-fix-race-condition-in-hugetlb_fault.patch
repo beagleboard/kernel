@@ -1,4 +1,4 @@
-From 2ef91ab27eb45d6f77dccb278df78b9cd390fd3c Mon Sep 17 00:00:00 2001
+From 1cb82b97068a8d33ec1b471c6bb6d1a1c8609d57 Mon Sep 17 00:00:00 2001
 From: Chris Metcalf <cmetcalf@tilera.com>
 Date: Thu, 12 Apr 2012 12:49:15 -0700
 Subject: [PATCH 16/68] hugetlb: fix race condition in hugetlb_fault()
@@ -61,8 +61,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- mm/hugetlb.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ mm/hugetlb.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/mm/hugetlb.c b/mm/hugetlb.c
 index 2316840..bd936ed 100644
@@ -85,5 +85,5 @@ index 2316840..bd936ed 100644
  out_mutex:
  	mutex_unlock(&hugetlb_instantiation_mutex);
 -- 
-1.7.7.6
+1.8.1.4
 

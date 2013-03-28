@@ -1,4 +1,4 @@
-From 3c0955a78cc105e3c3a09a92abdc14d28883d37c Mon Sep 17 00:00:00 2001
+From 5f72a79f7f345d9471758aa1aa0c42c3e1291e98 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Stephan=20B=C3=A4rwolf?= <stephan.baerwolf@tu-ilmenau.de>
 Date: Thu, 12 Jan 2012 16:43:04 +0100
 Subject: [PATCH 084/147] KVM: x86: fix missing checks in syscall emulation
@@ -43,9 +43,9 @@ Signed-off-by: Marcelo Tosatti <mtosatti@redhat.com>
 Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/x86/include/asm/kvm_emulate.h |   13 +++++++++
- arch/x86/kvm/emulate.c             |   51 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 64 insertions(+), 0 deletions(-)
+ arch/x86/include/asm/kvm_emulate.h | 13 ++++++++++
+ arch/x86/kvm/emulate.c             | 51 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+)
 
 diff --git a/arch/x86/include/asm/kvm_emulate.h b/arch/x86/include/asm/kvm_emulate.h
 index a440a7f..70ea6fd 100644
@@ -144,5 +144,5 @@ index f1e3be18..f5302da 100644
  	msr_data >>= 32;
  	cs_sel = (u16)(msr_data & 0xfffc);
 -- 
-1.7.7.6
+1.8.1.4
 

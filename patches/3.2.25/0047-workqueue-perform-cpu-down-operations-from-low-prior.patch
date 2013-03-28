@@ -1,4 +1,4 @@
-From 76cf17e16e1386cfdbe333b1d6036008d9b17ae8 Mon Sep 17 00:00:00 2001
+From f2aeba1aea61b5aa87f7ad89862bf1e396912d7f Mon Sep 17 00:00:00 2001
 From: Tejun Heo <tj@kernel.org>
 Date: Tue, 17 Jul 2012 12:39:26 -0700
 Subject: [PATCH 47/73] workqueue: perform cpu down operations from low
@@ -39,8 +39,8 @@ Signed-off-by: Tejun Heo <tj@kernel.org>
 Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/cpu.h |    5 +++--
- kernel/workqueue.c  |   38 +++++++++++++++++++++++++++++++++++++-
+ include/linux/cpu.h |  5 +++--
+ kernel/workqueue.c  | 38 +++++++++++++++++++++++++++++++++++++-
  2 files changed, 40 insertions(+), 3 deletions(-)
 
 diff --git a/include/linux/cpu.h b/include/linux/cpu.h
@@ -116,5 +116,5 @@ index 7947e16..a650bee 100644
  	/* initialize gcwqs */
  	for_each_gcwq_cpu(cpu) {
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,0 +1,88 @@
+From 9c1cd76dcbaa9ecdfafd8ea76f027546eed939f6 Mon Sep 17 00:00:00 2001
+From: Seiji Aguchi <seiji.aguchi@hds.com>
+Date: Wed, 14 Nov 2012 20:25:37 +0000
+Subject: [PATCH 38/82] efi_pstore: Check remaining space with
+ QueryVariableInfo() before writing data
+
+commit d80a361d779a9f19498943d1ca84243209cd5647 upstream.
+
+[Issue]
+
+As discussed in a thread below, Running out of space in EFI isn't a well-tested scenario.
+And we wouldn't expect all firmware to handle it gracefully.
+http://marc.info/?l=linux-kernel&m=134305325801789&w=2
+
+On the other hand, current efi_pstore doesn't check a remaining space of storage at writing time.
+Therefore, efi_pstore may not work if it tries to write a large amount of data.
+
+[Patch Description]
+
+To avoid handling the situation above, this patch checks if there is a space enough to log with
+QueryVariableInfo() before writing data.
+
+Signed-off-by: Seiji Aguchi <seiji.aguchi@hds.com>
+Acked-by: Mike Waychison <mikew@google.com>
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/firmware/efivars.c | 18 ++++++++++++++++++
+ include/linux/efi.h        |  1 +
+ 2 files changed, 19 insertions(+)
+
+diff --git a/drivers/firmware/efivars.c b/drivers/firmware/efivars.c
+index 5d5a868..0fd62b9 100644
+--- a/drivers/firmware/efivars.c
++++ b/drivers/firmware/efivars.c
+@@ -706,12 +706,29 @@ static int efi_pstore_write(enum pstore_type_id type, u64 *id,
+ 	struct efivars *efivars = psi->data;
+ 	struct efivar_entry *entry, *found = NULL;
+ 	int i, ret = 0;
++	u64 storage_space, remaining_space, max_variable_size;
++	efi_status_t status = EFI_NOT_FOUND;
+ 
+ 	sprintf(stub_name, "dump-type%u-%u-", type, part);
+ 	sprintf(name, "%s%lu", stub_name, get_seconds());
+ 
+ 	spin_lock(&efivars->lock);
+ 
++	/*
++	 * Check if there is a space enough to log.
++	 * size: a size of logging data
++	 * DUMP_NAME_LEN * 2: a maximum size of variable name
++	 */
++	status = efivars->ops->query_variable_info(PSTORE_EFI_ATTRIBUTES,
++						   &storage_space,
++						   &remaining_space,
++						   &max_variable_size);
++	if (status || remaining_space < size + DUMP_NAME_LEN * 2) {
++		spin_unlock(&efivars->lock);
++		*id = part;
++		return -ENOSPC;
++	}
++
+ 	for (i = 0; i < DUMP_NAME_LEN; i++)
+ 		efi_name[i] = stub_name[i];
+ 
+@@ -1235,6 +1252,7 @@ efivars_init(void)
+ 	ops.get_variable = efi.get_variable;
+ 	ops.set_variable = efi.set_variable;
+ 	ops.get_next_variable = efi.get_next_variable;
++	ops.query_variable_info = efi.query_variable_info;
+ 	error = register_efivars(&__efivars, &ops, efi_kobj);
+ 	if (error)
+ 		goto err_put;
+diff --git a/include/linux/efi.h b/include/linux/efi.h
+index 1721c41..b94382f 100644
+--- a/include/linux/efi.h
++++ b/include/linux/efi.h
+@@ -470,6 +470,7 @@ struct efivar_operations {
+ 	efi_get_variable_t *get_variable;
+ 	efi_get_next_variable_t *get_next_variable;
+ 	efi_set_variable_t *set_variable;
++	efi_query_variable_info_t *query_variable_info;
+ };
+ 
+ struct efivars {
+-- 
+1.8.1.4
+

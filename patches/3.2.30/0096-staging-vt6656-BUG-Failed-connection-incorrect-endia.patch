@@ -1,8 +1,8 @@
-From a82f803ff00ff247818c34f129a478dfbd3f32e6 Mon Sep 17 00:00:00 2001
+From dc6ff66056f36c61814691cbffe99045e9fbcc32 Mon Sep 17 00:00:00 2001
 From: Malcolm Priestley <tvboxspy@gmail.com>
 Date: Wed, 29 Aug 2012 23:08:21 +0100
-Subject: [PATCH 096/135] staging: vt6656: [BUG] - Failed connection,
- incorrect endian.
+Subject: [PATCH 096/135] staging: vt6656: [BUG] - Failed connection, incorrect
+ endian.
 
 commit aa209eef3ce8419ff2926c2fa944dfbfb5afbacb upstream.
 
@@ -24,8 +24,8 @@ Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/staging/vt6656/dpc.c  |    2 +-
- drivers/staging/vt6656/rxtx.c |   38 +++++++++++++++++++-------------------
+ drivers/staging/vt6656/dpc.c  |  2 +-
+ drivers/staging/vt6656/rxtx.c | 38 +++++++++++++++++++-------------------
  2 files changed, 20 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/staging/vt6656/dpc.c b/drivers/staging/vt6656/dpc.c
@@ -112,5 +112,5 @@ index 9b64b10..fe21868 100644
              DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"Pkt Type=%04x\n", (pDevice->sTxEthHeader.wType));
              if ((pMgmt->eCurrMode == WMAC_MODE_ESS_STA) && (pMgmt->eCurrState == WMAC_STATE_ASSOC)) {
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,0 +1,32 @@
+From 640a18406088d5749ae84cef908eed03940b8246 Mon Sep 17 00:00:00 2001
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 16 Dec 2012 22:00:50 +0100
+Subject: [PATCH 010/153] pcmcia/vrc4171: Add missing spinlock init
+
+commit 811af9723859884f2f771f3174f3ddedab7c53b5 upstream.
+
+It doesn't seem this spinlock was properly initialized. This bug was
+introduced by commit 7a410e8d4d97457c8c381e2de9cdc7bd3306badc.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/pcmcia/vrc4171_card.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/pcmcia/vrc4171_card.c b/drivers/pcmcia/vrc4171_card.c
+index 86e4a1a..6bb02ab 100644
+--- a/drivers/pcmcia/vrc4171_card.c
++++ b/drivers/pcmcia/vrc4171_card.c
+@@ -246,6 +246,7 @@ static int pccard_init(struct pcmcia_socket *sock)
+ 	socket = &vrc4171_sockets[slot];
+ 	socket->csc_irq = search_nonuse_irq();
+ 	socket->io_irq = search_nonuse_irq();
++	spin_lock_init(&socket->lock);
+ 
+ 	return 0;
+ }
+-- 
+1.8.1.4
+

@@ -1,4 +1,4 @@
-From 03dd7363a01a502adccf34f20f2eef7258f73e85 Mon Sep 17 00:00:00 2001
+From e8a11a14b79ee9db524d5cc6d010fb8a06695397 Mon Sep 17 00:00:00 2001
 From: Michal Hocko <mhocko@suse.cz>
 Date: Tue, 21 Aug 2012 16:15:52 -0700
 Subject: [PATCH 70/94] mm: hugetlbfs: correctly populate shared pmd
@@ -107,8 +107,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/x86/mm/hugetlbpage.c |   21 ++++++++++++++++-----
- 1 files changed, 16 insertions(+), 5 deletions(-)
+ arch/x86/mm/hugetlbpage.c | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
 diff --git a/arch/x86/mm/hugetlbpage.c b/arch/x86/mm/hugetlbpage.c
 index f581a18..df7d12c 100644
@@ -168,5 +168,5 @@ index f581a18..df7d12c 100644
  	}
  	BUG_ON(pte && !pte_none(*pte) && !pte_huge(*pte));
 -- 
-1.7.7.6
+1.8.1.4
 

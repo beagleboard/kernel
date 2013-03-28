@@ -1,0 +1,37 @@
+From b89f4b0d67e6d43e01bbb65a9968ea18cce5ce5d Mon Sep 17 00:00:00 2001
+From: Tomasz Guszkowski <tsg@o2.pl>
+Date: Tue, 5 Feb 2013 22:10:31 +0100
+Subject: [PATCH 038/153] p54usb: corrected USB ID for T-Com Sinus 154 data II
+
+commit 008e33f733ca51acb2dd9d88ea878693b04d1d2a upstream.
+
+Corrected USB ID for T-Com Sinus 154 data II. ISL3887-based. The
+device was tested in managed mode with no security, WEP 128
+bit and WPA-PSK (TKIP) with firmware 2.13.1.0.lm87.arm (md5sum:
+7d676323ac60d6e1a3b6d61e8c528248). It works.
+
+Signed-off-by: Tomasz Guszkowski <tsg@o2.pl>
+Acked-By: Christian Lamparter <chunkeey@googlemail.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/p54/p54usb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/p54/p54usb.c b/drivers/net/wireless/p54/p54usb.c
+index 7ca84c3..564218c 100644
+--- a/drivers/net/wireless/p54/p54usb.c
++++ b/drivers/net/wireless/p54/p54usb.c
+@@ -84,8 +84,8 @@ static struct usb_device_id p54u_table[] = {
+ 	{USB_DEVICE(0x06b9, 0x0121)},	/* Thomson SpeedTouch 121g */
+ 	{USB_DEVICE(0x0707, 0xee13)},   /* SMC 2862W-G version 2 */
+ 	{USB_DEVICE(0x0803, 0x4310)},	/* Zoom 4410a */
+-	{USB_DEVICE(0x083a, 0x4503)},	/* T-Com Sinus 154 data II */
+ 	{USB_DEVICE(0x083a, 0x4521)},   /* Siemens Gigaset USB Adapter 54 version 2 */
++	{USB_DEVICE(0x083a, 0x4531)},	/* T-Com Sinus 154 data II */
+ 	{USB_DEVICE(0x083a, 0xc501)},	/* Zoom Wireless-G 4410 */
+ 	{USB_DEVICE(0x083a, 0xf503)},	/* Accton FD7050E ver 1010ec  */
+ 	{USB_DEVICE(0x0846, 0x4240)},	/* Netgear WG111 (v2) */
+-- 
+1.8.1.4
+

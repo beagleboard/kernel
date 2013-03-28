@@ -1,4 +1,4 @@
-From 679b74992d7d37c5891403420973bbb868398418 Mon Sep 17 00:00:00 2001
+From 93a098daf36e2bd19311c0cad6e15fc0269339d9 Mon Sep 17 00:00:00 2001
 From: Jeff Moyer <jmoyer@redhat.com>
 Date: Fri, 11 May 2012 16:34:10 +0200
 Subject: [PATCH 103/117] block: don't mark buffers beyond end of disk as
@@ -82,9 +82,9 @@ Changes from v1->v2: re-used max_block, as suggested by Nick Piggin.
 Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/block_dev.c     |    6 +++---
- fs/buffer.c        |    4 +++-
- include/linux/fs.h |    1 +
+ fs/block_dev.c     | 6 +++---
+ fs/buffer.c        | 4 +++-
+ include/linux/fs.h | 1 +
  3 files changed, 7 insertions(+), 4 deletions(-)
 
 diff --git a/fs/block_dev.c b/fs/block_dev.c
@@ -153,5 +153,5 @@ index 11f1951..43d36b7 100644
  extern void bdput(struct block_device *);
  extern void invalidate_bdev(struct block_device *);
 -- 
-1.7.7.6
+1.8.1.4
 

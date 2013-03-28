@@ -1,4 +1,4 @@
-From 5861eed0d96c4030cc178bb06e2a5a48fd8bed30 Mon Sep 17 00:00:00 2001
+From 9874f3482b3a16e0471f09c8275f996a23dc991d Mon Sep 17 00:00:00 2001
 From: Bojan Smojver <bojan@rexursive.com>
 Date: Sun, 29 Apr 2012 22:42:06 +0200
 Subject: [PATCH 049/109] PM / Hibernate: Hibernate/thaw fixes/improvements
@@ -30,8 +30,8 @@ Signed-off-by: Bojan Smojver <bojan@rexursive.com>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/power/swap.c |   62 ++++++++++++++++++++++++++++++++-------------------
- 1 files changed, 39 insertions(+), 23 deletions(-)
+ kernel/power/swap.c | 62 +++++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 39 insertions(+), 23 deletions(-)
 
 diff --git a/kernel/power/swap.c b/kernel/power/swap.c
 index b313086..64f8f97 100644
@@ -174,5 +174,5 @@ index b313086..64f8f97 100644
  			if (i < LZO_CMP_PAGES) {
  				ring_size = i;
 -- 
-1.7.7.6
+1.8.1.4
 

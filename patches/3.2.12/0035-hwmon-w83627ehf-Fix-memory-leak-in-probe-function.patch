@@ -1,4 +1,4 @@
-From 0c4a94794a07313581da3cc2db26774fba812fff Mon Sep 17 00:00:00 2001
+From 2306bbdf86537460c4cb3fc9d8ecebc262ad4968 Mon Sep 17 00:00:00 2001
 From: Guenter Roeck <linux@roeck-us.net>
 Date: Mon, 12 Mar 2012 08:33:10 -0700
 Subject: [PATCH 35/42] hwmon: (w83627ehf) Fix memory leak in probe function
@@ -12,8 +12,8 @@ Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 Acked-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/hwmon/w83627ehf.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/hwmon/w83627ehf.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
 index 7a44a56..3ffa1fa 100644
@@ -49,5 +49,5 @@ index 7a44a56..3ffa1fa 100644
  	return 0;
  }
 -- 
-1.7.7.6
+1.8.1.4
 

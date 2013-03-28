@@ -1,4 +1,4 @@
-From b3d53b70cb40b612b358d4b9eabb6055d254b326 Mon Sep 17 00:00:00 2001
+From 35580a1e5f77868ce8b9c408fedfdc60b9755cf6 Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Tue, 10 Apr 2012 07:59:20 +0000
 Subject: [PATCH 069/165] tcp: fix tcp_rcv_rtt_update() use of an unscaled RTT
@@ -24,8 +24,8 @@ Acked-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/ipv4/tcp_input.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+ net/ipv4/tcp_input.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
 index e4d1e4a..4c46fa7 100644
@@ -46,5 +46,5 @@ index e4d1e4a..4c46fa7 100644
  		/* No previous measure. */
  		new_sample = m << 3;
 -- 
-1.7.7.6
+1.8.1.4
 

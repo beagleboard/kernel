@@ -1,0 +1,38 @@
+From 0697a0c474f77eefacff5c778d3254bd95bb804e Mon Sep 17 00:00:00 2001
+From: liu chuansheng <chuansheng.liu@intel.com>
+Date: Thu, 31 Jan 2013 22:13:00 +0800
+Subject: [PATCH 15/67] drm/radeon: Calling object_unrefer() when creating fb
+ failure
+
+commit f2d68cf4daa4de97d400d94836b907e35228e54f upstream.
+
+When kzalloc() failed in radeon_user_framebuffer_create(), need to
+call object_unreference() to match the object_reference().
+
+Signed-off-by: liu chuansheng <chuansheng.liu@intel.com>
+Signed-off-by: xueminsu <xuemin.su@intel.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_display.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_display.c b/drivers/gpu/drm/radeon/radeon_display.c
+index aec8e0c..63e7143 100644
+--- a/drivers/gpu/drm/radeon/radeon_display.c
++++ b/drivers/gpu/drm/radeon/radeon_display.c
+@@ -1110,8 +1110,10 @@ radeon_user_framebuffer_create(struct drm_device *dev,
+ 	}
+ 
+ 	radeon_fb = kzalloc(sizeof(*radeon_fb), GFP_KERNEL);
+-	if (radeon_fb == NULL)
++	if (radeon_fb == NULL) {
++		drm_gem_object_unreference_unlocked(obj);
+ 		return ERR_PTR(-ENOMEM);
++	}
+ 
+ 	radeon_framebuffer_init(dev, radeon_fb, mode_cmd, obj);
+ 
+-- 
+1.8.1.4
+

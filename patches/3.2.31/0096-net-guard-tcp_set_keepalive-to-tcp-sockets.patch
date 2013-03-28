@@ -1,4 +1,4 @@
-From 3e1789dfba2fe0f15ac3210bda4f8e3d1e243479 Mon Sep 17 00:00:00 2001
+From e01ccc2013c95eaa8249e0f91a9b6ba2c4e5edc8 Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <edumazet@google.com>
 Date: Mon, 24 Sep 2012 07:00:11 +0000
 Subject: [PATCH 096/109] net: guard tcp_set_keepalive() to tcp sockets
@@ -15,7 +15,7 @@ Signed-off-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/core/sock.c |    3 ++-
+ net/core/sock.c | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/net/core/sock.c b/net/core/sock.c
@@ -33,5 +33,5 @@ index 018fd41..1e8a882 100644
  #endif
  		sock_valbool_flag(sk, SOCK_KEEPOPEN, valbool);
 -- 
-1.7.10.4
+1.8.1.4
 

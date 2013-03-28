@@ -1,4 +1,4 @@
-From cb5c1976400fe2a3495526ffb53b2978cbab0594 Mon Sep 17 00:00:00 2001
+From ce2d23d59527af43c4eb7796797e0f20a47cc3c3 Mon Sep 17 00:00:00 2001
 From: Greg Rose <gregory.v.rose@intel.com>
 Date: Tue, 21 Feb 2012 16:54:48 -0500
 Subject: [PATCH 15/83] rtnetlink: Fix problem with buffer allocation
@@ -35,10 +35,10 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  commit f18da14565819ba43b8321237e2426a2914cc2ef, which we never applied]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/if_link.h   |    1 +
- include/linux/rtnetlink.h |    3 ++
- include/net/rtnetlink.h   |    2 +-
- net/core/rtnetlink.c      |   76 +++++++++++++++++++++++++++++++++-----------
+ include/linux/if_link.h   |  1 +
+ include/linux/rtnetlink.h |  3 ++
+ include/net/rtnetlink.h   |  2 +-
+ net/core/rtnetlink.c      | 76 +++++++++++++++++++++++++++++++++++------------
  4 files changed, 62 insertions(+), 20 deletions(-)
 
 diff --git a/include/linux/if_link.h b/include/linux/if_link.h
@@ -284,5 +284,5 @@ index 0cf604b..4dfcb39 100644
  		__rtnl_unlock();
  		rtnl = net->rtnl;
 -- 
-1.7.7.6
+1.8.1.4
 

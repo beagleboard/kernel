@@ -1,4 +1,4 @@
-From f8c28ae38d5800aca8f4ddecd457fc366fb8d713 Mon Sep 17 00:00:00 2001
+From c6430ca88ce9bfc1058559d242cbd8a9d618b824 Mon Sep 17 00:00:00 2001
 From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 Date: Thu, 5 Jan 2012 10:47:18 +0200
 Subject: [PATCH 030/129] UBI: fix use-after-free on error path
@@ -13,8 +13,8 @@ Reported-by: Emese Revfy <re.emese@gmail.com>
 Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/mtd/ubi/wl.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/mtd/ubi/wl.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/mtd/ubi/wl.c b/drivers/mtd/ubi/wl.c
 index 277c429..0696e36 100644
@@ -48,5 +48,5 @@ index 277c429..0696e36 100644
  	/* It is %-EIO, the PEB went bad */
  
 -- 
-1.7.7.6
+1.8.1.4
 

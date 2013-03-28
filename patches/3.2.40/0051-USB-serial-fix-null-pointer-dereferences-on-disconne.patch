@@ -1,0 +1,224 @@
+From 9153ea8ddd4a8ac7a0ee996fed2c2af0dfe7c22f Mon Sep 17 00:00:00 2001
+From: Johan Hovold <jhovold@gmail.com>
+Date: Wed, 13 Feb 2013 17:53:28 +0100
+Subject: [PATCH 051/153] USB: serial: fix null-pointer dereferences on
+ disconnect
+
+commit b2ca699076573c94fee9a73cb0d8645383b602a0 upstream.
+
+Make sure serial-driver dtr_rts is called with disc_mutex held after
+checking the disconnected flag.
+
+Due to a bug in the tty layer, dtr_rts may get called after a device has
+been disconnected and the tty-device unregistered. Some drivers have had
+individual checks for disconnect to make sure the disconnected interface
+was not accessed, but this should really be handled in usb-serial core
+(at least until the long-standing tty-bug has been fixed).
+
+Note that the problem has been made more acute with commit 0998d0631001
+("device-core: Ensure drvdata = NULL when no driver is bound") as the
+port data is now also NULL when dtr_rts is called resulting in further
+oopses.
+
+Reported-by: Chris Ruehl <chris.ruehl@gtsys.com.hk>
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+[bwh: Backported to 3.2:
+ - Adjust context
+ - Drop changes to quatech2.c]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/ftdi_sio.c   | 20 +++++++++-----------
+ drivers/usb/serial/mct_u232.c   | 22 +++++++++-------------
+ drivers/usb/serial/sierra.c     |  8 +-------
+ drivers/usb/serial/ssu100.c     | 19 ++++++++-----------
+ drivers/usb/serial/usb-serial.c | 15 +++++++++++++--
+ drivers/usb/serial/usb_wwan.c   |  8 +++-----
+ 6 files changed, 43 insertions(+), 49 deletions(-)
+
+diff --git a/drivers/usb/serial/ftdi_sio.c b/drivers/usb/serial/ftdi_sio.c
+index d644a66..71c4696 100644
+--- a/drivers/usb/serial/ftdi_sio.c
++++ b/drivers/usb/serial/ftdi_sio.c
+@@ -1916,24 +1916,22 @@ static void ftdi_dtr_rts(struct usb_serial_port *port, int on)
+ {
+ 	struct ftdi_private *priv = usb_get_serial_port_data(port);
+ 
+-	mutex_lock(&port->serial->disc_mutex);
+-	if (!port->serial->disconnected) {
+-		/* Disable flow control */
+-		if (!on && usb_control_msg(port->serial->dev,
++	/* Disable flow control */
++	if (!on) {
++		if (usb_control_msg(port->serial->dev,
+ 			    usb_sndctrlpipe(port->serial->dev, 0),
+ 			    FTDI_SIO_SET_FLOW_CTRL_REQUEST,
+ 			    FTDI_SIO_SET_FLOW_CTRL_REQUEST_TYPE,
+ 			    0, priv->interface, NULL, 0,
+ 			    WDR_TIMEOUT) < 0) {
+-			    dev_err(&port->dev, "error from flowcontrol urb\n");
++			dev_err(&port->dev, "error from flowcontrol urb\n");
+ 		}
+-		/* drop RTS and DTR */
+-		if (on)
+-			set_mctrl(port, TIOCM_DTR | TIOCM_RTS);
+-		else
+-			clear_mctrl(port, TIOCM_DTR | TIOCM_RTS);
+ 	}
+-	mutex_unlock(&port->serial->disc_mutex);
++	/* drop RTS and DTR */
++	if (on)
++		set_mctrl(port, TIOCM_DTR | TIOCM_RTS);
++	else
++		clear_mctrl(port, TIOCM_DTR | TIOCM_RTS);
+ }
+ 
+ /*
+diff --git a/drivers/usb/serial/mct_u232.c b/drivers/usb/serial/mct_u232.c
+index d3addb2..de0bb8e 100644
+--- a/drivers/usb/serial/mct_u232.c
++++ b/drivers/usb/serial/mct_u232.c
+@@ -558,19 +558,15 @@ static void mct_u232_dtr_rts(struct usb_serial_port *port, int on)
+ 	unsigned int control_state;
+ 	struct mct_u232_private *priv = usb_get_serial_port_data(port);
+ 
+-	mutex_lock(&port->serial->disc_mutex);
+-	if (!port->serial->disconnected) {
+-		/* drop DTR and RTS */
+-		spin_lock_irq(&priv->lock);
+-		if (on)
+-			priv->control_state |= TIOCM_DTR | TIOCM_RTS;
+-		else
+-			priv->control_state &= ~(TIOCM_DTR | TIOCM_RTS);
+-		control_state = priv->control_state;
+-		spin_unlock_irq(&priv->lock);
+-		mct_u232_set_modem_ctrl(port->serial, control_state);
+-	}
+-	mutex_unlock(&port->serial->disc_mutex);
++	spin_lock_irq(&priv->lock);
++	if (on)
++		priv->control_state |= TIOCM_DTR | TIOCM_RTS;
++	else
++		priv->control_state &= ~(TIOCM_DTR | TIOCM_RTS);
++	control_state = priv->control_state;
++	spin_unlock_irq(&priv->lock);
++
++	mct_u232_set_modem_ctrl(port->serial, control_state);
+ }
+ 
+ static void mct_u232_close(struct usb_serial_port *port)
+diff --git a/drivers/usb/serial/sierra.c b/drivers/usb/serial/sierra.c
+index e1f1ebd..a7fa673 100644
+--- a/drivers/usb/serial/sierra.c
++++ b/drivers/usb/serial/sierra.c
+@@ -891,19 +891,13 @@ static int sierra_open(struct tty_struct *tty, struct usb_serial_port *port)
+ 
+ static void sierra_dtr_rts(struct usb_serial_port *port, int on)
+ {
+-	struct usb_serial *serial = port->serial;
+ 	struct sierra_port_private *portdata;
+ 
+ 	portdata = usb_get_serial_port_data(port);
+ 	portdata->rts_state = on;
+ 	portdata->dtr_state = on;
+ 
+-	if (serial->dev) {
+-		mutex_lock(&serial->disc_mutex);
+-		if (!serial->disconnected)
+-			sierra_send_setup(port);
+-		mutex_unlock(&serial->disc_mutex);
+-	}
++	sierra_send_setup(port);
+ }
+ 
+ static int sierra_startup(struct usb_serial *serial)
+diff --git a/drivers/usb/serial/ssu100.c b/drivers/usb/serial/ssu100.c
+index 87362e4..fff7f17 100644
+--- a/drivers/usb/serial/ssu100.c
++++ b/drivers/usb/serial/ssu100.c
+@@ -533,19 +533,16 @@ static void ssu100_dtr_rts(struct usb_serial_port *port, int on)
+ 
+ 	dbg("%s\n", __func__);
+ 
+-	mutex_lock(&port->serial->disc_mutex);
+-	if (!port->serial->disconnected) {
+-		/* Disable flow control */
+-		if (!on &&
+-		    ssu100_setregister(dev, 0, UART_MCR, 0) < 0)
++	/* Disable flow control */
++	if (!on) {
++		if (ssu100_setregister(dev, 0, UART_MCR, 0) < 0)
+ 			dev_err(&port->dev, "error from flowcontrol urb\n");
+-		/* drop RTS and DTR */
+-		if (on)
+-			set_mctrl(dev, TIOCM_DTR | TIOCM_RTS);
+-		else
+-			clear_mctrl(dev, TIOCM_DTR | TIOCM_RTS);
+ 	}
+-	mutex_unlock(&port->serial->disc_mutex);
++	/* drop RTS and DTR */
++	if (on)
++		set_mctrl(dev, TIOCM_DTR | TIOCM_RTS);
++	else
++		clear_mctrl(dev, TIOCM_DTR | TIOCM_RTS);
+ }
+ 
+ static void ssu100_update_msr(struct usb_serial_port *port, u8 msr)
+diff --git a/drivers/usb/serial/usb-serial.c b/drivers/usb/serial/usb-serial.c
+index e5206de..dc1ce62 100644
+--- a/drivers/usb/serial/usb-serial.c
++++ b/drivers/usb/serial/usb-serial.c
+@@ -697,9 +697,20 @@ static int serial_carrier_raised(struct tty_port *port)
+ static void serial_dtr_rts(struct tty_port *port, int on)
+ {
+ 	struct usb_serial_port *p = container_of(port, struct usb_serial_port, port);
+-	struct usb_serial_driver *drv = p->serial->type;
+-	if (drv->dtr_rts)
++	struct usb_serial *serial = p->serial;
++	struct usb_serial_driver *drv = serial->type;
++
++	if (!drv->dtr_rts)
++		return;
++	/*
++	 * Work-around bug in the tty-layer which can result in dtr_rts
++	 * being called after a disconnect (and tty_unregister_device
++	 * has returned). Remove once bug has been squashed.
++	 */
++	mutex_lock(&serial->disc_mutex);
++	if (!serial->disconnected)
+ 		drv->dtr_rts(p, on);
++	mutex_unlock(&serial->disc_mutex);
+ }
+ 
+ static const struct tty_port_operations serial_port_ops = {
+diff --git a/drivers/usb/serial/usb_wwan.c b/drivers/usb/serial/usb_wwan.c
+index d555ca9..6c92301 100644
+--- a/drivers/usb/serial/usb_wwan.c
++++ b/drivers/usb/serial/usb_wwan.c
+@@ -41,7 +41,6 @@ static int debug;
+ 
+ void usb_wwan_dtr_rts(struct usb_serial_port *port, int on)
+ {
+-	struct usb_serial *serial = port->serial;
+ 	struct usb_wwan_port_private *portdata;
+ 
+ 	struct usb_wwan_intf_private *intfdata;
+@@ -54,12 +53,11 @@ void usb_wwan_dtr_rts(struct usb_serial_port *port, int on)
+ 		return;
+ 
+ 	portdata = usb_get_serial_port_data(port);
+-	mutex_lock(&serial->disc_mutex);
++	/* FIXME: locking */
+ 	portdata->rts_state = on;
+ 	portdata->dtr_state = on;
+-	if (serial->dev)
+-		intfdata->send_setup(port);
+-	mutex_unlock(&serial->disc_mutex);
++
++	intfdata->send_setup(port);
+ }
+ EXPORT_SYMBOL(usb_wwan_dtr_rts);
+ 
+-- 
+1.8.1.4
+

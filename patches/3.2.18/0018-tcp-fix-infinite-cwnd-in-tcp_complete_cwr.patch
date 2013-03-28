@@ -1,4 +1,4 @@
-From 78f184a00e56b426f9250e09ee98f5b09ee57840 Mon Sep 17 00:00:00 2001
+From be4d222534a54e89952249eb2eca4ef57ec4bee1 Mon Sep 17 00:00:00 2001
 From: Yuchung Cheng <ycheng@google.com>
 Date: Mon, 30 Apr 2012 06:00:18 +0000
 Subject: [PATCH 18/56] tcp: fix infinite cwnd in tcp_complete_cwr()
@@ -16,8 +16,8 @@ Acked-by: Neal Cardwell <ncardwell@google.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/ipv4/tcp_input.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+ net/ipv4/tcp_input.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
 index daedc07..db07c9e 100644
@@ -42,5 +42,5 @@ index daedc07..db07c9e 100644
  	tcp_ca_event(sk, CA_EVENT_COMPLETE_CWR);
  }
 -- 
-1.7.7.6
+1.8.1.4
 

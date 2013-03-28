@@ -1,4 +1,4 @@
-From 96d30db5acad7a5773ece7c1526e55dc9e7e6b8f Mon Sep 17 00:00:00 2001
+From 37449583a910b056743fe68d83f67117561e5229 Mon Sep 17 00:00:00 2001
 From: Johan Hovold <jhovold@gmail.com>
 Date: Mon, 16 Jan 2012 00:36:48 +0100
 Subject: [PATCH 82/90] USB: cp210x: call generic open last in open
@@ -10,8 +10,8 @@ Make sure port is fully initialised before calling generic open.
 Signed-off-by: Johan Hovold <jhovold@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/serial/cp210x.c |    9 ++-------
- 1 files changed, 2 insertions(+), 7 deletions(-)
+ drivers/usb/serial/cp210x.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/usb/serial/cp210x.c b/drivers/usb/serial/cp210x.c
 index 3b43d9b..cbcaddb 100644
@@ -43,5 +43,5 @@ index 3b43d9b..cbcaddb 100644
  
  static void cp210x_close(struct usb_serial_port *port)
 -- 
-1.7.7.6
+1.8.1.4
 

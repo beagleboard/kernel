@@ -1,0 +1,46 @@
+From 7b1d292a35e53bd355b45009139e29eef1e2a340 Mon Sep 17 00:00:00 2001
+From: Paulo Zanoni <paulo.r.zanoni@intel.com>
+Date: Fri, 15 Feb 2013 13:36:27 -0200
+Subject: [PATCH 079/153] drm: don't add inferred modes for monitors that don't
+ support them
+
+commit 196e077dc165a307efbd9e7569f81bbdbcf18f65 upstream.
+
+If bit 0 of the features byte (0x18) is set to 0, then, according to
+the EDID spec, "the display is non-continuous frequency (multi-mode)
+and is only specified to accept the video timing formats that are
+listed in Base EDID and certain Extension Blocks".
+
+For more information, please see the EDID spec, check the notes of the
+table that explains the "Feature Support" byte (18h) and also the
+notes on the tables of the section that explains "Display Range Limits
+& Additional Timing Description Definition (tag #FDh)".
+
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=45729
+Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
+Reviewed-by: Adam Jackson <ajax@redhat.com>
+Signed-off-by: Paulo Zanoni <paulo.r.zanoni@intel.com>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/drm_edid.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/drm_edid.c b/drivers/gpu/drm/drm_edid.c
+index 2b741a7..9080eb7 100644
+--- a/drivers/gpu/drm/drm_edid.c
++++ b/drivers/gpu/drm/drm_edid.c
+@@ -1740,7 +1740,8 @@ int drm_add_edid_modes(struct drm_connector *connector, struct edid *edid)
+ 	num_modes += add_cvt_modes(connector, edid);
+ 	num_modes += add_standard_modes(connector, edid);
+ 	num_modes += add_established_modes(connector, edid);
+-	num_modes += add_inferred_modes(connector, edid);
++	if (edid->features & DRM_EDID_FEATURE_DEFAULT_GTF)
++		num_modes += add_inferred_modes(connector, edid);
+ 
+ 	if (quirks & (EDID_QUIRK_PREFER_LARGE_60 | EDID_QUIRK_PREFER_LARGE_75))
+ 		edid_fixup_preferred(connector, quirks);
+-- 
+1.8.1.4
+

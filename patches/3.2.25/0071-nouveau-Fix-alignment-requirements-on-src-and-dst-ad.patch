@@ -1,4 +1,4 @@
-From 8936d65a53dc2ee9f1855e5958badb592d303bf9 Mon Sep 17 00:00:00 2001
+From 4b7b779053b1db84f9985111dc371cc61c0f6fd5 Mon Sep 17 00:00:00 2001
 From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 Date: Mon, 4 Jun 2012 12:00:31 +0200
 Subject: [PATCH 71/73] nouveau: Fix alignment requirements on src and dst
@@ -20,9 +20,9 @@ Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 [bwh: Backported to 3.2: no # prefixes in nva3_copy.fuc]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/nouveau/nva3_copy.fuc   |    4 +-
- drivers/gpu/drm/nouveau/nva3_copy.fuc.h |   94 +++++++++++++++++++++++++++++-
- drivers/gpu/drm/nouveau/nvc0_copy.fuc.h |   87 +++++++++++++++++++++++++++-
+ drivers/gpu/drm/nouveau/nva3_copy.fuc   |  4 +-
+ drivers/gpu/drm/nouveau/nva3_copy.fuc.h | 94 +++++++++++++++++++++++++++++++--
+ drivers/gpu/drm/nouveau/nvc0_copy.fuc.h | 87 ++++++++++++++++++++++++++++--
  3 files changed, 175 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/gpu/drm/nouveau/nva3_copy.fuc b/drivers/gpu/drm/nouveau/nva3_copy.fuc
@@ -744,5 +744,5 @@ index 4199038..9e87036 100644
  	0xf034bd22,
  	0x23d00133,
 -- 
-1.7.7.6
+1.8.1.4
 

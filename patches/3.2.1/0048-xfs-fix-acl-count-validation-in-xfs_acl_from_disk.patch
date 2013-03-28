@@ -1,4 +1,4 @@
-From 782955ec4cab52ac4ec4f4e64d396d69ef33e0bd Mon Sep 17 00:00:00 2001
+From 7f053ebadda7275bfb445e7f44b4cec1ede32f95 Mon Sep 17 00:00:00 2001
 From: Xi Wang <xi.wang@gmail.com>
 Date: Mon, 12 Dec 2011 21:55:52 +0000
 Subject: [PATCH 48/49] xfs: fix acl count validation in xfs_acl_from_disk()
@@ -13,8 +13,8 @@ Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Ben Myers <bpm@sgi.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- fs/xfs/xfs_acl.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ fs/xfs/xfs_acl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/fs/xfs/xfs_acl.c b/fs/xfs/xfs_acl.c
 index 76e4266..ac702a6 100644
@@ -30,5 +30,5 @@ index 76e4266..ac702a6 100644
  	count = be32_to_cpu(aclp->acl_cnt);
  	if (count > XFS_ACL_MAX_ENTRIES)
 -- 
-1.7.7.6
+1.8.1.4
 

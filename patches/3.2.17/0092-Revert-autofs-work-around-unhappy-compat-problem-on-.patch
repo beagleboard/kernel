@@ -1,8 +1,8 @@
-From 615d827e415ac80438f72ecb947ae54c7f917b67 Mon Sep 17 00:00:00 2001
+From f47e8e2b7b95b917a38d5b58056593dc0b9af3b7 Mon Sep 17 00:00:00 2001
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Date: Sat, 28 Apr 2012 08:29:56 -0700
-Subject: [PATCH 092/165] Revert "autofs: work around unhappy compat problem
- on x86-64"
+Subject: [PATCH 092/165] Revert "autofs: work around unhappy compat problem on
+ x86-64"
 
 commit fcbf94b9dedd2ce08e798a99aafc94fec8668161 upstream.
 
@@ -40,10 +40,10 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/autofs4/autofs_i.h  |    1 -
- fs/autofs4/dev-ioctl.c |    1 -
- fs/autofs4/inode.c     |    2 --
- fs/autofs4/waitq.c     |   22 +++-------------------
+ fs/autofs4/autofs_i.h  |  1 -
+ fs/autofs4/dev-ioctl.c |  1 -
+ fs/autofs4/inode.c     |  2 --
+ fs/autofs4/waitq.c     | 22 +++-------------------
  4 files changed, 3 insertions(+), 23 deletions(-)
 
 diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
@@ -131,5 +131,5 @@ index 6861f61..e1fbdee 100644
  		packet->len = wq->name.len;
  		memcpy(packet->name, wq->name.name, wq->name.len);
 -- 
-1.7.7.6
+1.8.1.4
 

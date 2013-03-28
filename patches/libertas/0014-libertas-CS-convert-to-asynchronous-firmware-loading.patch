@@ -1,4 +1,4 @@
-From af38e4b964ed133ee24b2f3ddd8ab89695b84901 Mon Sep 17 00:00:00 2001
+From dd1f2040351e966187ec590caa5a98bb04a28473 Mon Sep 17 00:00:00 2001
 From: Daniel Drake <dsd@laptop.org>
 Date: Wed, 18 Apr 2012 20:09:44 +0100
 Subject: [PATCH 14/16] libertas CS: convert to asynchronous firmware loading
@@ -8,8 +8,8 @@ Tested-by: Dan Williams <dcbw@redhat.com>
 Acked-by: Dan Williams <dcbw@redhat.com>
 Signed-off-by: John W. Linville <linville@tuxdriver.com>
 ---
- drivers/net/wireless/libertas/if_cs.c |   88 ++++++++++++++++++--------------
- 1 files changed, 49 insertions(+), 39 deletions(-)
+ drivers/net/wireless/libertas/if_cs.c | 88 +++++++++++++++++++----------------
+ 1 file changed, 49 insertions(+), 39 deletions(-)
 
 diff --git a/drivers/net/wireless/libertas/if_cs.c b/drivers/net/wireless/libertas/if_cs.c
 index cee5052..16beaf3 100644
@@ -150,5 +150,5 @@ index cee5052..16beaf3 100644
  	return ret;
  }
 -- 
-1.7.7.6
+1.8.1.4
 

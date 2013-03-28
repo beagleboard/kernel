@@ -1,0 +1,42 @@
+From a4d0368f5082194906e05d2c8ab9a6342069b50d Mon Sep 17 00:00:00 2001
+From: Torsten Duwe <torsten@lst.de>
+Date: Sat, 23 Mar 2013 15:38:22 +0100
+Subject: [PATCH 87/92] KMS: fix EDID detailed timing vsync parsing
+
+commit 16dad1d743d31a104a849c8944e6b9eb479f6cd7 upstream.
+
+EDID spreads some values across multiple bytes; bit-fiddling is needed
+to retrieve these.  The current code to parse "detailed timings" has a
+cut&paste error that results in a vsync offset of at most 15 lines
+instead of 63.
+
+See
+
+   http://en.wikipedia.org/wiki/EDID
+
+and in the "EDID Detailed Timing Descriptor" see bytes 10+11 show why
+that needs to be a left shift.
+
+Signed-off-by: Torsten Duwe <duwe@lst.de>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/drm_edid.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/drm_edid.c b/drivers/gpu/drm/drm_edid.c
+index 9080eb7..2518ec7 100644
+--- a/drivers/gpu/drm/drm_edid.c
++++ b/drivers/gpu/drm/drm_edid.c
+@@ -852,7 +852,7 @@ static struct drm_display_mode *drm_mode_detailed(struct drm_device *dev,
+ 	unsigned vblank = (pt->vactive_vblank_hi & 0xf) << 8 | pt->vblank_lo;
+ 	unsigned hsync_offset = (pt->hsync_vsync_offset_pulse_width_hi & 0xc0) << 2 | pt->hsync_offset_lo;
+ 	unsigned hsync_pulse_width = (pt->hsync_vsync_offset_pulse_width_hi & 0x30) << 4 | pt->hsync_pulse_width_lo;
+-	unsigned vsync_offset = (pt->hsync_vsync_offset_pulse_width_hi & 0xc) >> 2 | pt->vsync_offset_pulse_width_lo >> 4;
++	unsigned vsync_offset = (pt->hsync_vsync_offset_pulse_width_hi & 0xc) << 2 | pt->vsync_offset_pulse_width_lo >> 4;
+ 	unsigned vsync_pulse_width = (pt->hsync_vsync_offset_pulse_width_hi & 0x3) << 4 | (pt->vsync_offset_pulse_width_lo & 0xf);
+ 
+ 	/* ignore tiny modes */
+-- 
+1.8.1.4
+

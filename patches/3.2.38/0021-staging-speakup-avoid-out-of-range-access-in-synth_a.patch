@@ -1,0 +1,34 @@
+From 0d4b003cfed3e597c52ea03730992584e84f3db0 Mon Sep 17 00:00:00 2001
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date: Mon, 7 Jan 2013 22:03:51 +0100
+Subject: [PATCH 021/127] staging: speakup: avoid out-of-range access in
+ synth_add()
+
+commit 6102c48bd421074a33e102f2ebda3724e8d275f9 upstream.
+
+Check that array index is in-bounds before accessing the synths[] array.
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Cc: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/speakup/synth.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/speakup/synth.c b/drivers/staging/speakup/synth.c
+index b568803..7843111 100644
+--- a/drivers/staging/speakup/synth.c
++++ b/drivers/staging/speakup/synth.c
+@@ -423,7 +423,7 @@ int synth_add(struct spk_synth *in_synth)
+ 	int i;
+ 	int status = 0;
+ 	mutex_lock(&spk_mutex);
+-	for (i = 0; synths[i] != NULL && i < MAXSYNTHS; i++)
++	for (i = 0; i < MAXSYNTHS && synths[i] != NULL; i++)
+ 		/* synth_remove() is responsible for rotating the array down */
+ 		if (in_synth == synths[i]) {
+ 			mutex_unlock(&spk_mutex);
+-- 
+1.8.1.4
+

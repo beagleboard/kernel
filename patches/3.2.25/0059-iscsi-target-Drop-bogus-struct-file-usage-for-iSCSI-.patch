@@ -1,4 +1,4 @@
-From d62209a059c07773cae7d1d23d03722ac79f8d2c Mon Sep 17 00:00:00 2001
+From f045a58f9ea26a1f1560eb6a676b38c7f2204f7d Mon Sep 17 00:00:00 2001
 From: Al Viro <viro@ZenIV.linux.org.uk>
 Date: Sat, 21 Jul 2012 08:55:18 +0100
 Subject: [PATCH 59/73] iscsi-target: Drop bogus struct file usage for
@@ -39,9 +39,9 @@ Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/target/iscsi/iscsi_target.c       |   22 +---------
- drivers/target/iscsi/iscsi_target_core.h  |    2 -
- drivers/target/iscsi/iscsi_target_login.c |   60 +---------------------------
+ drivers/target/iscsi/iscsi_target.c       | 22 ++----------
+ drivers/target/iscsi/iscsi_target_core.h  |  2 --
+ drivers/target/iscsi/iscsi_target_login.c | 60 ++-----------------------------
  3 files changed, 6 insertions(+), 78 deletions(-)
 
 diff --git a/drivers/target/iscsi/iscsi_target.c b/drivers/target/iscsi/iscsi_target.c
@@ -226,5 +226,5 @@ index bd2adec..2ec5339 100644
  
  	if (tpg) {
 -- 
-1.7.7.6
+1.8.1.4
 

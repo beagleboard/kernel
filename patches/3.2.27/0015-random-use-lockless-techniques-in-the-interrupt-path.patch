@@ -1,4 +1,4 @@
-From 05150a4f50e5dc97474fc4f57e09b4813f339a90 Mon Sep 17 00:00:00 2001
+From 9bc7118d71bfaadd1f7f4380ccd6659e1452657e Mon Sep 17 00:00:00 2001
 From: Theodore Ts'o <tytso@mit.edu>
 Date: Wed, 4 Jul 2012 10:38:30 -0400
 Subject: [PATCH 15/70] random: use lockless techniques in the interrupt path
@@ -13,8 +13,8 @@ random driver, which is the interrupt collection path.
 Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/char/random.c |   78 ++++++++++++++++++++++++------------------------
- 1 files changed, 39 insertions(+), 39 deletions(-)
+ drivers/char/random.c | 78 +++++++++++++++++++++++++--------------------------
+ 1 file changed, 39 insertions(+), 39 deletions(-)
 
 diff --git a/drivers/char/random.c b/drivers/char/random.c
 index a30df99..8ac7e05 100644
@@ -241,5 +241,5 @@ index a30df99..8ac7e05 100644
  	}
  
 -- 
-1.7.7.6
+1.8.1.4
 

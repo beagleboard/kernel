@@ -1,4 +1,4 @@
-From 5a88d3f11a87f818e886395fcae4214bd42fcf65 Mon Sep 17 00:00:00 2001
+From 38eb14045521d0687de468f1e106be0ec489fc9a Mon Sep 17 00:00:00 2001
 From: Shaohua Li <shli@kernel.org>
 Date: Fri, 13 Apr 2012 10:27:35 +0800
 Subject: [PATCH 024/165] jbd2: use GFP_NOFS for blkdev_issue_flush
@@ -15,8 +15,8 @@ Signed-off-by: Theodore Ts'o <tytso@mit.edu>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/jbd2/commit.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ fs/jbd2/commit.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/fs/jbd2/commit.c b/fs/jbd2/commit.c
 index 68d704d..d751f04 100644
@@ -41,5 +41,5 @@ index 68d704d..d751f04 100644
  
  	if (err)
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 7cd298666a86c76398b28f4aee506bba33d7c1d9 Mon Sep 17 00:00:00 2001
+From 6ea82bce81733019620583edecd175286d317fd4 Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Sat, 10 Mar 2012 09:20:21 +0000
 Subject: [PATCH 06/10] tcp: fix syncookie regression
@@ -27,8 +27,8 @@ Tested-by: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/ipv4/syncookies.c |   30 ++++++++++++++++--------------
- net/ipv4/tcp_ipv4.c   |   10 +++++++---
+ net/ipv4/syncookies.c | 30 ++++++++++++++++--------------
+ net/ipv4/tcp_ipv4.c   | 10 +++++++---
  2 files changed, 23 insertions(+), 17 deletions(-)
 
 diff --git a/net/ipv4/syncookies.c b/net/ipv4/syncookies.c
@@ -107,5 +107,5 @@ index eb90aa8..de69cec 100644
  
  	tcp_mtup_init(newsk);
 -- 
-1.7.7.6
+1.8.1.4
 

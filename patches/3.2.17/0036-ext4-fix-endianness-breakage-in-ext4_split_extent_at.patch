@@ -1,4 +1,4 @@
-From 2ca937e3dcff16c3d3b908f54eedfe31bd648d5a Mon Sep 17 00:00:00 2001
+From 561cbd88cd0c0a31e0cf54539df7b9c6b852d2e4 Mon Sep 17 00:00:00 2001
 From: Al Viro <viro@zeniv.linux.org.uk>
 Date: Thu, 12 Apr 2012 20:32:25 -0400
 Subject: [PATCH 036/165] ext4: fix endianness breakage in
@@ -12,8 +12,8 @@ Bad Things(tm) on big-endian hosts...
 Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ext4/extents.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ fs/ext4/extents.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
 index c2a2012..54f2bdc 100644
@@ -29,5 +29,5 @@ index c2a2012..54f2bdc 100644
  		err = ext4_ext_dirty(handle, inode, path + depth);
  		goto out;
 -- 
-1.7.7.6
+1.8.1.4
 

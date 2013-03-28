@@ -1,4 +1,4 @@
-From ccc2d1f95121700361b04792a8127dac64d7d0ee Mon Sep 17 00:00:00 2001
+From 6a7de04478eb4eefda56a60e7c8b747f85ddc0f9 Mon Sep 17 00:00:00 2001
 From: Mathias Krause <minipli@googlemail.com>
 Date: Sun, 29 Jul 2012 19:45:14 +0000
 Subject: [PATCH 12/38] net/tun: fix ioctl() based info leaks
@@ -14,8 +14,8 @@ Signed-off-by: Mathias Krause <minipli@googlemail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/tun.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/net/tun.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/tun.c b/drivers/net/tun.c
 index 7bea9c6..a12c9bf 100644
@@ -37,5 +37,5 @@ index 7bea9c6..a12c9bf 100644
  		/* Currently this just means: "what IFF flags are valid?".
  		 * This is needed because we never checked for invalid flags on
 -- 
-1.7.7.6
+1.8.1.4
 

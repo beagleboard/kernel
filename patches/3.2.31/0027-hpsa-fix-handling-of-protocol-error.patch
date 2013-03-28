@@ -1,4 +1,4 @@
-From 97359554a50c167c79aff469b3e99d2a758c8472 Mon Sep 17 00:00:00 2001
+From b3c5f1a20feaf97e55adcfb0e8e3c27a79737a27 Mon Sep 17 00:00:00 2001
 From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
 Date: Fri, 14 Sep 2012 16:34:25 -0500
 Subject: [PATCH 027/109] hpsa: fix handling of protocol error
@@ -24,7 +24,7 @@ Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Signed-off-by: James Bottomley <JBottomley@Parallels.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/scsi/hpsa.c |    3 ++-
+ drivers/scsi/hpsa.c | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/scsi/hpsa.c b/drivers/scsi/hpsa.c
@@ -43,5 +43,5 @@ index b4d2c86..be9aad8 100644
  	case CMD_HARDWARE_ERR:
  		cmd->result = DID_ERROR << 16;
 -- 
-1.7.10.4
+1.8.1.4
 

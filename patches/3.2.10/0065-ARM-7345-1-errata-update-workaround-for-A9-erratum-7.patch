@@ -1,4 +1,4 @@
-From 3f7a0d75770051f399353a1a46b66b88caf45e3a Mon Sep 17 00:00:00 2001
+From 42ad2a9b029af5b920faed97d9a8db787ef2ed54 Mon Sep 17 00:00:00 2001
 From: Will Deacon <will.deacon@arm.com>
 Date: Fri, 24 Feb 2012 12:12:38 +0100
 Subject: [PATCH 65/95] ARM: 7345/1: errata: update workaround for A9 erratum
@@ -14,8 +14,8 @@ Signed-off-by: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/arm/Kconfig      |    2 +-
- arch/arm/mm/proc-v7.S |    4 +---
+ arch/arm/Kconfig      | 2 +-
+ arch/arm/mm/proc-v7.S | 4 +---
  2 files changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
@@ -47,5 +47,5 @@ index 40cc7aa..82ef81d 100644
  	orreq	r10, r10, #1 << 6		@ set bit #6
  	mcreq	p15, 0, r10, c15, c0, 1		@ write diagnostic register
 -- 
-1.7.7.6
+1.8.1.4
 

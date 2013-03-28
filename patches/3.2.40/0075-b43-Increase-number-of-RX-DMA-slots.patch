@@ -1,0 +1,39 @@
+From ea2bd65138a237424db32f8c2c2daa3677b5a880 Mon Sep 17 00:00:00 2001
+From: Larry Finger <Larry.Finger@lwfinger.net>
+Date: Sun, 17 Feb 2013 17:01:20 +0000
+Subject: [PATCH 075/153] b43: Increase number of RX DMA slots
+
+commit ccae0e50c16a7f7adb029c169147400d1ce9f703 upstream.
+
+Bastian Bittorf reported that some of the silent freezes on a Linksys WRT54G
+were due to overflow of the RX DMA ring buffer, which was created with 64
+slots. That finding reminded me that I was seeing similar crashed on a netbook,
+which also has a relatively slow processor. After increasing the number of
+slots to 128, runs on the netbook that previously failed now worked; however,
+I found that 109 slots had been used in one test. For that reason, the number
+of slots is being increased to 256.
+
+Signed-off-by: Larry Finger <Larry.Finger@lwfinger.net>
+Cc: Bastian Bittorf <bittorf@bluebottle.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/b43/dma.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/b43/dma.h b/drivers/net/wireless/b43/dma.h
+index 315b96e..9fdd198 100644
+--- a/drivers/net/wireless/b43/dma.h
++++ b/drivers/net/wireless/b43/dma.h
+@@ -169,7 +169,7 @@ struct b43_dmadesc_generic {
+ 
+ /* DMA engine tuning knobs */
+ #define B43_TXRING_SLOTS		256
+-#define B43_RXRING_SLOTS		64
++#define B43_RXRING_SLOTS		256
+ #define B43_DMA0_RX_FW598_BUFSIZE	(B43_DMA0_RX_FW598_FO + IEEE80211_MAX_FRAME_LEN)
+ #define B43_DMA0_RX_FW351_BUFSIZE	(B43_DMA0_RX_FW351_FO + IEEE80211_MAX_FRAME_LEN)
+ 
+-- 
+1.8.1.4
+

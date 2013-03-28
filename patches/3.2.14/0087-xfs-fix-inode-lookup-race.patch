@@ -1,4 +1,4 @@
-From 8a8a554167121e072427c3ee3f68fe2d6b06ead6 Mon Sep 17 00:00:00 2001
+From ed18de2c44a537caffc919bfaab98c7fb6547d58 Mon Sep 17 00:00:00 2001
 From: Dave Chinner <dchinner@redhat.com>
 Date: Wed, 7 Mar 2012 04:50:25 +0000
 Subject: [PATCH 087/147] xfs: fix inode lookup race
@@ -55,8 +55,8 @@ Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Ben Myers <bpm@sgi.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/xfs/xfs_iget.c |   18 ++++++++++++------
- 1 files changed, 12 insertions(+), 6 deletions(-)
+ fs/xfs/xfs_iget.c | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
 diff --git a/fs/xfs/xfs_iget.c b/fs/xfs/xfs_iget.c
 index 0fa98b1..cfc4277 100644
@@ -97,5 +97,5 @@ index 0fa98b1..cfc4277 100644
  	radix_tree_preload_end();
  
 -- 
-1.7.7.6
+1.8.1.4
 

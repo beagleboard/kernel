@@ -1,4 +1,4 @@
-From 72d4807cbfcbd167563c2c537feb36dc9c2c6344 Mon Sep 17 00:00:00 2001
+From 413dcc1a4bfe7896b369118217c1a588f1e6b42c Mon Sep 17 00:00:00 2001
 From: Daniel Drake <dsd@laptop.org>
 Date: Mon, 16 Apr 2012 23:52:42 +0100
 Subject: [PATCH 09/16] libertas: Firmware loading simplifications
@@ -23,14 +23,14 @@ Signed-off-by: Daniel Drake <dsd@laptop.org>
 Acked-by: Dan Williams <dcbw@redhat.com>
 Signed-off-by: John W. Linville <linville@tuxdriver.com>
 ---
- drivers/net/wireless/libertas/Makefile   |    1 +
- drivers/net/wireless/libertas/decl.h     |    3 +-
- drivers/net/wireless/libertas/firmware.c |   79 ++++++++++++++
- drivers/net/wireless/libertas/if_cs.c    |    4 +-
- drivers/net/wireless/libertas/if_sdio.c  |   25 +----
- drivers/net/wireless/libertas/if_spi.c   |    5 +-
- drivers/net/wireless/libertas/if_usb.c   |  169 ++----------------------------
- drivers/net/wireless/libertas/main.c     |  101 ------------------
+ drivers/net/wireless/libertas/Makefile   |   1 +
+ drivers/net/wireless/libertas/decl.h     |   3 +-
+ drivers/net/wireless/libertas/firmware.c |  79 +++++++++++++++
+ drivers/net/wireless/libertas/if_cs.c    |   4 +-
+ drivers/net/wireless/libertas/if_sdio.c  |  25 +----
+ drivers/net/wireless/libertas/if_spi.c   |   5 +-
+ drivers/net/wireless/libertas/if_usb.c   | 169 ++-----------------------------
+ drivers/net/wireless/libertas/main.c     | 101 ------------------
  8 files changed, 94 insertions(+), 293 deletions(-)
  create mode 100644 drivers/net/wireless/libertas/firmware.c
 
@@ -614,5 +614,5 @@ index 3b81b70..fa09585 100644
  {
  	lbs_deb_enter(LBS_DEB_MAIN);
 -- 
-1.7.7.6
+1.8.1.4
 

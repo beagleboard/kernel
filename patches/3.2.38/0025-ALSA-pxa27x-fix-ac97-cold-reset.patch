@@ -1,0 +1,56 @@
+From 1efbeea0bfa7971d5a64af255d4cdeaac2b28ef4 Mon Sep 17 00:00:00 2001
+From: Mike Dunn <mikedunn@newsguy.com>
+Date: Mon, 7 Jan 2013 13:55:12 -0800
+Subject: [PATCH 025/127] ALSA: pxa27x: fix ac97 cold reset
+
+commit 41b645c8624df6ace020a8863ad1449d69140f7d upstream.
+
+Cold reset on the pxa27x currently fails and
+
+     pxa2xx_ac97_try_cold_reset: cold reset timeout (GSR=0x44)
+
+appears in the kernel log.  Through trial-and-error (the pxa270 developer's
+manual is mostly incoherent on the topic of ac97 reset), I got cold reset to
+complete by setting the WARM_RST bit in the GCR register (and later noticed that
+pxa3xx does this for cold reset as well).  Also, a timeout loop is needed to
+wait for the reset to complete.
+
+Tested on a palm treo 680 machine.
+
+Signed-off-by: Mike Dunn <mikedunn@newsguy.com>
+Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/arm/pxa2xx-ac97-lib.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/sound/arm/pxa2xx-ac97-lib.c b/sound/arm/pxa2xx-ac97-lib.c
+index d1aa421..9ba64d5 100644
+--- a/sound/arm/pxa2xx-ac97-lib.c
++++ b/sound/arm/pxa2xx-ac97-lib.c
+@@ -147,6 +147,8 @@ static inline void pxa_ac97_warm_pxa27x(void)
+ 
+ static inline void pxa_ac97_cold_pxa27x(void)
+ {
++	unsigned int timeout;
++
+ 	GCR &=  GCR_COLD_RST;  /* clear everything but nCRST */
+ 	GCR &= ~GCR_COLD_RST;  /* then assert nCRST */
+ 
+@@ -156,8 +158,10 @@ static inline void pxa_ac97_cold_pxa27x(void)
+ 	clk_enable(ac97conf_clk);
+ 	udelay(5);
+ 	clk_disable(ac97conf_clk);
+-	GCR = GCR_COLD_RST;
+-	udelay(50);
++	GCR = GCR_COLD_RST | GCR_WARM_RST;
++	timeout = 100;     /* wait for the codec-ready bit to be set */
++	while (!((GSR | gsr_bits) & (GSR_PCR | GSR_SCR)) && timeout--)
++		mdelay(1);
+ }
+ #endif
+ 
+-- 
+1.8.1.4
+

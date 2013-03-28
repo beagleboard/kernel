@@ -1,4 +1,4 @@
-From e7aded140460894d53724aae29c13babe0978267 Mon Sep 17 00:00:00 2001
+From 1d7b0e3d5cfeec6f85195263480973eceb5762ba Mon Sep 17 00:00:00 2001
 From: "David S. Miller" <davem@davemloft.net>
 Date: Tue, 24 Jan 2012 17:03:44 -0500
 Subject: [PATCH 78/90] rds: Make rds_sock_lock BH rather than IRQ safe.
@@ -20,8 +20,8 @@ Reported-by: Josh Boyer <jwboyer@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/rds/af_rds.c |   20 ++++++++------------
- 1 files changed, 8 insertions(+), 12 deletions(-)
+ net/rds/af_rds.c | 20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
 
 diff --git a/net/rds/af_rds.c b/net/rds/af_rds.c
 index bb6ad81..424ff62 100644
@@ -115,5 +115,5 @@ index bb6ad81..424ff62 100644
  
  static void rds_exit(void)
 -- 
-1.7.7.6
+1.8.1.4
 

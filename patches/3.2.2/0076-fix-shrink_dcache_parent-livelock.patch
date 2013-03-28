@@ -1,4 +1,4 @@
-From f37cef025da0eb8aa2a96eceabd14233bfacf4bd Mon Sep 17 00:00:00 2001
+From d8f1d7edcc00423c4c19bf29a206bb3791a52885 Mon Sep 17 00:00:00 2001
 From: Miklos Szeredi <miklos@szeredi.hu>
 Date: Tue, 10 Jan 2012 18:22:25 +0100
 Subject: [PATCH 076/129] fix shrink_dcache_parent() livelock
@@ -65,8 +65,8 @@ Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- fs/dcache.c            |   15 +++++++++++----
- include/linux/dcache.h |    1 +
+ fs/dcache.c            | 15 +++++++++++----
+ include/linux/dcache.h |  1 +
  2 files changed, 12 insertions(+), 4 deletions(-)
 
 diff --git a/fs/dcache.c b/fs/dcache.c
@@ -126,5 +126,5 @@ index ed9f74f..4eb8c80 100644
  #define DCACHE_NFSFS_RENAMED	0x1000
       /* this dentry has been "silly renamed" and has to be deleted on the last
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,0 +1,49 @@
+From 28fb698da5f3ba8f96c28d24166de26e748c928a Mon Sep 17 00:00:00 2001
+From: Ian Campbell <Ian.Campbell@citrix.com>
+Date: Wed, 6 Feb 2013 23:41:37 +0000
+Subject: [PATCH 58/67] xen/netback: free already allocated memory on failure
+ in xen_netbk_get_requests
+
+[ Upstream commit 4cc7c1cb7b11b6f3515bd9075527576a1eecc4aa ]
+
+Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/xen-netback/netback.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/xen-netback/netback.c b/drivers/net/xen-netback/netback.c
+index d6c2359..a14b3a2 100644
+--- a/drivers/net/xen-netback/netback.c
++++ b/drivers/net/xen-netback/netback.c
+@@ -950,7 +950,7 @@ static struct gnttab_copy *xen_netbk_get_requests(struct xen_netbk *netbk,
+ 		pending_idx = netbk->pending_ring[index];
+ 		page = xen_netbk_alloc_page(netbk, skb, pending_idx);
+ 		if (!page)
+-			return NULL;
++			goto err;
+ 
+ 		netbk->mmap_pages[pending_idx] = page;
+ 
+@@ -974,6 +974,17 @@ static struct gnttab_copy *xen_netbk_get_requests(struct xen_netbk *netbk,
+ 	}
+ 
+ 	return gop;
++err:
++	/* Unwind, freeing all pages and sending error responses. */
++	while (i-- > start) {
++		xen_netbk_idx_release(netbk, frag_get_pending_idx(&frags[i]),
++				      XEN_NETIF_RSP_ERROR);
++	}
++	/* The head too, if necessary. */
++	if (start)
++		xen_netbk_idx_release(netbk, pending_idx, XEN_NETIF_RSP_ERROR);
++
++	return NULL;
+ }
+ 
+ static int xen_netbk_tx_check_gop(struct xen_netbk *netbk,
+-- 
+1.8.1.4
+

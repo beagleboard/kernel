@@ -1,4 +1,4 @@
-From d3faf544c1abeb90b23588dcd167a60281b474f2 Mon Sep 17 00:00:00 2001
+From 01c0f4381bf9d12ebba83e86ad8164eefac3e06d Mon Sep 17 00:00:00 2001
 From: Trond Myklebust <Trond.Myklebust@netapp.com>
 Date: Mon, 12 Mar 2012 18:01:48 -0400
 Subject: [PATCH 105/147] NFSv4: Rate limit the state manager warning messages
@@ -11,9 +11,9 @@ fails on the server.
 Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/nfs/callback_xdr.c |    4 +++-
- fs/nfs/nfs4proc.c     |    2 +-
- fs/nfs/nfs4state.c    |    4 ++--
+ fs/nfs/callback_xdr.c | 4 +++-
+ fs/nfs/nfs4proc.c     | 2 +-
+ fs/nfs/nfs4state.c    | 4 ++--
  3 files changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/fs/nfs/callback_xdr.c b/fs/nfs/callback_xdr.c
@@ -74,5 +74,5 @@ index 0596fd6..66020ac 100644
  	nfs4_end_drain_session(clp);
  	nfs4_clear_state_manager_bit(clp);
 -- 
-1.7.7.6
+1.8.1.4
 

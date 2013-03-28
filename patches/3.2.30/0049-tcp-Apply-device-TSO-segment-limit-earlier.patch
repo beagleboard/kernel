@@ -1,4 +1,4 @@
-From 0c756854d56e6ae5ffb76d849a9fad757aa3c6c4 Mon Sep 17 00:00:00 2001
+From 7918280ee2e77e5b6c62627ddef9fe850b6535a6 Mon Sep 17 00:00:00 2001
 From: Ben Hutchings <bhutchings@solarflare.com>
 Date: Mon, 30 Jul 2012 16:11:42 +0000
 Subject: [PATCH 049/135] tcp: Apply device TSO segment limit earlier
@@ -13,11 +13,11 @@ Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/net/sock.h    |    2 ++
- net/core/sock.c       |    1 +
- net/ipv4/tcp.c        |    4 +++-
- net/ipv4/tcp_cong.c   |    3 ++-
- net/ipv4/tcp_output.c |   21 ++++++++++++---------
+ include/net/sock.h    |  2 ++
+ net/core/sock.c       |  1 +
+ net/ipv4/tcp.c        |  4 +++-
+ net/ipv4/tcp_cong.c   |  3 ++-
+ net/ipv4/tcp_output.c | 21 ++++++++++++---------
  5 files changed, 20 insertions(+), 11 deletions(-)
 
 diff --git a/include/net/sock.h b/include/net/sock.h
@@ -136,5 +136,5 @@ index c51dd5b..921cbac 100644
  		if (skb->len > limit &&
  		    unlikely(tso_fragment(sk, skb, limit, mss_now, gfp)))
 -- 
-1.7.7.6
+1.8.1.4
 

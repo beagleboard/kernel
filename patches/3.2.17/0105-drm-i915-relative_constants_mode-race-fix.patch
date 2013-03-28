@@ -1,4 +1,4 @@
-From 2a1fd79a1e2e6ccac886d1f02926ff0f03fbd23e Mon Sep 17 00:00:00 2001
+From cf039c5c7c71cda159ff038f3cb0f3cbfbdab212 Mon Sep 17 00:00:00 2001
 From: Ben Widawsky <ben@bwidawsk.net>
 Date: Mon, 12 Dec 2011 19:21:57 -0800
 Subject: [PATCH 105/165] drm/i915: relative_constants_mode race fix
@@ -23,8 +23,8 @@ Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 Signed-off-by: Keith Packard <keithp@keithp.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/i915/i915_gem_execbuffer.c |   29 +++++++++++++++------------
- 1 files changed, 16 insertions(+), 13 deletions(-)
+ drivers/gpu/drm/i915/i915_gem_execbuffer.c | 29 ++++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/i915_gem_execbuffer.c b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
 index b9da890..7d64f83 100644
@@ -74,5 +74,5 @@ index b9da890..7d64f83 100644
  
  	exec_start = batch_obj->gtt_offset + args->batch_start_offset;
 -- 
-1.7.7.6
+1.8.1.4
 

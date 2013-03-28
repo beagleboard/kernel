@@ -1,4 +1,4 @@
-From a569ab17c0ba14897f6a06bae395fd226e902447 Mon Sep 17 00:00:00 2001
+From 3cf05777fc9bf9da795e94d559509aa6c480aa72 Mon Sep 17 00:00:00 2001
 From: Mathias Krause <minipli@googlemail.com>
 Date: Wed, 30 May 2012 01:43:08 +0200
 Subject: [PATCH 18/67] crypto: aesni-intel - fix unaligned cbc decrypt for
@@ -19,8 +19,8 @@ Signed-off-by: Mathias Krause <minipli@googlemail.com>
 Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/x86/crypto/aesni-intel_asm.S |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ arch/x86/crypto/aesni-intel_asm.S | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/arch/x86/crypto/aesni-intel_asm.S b/arch/x86/crypto/aesni-intel_asm.S
 index be6d9e3..3470624 100644
@@ -42,5 +42,5 @@ index be6d9e3..3470624 100644
  	movups STATE1, (OUTP)
  	movups STATE2, 0x10(OUTP)
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,0 +1,37 @@
+From d9cdf10ebd704e48e6b1cd68df0784dd9824ef73 Mon Sep 17 00:00:00 2001
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Sun, 17 Mar 2013 02:46:09 +0000
+Subject: [PATCH 25/92] vhost/net: fix heads usage of ubuf_info
+
+commit 46aa92d1ba162b4b3d6b7102440e459d4e4ee255 upstream.
+
+ubuf info allocator uses guest controlled head as an index,
+so a malicious guest could put the same head entry in the ring twice,
+and we will get two callbacks on the same value.
+To fix use upend_idx which is guaranteed to be unique.
+
+Reported-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/vhost/net.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/vhost/net.c b/drivers/vhost/net.c
+index b76071e..5c58128 100644
+--- a/drivers/vhost/net.c
++++ b/drivers/vhost/net.c
+@@ -234,7 +234,8 @@ static void handle_tx(struct vhost_net *net)
+ 				msg.msg_controllen = 0;
+ 				ubufs = NULL;
+ 			} else {
+-				struct ubuf_info *ubuf = &vq->ubuf_info[head];
++				struct ubuf_info *ubuf;
++				ubuf = vq->ubuf_info + vq->upend_idx;
+ 
+ 				vq->heads[vq->upend_idx].len = len;
+ 				ubuf->callback = vhost_zerocopy_callback;
+-- 
+1.8.1.4
+

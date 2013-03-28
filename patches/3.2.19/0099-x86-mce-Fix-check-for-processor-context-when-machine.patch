@@ -1,8 +1,8 @@
-From dd060d0ac66ad024367b73ed6411b96ac347c252 Mon Sep 17 00:00:00 2001
+From 8651a4ca151a8ef67600d161663caa27b819c4ec Mon Sep 17 00:00:00 2001
 From: Tony Luck <tony.luck@intel.com>
 Date: Wed, 23 May 2012 14:14:22 -0700
-Subject: [PATCH 099/117] x86/mce: Fix check for processor context when
- machine check was taken.
+Subject: [PATCH 099/117] x86/mce: Fix check for processor context when machine
+ check was taken.
 
 commit 875e26648cf9b6db9d8dc07b7959d7c61fb3f49c upstream.
 
@@ -15,8 +15,8 @@ Reported-by: Linus Torvalds <torvalds@linuxfoundation.org>
 Signed-off-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/x86/kernel/cpu/mcheck/mce-severity.c |   16 ++++++++++------
- 1 files changed, 10 insertions(+), 6 deletions(-)
+ arch/x86/kernel/cpu/mcheck/mce-severity.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
 diff --git a/arch/x86/kernel/cpu/mcheck/mce-severity.c b/arch/x86/kernel/cpu/mcheck/mce-severity.c
 index 7395d5f..c9c9cfe 100644
@@ -49,5 +49,5 @@ index 7395d5f..c9c9cfe 100644
  
  int mce_severity(struct mce *m, int tolerant, char **msg)
 -- 
-1.7.7.6
+1.8.1.4
 

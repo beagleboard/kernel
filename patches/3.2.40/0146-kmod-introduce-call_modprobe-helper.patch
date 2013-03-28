@@ -1,0 +1,74 @@
+From a15110c1095cd57b8c40629d34c1dd11a3ed9156 Mon Sep 17 00:00:00 2001
+From: Oleg Nesterov <oleg@redhat.com>
+Date: Fri, 23 Mar 2012 15:02:49 -0700
+Subject: [PATCH 146/153] kmod: introduce call_modprobe() helper
+
+commit 3e63a93b987685f02421e18b2aa452d20553a88b upstream.
+
+No functional changes.  Move the call_usermodehelper code from
+__request_module() into the new simple helper, call_modprobe().
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/kmod.c | 24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
+
+diff --git a/kernel/kmod.c b/kernel/kmod.c
+index dedcd0b..135041f 100644
+--- a/kernel/kmod.c
++++ b/kernel/kmod.c
+@@ -58,6 +58,21 @@ static DEFINE_SPINLOCK(umh_sysctl_lock);
+ */
+ char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
+ 
++static int call_modprobe(char *module_name, int wait)
++{
++	static char *envp[] = {
++		"HOME=/",
++		"TERM=linux",
++		"PATH=/sbin:/usr/sbin:/bin:/usr/bin",
++		NULL
++	};
++
++	char *argv[] = { modprobe_path, "-q", "--", module_name, NULL };
++
++	return call_usermodehelper_fns(modprobe_path, argv, envp,
++					wait, NULL, NULL, NULL);
++}
++
+ /**
+  * __request_module - try to load a kernel module
+  * @wait: wait (or not) for the operation to complete
+@@ -79,11 +94,6 @@ int __request_module(bool wait, const char *fmt, ...)
+ 	char module_name[MODULE_NAME_LEN];
+ 	unsigned int max_modprobes;
+ 	int ret;
+-	char *argv[] = { modprobe_path, "-q", "--", module_name, NULL };
+-	static char *envp[] = { "HOME=/",
+-				"TERM=linux",
+-				"PATH=/sbin:/usr/sbin:/bin:/usr/bin",
+-				NULL };
+ 	static atomic_t kmod_concurrent = ATOMIC_INIT(0);
+ #define MAX_KMOD_CONCURRENT 50	/* Completely arbitrary value - KAO */
+ 	static int kmod_loop_msg;
+@@ -126,9 +136,7 @@ int __request_module(bool wait, const char *fmt, ...)
+ 
+ 	trace_module_request(module_name, wait, _RET_IP_);
+ 
+-	ret = call_usermodehelper_fns(modprobe_path, argv, envp,
+-			wait ? UMH_WAIT_PROC : UMH_WAIT_EXEC,
+-			NULL, NULL, NULL);
++	ret = call_modprobe(module_name, wait ? UMH_WAIT_PROC : UMH_WAIT_EXEC);
+ 
+ 	atomic_dec(&kmod_concurrent);
+ 	return ret;
+-- 
+1.8.1.4
+

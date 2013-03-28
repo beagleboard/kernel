@@ -1,4 +1,4 @@
-From a1035e557aa26b0730b59f534a7f2250e4cace8d Mon Sep 17 00:00:00 2001
+From 9f7cbda039e134fe1e872a2b1fcae9a3aa74ec1a Mon Sep 17 00:00:00 2001
 From: Lai Jiangshan <laijs@cn.fujitsu.com>
 Date: Sun, 2 Sep 2012 00:28:19 +0800
 Subject: [PATCH 075/135] workqueue: UNBOUND -> REBIND morphing in
@@ -31,8 +31,8 @@ stable: Idle worker rebinding doesn't apply for -stable and
 Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
 Signed-off-by: Tejun Heo <tj@kernel.org>
 ---
- kernel/workqueue.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+ kernel/workqueue.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/kernel/workqueue.c b/kernel/workqueue.c
 index a650bee..979d4de 100644
@@ -60,5 +60,5 @@ index a650bee..979d4de 100644
  		/* queue rebind_work, wq doesn't matter, use the default one */
  		if (test_and_set_bit(WORK_STRUCT_PENDING_BIT,
 -- 
-1.7.7.6
+1.8.1.4
 

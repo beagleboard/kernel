@@ -1,4 +1,4 @@
-From e23fbb66d45ea9843b2af6d38721e1e5f295a618 Mon Sep 17 00:00:00 2001
+From e0da5f7b3fd61fc665437d6501b97b29f549705f Mon Sep 17 00:00:00 2001
 From: Eli Cohen <eli@dev.mellanox.co.il>
 Date: Tue, 3 Jan 2012 20:36:48 -0800
 Subject: [PATCH 15/49] IB/uverbs: Protect QP multicast list
@@ -23,8 +23,8 @@ Signed-off-by: Eli Cohen <eli@mellanox.com>
 Signed-off-by: Roland Dreier <roland@purestorage.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/infiniband/core/uverbs_cmd.c |   21 +++++++++++++++++----
- 1 files changed, 17 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
 index 254f164..e3db8ef 100644
@@ -92,5 +92,5 @@ index 254f164..e3db8ef 100644
  	return ret ? ret : in_len;
  }
 -- 
-1.7.7.6
+1.8.1.4
 

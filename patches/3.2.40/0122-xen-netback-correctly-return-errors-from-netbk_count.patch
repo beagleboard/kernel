@@ -1,0 +1,76 @@
+From 707aeaf46f7e4e44e2f9ddebfabde00cb9eee888 Mon Sep 17 00:00:00 2001
+From: David Vrabel <david.vrabel@citrix.com>
+Date: Thu, 14 Feb 2013 03:18:57 +0000
+Subject: [PATCH 122/153] xen-netback: correctly return errors from
+ netbk_count_requests()
+
+[ Upstream commit 35876b5ffc154c357476b2c3bdab10feaf4bd8f0 ]
+
+netbk_count_requests() could detect an error, call
+netbk_fatal_tx_error() but return 0.  The vif may then be used
+afterwards (e.g., in a call to netbk_tx_error().
+
+Since netbk_fatal_tx_error() could set vif->refcnt to 1, the vif may
+be freed immediately after the call to netbk_fatal_tx_error() (e.g.,
+if the vif is also removed).
+
+Netback thread              Xenwatch thread
+-------------------------------------------
+netbk_fatal_tx_err()        netback_remove()
+                              xenvif_disconnect()
+                                ...
+                                free_netdev()
+netbk_tx_err() Oops!
+
+Signed-off-by: Wei Liu <wei.liu2@citrix.com>
+Signed-off-by: Jan Beulich <JBeulich@suse.com>
+Signed-off-by: David Vrabel <david.vrabel@citrix.com>
+Reported-by: Christopher S. Aker <caker@theshore.net>
+Acked-by: Ian Campbell <ian.campbell@citrix.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/xen-netback/netback.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/xen-netback/netback.c b/drivers/net/xen-netback/netback.c
+index b802bb3..185a0eb 100644
+--- a/drivers/net/xen-netback/netback.c
++++ b/drivers/net/xen-netback/netback.c
+@@ -883,13 +883,13 @@ static int netbk_count_requests(struct xenvif *vif,
+ 		if (frags >= work_to_do) {
+ 			netdev_err(vif->dev, "Need more frags\n");
+ 			netbk_fatal_tx_err(vif);
+-			return -frags;
++			return -ENODATA;
+ 		}
+ 
+ 		if (unlikely(frags >= MAX_SKB_FRAGS)) {
+ 			netdev_err(vif->dev, "Too many frags\n");
+ 			netbk_fatal_tx_err(vif);
+-			return -frags;
++			return -E2BIG;
+ 		}
+ 
+ 		memcpy(txp, RING_GET_REQUEST(&vif->tx, cons + frags),
+@@ -897,7 +897,7 @@ static int netbk_count_requests(struct xenvif *vif,
+ 		if (txp->size > first->size) {
+ 			netdev_err(vif->dev, "Frag is bigger than frame.\n");
+ 			netbk_fatal_tx_err(vif);
+-			return -frags;
++			return -EIO;
+ 		}
+ 
+ 		first->size -= txp->size;
+@@ -907,7 +907,7 @@ static int netbk_count_requests(struct xenvif *vif,
+ 			netdev_err(vif->dev, "txp->offset: %x, size: %u\n",
+ 				 txp->offset, txp->size);
+ 			netbk_fatal_tx_err(vif);
+-			return -frags;
++			return -EINVAL;
+ 		}
+ 	} while ((txp++)->flags & XEN_NETTXF_more_data);
+ 	return frags;
+-- 
+1.8.1.4
+

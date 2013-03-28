@@ -1,4 +1,4 @@
-From 19eff4e8990b741c0d9a1d9f93eb6a9eb5a823bf Mon Sep 17 00:00:00 2001
+From c0001828370200b6fb9794efeccd8ba2c10bd775 Mon Sep 17 00:00:00 2001
 From: Pavel Shilovsky <piastry@etersoft.ru>
 Date: Wed, 28 Mar 2012 21:56:19 +0400
 Subject: [PATCH 38/60] CIFS: Fix VFS lock usage for oplocked files
@@ -20,9 +20,9 @@ Signed-off-by: Pavel Shilovsky <piastry@etersoft.ru>
 Signed-off-by: Steve French <sfrench@us.ibm.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/cifs/file.c     |   10 +++++++++-
- fs/locks.c         |    3 ++-
- include/linux/fs.h |    5 +++++
+ fs/cifs/file.c     | 10 +++++++++-
+ fs/locks.c         |  3 ++-
+ include/linux/fs.h |  5 +++++
  3 files changed, 16 insertions(+), 2 deletions(-)
 
 diff --git a/fs/cifs/file.c b/fs/cifs/file.c
@@ -95,5 +95,5 @@ index 10b2288..11f1951 100644
  {
  }
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From ddae14aec2d848376c75f4901a64fa15512b82af Mon Sep 17 00:00:00 2001
+From f3f44a61675e81f6fa328d9b800d9827a1cabe99 Mon Sep 17 00:00:00 2001
 From: Peter Chen <peter.chen@freescale.com>
 Date: Thu, 16 Feb 2012 09:36:25 +0800
 Subject: [PATCH 027/147] usb: fsl_udc_core: Fix scheduling while atomic dump
@@ -52,8 +52,8 @@ Acked-by: Li Yang <leoli@freescale.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/gadget/fsl_udc_core.c |   18 ++++++++----------
- 1 files changed, 8 insertions(+), 10 deletions(-)
+ drivers/usb/gadget/fsl_udc_core.c | 18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/usb/gadget/fsl_udc_core.c b/drivers/usb/gadget/fsl_udc_core.c
 index d7ea6c0..9085d14 100644
@@ -130,5 +130,5 @@ index d7ea6c0..9085d14 100644
  	else			/* no mem */
  		goto stall;
 -- 
-1.7.7.6
+1.8.1.4
 

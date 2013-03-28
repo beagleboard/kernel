@@ -1,4 +1,4 @@
-From 7afdc977f5b314678a5474df9d4463aa2d463538 Mon Sep 17 00:00:00 2001
+From 1ee6e3481641b1326da03e1dc3f8583091a01854 Mon Sep 17 00:00:00 2001
 From: Boaz Harrosh <bharrosh@panasas.com>
 Date: Tue, 29 Nov 2011 15:35:53 -0800
 Subject: [PATCH 22/49] ore: FIX breakage when MISC_FILESYSTEMS is not set
@@ -28,9 +28,9 @@ Reported-by: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- fs/Kconfig           |    2 ++
- fs/exofs/Kconfig     |   11 -----------
- fs/exofs/Kconfig.ore |   12 ++++++++++++
+ fs/Kconfig           |  2 ++
+ fs/exofs/Kconfig     | 11 -----------
+ fs/exofs/Kconfig.ore | 12 ++++++++++++
  3 files changed, 14 insertions(+), 11 deletions(-)
  create mode 100644 fs/exofs/Kconfig.ore
 
@@ -85,5 +85,5 @@ index 0000000..1ca7fb7
 +	select ASYNC_XOR
 +	default SCSI_OSD_ULD
 -- 
-1.7.7.6
+1.8.1.4
 

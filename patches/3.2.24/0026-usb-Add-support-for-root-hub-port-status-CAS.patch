@@ -1,4 +1,4 @@
-From 37fb89a8ada1048766ead46bf809d1515c0b5d7b Mon Sep 17 00:00:00 2001
+From 18a01737401145ec5d5ad746f2b79a19b5708ec7 Mon Sep 17 00:00:00 2001
 From: Stanislaw Ledwon <staszek.ledwon@linux.jf.intel.com>
 Date: Mon, 18 Jun 2012 15:20:00 +0200
 Subject: [PATCH 026/109] usb: Add support for root hub port status CAS
@@ -35,9 +35,9 @@ Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Acked-by: Andiry Xu <andiry.xu@amd.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/core/hub.c      |   18 +++++++++-------
- drivers/usb/host/xhci-hub.c |   44 +++++++++++++++++++++++++++++++++++++-----
- drivers/usb/host/xhci.h     |    6 ++++-
+ drivers/usb/core/hub.c      | 18 ++++++++++--------
+ drivers/usb/host/xhci-hub.c | 44 ++++++++++++++++++++++++++++++++++++++------
+ drivers/usb/host/xhci.h     |  6 +++++-
  3 files changed, 53 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
@@ -166,5 +166,5 @@ index 363b141..7a56805 100644
  #define PORT_WKCONN_E	(1 << 25)
  /* wake on disconnect (enable) */
 -- 
-1.7.7.6
+1.8.1.4
 

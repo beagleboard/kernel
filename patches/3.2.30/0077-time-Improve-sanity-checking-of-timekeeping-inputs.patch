@@ -1,4 +1,4 @@
-From 4920af62ce8de628989d0e082e6eecd8ee47cfb4 Mon Sep 17 00:00:00 2001
+From 62c36535ae483717c3453075a24674f99adfbd77 Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Wed, 8 Aug 2012 15:36:20 -0400
 Subject: [PATCH 077/135] time: Improve sanity checking of timekeeping inputs
@@ -32,9 +32,9 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: Linux Kernel <linux-kernel@vger.kernel.org>
 Signed-off-by: John Stultz <john.stultz@linaro.org>
 ---
- include/linux/ktime.h     |    7 -------
- include/linux/time.h      |   22 ++++++++++++++++++++--
- kernel/time/timekeeping.c |   26 ++++++++++++++++++++++++--
+ include/linux/ktime.h     |  7 -------
+ include/linux/time.h      | 22 ++++++++++++++++++++--
+ kernel/time/timekeeping.c | 26 ++++++++++++++++++++++++--
  3 files changed, 44 insertions(+), 11 deletions(-)
 
 diff --git a/include/linux/ktime.h b/include/linux/ktime.h
@@ -161,5 +161,5 @@ index 03e67d4..36440c88 100644
  	write_seqlock_irqsave(&xtime_lock, flags);
  
 -- 
-1.7.7.6
+1.8.1.4
 

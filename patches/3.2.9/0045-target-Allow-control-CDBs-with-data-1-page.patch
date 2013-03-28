@@ -1,4 +1,4 @@
-From 719351e453aec71b5277e630d6401d73ddf8d968 Mon Sep 17 00:00:00 2001
+From ce6a7e6a6433abcf5b6947b195ffcdf5c9e87965 Mon Sep 17 00:00:00 2001
 From: Andy Grover <agrover@redhat.com>
 Date: Mon, 16 Jan 2012 16:57:08 -0800
 Subject: [PATCH 45/72] target: Allow control CDBs with data > 1 page
@@ -15,14 +15,14 @@ Signed-off-by: Andy Grover <agrover@redhat.com>
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/target/target_core_alua.c      |    8 +++---
- drivers/target/target_core_cdb.c       |   28 ++++++++++----------
- drivers/target/target_core_device.c    |    4 +-
- drivers/target/target_core_pr.c        |   38 +++++++++++++-------------
- drivers/target/target_core_pscsi.c     |    4 +-
- drivers/target/target_core_transport.c |   45 ++++++++++++++++++++++++--------
- include/target/target_core_base.h      |    1 +
- include/target/target_core_transport.h |    4 +-
+ drivers/target/target_core_alua.c      |  8 +++---
+ drivers/target/target_core_cdb.c       | 28 ++++++++++-----------
+ drivers/target/target_core_device.c    |  4 +--
+ drivers/target/target_core_pr.c        | 38 ++++++++++++++--------------
+ drivers/target/target_core_pscsi.c     |  4 +--
+ drivers/target/target_core_transport.c | 45 +++++++++++++++++++++++++---------
+ include/target/target_core_base.h      |  1 +
+ include/target/target_core_transport.h |  4 +--
  8 files changed, 78 insertions(+), 54 deletions(-)
 
 diff --git a/drivers/target/target_core_alua.c b/drivers/target/target_core_alua.c
@@ -509,5 +509,5 @@ index dac4f2d..72751e8 100644
  extern int transport_handle_cdb_direct(struct se_cmd *);
  extern int transport_generic_handle_cdb_map(struct se_cmd *);
 -- 
-1.7.7.6
+1.8.1.4
 

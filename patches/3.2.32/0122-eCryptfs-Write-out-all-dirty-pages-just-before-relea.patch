@@ -1,4 +1,4 @@
-From b732c2a0910ea90cee46ceaada9a007874a66499 Mon Sep 17 00:00:00 2001
+From eb1bde751c11d47b8a49e6e03d950c9311367aae Mon Sep 17 00:00:00 2001
 From: Tyler Hicks <tyhicks@canonical.com>
 Date: Wed, 12 Sep 2012 18:02:46 -0700
 Subject: [PATCH 122/146] eCryptfs: Write out all dirty pages just before
@@ -29,7 +29,7 @@ Tested-by: Artemy Tregubenko <me@arty.name>
 Tested-by: Colin Ian King <colin.king@canonical.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ecryptfs/main.c |    1 +
+ fs/ecryptfs/main.c | 1 +
  1 file changed, 1 insertion(+)
 
 diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
@@ -45,5 +45,5 @@ index b4a6bef..1cfef9f 100644
  		inode_info->lower_file = NULL;
  		mutex_unlock(&inode_info->lower_file_mutex);
 -- 
-1.7.10.4
+1.8.1.4
 

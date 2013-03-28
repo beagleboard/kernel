@@ -1,4 +1,4 @@
-From e3c414f938fa74ef40c8e855e73748ae48f4e81e Mon Sep 17 00:00:00 2001
+From 8ed2e3314b7da268b5b6ff32c229c8beadd938b0 Mon Sep 17 00:00:00 2001
 From: Jeff Layton <jlayton@redhat.com>
 Date: Sat, 3 Nov 2012 09:37:28 -0400
 Subject: [PATCH 52/83] cifs: fix potential buffer overrun in cifs.idmap
@@ -42,8 +42,8 @@ Reviewed-by: Shirish Pargaonkar <shirishpargaonkar@gmail.com>
 Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/cifs/cifsacl.c |   49 ++++++++++++++++++++-----------------------------
- 1 files changed, 20 insertions(+), 29 deletions(-)
+ fs/cifs/cifsacl.c | 49 ++++++++++++++++++++-----------------------------
+ 1 file changed, 20 insertions(+), 29 deletions(-)
 
 diff --git a/fs/cifs/cifsacl.c b/fs/cifs/cifsacl.c
 index 72ddf23..b3522af 100644
@@ -170,5 +170,5 @@ index 72ddf23..b3522af 100644
  			*aclflag = CIFS_ACL_GROUP;
  		}
 -- 
-1.7.7.6
+1.8.1.4
 

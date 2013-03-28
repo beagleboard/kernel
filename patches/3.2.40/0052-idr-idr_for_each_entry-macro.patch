@@ -1,0 +1,38 @@
+From f1cdb7329917925acddb4872cd9931ccecad29c8 Mon Sep 17 00:00:00 2001
+From: Philipp Reisner <philipp.reisner@linbit.com>
+Date: Wed, 20 Jul 2011 14:59:37 +0200
+Subject: [PATCH 052/153] idr: idr_for_each_entry() macro
+
+commit 9749f30f1a387070e6e8351f35aeb829eacc3ab6 upstream.
+
+Inspired by the list_for_each_entry() macro
+
+Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ include/linux/idr.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/include/linux/idr.h b/include/linux/idr.h
+index 255491c..52a9da2 100644
+--- a/include/linux/idr.h
++++ b/include/linux/idr.h
+@@ -152,4 +152,15 @@ void ida_simple_remove(struct ida *ida, unsigned int id);
+ 
+ void __init idr_init_cache(void);
+ 
++/**
++ * idr_for_each_entry - iterate over an idr's elements of a given type
++ * @idp:     idr handle
++ * @entry:   the type * to use as cursor
++ * @id:      id entry's key
++ */
++#define idr_for_each_entry(idp, entry, id)				\
++	for (id = 0, entry = (typeof(entry))idr_get_next((idp), &(id)); \
++	     entry != NULL;                                             \
++	     ++id, entry = (typeof(entry))idr_get_next((idp), &(id)))
++
+ #endif /* __IDR_H__ */
+-- 
+1.8.1.4
+

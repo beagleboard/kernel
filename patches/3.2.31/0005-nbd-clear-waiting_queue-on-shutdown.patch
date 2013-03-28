@@ -1,4 +1,4 @@
-From 50ad98f6c1dfec792c9566d2fa191e46bd32d52e Mon Sep 17 00:00:00 2001
+From e20ea34df8f42a12a81f7a74e168da52da1cc777 Mon Sep 17 00:00:00 2001
 From: Paul Clements <paul.clements@steeleye.com>
 Date: Mon, 17 Sep 2012 14:09:02 -0700
 Subject: [PATCH 005/109] nbd: clear waiting_queue on shutdown
@@ -24,7 +24,7 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 [bwh: Backported to 3.2: local nbd_device pointers are called 'lo' not 'nbd']
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/block/nbd.c |    9 +++++++++
+ drivers/block/nbd.c | 9 +++++++++
  1 file changed, 9 insertions(+)
 
 diff --git a/drivers/block/nbd.c b/drivers/block/nbd.c
@@ -55,5 +55,5 @@ index c3f0ee1..86848c6 100644
  			fput(file);
  		return 0;
 -- 
-1.7.10.4
+1.8.1.4
 

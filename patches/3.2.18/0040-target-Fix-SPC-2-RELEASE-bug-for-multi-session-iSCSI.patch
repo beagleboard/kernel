@@ -1,4 +1,4 @@
-From 17b652495bc18b6cb3d1af7fd87f37273769888f Mon Sep 17 00:00:00 2001
+From 04406b2d362320374d2984baa56622509f10f9db Mon Sep 17 00:00:00 2001
 From: Bernhard Kohl <Riedel-und-Kohl@t-online.de>
 Date: Sun, 13 May 2012 23:39:37 +0200
 Subject: [PATCH 40/56] target: Fix SPC-2 RELEASE bug for multi-session iSCSI
@@ -20,8 +20,8 @@ Signed-off-by: Bernhard Kohl <bernhard.kohl@gmx.net>
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/target/target_core_pr.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ drivers/target/target_core_pr.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/drivers/target/target_core_pr.c b/drivers/target/target_core_pr.c
 index 6cf6ff4..b75bc92 100644
@@ -38,5 +38,5 @@ index 6cf6ff4..b75bc92 100644
  	dev->dev_flags &= ~DF_SPC2_RESERVATIONS;
  	if (dev->dev_flags & DF_SPC2_RESERVATIONS_WITH_ISID) {
 -- 
-1.7.7.6
+1.8.1.4
 

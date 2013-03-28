@@ -1,0 +1,39 @@
+From 7e0e69422f885699387798ba9566653f1a5eb8f6 Mon Sep 17 00:00:00 2001
+From: Lorenzo Colitti <lorenzo@google.com>
+Date: Sun, 3 Mar 2013 20:46:46 +0000
+Subject: [PATCH 07/92] net: ipv6: Don't purge default router if accept_ra=2
+
+[ Upstream commit 3e8b0ac3e41e3c882222a5522d5df7212438ab51 ]
+
+Setting net.ipv6.conf.<interface>.accept_ra=2 causes the kernel
+to accept RAs even when forwarding is enabled. However, enabling
+forwarding purges all default routes on the system, breaking
+connectivity until the next RA is received. Fix this by not
+purging default routes on interfaces that have accept_ra=2.
+
+Signed-off-by: Lorenzo Colitti <lorenzo@google.com>
+Acked-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Acked-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv6/route.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/net/ipv6/route.c b/net/ipv6/route.c
+index 791c1fa..18ea73c 100644
+--- a/net/ipv6/route.c
++++ b/net/ipv6/route.c
+@@ -1920,7 +1920,8 @@ void rt6_purge_dflt_routers(struct net *net)
+ restart:
+ 	read_lock_bh(&table->tb6_lock);
+ 	for (rt = table->tb6_root.leaf; rt; rt = rt->dst.rt6_next) {
+-		if (rt->rt6i_flags & (RTF_DEFAULT | RTF_ADDRCONF)) {
++		if (rt->rt6i_flags & (RTF_DEFAULT | RTF_ADDRCONF) &&
++		    (!rt->rt6i_idev || rt->rt6i_idev->cnf.accept_ra != 2)) {
+ 			dst_hold(&rt->dst);
+ 			read_unlock_bh(&table->tb6_lock);
+ 			ip6_del_rt(rt);
+-- 
+1.8.1.4
+

@@ -1,4 +1,4 @@
-From efe98328a6e9f8730ddeecc873410a316fa44889 Mon Sep 17 00:00:00 2001
+From d1a9dcbc5c1ba78c6ce1c655d65e5936a23bdbfb Mon Sep 17 00:00:00 2001
 From: Larry Finger <Larry.Finger@lwfinger.net>
 Date: Sun, 5 Feb 2012 21:12:26 -0600
 Subject: [PATCH 76/87] staging: r8712u: Use asynchronous firmware loading
@@ -12,11 +12,11 @@ of the firmware. The code now uses request_firmware_nowait().
 Signed-off-by: Larry Finger <Larry.Finger@lwfinger.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/staging/rtl8712/drv_types.h   |    7 ++++
- drivers/staging/rtl8712/hal_init.c    |   62 +++++++++++++++++++++++----------
- drivers/staging/rtl8712/os_intfs.c    |   14 ++++++--
- drivers/staging/rtl8712/rtl8712_hal.h |    1 +
- drivers/staging/rtl8712/usb_intf.c    |    9 +++--
+ drivers/staging/rtl8712/drv_types.h   |  7 ++++
+ drivers/staging/rtl8712/hal_init.c    | 62 ++++++++++++++++++++++++-----------
+ drivers/staging/rtl8712/os_intfs.c    | 14 ++++++--
+ drivers/staging/rtl8712/rtl8712_hal.h |  1 +
+ drivers/staging/rtl8712/usb_intf.c    |  9 +++--
  5 files changed, 68 insertions(+), 25 deletions(-)
 
 diff --git a/drivers/staging/rtl8712/drv_types.h b/drivers/staging/rtl8712/drv_types.h
@@ -281,5 +281,5 @@ index 8de0c80..9bade18 100644
  		r8712_free_drv_sw(padapter);
  	}
 -- 
-1.7.7.6
+1.8.1.4
 

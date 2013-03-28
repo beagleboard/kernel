@@ -1,4 +1,4 @@
-From 54e5ca5c23c1d40bba6db2afe8e08e4f56b9cfc5 Mon Sep 17 00:00:00 2001
+From 9481e2e30a7b8d0e567be512b59b2d21187d6294 Mon Sep 17 00:00:00 2001
 From: Will Deacon <will.deacon@arm.com>
 Date: Fri, 20 Apr 2012 17:21:08 +0100
 Subject: [PATCH 120/165] ARM: 7397/1: l2x0: only apply workaround for erratum
@@ -17,8 +17,8 @@ Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/arm/mm/cache-l2x0.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/mm/cache-l2x0.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
 index b1e192b..971d527 100644
@@ -58,5 +58,5 @@ index b1e192b..971d527 100644
  	case L2X0_CACHE_ID_PART_L210:
  		ways = (aux >> 13) & 0xf;
 -- 
-1.7.7.6
+1.8.1.4
 

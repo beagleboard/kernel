@@ -1,4 +1,4 @@
-From 2c773e43b835d97da5907fa91c71f9546d65a481 Mon Sep 17 00:00:00 2001
+From 606785af769c35314ff9443f12dcba5ec5b4e7b2 Mon Sep 17 00:00:00 2001
 From: Hugh Dickins <hughd@google.com>
 Date: Mon, 8 Oct 2012 16:33:14 -0700
 Subject: [PATCH 112/146] mm: fix invalidate_complete_page2() lock ordering
@@ -39,7 +39,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- mm/truncate.c |    3 ++-
+ mm/truncate.c | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/mm/truncate.c b/mm/truncate.c
@@ -61,5 +61,5 @@ index 632b15e..00fb58a 100644
  	__delete_from_page_cache(page);
  	spin_unlock_irq(&mapping->tree_lock);
 -- 
-1.7.10.4
+1.8.1.4
 

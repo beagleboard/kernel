@@ -1,0 +1,65 @@
+From 2171d7dae11d45fb12a0567cd84582d4b44c8363 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Tue, 22 Jan 2013 06:33:05 +0000
+Subject: [PATCH 46/67] netxen: fix off by one bug in
+ netxen_release_tx_buffer()
+
+[ Upstream commit a05948f296ce103989b28a2606e47d2e287c3c89 ]
+
+Christoph Paasch found netxen could trigger a BUG in its dismantle
+phase, in netxen_release_tx_buffer(), using full size TSO packets.
+
+cmd_buf->frag_count includes the skb->data part, so the loop must
+start at index 1 instead of 0, or else we can make an out
+of bound access to cmd_buff->frag_array[MAX_SKB_FRAGS + 2]
+
+Christoph provided the fixes in netxen_map_tx_skb() function.
+In case of a dma mapping error, its better to clear the dma fields
+so that we don't try to unmap them again in netxen_release_tx_buffer()
+
+Reported-by: Christoph Paasch <christoph.paasch@uclouvain.be>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Tested-by: Christoph Paasch <christoph.paasch@uclouvain.be>
+Cc: Sony Chacko <sony.chacko@qlogic.com>
+Cc: Rajesh Borundia <rajesh.borundia@qlogic.com>
+Signed-off-by: Christoph Paasch <christoph.paasch@uclouvain.be>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c | 2 +-
+ drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c b/drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c
+index a8259cc..5674145 100644
+--- a/drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c
++++ b/drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c
+@@ -144,7 +144,7 @@ void netxen_release_tx_buffers(struct netxen_adapter *adapter)
+ 					 buffrag->length, PCI_DMA_TODEVICE);
+ 			buffrag->dma = 0ULL;
+ 		}
+-		for (j = 0; j < cmd_buf->frag_count; j++) {
++		for (j = 1; j < cmd_buf->frag_count; j++) {
+ 			buffrag++;
+ 			if (buffrag->dma) {
+ 				pci_unmap_page(adapter->pdev, buffrag->dma,
+diff --git a/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c b/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
+index da5204d..4a238a4 100644
+--- a/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
++++ b/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
+@@ -1924,10 +1924,12 @@ unwind:
+ 	while (--i >= 0) {
+ 		nf = &pbuf->frag_array[i+1];
+ 		pci_unmap_page(pdev, nf->dma, nf->length, PCI_DMA_TODEVICE);
++		nf->dma = 0ULL;
+ 	}
+ 
+ 	nf = &pbuf->frag_array[0];
+ 	pci_unmap_single(pdev, nf->dma, skb_headlen(skb), PCI_DMA_TODEVICE);
++	nf->dma = 0ULL;
+ 
+ out_err:
+ 	return -ENOMEM;
+-- 
+1.8.1.4
+

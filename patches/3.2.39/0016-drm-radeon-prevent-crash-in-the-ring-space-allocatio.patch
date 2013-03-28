@@ -1,0 +1,43 @@
+From 777c692a79336477f800cf53f5f883eb9faea520 Mon Sep 17 00:00:00 2001
+From: Alex Deucher <alexander.deucher@amd.com>
+Date: Wed, 30 Jan 2013 14:24:09 -0500
+Subject: [PATCH 16/67] drm/radeon: prevent crash in the ring space allocation
+
+commit fd5d93a0015ce1a7db881382022b2fcdfdc61760 upstream.
+
+If the requested number of DWs on the ring is larger than
+the size of the ring itself, return an error.
+
+In testing with large VM updates, we've seen crashes when we
+try and allocate more space on the ring than the total size
+of the ring without checking.
+
+This prevents the crash but for large VM updates or bo moves
+of very large buffers, we will need to break the transaction
+down into multiple batches.  I have patches to use IBs for
+the next kernel.
+
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+[bwh: Backported to 3.2: use rdev->cp.ring_size instead of ring->ring_size]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_ring.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_ring.c b/drivers/gpu/drm/radeon/radeon_ring.c
+index 49d5820..65be5e8 100644
+--- a/drivers/gpu/drm/radeon/radeon_ring.c
++++ b/drivers/gpu/drm/radeon/radeon_ring.c
+@@ -306,6 +306,9 @@ int radeon_ring_alloc(struct radeon_device *rdev, unsigned ndw)
+ {
+ 	int r;
+ 
++	/* make sure we aren't trying to allocate more space than there is on the ring */
++	if (ndw > (rdev->cp.ring_size / 4))
++		return -ENOMEM;
+ 	/* Align requested size with padding so unlock_commit can
+ 	 * pad safely */
+ 	ndw = (ndw + rdev->cp.align_mask) & ~rdev->cp.align_mask;
+-- 
+1.8.1.4
+

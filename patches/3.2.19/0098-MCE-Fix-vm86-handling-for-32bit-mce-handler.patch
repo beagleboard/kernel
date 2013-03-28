@@ -1,4 +1,4 @@
-From a1f2f86d22c32e967bca23b3aa866777c38bf0ee Mon Sep 17 00:00:00 2001
+From cf2e0abd54bce95c82efaf6e69ff27f6cc99cdd1 Mon Sep 17 00:00:00 2001
 From: Andi Kleen <andi@firstfloor.org>
 Date: Fri, 19 Nov 2010 13:16:22 +0100
 Subject: [PATCH 098/117] MCE: Fix vm86 handling for 32bit mce handler
@@ -16,8 +16,8 @@ Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/x86/kernel/cpu/mcheck/mce.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ arch/x86/kernel/cpu/mcheck/mce.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/arch/x86/kernel/cpu/mcheck/mce.c b/arch/x86/kernel/cpu/mcheck/mce.c
 index 2af127d..b0f1271 100644
@@ -39,5 +39,5 @@ index 2af127d..b0f1271 100644
  		/* Use accurate RIP reporting if available. */
  		if (rip_msr)
 -- 
-1.7.7.6
+1.8.1.4
 

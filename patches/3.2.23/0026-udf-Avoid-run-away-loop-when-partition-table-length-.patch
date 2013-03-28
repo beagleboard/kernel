@@ -1,8 +1,8 @@
-From adba65f9660dd09330d096e0c2debc9b9273bde1 Mon Sep 17 00:00:00 2001
+From ae4f0fa91340b5efeb8347bc88cb917392687557 Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Wed, 27 Jun 2012 20:20:22 +0200
-Subject: [PATCH 26/49] udf: Avoid run away loop when partition table length
- is corrupted
+Subject: [PATCH 26/49] udf: Avoid run away loop when partition table length is
+ corrupted
 
 commit adee11b2085bee90bd8f4f52123ffb07882d6256 upstream.
 
@@ -12,8 +12,8 @@ corrupted partition table cannot cause accessing data beyond current buffer.
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/udf/super.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+ fs/udf/super.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/fs/udf/super.c b/fs/udf/super.c
 index eea2bfe..800e839 100644
@@ -50,5 +50,5 @@ index eea2bfe..800e839 100644
  		struct udf_part_map *map = &sbi->s_partmaps[i];
  		gpm = (struct genericPartitionMap *)
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,0 +1,44 @@
+From a9ba1c116449b61c59cf77980c5bef09a93a8ee8 Mon Sep 17 00:00:00 2001
+From: Dmitry Torokhov <dtor@vmware.com>
+Date: Mon, 25 Feb 2013 10:56:01 -0800
+Subject: [PATCH 66/92] USB: xhci - fix bit definitions for IMAN register
+
+commit f8264340e694604863255cc0276491d17c402390 upstream.
+
+According to XHCI specification (5.5.2.1) the IP is bit 0 and IE is bit 1
+of IMAN register. Previously their definitions were reversed.
+
+Even though there are no ill effects being observed from the swapped
+definitions (because IMAN_IP is RW1C and in legacy PCI case we come in
+with it already set to 1 so it was clearing itself even though we were
+setting IMAN_IE instead of IMAN_IP), we should still correct the values.
+
+This patch should be backported to kernels as old as 2.6.36, that
+contain the commit 4e833c0b87a30798e67f06120cecebef6ee9644c "xhci: don't
+re-enable IE constantly".
+
+Signed-off-by: Dmitry Torokhov <dtor@vmware.com>
+Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/host/xhci.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/host/xhci.h b/drivers/usb/host/xhci.h
+index cc368c2..c519a31 100644
+--- a/drivers/usb/host/xhci.h
++++ b/drivers/usb/host/xhci.h
+@@ -206,8 +206,8 @@ struct xhci_op_regs {
+ /* bits 12:31 are reserved (and should be preserved on writes). */
+ 
+ /* IMAN - Interrupt Management Register */
+-#define IMAN_IP		(1 << 1)
+-#define IMAN_IE		(1 << 0)
++#define IMAN_IE		(1 << 1)
++#define IMAN_IP		(1 << 0)
+ 
+ /* USBSTS - USB status - status bitmasks */
+ /* HC not running - set to 1 when run/stop bit is cleared. */
+-- 
+1.8.1.4
+

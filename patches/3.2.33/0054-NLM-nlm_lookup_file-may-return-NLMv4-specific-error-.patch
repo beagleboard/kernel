@@ -1,4 +1,4 @@
-From e7cd3950a9e0477f070e692d58e3350d19ad5360 Mon Sep 17 00:00:00 2001
+From ec28cef90439bee3b0df9d9bdcc20f2dc1c0332e Mon Sep 17 00:00:00 2001
 From: Trond Myklebust <Trond.Myklebust@netapp.com>
 Date: Sat, 13 Oct 2012 00:30:28 -0400
 Subject: [PATCH 054/105] NLM: nlm_lookup_file() may return NLMv4-specific
@@ -19,8 +19,8 @@ Reported-by: Larry McVoy <lm@bitmover.com>
 Signed-off-by: J. Bruce Fields <bfields@redhat.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/lockd/clntxdr.c |    2 +-
- fs/lockd/svcproc.c |    3 ++-
+ fs/lockd/clntxdr.c | 2 +-
+ fs/lockd/svcproc.c | 3 ++-
  2 files changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/fs/lockd/clntxdr.c b/fs/lockd/clntxdr.c
@@ -51,5 +51,5 @@ index d27aab1..d413af3 100644
  		*filp = file;
  
 -- 
-1.7.7.6
+1.8.1.4
 

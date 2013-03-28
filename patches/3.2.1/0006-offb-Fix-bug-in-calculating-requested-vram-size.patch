@@ -1,4 +1,4 @@
-From 00e291ae2a784893c0f85c333d216c0dff45af94 Mon Sep 17 00:00:00 2001
+From 4226d0adb352bc516022a9c9fe31884a2c400240 Mon Sep 17 00:00:00 2001
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Date: Tue, 3 Jan 2012 12:09:15 +1100
 Subject: [PATCH 06/49] offb: Fix bug in calculating requested vram size
@@ -11,8 +11,8 @@ fail if the card has a too small BAR (observed with qemu & kvm).
 Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/video/offb.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/video/offb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/video/offb.c b/drivers/video/offb.c
 index 24e1fc6..3251a02 100644
@@ -28,5 +28,5 @@ index 24e1fc6..3251a02 100644
  	unsigned long res_start = address;
  	struct fb_fix_screeninfo *fix;
 -- 
-1.7.7.6
+1.8.1.4
 

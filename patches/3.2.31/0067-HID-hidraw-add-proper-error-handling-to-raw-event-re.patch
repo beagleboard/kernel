@@ -1,4 +1,4 @@
-From e52f2869a09ac472c24cf26743fc5d788120bca8 Mon Sep 17 00:00:00 2001
+From 5e6f6da8926304bd9e0dd58674140f752cd072ef Mon Sep 17 00:00:00 2001
 From: Jiri Kosina <jkosina@suse.cz>
 Date: Fri, 27 Apr 2012 00:56:08 +0200
 Subject: [PATCH 067/109] HID: hidraw: add proper error handling to raw event
@@ -16,10 +16,10 @@ Reported-by: Oliver Neukum <oneukum@suse.de>
 Signed-off-by: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/hid/hid-core.c |   16 +++++++++++-----
- drivers/hid/hidraw.c   |   19 +++++++++++++------
- include/linux/hid.h    |    2 +-
- include/linux/hidraw.h |    4 ++--
+ drivers/hid/hid-core.c | 16 +++++++++++-----
+ drivers/hid/hidraw.c   | 19 +++++++++++++------
+ include/linux/hid.h    |  2 +-
+ include/linux/hidraw.h |  4 ++--
  4 files changed, 27 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
@@ -162,5 +162,5 @@ index 4b88e69..9cdc9b6 100644
  static inline void hidraw_disconnect(struct hid_device *hid) { }
  #endif
 -- 
-1.7.10.4
+1.8.1.4
 

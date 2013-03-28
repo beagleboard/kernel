@@ -1,4 +1,4 @@
-From a84ffe752d2bd175b91354e8520098782a78cfb3 Mon Sep 17 00:00:00 2001
+From cfd519af11a9de2c8487fdc44080559348110bbd Mon Sep 17 00:00:00 2001
 From: Andrea Arcangeli <aarcange@redhat.com>
 Date: Mon, 8 Oct 2012 16:33:27 -0700
 Subject: [PATCH 113/146] mm: thp: fix pmd_present for split_huge_page and
@@ -38,7 +38,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/x86/include/asm/pgtable.h |   11 ++++++++---
+ arch/x86/include/asm/pgtable.h | 11 ++++++++---
  1 file changed, 8 insertions(+), 3 deletions(-)
 
 diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
@@ -71,5 +71,5 @@ index 18601c8..884507e 100644
  
  static inline int pmd_none(pmd_t pmd)
 -- 
-1.7.10.4
+1.8.1.4
 

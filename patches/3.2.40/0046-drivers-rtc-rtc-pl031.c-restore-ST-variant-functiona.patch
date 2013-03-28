@@ -1,0 +1,46 @@
+From e70a30214b5b3d2cc0af20c39af9dcdae2a38522 Mon Sep 17 00:00:00 2001
+From: Linus Walleij <linus.walleij@linaro.org>
+Date: Tue, 12 Feb 2013 13:46:19 -0800
+Subject: [PATCH 046/153] drivers/rtc/rtc-pl031.c: restore ST variant
+ functionality
+
+commit 3399cfb5df9594495b876d1843a7165f77366b2b upstream.
+
+Commit e7e034e18a0a ("drivers/rtc/rtc-pl031.c: fix the missing operation
+on enable") accidentally broke the ST variants of PL031.
+
+The bit that is being poked as "clockwatch" enable bit for the ST
+variants does the work of bit 0 on this variant.  Bit 0 is used for a
+clock divider on the ST variants, and setting it to 1 will affect
+timekeeping in a very bad way.
+
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+Acked-by: Haojian Zhuang <haojian.zhuang@gmail.com>
+Cc: Mian Yousaf KAUKAB <mian.yousaf.kaukab@stericsson.com>
+Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/rtc/rtc-pl031.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/rtc/rtc-pl031.c b/drivers/rtc/rtc-pl031.c
+index 73816d8..1f94073 100644
+--- a/drivers/rtc/rtc-pl031.c
++++ b/drivers/rtc/rtc-pl031.c
+@@ -344,7 +344,9 @@ static int pl031_probe(struct amba_device *adev, const struct amba_id *id)
+ 	/* Enable the clockwatch on ST Variants */
+ 	if (ldata->hw_designer == AMBA_VENDOR_ST)
+ 		data |= RTC_CR_CWEN;
+-	writel(data | RTC_CR_EN, ldata->base + RTC_CR);
++	else
++		data |= RTC_CR_EN;
++	writel(data, ldata->base + RTC_CR);
+ 
+ 	/*
+ 	 * On ST PL031 variants, the RTC reset value does not provide correct
+-- 
+1.8.1.4
+

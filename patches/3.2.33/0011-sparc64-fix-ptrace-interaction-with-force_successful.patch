@@ -1,4 +1,4 @@
-From c47ba1c5a449d471963a0356475a12cc4c00ecbc Mon Sep 17 00:00:00 2001
+From b4135dbf36a809edfbd1dd915af3d3c75cee0956 Mon Sep 17 00:00:00 2001
 From: Al Viro <viro@zeniv.linux.org.uk>
 Date: Wed, 10 Oct 2012 17:25:00 -0700
 Subject: [PATCH 011/105] sparc64: fix ptrace interaction with
@@ -14,8 +14,8 @@ Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/sparc/kernel/syscalls.S |   32 ++++++++++++++------------------
- 1 files changed, 14 insertions(+), 18 deletions(-)
+ arch/sparc/kernel/syscalls.S | 32 ++++++++++++++------------------
+ 1 file changed, 14 insertions(+), 18 deletions(-)
 
 diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
 index 1d7e274..7f5f65d 100644
@@ -82,5 +82,5 @@ index 1d7e274..7f5f65d 100644
  	call	syscall_trace_leave
  	 add	%sp, PTREGS_OFF, %o0
 -- 
-1.7.7.6
+1.8.1.4
 

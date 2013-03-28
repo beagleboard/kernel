@@ -1,0 +1,41 @@
+From d1f35dc99ed36fd7bdbb13aa7db4bf29127852aa Mon Sep 17 00:00:00 2001
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date: Sat, 2 Mar 2013 15:33:30 +0800
+Subject: [PATCH 24/82] hwmon: (sht15) Check return value of regulator_enable()
+
+commit 3e78080f81481aa8340374d5a37ae033c1cf4272 upstream.
+
+Not having power is a pretty serious error so check that we are able to
+enable the supply and error out if we can't.
+
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+[bwh: Backported to 3.2: driver does not use the devm API to manage
+ memory, so goto err_free_data rather than returning on error]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/hwmon/sht15.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/sht15.c b/drivers/hwmon/sht15.c
+index 5357925..3e3153e 100644
+--- a/drivers/hwmon/sht15.c
++++ b/drivers/hwmon/sht15.c
+@@ -926,7 +926,13 @@ static int __devinit sht15_probe(struct platform_device *pdev)
+ 		if (voltage)
+ 			data->supply_uV = voltage;
+ 
+-		regulator_enable(data->reg);
++		ret = regulator_enable(data->reg);
++		if (ret != 0) {
++			dev_err(&pdev->dev,
++				"failed to enable regulator: %d\n", ret);
++			goto err_free_data;
++		}
++
+ 		/*
+ 		 * Setup a notifier block to update this if another device
+ 		 * causes the voltage to change
+-- 
+1.8.1.4
+

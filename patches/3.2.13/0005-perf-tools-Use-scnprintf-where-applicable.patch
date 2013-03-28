@@ -1,4 +1,4 @@
-From ce19716e0f6c03f5f55172192c8333274c47e9e6 Mon Sep 17 00:00:00 2001
+From 9940e8b3c1dd6af7ef590c84639c57c929fa9b92 Mon Sep 17 00:00:00 2001
 From: Arnaldo Carvalho de Melo <acme@redhat.com>
 Date: Wed, 14 Mar 2012 12:29:29 -0300
 Subject: [PATCH 05/10] perf tools: Use scnprintf where applicable
@@ -28,14 +28,14 @@ Link: http://lkml.kernel.org/n/tip-kwxo2eh29cxmd8ilixi2005x@git.kernel.org
 Signed-off-by: Arnaldo Carvalho de Melo <acme@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- tools/perf/arch/powerpc/util/header.c |    2 +-
- tools/perf/arch/x86/util/header.c     |    2 +-
- tools/perf/util/color.c               |    9 +++++----
- tools/perf/util/header.c              |    4 ++--
- tools/perf/util/hist.c                |   30 +++++++++++++++---------------
- tools/perf/util/strbuf.c              |    7 ++++---
- tools/perf/util/ui/browsers/hists.c   |   12 ++++++------
- tools/perf/util/ui/helpline.c         |    2 +-
+ tools/perf/arch/powerpc/util/header.c |  2 +-
+ tools/perf/arch/x86/util/header.c     |  2 +-
+ tools/perf/util/color.c               |  9 +++++----
+ tools/perf/util/header.c              |  4 ++--
+ tools/perf/util/hist.c                | 30 +++++++++++++++---------------
+ tools/perf/util/strbuf.c              |  7 ++++---
+ tools/perf/util/ui/browsers/hists.c   | 12 ++++++------
+ tools/perf/util/ui/helpline.c         |  2 +-
  8 files changed, 35 insertions(+), 33 deletions(-)
 
 diff --git a/tools/perf/arch/powerpc/util/header.c b/tools/perf/arch/powerpc/util/header.c
@@ -279,5 +279,5 @@ index 6ef3c56..f50f81c 100644
  	backlog += ret;
  
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 2ed6c3f856b2f805e974a86561ef958542ab8e10 Mon Sep 17 00:00:00 2001
+From e2454dad404d6e921505d19f44b190204bdc7fe5 Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Thu, 23 Feb 2012 10:55:02 +0000
 Subject: [PATCH 16/42] ipsec: be careful of non existing mac headers
@@ -21,11 +21,11 @@ Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- include/linux/skbuff.h       |   10 ++++++++++
- net/ipv4/xfrm4_mode_beet.c   |    5 +----
- net/ipv4/xfrm4_mode_tunnel.c |    6 ++----
- net/ipv6/xfrm6_mode_beet.c   |    6 +-----
- net/ipv6/xfrm6_mode_tunnel.c |    6 ++----
+ include/linux/skbuff.h       | 10 ++++++++++
+ net/ipv4/xfrm4_mode_beet.c   |  5 +----
+ net/ipv4/xfrm4_mode_tunnel.c |  6 ++----
+ net/ipv6/xfrm6_mode_beet.c   |  6 +-----
+ net/ipv6/xfrm6_mode_tunnel.c |  6 ++----
  5 files changed, 16 insertions(+), 17 deletions(-)
 
 diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
@@ -140,5 +140,5 @@ index 4d6edff..23ecd68 100644
  
  out:
 -- 
-1.7.7.6
+1.8.1.4
 

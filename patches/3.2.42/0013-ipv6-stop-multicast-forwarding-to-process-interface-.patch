@@ -1,0 +1,43 @@
+From 65a52fea38c78df49b3d50751f752fffd643ed53 Mon Sep 17 00:00:00 2001
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Date: Fri, 8 Mar 2013 02:07:23 +0000
+Subject: [PATCH 13/92] ipv6: stop multicast forwarding to process interface
+ scoped addresses
+
+[ Upstream commit ddf64354af4a702ee0b85d0a285ba74c7278a460 ]
+
+v2:
+a) used struct ipv6_addr_props
+
+v3:
+a) reverted changes for ipv6_addr_props
+
+v4:
+a) do not use __ipv6_addr_needs_scope_id
+
+Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Signed-off-by: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Acked-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv6/ip6_input.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/net/ipv6/ip6_input.c b/net/ipv6/ip6_input.c
+index a46c64e..f8d24dd 100644
+--- a/net/ipv6/ip6_input.c
++++ b/net/ipv6/ip6_input.c
+@@ -265,7 +265,8 @@ int ip6_mc_input(struct sk_buff *skb)
+ 	 *      IPv6 multicast router mode is now supported ;)
+ 	 */
+ 	if (dev_net(skb->dev)->ipv6.devconf_all->mc_forwarding &&
+-	    !(ipv6_addr_type(&hdr->daddr) & IPV6_ADDR_LINKLOCAL) &&
++	    !(ipv6_addr_type(&hdr->daddr) &
++	      (IPV6_ADDR_LOOPBACK|IPV6_ADDR_LINKLOCAL)) &&
+ 	    likely(!(IP6CB(skb)->flags & IP6SKB_FORWARDED))) {
+ 		/*
+ 		 * Okay, we try to forward - split and duplicate
+-- 
+1.8.1.4
+

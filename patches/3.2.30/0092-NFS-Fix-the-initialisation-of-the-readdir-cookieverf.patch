@@ -1,4 +1,4 @@
-From b881068c4627138f4ae0fdaf11be0a2c69547790 Mon Sep 17 00:00:00 2001
+From 02950f45e14b51cc81411d0196a16e2765baff57 Mon Sep 17 00:00:00 2001
 From: Trond Myklebust <Trond.Myklebust@netapp.com>
 Date: Mon, 3 Sep 2012 14:56:02 -0400
 Subject: [PATCH 092/135] NFS: Fix the initialisation of the readdir
@@ -23,10 +23,10 @@ Reported-by: David Binderman <dcb314@hotmail.com>
 Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/nfs/inode.c         |    2 +-
- fs/nfs/nfs3proc.c      |    2 +-
- fs/nfs/nfs4proc.c      |    4 ++--
- include/linux/nfs_fs.h |    5 -----
+ fs/nfs/inode.c         | 2 +-
+ fs/nfs/nfs3proc.c      | 2 +-
+ fs/nfs/nfs4proc.c      | 4 ++--
+ include/linux/nfs_fs.h | 5 -----
  4 files changed, 4 insertions(+), 9 deletions(-)
 
 diff --git a/fs/nfs/inode.c b/fs/nfs/inode.c
@@ -90,5 +90,5 @@ index 92ecf55..33c52a2 100644
  {
  	struct nfs_server *nfss = NFS_SERVER(inode);
 -- 
-1.7.7.6
+1.8.1.4
 

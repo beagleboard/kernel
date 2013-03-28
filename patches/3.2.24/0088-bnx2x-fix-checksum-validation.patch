@@ -1,4 +1,4 @@
-From b398ce1a68f21bfe18c204e82029437296b20e10 Mon Sep 17 00:00:00 2001
+From 71ff0982f70c37385ea851a86718e1443e7a15be Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <edumazet@google.com>
 Date: Tue, 12 Jun 2012 23:50:04 +0000
 Subject: [PATCH 088/109] bnx2x: fix checksum validation
@@ -30,8 +30,8 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
 [bwh: Backported to 3.2: adjust context, indentation]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/ethernet/broadcom/bnx2x/bnx2x.h     |   15 ------------
- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c |   28 ++++++++++++++++++-----
+ drivers/net/ethernet/broadcom/bnx2x/bnx2x.h     | 15 -------------
+ drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c | 28 +++++++++++++++++++------
  2 files changed, 22 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/net/ethernet/broadcom/bnx2x/bnx2x.h b/drivers/net/ethernet/broadcom/bnx2x/bnx2x.h
@@ -108,5 +108,5 @@ index 580b44e..27d6d6c 100644
  
  		skb_record_rx_queue(skb, fp->index);
 -- 
-1.7.7.6
+1.8.1.4
 

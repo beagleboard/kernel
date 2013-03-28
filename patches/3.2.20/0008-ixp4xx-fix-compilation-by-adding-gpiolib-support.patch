@@ -1,4 +1,4 @@
-From dd36b1039db6aabf52f9bc6e661b274f56aa9c7a Mon Sep 17 00:00:00 2001
+From 24cabc23a91d769a044d6f9f14f7c6399b04cb07 Mon Sep 17 00:00:00 2001
 From: Richard Cochran <richardcochran@gmail.com>
 Date: Wed, 23 May 2012 18:19:51 +0200
 Subject: [PATCH 08/86] ixp4xx: fix compilation by adding gpiolib support
@@ -16,9 +16,9 @@ Signed-off-by: Richard Cochran <richardcochran@gmail.com>
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/arm/Kconfig                         |    2 +-
- arch/arm/mach-ixp4xx/common.c            |   48 +++++++++++++++++-
- arch/arm/mach-ixp4xx/include/mach/gpio.h |   79 +-----------------------------
+ arch/arm/Kconfig                         |  2 +-
+ arch/arm/mach-ixp4xx/common.c            | 48 ++++++++++++++++++-
+ arch/arm/mach-ixp4xx/include/mach/gpio.h | 79 +-------------------------------
  3 files changed, 48 insertions(+), 81 deletions(-)
 
 diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
@@ -206,5 +206,5 @@ index 83d6b4e..ef37f26 100644
 +/* empty */
  
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 7163137f8e3130fc233ffd6cdfcd0f0193680691 Mon Sep 17 00:00:00 2001
+From 193e0e14757a26d0a617f07e6dfce6575c0b073a Mon Sep 17 00:00:00 2001
 From: "J. Bruce Fields" <bfields@redhat.com>
 Date: Thu, 22 Dec 2011 18:22:49 -0700
 Subject: [PATCH 066/129] svcrpc: fix double-free on shutdown of nfsd after
@@ -30,8 +30,8 @@ automatically resets the pool mode to SVC_POOL_GLOBAL on shutdown.
 Signed-off-by: J. Bruce Fields <bfields@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- net/sunrpc/svc.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ net/sunrpc/svc.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/net/sunrpc/svc.c b/net/sunrpc/svc.c
 index 6e03888..5443ffd 100644
@@ -56,5 +56,5 @@ index 6e03888..5443ffd 100644
  	}
  
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From ada2090d475c571805fe3cbfae9d8496fbb7fdf6 Mon Sep 17 00:00:00 2001
+From 4327ab9d5c8cf4e83a51df271ec4017195303181 Mon Sep 17 00:00:00 2001
 From: "J. Bruce Fields" <bfields@redhat.com>
 Date: Mon, 20 Aug 2012 16:04:40 -0400
 Subject: [PATCH 65/94] svcrpc: sends on closed socket should stop immediately
@@ -22,8 +22,8 @@ Tested-by: Malahal Naineni <malahal@us.ibm.com>
 Signed-off-by: J. Bruce Fields <bfields@redhat.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/sunrpc/svc_xprt.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ net/sunrpc/svc_xprt.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/net/sunrpc/svc_xprt.c b/net/sunrpc/svc_xprt.c
 index 9ed2cd0..622ba40 100644
@@ -40,5 +40,5 @@ index 9ed2cd0..622ba40 100644
  	else
  		len = xprt->xpt_ops->xpo_sendto(rqstp);
 -- 
-1.7.7.6
+1.8.1.4
 

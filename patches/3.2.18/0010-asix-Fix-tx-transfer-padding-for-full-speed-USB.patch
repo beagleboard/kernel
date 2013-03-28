@@ -1,4 +1,4 @@
-From 4a946151c9b2b83d651da2fdd8d8440cff58dc35 Mon Sep 17 00:00:00 2001
+From a31a8c91d97d803bd98c63ef9332bdfa09ed9919 Mon Sep 17 00:00:00 2001
 From: Ingo van Lil <inguin@gmx.de>
 Date: Mon, 23 Apr 2012 22:05:38 +0000
 Subject: [PATCH 10/56] asix: Fix tx transfer padding for full-speed USB
@@ -15,8 +15,8 @@ Signed-off-by: Ingo van Lil <inguin@gmx.de>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/usb/asix.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/usb/asix.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/usb/asix.c b/drivers/net/usb/asix.c
 index fda4be2..a9abee8 100644
@@ -41,5 +41,5 @@ index fda4be2..a9abee8 100644
  		memcpy(skb_tail_pointer(skb), &padbytes, sizeof(padbytes));
  		skb_put(skb, sizeof(padbytes));
 -- 
-1.7.7.6
+1.8.1.4
 

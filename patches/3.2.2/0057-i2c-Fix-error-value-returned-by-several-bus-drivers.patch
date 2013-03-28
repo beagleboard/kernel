@@ -1,4 +1,4 @@
-From 30cd4dd0fe1217827558ef20812751cdce75715b Mon Sep 17 00:00:00 2001
+From 4bf5711e98a906ee134e9021c6ef642adc7b25b4 Mon Sep 17 00:00:00 2001
 From: Jean Delvare <khali@linux-fr.org>
 Date: Thu, 12 Jan 2012 20:32:03 +0100
 Subject: [PATCH 057/129] i2c: Fix error value returned by several bus drivers
@@ -13,11 +13,11 @@ by properly returning a non-zero value on every error.
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/i2c/busses/i2c-ali1535.c |   11 +++++++----
- drivers/i2c/busses/i2c-nforce2.c |    2 +-
- drivers/i2c/busses/i2c-sis5595.c |    4 ++--
- drivers/i2c/busses/i2c-sis630.c  |    6 +++++-
- drivers/i2c/busses/i2c-viapro.c  |    7 +++++--
+ drivers/i2c/busses/i2c-ali1535.c | 11 +++++++----
+ drivers/i2c/busses/i2c-nforce2.c |  2 +-
+ drivers/i2c/busses/i2c-sis5595.c |  4 ++--
+ drivers/i2c/busses/i2c-sis630.c  |  6 +++++-
+ drivers/i2c/busses/i2c-viapro.c  |  7 +++++--
  5 files changed, 20 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-ali1535.c b/drivers/i2c/busses/i2c-ali1535.c
@@ -193,5 +193,5 @@ index 0b012f1..58261d4 100644
  
  	/* Always return failure here.  This is to allow other drivers to bind
 -- 
-1.7.7.6
+1.8.1.4
 

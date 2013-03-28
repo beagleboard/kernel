@@ -1,8 +1,7 @@
-From 174ad58c70521882e8a5697a7fbad723c6231bbb Mon Sep 17 00:00:00 2001
+From a0755c00e618cd9f4debc107f6f83b41c69e2a81 Mon Sep 17 00:00:00 2001
 From: David Gibson <david@gibson.dropbear.id.au>
 Date: Wed, 21 Mar 2012 16:34:12 -0700
-Subject: [PATCH 013/109] hugepages: fix use after free bug in "quota"
- handling
+Subject: [PATCH 013/109] hugepages: fix use after free bug in "quota" handling
 
 commit 90481622d75715bfcb68501280a917dbfe516029 upstream.
 
@@ -63,9 +62,9 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
  error path', backported in 3.2.20]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/hugetlbfs/inode.c    |   54 +++++++-----------
- include/linux/hugetlb.h |   14 ++++--
- mm/hugetlb.c            |  135 +++++++++++++++++++++++++++++++++++++---------
+ fs/hugetlbfs/inode.c    |  54 ++++++++-----------
+ include/linux/hugetlb.h |  14 +++--
+ mm/hugetlb.c            | 135 ++++++++++++++++++++++++++++++++++++++----------
  3 files changed, 139 insertions(+), 64 deletions(-)
 
 diff --git a/fs/hugetlbfs/inode.c b/fs/hugetlbfs/inode.c
@@ -460,5 +459,5 @@ index 5f5c545..7c535b0 100644
  }
  
 -- 
-1.7.7.6
+1.8.1.4
 

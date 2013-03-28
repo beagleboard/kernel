@@ -1,4 +1,4 @@
-From 80a3fb7d9714bfcc441211870686bfada1d53f9f Mon Sep 17 00:00:00 2001
+From cdbf14a16d349d4a14437e11fa97eb51e49c18ca Mon Sep 17 00:00:00 2001
 From: Jerome Glisse <jglisse@redhat.com>
 Date: Thu, 12 Jul 2012 18:23:05 -0400
 Subject: [PATCH 66/73] drm/radeon: fix bo creation retry path
@@ -18,8 +18,8 @@ Signed-off-by: Dave Airlie <airlied@redhat.com>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/radeon/radeon_object.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/gpu/drm/radeon/radeon_object.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/radeon/radeon_object.c b/drivers/gpu/drm/radeon/radeon_object.c
 index f3ae607..39497c7 100644
@@ -43,5 +43,5 @@ index f3ae607..39497c7 100644
  	/* Kernel allocation are uninterruptible */
  	mutex_lock(&rdev->vram_mutex);
 -- 
-1.7.7.6
+1.8.1.4
 

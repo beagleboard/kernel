@@ -1,4 +1,4 @@
-From 61859cc85bcb04e2740c44994aee69fb42093ce8 Mon Sep 17 00:00:00 2001
+From d8edbcc3604b03a7c91aa0519bd1c4c414d06a63 Mon Sep 17 00:00:00 2001
 From: Jeff Moyer <jmoyer@redhat.com>
 Date: Mon, 20 Feb 2012 17:59:24 -0500
 Subject: [PATCH 109/147] ext4: fix race between unwritten extent conversion
@@ -26,9 +26,9 @@ Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/ext4/ext4.h    |    1 +
- fs/ext4/inode.c   |   10 +++++-----
- fs/ext4/page-io.c |    2 ++
+ fs/ext4/ext4.h    |  1 +
+ fs/ext4/inode.c   | 10 +++++-----
+ fs/ext4/page-io.c |  2 ++
  3 files changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
@@ -86,5 +86,5 @@ index 7e106c8..924298a 100644
  	if (atomic_dec_and_test(&EXT4_I(inode)->i_aiodio_unwritten))
  		wake_up_all(ext4_ioend_wq(io->inode));
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 9aaa177f0067e75bbc963749e841cf7d57dbb5d2 Mon Sep 17 00:00:00 2001
+From 3acb85b2e9c7b43e8bc0f9343368900b746e8c62 Mon Sep 17 00:00:00 2001
 From: Ilija Hadzic <ilijahadzic@gmail.com>
 Date: Mon, 29 Oct 2012 17:35:00 +0000
 Subject: [PATCH 57/83] drm: restore open_count if drm_setup fails
@@ -14,8 +14,8 @@ Reviewed-by: Thomas Hellstrom <thellstrom@vmware.com>
 Signed-off-by: Dave Airlie <airlied@redhat.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/drm_fops.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/gpu/drm/drm_fops.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/drm_fops.c b/drivers/gpu/drm/drm_fops.c
 index 828bf65..020b103 100644
@@ -35,5 +35,5 @@ index 828bf65..020b103 100644
  	if (!retcode) {
  		mutex_lock(&dev->struct_mutex);
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 9070c67b04963bb6b049ccb21b41ce549d5b43ee Mon Sep 17 00:00:00 2001
+From bac50b0568c3693f3f9ba8ff92d32b1b2c0b07d0 Mon Sep 17 00:00:00 2001
 From: Michael Chan <mchan@broadcom.com>
 Date: Tue, 10 Jul 2012 10:04:40 +0000
 Subject: [PATCH 01/38] bnx2: Fix bug in bnx2_free_tx_skbs().
@@ -15,8 +15,8 @@ Signed-off-by: Michael Chan <mchan@broadcom.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/ethernet/broadcom/bnx2.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/broadcom/bnx2.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/net/ethernet/broadcom/bnx2.c b/drivers/net/ethernet/broadcom/bnx2.c
 index 965c723..721adfd 100644
@@ -43,5 +43,5 @@ index 965c723..721adfd 100644
  				dma_unmap_page(&bp->pdev->dev,
  					dma_unmap_addr(tx_buf, mapping),
 -- 
-1.7.7.6
+1.8.1.4
 

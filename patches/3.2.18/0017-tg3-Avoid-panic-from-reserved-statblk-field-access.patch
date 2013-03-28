@@ -1,4 +1,4 @@
-From b0b6e8764ebfbb4904d9e5f482bde4fa9edb3b4b Mon Sep 17 00:00:00 2001
+From db623cd9e4fd707e4e6ed19fc0fd102fac11ab2b Mon Sep 17 00:00:00 2001
 From: Matt Carlson <mcarlson@broadcom.com>
 Date: Tue, 24 Apr 2012 13:37:01 +0000
 Subject: [PATCH 17/56] tg3: Avoid panic from reserved statblk field access
@@ -16,8 +16,8 @@ Signed-off-by: Michael Chan <mchan@broadcom.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/ethernet/broadcom/tg3.c |   18 ++++++++++++++++--
- 1 files changed, 16 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/broadcom/tg3.c | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/ethernet/broadcom/tg3.c b/drivers/net/ethernet/broadcom/tg3.c
 index 3d55883..2dcac28 100644
@@ -63,5 +63,5 @@ index 3d55883..2dcac28 100644
  			break;
  		case 2:
 -- 
-1.7.7.6
+1.8.1.4
 

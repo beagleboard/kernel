@@ -1,4 +1,4 @@
-From 1b1ffb6590ea5260e2fc6810b67dc07ab3fd12b4 Mon Sep 17 00:00:00 2001
+From 4498930143a3b377a527af541e35db088a7b0c7c Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Tue, 24 Apr 2012 23:01:22 -0400
 Subject: [PATCH 072/165] tcp: avoid order-1 allocations on wifi and tx path
@@ -41,9 +41,9 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
 [bwh: Correct commit hash for follow-on bug fix]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/skbuff.h |   13 +++++++++++++
- net/ipv4/tcp.c         |    8 ++++----
- net/ipv4/tcp_output.c  |    3 ++-
+ include/linux/skbuff.h | 13 +++++++++++++
+ net/ipv4/tcp.c         |  8 ++++----
+ net/ipv4/tcp_output.c  |  3 ++-
  3 files changed, 19 insertions(+), 5 deletions(-)
 
 diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
@@ -130,5 +130,5 @@ index 7413437..c51dd5b 100644
  
  		if (after(TCP_SKB_CB(skb)->end_seq, tcp_wnd_end(tp)))
 -- 
-1.7.7.6
+1.8.1.4
 

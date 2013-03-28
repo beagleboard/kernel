@@ -1,4 +1,4 @@
-From 86ee4b08c28fb5a86b986ea8335625cf9d58d861 Mon Sep 17 00:00:00 2001
+From c0891335388d75d3edcfead83cef4a672f63b0ce Mon Sep 17 00:00:00 2001
 From: Heiko Carstens <heiko.carstens@de.ibm.com>
 Date: Tue, 7 Aug 2012 09:48:13 +0200
 Subject: [PATCH 33/38] s390/compat: fix compat wrappers for process_vm system
@@ -13,8 +13,8 @@ Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/s390/kernel/compat_wrapper.S |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/s390/kernel/compat_wrapper.S | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/s390/kernel/compat_wrapper.S b/arch/s390/kernel/compat_wrapper.S
 index 18c51df..25408d3 100644
@@ -36,5 +36,5 @@ index 18c51df..25408d3 100644
 -	jg	sys_process_vm_writev
 +	jg	compat_sys_process_vm_writev
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 0769262c4b34e5fcbc427723c9ca5ef293db3f09 Mon Sep 17 00:00:00 2001
+From 7f2039ee15f979d5e7cb18b9dd417ce6a6283f8d Mon Sep 17 00:00:00 2001
 From: Trond Myklebust <Trond.Myklebust@netapp.com>
 Date: Tue, 23 Oct 2012 17:50:07 -0400
 Subject: [PATCH 072/105] SUNRPC: Prevent races in xs_abort_connection()
@@ -19,8 +19,8 @@ Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Tested-by: Chris Perl <chris.perl@gmail.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/sunrpc/xprtsock.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+ net/sunrpc/xprtsock.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/net/sunrpc/xprtsock.c b/net/sunrpc/xprtsock.c
 index 1daaca5..aada5df 100644
@@ -61,5 +61,5 @@ index 1daaca5..aada5df 100644
  
  static void xs_tcp_reuse_connection(struct sock_xprt *transport)
 -- 
-1.7.7.6
+1.8.1.4
 

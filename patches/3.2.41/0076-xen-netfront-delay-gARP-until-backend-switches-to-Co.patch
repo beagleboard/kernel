@@ -1,0 +1,73 @@
+From 4aaaa53d1f485abc593261089d7a5683158bfbb8 Mon Sep 17 00:00:00 2001
+From: Laszlo Ersek <lersek@redhat.com>
+Date: Sun, 11 Dec 2011 01:48:59 +0000
+Subject: [PATCH 76/82] xen-netfront: delay gARP until backend switches to
+ Connected
+
+commit 08e34eb14fe4cfd934b5c169a7682a969457c4ea upstream.
+
+After a guest is live migrated, the xen-netfront driver emits a gratuitous
+ARP message, so that networking hardware on the target host's subnet can
+take notice, and public routing to the guest is re-established. However,
+if the packet appears on the backend interface before the backend is added
+to the target host's bridge, the packet is lost, and the migrated guest's
+peers become unable to talk to the guest.
+
+A sufficient two-parts condition to prevent the above is:
+
+(1) ensure that the backend only moves to Connected xenbus state after its
+hotplug scripts completed, ie. the netback interface got added to the
+bridge; and
+
+(2) ensure the frontend only queues the gARP when it sees the backend move
+to Connected.
+
+These two together provide complete ordering. Sub-condition (1) is already
+satisfied by commit f942dc2552b8 in Linus' tree, based on commit
+6b0b80ca7165 from [1].
+
+In general, the full condition is sufficient, not necessary, because,
+according to [2], live migration has been working for a long time without
+satisfying sub-condition (2). However, after 6b0b80ca7165 was backported
+to the RHEL-5 host to ensure (1), (2) still proved necessary in the RHEL-6
+guest. This patch intends to provide (2) for upstream.
+
+The Reviewed-by line comes from [3].
+
+[1] git://xenbits.xen.org/people/ianc/linux-2.6.git#upstream/dom0/backend/netback-history
+[2] http://old-list-archives.xen.org/xen-devel/2011-06/msg01969.html
+[3] http://old-list-archives.xen.org/xen-devel/2011-07/msg00484.html
+
+Signed-off-by: Laszlo Ersek <lersek@redhat.com>
+Reviewed-by: Ian Campbell <ian.campbell@citrix.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/xen-netfront.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/xen-netfront.c b/drivers/net/xen-netfront.c
+index fc35308..9b9843e 100644
+--- a/drivers/net/xen-netfront.c
++++ b/drivers/net/xen-netfront.c
+@@ -1707,7 +1707,6 @@ static void netback_changed(struct xenbus_device *dev,
+ 	case XenbusStateInitialised:
+ 	case XenbusStateReconfiguring:
+ 	case XenbusStateReconfigured:
+-	case XenbusStateConnected:
+ 	case XenbusStateUnknown:
+ 	case XenbusStateClosed:
+ 		break;
+@@ -1718,6 +1717,9 @@ static void netback_changed(struct xenbus_device *dev,
+ 		if (xennet_connect(netdev) != 0)
+ 			break;
+ 		xenbus_switch_state(dev, XenbusStateConnected);
++		break;
++
++	case XenbusStateConnected:
+ 		netif_notify_peers(netdev);
+ 		break;
+ 
+-- 
+1.8.1.4
+

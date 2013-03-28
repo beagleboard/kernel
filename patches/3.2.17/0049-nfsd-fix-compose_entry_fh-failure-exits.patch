@@ -1,4 +1,4 @@
-From 1afa52bc518a6aebdb6e1a0db97326b4bb1ebaeb Mon Sep 17 00:00:00 2001
+From 1f2a54c392c646293bd3072c899b9fd8d7dff3aa Mon Sep 17 00:00:00 2001
 From: Al Viro <viro@zeniv.linux.org.uk>
 Date: Fri, 13 Apr 2012 00:32:14 -0400
 Subject: [PATCH 049/165] nfsd: fix compose_entry_fh() failure exits
@@ -23,8 +23,8 @@ and the second check has no effect whatsoever...
 Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/nfsd/nfs3xdr.c |   22 ++++++++--------------
- 1 files changed, 8 insertions(+), 14 deletions(-)
+ fs/nfsd/nfs3xdr.c | 22 ++++++++--------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
 
 diff --git a/fs/nfsd/nfs3xdr.c b/fs/nfsd/nfs3xdr.c
 index 08c6e36..43f46cd 100644
@@ -88,5 +88,5 @@ index 08c6e36..43f46cd 100644
  	fh_init(&fh, NFS3_FHSIZE);
  	err = compose_entry_fh(cd, &fh, name, namlen);
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From b02695a52739d640db2560c91f482836d23ce303 Mon Sep 17 00:00:00 2001
+From 1fd15b62b35ab4b4a00222a7342b28048f31b7c3 Mon Sep 17 00:00:00 2001
 From: Al Viro <viro@ZenIV.linux.org.uk>
 Date: Mon, 20 Aug 2012 14:59:25 +0100
 Subject: [PATCH 091/135] perf_event: Switch to internal refcount, fix race
@@ -22,8 +22,8 @@ Link: http://lkml.kernel.org/r/20120820135925.GG23464@ZenIV.linux.org.uk
 Signed-off-by: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/perf_event.h |    2 +-
- kernel/events/core.c       |   62 +++++++++++++++++++++++--------------------
+ include/linux/perf_event.h |  2 +-
+ kernel/events/core.c       | 62 ++++++++++++++++++++++++----------------------
  2 files changed, 34 insertions(+), 30 deletions(-)
 
 diff --git a/include/linux/perf_event.h b/include/linux/perf_event.h
@@ -218,5 +218,5 @@ index 58690af..7d1f05e 100644
  	 */
  	WARN_ON_ONCE(parent_event->ctx->parent_ctx);
 -- 
-1.7.7.6
+1.8.1.4
 

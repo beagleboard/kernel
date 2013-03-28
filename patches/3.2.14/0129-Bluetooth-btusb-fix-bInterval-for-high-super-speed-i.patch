@@ -1,4 +1,4 @@
-From f65eb6ab3600f163d9ae4d444158655551f5a041 Mon Sep 17 00:00:00 2001
+From 655aea1a9a4a902f6ff5d58d069b469f289f8000 Mon Sep 17 00:00:00 2001
 From: Bing Zhao <bzhao@marvell.com>
 Date: Tue, 20 Dec 2011 18:19:00 -0800
 Subject: [PATCH 129/147] Bluetooth: btusb: fix bInterval for high/super speed
@@ -17,8 +17,8 @@ Acked-by: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Gustavo F. Padovan <padovan@profusion.mobi>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/bluetooth/btusb.c |    9 ++-------
- 1 files changed, 2 insertions(+), 7 deletions(-)
+ drivers/bluetooth/btusb.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
 index 11a925c..c16c750 100644
@@ -43,5 +43,5 @@ index 11a925c..c16c750 100644
  	__fill_isoc_descriptor(urb, size,
  			le16_to_cpu(data->isoc_rx_ep->wMaxPacketSize));
 -- 
-1.7.7.6
+1.8.1.4
 

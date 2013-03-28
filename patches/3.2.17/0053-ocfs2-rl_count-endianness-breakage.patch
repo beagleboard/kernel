@@ -1,4 +1,4 @@
-From 95c1185720d94b99d3c02d75579463753d788b0f Mon Sep 17 00:00:00 2001
+From 0f4f17a20521b33d19c63671bd4901e213c9730b Mon Sep 17 00:00:00 2001
 From: Al Viro <viro@zeniv.linux.org.uk>
 Date: Fri, 13 Apr 2012 12:28:21 -0400
 Subject: [PATCH 053/165] ocfs2: ->rl_count endianness breakage
@@ -10,8 +10,8 @@ le16, not le32...
 Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ocfs2/refcounttree.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ fs/ocfs2/refcounttree.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/fs/ocfs2/refcounttree.c b/fs/ocfs2/refcounttree.c
 index bc90ebc..9f32d7c 100644
@@ -27,5 +27,5 @@ index bc90ebc..9f32d7c 100644
  	/*
  	 * XXX: Improvement later.
 -- 
-1.7.7.6
+1.8.1.4
 

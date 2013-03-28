@@ -1,4 +1,4 @@
-From 47f87b1110d90bfa272087bf57bbaf8a37d8cba5 Mon Sep 17 00:00:00 2001
+From 3160b6c2b4330b8a803056e3c89ee7a83af73161 Mon Sep 17 00:00:00 2001
 From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
 Date: Mon, 28 Nov 2011 10:15:20 -0600
 Subject: [PATCH 081/117] hpsa: Add IRQF_SHARED back in for the non-MSI(X)
@@ -17,8 +17,8 @@ Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Signed-off-by: James Bottomley <JBottomley@Parallels.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/scsi/hpsa.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/hpsa.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/scsi/hpsa.c b/drivers/scsi/hpsa.c
 index dc9dea3..b4d2c86 100644
@@ -38,5 +38,5 @@ index dc9dea3..b4d2c86 100644
  		dev_err(&h->pdev->dev, "unable to get irq %d for %s\n",
  		       h->intr[h->intr_mode], h->devname);
 -- 
-1.7.7.6
+1.8.1.4
 

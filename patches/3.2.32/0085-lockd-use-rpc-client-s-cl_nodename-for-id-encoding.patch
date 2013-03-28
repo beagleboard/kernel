@@ -1,4 +1,4 @@
-From eb9f85516ebc1edb1cb710ea89cee4eacf05eef1 Mon Sep 17 00:00:00 2001
+From 7065ad0cf6354dcb860429f96579e9d1a75aef9b Mon Sep 17 00:00:00 2001
 From: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Date: Tue, 18 Sep 2012 13:37:18 +0400
 Subject: [PATCH 085/146] lockd: use rpc client's cl_nodename for id encoding
@@ -13,7 +13,7 @@ Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/lockd/mon.c |    4 +++-
+ fs/lockd/mon.c | 4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/fs/lockd/mon.c b/fs/lockd/mon.c
@@ -46,5 +46,5 @@ index 23d7451..df753a1 100644
  	*p++ = cpu_to_be32(argp->prog);
  	*p++ = cpu_to_be32(argp->vers);
 -- 
-1.7.10.4
+1.8.1.4
 

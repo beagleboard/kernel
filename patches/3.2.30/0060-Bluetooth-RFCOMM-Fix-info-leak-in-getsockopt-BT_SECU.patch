@@ -1,4 +1,4 @@
-From c53d6ccb6f73a60e9a73c35b31b41737588e4cae Mon Sep 17 00:00:00 2001
+From 43558190c6b8f884161aaa7988a3b52aaf9284d2 Mon Sep 17 00:00:00 2001
 From: Mathias Krause <minipli@googlemail.com>
 Date: Wed, 15 Aug 2012 11:31:48 +0000
 Subject: [PATCH 060/135] Bluetooth: RFCOMM - Fix info leak in
@@ -18,8 +18,8 @@ Cc: Johan Hedberg <johan.hedberg@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/bluetooth/rfcomm/sock.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ net/bluetooth/rfcomm/sock.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/net/bluetooth/rfcomm/sock.c b/net/bluetooth/rfcomm/sock.c
 index 5417f61..03584bc 100644
@@ -34,5 +34,5 @@ index 5417f61..03584bc 100644
  		len = min_t(unsigned int, len, sizeof(sec));
  		if (copy_to_user(optval, (char *) &sec, len))
 -- 
-1.7.7.6
+1.8.1.4
 

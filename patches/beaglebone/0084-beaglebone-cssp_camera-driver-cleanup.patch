@@ -1,7 +1,7 @@
-From 894099658d2826f6f2efb288769e7248f582af41 Mon Sep 17 00:00:00 2001
+From 35adcde98524c0caac5d6aaba1091bff4fb9681c Mon Sep 17 00:00:00 2001
 From: Dan Aizenstros <daizenstros@quicklogic.com>
 Date: Thu, 26 Jul 2012 21:57:12 -0400
-Subject: [PATCH 84/92] beaglebone: cssp_camera driver cleanup
+Subject: [PATCH 084/102] beaglebone: cssp_camera driver cleanup
 
 fix v4l2_buf.sequence to use frame count
 fix enum/g/s_input functions
@@ -11,8 +11,8 @@ change the driver to use dev_err and dev_info instead of printk
 Signed-off-by: Dan Aizenstros <daizenstros@quicklogic.com>
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
- drivers/media/video/cssp_camera/cssp_camera.c |   98 +++++++++++--------------
- drivers/media/video/cssp_camera/cssp_camera.h |    7 +-
+ drivers/media/video/cssp_camera/cssp_camera.c | 98 ++++++++++++---------------
+ drivers/media/video/cssp_camera/cssp_camera.h |  7 +-
  2 files changed, 44 insertions(+), 61 deletions(-)
 
 diff --git a/drivers/media/video/cssp_camera/cssp_camera.c b/drivers/media/video/cssp_camera/cssp_camera.c
@@ -320,5 +320,5 @@ index 8eb5f83..3bb6ea4 100644
  
  
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 1ae4a9a2b8e76cb3bc5c6da979c80299348fece0 Mon Sep 17 00:00:00 2001
+From 5dfd3cc19db662e02698dfc22810e41b7e14f420 Mon Sep 17 00:00:00 2001
 From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Date: Fri, 16 Mar 2012 13:09:39 -0700
 Subject: [PATCH 35/68] xhci: Don't write zeroed pointers to xHC registers.
@@ -29,8 +29,8 @@ Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Tested-by: Elric Fu <elricfu1@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/host/xhci-mem.c |    9 ++-------
- 1 files changed, 2 insertions(+), 7 deletions(-)
+ drivers/usb/host/xhci-mem.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/usb/host/xhci-mem.c b/drivers/usb/host/xhci-mem.c
 index c69cf54..01c3800 100644
@@ -74,5 +74,5 @@ index c69cf54..01c3800 100644
  	return -ENOMEM;
  }
 -- 
-1.7.7.6
+1.8.1.4
 

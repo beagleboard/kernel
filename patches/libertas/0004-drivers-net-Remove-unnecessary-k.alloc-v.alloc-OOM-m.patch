@@ -1,4 +1,4 @@
-From e6d1ab55edfd896e1254c44f5ab5b90d3e9d2b53 Mon Sep 17 00:00:00 2001
+From fe17f30f8f2b6171e9bacee70e09a19a2d23115f Mon Sep 17 00:00:00 2001
 From: Joe Perches <joe@perches.com>
 Date: Sun, 29 Jan 2012 12:56:23 +0000
 Subject: [PATCH 04/16] drivers/net: Remove unnecessary k.alloc/v.alloc OOM
@@ -12,8 +12,8 @@ Remove the allocation failure messages.
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/net/wireless/libertas/if_cs.c  |    5 ++---
- drivers/net/wireless/libertas/if_usb.c |    4 +---
+ drivers/net/wireless/libertas/if_cs.c  | 5 ++---
+ drivers/net/wireless/libertas/if_usb.c | 4 +---
  2 files changed, 3 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/net/wireless/libertas/if_cs.c b/drivers/net/wireless/libertas/if_cs.c
@@ -50,5 +50,5 @@ index b5fbbc7..74da5f1 100644
  	setup_timer(&cardp->fw_timeout, if_usb_fw_timeo, (unsigned long)cardp);
  	init_waitqueue_head(&cardp->fw_wq);
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 05159be63a90a97fdf86a559d72a0e50b8539758 Mon Sep 17 00:00:00 2001
+From 083aeaa3d129f86b92674d9fadeea182c54c2fb9 Mon Sep 17 00:00:00 2001
 From: Alan Cox <alan@linux.intel.com>
 Date: Tue, 22 May 2012 20:45:13 +0100
 Subject: [PATCH 51/67] USB: mct_u232: Fix incorrect TIOCMSET return
@@ -14,8 +14,8 @@ Signed-off-by: Alan Cox <alan@linux.intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/serial/mct_u232.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+ drivers/usb/serial/mct_u232.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/serial/mct_u232.c b/drivers/usb/serial/mct_u232.c
 index ba0d287..42de17b 100644
@@ -44,5 +44,5 @@ index ba0d287..42de17b 100644
  
  static int mct_u232_get_modem_stat(struct usb_serial *serial,
 -- 
-1.7.7.6
+1.8.1.4
 

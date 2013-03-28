@@ -1,4 +1,4 @@
-From b29c1544f975801a5c06338c4ea8b1f0552aa9f6 Mon Sep 17 00:00:00 2001
+From 762d92ae772b6796513d3723c4aa60b3892df23b Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Thu, 24 May 2012 15:45:45 +0530
 Subject: [PATCH 12/19] usb: musb: cppi41: use dsb() to make sure PDs are
@@ -10,8 +10,8 @@ contents are written to memory
 
 Signed-off-by: Ravi B <ravibabu@ti.com>
 ---
- drivers/usb/musb/cppi41_dma.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+ drivers/usb/musb/cppi41_dma.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
 diff --git a/drivers/usb/musb/cppi41_dma.c b/drivers/usb/musb/cppi41_dma.c
 index 3665d0f..bf74cf3 100644
@@ -39,5 +39,5 @@ index 3665d0f..bf74cf3 100644
  		 * Push the free Rx packet descriptor
  		 * to the free descriptor/buffer queue.
 -- 
-1.7.7.6
+1.8.1.4
 

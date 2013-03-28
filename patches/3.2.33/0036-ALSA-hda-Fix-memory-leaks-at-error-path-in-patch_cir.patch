@@ -1,4 +1,4 @@
-From 319a278c3b464bcfa580b489925a519db34c1b77 Mon Sep 17 00:00:00 2001
+From 443f8c2a8259e54e5ca5b38739f84f25ff14d61a Mon Sep 17 00:00:00 2001
 From: Takashi Iwai <tiwai@suse.de>
 Date: Wed, 10 Oct 2012 08:50:35 +0200
 Subject: [PATCH 036/105] ALSA: hda - Fix memory leaks at error path in
@@ -12,8 +12,8 @@ Signed-off-by: Takashi Iwai <tiwai@suse.de>
 [bwh: Backported to 3.2: drop the change to nonexistent patch_cs4213()]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- sound/pci/hda/patch_cirrus.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ sound/pci/hda/patch_cirrus.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/sound/pci/hda/patch_cirrus.c b/sound/pci/hda/patch_cirrus.c
 index ec0518e..e449278 100644
@@ -38,5 +38,5 @@ index ec0518e..e449278 100644
  	return err;
  }
 -- 
-1.7.7.6
+1.8.1.4
 

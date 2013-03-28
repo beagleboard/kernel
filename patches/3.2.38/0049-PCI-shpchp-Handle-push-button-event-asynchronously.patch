@@ -1,0 +1,101 @@
+From d8e34b016cf31d03d3a6a515ff715175d99e64ec Mon Sep 17 00:00:00 2001
+From: Bjorn Helgaas <bhelgaas@google.com>
+Date: Fri, 11 Jan 2013 12:07:22 -0700
+Subject: [PATCH 049/127] PCI: shpchp: Handle push button event asynchronously
+
+commit d347e75847c1fb299c97736638f45e6ea39702d4 upstream.
+
+Use non-ordered workqueue for attention button events.
+
+Attention button events on each slot can be handled asynchronously. So
+we should use non-ordered workqueue. This patch also removes ordered
+workqueue in shpchp as a result.
+
+486b10b9f4 ("PCI: pciehp: Handle push button event asynchronously") made
+the same change to pciehp.  I split this out from a patch by Yijing Wang
+<wangyijing@huawei.com> so we fix one thing at a time and to make the
+shpchp history correspond more closely with the pciehp history.
+
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+CC: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/pci/hotplug/shpchp.h      |  1 -
+ drivers/pci/hotplug/shpchp_core.c | 10 ----------
+ drivers/pci/hotplug/shpchp_ctrl.c |  2 +-
+ 3 files changed, 1 insertion(+), 12 deletions(-)
+
+diff --git a/drivers/pci/hotplug/shpchp.h b/drivers/pci/hotplug/shpchp.h
+index e0c90e6..0b9eb75 100644
+--- a/drivers/pci/hotplug/shpchp.h
++++ b/drivers/pci/hotplug/shpchp.h
+@@ -47,7 +47,6 @@ extern int shpchp_poll_mode;
+ extern int shpchp_poll_time;
+ extern int shpchp_debug;
+ extern struct workqueue_struct *shpchp_wq;
+-extern struct workqueue_struct *shpchp_ordered_wq;
+ 
+ #define dbg(format, arg...)						\
+ do {									\
+diff --git a/drivers/pci/hotplug/shpchp_core.c b/drivers/pci/hotplug/shpchp_core.c
+index dd7e0c5..e2b3536 100644
+--- a/drivers/pci/hotplug/shpchp_core.c
++++ b/drivers/pci/hotplug/shpchp_core.c
+@@ -40,7 +40,6 @@ int shpchp_debug;
+ int shpchp_poll_mode;
+ int shpchp_poll_time;
+ struct workqueue_struct *shpchp_wq;
+-struct workqueue_struct *shpchp_ordered_wq;
+ 
+ #define DRIVER_VERSION	"0.4"
+ #define DRIVER_AUTHOR	"Dan Zink <dan.zink@compaq.com>, Greg Kroah-Hartman <greg@kroah.com>, Dely Sy <dely.l.sy@intel.com>"
+@@ -175,7 +174,6 @@ void cleanup_slots(struct controller *ctrl)
+ 		list_del(&slot->slot_list);
+ 		cancel_delayed_work(&slot->work);
+ 		flush_workqueue(shpchp_wq);
+-		flush_workqueue(shpchp_ordered_wq);
+ 		pci_hp_deregister(slot->hotplug_slot);
+ 	}
+ }
+@@ -364,17 +362,10 @@ static int __init shpcd_init(void)
+ 	if (!shpchp_wq)
+ 		return -ENOMEM;
+ 
+-	shpchp_ordered_wq = alloc_ordered_workqueue("shpchp_ordered", 0);
+-	if (!shpchp_ordered_wq) {
+-		destroy_workqueue(shpchp_wq);
+-		return -ENOMEM;
+-	}
+-
+ 	retval = pci_register_driver(&shpc_driver);
+ 	dbg("%s: pci_register_driver = %d\n", __func__, retval);
+ 	info(DRIVER_DESC " version: " DRIVER_VERSION "\n");
+ 	if (retval) {
+-		destroy_workqueue(shpchp_ordered_wq);
+ 		destroy_workqueue(shpchp_wq);
+ 	}
+ 	return retval;
+@@ -384,7 +375,6 @@ static void __exit shpcd_cleanup(void)
+ {
+ 	dbg("unload_shpchpd()\n");
+ 	pci_unregister_driver(&shpc_driver);
+-	destroy_workqueue(shpchp_ordered_wq);
+ 	destroy_workqueue(shpchp_wq);
+ 	info(DRIVER_DESC " version: " DRIVER_VERSION " unloaded\n");
+ }
+diff --git a/drivers/pci/hotplug/shpchp_ctrl.c b/drivers/pci/hotplug/shpchp_ctrl.c
+index b00b09b..bba5b3e 100644
+--- a/drivers/pci/hotplug/shpchp_ctrl.c
++++ b/drivers/pci/hotplug/shpchp_ctrl.c
+@@ -456,7 +456,7 @@ void shpchp_queue_pushbutton_work(struct work_struct *work)
+ 		kfree(info);
+ 		goto out;
+ 	}
+-	queue_work(shpchp_ordered_wq, &info->work);
++	queue_work(shpchp_wq, &info->work);
+  out:
+ 	mutex_unlock(&p_slot->lock);
+ }
+-- 
+1.8.1.4
+

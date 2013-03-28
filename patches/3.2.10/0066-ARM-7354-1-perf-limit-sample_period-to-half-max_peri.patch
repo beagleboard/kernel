@@ -1,4 +1,4 @@
-From 76a4fe06aefaf01027f5752577deba72aae27b59 Mon Sep 17 00:00:00 2001
+From db17aa9e9890f0e93959f24f560dc7f883349f02 Mon Sep 17 00:00:00 2001
 From: Will Deacon <will.deacon@arm.com>
 Date: Tue, 6 Mar 2012 17:33:17 +0100
 Subject: [PATCH 66/95] ARM: 7354/1: perf: limit sample_period to half
@@ -29,11 +29,11 @@ Signed-off-by: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/arm/include/asm/pmu.h          |    2 +-
- arch/arm/kernel/perf_event.c        |   22 +++++++++++-----------
- arch/arm/kernel/perf_event_v6.c     |    2 +-
- arch/arm/kernel/perf_event_v7.c     |    2 +-
- arch/arm/kernel/perf_event_xscale.c |    4 ++--
+ arch/arm/include/asm/pmu.h          |  2 +-
+ arch/arm/kernel/perf_event.c        | 22 +++++++++++-----------
+ arch/arm/kernel/perf_event_v6.c     |  2 +-
+ arch/arm/kernel/perf_event_v7.c     |  2 +-
+ arch/arm/kernel/perf_event_xscale.c |  4 ++--
  5 files changed, 16 insertions(+), 16 deletions(-)
 
 diff --git a/arch/arm/include/asm/pmu.h b/arch/arm/include/asm/pmu.h
@@ -159,5 +159,5 @@ index 3b99d82..831e019 100644
  		if (!armpmu_event_set_period(event, hwc, idx))
  			continue;
 -- 
-1.7.7.6
+1.8.1.4
 

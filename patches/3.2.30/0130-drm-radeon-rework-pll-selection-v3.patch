@@ -1,4 +1,4 @@
-From 9521fd9c7964b272f07e5cb1b85baa6cc9005177 Mon Sep 17 00:00:00 2001
+From 6284114210a65c959a6e3f32ec024456c0d42506 Mon Sep 17 00:00:00 2001
 From: Alex Deucher <alexander.deucher@amd.com>
 Date: Fri, 31 Aug 2012 11:56:50 -0400
 Subject: [PATCH 130/135] drm/radeon: rework pll selection (v3)
@@ -24,8 +24,8 @@ Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
 [bwh: Backported to 3.2: drop the DCE6 case]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/radeon/atombios_crtc.c |  126 +++++++++++++++++++++++++++-----
- 1 files changed, 106 insertions(+), 20 deletions(-)
+ drivers/gpu/drm/radeon/atombios_crtc.c | 126 +++++++++++++++++++++++++++------
+ 1 file changed, 106 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/gpu/drm/radeon/atombios_crtc.c b/drivers/gpu/drm/radeon/atombios_crtc.c
 index a4011b0..ceffd20 100644
@@ -206,5 +206,5 @@ index a4011b0..ceffd20 100644
  	drm_crtc_helper_add(&radeon_crtc->base, &atombios_helper_funcs);
  }
 -- 
-1.7.7.6
+1.8.1.4
 

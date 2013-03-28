@@ -1,4 +1,4 @@
-From 9bb52231fba06e211bde61d8798e77aae565b31a Mon Sep 17 00:00:00 2001
+From 1965da0b4b1d9f413099e27793fd497c2ba7aef7 Mon Sep 17 00:00:00 2001
 From: Nicholas Bellinger <nab@linux-iscsi.org>
 Date: Sat, 29 Sep 2012 17:15:37 -0700
 Subject: [PATCH 088/146] target/file: Re-enable optional fd_buffered_io=1
@@ -30,8 +30,8 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/target/target_core_file.c |   41 ++++++++++++++++++++++++++++++++++---
- drivers/target/target_core_file.h |    1 +
+ drivers/target/target_core_file.c | 41 ++++++++++++++++++++++++++++++++++++---
+ drivers/target/target_core_file.h |  1 +
  2 files changed, 39 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/target/target_core_file.c b/drivers/target/target_core_file.c
@@ -134,5 +134,5 @@ index 53ece69..6b1b6a9 100644
  struct fd_dev {
  	u32		fbd_flags;
 -- 
-1.7.10.4
+1.8.1.4
 

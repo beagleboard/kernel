@@ -1,4 +1,4 @@
-From 9209ffadd2422bd51015eb5ffbc6fdb7e6acfae1 Mon Sep 17 00:00:00 2001
+From 51c58faa129ef0d2c2a7719a1ef94a429002eada Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Date: Fri, 11 May 2012 17:31:26 +0200
 Subject: [PATCH 18/73] sched/nohz: Fix rq->cpu_load[] calculations
@@ -30,8 +30,8 @@ Signed-off-by: Ingo Molnar <mingo@kernel.org>
 [bwh: Backported to 3.2: adjust filenames and context; keep functions static]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/sched.c      |   53 ++++++++++++++++++++++++++++++++++++++------------
- kernel/sched_fair.c |    2 +-
+ kernel/sched.c      | 53 ++++++++++++++++++++++++++++++++++++++++-------------
+ kernel/sched_fair.c |  2 +-
  2 files changed, 41 insertions(+), 14 deletions(-)
 
 diff --git a/kernel/sched.c b/kernel/sched.c
@@ -133,5 +133,5 @@ index 8a39fa3..66e4576 100644
  
  		rebalance_domains(balance_cpu, CPU_IDLE);
 -- 
-1.7.7.6
+1.8.1.4
 

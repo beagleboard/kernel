@@ -1,4 +1,4 @@
-From ee71315c621cde79d3082a6384b29744e81bcf37 Mon Sep 17 00:00:00 2001
+From b08451cd4b0beea81b7ccb3ec643b2889360a7bb Mon Sep 17 00:00:00 2001
 From: Dan Carpenter <dan.carpenter@oracle.com>
 Date: Tue, 9 Oct 2012 10:18:23 +0300
 Subject: [PATCH 032/105] timekeeping: Cast raw_interval to u64 to avoid shift
@@ -16,8 +16,8 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 [bwh: Backported to 3.2: adjust context; use timekeeper.raw_interval]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/time/timekeeping.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ kernel/time/timekeeping.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
 index 5ee1ac0..cb7f33e 100644
@@ -33,5 +33,5 @@ index 5ee1ac0..cb7f33e 100644
  	if (raw_nsecs >= NSEC_PER_SEC) {
  		u64 raw_secs = raw_nsecs;
 -- 
-1.7.7.6
+1.8.1.4
 

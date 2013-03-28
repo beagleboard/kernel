@@ -1,4 +1,4 @@
-From ff1afb4bb88a919dc122b6615047c5d4686845c2 Mon Sep 17 00:00:00 2001
+From 9d9c21c7ba756567cf65cd4d3c89b9965840dac7 Mon Sep 17 00:00:00 2001
 From: Trond Myklebust <Trond.Myklebust@netapp.com>
 Date: Mon, 29 Oct 2012 18:37:40 -0400
 Subject: [PATCH 43/83] NFSv4.1: We must release the sequence id when we fail
@@ -15,8 +15,8 @@ Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
  - nfs4_setup_sequence() has an additional 'cache_reply' parameter]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/nfs/nfs4proc.c |   36 +++++++++++++++++++++++-------------
- 1 files changed, 23 insertions(+), 13 deletions(-)
+ fs/nfs/nfs4proc.c | 36 +++++++++++++++++++++++-------------
+ 1 file changed, 23 insertions(+), 13 deletions(-)
 
 diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
 index 2468fac..4f07b56 100644
@@ -95,5 +95,5 @@ index 2468fac..4f07b56 100644
  
  static void nfs4_recover_lock_prepare(struct rpc_task *task, void *calldata)
 -- 
-1.7.7.6
+1.8.1.4
 

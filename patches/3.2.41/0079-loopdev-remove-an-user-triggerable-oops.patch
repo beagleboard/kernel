@@ -1,0 +1,84 @@
+From 290c7fa65a184307478cb55cceb4b54ec67b3216 Mon Sep 17 00:00:00 2001
+From: Guo Chao <yan@linux.vnet.ibm.com>
+Date: Thu, 21 Feb 2013 15:16:49 -0800
+Subject: [PATCH 79/82] loopdev: remove an user triggerable oops
+
+commit b1a6650406875b9097a032eed89af50682fe1160 upstream.
+
+When loopdev is built as module and we pass an invalid parameter,
+loop_init() will return directly without deregister misc device, which
+will cause an oops when insert loop module next time because we left some
+garbage in the misc device list.
+
+Test case:
+sudo modprobe loop max_part=1024
+(failed due to invalid parameter)
+sudo modprobe loop
+(oops)
+
+Clean up nicely to avoid such oops.
+
+Signed-off-by: Guo Chao <yan@linux.vnet.ibm.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Guo Chao <yan@linux.vnet.ibm.com>
+Cc: M. Hindess <hindessm@uk.ibm.com>
+Cc: Nikanth Karthikesan <knikanth@suse.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/block/loop.c | 22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/block/loop.c b/drivers/block/loop.c
+index 954be47..8c6787a 100644
+--- a/drivers/block/loop.c
++++ b/drivers/block/loop.c
+@@ -1834,11 +1834,15 @@ static int __init loop_init(void)
+ 		max_part = (1UL << part_shift) - 1;
+ 	}
+ 
+-	if ((1UL << part_shift) > DISK_MAX_PARTS)
+-		return -EINVAL;
++	if ((1UL << part_shift) > DISK_MAX_PARTS) {
++		err = -EINVAL;
++		goto misc_out;
++	}
+ 
+-	if (max_loop > 1UL << (MINORBITS - part_shift))
+-		return -EINVAL;
++	if (max_loop > 1UL << (MINORBITS - part_shift)) {
++		err = -EINVAL;
++		goto misc_out;
++	}
+ 
+ 	/*
+ 	 * If max_loop is specified, create that many devices upfront.
+@@ -1856,8 +1860,10 @@ static int __init loop_init(void)
+ 		range = 1UL << MINORBITS;
+ 	}
+ 
+-	if (register_blkdev(LOOP_MAJOR, "loop"))
+-		return -EIO;
++	if (register_blkdev(LOOP_MAJOR, "loop")) {
++		err = -EIO;
++		goto misc_out;
++	}
+ 
+ 	blk_register_region(MKDEV(LOOP_MAJOR, 0), range,
+ 				  THIS_MODULE, loop_probe, NULL, NULL);
+@@ -1870,6 +1876,10 @@ static int __init loop_init(void)
+ 
+ 	printk(KERN_INFO "loop: module loaded\n");
+ 	return 0;
++
++misc_out:
++	misc_deregister(&loop_misc);
++	return err;
+ }
+ 
+ static int loop_exit_cb(int id, void *ptr, void *data)
+-- 
+1.8.1.4
+

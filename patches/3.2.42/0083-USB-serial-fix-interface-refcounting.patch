@@ -1,0 +1,44 @@
+From 81b6a5f0cbdca67ef9606fa3bcc24b7cb4143835 Mon Sep 17 00:00:00 2001
+From: Johan Hovold <jhovold@gmail.com>
+Date: Tue, 19 Mar 2013 09:21:09 +0100
+Subject: [PATCH 83/92] USB: serial: fix interface refcounting
+
+commit d7971051e4df825e0bc11b995e87bfe86355b8e5 upstream.
+
+Make sure the interface is not released before our serial device.
+
+Note that drivers are still not allowed to access the interface in
+any way that may interfere with another driver that may have gotten
+bound to the same interface after disconnect returns.
+
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/usb-serial.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/usb/serial/usb-serial.c b/drivers/usb/serial/usb-serial.c
+index dc1ce62..2482d5e 100644
+--- a/drivers/usb/serial/usb-serial.c
++++ b/drivers/usb/serial/usb-serial.c
+@@ -168,6 +168,7 @@ static void destroy_serial(struct kref *kref)
+ 		}
+ 	}
+ 
++	usb_put_intf(serial->interface);
+ 	usb_put_dev(serial->dev);
+ 	kfree(serial);
+ }
+@@ -624,7 +625,7 @@ static struct usb_serial *create_serial(struct usb_device *dev,
+ 	}
+ 	serial->dev = usb_get_dev(dev);
+ 	serial->type = driver;
+-	serial->interface = interface;
++	serial->interface = usb_get_intf(interface);
+ 	kref_init(&serial->kref);
+ 	mutex_init(&serial->disc_mutex);
+ 	serial->minor = SERIAL_TTY_NO_MINOR;
+-- 
+1.8.1.4
+

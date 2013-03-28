@@ -1,0 +1,35 @@
+From 9d6dc2e49d71307892b26b26800804e499d40080 Mon Sep 17 00:00:00 2001
+From: Kees Cook <keescook@chromium.org>
+Date: Mon, 11 Mar 2013 12:25:19 -0700
+Subject: [PATCH 56/92] drm/i915: restrict kernel address leak in debugfs
+
+commit 2563a4524febe8f4a98e717e02436d1aaf672aa2 upstream.
+
+Masks kernel address info-leak in object dumps with the %pK suffix,
+so they cannot be used to target kernel memory corruption attacks if
+the kptr_restrict sysctl is set.
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+[bwh: Backported to 3.2: the rest of the format string is different]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_debugfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_debugfs.c b/drivers/gpu/drm/i915/i915_debugfs.c
+index 5620192..9b4e5c6 100644
+--- a/drivers/gpu/drm/i915/i915_debugfs.c
++++ b/drivers/gpu/drm/i915/i915_debugfs.c
+@@ -122,7 +122,7 @@ static const char *cache_level_str(int type)
+ static void
+ describe_obj(struct seq_file *m, struct drm_i915_gem_object *obj)
+ {
+-	seq_printf(m, "%p: %s%s %8zd %04x %04x %d %d%s%s%s",
++	seq_printf(m, "%pK: %s%s %8zd %04x %04x %d %d%s%s%s",
+ 		   &obj->base,
+ 		   get_pin_flag(obj),
+ 		   get_tiling_flag(obj),
+-- 
+1.8.1.4
+

@@ -1,4 +1,4 @@
-From 306470d70d863552e4d0b00a0cd37da6151707e2 Mon Sep 17 00:00:00 2001
+From 4ecabbb859035f090971cec42687f77bf6839dba Mon Sep 17 00:00:00 2001
 From: Michael Spang <spang@chromium.org>
 Date: Fri, 14 Sep 2012 13:05:49 -0400
 Subject: [PATCH 053/146] Increase XHCI suspend timeout to 16ms
@@ -19,7 +19,7 @@ Signed-off-by: Michael Spang <spang@chromium.org>
 Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/host/xhci.c |    2 +-
+ drivers/usb/host/xhci.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
@@ -36,5 +36,5 @@ index a179bcb..9322aae 100644
  		spin_unlock_irq(&xhci->lock);
  		return -ETIMEDOUT;
 -- 
-1.7.10.4
+1.8.1.4
 

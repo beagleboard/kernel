@@ -1,4 +1,4 @@
-From 6e1ce10321795688d190e89cfd31ae5f8c796f16 Mon Sep 17 00:00:00 2001
+From e46a61e8047d177b8b70b39037f613393bb07f4f Mon Sep 17 00:00:00 2001
 From: Colin Cross <ccross@android.com>
 Date: Mon, 8 Oct 2012 14:01:12 -0700
 Subject: [PATCH 111/146] ARM: OMAP: counter: add locking to
@@ -16,7 +16,7 @@ Signed-off-by: Tony Lindgren <tony@atomide.com>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/arm/plat-omap/counter_32k.c |   21 ++++++++++++++-------
+ arch/arm/plat-omap/counter_32k.c | 21 ++++++++++++++-------
  1 file changed, 14 insertions(+), 7 deletions(-)
 
 diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
@@ -61,5 +61,5 @@ index a6cbb71..04e703a 100644
  
  int __init omap_init_clocksource_32k(void)
 -- 
-1.7.10.4
+1.8.1.4
 

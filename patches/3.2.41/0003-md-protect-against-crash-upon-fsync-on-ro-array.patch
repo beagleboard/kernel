@@ -1,0 +1,47 @@
+From 5922d4fc8ef461ded2430a4905f4e95a506786d4 Mon Sep 17 00:00:00 2001
+From: Sebastian Riemer <sebastian.riemer@profitbricks.com>
+Date: Thu, 21 Feb 2013 13:28:09 +1100
+Subject: [PATCH 03/82] md: protect against crash upon fsync on ro array
+
+commit bbfa57c0f2243a7c31fd248d22e9861a2802cad5 upstream.
+
+If an fsync occurs on a read-only array, we need to send a
+completion for the IO and may not increment the active IO count.
+Otherwise, we hit a bug trace and can't stop the MD array anymore.
+
+By advice of Christoph Hellwig we return success upon a flush
+request but we return -EROFS for other writes.
+We detect flush requests by checking if the bio has zero sectors.
+
+This patch is suitable to any -stable kernel to which it applies.
+
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Ben Hutchings <ben@decadent.org.uk>
+Cc: NeilBrown <neilb@suse.de>
+Signed-off-by: Sebastian Riemer <sebastian.riemer@profitbricks.com>
+Reported-by: Ben Hutchings <ben@decadent.org.uk>
+Acked-by: Paul Menzel <paulepanter@users.sourceforge.net>
+Signed-off-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/md/md.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/md/md.c b/drivers/md/md.c
+index 145e378e..5cbc496 100644
+--- a/drivers/md/md.c
++++ b/drivers/md/md.c
+@@ -345,6 +345,10 @@ static void md_make_request(struct request_queue *q, struct bio *bio)
+ 		bio_io_error(bio);
+ 		return;
+ 	}
++	if (mddev->ro == 1 && unlikely(rw == WRITE)) {
++		bio_endio(bio, bio_sectors(bio) == 0 ? 0 : -EROFS);
++		return;
++	}
+ 	smp_rmb(); /* Ensure implications of  'active' are visible */
+ 	rcu_read_lock();
+ 	if (mddev->suspended) {
+-- 
+1.8.1.4
+

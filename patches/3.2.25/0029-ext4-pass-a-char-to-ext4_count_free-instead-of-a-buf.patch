@@ -1,4 +1,4 @@
-From 2a61ddac720efca5cecc3be3685901cc5a7defe6 Mon Sep 17 00:00:00 2001
+From 04f42148d6e8aebfabcbba647cfc727027861d58 Mon Sep 17 00:00:00 2001
 From: Theodore Ts'o <tytso@mit.edu>
 Date: Sat, 30 Jun 2012 19:14:57 -0400
 Subject: [PATCH 29/73] ext4: pass a char * to ext4_count_free() instead of a
@@ -13,10 +13,10 @@ Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ext4/balloc.c |    3 ++-
- fs/ext4/bitmap.c |    8 +++-----
- fs/ext4/ext4.h   |    2 +-
- fs/ext4/ialloc.c |    3 ++-
+ fs/ext4/balloc.c | 3 ++-
+ fs/ext4/bitmap.c | 8 +++-----
+ fs/ext4/ext4.h   | 2 +-
+ fs/ext4/ialloc.c | 3 ++-
  4 files changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/fs/ext4/balloc.c b/fs/ext4/balloc.c
@@ -84,5 +84,5 @@ index 8fb6844..6266799 100644
  			(unsigned long) i, ext4_free_inodes_count(sb, gdp), x);
  		bitmap_count += x;
 -- 
-1.7.7.6
+1.8.1.4
 

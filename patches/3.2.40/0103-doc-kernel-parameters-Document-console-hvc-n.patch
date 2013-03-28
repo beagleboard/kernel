@@ -1,0 +1,35 @@
+From f41c67aa938e1b8306cc6ce8722756dd570f7c3c Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Mon, 25 Feb 2013 15:54:09 -0500
+Subject: [PATCH 103/153] doc, kernel-parameters: Document 'console=hvc<n>'
+
+commit a2fd6419174470f5ae6383f5037d0ee21ed9833f upstream.
+
+Both the PowerPC hypervisor and Xen hypervisor can utilize the
+hvc driver.
+
+Cc: Greg KH <gregkh@linuxfoundation.org>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Link: http://lkml.kernel.org/r/1361825650-14031-3-git-send-email-konrad.wilk@oracle.com
+Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ Documentation/kernel-parameters.txt | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 4a4cff8..ddbf18e 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -552,6 +552,8 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 			UART at the specified I/O port or MMIO address,
+ 			switching to the matching ttyS device later.  The
+ 			options are the same as for ttyS, above.
++		hvc<n>	Use the hypervisor console device <n>. This is for
++			both Xen and PowerPC hypervisors.
+ 
+                 If the device connected to the port is not a TTY but a braille
+                 device, prepend "brl," before the device type, for instance
+-- 
+1.8.1.4
+

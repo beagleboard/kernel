@@ -1,14 +1,14 @@
-From 995f8491d56cdac887c311ab1d981f63b9d65d8d Mon Sep 17 00:00:00 2001
+From 604881ef251fb2abf61f050ba6d266f9be52d009 Mon Sep 17 00:00:00 2001
 From: Dan Aizenstros <daizenstros@quicklogic.com>
 Date: Thu, 12 Jul 2012 16:52:21 -0400
-Subject: [PATCH 78/92] beaglebone: error handling for DMA completion in
+Subject: [PATCH 078/102] beaglebone: error handling for DMA completion in
  cssp_camera.c
 
 Signed-off-by: Dan Aizenstros <daizenstros@quicklogic.com>
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
- drivers/media/video/cssp_camera/cssp_camera.c |   16 +++++++++++++++-
- 1 files changed, 15 insertions(+), 1 deletions(-)
+ drivers/media/video/cssp_camera/cssp_camera.c | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/media/video/cssp_camera/cssp_camera.c b/drivers/media/video/cssp_camera/cssp_camera.c
 index acd38ee..fca199b 100644
@@ -45,5 +45,5 @@ index acd38ee..fca199b 100644
  		if (dev->current_vb != NULL)
  			trigger_dma_transfer_to_buf(dev, dev->current_vb);
 -- 
-1.7.7.6
+1.8.1.4
 

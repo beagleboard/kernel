@@ -1,8 +1,8 @@
-From 2fcbb83aacc69f114048b8f1a0dfc26ce22c7701 Mon Sep 17 00:00:00 2001
+From 93bc44d505dac95de9d12655a5a7d6b02480bed3 Mon Sep 17 00:00:00 2001
 From: Vivek Goyal <vgoyal@redhat.com>
 Date: Wed, 8 Feb 2012 20:03:38 +0100
-Subject: [PATCH 02/70] floppy: Cleanup disk->queue before caling put_disk()
- if add_disk() was never called
+Subject: [PATCH 02/70] floppy: Cleanup disk->queue before caling put_disk() if
+ add_disk() was never called
 
 commit 3f9a5aabd0a9fe0e0cd308506f48963d79169aa7 upstream.
 
@@ -23,8 +23,8 @@ Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/block/floppy.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+ drivers/block/floppy.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/block/floppy.c b/drivers/block/floppy.c
 index 9955a53..c864add 100644
@@ -47,5 +47,5 @@ index 9955a53..c864add 100644
  	}
  	return err;
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 1862edc92a5fe5bf605f3c4b6e77a0ad77151664 Mon Sep 17 00:00:00 2001
+From 8a050c648cff614412ad57e3a30ceb1bf9cc420d Mon Sep 17 00:00:00 2001
 From: "David S. Miller" <davem@davemloft.net>
 Date: Sun, 14 Oct 2012 17:59:40 -0700
 Subject: [PATCH 012/105] sparc64: Like x86 we should check current->mm during
@@ -12,8 +12,8 @@ access the address space.
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/sparc/kernel/perf_event.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/perf_event.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
 index 614da62..5331ae1 100644
@@ -50,5 +50,5 @@ index 614da62..5331ae1 100644
  	if (test_thread_flag(TIF_32BIT))
  		perf_callchain_user_32(entry, regs);
 -- 
-1.7.7.6
+1.8.1.4
 

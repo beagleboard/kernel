@@ -1,0 +1,32 @@
+From 1bb61744c02da211ed6d97e28aec2b86d42306d9 Mon Sep 17 00:00:00 2001
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Sat, 26 Jan 2013 10:49:24 +0300
+Subject: [PATCH 102/127] EDAC: Test correct variable in ->store function
+
+commit 8024c4c0b1057d1cd811fc9c3f88f81de9729fcd upstream.
+
+We're testing for ->show but calling ->store().
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Borislav Petkov <bp@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/edac/edac_pci_sysfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/edac/edac_pci_sysfs.c b/drivers/edac/edac_pci_sysfs.c
+index 495198a..8cc8676 100644
+--- a/drivers/edac/edac_pci_sysfs.c
++++ b/drivers/edac/edac_pci_sysfs.c
+@@ -257,7 +257,7 @@ static ssize_t edac_pci_dev_store(struct kobject *kobj,
+ 	struct edac_pci_dev_attribute *edac_pci_dev;
+ 	edac_pci_dev = (struct edac_pci_dev_attribute *)attr;
+ 
+-	if (edac_pci_dev->show)
++	if (edac_pci_dev->store)
+ 		return edac_pci_dev->store(edac_pci_dev->value, buffer, count);
+ 	return -EIO;
+ }
+-- 
+1.8.1.4
+

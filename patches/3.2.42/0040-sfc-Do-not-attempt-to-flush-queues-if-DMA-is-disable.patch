@@ -1,0 +1,68 @@
+From d260aed60bcd96a0c2668ea7344f46b4057f992a Mon Sep 17 00:00:00 2001
+From: Stuart Hodgson <smhodgson@solarflare.com>
+Date: Fri, 30 Mar 2012 13:04:51 +0100
+Subject: [PATCH 40/92] sfc: Do not attempt to flush queues if DMA is disabled
+
+[ Upstream commit 3dca9d2dc285faf1910d405b65df845cab061356 ]
+
+efx_nic_fatal_interrupt() disables DMA before scheduling a reset.
+After this, we need not and *cannot* flush queues.
+
+Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/sfc/efx.c | 33 +++++++++++++++++++--------------
+ 1 file changed, 19 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/net/ethernet/sfc/efx.c b/drivers/net/ethernet/sfc/efx.c
+index a6611f1..aa20047 100644
+--- a/drivers/net/ethernet/sfc/efx.c
++++ b/drivers/net/ethernet/sfc/efx.c
+@@ -650,25 +650,30 @@ static void efx_fini_channels(struct efx_nic *efx)
+ 	struct efx_channel *channel;
+ 	struct efx_tx_queue *tx_queue;
+ 	struct efx_rx_queue *rx_queue;
++	struct pci_dev *dev = efx->pci_dev;
+ 	int rc;
+ 
+ 	EFX_ASSERT_RESET_SERIALISED(efx);
+ 	BUG_ON(efx->port_enabled);
+ 
+-	rc = efx_nic_flush_queues(efx);
+-	if (rc && EFX_WORKAROUND_7803(efx)) {
+-		/* Schedule a reset to recover from the flush failure. The
+-		 * descriptor caches reference memory we're about to free,
+-		 * but falcon_reconfigure_mac_wrapper() won't reconnect
+-		 * the MACs because of the pending reset. */
+-		netif_err(efx, drv, efx->net_dev,
+-			  "Resetting to recover from flush failure\n");
+-		efx_schedule_reset(efx, RESET_TYPE_ALL);
+-	} else if (rc) {
+-		netif_err(efx, drv, efx->net_dev, "failed to flush queues\n");
+-	} else {
+-		netif_dbg(efx, drv, efx->net_dev,
+-			  "successfully flushed all queues\n");
++	/* Only perform flush if dma is enabled */
++	if (dev->is_busmaster) {
++		rc = efx_nic_flush_queues(efx);
++
++		if (rc && EFX_WORKAROUND_7803(efx)) {
++			/* Schedule a reset to recover from the flush failure. The
++			 * descriptor caches reference memory we're about to free,
++			 * but falcon_reconfigure_mac_wrapper() won't reconnect
++			 * the MACs because of the pending reset. */
++			netif_err(efx, drv, efx->net_dev,
++				  "Resetting to recover from flush failure\n");
++			efx_schedule_reset(efx, RESET_TYPE_ALL);
++		} else if (rc) {
++			netif_err(efx, drv, efx->net_dev, "failed to flush queues\n");
++		} else {
++			netif_dbg(efx, drv, efx->net_dev,
++				  "successfully flushed all queues\n");
++		}
+ 	}
+ 
+ 	efx_for_each_channel(channel, efx) {
+-- 
+1.8.1.4
+

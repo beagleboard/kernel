@@ -1,4 +1,4 @@
-From cb9f27e0aa979bdf078146fbf9e2893df2533b3b Mon Sep 17 00:00:00 2001
+From a5cb5f67da4089f2d68efe58eac87c8ea83ce3cf Mon Sep 17 00:00:00 2001
 From: Ian Kent <raven@themaw.net>
 Date: Wed, 22 Feb 2012 20:45:44 +0800
 Subject: [PATCH 01/95] autofs: work around unhappy compat problem on x86-64
@@ -47,10 +47,10 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Jonathan Nieder <jrnieder@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/autofs4/autofs_i.h  |    1 +
- fs/autofs4/dev-ioctl.c |    1 +
- fs/autofs4/inode.c     |    2 ++
- fs/autofs4/waitq.c     |   22 +++++++++++++++++++---
+ fs/autofs4/autofs_i.h  |  1 +
+ fs/autofs4/dev-ioctl.c |  1 +
+ fs/autofs4/inode.c     |  2 ++
+ fs/autofs4/waitq.c     | 22 +++++++++++++++++++---
  4 files changed, 23 insertions(+), 3 deletions(-)
 
 diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
@@ -138,5 +138,5 @@ index e1fbdee..6861f61 100644
  		packet->len = wq->name.len;
  		memcpy(packet->name, wq->name.name, wq->name.len);
 -- 
-1.7.7.6
+1.8.1.4
 

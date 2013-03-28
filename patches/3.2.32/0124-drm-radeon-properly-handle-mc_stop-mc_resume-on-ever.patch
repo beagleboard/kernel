@@ -1,4 +1,4 @@
-From e4ce5fe8c85fca10b5f41e6110f7813c39bde044 Mon Sep 17 00:00:00 2001
+From 952ca14391ca492342799ac96ce492b8a8cba169 Mon Sep 17 00:00:00 2001
 From: Alex Deucher <alexander.deucher@amd.com>
 Date: Wed, 15 Aug 2012 17:18:42 -0400
 Subject: [PATCH 124/146] drm/radeon: properly handle mc_stop/mc_resume on
@@ -24,10 +24,10 @@ Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
    and 4a15903db02026728d0cf2755c6fabae16b8db6a) and call it directly
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/radeon/evergreen.c     |  185 ++++++++++++++++----------------
- drivers/gpu/drm/radeon/evergreen_reg.h |    3 +
- drivers/gpu/drm/radeon/evergreend.h    |    7 ++
- drivers/gpu/drm/radeon/radeon_asic.h   |    1 +
+ drivers/gpu/drm/radeon/evergreen.c     | 185 +++++++++++++++++----------------
+ drivers/gpu/drm/radeon/evergreen_reg.h |   3 +
+ drivers/gpu/drm/radeon/evergreend.h    |   7 ++
+ drivers/gpu/drm/radeon/radeon_asic.h   |   1 +
  4 files changed, 105 insertions(+), 91 deletions(-)
 
 diff --git a/drivers/gpu/drm/radeon/evergreen.c b/drivers/gpu/drm/radeon/evergreen.c
@@ -260,7 +260,7 @@ index fc0633c..b61f490 100644
  	mdelay(1);
  	WREG32(VGA_RENDER_CONTROL, save->vga_render_control);
 diff --git a/drivers/gpu/drm/radeon/evergreen_reg.h b/drivers/gpu/drm/radeon/evergreen_reg.h
-index 7d7f215..e022776 100644
+index 7d7f215..e022776b 100644
 --- a/drivers/gpu/drm/radeon/evergreen_reg.h
 +++ b/drivers/gpu/drm/radeon/evergreen_reg.h
 @@ -210,7 +210,10 @@
@@ -312,5 +312,5 @@ index 5ce9402..5aa6670 100644
  
  void evergreen_pcie_gart_tlb_flush(struct radeon_device *rdev);
 -- 
-1.7.10.4
+1.8.1.4
 

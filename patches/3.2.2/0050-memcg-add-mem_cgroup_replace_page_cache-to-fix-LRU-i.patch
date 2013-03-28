@@ -1,8 +1,8 @@
-From b01b7878bc31e1919300073f303f07a38d284bc6 Mon Sep 17 00:00:00 2001
+From f3f8c3abdb8df862142144dd4289a175d1a5e068 Mon Sep 17 00:00:00 2001
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Date: Thu, 12 Jan 2012 17:17:44 -0800
-Subject: [PATCH 050/129] memcg: add mem_cgroup_replace_page_cache() to fix
- LRU issue
+Subject: [PATCH 050/129] memcg: add mem_cgroup_replace_page_cache() to fix LRU
+ issue
 
 commit ab936cbcd02072a34b60d268f94440fd5cf1970b upstream.
 
@@ -45,9 +45,9 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- include/linux/memcontrol.h |    6 ++++++
- mm/filemap.c               |   18 ++----------------
- mm/memcontrol.c            |   44 ++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/memcontrol.h |  6 ++++++
+ mm/filemap.c               | 18 ++----------------
+ mm/memcontrol.c            | 44 ++++++++++++++++++++++++++++++++++++++++++++
  3 files changed, 52 insertions(+), 16 deletions(-)
 
 diff --git a/include/linux/memcontrol.h b/include/linux/memcontrol.h
@@ -175,5 +175,5 @@ index b63f5f7..f538e9b 100644
  static struct page_cgroup *lookup_page_cgroup_used(struct page *page)
  {
 -- 
-1.7.7.6
+1.8.1.4
 

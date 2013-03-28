@@ -1,4 +1,4 @@
-From 9a8c9a10377b98a6e36bdec3b4cec89cfb7c065d Mon Sep 17 00:00:00 2001
+From 9a4d22036dc2a9b2175adfec28af3f62ffecda5d Mon Sep 17 00:00:00 2001
 From: Jiri Bohac <jbohac@suse.cz>
 Date: Wed, 18 Jan 2012 12:24:54 +0000
 Subject: [PATCH 73/90] bonding: fix enslaving in alb mode when link down
@@ -24,8 +24,8 @@ Signed-off-by: Jay Vosburgh <fubar@us.ibm.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/bonding/bond_alb.c |   27 +++++++++------------------
- 1 files changed, 9 insertions(+), 18 deletions(-)
+ drivers/net/bonding/bond_alb.c | 27 +++++++++------------------
+ 1 file changed, 9 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/net/bonding/bond_alb.c b/drivers/net/bonding/bond_alb.c
 index 106b88a..30431d8 100644
@@ -112,5 +112,5 @@ index 106b88a..30431d8 100644
  		read_lock(&bond->lock);
  		alb_send_learning_packets(bond->curr_active_slave, bond_dev->dev_addr);
 -- 
-1.7.7.6
+1.8.1.4
 

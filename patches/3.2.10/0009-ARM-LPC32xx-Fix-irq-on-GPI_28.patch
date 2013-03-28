@@ -1,4 +1,4 @@
-From 6b4073a5be7d0bf5c56bd36670aa1242b4375853 Mon Sep 17 00:00:00 2001
+From 0b704a7f8e521f760be9679b46e2f2ab8f9ed56e Mon Sep 17 00:00:00 2001
 From: Roland Stigge <stigge@antcom.de>
 Date: Mon, 27 Feb 2012 17:28:02 +0100
 Subject: [PATCH 09/95] ARM: LPC32xx: Fix irq on GPI_28
@@ -13,9 +13,9 @@ LPC32xx / interrupt controller).
 Signed-off-by: Roland Stigge <stigge@antcom.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/arm/mach-lpc32xx/include/mach/irqs.h |    2 +-
- arch/arm/mach-lpc32xx/irq.c               |    4 ++++
- 2 files changed, 5 insertions(+), 1 deletions(-)
+ arch/arm/mach-lpc32xx/include/mach/irqs.h | 2 +-
+ arch/arm/mach-lpc32xx/irq.c               | 4 ++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/mach-lpc32xx/include/mach/irqs.h b/arch/arm/mach-lpc32xx/include/mach/irqs.h
 index 2667f52..9e3b90d 100644
@@ -46,5 +46,5 @@ index 198de47..c74de01 100644
  		.event_group = &lpc32xx_event_int_regs,
  		.mask = LPC32XX_CLKPWR_INTSRC_GPIO_00_BIT,
 -- 
-1.7.7.6
+1.8.1.4
 

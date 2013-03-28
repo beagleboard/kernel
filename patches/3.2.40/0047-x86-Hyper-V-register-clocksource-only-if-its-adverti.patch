@@ -1,0 +1,52 @@
+From 7d21bb3f0592102dff3f5fcb6082e5d49726f7ce Mon Sep 17 00:00:00 2001
+From: Olaf Hering <[mailto:olaf@aepfle.de]>
+Date: Sun, 3 Feb 2013 17:22:37 -0800
+Subject: [PATCH 047/153] x86: Hyper-V: register clocksource only if its
+ advertised
+
+commit 32068f6527b8f1822a30671dedaf59c567325026 upstream.
+
+Enable hyperv_clocksource only if its advertised as a feature.
+XenServer 6 returns the signature which is checked in
+ms_hyperv_platform(), but it does not offer all features. Currently the
+clocksource is enabled unconditionally in ms_hyperv_init_platform(), and
+the result is a hanging guest.
+
+Hyper-V spec Bit 1 indicates the availability of Partition Reference
+Counter.  Register the clocksource only if this bit is set.
+
+The guest in question prints this in dmesg:
+ [    0.000000] Hypervisor detected: Microsoft HyperV
+ [    0.000000] HyperV: features 0x70, hints 0x0
+
+This bug can be reproduced easily be setting 'viridian=1' in a HVM domU
+.cfg file. A workaround without this patch is to boot the HVM guest with
+'clocksource=jiffies'.
+
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Link: http://lkml.kernel.org/r/1359940959-32168-1-git-send-email-kys@microsoft.com
+Signed-off-by: K. Y. Srinivasan <kys@microsoft.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>
+Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kernel/cpu/mshyperv.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/arch/x86/kernel/cpu/mshyperv.c b/arch/x86/kernel/cpu/mshyperv.c
+index 0a630dd..646d192 100644
+--- a/arch/x86/kernel/cpu/mshyperv.c
++++ b/arch/x86/kernel/cpu/mshyperv.c
+@@ -68,7 +68,8 @@ static void __init ms_hyperv_init_platform(void)
+ 	printk(KERN_INFO "HyperV: features 0x%x, hints 0x%x\n",
+ 	       ms_hyperv.features, ms_hyperv.hints);
+ 
+-	clocksource_register_hz(&hyperv_cs, NSEC_PER_SEC/100);
++	if (ms_hyperv.features & HV_X64_MSR_TIME_REF_COUNT_AVAILABLE)
++		clocksource_register_hz(&hyperv_cs, NSEC_PER_SEC/100);
+ }
+ 
+ const __refconst struct hypervisor_x86 x86_hyper_ms_hyperv = {
+-- 
+1.8.1.4
+

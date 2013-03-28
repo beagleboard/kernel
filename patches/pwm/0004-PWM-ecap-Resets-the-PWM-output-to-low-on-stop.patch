@@ -1,4 +1,4 @@
-From a47acf815898de178f0f49d1ea44a9c510eb230c Mon Sep 17 00:00:00 2001
+From 5f7e99ecc7e934c223624e56888d99f3021c09ae Mon Sep 17 00:00:00 2001
 From: "Philip, Avinash" <avinashphilip@ti.com>
 Date: Wed, 8 Aug 2012 18:17:11 +0530
 Subject: [PATCH 4/6] PWM: ecap: Resets the PWM output to low on stop
@@ -10,8 +10,8 @@ This patch fixes by disabling APWM mode on stop & enable it on start.
 
 Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
 ---
- drivers/pwm/ecap.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/pwm/ecap.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/pwm/ecap.c b/drivers/pwm/ecap.c
 index 614be36..670b32e 100644
@@ -36,5 +36,5 @@ index 614be36..670b32e 100644
  	spin_unlock_irqrestore(&ep->lock, flags);
  	set_bit(FLAG_RUNNING, &p->flags);
 -- 
-1.7.7.6
+1.8.1.4
 

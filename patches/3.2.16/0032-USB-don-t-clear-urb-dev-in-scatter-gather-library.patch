@@ -1,4 +1,4 @@
-From efe914d5f2c3b8e43b3cddc3d232ef12eb563611 Mon Sep 17 00:00:00 2001
+From 886db2e64ddb0c5077dc197c995694e9820d25e1 Mon Sep 17 00:00:00 2001
 From: Alan Stern <stern@rowland.harvard.edu>
 Date: Thu, 22 Mar 2012 11:00:21 -0400
 Subject: [PATCH 32/68] USB: don't clear urb->dev in scatter-gather library
@@ -27,8 +27,8 @@ Reported-and-tested-by: Illia Zaitsev <I.Zaitsev@adbglobal.com>
 CC: Ming Lei <tom.leiming@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/core/message.c |   11 ++++++-----
- 1 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/usb/core/message.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/core/message.c b/drivers/usb/core/message.c
 index b3bdfed..aed3e07 100644
@@ -81,5 +81,5 @@ index b3bdfed..aed3e07 100644
  					__func__, retval);
  		}
 -- 
-1.7.7.6
+1.8.1.4
 

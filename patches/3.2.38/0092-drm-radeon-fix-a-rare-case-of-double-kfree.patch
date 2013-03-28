@@ -1,0 +1,45 @@
+From f724fc95bc44fb582453beeb116796cc2d7d4905 Mon Sep 17 00:00:00 2001
+From: Ilija Hadzic <ihadzic@research.bell-labs.com>
+Date: Wed, 23 Jan 2013 13:59:05 -0500
+Subject: [PATCH 092/127] drm/radeon: fix a rare case of double kfree
+
+commit 1da80cfa8727abf404fcee44d04743febea54069 upstream.
+
+If one (but not both) allocations of p->chunks[].kpage[]
+in radeon_cs_parser_init fail, the error path will free
+the successfully allocated page, but leave a stale pointer
+value in the kpage[] field. This will later cause a
+double-free when radeon_cs_parser_fini is called.
+This patch fixes the issue by forcing both pointers to NULL
+after kfree in the error path.
+
+The circumstances under which the problem happens are very
+rare. The card must be AGP and the system must run out of
+kmalloc area just at the right time so that one allocation
+succeeds, while the other fails.
+
+Signed-off-by: Ilija Hadzic <ihadzic@research.bell-labs.com>
+Cc: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+[bwh: Backported to 3.2: s/p->chunk_ib_idx/i/]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_cs.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_cs.c b/drivers/gpu/drm/radeon/radeon_cs.c
+index 29afd71..1f32557 100644
+--- a/drivers/gpu/drm/radeon/radeon_cs.c
++++ b/drivers/gpu/drm/radeon/radeon_cs.c
+@@ -168,6 +168,8 @@ int radeon_cs_parser_init(struct radeon_cs_parser *p, void *data)
+ 			if (p->chunks[i].kpage[0] == NULL || p->chunks[i].kpage[1] == NULL) {
+ 				kfree(p->chunks[i].kpage[0]);
+ 				kfree(p->chunks[i].kpage[1]);
++				p->chunks[i].kpage[0] = NULL;
++				p->chunks[i].kpage[1] = NULL;
+ 				return -ENOMEM;
+ 			}
+ 			p->chunks[i].kpage_idx[0] = -1;
+-- 
+1.8.1.4
+

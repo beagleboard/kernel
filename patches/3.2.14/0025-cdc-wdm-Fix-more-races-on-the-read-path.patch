@@ -1,4 +1,4 @@
-From b355fd43ea1f2b019284ca5d5acfe49be1d02be5 Mon Sep 17 00:00:00 2001
+From 1096990234af8c4dc7a0669da45ad1e73b3f0c5d Mon Sep 17 00:00:00 2001
 From: Ben Hutchings <ben@decadent.org.uk>
 Date: Sun, 12 Feb 2012 06:00:41 +0000
 Subject: [PATCH 025/147] cdc-wdm: Fix more races on the read path
@@ -19,8 +19,8 @@ Tested-by: Bj??rn Mork <bjorn@mork.no>
 Cc: Oliver Neukum <oliver@neukum.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/class/cdc-wdm.c |   16 +++++++++++-----
- 1 files changed, 11 insertions(+), 5 deletions(-)
+ drivers/usb/class/cdc-wdm.c | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/class/cdc-wdm.c b/drivers/usb/class/cdc-wdm.c
 index fd4aee1..eb650b7 100644
@@ -80,5 +80,5 @@ index fd4aee1..eb650b7 100644
  
  err:
 -- 
-1.7.7.6
+1.8.1.4
 

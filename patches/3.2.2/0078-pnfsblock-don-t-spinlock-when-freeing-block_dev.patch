@@ -1,4 +1,4 @@
-From 35949bb4b2bf58c7ec911212d57f92dd457c2fc2 Mon Sep 17 00:00:00 2001
+From 486b2fb584718f0285ca4041e1fbf0da87ed2674 Mon Sep 17 00:00:00 2001
 From: Peng Tao <bergwolf@gmail.com>
 Date: Thu, 12 Jan 2012 23:18:47 +0800
 Subject: [PATCH 078/129] pnfsblock: don't spinlock when freeing block_dev
@@ -13,8 +13,8 @@ Signed-off-by: Benny Halevy <bhalevy@tonian.com>
 Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- fs/nfs/blocklayout/blocklayout.c |   11 ++++-------
- 1 files changed, 4 insertions(+), 7 deletions(-)
+ fs/nfs/blocklayout/blocklayout.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
 diff --git a/fs/nfs/blocklayout/blocklayout.c b/fs/nfs/blocklayout/blocklayout.c
 index 281ae95..ce8129d 100644
@@ -42,5 +42,5 @@ index 281ae95..ce8129d 100644
  	}
  }
 -- 
-1.7.7.6
+1.8.1.4
 

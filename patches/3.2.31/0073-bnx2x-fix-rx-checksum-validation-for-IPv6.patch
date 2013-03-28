@@ -1,4 +1,4 @@
-From 94912d13620631dfe9779d07dbce54aaca334c1e Mon Sep 17 00:00:00 2001
+From f321740b9858687fc37193ab68f11b84aa122c45 Mon Sep 17 00:00:00 2001
 From: Michal Schmidt <mschmidt@redhat.com>
 Date: Thu, 13 Sep 2012 12:59:44 +0000
 Subject: [PATCH 073/109] bnx2x: fix rx checksum validation for IPv6
@@ -21,7 +21,7 @@ Acked-by: Eilon Greenstein <eilong@broadcom.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c |   12 +++++++-----
+ drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c | 12 +++++++-----
  1 file changed, 7 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c b/drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
@@ -51,5 +51,5 @@ index 2c1a5c0..4c50ac0 100644
  	if (cqe->fast_path_cqe.type_error_flags &
  	    (ETH_FAST_PATH_RX_CQE_IP_BAD_XSUM_FLG |
 -- 
-1.7.10.4
+1.8.1.4
 

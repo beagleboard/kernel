@@ -1,4 +1,4 @@
-From 8f4cab5118982bcaa2aa6d714987830785e5ed00 Mon Sep 17 00:00:00 2001
+From decf863586626433a042ff6b957316ba78ed0274 Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Wed, 26 Sep 2012 21:52:20 -0400
 Subject: [PATCH 067/146] ext4: fix fdatasync() for files with only i_size
@@ -19,7 +19,7 @@ Signed-off-by: Jan Kara <jack@suse.cz>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ext4/inode.c |    8 ++++++--
+ fs/ext4/inode.c | 8 ++++++--
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
@@ -56,5 +56,5 @@ index 8d6aaca..50d50fe 100644
  	brelse(bh);
  	ext4_std_error(inode->i_sb, err);
 -- 
-1.7.10.4
+1.8.1.4
 

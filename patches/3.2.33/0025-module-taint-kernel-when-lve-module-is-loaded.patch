@@ -1,4 +1,4 @@
-From f1fe2667224f03efa6fb1bdb94e63895fe0c237c Mon Sep 17 00:00:00 2001
+From ef0c265fff3ed1938969a1b521900bf3a51c99b5 Mon Sep 17 00:00:00 2001
 From: Matthew Garrett <mjg59@srcf.ucam.org>
 Date: Fri, 22 Jun 2012 13:49:31 -0400
 Subject: [PATCH 025/105] module: taint kernel when lve module is loaded
@@ -15,8 +15,8 @@ Cc: Alex Lyashkov <umka@cloudlinux.com>
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/module.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ kernel/module.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/kernel/module.c b/kernel/module.c
 index 6969ef0..6c8fa34 100644
@@ -34,5 +34,5 @@ index 6969ef0..6c8fa34 100644
  	if ((mod->num_syms && !mod->crcs)
  	    || (mod->num_gpl_syms && !mod->gpl_crcs)
 -- 
-1.7.7.6
+1.8.1.4
 

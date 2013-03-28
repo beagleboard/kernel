@@ -1,16 +1,16 @@
-From 13408d27132ecf6cc0467dfa170bd41c9cd1ef26 Mon Sep 17 00:00:00 2001
+From 696509632509974939a6d5ce3cd9ab6bd5008afd Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Wed, 29 Feb 2012 17:25:22 +0100
-Subject: [PATCH 26/92] beaglebone: fix 3.5" lcd cape support
+Subject: [PATCH 026/102] beaglebone: fix 3.5" lcd cape support
 
 * proper timings
 * fix gpio conflict
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
- arch/arm/mach-omap2/board-am335xevm.c |   42 ++++++++++++++++++++++++++++++++-
- drivers/video/da8xx-fb.c              |   14 +++++++++++
- 2 files changed, 55 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/board-am335xevm.c | 42 ++++++++++++++++++++++++++++++++++-
+ drivers/video/da8xx-fb.c              | 14 ++++++++++++
+ 2 files changed, 55 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
 index 36b0c85..127516f 100644
@@ -105,5 +105,5 @@ index b01f15b..86b19ac 100644
  
  /* Enable the Raster Engine of the LCD Controller */
 -- 
-1.7.7.6
+1.8.1.4
 

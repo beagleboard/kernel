@@ -1,4 +1,4 @@
-From d47ce41d2f736fbfb70872b7ec39fd36082ad3e4 Mon Sep 17 00:00:00 2001
+From b4e120dbe25407ad0a424922e245c6477b5239e6 Mon Sep 17 00:00:00 2001
 From: Antonio Quartulli <ordex@autistici.org>
 Date: Fri, 29 Jun 2012 22:58:03 +0200
 Subject: [PATCH 26/46] batman-adv: fix skb->data assignment
@@ -21,8 +21,8 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
 [This patch is a backport for kernel versions 3.1 and 3.2 - Antonio]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/batman-adv/routing.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ net/batman-adv/routing.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/net/batman-adv/routing.c b/net/batman-adv/routing.c
 index f961cc5..da587ad 100644
@@ -38,5 +38,5 @@ index f961cc5..da587ad 100644
  		if (is_my_mac(tt_query->dst))
  			handle_tt_response(bat_priv, tt_query);
 -- 
-1.7.7.6
+1.8.1.4
 

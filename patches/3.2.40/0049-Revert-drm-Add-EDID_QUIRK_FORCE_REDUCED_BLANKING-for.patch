@@ -1,0 +1,40 @@
+From f775554f7f974ddbf9973654d18d752bab208eb4 Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Wed, 13 Feb 2013 20:37:48 +1000
+Subject: [PATCH 049/153] Revert "drm: Add EDID_QUIRK_FORCE_REDUCED_BLANKING
+ for ASUS VW222S"
+
+commit db3985e5ca8f50fc17606855ba394783d11683a5 upstream.
+
+This reverts commit 6f33814bd4d9cfe76033a31b1c0c76c960cd8e4b.
+
+The quirk cause a regression, and it looks like the original bug was
+simply a lack of FIFO bandwidth on the i915G of the reporter. Which
+should eventually be fixed as soon as we get around to implemented
+DSPARB FIFO reassignment on gen 3.
+
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=52281
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/drm_edid.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/drm_edid.c b/drivers/gpu/drm/drm_edid.c
+index bb95d59..2b741a7 100644
+--- a/drivers/gpu/drm/drm_edid.c
++++ b/drivers/gpu/drm/drm_edid.c
+@@ -87,9 +87,6 @@ static struct edid_quirk {
+ 	int product_id;
+ 	u32 quirks;
+ } edid_quirk_list[] = {
+-	/* ASUS VW222S */
+-	{ "ACI", 0x22a2, EDID_QUIRK_FORCE_REDUCED_BLANKING },
+-
+ 	/* Acer AL1706 */
+ 	{ "ACR", 44358, EDID_QUIRK_PREFER_LARGE_60 },
+ 	/* Acer F51 */
+-- 
+1.8.1.4
+

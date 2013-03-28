@@ -1,4 +1,4 @@
-From 9c350007556d6ba20770a1d51ef2775e5337cc48 Mon Sep 17 00:00:00 2001
+From cfd506c8b5cae75b44889be2cc7e4c8e83221af6 Mon Sep 17 00:00:00 2001
 From: "Rustad, Mark D" <mark.d.rustad@intel.com>
 Date: Wed, 18 Jul 2012 09:06:07 +0000
 Subject: [PATCH 053/109] net: Statically initialize init_net.dev_base_head
@@ -15,8 +15,8 @@ Acked-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/core/dev.c           |    3 ++-
- net/core/net_namespace.c |    4 +++-
+ net/core/dev.c           | 3 ++-
+ net/core/net_namespace.c | 4 +++-
  2 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/net/core/dev.c b/net/core/dev.c
@@ -49,5 +49,5 @@ index 31a5ae5..dd00b71 100644
  
  #define INITIAL_NET_GEN_PTRS	13 /* +1 for len +2 for rcu_head */
 -- 
-1.7.10.4
+1.8.1.4
 

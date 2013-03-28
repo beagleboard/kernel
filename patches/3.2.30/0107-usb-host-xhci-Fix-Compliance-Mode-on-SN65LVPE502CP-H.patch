@@ -1,8 +1,8 @@
-From 0f5f5aee31da0dceb253b0ceee73d67e9ebd2229 Mon Sep 17 00:00:00 2001
+From 875dfa3499394967ecf90e9f19f5f5a7abea2208 Mon Sep 17 00:00:00 2001
 From: "Alexis R. Cortes" <alexis.cortes@ti.com>
 Date: Fri, 3 Aug 2012 14:00:27 -0500
-Subject: [PATCH 107/135] usb: host: xhci: Fix Compliance Mode on
- SN65LVPE502CP Hardware
+Subject: [PATCH 107/135] usb: host: xhci: Fix Compliance Mode on SN65LVPE502CP
+ Hardware
 
 commit 71c731a296f1b08a3724bd1b514b64f1bda87a23 upstream.
 
@@ -53,10 +53,10 @@ Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/host/xhci-hub.c |   42 +++++++++++++++
- drivers/usb/host/xhci.c     |  121 +++++++++++++++++++++++++++++++++++++++++++
- drivers/usb/host/xhci.h     |    6 ++
- 3 files changed, 169 insertions(+), 0 deletions(-)
+ drivers/usb/host/xhci-hub.c |  42 +++++++++++++++
+ drivers/usb/host/xhci.c     | 121 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/usb/host/xhci.h     |   6 +++
+ 3 files changed, 169 insertions(+)
 
 diff --git a/drivers/usb/host/xhci-hub.c b/drivers/usb/host/xhci-hub.c
 index fd8a2c2..978860b 100644
@@ -315,5 +315,5 @@ index f3698a2..44d518a 100644
  
  /* convert between an HCD pointer and the corresponding EHCI_HCD */
 -- 
-1.7.7.6
+1.8.1.4
 

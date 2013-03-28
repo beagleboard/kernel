@@ -1,4 +1,4 @@
-From ff455119dabec7fa82a9d31289989a75b40bae5d Mon Sep 17 00:00:00 2001
+From 8bbd89c4bce28cc28e04a61c5cf42f6ab63a963b Mon Sep 17 00:00:00 2001
 From: Nicholas Bellinger <nab@linux-iscsi.org>
 Date: Sun, 26 Feb 2012 22:16:07 -0800
 Subject: [PATCH 061/147] iscsi-target: Fix dynamic -> explict NodeACL pointer
@@ -14,8 +14,8 @@ instead of from core_tpg_add_initiator_node_acl() in the case of dynamic
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/target/iscsi/iscsi_target_configfs.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/target/iscsi/iscsi_target_configfs.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/target/iscsi/iscsi_target_configfs.c b/drivers/target/iscsi/iscsi_target_configfs.c
 index db32784..83dcf49 100644
@@ -42,5 +42,5 @@ index db32784..83dcf49 100644
  	stats_cg->default_groups = kzalloc(sizeof(struct config_group) * 2,
  				GFP_KERNEL);
 -- 
-1.7.7.6
+1.8.1.4
 

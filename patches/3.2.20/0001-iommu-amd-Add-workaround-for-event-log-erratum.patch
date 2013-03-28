@@ -1,4 +1,4 @@
-From fdb96105a426031410e282e64d32e78c64e69531 Mon Sep 17 00:00:00 2001
+From bf2ea14383b1528636833c960c9d676d9ae5895c Mon Sep 17 00:00:00 2001
 From: Joerg Roedel <joerg.roedel@amd.com>
 Date: Thu, 12 Apr 2012 14:12:00 +0200
 Subject: [PATCH 01/86] iommu/amd: Add workaround for event log erratum
@@ -13,8 +13,8 @@ workaround.
 Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/iommu/amd_iommu.c |   29 +++++++++++++++++++++++------
- 1 files changed, 23 insertions(+), 6 deletions(-)
+ drivers/iommu/amd_iommu.c | 29 +++++++++++++++++++++++------
+ 1 file changed, 23 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
 index 966a6e7..f1d5408 100644
@@ -64,5 +64,5 @@ index 966a6e7..f1d5408 100644
  
  static void iommu_poll_events(struct amd_iommu *iommu)
 -- 
-1.7.7.6
+1.8.1.4
 

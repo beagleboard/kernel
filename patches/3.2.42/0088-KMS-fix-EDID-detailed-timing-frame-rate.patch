@@ -1,0 +1,38 @@
+From b1753b3f4a0dbd6ef25e5a536a0cc9ecd77e2668 Mon Sep 17 00:00:00 2001
+From: Torsten Duwe <torsten@lst.de>
+Date: Sat, 23 Mar 2013 15:39:34 +0100
+Subject: [PATCH 88/92] KMS: fix EDID detailed timing frame rate
+
+commit c19b3b0f6eed552952845e4ad908dba2113d67b4 upstream.
+
+When KMS has parsed an EDID "detailed timing", it leaves the frame rate
+zeroed.  Consecutive (debug-) output of that mode thus yields 0 for
+vsync.  This simple fix also speeds up future invocations of
+drm_mode_vrefresh().
+
+While it is debatable whether this qualifies as a -stable fix I'd apply
+it for consistency's sake; drm_helper_probe_single_connector_modes()
+does the same thing already for all probed modes.
+
+Signed-off-by: Torsten Duwe <duwe@lst.de>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/drm_edid.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/gpu/drm/drm_edid.c b/drivers/gpu/drm/drm_edid.c
+index 2518ec7..7211f67 100644
+--- a/drivers/gpu/drm/drm_edid.c
++++ b/drivers/gpu/drm/drm_edid.c
+@@ -933,6 +933,7 @@ set_size:
+ 	}
+ 
+ 	mode->type = DRM_MODE_TYPE_DRIVER;
++	mode->vrefresh = drm_mode_vrefresh(mode);
+ 	drm_mode_set_name(mode);
+ 
+ 	return mode;
+-- 
+1.8.1.4
+

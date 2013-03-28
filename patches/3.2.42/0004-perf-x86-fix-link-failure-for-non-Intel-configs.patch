@@ -1,0 +1,50 @@
+From 2a6152be64b8b27ea8e6ea5986b3be4216a0f2d8 Mon Sep 17 00:00:00 2001
+From: David Rientjes <rientjes@google.com>
+Date: Sun, 17 Mar 2013 15:49:10 -0700
+Subject: [PATCH 04/92] perf,x86: fix link failure for non-Intel configs
+
+commit 6c4d3bc99b3341067775efd4d9d13cc8e655fd7c upstream.
+
+Commit 1d9d8639c063 ("perf,x86: fix kernel crash with PEBS/BTS after
+suspend/resume") introduces a link failure since
+perf_restore_debug_store() is only defined for CONFIG_CPU_SUP_INTEL:
+
+	arch/x86/power/built-in.o: In function `restore_processor_state':
+	(.text+0x45c): undefined reference to `perf_restore_debug_store'
+
+Fix it by defining the dummy function appropriately.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ include/linux/perf_event.h | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/perf_event.h b/include/linux/perf_event.h
+index 4dfbf87..9b9b2aa 100644
+--- a/include/linux/perf_event.h
++++ b/include/linux/perf_event.h
+@@ -1146,7 +1146,6 @@ extern void perf_swevent_put_recursion_context(int rctx);
+ extern void perf_event_enable(struct perf_event *event);
+ extern void perf_event_disable(struct perf_event *event);
+ extern void perf_event_task_tick(void);
+-extern void perf_restore_debug_store(void);
+ #else
+ static inline void
+ perf_event_task_sched_in(struct task_struct *prev,
+@@ -1185,6 +1184,11 @@ static inline void perf_swevent_put_recursion_context(int rctx)		{ }
+ static inline void perf_event_enable(struct perf_event *event)		{ }
+ static inline void perf_event_disable(struct perf_event *event)		{ }
+ static inline void perf_event_task_tick(void)				{ }
++#endif
++
++#if defined(CONFIG_PERF_EVENTS) && defined(CONFIG_CPU_SUP_INTEL)
++extern void perf_restore_debug_store(void);
++#else
+ static inline void perf_restore_debug_store(void)			{ }
+ #endif
+ 
+-- 
+1.8.1.4
+

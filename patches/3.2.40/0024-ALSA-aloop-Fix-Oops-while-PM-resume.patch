@@ -1,0 +1,51 @@
+From 67158dff724d5a66341be4165112f79fcaf4c802 Mon Sep 17 00:00:00 2001
+From: Takashi Iwai <tiwai@suse.de>
+Date: Mon, 4 Feb 2013 10:28:15 +0100
+Subject: [PATCH 024/153] ALSA: aloop: Fix Oops while PM resume
+
+commit edac894389f9c9de2a1368c78809c824b343f3a5 upstream.
+
+snd-aloop driver has no proper PM implementation, thus the PM resume
+may trigger Oops due to leftover timer instance.  This patch adds the
+missing suspend/resume implementation.
+
+Reported-and-tested-by: El boulangero <elboulangero@gmail.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/drivers/aloop.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/sound/drivers/aloop.c b/sound/drivers/aloop.c
+index 193ce81..42b876d 100644
+--- a/sound/drivers/aloop.c
++++ b/sound/drivers/aloop.c
+@@ -287,12 +287,14 @@ static int loopback_trigger(struct snd_pcm_substream *substream, int cmd)
+ 			loopback_active_notify(dpcm);
+ 		break;
+ 	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
++	case SNDRV_PCM_TRIGGER_SUSPEND:
+ 		spin_lock(&cable->lock);	
+ 		cable->pause |= stream;
+ 		spin_unlock(&cable->lock);
+ 		loopback_timer_stop(dpcm);
+ 		break;
+ 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
++	case SNDRV_PCM_TRIGGER_RESUME:
+ 		spin_lock(&cable->lock);
+ 		dpcm->last_jiffies = jiffies;
+ 		cable->pause &= ~stream;
+@@ -552,7 +554,8 @@ static snd_pcm_uframes_t loopback_pointer(struct snd_pcm_substream *substream)
+ static struct snd_pcm_hardware loopback_pcm_hardware =
+ {
+ 	.info =		(SNDRV_PCM_INFO_INTERLEAVED | SNDRV_PCM_INFO_MMAP |
+-			 SNDRV_PCM_INFO_MMAP_VALID | SNDRV_PCM_INFO_PAUSE),
++			 SNDRV_PCM_INFO_MMAP_VALID | SNDRV_PCM_INFO_PAUSE |
++			 SNDRV_PCM_INFO_RESUME),
+ 	.formats =	(SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S16_BE |
+ 			 SNDRV_PCM_FMTBIT_S32_LE | SNDRV_PCM_FMTBIT_S32_BE |
+ 			 SNDRV_PCM_FMTBIT_FLOAT_LE | SNDRV_PCM_FMTBIT_FLOAT_BE),
+-- 
+1.8.1.4
+

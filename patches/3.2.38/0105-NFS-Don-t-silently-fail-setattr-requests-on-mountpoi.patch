@@ -1,0 +1,64 @@
+From 5ff6aa0fd97f8b28b8e6bfe7a9ae0bbe384067bc Mon Sep 17 00:00:00 2001
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
+Date: Tue, 22 Jan 2013 00:17:06 -0500
+Subject: [PATCH 105/127] NFS: Don't silently fail setattr() requests on
+ mountpoints
+
+commit ab225417825963b6dc66be7ea80f94ac1378dfdf upstream.
+
+Ensure that any setattr and getattr requests for junctions and/or
+mountpoints are sent to the server. Ever since commit
+0ec26fd0698 (vfs: automount should ignore LOOKUP_FOLLOW), we have
+silently dropped any setattr requests to a server-side mountpoint.
+For referrals, we have silently dropped both getattr and setattr
+requests.
+
+This patch restores the original behaviour for setattr on mountpoints,
+and tries to do the same for referrals, provided that we have a
+filehandle...
+
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/namespace.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/fs/nfs/namespace.c b/fs/nfs/namespace.c
+index a86873e..31df53e 100644
+--- a/fs/nfs/namespace.c
++++ b/fs/nfs/namespace.c
+@@ -289,11 +289,31 @@ out_nofree:
+ 	return mnt;
+ }
+ 
++static int
++nfs_namespace_getattr(struct vfsmount *mnt, struct dentry *dentry, struct kstat *stat)
++{
++	if (NFS_FH(dentry->d_inode)->size != 0)
++		return nfs_getattr(mnt, dentry, stat);
++	generic_fillattr(dentry->d_inode, stat);
++	return 0;
++}
++
++static int
++nfs_namespace_setattr(struct dentry *dentry, struct iattr *attr)
++{
++	if (NFS_FH(dentry->d_inode)->size != 0)
++		return nfs_setattr(dentry, attr);
++	return -EACCES;
++}
++
+ const struct inode_operations nfs_mountpoint_inode_operations = {
+ 	.getattr	= nfs_getattr,
++	.setattr	= nfs_setattr,
+ };
+ 
+ const struct inode_operations nfs_referral_inode_operations = {
++	.getattr	= nfs_namespace_getattr,
++	.setattr	= nfs_namespace_setattr,
+ };
+ 
+ static void nfs_expire_automounts(struct work_struct *work)
+-- 
+1.8.1.4
+

@@ -1,4 +1,4 @@
-From 2c268ef0ae8989a8e318aa8625738d95a3cacdbd Mon Sep 17 00:00:00 2001
+From 794e8833700a4073490a37fb66178b5e0aa21728 Mon Sep 17 00:00:00 2001
 From: Jason Baron <jbaron@redhat.com>
 Date: Thu, 12 Jan 2012 17:17:43 -0800
 Subject: [PATCH 70/72] epoll: limit paths
@@ -87,9 +87,9 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/eventpoll.c            |  234 ++++++++++++++++++++++++++++++++++++++++-----
- include/linux/eventpoll.h |    1 +
- include/linux/fs.h        |    1 +
+ fs/eventpoll.c            | 234 +++++++++++++++++++++++++++++++++++++++++-----
+ include/linux/eventpoll.h |   1 +
+ include/linux/fs.h        |   1 +
  3 files changed, 211 insertions(+), 25 deletions(-)
 
 diff --git a/fs/eventpoll.c b/fs/eventpoll.c
@@ -471,5 +471,5 @@ index e0bc4ff..10b2288 100644
  	struct address_space	*f_mapping;
  #ifdef CONFIG_DEBUG_WRITECOUNT
 -- 
-1.7.7.6
+1.8.1.4
 

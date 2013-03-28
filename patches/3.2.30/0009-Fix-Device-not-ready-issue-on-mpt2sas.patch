@@ -1,4 +1,4 @@
-From 9f7e690047730eeb87af0a2a974bcc1c95cb1634 Mon Sep 17 00:00:00 2001
+From f5ae55fb817c45b2d9d4939f13a171c53b9a588d Mon Sep 17 00:00:00 2001
 From: James Bottomley <JBottomley@Parallels.com>
 Date: Wed, 25 Jul 2012 23:55:55 +0400
 Subject: [PATCH 009/135] Fix 'Device not ready' issue on mpt2sas
@@ -54,9 +54,9 @@ Reported-by: Matthias Prager <linux@matthiasprager.de>
 Signed-off-by: James Bottomley <JBottomley@Parallels.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/scsi/scsi_error.c |   10 ++++++++++
- drivers/scsi/scsi_scan.c  |   10 ++++++++++
- 2 files changed, 20 insertions(+), 0 deletions(-)
+ drivers/scsi/scsi_error.c | 10 ++++++++++
+ drivers/scsi/scsi_scan.c  | 10 ++++++++++
+ 2 files changed, 20 insertions(+)
 
 diff --git a/drivers/scsi/scsi_error.c b/drivers/scsi/scsi_error.c
 index 456b131..c83571e 100644
@@ -108,5 +108,5 @@ index a48b59c..c6c80c9 100644
  		sdev->type = TYPE_ROM;
  		sdev->removable = 1;
 -- 
-1.7.7.6
+1.8.1.4
 

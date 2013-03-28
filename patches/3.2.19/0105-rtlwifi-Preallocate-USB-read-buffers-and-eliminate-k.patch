@@ -1,4 +1,4 @@
-From beba4c2c51ca29dcb13e76d27a7ff81391a8c927 Mon Sep 17 00:00:00 2001
+From 9ef64c5afcadd8ca951a06be6486ce7af34502b5 Mon Sep 17 00:00:00 2001
 From: Larry Finger <Larry.Finger@lwfinger.net>
 Date: Mon, 19 Mar 2012 15:44:31 -0500
 Subject: [PATCH 105/117] rtlwifi: Preallocate USB read buffers and eliminate
@@ -22,8 +22,8 @@ Signed-off-by: John W. Linville <linville@tuxdriver.com>
 [This version will apply to 3.2 and earlier. - Larry]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/wireless/rtlwifi/usb.c  |   34 ++++++++++++++++------------------
- drivers/net/wireless/rtlwifi/wifi.h |    6 +++++-
+ drivers/net/wireless/rtlwifi/usb.c  | 34 ++++++++++++++++------------------
+ drivers/net/wireless/rtlwifi/wifi.h |  6 +++++-
  2 files changed, 21 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/net/wireless/rtlwifi/usb.c b/drivers/net/wireless/rtlwifi/usb.c
@@ -132,5 +132,5 @@ index 713c7dd..b1e9deb 100644
  	   that it points to the data allocated
  	   beyond  this structure like:
 -- 
-1.7.7.6
+1.8.1.4
 

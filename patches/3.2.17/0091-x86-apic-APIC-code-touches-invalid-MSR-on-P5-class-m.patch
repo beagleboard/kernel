@@ -1,4 +1,4 @@
-From 5aeb07c5de29390ad24e3f89c09147f8b0fb2961 Mon Sep 17 00:00:00 2001
+From f5bd1e04b4ab5ab7b0c7f00bac1675caf025cf0a Mon Sep 17 00:00:00 2001
 From: Bryan O'Donoghue <bryan.odonoghue@linux.intel.com>
 Date: Wed, 18 Apr 2012 17:37:39 +0100
 Subject: [PATCH 091/165] x86, apic: APIC code touches invalid MSR on P5 class
@@ -24,8 +24,8 @@ Link: http://lkml.kernel.org/r/4F8EEDD3.1080404@linux.intel.com
 Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/x86/kernel/apic/apic.c |   34 ++++++++++++++++++++--------------
- 1 files changed, 20 insertions(+), 14 deletions(-)
+ arch/x86/kernel/apic/apic.c | 34 ++++++++++++++++++++--------------
+ 1 file changed, 20 insertions(+), 14 deletions(-)
 
 diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
 index f98d84c..c4e3581 100644
@@ -87,5 +87,5 @@ index f98d84c..c4e3581 100644
  
  	maxlvt = lapic_get_maxlvt();
 -- 
-1.7.7.6
+1.8.1.4
 

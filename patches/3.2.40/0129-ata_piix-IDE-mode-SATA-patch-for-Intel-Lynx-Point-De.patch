@@ -1,0 +1,39 @@
+From 2a8dd3b02b47c9bf1f4d4e4cdbc8b9ed6e3566a2 Mon Sep 17 00:00:00 2001
+From: Seth Heasley <seth.heasley@intel.com>
+Date: Mon, 23 Jan 2012 16:29:50 -0800
+Subject: [PATCH 129/153] ata_piix: IDE-mode SATA patch for Intel Lynx Point
+ DeviceIDs
+
+commit 78140cfec503c60a178b11fbaae2fef63e9abdc0 upstream.
+
+This patch adds the IDE-mode SATA DeviceIDs for the Intel Lynx Point PCH.
+
+Signed-off-by: Seth Heasley <seth.heasley@intel.com>
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/ata/ata_piix.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/ata/ata_piix.c b/drivers/ata/ata_piix.c
+index 69ac373..9554f94 100644
+--- a/drivers/ata/ata_piix.c
++++ b/drivers/ata/ata_piix.c
+@@ -321,6 +321,14 @@ static const struct pci_device_id piix_pci_tbl[] = {
+ 	{ 0x8086, 0x1e08, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_2port_sata },
+ 	/* SATA Controller IDE (Panther Point) */
+ 	{ 0x8086, 0x1e09, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_2port_sata },
++	/* SATA Controller IDE (Lynx Point) */
++	{ 0x8086, 0x8c00, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_snb },
++	/* SATA Controller IDE (Lynx Point) */
++	{ 0x8086, 0x8c01, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_snb },
++	/* SATA Controller IDE (Lynx Point) */
++	{ 0x8086, 0x8c08, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_2port_sata },
++	/* SATA Controller IDE (Lynx Point) */
++	{ 0x8086, 0x8c09, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_2port_sata },
+ 	{ }	/* terminate list */
+ };
+ 
+-- 
+1.8.1.4
+

@@ -1,4 +1,4 @@
-From 04d2691958c5324488e5279df1a0239d16d64189 Mon Sep 17 00:00:00 2001
+From edff6c96da1c90d58631d15d79343fc30cf046d8 Mon Sep 17 00:00:00 2001
 From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
 Date: Fri, 4 May 2012 05:24:54 +0000
 Subject: [PATCH 72/86] sctp: check cached dst before using it
@@ -13,9 +13,9 @@ Acked-by: Vlad Yaseivch <vyasevich@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/net/sctp/sctp.h |   13 +++++++++++++
- net/sctp/output.c       |    4 +---
- net/sctp/transport.c    |   17 -----------------
+ include/net/sctp/sctp.h | 13 +++++++++++++
+ net/sctp/output.c       |  4 +---
+ net/sctp/transport.c    | 17 -----------------
  3 files changed, 14 insertions(+), 20 deletions(-)
 
 diff --git a/include/net/sctp/sctp.h b/include/net/sctp/sctp.h
@@ -84,5 +84,5 @@ index 394c57c..8da4481 100644
  {
  	struct dst_entry *dst;
 -- 
-1.7.7.6
+1.8.1.4
 

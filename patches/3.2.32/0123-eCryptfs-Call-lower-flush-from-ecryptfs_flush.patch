@@ -1,4 +1,4 @@
-From 71148234e1511fe5025af49172140af404a9a731 Mon Sep 17 00:00:00 2001
+From ba92c5531c597e0a85bf8b044d5ef8eb6eee777f Mon Sep 17 00:00:00 2001
 From: Tyler Hicks <tyhicks@canonical.com>
 Date: Wed, 12 Sep 2012 18:38:00 -0700
 Subject: [PATCH 123/146] eCryptfs: Call lower ->flush() from ecryptfs_flush()
@@ -18,7 +18,7 @@ written out to the lower filesystem in ecryptfs_release().
 Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ecryptfs/file.c |   10 ++++++++--
+ fs/ecryptfs/file.c | 10 ++++++++--
  1 file changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
@@ -43,5 +43,5 @@ index 0747a43..841f24f 100644
  
  static int ecryptfs_release(struct inode *inode, struct file *file)
 -- 
-1.7.10.4
+1.8.1.4
 

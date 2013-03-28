@@ -1,0 +1,52 @@
+From f1f9513deb7efde487b2a135579b77ea99d0f64b Mon Sep 17 00:00:00 2001
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Date: Mon, 7 Jan 2013 21:17:00 +0000
+Subject: [PATCH 41/67] net: prevent setting ttl=0 via IP_TTL
+
+[ Upstream commit c9be4a5c49cf51cc70a993f004c5bb30067a65ce ]
+
+A regression is introduced by the following commit:
+
+	commit 4d52cfbef6266092d535237ba5a4b981458ab171
+	Author: Eric Dumazet <eric.dumazet@gmail.com>
+	Date:   Tue Jun 2 00:42:16 2009 -0700
+
+	    net: ipv4/ip_sockglue.c cleanups
+
+	    Pure cleanups
+
+but it is not a pure cleanup...
+
+	-               if (val != -1 && (val < 1 || val>255))
+	+               if (val != -1 && (val < 0 || val > 255))
+
+Since there is no reason provided to allow ttl=0, change it back.
+
+Reported-by: nitin padalia <padalia.nitin@gmail.com>
+Cc: nitin padalia <padalia.nitin@gmail.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: David S. Miller <davem@davemloft.net>
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+Acked-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv4/ip_sockglue.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/ipv4/ip_sockglue.c b/net/ipv4/ip_sockglue.c
+index 0106d25..3b36002 100644
+--- a/net/ipv4/ip_sockglue.c
++++ b/net/ipv4/ip_sockglue.c
+@@ -600,7 +600,7 @@ static int do_ip_setsockopt(struct sock *sk, int level,
+ 	case IP_TTL:
+ 		if (optlen < 1)
+ 			goto e_inval;
+-		if (val != -1 && (val < 0 || val > 255))
++		if (val != -1 && (val < 1 || val > 255))
+ 			goto e_inval;
+ 		inet->uc_ttl = val;
+ 		break;
+-- 
+1.8.1.4
+

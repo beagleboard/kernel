@@ -1,0 +1,95 @@
+From 2f0310661ba421adf3c14d38399f2d2515974500 Mon Sep 17 00:00:00 2001
+From: Dave Airlie <airlied@redhat.com>
+Date: Thu, 24 Jan 2013 16:12:41 +1000
+Subject: [PATCH 032/153] fbcon: don't lose the console font across
+ generic->chip driver switch
+
+commit ae1287865f5361fa138d4d3b1b6277908b54eac9 upstream.
+
+If grub2 loads efifb/vesafb, then when systemd starts it can set the console
+font on that framebuffer device, however when we then load the native KMS
+driver, the first thing it does is tear down the generic framebuffer driver.
+
+The thing is the generic code is doing the right thing, it frees the font
+because otherwise it would leak memory. However we can assume that if you
+are removing the generic firmware driver (vesa/efi/offb), that a new driver
+*should* be loading soon after, so we effectively leak the font.
+
+However the old code left a dangling pointer in vc->vc_font.data and we
+can now reuse that dangling pointer to load the font into the new
+driver, now that we aren't freeing it.
+
+Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=892340
+
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/video/console/fbcon.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/video/console/fbcon.c b/drivers/video/console/fbcon.c
+index bf9a9b7..b27a91c 100644
+--- a/drivers/video/console/fbcon.c
++++ b/drivers/video/console/fbcon.c
+@@ -991,7 +991,7 @@ static const char *fbcon_startup(void)
+ 	}
+ 
+ 	/* Setup default font */
+-	if (!p->fontdata) {
++	if (!p->fontdata && !vc->vc_font.data) {
+ 		if (!fontname[0] || !(font = find_font(fontname)))
+ 			font = get_default_font(info->var.xres,
+ 						info->var.yres,
+@@ -1001,6 +1001,8 @@ static const char *fbcon_startup(void)
+ 		vc->vc_font.height = font->height;
+ 		vc->vc_font.data = (void *)(p->fontdata = font->data);
+ 		vc->vc_font.charcount = 256; /* FIXME  Need to support more fonts */
++	} else {
++		p->fontdata = vc->vc_font.data;
+ 	}
+ 
+ 	cols = FBCON_SWAP(ops->rotate, info->var.xres, info->var.yres);
+@@ -1160,9 +1162,9 @@ static void fbcon_init(struct vc_data *vc, int init)
+ 	ops->p = &fb_display[fg_console];
+ }
+ 
+-static void fbcon_free_font(struct display *p)
++static void fbcon_free_font(struct display *p, bool freefont)
+ {
+-	if (p->userfont && p->fontdata && (--REFCOUNT(p->fontdata) == 0))
++	if (freefont && p->userfont && p->fontdata && (--REFCOUNT(p->fontdata) == 0))
+ 		kfree(p->fontdata - FONT_EXTRA_WORDS * sizeof(int));
+ 	p->fontdata = NULL;
+ 	p->userfont = 0;
+@@ -1174,8 +1176,8 @@ static void fbcon_deinit(struct vc_data *vc)
+ 	struct fb_info *info;
+ 	struct fbcon_ops *ops;
+ 	int idx;
++	bool free_font = true;
+ 
+-	fbcon_free_font(p);
+ 	idx = con2fb_map[vc->vc_num];
+ 
+ 	if (idx == -1)
+@@ -1186,6 +1188,8 @@ static void fbcon_deinit(struct vc_data *vc)
+ 	if (!info)
+ 		goto finished;
+ 
++	if (info->flags & FBINFO_MISC_FIRMWARE)
++		free_font = false;
+ 	ops = info->fbcon_par;
+ 
+ 	if (!ops)
+@@ -1197,6 +1201,8 @@ static void fbcon_deinit(struct vc_data *vc)
+ 	ops->flags &= ~FBCON_FLAGS_INIT;
+ finished:
+ 
++	fbcon_free_font(p, free_font);
++
+ 	if (!con_is_bound(&fb_con))
+ 		fbcon_exit();
+ 
+-- 
+1.8.1.4
+

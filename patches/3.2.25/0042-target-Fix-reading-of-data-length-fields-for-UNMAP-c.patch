@@ -1,4 +1,4 @@
-From 989b27e6c2ff8f27ef21eeb5b451bafd2d3fa05a Mon Sep 17 00:00:00 2001
+From 1d239416e639a237dad70f057b9cd1c82756c68c Mon Sep 17 00:00:00 2001
 From: Roland Dreier <roland@purestorage.com>
 Date: Mon, 16 Jul 2012 15:34:23 -0700
 Subject: [PATCH 42/73] target: Fix reading of data length fields for UNMAP
@@ -16,8 +16,8 @@ Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 [bwh: Backported to 3.2: adjust filename, context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/target/target_core_cdb.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/target/target_core_cdb.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/target/target_core_cdb.c b/drivers/target/target_core_cdb.c
 index 45a3ed4..b1f5cf0 100644
@@ -47,5 +47,5 @@ index 45a3ed4..b1f5cf0 100644
  	pr_debug("UNMAP: Sub: %s Using dl: %hu bd_dl: %hu size: %hu"
  		" ptr: %p\n", dev->transport->name, dl, bd_dl, size, ptr);
 -- 
-1.7.7.6
+1.8.1.4
 

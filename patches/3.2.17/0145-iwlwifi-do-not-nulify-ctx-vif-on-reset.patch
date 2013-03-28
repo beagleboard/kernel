@@ -1,4 +1,4 @@
-From 3a2c586f537d95296651c01f538784d87c2f7b57 Mon Sep 17 00:00:00 2001
+From 68c57c7a3417a49a7a691c0061a4f9963429cc6d Mon Sep 17 00:00:00 2001
 From: Stanislaw Gruszka <sgruszka@redhat.com>
 Date: Wed, 18 Apr 2012 08:01:15 -0700
 Subject: [PATCH 145/165] iwlwifi: do not nulify ctx->vif on reset
@@ -20,8 +20,8 @@ Signed-off-by: John W. Linville <linville@tuxdriver.com>
  - Change context in iwlagn_prepare_restart()]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/wireless/iwlwifi/iwl-agn.c  |    3 ---
- drivers/net/wireless/iwlwifi/iwl-core.c |   10 +++++++++-
+ drivers/net/wireless/iwlwifi/iwl-agn.c  |  3 ---
+ drivers/net/wireless/iwlwifi/iwl-core.c | 10 +++++++++-
  2 files changed, 9 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/net/wireless/iwlwifi/iwl-agn.c b/drivers/net/wireless/iwlwifi/iwl-agn.c
@@ -81,5 +81,5 @@ index 3d75d4c..832ec4d 100644
  
  	ctx->vif = NULL;
 -- 
-1.7.7.6
+1.8.1.4
 

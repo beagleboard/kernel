@@ -1,0 +1,35 @@
+From fc9406ed007ebb375eef147bd2f21fc4f2857f1e Mon Sep 17 00:00:00 2001
+From: Roger Quadros <rogerq@ti.com>
+Date: Thu, 14 Feb 2013 17:08:09 +0200
+Subject: [PATCH 061/153] USB: ehci-omap: Fix autoloading of module
+
+commit 04753523266629b1cd0518091da1658755787198 upstream.
+
+The module alias should be "ehci-omap" and not
+"omap-ehci" to match the platform device name.
+The omap-ehci module should now autoload correctly.
+
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/host/ehci-omap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 568cefb..db4eef3 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -334,7 +334,7 @@ static const struct hc_driver ehci_omap_hc_driver = {
+ 	.clear_tt_buffer_complete = ehci_clear_tt_buffer_complete,
+ };
+ 
+-MODULE_ALIAS("platform:omap-ehci");
++MODULE_ALIAS("platform:ehci-omap");
+ MODULE_AUTHOR("Texas Instruments, Inc.");
+ MODULE_AUTHOR("Felipe Balbi <felipe.balbi@nokia.com>");
+ 
+-- 
+1.8.1.4
+

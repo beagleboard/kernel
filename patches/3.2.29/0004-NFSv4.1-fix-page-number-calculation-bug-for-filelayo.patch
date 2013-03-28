@@ -1,4 +1,4 @@
-From 2d4628af628496fcb8ced1ee65481d44b0bf7138 Mon Sep 17 00:00:00 2001
+From 54386b67b461fd49420ecd49d89dd5a991dd3ba0 Mon Sep 17 00:00:00 2001
 From: Andy Adamson <andros@netapp.com>
 Date: Sat, 14 Apr 2012 03:56:35 -0400
 Subject: [PATCH 04/94] NFSv4.1 fix page number calculation bug for filelayout
@@ -10,8 +10,8 @@ Signed-off-by: Andy Adamson <andros@netapp.com>
 Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/nfs/nfs4filelayoutdev.c |    2 +-
- fs/nfs/pnfs.c              |    2 +-
+ fs/nfs/nfs4filelayoutdev.c | 2 +-
+ fs/nfs/pnfs.c              | 2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/fs/nfs/nfs4filelayoutdev.c b/fs/nfs/nfs4filelayoutdev.c
@@ -41,5 +41,5 @@ index 4dfc3f1..72380f3 100644
  	pages = kcalloc(max_pages, sizeof(struct page *), gfp_flags);
  	if (!pages)
 -- 
-1.7.7.6
+1.8.1.4
 

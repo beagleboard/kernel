@@ -1,4 +1,4 @@
-From e2be7f991ff55bb6d8bb2aca9ae7653c8fce6479 Mon Sep 17 00:00:00 2001
+From 132e8ba951ca62b2f2291985659c42c5fe3caa24 Mon Sep 17 00:00:00 2001
 From: "H. Peter Anvin" <hpa@zytor.com>
 Date: Fri, 2 Mar 2012 10:43:48 -0800
 Subject: [PATCH 18/95] regset: Prevent null pointer reference on readonly
@@ -19,9 +19,9 @@ Acked-by: Roland McGrath <roland@hack.frob.com>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/binfmt_elf.c        |    2 +-
- include/linux/regset.h |    6 ++++++
- 2 files changed, 7 insertions(+), 1 deletions(-)
+ fs/binfmt_elf.c        | 2 +-
+ include/linux/regset.h | 6 ++++++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/fs/binfmt_elf.c b/fs/binfmt_elf.c
 index 21ac5ee..6ff96c6 100644
@@ -61,5 +61,5 @@ index 8abee65..5150fd1 100644
  		return -EIO;
  
 -- 
-1.7.7.6
+1.8.1.4
 

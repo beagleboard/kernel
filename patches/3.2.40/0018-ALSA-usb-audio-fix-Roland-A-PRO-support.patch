@@ -1,0 +1,33 @@
+From e8e67bef019ceef24835cbe0fe086ec5a2f133bb Mon Sep 17 00:00:00 2001
+From: Clemens Ladisch <clemens@ladisch.de>
+Date: Thu, 31 Jan 2013 21:14:33 +0100
+Subject: [PATCH 018/153] ALSA: usb-audio: fix Roland A-PRO support
+
+commit 7da58046482fceb17c4a0d4afefd9507ec56de7f upstream.
+
+The quirk for the Roland/Cakewalk A-PRO keyboards accidentally used the
+wrong interface number, which prevented the driver from attaching to the
+device.
+
+Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/usb/quirks-table.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sound/usb/quirks-table.h b/sound/usb/quirks-table.h
+index 32d2a21..4e25148 100644
+--- a/sound/usb/quirks-table.h
++++ b/sound/usb/quirks-table.h
+@@ -1624,7 +1624,7 @@ YAMAHA_DEVICE(0x7010, "UB99"),
+ 	.driver_info = (unsigned long) & (const struct snd_usb_audio_quirk) {
+ 		/* .vendor_name = "Roland", */
+ 		/* .product_name = "A-PRO", */
+-		.ifnum = 1,
++		.ifnum = 0,
+ 		.type = QUIRK_MIDI_FIXED_ENDPOINT,
+ 		.data = & (const struct snd_usb_midi_endpoint_info) {
+ 			.out_cables = 0x0003,
+-- 
+1.8.1.4
+

@@ -1,0 +1,73 @@
+From cc72b6a31dcc21828c2b05228167d709913e379c Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>
+Date: Fri, 22 Feb 2013 16:53:38 +0200
+Subject: [PATCH 20/82] drm/i915: Don't clobber crtc->fb when queue_flip fails
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit 4a35f83b2b7c6aae3fc0d1c4554fdc99dc33ad07 upstream.
+
+Restore crtc->fb to the old framebuffer if queue_flip fails.
+
+While at it, kill the pointless intel_fb temp variable.
+
+v2: Update crtc->fb before queue_flip and restore it back
+    after a failure.
+
+Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
+Reported-and-Tested-by: Mika Kuoppala <mika.kuoppala@intel.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_display.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index 2303c2b..4591582 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -7280,8 +7280,8 @@ static int intel_crtc_page_flip(struct drm_crtc *crtc,
+ {
+ 	struct drm_device *dev = crtc->dev;
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+-	struct intel_framebuffer *intel_fb;
+-	struct drm_i915_gem_object *obj;
++	struct drm_framebuffer *old_fb = crtc->fb;
++	struct drm_i915_gem_object *obj = to_intel_framebuffer(fb)->obj;
+ 	struct intel_crtc *intel_crtc = to_intel_crtc(crtc);
+ 	struct intel_unpin_work *work;
+ 	unsigned long flags;
+@@ -7293,8 +7293,7 @@ static int intel_crtc_page_flip(struct drm_crtc *crtc,
+ 
+ 	work->event = event;
+ 	work->dev = crtc->dev;
+-	intel_fb = to_intel_framebuffer(crtc->fb);
+-	work->old_fb_obj = intel_fb->obj;
++	work->old_fb_obj = to_intel_framebuffer(old_fb)->obj;
+ 	INIT_WORK(&work->work, intel_unpin_work_fn);
+ 
+ 	ret = drm_vblank_get(dev, intel_crtc->pipe);
+@@ -7314,9 +7313,6 @@ static int intel_crtc_page_flip(struct drm_crtc *crtc,
+ 	intel_crtc->unpin_work = work;
+ 	spin_unlock_irqrestore(&dev->event_lock, flags);
+ 
+-	intel_fb = to_intel_framebuffer(fb);
+-	obj = intel_fb->obj;
+-
+ 	mutex_lock(&dev->struct_mutex);
+ 
+ 	/* Reference the objects for the scheduled work. */
+@@ -7347,6 +7343,7 @@ static int intel_crtc_page_flip(struct drm_crtc *crtc,
+ 
+ cleanup_pending:
+ 	atomic_sub(1 << intel_crtc->plane, &work->old_fb_obj->pending_flip);
++	crtc->fb = old_fb;
+ 	drm_gem_object_unreference(&work->old_fb_obj->base);
+ 	drm_gem_object_unreference(&obj->base);
+ 	mutex_unlock(&dev->struct_mutex);
+-- 
+1.8.1.4
+

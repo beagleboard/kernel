@@ -1,0 +1,38 @@
+From afe0d4fb9431e6cf371836a3ac76f8b74dfe4f17 Mon Sep 17 00:00:00 2001
+From: Xi Wang <xi.wang@gmail.com>
+Date: Wed, 27 Feb 2013 17:05:21 -0800
+Subject: [PATCH 114/153] sysctl: fix null checking in bin_dn_node_address()
+
+commit df1778be1a33edffa51d094eeda87c858ded6560 upstream.
+
+The null check of `strchr() + 1' is broken, which is always non-null,
+leading to OOB read.  Instead, check the result of strchr().
+
+Signed-off-by: Xi Wang <xi.wang@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/sysctl_binary.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/sysctl_binary.c b/kernel/sysctl_binary.c
+index a650694..9f9aa32 100644
+--- a/kernel/sysctl_binary.c
++++ b/kernel/sysctl_binary.c
+@@ -1194,9 +1194,10 @@ static ssize_t bin_dn_node_address(struct file *file,
+ 
+ 		/* Convert the decnet address to binary */
+ 		result = -EIO;
+-		nodep = strchr(buf, '.') + 1;
++		nodep = strchr(buf, '.');
+ 		if (!nodep)
+ 			goto out;
++		++nodep;
+ 
+ 		area = simple_strtoul(buf, NULL, 10);
+ 		node = simple_strtoul(nodep, NULL, 10);
+-- 
+1.8.1.4
+

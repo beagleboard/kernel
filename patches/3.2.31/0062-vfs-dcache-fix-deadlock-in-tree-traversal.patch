@@ -1,4 +1,4 @@
-From f222e7b3ad7d004904149a3d9788eeaee478845a Mon Sep 17 00:00:00 2001
+From 1e218132b0ccc0a861e34a3724e70b496a16bbef Mon Sep 17 00:00:00 2001
 From: Miklos Szeredi <miklos@szeredi.hu>
 Date: Mon, 17 Sep 2012 22:23:30 +0200
 Subject: [PATCH 062/109] vfs: dcache: fix deadlock in tree traversal
@@ -33,7 +33,7 @@ Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/dcache.c |    6 ++++++
+ fs/dcache.c | 6 ++++++
  1 file changed, 6 insertions(+)
 
 diff --git a/fs/dcache.c b/fs/dcache.c
@@ -68,5 +68,5 @@ index d20dc2b..63c0c6b 100644
  	write_seqlock(&rename_lock);
  	goto again;
 -- 
-1.7.10.4
+1.8.1.4
 

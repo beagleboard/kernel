@@ -1,4 +1,4 @@
-From 82e9473f9cb8058e3671fc145857be609075223c Mon Sep 17 00:00:00 2001
+From 2f6864a4531eb0e26661d38b69cb1f068908da93 Mon Sep 17 00:00:00 2001
 From: "Peter Huang (Peng)" <peter.huangpeng@huawei.com>
 Date: Thu, 19 Apr 2012 20:12:51 +0000
 Subject: [PATCH 65/86] set fake_rtable's dst to NULL to avoid kernel Oops
@@ -26,10 +26,10 @@ Signed-off-by: Peter Huang <peter.huangpeng@huawei.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/netfilter_bridge.h |    9 +++++++++
- include/net/dst.h                |    1 +
- net/bridge/br_forward.c          |    1 +
- net/bridge/br_netfilter.c        |    8 ++------
+ include/linux/netfilter_bridge.h | 9 +++++++++
+ include/net/dst.h                | 1 +
+ net/bridge/br_forward.c          | 1 +
+ net/bridge/br_netfilter.c        | 8 ++------
  4 files changed, 13 insertions(+), 6 deletions(-)
 
 diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
@@ -106,5 +106,5 @@ index fa8b8f7..577ea5d 100644
  }
  
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From bda667c013f1ae4391b49c9c4c5d9f815d295bcf Mon Sep 17 00:00:00 2001
+From 67e506ce5af03a5ca6406bb74f712742f7dc128c Mon Sep 17 00:00:00 2001
 From: Seungwon Jeon <tgih.jun@samsung.com>
 Date: Thu, 9 Feb 2012 14:32:43 +0900
 Subject: [PATCH 27/30] mmc: dw_mmc: Fix PIO mode with support of highmem
@@ -69,8 +69,8 @@ Acked-by: Will Newton <will.newton@imgtec.com>
 Signed-off-by: Chris Ball <cjb@laptop.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/mmc/host/dw_mmc.c  |  144 +++++++++++++++++++++++---------------------
- include/linux/mmc/dw_mmc.h |    6 +-
+ drivers/mmc/host/dw_mmc.c  | 144 +++++++++++++++++++++++----------------------
+ include/linux/mmc/dw_mmc.h |   6 +-
  2 files changed, 79 insertions(+), 71 deletions(-)
 
 diff --git a/drivers/mmc/host/dw_mmc.c b/drivers/mmc/host/dw_mmc.c
@@ -349,5 +349,5 @@ index 6dc9b80..107fcb3 100644
  	struct dw_mci_slot	*cur_slot;
  	struct mmc_request	*mrq;
 -- 
-1.7.7.6
+1.8.1.4
 

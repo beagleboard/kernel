@@ -1,4 +1,4 @@
-From 9dd0f23422911b5e1866f0fd37b1bd3bedb7f685 Mon Sep 17 00:00:00 2001
+From 45e811f269c290f9e931a1ae2b0480920494f171 Mon Sep 17 00:00:00 2001
 From: Sasha Levin <levinsasha928@gmail.com>
 Date: Thu, 15 Mar 2012 12:36:14 -0400
 Subject: [PATCH 042/147] ntp: Fix integer overflow when setting time
@@ -18,8 +18,8 @@ Link: http://lkml.kernel.org/r/1331829374-31543-2-git-send-email-levinsasha928@g
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- kernel/time/ntp.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ kernel/time/ntp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/kernel/time/ntp.c b/kernel/time/ntp.c
 index f6117a4..4b85a7a 100644
@@ -35,5 +35,5 @@ index f6117a4..4b85a7a 100644
  
  static void ntp_update_offset(long offset)
 -- 
-1.7.7.6
+1.8.1.4
 

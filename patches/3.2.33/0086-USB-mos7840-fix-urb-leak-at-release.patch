@@ -1,4 +1,4 @@
-From 15f0222c53f9805ecf943381c4ab0e0484c84e7a Mon Sep 17 00:00:00 2001
+From 587f57a76443db55375f94dcc4764f5b69841f5a Mon Sep 17 00:00:00 2001
 From: Johan Hovold <jhovold@gmail.com>
 Date: Thu, 25 Oct 2012 13:35:09 +0200
 Subject: [PATCH 086/105] USB: mos7840: fix urb leak at release
@@ -12,8 +12,8 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/serial/mos7840.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/usb/serial/mos7840.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/drivers/usb/serial/mos7840.c b/drivers/usb/serial/mos7840.c
 index b150ed9..e0667a9 100644
@@ -28,5 +28,5 @@ index b150ed9..e0667a9 100644
  			kfree(mos7840_port->dr);
  			kfree(mos7840_port);
 -- 
-1.7.7.6
+1.8.1.4
 

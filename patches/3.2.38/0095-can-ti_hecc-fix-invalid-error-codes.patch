@@ -1,0 +1,40 @@
+From 290f5c6b445b439a3bde8b99339c078aabba674a Mon Sep 17 00:00:00 2001
+From: Olivier Sobrie <olivier@sobrie.be>
+Date: Fri, 18 Jan 2013 09:32:40 +0100
+Subject: [PATCH 095/127] can: ti_hecc: fix invalid error codes
+
+commit 71088c4bd9b8f8cbffb0e66f2abc14297e4b2ca8 upstream.
+
+Errors in CAN protocol (location) are reported in data[3] of the can
+frame instead of data[2].
+
+Cc: Anant Gole <anantgole@ti.com>
+Signed-off-by: Olivier Sobrie <olivier@sobrie.be>
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/can/ti_hecc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/can/ti_hecc.c b/drivers/net/can/ti_hecc.c
+index 79c70ae..1ef9df8 100644
+--- a/drivers/net/can/ti_hecc.c
++++ b/drivers/net/can/ti_hecc.c
+@@ -735,12 +735,12 @@ static int ti_hecc_error(struct net_device *ndev, int int_status,
+ 		}
+ 		if (err_status & HECC_CANES_CRCE) {
+ 			hecc_set_bit(priv, HECC_CANES, HECC_CANES_CRCE);
+-			cf->data[2] |= CAN_ERR_PROT_LOC_CRC_SEQ |
++			cf->data[3] |= CAN_ERR_PROT_LOC_CRC_SEQ |
+ 					CAN_ERR_PROT_LOC_CRC_DEL;
+ 		}
+ 		if (err_status & HECC_CANES_ACKE) {
+ 			hecc_set_bit(priv, HECC_CANES, HECC_CANES_ACKE);
+-			cf->data[2] |= CAN_ERR_PROT_LOC_ACK |
++			cf->data[3] |= CAN_ERR_PROT_LOC_ACK |
+ 					CAN_ERR_PROT_LOC_ACK_DEL;
+ 		}
+ 	}
+-- 
+1.8.1.4
+

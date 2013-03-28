@@ -1,0 +1,41 @@
+From ad862ab960801804be3916c31bbdbeaacfacedea Mon Sep 17 00:00:00 2001
+From: Colin Ian King <colin.king@canonical.com>
+Date: Tue, 27 Nov 2012 14:09:40 +0000
+Subject: [PATCH 051/127] PCI: Allow pcie_aspm=force even when FADT indicates
+ it is unsupported
+
+commit 9e16721498b0c3d3ebfa0b503c63d35c0a4c0642 upstream.
+
+Right now using pcie_aspm=force will not enable ASPM if the FADT indicates
+ASPM is unsupported.  However, the semantics of force should probably allow
+for this, especially as they did before 3c076351c4 ("PCI: Rework ASPM
+disable code")
+
+This patch just skips the clearing of any ASPM setup that the firmware has
+carried out on this bus if pcie_aspm=force is being used.
+
+Reference: http://bugs.launchpad.net/bugs/962038
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/pci/pcie/aspm.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/pci/pcie/aspm.c b/drivers/pci/pcie/aspm.c
+index 2275162..c73ed00 100644
+--- a/drivers/pci/pcie/aspm.c
++++ b/drivers/pci/pcie/aspm.c
+@@ -790,6 +790,9 @@ void pcie_clear_aspm(struct pci_bus *bus)
+ {
+ 	struct pci_dev *child;
+ 
++	if (aspm_force)
++		return;
++
+ 	/*
+ 	 * Clear any ASPM setup that the firmware has carried out on this bus
+ 	 */
+-- 
+1.8.1.4
+

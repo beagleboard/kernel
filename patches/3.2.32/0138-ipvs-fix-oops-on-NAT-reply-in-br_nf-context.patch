@@ -1,4 +1,4 @@
-From bc0034d95b753b028f2d25f77407e839b69970be Mon Sep 17 00:00:00 2001
+From b9cbfd0a18e993f861c87dbe73d64f8b85b32387 Mon Sep 17 00:00:00 2001
 From: Lin Ming <mlin@ss.pku.edu.cn>
 Date: Sat, 7 Jul 2012 18:26:10 +0800
 Subject: [PATCH 138/146] ipvs: fix oops on NAT reply in br_nf context
@@ -91,7 +91,7 @@ Signed-off-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/net/ip_vs.h |    2 +-
+ include/net/ip_vs.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
@@ -108,5 +108,5 @@ index e5a7b9a..416dcb0 100644
  		skb->nfctinfo = IP_CT_NEW;
  		nf_conntrack_get(skb->nfct);
 -- 
-1.7.10.4
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 25d6b0418a7edf2e4c97268b528a9980aaf70103 Mon Sep 17 00:00:00 2001
+From ee63bbc44847138770775862d5b27a527272e316 Mon Sep 17 00:00:00 2001
 From: Hiroaki SHIMODA <shimoda.hiroaki@gmail.com>
 Date: Fri, 3 Aug 2012 19:57:52 +0900
 Subject: [PATCH 050/135] net_sched: gact: Fix potential panic in tcf_gact().
@@ -16,8 +16,8 @@ Signed-off-by: Hiroaki SHIMODA <shimoda.hiroaki@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/sched/act_gact.c |   14 +++++++++++---
- 1 files changed, 11 insertions(+), 3 deletions(-)
+ net/sched/act_gact.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
 diff --git a/net/sched/act_gact.c b/net/sched/act_gact.c
 index b77f5a0..bdacd8d 100644
@@ -66,5 +66,5 @@ index b77f5a0..bdacd8d 100644
  	else
  		action = gact->tcf_action;
 -- 
-1.7.7.6
+1.8.1.4
 

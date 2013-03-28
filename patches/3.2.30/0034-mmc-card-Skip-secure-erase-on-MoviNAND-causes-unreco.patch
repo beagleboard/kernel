@@ -1,4 +1,4 @@
-From 9c4bd13faf90d0746b021cd86949aadddb483c3c Mon Sep 17 00:00:00 2001
+From 3a25550671b318d7b040ba3f98bcaa5034521dcd Mon Sep 17 00:00:00 2001
 From: Ian Chen <ian.cy.chen@samsung.com>
 Date: Wed, 29 Aug 2012 15:05:36 +0900
 Subject: [PATCH 034/135] mmc: card: Skip secure erase on MoviNAND; causes
@@ -27,9 +27,9 @@ Signed-off-by: Chris Ball <cjb@laptop.org>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/mmc/card/block.c |   27 ++++++++++++++++++++++++++-
- include/linux/mmc/card.h |    1 +
- 2 files changed, 27 insertions(+), 1 deletions(-)
+ drivers/mmc/card/block.c | 27 ++++++++++++++++++++++++++-
+ include/linux/mmc/card.h |  1 +
+ 2 files changed, 27 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/mmc/card/block.c b/drivers/mmc/card/block.c
 index 6679c4f..d0420bc 100644
@@ -96,5 +96,5 @@ index 80caf1d..ef8e35b 100644
  	unsigned int    poweroff_notify_state;	/* eMMC4.5 notify feature */
  #define MMC_NO_POWER_NOTIFICATION	0
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 6283bed43b16191bbdbc7b307b93ee4cb1f642b5 Mon Sep 17 00:00:00 2001
+From f98af2f80e2d0a2e1dd220b7e753a1381da220cf Mon Sep 17 00:00:00 2001
 From: Ben Widawsky <ben@bwidawsk.net>
 Date: Wed, 3 Oct 2012 19:34:24 -0700
 Subject: [PATCH 098/146] drm/i915: Fix GT_MODE default value
@@ -17,8 +17,8 @@ Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 [bwh: Backported to 3.2: open-code _MASKED_BIT_{ENABLE,DISABLE}]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/i915/i915_reg.h      |    3 +++
- drivers/gpu/drm/i915/intel_display.c |    5 +++++
+ drivers/gpu/drm/i915/i915_reg.h      | 3 +++
+ drivers/gpu/drm/i915/intel_display.c | 5 +++++
  2 files changed, 8 insertions(+)
 
 diff --git a/drivers/gpu/drm/i915/i915_reg.h b/drivers/gpu/drm/i915/i915_reg.h
@@ -52,5 +52,5 @@ index 8d5087e..adac0dd 100644
  
  static void gen7_setup_fixed_func_scheduler(struct drm_i915_private *dev_priv)
 -- 
-1.7.10.4
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 3b5e0f43b621285d00ff3fc53e3106b487643b21 Mon Sep 17 00:00:00 2001
+From 62875ab7db339a7e0ccaf84c9287a1b4558ef236 Mon Sep 17 00:00:00 2001
 From: Will Deacon <will.deacon@arm.com>
 Date: Fri, 20 Jan 2012 14:34:09 -0800
 Subject: [PATCH 123/129] proc: clear_refs: do not clear reserved pages
@@ -42,8 +42,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- fs/proc/task_mmu.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ fs/proc/task_mmu.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
 index e418c5a..7dcd2a2 100644
@@ -60,5 +60,5 @@ index e418c5a..7dcd2a2 100644
  		ptep_test_and_clear_young(vma, addr, pte);
  		ClearPageReferenced(page);
 -- 
-1.7.7.6
+1.8.1.4
 

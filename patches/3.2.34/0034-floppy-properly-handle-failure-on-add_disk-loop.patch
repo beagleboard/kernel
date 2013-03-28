@@ -1,4 +1,4 @@
-From af2d0f32995930ab0a2ffb6dd03e617c66b12cf4 Mon Sep 17 00:00:00 2001
+From 09a75ac9adb1438f206964cf5cc0dec397e56711 Mon Sep 17 00:00:00 2001
 From: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
 Date: Mon, 27 Aug 2012 20:56:54 -0300
 Subject: [PATCH 34/83] floppy: properly handle failure on add_disk loop
@@ -15,8 +15,8 @@ Signed-off-by: Jens Axboe <axboe@kernel.dk>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/block/floppy.c |   11 ++++++++++-
- 1 files changed, 10 insertions(+), 1 deletions(-)
+ drivers/block/floppy.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/block/floppy.c b/drivers/block/floppy.c
 index a6c3d18..7a90d4a 100644
@@ -48,5 +48,5 @@ index a6c3d18..7a90d4a 100644
  	flush_work_sync(&floppy_work);
  	if (atomic_read(&usage_count))
 -- 
-1.7.7.6
+1.8.1.4
 

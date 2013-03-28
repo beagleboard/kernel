@@ -1,4 +1,4 @@
-From 8da84aab30e319d6270872c33ced851887d0f97a Mon Sep 17 00:00:00 2001
+From 477fc631967f4169cc61afbcf69faf1d858369e7 Mon Sep 17 00:00:00 2001
 From: Mel Gorman <mgorman@suse.de>
 Date: Thu, 12 Jan 2012 17:19:34 -0800
 Subject: [PATCH 03/73] mm: compaction: determine if dirty pages can be
@@ -40,13 +40,13 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/btrfs/disk-io.c      |    4 +-
- fs/hugetlbfs/inode.c    |    3 +-
- fs/nfs/internal.h       |    2 +-
- fs/nfs/write.c          |    4 +-
- include/linux/fs.h      |    9 ++-
- include/linux/migrate.h |    2 +-
- mm/migrate.c            |  129 +++++++++++++++++++++++++++++++++-------------
+ fs/btrfs/disk-io.c      |   4 +-
+ fs/hugetlbfs/inode.c    |   3 +-
+ fs/nfs/internal.h       |   2 +-
+ fs/nfs/write.c          |   4 +-
+ include/linux/fs.h      |   9 ++--
+ include/linux/migrate.h |   2 +-
+ mm/migrate.c            | 129 ++++++++++++++++++++++++++++++++++--------------
  7 files changed, 106 insertions(+), 47 deletions(-)
 
 diff --git a/fs/btrfs/disk-io.c b/fs/btrfs/disk-io.c
@@ -372,5 +372,5 @@ index 177aca4..65c12d2 100644
  	if (rc) {
  		newpage->mapping = NULL;
 -- 
-1.7.7.6
+1.8.1.4
 

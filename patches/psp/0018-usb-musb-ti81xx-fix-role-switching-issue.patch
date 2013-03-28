@@ -1,4 +1,4 @@
-From 96af76f1ca4ebd7707af5727a3af16b94bbf55ec Mon Sep 17 00:00:00 2001
+From bc686341f9be3edabab047535fc3914034ab1dc1 Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Fri, 25 May 2012 11:59:20 +0530
 Subject: [PATCH 18/19] usb: musb: ti81xx: fix role switching issue
@@ -13,8 +13,8 @@ e) Now disconnect cable also
 f) Connect port to host PC using micro-B plug to std-A plug.
 e) PC doesn't recognise the gadget driver.
 ---
- drivers/usb/musb/ti81xx.c |   26 +++++++++++++++++++++-----
- 1 files changed, 21 insertions(+), 5 deletions(-)
+ drivers/usb/musb/ti81xx.c | 26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/musb/ti81xx.c b/drivers/usb/musb/ti81xx.c
 index 7e21c25..6b0eb9e 100644
@@ -61,5 +61,5 @@ index 7e21c25..6b0eb9e 100644
  			musb->is_active = 0;
  			MUSB_DEV_MODE(musb);
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From b188bbcab4cd304d9bc38b078f061e8ffdbb4165 Mon Sep 17 00:00:00 2001
+From a374b02c3504c3aece9e76441da5a68a8b1ad9ea Mon Sep 17 00:00:00 2001
 From: Jean Delvare <khali@linux-fr.org>
 Date: Tue, 13 Mar 2012 04:03:27 -0400
 Subject: [PATCH 36/42] hwmon: (w83627ehf) Fix temp2 source for W83627UHG
@@ -14,8 +14,8 @@ Cc: Guenter Roeck <guenter.roeck@ericsson.com>
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- Documentation/hwmon/w83627ehf |    2 +-
- drivers/hwmon/w83627ehf.c     |    8 ++++----
+ Documentation/hwmon/w83627ehf | 2 +-
+ drivers/hwmon/w83627ehf.c     | 8 ++++----
  2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/Documentation/hwmon/w83627ehf b/Documentation/hwmon/w83627ehf
@@ -65,5 +65,5 @@ index 3ffa1fa..ceaec92 100644
  			data->have_temp &= ~(1 << 1);
  		reg = w83627ehf_read_value(data, 0x4a);
 -- 
-1.7.7.6
+1.8.1.4
 

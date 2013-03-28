@@ -1,4 +1,4 @@
-From 91e594f26e0ceb2ebe192b6b48c105f811753193 Mon Sep 17 00:00:00 2001
+From 1eeb02af091bfddc093f6c9bb2af1129d1d1ea14 Mon Sep 17 00:00:00 2001
 From: Oleg Nesterov <oleg@redhat.com>
 Date: Tue, 31 Jan 2012 17:14:54 +0100
 Subject: [PATCH 17/87] proc: unify mem_read() and mem_write()
@@ -15,8 +15,8 @@ Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/proc/base.c |   90 ++++++++++++++++++++------------------------------------
- 1 files changed, 32 insertions(+), 58 deletions(-)
+ fs/proc/base.c | 90 +++++++++++++++++++++-------------------------------------
+ 1 file changed, 32 insertions(+), 58 deletions(-)
 
 diff --git a/fs/proc/base.c b/fs/proc/base.c
 index a43c70a..0d3a4d1 100644
@@ -144,5 +144,5 @@ index a43c70a..0d3a4d1 100644
  {
  	switch (orig) {
 -- 
-1.7.7.6
+1.8.1.4
 

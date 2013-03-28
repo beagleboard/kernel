@@ -1,8 +1,7 @@
-From e55991ba76ca2309b55f568dadc2c8b697ade371 Mon Sep 17 00:00:00 2001
+From d1172cd37ccec91eef20dd41527c4e18f4a34de1 Mon Sep 17 00:00:00 2001
 From: Alan Stern <stern@rowland.harvard.edu>
 Date: Fri, 2 Mar 2012 10:51:00 +0100
-Subject: [PATCH 32/42] Block: use a freezable workqueue for disk-event
- polling
+Subject: [PATCH 32/42] Block: use a freezable workqueue for disk-event polling
 
 commit 62d3c5439c534b0e6c653fc63e6d8c67be3a57b1 upstream.
 
@@ -24,9 +23,9 @@ Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- block/genhd.c             |   10 +++++-----
- include/linux/workqueue.h |    4 ++++
- kernel/workqueue.c        |    7 ++++++-
+ block/genhd.c             | 10 +++++-----
+ include/linux/workqueue.h |  4 ++++
+ kernel/workqueue.c        |  7 ++++++-
  3 files changed, 15 insertions(+), 6 deletions(-)
 
 diff --git a/block/genhd.c b/block/genhd.c
@@ -125,5 +124,5 @@ index 42fa9ad..bb425b1 100644
  }
  early_initcall(init_workqueues);
 -- 
-1.7.7.6
+1.8.1.4
 

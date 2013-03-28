@@ -1,4 +1,4 @@
-From c46164a94ec89b28eebfb8f671b5cde020607347 Mon Sep 17 00:00:00 2001
+From 70221806ac9d5675439d2afd2f23a83ab6726f8e Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Fri, 31 Aug 2012 13:30:06 -0400
 Subject: [PATCH 079/135] time: Move ktime_t overflow checking into
@@ -28,8 +28,8 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Linux Kernel <linux-kernel@vger.kernel.org>
 Signed-off-by: John Stultz <john.stultz@linaro.org>
 ---
- include/linux/time.h      |    7 +++++++
- kernel/time/timekeeping.c |   10 +++++-----
+ include/linux/time.h      |  7 +++++++
+ kernel/time/timekeeping.c | 10 +++++-----
  2 files changed, 12 insertions(+), 5 deletions(-)
 
 diff --git a/include/linux/time.h b/include/linux/time.h
@@ -100,5 +100,5 @@ index 59544dc..5ee1ac0 100644
  					"sleep delta value!\n");
  		return;
 -- 
-1.7.7.6
+1.8.1.4
 

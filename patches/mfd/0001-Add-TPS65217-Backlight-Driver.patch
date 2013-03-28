@@ -1,4 +1,4 @@
-From 7cdaf7c9d8e976fdd95c2aa24308526e537cb5b7 Mon Sep 17 00:00:00 2001
+From aa1165285a5afc900fa4866468e2943f410e2d8e Mon Sep 17 00:00:00 2001
 From: Umakanta Patro <umakanta.patro@ti.com>
 Date: Wed, 22 Aug 2012 14:24:49 +0530
 Subject: [PATCH] Add TPS65217 Backlight Driver
@@ -14,12 +14,12 @@ Change-Id: I09ffb41bb53de311f8ead11c5f0f2abeca300ef5
 Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
 Signed-off-by: Umakanta Patro <umakanta.patro@ti.com>
 ---
- drivers/mfd/tps65217.c                |   28 +++
- drivers/video/backlight/Kconfig       |    7 +
- drivers/video/backlight/Makefile      |    1 +
- drivers/video/backlight/tps65217_bl.c |  344 +++++++++++++++++++++++++++++++++
- include/linux/mfd/tps65217.h          |   24 +++
- 5 files changed, 404 insertions(+), 0 deletions(-)
+ drivers/mfd/tps65217.c                |  28 +++
+ drivers/video/backlight/Kconfig       |   7 +
+ drivers/video/backlight/Makefile      |   1 +
+ drivers/video/backlight/tps65217_bl.c | 344 ++++++++++++++++++++++++++++++++++
+ include/linux/mfd/tps65217.h          |  24 +++
+ 5 files changed, 404 insertions(+)
  create mode 100644 drivers/video/backlight/tps65217_bl.c
 
 diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
@@ -498,5 +498,5 @@ index e030ef9..d1ff0e0 100644
  
  static inline struct tps65217 *dev_to_tps65217(struct device *dev)
 -- 
-1.7.7.6
+1.8.1.4
 

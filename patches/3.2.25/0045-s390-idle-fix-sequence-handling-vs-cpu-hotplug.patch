@@ -1,4 +1,4 @@
-From cca49ef9c5ae6939c6bc0dc01b9bbe9789e9b40b Mon Sep 17 00:00:00 2001
+From f7651ea36207f057a8e44be6d93284735bff010b Mon Sep 17 00:00:00 2001
 From: Heiko Carstens <heiko.carstens@de.ibm.com>
 Date: Fri, 13 Jul 2012 15:45:33 +0200
 Subject: [PATCH 45/73] s390/idle: fix sequence handling vs cpu hotplug
@@ -33,8 +33,8 @@ Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/s390/kernel/processor.c |    2 ++
- arch/s390/kernel/smp.c       |    3 ---
+ arch/s390/kernel/processor.c | 2 ++
+ arch/s390/kernel/smp.c       | 3 ---
  2 files changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/arch/s390/kernel/processor.c b/arch/s390/kernel/processor.c
@@ -76,5 +76,5 @@ index 3ea8728..1df64a8 100644
  		break;
  	case CPU_DEAD:
 -- 
-1.7.7.6
+1.8.1.4
 

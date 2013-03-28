@@ -1,4 +1,4 @@
-From 148dbe7c0858aea2ee33c05fc84f0e95920c528b Mon Sep 17 00:00:00 2001
+From f8fd60179c92dd77d1e3820dbb94b508cacdca6a Mon Sep 17 00:00:00 2001
 From: NeilBrown <neilb@suse.de>
 Date: Thu, 12 Apr 2012 16:05:06 +1000
 Subject: [PATCH 10/68] md/bitmap: prevent bitmap_daemon_work running while
@@ -20,8 +20,8 @@ apply cleanly before about 3.1.
 Signed-off-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/md/bitmap.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/md/bitmap.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/md/bitmap.c b/drivers/md/bitmap.c
 index 2a8722b..62a8e68 100644
@@ -38,5 +38,5 @@ index 2a8722b..62a8e68 100644
  	if (err)
  		goto out;
 -- 
-1.7.7.6
+1.8.1.4
 

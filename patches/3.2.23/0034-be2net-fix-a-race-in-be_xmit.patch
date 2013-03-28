@@ -1,4 +1,4 @@
-From 737b58f7e5f02b6bb3a30f8e2e9540fdb917d227 Mon Sep 17 00:00:00 2001
+From 159407db018ccaab2416feb3875d876ac98b03b9 Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <edumazet@google.com>
 Date: Thu, 7 Jun 2012 22:59:59 +0000
 Subject: [PATCH 34/49] be2net: fix a race in be_xmit()
@@ -13,8 +13,8 @@ Cc: Sathya Perla <sathya.perla@emulex.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/ethernet/emulex/benet/be_main.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/emulex/benet/be_main.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/ethernet/emulex/benet/be_main.c b/drivers/net/ethernet/emulex/benet/be_main.c
 index bf266a0..36c7c4e 100644
@@ -40,5 +40,5 @@ index bf266a0..36c7c4e 100644
  		txq->head = start;
  		dev_kfree_skb_any(skb);
 -- 
-1.7.7.6
+1.8.1.4
 

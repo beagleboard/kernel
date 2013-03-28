@@ -1,4 +1,4 @@
-From 8941980c14e065318b69f20146613b3b119e2abc Mon Sep 17 00:00:00 2001
+From 2682eb4b91d93366332b9c2b6a6f370ba13ddef8 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>
 Date: Wed, 9 May 2012 13:53:21 +0200
 Subject: [PATCH 055/117] USB: cdc-wdm: poll must return POLLHUP if device is
@@ -17,8 +17,8 @@ Signed-off-by: Bjørn Mork <bjorn@mork.no>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/class/cdc-wdm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/usb/class/cdc-wdm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/usb/class/cdc-wdm.c b/drivers/usb/class/cdc-wdm.c
 index cfe5be4..38d8c33 100644
@@ -34,5 +34,5 @@ index cfe5be4..38d8c33 100644
  		goto desc_out;
  	}
 -- 
-1.7.7.6
+1.8.1.4
 

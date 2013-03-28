@@ -1,0 +1,33 @@
+From 80631d3649b5c430a4ff6140a52df10c474b7e58 Mon Sep 17 00:00:00 2001
+From: Olivier Sobrie <olivier@sobrie.be>
+Date: Fri, 18 Jan 2013 09:32:41 +0100
+Subject: [PATCH 096/127] can: pch_can: fix invalid error codes
+
+commit ee50e135aeb048b90fab662e661c58b67341830b upstream.
+
+Errors in CAN protocol (location) are reported in data[3] of the can
+frame instead of data[2].
+
+Signed-off-by: Olivier Sobrie <olivier@sobrie.be>
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/can/pch_can.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/can/pch_can.c b/drivers/net/can/pch_can.c
+index d11fbb2..b508a63 100644
+--- a/drivers/net/can/pch_can.c
++++ b/drivers/net/can/pch_can.c
+@@ -559,7 +559,7 @@ static void pch_can_error(struct net_device *ndev, u32 status)
+ 		stats->rx_errors++;
+ 		break;
+ 	case PCH_CRC_ERR:
+-		cf->data[2] |= CAN_ERR_PROT_LOC_CRC_SEQ |
++		cf->data[3] |= CAN_ERR_PROT_LOC_CRC_SEQ |
+ 			       CAN_ERR_PROT_LOC_CRC_DEL;
+ 		priv->can.can_stats.bus_error++;
+ 		stats->rx_errors++;
+-- 
+1.8.1.4
+

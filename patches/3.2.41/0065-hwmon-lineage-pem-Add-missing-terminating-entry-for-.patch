@@ -1,0 +1,39 @@
+From 5309763e48a478dd4b913a5ba2b582e1a0ad1e55 Mon Sep 17 00:00:00 2001
+From: Axel Lin <axel.lin@ingics.com>
+Date: Thu, 14 Mar 2013 16:27:18 +0800
+Subject: [PATCH 65/82] hwmon: (lineage-pem) Add missing terminating entry for
+ pem_[input|fan]_attributes
+
+commit df069079c153d22adf6c28dcc0b1cf62bba75167 upstream.
+
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/hwmon/lineage-pem.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/hwmon/lineage-pem.c b/drivers/hwmon/lineage-pem.c
+index 58eded2..c9910f7 100644
+--- a/drivers/hwmon/lineage-pem.c
++++ b/drivers/hwmon/lineage-pem.c
+@@ -421,6 +421,7 @@ static struct attribute *pem_input_attributes[] = {
+ 	&sensor_dev_attr_in2_input.dev_attr.attr,
+ 	&sensor_dev_attr_curr1_input.dev_attr.attr,
+ 	&sensor_dev_attr_power1_input.dev_attr.attr,
++	NULL
+ };
+ 
+ static const struct attribute_group pem_input_group = {
+@@ -431,6 +432,7 @@ static struct attribute *pem_fan_attributes[] = {
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan2_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan3_input.dev_attr.attr,
++	NULL
+ };
+ 
+ static const struct attribute_group pem_fan_group = {
+-- 
+1.8.1.4
+

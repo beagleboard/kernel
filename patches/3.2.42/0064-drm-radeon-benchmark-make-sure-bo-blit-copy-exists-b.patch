@@ -1,0 +1,54 @@
+From bd35414b74576859162a42fe8a10f72a95823233 Mon Sep 17 00:00:00 2001
+From: Alex Deucher <alexander.deucher@amd.com>
+Date: Tue, 12 Mar 2013 12:53:13 -0400
+Subject: [PATCH 64/92] drm/radeon/benchmark: make sure bo blit copy exists
+ before using it
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit fa8d387dc3f62062a6b4afbbb2a3438094fd8584 upstream.
+
+Fixes a segfault on asics without a blit callback.
+
+Fixes:
+https://bugs.freedesktop.org/show_bug.cgi?id=62239
+
+Reviewed-by: Michel Dänzer <michel.daenzer@amd.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+[bwh: Backported to 3.2: s/copy\.blit/copy_blit/]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_benchmark.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_benchmark.c b/drivers/gpu/drm/radeon/radeon_benchmark.c
+index 17e1a9b..441de38 100644
+--- a/drivers/gpu/drm/radeon/radeon_benchmark.c
++++ b/drivers/gpu/drm/radeon/radeon_benchmark.c
+@@ -139,13 +139,15 @@ static void radeon_benchmark_move(struct radeon_device *rdev, unsigned size,
+ 						     sdomain, ddomain, "dma");
+ 	}
+ 
+-	time = radeon_benchmark_do_move(rdev, size, saddr, daddr,
+-					RADEON_BENCHMARK_COPY_BLIT, n);
+-	if (time < 0)
+-		goto out_cleanup;
+-	if (time > 0)
+-		radeon_benchmark_log_results(n, size, time,
+-					     sdomain, ddomain, "blit");
++	if (rdev->asic->copy_blit) {
++		time = radeon_benchmark_do_move(rdev, size, saddr, daddr,
++						RADEON_BENCHMARK_COPY_BLIT, n);
++		if (time < 0)
++			goto out_cleanup;
++		if (time > 0)
++			radeon_benchmark_log_results(n, size, time,
++						     sdomain, ddomain, "blit");
++	}
+ 
+ out_cleanup:
+ 	if (sobj) {
+-- 
+1.8.1.4
+

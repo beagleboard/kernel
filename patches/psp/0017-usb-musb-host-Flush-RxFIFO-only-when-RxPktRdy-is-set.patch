@@ -1,15 +1,14 @@
-From d7d3ab1eee9f8bc660344fe4b0beaa4143bc0ae6 Mon Sep 17 00:00:00 2001
+From b61be59810e4317d0da17e49de77e14e65e50a86 Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Thu, 24 May 2012 16:31:27 +0530
-Subject: [PATCH 17/19] usb: musb: host: Flush RxFIFO only when RxPktRdy is
- set
+Subject: [PATCH 17/19] usb: musb: host: Flush RxFIFO only when RxPktRdy is set
 
 This need to be done as per mentor core documentations.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
- drivers/usb/musb/musb_host.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/usb/musb/musb_host.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
 index 13520ee..f56fde2 100644
@@ -26,5 +25,5 @@ index 13520ee..f56fde2 100644
  		| MUSB_RXCSR_H_AUTOREQ
  		| MUSB_RXCSR_AUTOCLEAR);
 -- 
-1.7.7.6
+1.8.1.4
 

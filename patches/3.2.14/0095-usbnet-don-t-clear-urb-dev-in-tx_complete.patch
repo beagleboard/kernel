@@ -1,4 +1,4 @@
-From c0dbf921cad02d6913a96d1ae1b2db8485d4669a Mon Sep 17 00:00:00 2001
+From a1871420d34f7727be81954b7f700671dfe57d51 Mon Sep 17 00:00:00 2001
 From: "tom.leiming@gmail.com" <tom.leiming@gmail.com>
 Date: Thu, 22 Mar 2012 03:22:38 +0000
 Subject: [PATCH 095/147] usbnet: don't clear urb->dev in tx_complete
@@ -18,8 +18,8 @@ Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/usb/usbnet.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ drivers/net/usb/usbnet.c | 1 -
+ 1 file changed, 1 deletion(-)
 
 diff --git a/drivers/net/usb/usbnet.c b/drivers/net/usb/usbnet.c
 index cf6a515..750e330 100644
@@ -34,5 +34,5 @@ index cf6a515..750e330 100644
  	defer_bh(dev, skb, &dev->txq);
  }
 -- 
-1.7.7.6
+1.8.1.4
 

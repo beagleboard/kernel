@@ -1,4 +1,4 @@
-From d49be91f8ca14061972f7850f8b376fc88ea5586 Mon Sep 17 00:00:00 2001
+From 611c582a19fcaec419d9e06bd022811f26ac9506 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?fran=C3=A7ois=20romieu?= <romieu@fr.zoreil.com>
 Date: Fri, 2 Mar 2012 04:43:14 +0000
 Subject: [PATCH 22/42] r8169: corrupted IP fragments fix for large mtu.
@@ -16,8 +16,8 @@ Cc: Hayes Wang <hayeswang@realtek.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/ethernet/realtek/r8169.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ drivers/net/ethernet/realtek/r8169.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/drivers/net/ethernet/realtek/r8169.c b/drivers/net/ethernet/realtek/r8169.c
 index c8f47f1..0cf2351 100644
@@ -45,5 +45,5 @@ index c8f47f1..0cf2351 100644
  
  static void r8168c_hw_jumbo_enable(struct rtl8169_private *tp)
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From e6e00f7346e7569c06dba4d02410234ad62ba563 Mon Sep 17 00:00:00 2001
+From 781811b953c65d7188ac7a8a291c05026c009ffd Mon Sep 17 00:00:00 2001
 From: Dan Carpenter <dan.carpenter@oracle.com>
 Date: Sat, 24 Mar 2012 10:52:50 +0300
 Subject: [PATCH 141/147] x86, tls: Off by one limit check
@@ -13,8 +13,8 @@ Link: http://lkml.kernel.org/r/20120324075250.GA28258@elgon.mountain
 Signed-off-by: H. Peter Anvin <hpa@zytor.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/x86/kernel/tls.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/tls.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/x86/kernel/tls.c b/arch/x86/kernel/tls.c
 index 6bb7b85..bcfec2d 100644
@@ -39,5 +39,5 @@ index 6bb7b85..bcfec2d 100644
  	    (count % sizeof(struct user_desc)) != 0)
  		return -EINVAL;
 -- 
-1.7.7.6
+1.8.1.4
 

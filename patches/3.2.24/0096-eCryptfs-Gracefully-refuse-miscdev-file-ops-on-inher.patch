@@ -1,4 +1,4 @@
-From f4b6b8c95e16112592523ca6a7b3c3394651fe88 Mon Sep 17 00:00:00 2001
+From 32c94977605f8a796e45a18e115f3ef86c87aa6d Mon Sep 17 00:00:00 2001
 From: Tyler Hicks <tyhicks@canonical.com>
 Date: Mon, 11 Jun 2012 09:24:11 -0700
 Subject: [PATCH 096/109] eCryptfs: Gracefully refuse miscdev file ops on
@@ -26,8 +26,8 @@ Reported-by: Sasha Levin <levinsasha928@gmail.com>
 Tested-by: Sasha Levin <levinsasha928@gmail.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ecryptfs/miscdev.c |   23 ++++++++++++++++-------
- 1 files changed, 16 insertions(+), 7 deletions(-)
+ fs/ecryptfs/miscdev.c | 23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
 diff --git a/fs/ecryptfs/miscdev.c b/fs/ecryptfs/miscdev.c
 index 0dc5a3d..a050e4b 100644
@@ -94,5 +94,5 @@ index 0dc5a3d..a050e4b 100644
  				   struct ecryptfs_msg_ctx, daemon_out_list);
  	BUG_ON(!msg_ctx);
 -- 
-1.7.7.6
+1.8.1.4
 

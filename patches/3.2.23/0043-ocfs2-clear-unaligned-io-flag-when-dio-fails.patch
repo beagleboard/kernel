@@ -1,4 +1,4 @@
-From 9cb6461f5ddaf13a696e522ced11650e4a3bfd06 Mon Sep 17 00:00:00 2001
+From c380cadd59ea92731cf2432e90f888bd69750b8f Mon Sep 17 00:00:00 2001
 From: Junxiao Bi <junxiao.bi@oracle.com>
 Date: Wed, 27 Jun 2012 17:09:55 +0800
 Subject: [PATCH 43/49] ocfs2: clear unaligned io flag when dio fails
@@ -14,8 +14,8 @@ Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ocfs2/file.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ fs/ocfs2/file.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
 index 6e39668..07ee5b4 100644
@@ -34,5 +34,5 @@ index 6e39668..07ee5b4 100644
  out:
  	if (rw_level != -1)
 -- 
-1.7.7.6
+1.8.1.4
 

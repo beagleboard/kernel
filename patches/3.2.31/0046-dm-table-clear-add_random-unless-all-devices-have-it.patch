@@ -1,8 +1,8 @@
-From 60c790b6d2494151f35b6890e554fb84e6ed8704 Mon Sep 17 00:00:00 2001
+From e3ccb44c8bfd8ce8e1eb3ff3b0b2e1085d80f1ba Mon Sep 17 00:00:00 2001
 From: Milan Broz <mbroz@redhat.com>
 Date: Wed, 26 Sep 2012 23:45:43 +0100
-Subject: [PATCH 046/109] dm table: clear add_random unless all devices have
- it set
+Subject: [PATCH 046/109] dm table: clear add_random unless all devices have it
+ set
 
 commit c3c4555edd10dbc0b388a0125b9c50de5e79af05 upstream.
 
@@ -30,7 +30,7 @@ Signed-off-by: Milan Broz <mbroz@redhat.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/md/dm-table.c |   26 ++++++++++++++++++++++----
+ drivers/md/dm-table.c | 26 ++++++++++++++++++++++----
  1 file changed, 22 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/md/dm-table.c b/drivers/md/dm-table.c
@@ -93,5 +93,5 @@ index 8e91321..52848ab 100644
  	 * visible to other CPUs because, once the flag is set, incoming bios
  	 * are processed by request-based dm, which refers to the queue
 -- 
-1.7.10.4
+1.8.1.4
 

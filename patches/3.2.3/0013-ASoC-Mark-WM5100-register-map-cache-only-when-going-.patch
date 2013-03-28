@@ -1,4 +1,4 @@
-From 8acbcce4ac2a8ef1ef5609a22a7948554126afb8 Mon Sep 17 00:00:00 2001
+From f3d0a9cc81fa8a12da5a97e40d5dd1c5e92f8b46 Mon Sep 17 00:00:00 2001
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Date: Wed, 18 Jan 2012 20:02:38 +0000
 Subject: [PATCH 13/90] ASoC: Mark WM5100 register map cache only when going
@@ -12,8 +12,8 @@ powered off state.
 Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- sound/soc/codecs/wm5100.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ sound/soc/codecs/wm5100.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/sound/soc/codecs/wm5100.c b/sound/soc/codecs/wm5100.c
 index 42d9039..19c26d2 100644
@@ -28,5 +28,5 @@ index 42d9039..19c26d2 100644
  			gpio_set_value_cansleep(wm5100->pdata.ldo_ena, 0);
  		regulator_bulk_disable(ARRAY_SIZE(wm5100->core_supplies),
 -- 
-1.7.7.6
+1.8.1.4
 

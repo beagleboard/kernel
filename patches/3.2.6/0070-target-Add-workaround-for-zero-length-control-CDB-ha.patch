@@ -1,4 +1,4 @@
-From 81856d7c8250d9fa602e6a76a056593176e53f05 Mon Sep 17 00:00:00 2001
+From 62b8a2636a1d30163f92c262762e3ac609175050 Mon Sep 17 00:00:00 2001
 From: Nicholas Bellinger <nab@linux-iscsi.org>
 Date: Fri, 13 Jan 2012 12:01:34 -0800
 Subject: [PATCH 70/87] target: Add workaround for zero-length control CDB
@@ -23,8 +23,8 @@ Reported-by: Roland Dreier <roland@purestorage.com>
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/target/target_core_transport.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+ drivers/target/target_core_transport.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
 diff --git a/drivers/target/target_core_transport.c b/drivers/target/target_core_transport.c
 index 4f99d4c..861628e 100644
@@ -58,5 +58,5 @@ index 4f99d4c..861628e 100644
  		queue_work(target_completion_wq, &cmd->work);
  		return 0;
 -- 
-1.7.7.6
+1.8.1.4
 

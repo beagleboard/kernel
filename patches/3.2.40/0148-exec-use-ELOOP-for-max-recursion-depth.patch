@@ -1,0 +1,148 @@
+From c2b0f0f411012760603a390201933f3f7d3747c1 Mon Sep 17 00:00:00 2001
+From: Kees Cook <keescook@chromium.org>
+Date: Thu, 6 Dec 2012 17:00:21 +1100
+Subject: [PATCH 148/153] exec: use -ELOOP for max recursion depth
+
+commit d740269867021faf4ce38a449353d2b986c34a67 upstream.
+
+To avoid an explosion of request_module calls on a chain of abusive
+scripts, fail maximum recursion with -ELOOP instead of -ENOEXEC. As soon
+as maximum recursion depth is hit, the error will fail all the way back
+up the chain, aborting immediately.
+
+This also has the side-effect of stopping the user's shell from attempting
+to reexecute the top-level file as a shell script. As seen in the
+dash source:
+
+        if (cmd != path_bshell && errno == ENOEXEC) {
+                *argv-- = cmd;
+                *argv = cmd = path_bshell;
+                goto repeat;
+        }
+
+The above logic was designed for running scripts automatically that lacked
+the "#!" header, not to re-try failed recursion. On a legitimate -ENOEXEC,
+things continue to behave as the shell expects.
+
+Additionally, when tracking recursion, the binfmt handlers should not be
+involved. The recursion being tracked is the depth of calls through
+search_binary_handler(), so that function should be exclusively responsible
+for tracking the depth.
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: halfdog <me@halfdog.net>
+Cc: P J P <ppandit@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/binfmt_em86.c        |  1 -
+ fs/binfmt_misc.c        |  6 ------
+ fs/binfmt_script.c      |  4 +---
+ fs/exec.c               | 10 +++++-----
+ include/linux/binfmts.h |  2 --
+ 5 files changed, 6 insertions(+), 17 deletions(-)
+
+diff --git a/fs/binfmt_em86.c b/fs/binfmt_em86.c
+index b8e8b0a..4a1b984 100644
+--- a/fs/binfmt_em86.c
++++ b/fs/binfmt_em86.c
+@@ -42,7 +42,6 @@ static int load_em86(struct linux_binprm *bprm,struct pt_regs *regs)
+ 			return -ENOEXEC;
+ 	}
+ 
+-	bprm->recursion_depth++; /* Well, the bang-shell is implicit... */
+ 	allow_write_access(bprm->file);
+ 	fput(bprm->file);
+ 	bprm->file = NULL;
+diff --git a/fs/binfmt_misc.c b/fs/binfmt_misc.c
+index ca52e92..7423cb9 100644
+--- a/fs/binfmt_misc.c
++++ b/fs/binfmt_misc.c
+@@ -116,10 +116,6 @@ static int load_misc_binary(struct linux_binprm *bprm, struct pt_regs *regs)
+ 	if (!enabled)
+ 		goto _ret;
+ 
+-	retval = -ENOEXEC;
+-	if (bprm->recursion_depth > BINPRM_MAX_RECURSION)
+-		goto _ret;
+-
+ 	/* to keep locking time low, we copy the interpreter string */
+ 	read_lock(&entries_lock);
+ 	fmt = check_file(bprm);
+@@ -199,8 +195,6 @@ static int load_misc_binary(struct linux_binprm *bprm, struct pt_regs *regs)
+ 	if (retval < 0)
+ 		goto _error;
+ 
+-	bprm->recursion_depth++;
+-
+ 	retval = search_binary_handler (bprm, regs);
+ 	if (retval < 0)
+ 		goto _error;
+diff --git a/fs/binfmt_script.c b/fs/binfmt_script.c
+index e39c18a..211ede0 100644
+--- a/fs/binfmt_script.c
++++ b/fs/binfmt_script.c
+@@ -22,15 +22,13 @@ static int load_script(struct linux_binprm *bprm,struct pt_regs *regs)
+ 	char interp[BINPRM_BUF_SIZE];
+ 	int retval;
+ 
+-	if ((bprm->buf[0] != '#') || (bprm->buf[1] != '!') ||
+-	    (bprm->recursion_depth > BINPRM_MAX_RECURSION))
++	if ((bprm->buf[0] != '#') || (bprm->buf[1] != '!'))
+ 		return -ENOEXEC;
+ 	/*
+ 	 * This section does the #! interpretation.
+ 	 * Sorta complicated, but hopefully it will work.  -TYT
+ 	 */
+ 
+-	bprm->recursion_depth++;
+ 	allow_write_access(bprm->file);
+ 	fput(bprm->file);
+ 	bprm->file = NULL;
+diff --git a/fs/exec.c b/fs/exec.c
+index c27fa0d..312e297 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -1385,6 +1385,10 @@ int search_binary_handler(struct linux_binprm *bprm,struct pt_regs *regs)
+ 	struct linux_binfmt *fmt;
+ 	pid_t old_pid;
+ 
++	/* This allows 4 levels of binfmt rewrites before failing hard. */
++	if (depth > 5)
++		return -ELOOP;
++
+ 	retval = security_bprm_check(bprm);
+ 	if (retval)
+ 		return retval;
+@@ -1408,12 +1412,8 @@ int search_binary_handler(struct linux_binprm *bprm,struct pt_regs *regs)
+ 			if (!try_module_get(fmt->module))
+ 				continue;
+ 			read_unlock(&binfmt_lock);
++			bprm->recursion_depth = depth + 1;
+ 			retval = fn(bprm, regs);
+-			/*
+-			 * Restore the depth counter to its starting value
+-			 * in this call, so we don't have to rely on every
+-			 * load_binary function to restore it on return.
+-			 */
+ 			bprm->recursion_depth = depth;
+ 			if (retval >= 0) {
+ 				if (depth == 0)
+diff --git a/include/linux/binfmts.h b/include/linux/binfmts.h
+index f606406..acd8d4b 100644
+--- a/include/linux/binfmts.h
++++ b/include/linux/binfmts.h
+@@ -67,8 +67,6 @@ struct linux_binprm {
+ #define BINPRM_FLAGS_EXECFD_BIT 1
+ #define BINPRM_FLAGS_EXECFD (1 << BINPRM_FLAGS_EXECFD_BIT)
+ 
+-#define BINPRM_MAX_RECURSION 4
+-
+ /* Function parameter for binfmt->coredump */
+ struct coredump_params {
+ 	long signr;
+-- 
+1.8.1.4
+

@@ -1,4 +1,4 @@
-From 3ba17f4413e9d4bbae91a961be04f9f76548bdf9 Mon Sep 17 00:00:00 2001
+From d7971c76b36d48b05cd44da567c4159e1758e19d Mon Sep 17 00:00:00 2001
 From: Stratos Psomadakis <psomas@gentoo.org>
 Date: Sun, 4 Dec 2011 02:23:54 +0200
 Subject: [PATCH 105/129] sym53c8xx: Fix NULL pointer dereference in
@@ -14,8 +14,8 @@ Signed-off-by: Stratos Psomadakis <psomas@gentoo.org>
 Signed-off-by: James Bottomley <JBottomley@Parallels.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/scsi/sym53c8xx_2/sym_glue.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ drivers/scsi/sym53c8xx_2/sym_glue.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/drivers/scsi/sym53c8xx_2/sym_glue.c b/drivers/scsi/sym53c8xx_2/sym_glue.c
 index b4543f5..36d1ed7 100644
@@ -33,5 +33,5 @@ index b4543f5..36d1ed7 100644
  
  	if (lp->busy_itlq || lp->busy_itl) {
 -- 
-1.7.7.6
+1.8.1.4
 

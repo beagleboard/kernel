@@ -1,4 +1,4 @@
-From f1570b76d6925fc83d124f87fec5526c92905230 Mon Sep 17 00:00:00 2001
+From 8607f9ed8455ebaaba281bc21a730aecae1cccfc Mon Sep 17 00:00:00 2001
 From: Thadeu Lima de Souza Cascardo <cascardo@linux.vnet.ibm.com>
 Date: Thu, 25 Oct 2012 13:37:51 -0700
 Subject: [PATCH 095/105] genalloc: stop crashing the system when destroying a
@@ -111,8 +111,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- lib/genalloc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ lib/genalloc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/lib/genalloc.c b/lib/genalloc.c
 index f352cc4..716f947 100644
@@ -128,5 +128,5 @@ index f352cc4..716f947 100644
  	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
  	if (unlikely(chunk == NULL))
 -- 
-1.7.7.6
+1.8.1.4
 

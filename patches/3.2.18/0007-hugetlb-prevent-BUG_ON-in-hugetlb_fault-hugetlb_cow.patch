@@ -1,4 +1,4 @@
-From af57081a3bd27f277b8000492e1278092f79f291 Mon Sep 17 00:00:00 2001
+From 4b9c73887bd40bf731963880721470d18cc33e4b Mon Sep 17 00:00:00 2001
 From: Chris Metcalf <cmetcalf@tilera.com>
 Date: Thu, 10 May 2012 13:01:44 -0700
 Subject: [PATCH 07/56] hugetlb: prevent BUG_ON in hugetlb_fault() ->
@@ -26,8 +26,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- mm/hugetlb.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ mm/hugetlb.c | 1 -
+ 1 file changed, 1 deletion(-)
 
 diff --git a/mm/hugetlb.c b/mm/hugetlb.c
 index bd936ed..7120c2e 100644
@@ -42,5 +42,5 @@ index bd936ed..7120c2e 100644
  				spin_lock(&mm->page_table_lock);
  				goto retry_avoidcopy;
 -- 
-1.7.7.6
+1.8.1.4
 

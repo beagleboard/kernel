@@ -1,15 +1,14 @@
-From b347b66f769c51d601177bda2f7f35c99c384f62 Mon Sep 17 00:00:00 2001
+From 0314fae751dd2f9e65eef7757c88d27fb40162b0 Mon Sep 17 00:00:00 2001
 From: Daniel Drake <dsd@laptop.org>
 Date: Mon, 16 Apr 2012 23:53:43 +0100
-Subject: [PATCH 12/16] libertas SDIO: convert to asynchronous firmware
- loading
+Subject: [PATCH 12/16] libertas SDIO: convert to asynchronous firmware loading
 
 Signed-off-by: Daniel Drake <dsd@laptop.org>
 Acked-by: Dan Williams <dcbw@redhat.com>
 Signed-off-by: John W. Linville <linville@tuxdriver.com>
 ---
- drivers/net/wireless/libertas/if_sdio.c |  206 ++++++++++++++++++-------------
- 1 files changed, 121 insertions(+), 85 deletions(-)
+ drivers/net/wireless/libertas/if_sdio.c | 206 +++++++++++++++++++-------------
+ 1 file changed, 121 insertions(+), 85 deletions(-)
 
 diff --git a/drivers/net/wireless/libertas/if_sdio.c b/drivers/net/wireless/libertas/if_sdio.c
 index 6590feb..76caeba 100644
@@ -316,5 +315,5 @@ index 6590feb..76caeba 100644
  	lbs_deb_leave_args(LBS_DEB_SDIO, "ret %d", ret);
  
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,0 +1,40 @@
+From 5b6505ce7491b407270d170cdc2756c66fc5cc2c Mon Sep 17 00:00:00 2001
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Sat, 16 Mar 2013 12:48:11 +0300
+Subject: [PATCH 26/92] selinux: use GFP_ATOMIC under spin_lock
+
+commit 4502403dcf8f5c76abd4dbab8726c8e4ecb5cd34 upstream.
+
+The call tree here is:
+
+sk_clone_lock()              <- takes bh_lock_sock(newsk);
+xfrm_sk_clone_policy()
+__xfrm_sk_clone_policy()
+clone_policy()               <- uses GFP_ATOMIC for allocations
+security_xfrm_policy_clone()
+security_ops->xfrm_policy_clone_security()
+selinux_xfrm_policy_clone()
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: James Morris <james.l.morris@oracle.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ security/selinux/xfrm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/security/selinux/xfrm.c b/security/selinux/xfrm.c
+index 48665ec..8ab2951 100644
+--- a/security/selinux/xfrm.c
++++ b/security/selinux/xfrm.c
+@@ -310,7 +310,7 @@ int selinux_xfrm_policy_clone(struct xfrm_sec_ctx *old_ctx,
+ 
+ 	if (old_ctx) {
+ 		new_ctx = kmalloc(sizeof(*old_ctx) + old_ctx->ctx_len,
+-				  GFP_KERNEL);
++				  GFP_ATOMIC);
+ 		if (!new_ctx)
+ 			return -ENOMEM;
+ 
+-- 
+1.8.1.4
+

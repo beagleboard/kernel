@@ -1,0 +1,65 @@
+From b2da26761f6f6d0686fc43b7690004362682c1f5 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Tue, 20 Nov 2012 13:23:15 +0100
+Subject: [PATCH 001/127] usb: gadget: dummy: fix enumeration with g_multi
+
+commit 1d16638e3b9cc195bac18a8fcbca748f33c1bc24 upstream.
+
+If we do have endpoints named like "ep-a" then bEndpointAddress is
+counted internally by the gadget framework.
+
+If we do have endpoints named like "ep-1" then bEndpointAddress is
+assigned from the digit after "ep-".
+
+If we do have both, then it is likely that after we used up the
+"generic" endpoints we will use the digits and thus assign one
+bEndpointAddress to multiple endpoints.
+
+This theory can be proofed by using the completely enabled g_multi.
+Without this patch, the mass storage won't enumerate and times out
+because it shares endpoints with RNDIS.
+
+This patch also adds fills up the endpoints list so we have in total
+endpoints 1 to 15 in + out available while some of them are restricted
+to certain types like BULK or ISO. Without this change the nokia gadget
+won't load because the system does not provide enough (BULK) endpoints
+but it did before ep-a - ep-f were removed.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/gadget/dummy_hcd.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/usb/gadget/dummy_hcd.c b/drivers/usb/gadget/dummy_hcd.c
+index e8223c2..d9baec0 100644
+--- a/drivers/usb/gadget/dummy_hcd.c
++++ b/drivers/usb/gadget/dummy_hcd.c
+@@ -126,10 +126,7 @@ static const char ep0name [] = "ep0";
+ static const char *const ep_name [] = {
+ 	ep0name,				/* everyone has ep0 */
+ 
+-	/* act like a net2280: high speed, six configurable endpoints */
+-	"ep-a", "ep-b", "ep-c", "ep-d", "ep-e", "ep-f",
+-
+-	/* or like pxa250: fifteen fixed function endpoints */
++	/* act like a pxa250: fifteen fixed function endpoints */
+ 	"ep1in-bulk", "ep2out-bulk", "ep3in-iso", "ep4out-iso", "ep5in-int",
+ 	"ep6in-bulk", "ep7out-bulk", "ep8in-iso", "ep9out-iso", "ep10in-int",
+ 	"ep11in-bulk", "ep12out-bulk", "ep13in-iso", "ep14out-iso",
+@@ -137,6 +134,10 @@ static const char *const ep_name [] = {
+ 
+ 	/* or like sa1100: two fixed function endpoints */
+ 	"ep1out-bulk", "ep2in-bulk",
++
++	/* and now some generic EPs so we have enough in multi config */
++	"ep3out", "ep4in", "ep5out", "ep6out", "ep7in", "ep8out", "ep9in",
++	"ep10out", "ep11out", "ep12in", "ep13out", "ep14in", "ep15out",
+ };
+ #define DUMMY_ENDPOINTS	ARRAY_SIZE(ep_name)
+ 
+-- 
+1.8.1.4
+

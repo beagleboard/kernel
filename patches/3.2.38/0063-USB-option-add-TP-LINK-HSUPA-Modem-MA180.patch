@@ -1,0 +1,53 @@
+From 1c29d6121f7538e3d29b30ff7c18d682c4d5668e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>
+Date: Tue, 15 Jan 2013 10:29:49 +0100
+Subject: [PATCH 063/127] USB: option: add TP-LINK HSUPA Modem MA180
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit 99beb2e9687ffd61c92a9875141eabe6f57a71b9 upstream.
+
+The driver description files gives these names to the vendor specific
+functions on this modem:
+
+ Diagnostics VID_2357&PID_0201&MI_00
+ NMEA        VID_2357&PID_0201&MI_01
+ Modem       VID_2357&PID_0201&MI_03
+ Networkcard VID_2357&PID_0201&MI_04
+
+Reported-by: Thomas Schäfer <tschaefer@t-online.de>
+Signed-off-by: Bjørn Mork <bjorn@mork.no>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/option.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/usb/serial/option.c b/drivers/usb/serial/option.c
+index d3b3073..9db3e23 100644
+--- a/drivers/usb/serial/option.c
++++ b/drivers/usb/serial/option.c
+@@ -449,6 +449,10 @@ static void option_instat_callback(struct urb *urb);
+ #define PETATEL_VENDOR_ID			0x1ff4
+ #define PETATEL_PRODUCT_NP10T			0x600e
+ 
++/* TP-LINK Incorporated products */
++#define TPLINK_VENDOR_ID			0x2357
++#define TPLINK_PRODUCT_MA180			0x0201
++
+ /* some devices interfaces need special handling due to a number of reasons */
+ enum option_blacklist_reason {
+ 		OPTION_BLACKLIST_NONE = 0,
+@@ -1312,6 +1316,8 @@ static const struct usb_device_id option_ids[] = {
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(MEDIATEK_VENDOR_ID, MEDIATEK_PRODUCT_DC_4COM2, 0xff, 0x00, 0x00) },
+ 	{ USB_DEVICE(CELLIENT_VENDOR_ID, CELLIENT_PRODUCT_MEN200) },
+ 	{ USB_DEVICE(PETATEL_VENDOR_ID, PETATEL_PRODUCT_NP10T) },
++	{ USB_DEVICE(TPLINK_VENDOR_ID, TPLINK_PRODUCT_MA180),
++	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+ 	{ } /* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, option_ids);
+-- 
+1.8.1.4
+

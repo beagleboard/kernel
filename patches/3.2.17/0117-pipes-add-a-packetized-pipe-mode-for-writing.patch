@@ -1,4 +1,4 @@
-From 486b0a1b893dffbd82a09f607fd771e2200cb5a6 Mon Sep 17 00:00:00 2001
+From eb36132683ad0e2a243de3ac25e77b5e244b5226 Mon Sep 17 00:00:00 2001
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Date: Sun, 29 Apr 2012 13:12:42 -0700
 Subject: [PATCH 117/165] pipes: add a "packetized pipe" mode for writing
@@ -45,8 +45,8 @@ Cc: Thomas Meyer <thomas@m3y3r.de>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/pipe.c                 |   31 +++++++++++++++++++++++++++++--
- include/linux/pipe_fs_i.h |    1 +
+ fs/pipe.c                 | 31 +++++++++++++++++++++++++++++--
+ include/linux/pipe_fs_i.h |  1 +
  2 files changed, 30 insertions(+), 2 deletions(-)
 
 diff --git a/fs/pipe.c b/fs/pipe.c
@@ -139,5 +139,5 @@ index 77257c9..0072a53 100644
  /**
   *	struct pipe_buffer - a linux kernel pipe buffer
 -- 
-1.7.7.6
+1.8.1.4
 

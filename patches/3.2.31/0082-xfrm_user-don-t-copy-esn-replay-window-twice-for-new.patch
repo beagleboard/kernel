@@ -1,8 +1,8 @@
-From 6dd0a058321c49970355d5662d5c9113165537e3 Mon Sep 17 00:00:00 2001
+From b7760ab807cd2f083931a2f4bd1a757cac391c7d Mon Sep 17 00:00:00 2001
 From: Mathias Krause <minipli@googlemail.com>
 Date: Wed, 19 Sep 2012 11:33:43 +0000
-Subject: [PATCH 082/109] xfrm_user: don't copy esn replay window twice for
- new states
+Subject: [PATCH 082/109] xfrm_user: don't copy esn replay window twice for new
+ states
 
 [ Upstream commit e3ac104d41a97b42316915020ba228c505447d21 ]
 
@@ -15,7 +15,7 @@ Acked-by: Steffen Klassert <steffen.klassert@secunet.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/xfrm/xfrm_user.c |    9 +++++----
+ net/xfrm/xfrm_user.c | 9 +++++----
  1 file changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/net/xfrm/xfrm_user.c b/net/xfrm/xfrm_user.c
@@ -55,5 +55,5 @@ index 8f916a7..28e4f751 100644
  
  	c.event = nlh->nlmsg_type;
 -- 
-1.7.10.4
+1.8.1.4
 

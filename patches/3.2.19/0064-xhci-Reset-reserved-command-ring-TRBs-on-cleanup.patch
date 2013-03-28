@@ -1,4 +1,4 @@
-From cf79ab0d122bdc71d073839e9f9c33dfc38db813 Mon Sep 17 00:00:00 2001
+From d2a1781077c25381e690f4044a4b862cdfe089b2 Mon Sep 17 00:00:00 2001
 From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Date: Tue, 8 May 2012 07:09:26 -0700
 Subject: [PATCH 064/117] xhci: Reset reserved command ring TRBs on cleanup.
@@ -19,8 +19,8 @@ that contain the commit 913a8a344ffcaf0b4a586d6662a2c66a7106557d
 Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/host/xhci-mem.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/usb/host/xhci-mem.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/drivers/usb/host/xhci-mem.c b/drivers/usb/host/xhci-mem.c
 index a7b0676..4232e868 100644
@@ -35,5 +35,5 @@ index a7b0676..4232e868 100644
  		xhci_ring_free(xhci, xhci->cmd_ring);
  	xhci->cmd_ring = NULL;
 -- 
-1.7.7.6
+1.8.1.4
 

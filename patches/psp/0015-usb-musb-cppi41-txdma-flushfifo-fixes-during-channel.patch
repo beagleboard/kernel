@@ -1,8 +1,8 @@
-From 53ff94eb43b1bccf90377ed79e57656d4ab19eb9 Mon Sep 17 00:00:00 2001
+From a081374f398b5746efa171465753d682a28c6b51 Mon Sep 17 00:00:00 2001
 From: Ravi B <ravibabu@ti.com>
 Date: Thu, 10 May 2012 17:05:41 +0530
-Subject: [PATCH 15/19] usb: musb: cppi41: txdma flushfifo fixes during
- channel abort
+Subject: [PATCH 15/19] usb: musb: cppi41: txdma flushfifo fixes during channel
+ abort
 
 This patch fixes the flushfifo sequence during tx dma channel
 abort, the txfifo should be flushed only when the TXPKTRDY bit
@@ -10,8 +10,8 @@ is set in TXCSR register.
 
 Signed-off-by: Ravi B <ravibabu@ti.com>
 ---
- drivers/usb/musb/cppi41_dma.c |   14 +++++++++-----
- 1 files changed, 9 insertions(+), 5 deletions(-)
+ drivers/usb/musb/cppi41_dma.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/musb/cppi41_dma.c b/drivers/usb/musb/cppi41_dma.c
 index bf74cf3..4367e4f 100644
@@ -46,5 +46,5 @@ index bf74cf3..4367e4f 100644
  		dprintk("Rx channel teardown, cppi_ch = %p\n", cppi_ch);
  
 -- 
-1.7.7.6
+1.8.1.4
 

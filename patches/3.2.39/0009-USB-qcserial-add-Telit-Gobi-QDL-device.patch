@@ -1,0 +1,31 @@
+From 28a8e7811c8e6d2bbe32d3e417199e4112d84aee Mon Sep 17 00:00:00 2001
+From: Daniele Palmas <dnlplm@gmail.com>
+Date: Mon, 28 Jan 2013 16:48:54 +0100
+Subject: [PATCH 09/67] USB: qcserial: add Telit Gobi QDL device
+
+commit 78796ae17eacedcdcaaeb03ba73d2e532a4c8f83 upstream.
+
+Add VID and PID for Telit Gobi QDL device
+
+Signed-off-by: Daniele Palmas <dnlplm@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/qcserial.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/usb/serial/qcserial.c b/drivers/usb/serial/qcserial.c
+index 6634477..14c4a82 100644
+--- a/drivers/usb/serial/qcserial.c
++++ b/drivers/usb/serial/qcserial.c
+@@ -55,6 +55,7 @@ static const struct usb_device_id id_table[] = {
+ 	{DEVICE_G1K(0x05c6, 0x9221)},	/* Generic Gobi QDL device */
+ 	{DEVICE_G1K(0x05c6, 0x9231)},	/* Generic Gobi QDL device */
+ 	{DEVICE_G1K(0x1f45, 0x0001)},	/* Unknown Gobi QDL device */
++	{DEVICE_G1K(0x1bc7, 0x900e)},	/* Telit Gobi QDL device */
+ 
+ 	/* Gobi 2000 devices */
+ 	{USB_DEVICE(0x1410, 0xa010)},	/* Novatel Gobi 2000 QDL device */
+-- 
+1.8.1.4
+

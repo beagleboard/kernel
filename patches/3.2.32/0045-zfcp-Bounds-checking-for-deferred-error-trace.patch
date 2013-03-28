@@ -1,4 +1,4 @@
-From a0ca67b77b14028a6c92a48bbc4b16331f6d032d Mon Sep 17 00:00:00 2001
+From f9ed01e648a78686a42a5ad655b382dd8f3fa7b7 Mon Sep 17 00:00:00 2001
 From: Steffen Maier <maier@linux.vnet.ibm.com>
 Date: Tue, 4 Sep 2012 15:23:31 +0200
 Subject: [PATCH 045/146] zfcp: Bounds checking for deferred error trace
@@ -22,8 +22,8 @@ Reviewed-by: Martin Peschke <mpeschke@linux.vnet.ibm.com>
 Signed-off-by: James Bottomley <JBottomley@Parallels.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/s390/scsi/zfcp_dbf.c  |    2 +-
- drivers/s390/scsi/zfcp_qdio.c |   16 ++++++++++------
+ drivers/s390/scsi/zfcp_dbf.c  |  2 +-
+ drivers/s390/scsi/zfcp_qdio.c | 16 ++++++++++------
  2 files changed, 11 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/s390/scsi/zfcp_dbf.c b/drivers/s390/scsi/zfcp_dbf.c
@@ -73,5 +73,5 @@ index e14da57..e76d003 100644
  			for (sbal_no = 0; sbal_no < scount; sbal_no++) {
  				sbal_idx = (idx + sbal_no) %
 -- 
-1.7.10.4
+1.8.1.4
 

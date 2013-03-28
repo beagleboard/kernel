@@ -1,8 +1,8 @@
-From 87ade83ce3d8657e22c6c0e7571b4533d8e7f2bb Mon Sep 17 00:00:00 2001
+From edc76c5646157dd9bf02b2d4bcdf2b38646dfcef Mon Sep 17 00:00:00 2001
 From: Nicholas Bellinger <nab@linux-iscsi.org>
 Date: Thu, 16 Aug 2012 15:33:10 -0700
-Subject: [PATCH 001/109] target: Fix ->data_length re-assignment bug with
- SCSI overflow
+Subject: [PATCH 001/109] target: Fix ->data_length re-assignment bug with SCSI
+ overflow
 
 commit 4c054ba63ad47ef244cfcfa1cea38134620a5bae upstream.
 
@@ -39,7 +39,7 @@ Cc: Boaz Harrosh <bharrosh@panasas.com>
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/target/target_core_transport.c |    9 +++++++--
+ drivers/target/target_core_transport.c | 9 +++++++--
  1 file changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/target/target_core_transport.c b/drivers/target/target_core_transport.c
@@ -70,5 +70,5 @@ index 597fb9b..34d114a 100644
  
  	/* reject any command that we don't have a handler for */
 -- 
-1.7.10.4
+1.8.1.4
 

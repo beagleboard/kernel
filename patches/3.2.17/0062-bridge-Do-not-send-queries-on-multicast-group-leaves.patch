@@ -1,8 +1,7 @@
-From d8b0e9ccade3b9ebb5627fc8a7ec856c732d2e41 Mon Sep 17 00:00:00 2001
+From 5214e74900b699d220124130a5d61b2110f29e5d Mon Sep 17 00:00:00 2001
 From: Herbert Xu <herbert@gondor.apana.org.au>
 Date: Wed, 4 Apr 2012 01:01:20 +0000
-Subject: [PATCH 062/165] bridge: Do not send queries on multicast group
- leaves
+Subject: [PATCH 062/165] bridge: Do not send queries on multicast group leaves
 
 [ Upstream commit 996304bbea3d2a094b7ba54c3bd65d3fffeac57b ]
 
@@ -24,9 +23,9 @@ Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/bridge/br_multicast.c |   81 ---------------------------------------------
- net/bridge/br_private.h   |    4 --
- 2 files changed, 0 insertions(+), 85 deletions(-)
+ net/bridge/br_multicast.c | 81 -----------------------------------------------
+ net/bridge/br_private.h   |  4 ---
+ 2 files changed, 85 deletions(-)
 
 diff --git a/net/bridge/br_multicast.c b/net/bridge/br_multicast.c
 index 8eb6b15..5ac1811 100644
@@ -195,5 +194,5 @@ index d7d6fb0..93264df 100644
  
  struct net_bridge_mdb_htable
 -- 
-1.7.7.6
+1.8.1.4
 

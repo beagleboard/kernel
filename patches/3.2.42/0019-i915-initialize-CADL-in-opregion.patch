@@ -1,0 +1,71 @@
+From 19d25fad2932da0b27087486682a847c67a4c322 Mon Sep 17 00:00:00 2001
+From: Lekensteyn <lekensteyn@gmail.com>
+Date: Tue, 26 Jun 2012 00:36:24 +0200
+Subject: [PATCH 19/92] i915: initialize CADL in opregion
+
+commit d627b62ff8d4d36761adbcd90ff143d79c94ab22 upstream.
+
+This is rather a hack to fix brightness hotkeys on a Clevo laptop. CADL is not
+used anywhere in the driver code at the moment, but it could be used in BIOS as
+is the case with the Clevo laptop.
+
+The Clevo B7130 requires the CADL field to contain at least the ID of
+the LCD device. If this field is empty, the ACPI methods that are called
+on pressing brightness / display switching hotkeys will not trigger a
+notification. As a result, it appears as no hotkey has been pressed.
+
+Reference: https://bugs.freedesktop.org/show_bug.cgi?id=45452
+Tested-by: Peter Wu <lekensteyn@gmail.com>
+Signed-off-by: Peter Wu <lekensteyn@gmail.com>
+Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_opregion.c | 23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+index 289140b..cffb007 100644
+--- a/drivers/gpu/drm/i915/intel_opregion.c
++++ b/drivers/gpu/drm/i915/intel_opregion.c
+@@ -419,6 +419,25 @@ blind_set:
+ 	goto end;
+ }
+ 
++static void intel_setup_cadls(struct drm_device *dev)
++{
++	struct drm_i915_private *dev_priv = dev->dev_private;
++	struct intel_opregion *opregion = &dev_priv->opregion;
++	int i = 0;
++	u32 disp_id;
++
++	/* Initialize the CADL field by duplicating the DIDL values.
++	 * Technically, this is not always correct as display outputs may exist,
++	 * but not active. This initialization is necessary for some Clevo
++	 * laptops that check this field before processing the brightness and
++	 * display switching hotkeys. Just like DIDL, CADL is NULL-terminated if
++	 * there are less than eight devices. */
++	do {
++		disp_id = ioread32(&opregion->acpi->didl[i]);
++		iowrite32(disp_id, &opregion->acpi->cadl[i]);
++	} while (++i < 8 && disp_id != 0);
++}
++
+ void intel_opregion_init(struct drm_device *dev)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+@@ -428,8 +447,10 @@ void intel_opregion_init(struct drm_device *dev)
+ 		return;
+ 
+ 	if (opregion->acpi) {
+-		if (drm_core_check_feature(dev, DRIVER_MODESET))
++		if (drm_core_check_feature(dev, DRIVER_MODESET)) {
+ 			intel_didl_outputs(dev);
++			intel_setup_cadls(dev);
++		}
+ 
+ 		/* Notify BIOS we are ready to handle ACPI video ext notifs.
+ 		 * Right now, all the events are handled by the ACPI video module.
+-- 
+1.8.1.4
+

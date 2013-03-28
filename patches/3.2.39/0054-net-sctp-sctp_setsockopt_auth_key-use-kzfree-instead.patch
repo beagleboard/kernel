@@ -1,0 +1,38 @@
+From f9c37ba7095f3851ef9f220a911a53b18ead2314 Mon Sep 17 00:00:00 2001
+From: Daniel Borkmann <dborkman@redhat.com>
+Date: Fri, 8 Feb 2013 03:04:34 +0000
+Subject: [PATCH 54/67] net: sctp: sctp_setsockopt_auth_key: use kzfree instead
+ of kfree
+
+[ Upstream commit 6ba542a291a5e558603ac51cda9bded347ce7627 ]
+
+In sctp_setsockopt_auth_key, we create a temporary copy of the user
+passed shared auth key for the endpoint or association and after
+internal setup, we free it right away. Since it's sensitive data, we
+should zero out the key before returning the memory back to the
+allocator. Thus, use kzfree instead of kfree, just as we do in
+sctp_auth_key_put().
+
+Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/sctp/socket.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/sctp/socket.c b/net/sctp/socket.c
+index fa8333b..5e0d86e 100644
+--- a/net/sctp/socket.c
++++ b/net/sctp/socket.c
+@@ -3375,7 +3375,7 @@ static int sctp_setsockopt_auth_key(struct sock *sk,
+ 
+ 	ret = sctp_auth_set_key(sctp_sk(sk)->ep, asoc, authkey);
+ out:
+-	kfree(authkey);
++	kzfree(authkey);
+ 	return ret;
+ }
+ 
+-- 
+1.8.1.4
+

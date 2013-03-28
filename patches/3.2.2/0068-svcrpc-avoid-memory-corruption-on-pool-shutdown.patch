@@ -1,4 +1,4 @@
-From d658dcf388ccd1963ee16eb9a151347961cf4b72 Mon Sep 17 00:00:00 2001
+From a37a339d48ba63e276c3cbcbbd9e70ca1eb5d3c8 Mon Sep 17 00:00:00 2001
 From: "J. Bruce Fields" <bfields@redhat.com>
 Date: Tue, 29 Nov 2011 17:00:26 -0500
 Subject: [PATCH 068/129] svcrpc: avoid memory-corruption on pool shutdown
@@ -49,8 +49,8 @@ Cc: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: J. Bruce Fields <bfields@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- net/sunrpc/svc.c      |   10 +++++++++-
- net/sunrpc/svc_xprt.c |   48 +++++++++++++++++++++++++++++-------------------
+ net/sunrpc/svc.c      | 10 +++++++++-
+ net/sunrpc/svc_xprt.c | 48 +++++++++++++++++++++++++++++-------------------
  2 files changed, 38 insertions(+), 20 deletions(-)
 
 diff --git a/net/sunrpc/svc.c b/net/sunrpc/svc.c
@@ -152,5 +152,5 @@ index dcdc8df..9ed2cd0 100644
  
  /*
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 78bedee8c5984a5b8ef25c5251cafcd1ba324842 Mon Sep 17 00:00:00 2001
+From f86db1a88ca7b650932bc080312643616feb50b9 Mon Sep 17 00:00:00 2001
 From: Johannes Berg <johannes.berg@intel.com>
 Date: Mon, 19 Dec 2011 14:00:59 -0800
 Subject: [PATCH 17/49] iwlagn: fix (remove) use of PAGE_SIZE
@@ -31,8 +31,8 @@ Signed-off-by: Wey-Yi Guy <wey-yi.w.guy@intel.com>
 Signed-off-by: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/net/wireless/iwlwifi/iwl-trans-pcie-int.h |    2 -
- drivers/net/wireless/iwlwifi/iwl-trans-pcie-rx.c  |   73 +++++++++------------
+ drivers/net/wireless/iwlwifi/iwl-trans-pcie-int.h |  2 -
+ drivers/net/wireless/iwlwifi/iwl-trans-pcie-rx.c  | 73 ++++++++++-------------
  2 files changed, 31 insertions(+), 44 deletions(-)
 
 diff --git a/drivers/net/wireless/iwlwifi/iwl-trans-pcie-int.h b/drivers/net/wireless/iwlwifi/iwl-trans-pcie-int.h
@@ -176,5 +176,5 @@ index 374c68c..1920237 100644
  	iwl_write32(bus(trans), CSR_DRAM_INT_TBL_REG, val);
  	trans_pcie->use_ict = true;
 -- 
-1.7.7.6
+1.8.1.4
 

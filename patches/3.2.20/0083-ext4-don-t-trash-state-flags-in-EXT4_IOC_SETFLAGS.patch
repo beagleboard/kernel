@@ -1,4 +1,4 @@
-From a773512a29798c1418315414449dcb0a1353cfaa Mon Sep 17 00:00:00 2001
+From 4441b5d2fcc0693c13f87bbf08571c4102decfa3 Mon Sep 17 00:00:00 2001
 From: Theodore Ts'o <tytso@mit.edu>
 Date: Thu, 31 May 2012 23:46:01 -0400
 Subject: [PATCH 83/86] ext4: don't trash state flags in EXT4_IOC_SETFLAGS
@@ -16,8 +16,8 @@ Reported-by: Tao Ma <boyu.mt@taobao.com>
 Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ext4/ioctl.c |   12 +++++++++---
- 1 files changed, 9 insertions(+), 3 deletions(-)
+ fs/ext4/ioctl.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
 diff --git a/fs/ext4/ioctl.c b/fs/ext4/ioctl.c
 index ab25f57..1b7bc39 100644
@@ -50,5 +50,5 @@ index ab25f57..1b7bc39 100644
  
  		ext4_set_inode_flags(inode);
 -- 
-1.7.7.6
+1.8.1.4
 

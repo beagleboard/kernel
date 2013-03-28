@@ -1,4 +1,4 @@
-From 0814000698c5c9611541ffa37f6181acb95b3b46 Mon Sep 17 00:00:00 2001
+From 2286e16f77209fa5b463ab55657e375efc878f81 Mon Sep 17 00:00:00 2001
 From: Daniel Vetter <daniel.vetter@ffwll.ch>
 Date: Sun, 21 Oct 2012 12:52:39 +0200
 Subject: [PATCH 21/83] drm/i915: clear the entire sdvo infoframe buffer
@@ -41,8 +41,8 @@ Reviewed-by: Rodrigo Vivi <rodrigo.vivi@gmail.com>
 Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/i915/intel_sdvo.c      |   62 +++++++++++++++++++++----------
- drivers/gpu/drm/i915/intel_sdvo_regs.h |    2 +
+ drivers/gpu/drm/i915/intel_sdvo.c      | 62 +++++++++++++++++++++++-----------
+ drivers/gpu/drm/i915/intel_sdvo_regs.h |  2 ++
  2 files changed, 44 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/intel_sdvo.c b/drivers/gpu/drm/i915/intel_sdvo.c
@@ -147,5 +147,5 @@ index 372f33b..4193c54 100644
  #define SDVO_CMD_GET_HBUF_INFO		0x95
  #define SDVO_CMD_SET_HBUF_AV_SPLIT	0x96
 -- 
-1.7.7.6
+1.8.1.4
 

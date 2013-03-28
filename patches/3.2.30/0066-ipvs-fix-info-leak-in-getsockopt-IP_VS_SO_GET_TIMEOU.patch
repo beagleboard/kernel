@@ -1,4 +1,4 @@
-From a0591f0c6803abfd40ab544ea1c999d76e248cfb Mon Sep 17 00:00:00 2001
+From 85c0966a57aa7fef5697ab7ce0028c7c7c0fb906 Mon Sep 17 00:00:00 2001
 From: Mathias Krause <minipli@googlemail.com>
 Date: Wed, 15 Aug 2012 11:31:56 +0000
 Subject: [PATCH 066/135] ipvs: fix info leak in
@@ -19,8 +19,8 @@ Cc: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/netfilter/ipvs/ip_vs_ctl.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ net/netfilter/ipvs/ip_vs_ctl.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
 index e1a66cf..72f4253 100644
@@ -35,5 +35,5 @@ index e1a66cf..72f4253 100644
  		if (copy_to_user(user, &t, sizeof(t)) != 0)
  			ret = -EFAULT;
 -- 
-1.7.7.6
+1.8.1.4
 

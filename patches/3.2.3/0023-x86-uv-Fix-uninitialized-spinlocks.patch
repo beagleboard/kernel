@@ -1,4 +1,4 @@
-From bda1104616f2e5e9f7c7ea3c64258f2943891046 Mon Sep 17 00:00:00 2001
+From 3be6c7bb9cadd2a5e10ae462b4e457277019dc10 Mon Sep 17 00:00:00 2001
 From: Cliff Wickman <cpw@sgi.com>
 Date: Wed, 18 Jan 2012 09:40:47 -0600
 Subject: [PATCH 23/90] x86/uv: Fix uninitialized spinlocks
@@ -23,9 +23,9 @@ Link: http://lkml.kernel.org/r/E1RnXd1-0003wU-PM@eag09.americas.sgi.com
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/x86/platform/uv/tlb_uv.c |    2 ++
- arch/x86/platform/uv/uv_irq.c |    2 +-
- 2 files changed, 3 insertions(+), 1 deletions(-)
+ arch/x86/platform/uv/tlb_uv.c | 2 ++
+ arch/x86/platform/uv/uv_irq.c | 2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/arch/x86/platform/uv/tlb_uv.c b/arch/x86/platform/uv/tlb_uv.c
 index 9010ca7..81aee5a 100644
@@ -54,5 +54,5 @@ index 374a05d..f25c276 100644
  
  static int uv_set_irq_affinity(struct irq_data *, const struct cpumask *, bool);
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,0 +1,35 @@
+From f6723308a45cb9e629dcf71afc9244b5d61283fe Mon Sep 17 00:00:00 2001
+From: Theodore Ts'o <tytso@mit.edu>
+Date: Thu, 24 Jan 2013 23:24:56 -0500
+Subject: [PATCH 014/153] quota: autoload the quota_v2 module for QFMT_VFS_V1
+ quota format
+
+commit c3ad83d9efdfe6a86efd44945a781f00c879b7b4 upstream.
+
+Otherwise, ext4 file systems with the quota featured enable will get a
+very confusing "No such process" error message if the quota code is
+built as a module and the quota_v2 module has not been loaded.
+
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Reviewed-by: Carlos Maiolino <cmaiolino@redhat.com>
+Acked-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ include/linux/quota.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/linux/quota.h b/include/linux/quota.h
+index cb78556..1162580 100644
+--- a/include/linux/quota.h
++++ b/include/linux/quota.h
+@@ -413,6 +413,7 @@ struct quota_module_name {
+ #define INIT_QUOTA_MODULE_NAMES {\
+ 	{QFMT_VFS_OLD, "quota_v1"},\
+ 	{QFMT_VFS_V0, "quota_v2"},\
++	{QFMT_VFS_V1, "quota_v2"},\
+ 	{0, NULL}}
+ 
+ #endif /* __KERNEL__ */
+-- 
+1.8.1.4
+

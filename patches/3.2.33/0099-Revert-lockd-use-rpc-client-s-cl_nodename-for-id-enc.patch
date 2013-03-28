@@ -1,4 +1,4 @@
-From d97fce86ddd0b945212820cbaa6eb3aa1f7e243f Mon Sep 17 00:00:00 2001
+From 94615c2a7945ddddcd2b8dd7c0232b7a3ad6ac77 Mon Sep 17 00:00:00 2001
 From: Ben Hutchings <ben@decadent.org.uk>
 Date: Sun, 28 Oct 2012 18:43:50 +0000
 Subject: [PATCH 099/105] Revert "lockd: use rpc client's cl_nodename for id
@@ -11,8 +11,8 @@ It is not necessary for kernel versions without per-netns RPC clients.
 
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/lockd/mon.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+ fs/lockd/mon.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/fs/lockd/mon.c b/fs/lockd/mon.c
 index df753a1..23d7451 100644
@@ -44,5 +44,5 @@ index df753a1..23d7451 100644
  	*p++ = cpu_to_be32(argp->prog);
  	*p++ = cpu_to_be32(argp->vers);
 -- 
-1.7.7.6
+1.8.1.4
 

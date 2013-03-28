@@ -1,4 +1,4 @@
-From aba79287ad73fad886e6a9570d43b376371a7223 Mon Sep 17 00:00:00 2001
+From 45f7eea27b609c52dae240c35f0dea0fb009c394 Mon Sep 17 00:00:00 2001
 From: David Vrabel <david.vrabel@citrix.com>
 Date: Mon, 23 Jan 2012 19:32:25 +0000
 Subject: [PATCH 37/90] x86: xen: size struct xen_spinlock to always fit in
@@ -34,8 +34,8 @@ Acked-by: Ian Campbell <ian.campbell@citrix.com>
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/x86/xen/spinlock.c |   27 ++++++++++++++++++++++-----
- 1 files changed, 22 insertions(+), 5 deletions(-)
+ arch/x86/xen/spinlock.c | 27 ++++++++++++++++++++++-----
+ 1 file changed, 22 insertions(+), 5 deletions(-)
 
 diff --git a/arch/x86/xen/spinlock.c b/arch/x86/xen/spinlock.c
 index cc9b1e1..d69cc6c 100644
@@ -99,5 +99,5 @@ index cc9b1e1..d69cc6c 100644
  	pv_lock_ops.spin_is_contended = xen_spin_is_contended;
  	pv_lock_ops.spin_lock = xen_spin_lock;
 -- 
-1.7.7.6
+1.8.1.4
 

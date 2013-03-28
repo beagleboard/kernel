@@ -1,4 +1,4 @@
-From 5ed8ac8067ab1ff5e0b9a6ed8630e3f14f6e2a9d Mon Sep 17 00:00:00 2001
+From 19caa9e91a17560430c3a117437f400168b94392 Mon Sep 17 00:00:00 2001
 From: Daniel Vetter <daniel.vetter@ffwll.ch>
 Date: Tue, 10 Apr 2012 10:42:36 +0200
 Subject: [PATCH 05/68] drm/i915: properly compute dp dithering for
@@ -36,8 +36,8 @@ Reviewed-by: Adam Jackson <ajax@redhat.com>
 Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/gpu/drm/i915/intel_dp.c |   49 +++++++++++++++++++++++++++-----------
- 1 files changed, 35 insertions(+), 14 deletions(-)
+ drivers/gpu/drm/i915/intel_dp.c | 49 +++++++++++++++++++++++++++++------------
+ 1 file changed, 35 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
 index 94f860c..12eb789 100644
@@ -126,5 +126,5 @@ index 94f860c..12eb789 100644
  		for (clock = 0; clock <= max_clock; clock++) {
  			int link_avail = intel_dp_max_data_rate(intel_dp_link_clock(bws[clock]), lane_count);
 -- 
-1.7.7.6
+1.8.1.4
 

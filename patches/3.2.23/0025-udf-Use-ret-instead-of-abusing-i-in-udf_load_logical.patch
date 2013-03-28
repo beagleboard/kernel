@@ -1,4 +1,4 @@
-From 051846ab3cd7ac28eccbb393a9b7c1951a5c946f Mon Sep 17 00:00:00 2001
+From 9200786612367d7ac8b59abfb43cdbb873f29952 Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Wed, 27 Jun 2012 20:08:44 +0200
 Subject: [PATCH 25/49] udf: Use 'ret' instead of abusing 'i' in
@@ -9,8 +9,8 @@ commit cb14d340ef1737c24125dd663eff77734a482d47 upstream.
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/udf/super.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ fs/udf/super.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/fs/udf/super.c b/fs/udf/super.c
 index 87cb24a..eea2bfe 100644
@@ -31,5 +31,5 @@ index 87cb24a..eea2bfe 100644
  	for (i = 0, offset = 0;
  	     i < sbi->s_partitions && offset < le32_to_cpu(lvd->mapTableLength);
 -- 
-1.7.7.6
+1.8.1.4
 

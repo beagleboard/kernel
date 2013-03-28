@@ -1,4 +1,4 @@
-From fe5c4496d460ce04175c919076f5e13f38c6ad2a Mon Sep 17 00:00:00 2001
+From aa3f90f8f02af0d5fba55e6d233cfd48e791bf70 Mon Sep 17 00:00:00 2001
 From: Ben Skeggs <bskeggs@redhat.com>
 Date: Tue, 10 Jan 2012 10:18:28 +1000
 Subject: [PATCH 32/87] drm/nouveau/gem: fix fence_sync race / oops
@@ -52,8 +52,8 @@ Call Trace:
 Signed-off-by: Ben Skeggs <bskeggs@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/gpu/drm/nouveau/nouveau_gem.c |   23 +++++++++++++++++++++--
- 1 files changed, 21 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/nouveau/nouveau_gem.c | 23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/nouveau/nouveau_gem.c b/drivers/gpu/drm/nouveau/nouveau_gem.c
 index 5f0bc57..7ce3fde 100644
@@ -104,5 +104,5 @@ index 5f0bc57..7ce3fde 100644
  			NV_ERROR(dev, "fail post-validate sync\n");
  			return ret;
 -- 
-1.7.7.6
+1.8.1.4
 

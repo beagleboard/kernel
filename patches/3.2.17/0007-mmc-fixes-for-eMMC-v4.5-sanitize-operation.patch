@@ -1,4 +1,4 @@
-From a75ec746fa1d92f9502dbb14768a95881ab9bb84 Mon Sep 17 00:00:00 2001
+From 6748df65137596dffde2e1684e9cb12b902e00b4 Mon Sep 17 00:00:00 2001
 From: Adrian Hunter <adrian.hunter@intel.com>
 Date: Thu, 5 Apr 2012 14:45:48 +0300
 Subject: [PATCH 007/165] mmc: fixes for eMMC v4.5 sanitize operation
@@ -17,8 +17,8 @@ Acked-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Chris Ball <cjb@laptop.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/mmc/card/block.c |   54 ++++++++++++++++++++++++++++++++-------------
- drivers/mmc/core/core.c  |    2 +
+ drivers/mmc/card/block.c | 54 ++++++++++++++++++++++++++++++++++--------------
+ drivers/mmc/core/core.c  |  2 ++
  2 files changed, 40 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/mmc/card/block.c b/drivers/mmc/card/block.c
@@ -132,5 +132,5 @@ index c420a9e..411a994 100644
  		return 1;
  	return 0;
 -- 
-1.7.7.6
+1.8.1.4
 

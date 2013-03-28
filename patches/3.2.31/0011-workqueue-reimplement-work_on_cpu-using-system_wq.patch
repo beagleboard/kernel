@@ -1,4 +1,4 @@
-From a707c5fc279009cccb3d2f56c602417d98c8e324 Mon Sep 17 00:00:00 2001
+From ae88a8a1cd76076d3e220f60386c682f2d6b7276 Mon Sep 17 00:00:00 2001
 From: Tejun Heo <tj@kernel.org>
 Date: Tue, 18 Sep 2012 12:48:43 -0700
 Subject: [PATCH 011/109] workqueue: reimplement work_on_cpu() using system_wq
@@ -25,7 +25,7 @@ Cc: Len Brown <lenb@kernel.org>
 Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/workqueue.c |   25 ++++++++-----------------
+ kernel/workqueue.c | 25 ++++++++-----------------
  1 file changed, 8 insertions(+), 17 deletions(-)
 
 diff --git a/kernel/workqueue.c b/kernel/workqueue.c
@@ -80,5 +80,5 @@ index 979d4de..b413138 100644
  }
  EXPORT_SYMBOL_GPL(work_on_cpu);
 -- 
-1.7.10.4
+1.8.1.4
 

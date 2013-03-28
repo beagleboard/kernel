@@ -1,7 +1,7 @@
-From 6b350ddfea8cbd0420731c563a0dbb24bbc72e40 Mon Sep 17 00:00:00 2001
+From 84707d782453b3886c46c722d8aa310f8b5ae0d4 Mon Sep 17 00:00:00 2001
 From: Steve Sakoman <steve@sakoman.com>
 Date: Mon, 18 Jul 2011 23:13:41 -0500
-Subject: [PATCH 16/92] omap_hsmmc: Set dto to max value of 14 to avoid SD
+Subject: [PATCH 016/102] omap_hsmmc: Set dto to max value of 14 to avoid SD
  Card timeouts
 
 This fixes MMC errors due to timeouts on certain SD Cards following suggestions
@@ -12,11 +12,11 @@ http://talk.maemo.org/showthread.php?p=1000707#post1000707
 
 This fix was originally proposed by Sukumar Ghoral of TI.
 ---
- drivers/mmc/host/omap_hsmmc.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 22da8f2..adbc4d1 100644
+index ba7f742..372405d 100644
 --- a/drivers/mmc/host/omap_hsmmc.c
 +++ b/drivers/mmc/host/omap_hsmmc.c
 @@ -1554,6 +1554,9 @@ static void set_data_timeout(struct omap_hsmmc_host *host)
@@ -30,5 +30,5 @@ index 22da8f2..adbc4d1 100644
  	reg |= dto << DTO_SHIFT;
  	OMAP_HSMMC_WRITE(host->base, SYSCTL, reg);
 -- 
-1.7.7.6
+1.8.1.4
 

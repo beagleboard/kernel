@@ -1,4 +1,4 @@
-From 228d8b2db2c0c67c0877da738294812e3015a92c Mon Sep 17 00:00:00 2001
+From 5f8249f28b6e30331bef09415298ab4c25fa0a7b Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Sat, 28 Jan 2012 16:11:03 +0000
 Subject: [PATCH 72/90] af_unix: fix EPOLLET regression for stream sockets
@@ -27,8 +27,8 @@ Cc: Alexey Moiseytsev <himeraster@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/unix/af_unix.c |   19 ++++---------------
- 1 files changed, 4 insertions(+), 15 deletions(-)
+ net/unix/af_unix.c | 19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
 diff --git a/net/unix/af_unix.c b/net/unix/af_unix.c
 index b595a3d..d99678a 100644
@@ -92,5 +92,5 @@ index b595a3d..d99678a 100644
  		}
  	} while (size);
 -- 
-1.7.7.6
+1.8.1.4
 

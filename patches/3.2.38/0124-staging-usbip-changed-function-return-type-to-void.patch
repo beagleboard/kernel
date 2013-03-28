@@ -1,0 +1,92 @@
+From e072bf5d90ed7bf42ecbb4ba4ee2a2794f64faae Mon Sep 17 00:00:00 2001
+From: Bart Westgeest <bart@elbrys.com>
+Date: Mon, 23 Jan 2012 10:55:46 -0500
+Subject: [PATCH 124/127] staging: usbip: changed function return type to void
+
+commit ac2b41acfa3efe4650102067a99251587a806d70 upstream.
+
+The function usbip_pad_iso never returns anything but 0 (success).
+
+Signed-off-by: Bart Westgeest <bart@elbrys.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/usbip/usbip_common.c | 11 ++++-------
+ drivers/staging/usbip/usbip_common.h |  2 +-
+ drivers/staging/usbip/vhci_rx.c      |  3 +--
+ 3 files changed, 6 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/staging/usbip/usbip_common.c b/drivers/staging/usbip/usbip_common.c
+index 3b7a847..194e974 100644
+--- a/drivers/staging/usbip/usbip_common.c
++++ b/drivers/staging/usbip/usbip_common.c
+@@ -761,26 +761,25 @@ EXPORT_SYMBOL_GPL(usbip_recv_iso);
+  * buffer and iso packets need to be stored and be in propeper endian in urb
+  * before calling this function
+  */
+-int usbip_pad_iso(struct usbip_device *ud, struct urb *urb)
++void usbip_pad_iso(struct usbip_device *ud, struct urb *urb)
+ {
+ 	int np = urb->number_of_packets;
+ 	int i;
+-	int ret;
+ 	int actualoffset = urb->actual_length;
+ 
+ 	if (!usb_pipeisoc(urb->pipe))
+-		return 0;
++		return;
+ 
+ 	/* if no packets or length of data is 0, then nothing to unpack */
+ 	if (np == 0 || urb->actual_length == 0)
+-		return 0;
++		return;
+ 
+ 	/*
+ 	 * if actual_length is transfer_buffer_length then no padding is
+ 	 * present.
+ 	*/
+ 	if (urb->actual_length == urb->transfer_buffer_length)
+-		return 0;
++		return;
+ 
+ 	/*
+ 	 * loop over all packets from last to first (to prevent overwritting
+@@ -792,8 +791,6 @@ int usbip_pad_iso(struct usbip_device *ud, struct urb *urb)
+ 			urb->transfer_buffer + actualoffset,
+ 			urb->iso_frame_desc[i].actual_length);
+ 	}
+-
+-	return ret;
+ }
+ EXPORT_SYMBOL_GPL(usbip_pad_iso);
+ 
+diff --git a/drivers/staging/usbip/usbip_common.h b/drivers/staging/usbip/usbip_common.h
+index be21617..e547dba 100644
+--- a/drivers/staging/usbip/usbip_common.h
++++ b/drivers/staging/usbip/usbip_common.h
+@@ -316,7 +316,7 @@ void usbip_header_correct_endian(struct usbip_header *pdu, int send);
+ void *usbip_alloc_iso_desc_pdu(struct urb *urb, ssize_t *bufflen);
+ /* some members of urb must be substituted before. */
+ int usbip_recv_iso(struct usbip_device *ud, struct urb *urb);
+-int usbip_pad_iso(struct usbip_device *ud, struct urb *urb);
++void usbip_pad_iso(struct usbip_device *ud, struct urb *urb);
+ int usbip_recv_xbuff(struct usbip_device *ud, struct urb *urb);
+ 
+ /* usbip_event.c */
+diff --git a/drivers/staging/usbip/vhci_rx.c b/drivers/staging/usbip/vhci_rx.c
+index 3872b8c..1a7afaa 100644
+--- a/drivers/staging/usbip/vhci_rx.c
++++ b/drivers/staging/usbip/vhci_rx.c
+@@ -94,8 +94,7 @@ static void vhci_recv_ret_submit(struct vhci_device *vdev,
+ 		return;
+ 
+ 	/* restore the padding in iso packets */
+-	if (usbip_pad_iso(ud, urb) < 0)
+-		return;
++	usbip_pad_iso(ud, urb);
+ 
+ 	if (usbip_dbg_flag_vhci_rx)
+ 		usbip_dump_urb(urb);
+-- 
+1.8.1.4
+

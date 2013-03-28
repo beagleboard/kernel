@@ -1,4 +1,4 @@
-From 32cde5cb662c84a327403cc8e9e3253b9705fe01 Mon Sep 17 00:00:00 2001
+From f6059024d92f342c29c25a2351434b9b868fe32d Mon Sep 17 00:00:00 2001
 From: Trond Myklebust <Trond.Myklebust@netapp.com>
 Date: Wed, 18 Apr 2012 12:48:35 -0400
 Subject: [PATCH 087/165] NFSv4: Ensure that we check lock exclusive/shared
@@ -12,8 +12,8 @@ we can't rely on the VFS having checked the file open mode for us.
 Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/nfs/nfs4proc.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ fs/nfs/nfs4proc.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
 diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
 index 57f9971..51f6a40 100644
@@ -41,5 +41,5 @@ index 57f9971..51f6a40 100644
  		status = nfs4_proc_setlk(state, cmd, request);
  		if ((status != -EAGAIN) || IS_SETLK(cmd))
 -- 
-1.7.7.6
+1.8.1.4
 

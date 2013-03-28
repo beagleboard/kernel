@@ -1,4 +1,4 @@
-From 755e783e1e63e044fbc86d8a396bf1e1f694ead2 Mon Sep 17 00:00:00 2001
+From f10adf7a1bfe6386331bed12f11e07b646716a14 Mon Sep 17 00:00:00 2001
 From: Will Deacon <will.deacon@arm.com>
 Date: Fri, 13 Jul 2012 19:15:40 +0100
 Subject: [PATCH 46/70] ARM: 7467/1: mutex: use generic xchg-based
@@ -27,8 +27,8 @@ Signed-off-by: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/arm/include/asm/mutex.h |  119 ++----------------------------------------
- 1 files changed, 4 insertions(+), 115 deletions(-)
+ arch/arm/include/asm/mutex.h | 119 ++-----------------------------------------
+ 1 file changed, 4 insertions(+), 115 deletions(-)
 
 diff --git a/arch/arm/include/asm/mutex.h b/arch/arm/include/asm/mutex.h
 index 93226cf..b1479fd 100644
@@ -161,5 +161,5 @@ index 93226cf..b1479fd 100644
 +#include <asm-generic/mutex-xchg.h>
  #endif
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 19f53f11d8448b8b530c2b266f73a7c4840364ab Mon Sep 17 00:00:00 2001
+From f3c264f430cb27fb7da0f29c0f45b4656d516079 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>
 Date: Mon, 16 Jan 2012 12:41:47 +0100
 Subject: [PATCH 45/90] USB: cdc-wdm: updating desc->length must be protected
@@ -15,8 +15,8 @@ Signed-off-by: Bjørn Mork <bjorn@mork.no>
 Acked-by: Oliver Neukum <oneukum@suse.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/class/cdc-wdm.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/usb/class/cdc-wdm.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/usb/class/cdc-wdm.c b/drivers/usb/class/cdc-wdm.c
 index efe6849..7e5e822 100644
@@ -33,5 +33,5 @@ index efe6849..7e5e822 100644
  	if (!desc->length)
  		clear_bit(WDM_READ, &desc->flags);
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From ebf2a70e220dbe768eedfff310f84452836d9618 Mon Sep 17 00:00:00 2001
+From e161a832eaa2d16f06b471ea3afe758c8183b57b Mon Sep 17 00:00:00 2001
 From: Roland Dreier <roland@purestorage.com>
 Date: Wed, 31 Oct 2012 09:16:46 -0700
 Subject: [PATCH 50/83] iscsi-target: Fix missed wakeup race in TX thread
@@ -30,11 +30,11 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/target/iscsi/iscsi_target.c       |    4 +++-
- drivers/target/iscsi/iscsi_target_core.h  |    1 +
- drivers/target/iscsi/iscsi_target_login.c |    1 +
- drivers/target/iscsi/iscsi_target_util.c  |   22 ++++++++++++++++++++--
- drivers/target/iscsi/iscsi_target_util.h  |    1 +
+ drivers/target/iscsi/iscsi_target.c       |  4 +++-
+ drivers/target/iscsi/iscsi_target_core.h  |  1 +
+ drivers/target/iscsi/iscsi_target_login.c |  1 +
+ drivers/target/iscsi/iscsi_target_util.c  | 22 ++++++++++++++++++++--
+ drivers/target/iscsi/iscsi_target_util.h  |  1 +
  5 files changed, 26 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/target/iscsi/iscsi_target.c b/drivers/target/iscsi/iscsi_target.c
@@ -136,5 +136,5 @@ index 835bf7d..cfac698 100644
  extern void iscsit_release_cmd(struct iscsi_cmd *);
  extern void iscsit_free_cmd(struct iscsi_cmd *);
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 1ea76673d9137c49ec2b96b8ee7ec0725b5e46ae Mon Sep 17 00:00:00 2001
+From 32d0e177b7f285b9d24b69cf88ba7f708b06f176 Mon Sep 17 00:00:00 2001
 From: stephen hemminger <shemminger@vyatta.com>
 Date: Wed, 21 Mar 2012 05:32:05 +0000
 Subject: [PATCH 137/147] sky2: override for PCI legacy power management
@@ -15,8 +15,8 @@ Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/ethernet/marvell/sky2.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+ drivers/net/ethernet/marvell/sky2.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
 diff --git a/drivers/net/ethernet/marvell/sky2.c b/drivers/net/ethernet/marvell/sky2.c
 index 7803efa..f612b35 100644
@@ -48,5 +48,5 @@ index 7803efa..f612b35 100644
  	sky2_write8(hw, SK_REG(port, RX_GMF_CTRL_T), GMF_RST_SET);
  	sky2_read32(hw, B0_CTST);
 -- 
-1.7.7.6
+1.8.1.4
 

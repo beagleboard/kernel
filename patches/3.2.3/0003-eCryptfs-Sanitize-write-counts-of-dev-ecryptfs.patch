@@ -1,4 +1,4 @@
-From 0a7d72d7335124299b073e72a478a9c19ce33204 Mon Sep 17 00:00:00 2001
+From e74a967cbaa5c90cdc3994838d86e1a961157d0b Mon Sep 17 00:00:00 2001
 From: Tyler Hicks <tyhicks@canonical.com>
 Date: Thu, 12 Jan 2012 11:30:44 +0100
 Subject: [PATCH 03/90] eCryptfs: Sanitize write counts of /dev/ecryptfs
@@ -17,8 +17,8 @@ Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
 Reported-by: Sasha Levin <levinsasha928@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/ecryptfs/miscdev.c |   56 +++++++++++++++++++++++++++++++++---------------
- 1 files changed, 38 insertions(+), 18 deletions(-)
+ fs/ecryptfs/miscdev.c | 56 ++++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 38 insertions(+), 18 deletions(-)
 
 diff --git a/fs/ecryptfs/miscdev.c b/fs/ecryptfs/miscdev.c
 index 940a82e..0dc5a3d 100644
@@ -99,5 +99,5 @@ index 940a82e..0dc5a3d 100644
  					       euid, current_user_ns(),
  					       task_pid(current), seq);
 -- 
-1.7.7.6
+1.8.1.4
 

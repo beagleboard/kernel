@@ -1,4 +1,4 @@
-From 24bbde6e7355f75244666b85da705f1fa7c609c5 Mon Sep 17 00:00:00 2001
+From 4e5b4f33d2f45c85b1b41a1495746c305ade4097 Mon Sep 17 00:00:00 2001
 From: Rusty Russell <rusty@rustcorp.com.au>
 Date: Thu, 25 Oct 2012 10:49:25 +1030
 Subject: [PATCH 38/83] module: fix out-by-one error in kallsyms
@@ -26,8 +26,8 @@ Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
  table]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/module.c |   24 +++++++++++++-----------
- 1 files changed, 13 insertions(+), 11 deletions(-)
+ kernel/module.c | 24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
 diff --git a/kernel/module.c b/kernel/module.c
 index 6c8fa34..65362d9 100644
@@ -78,5 +78,5 @@ index 6c8fa34..65362d9 100644
  	mod->core_num_syms = ndst;
  
 -- 
-1.7.7.6
+1.8.1.4
 

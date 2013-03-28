@@ -1,4 +1,4 @@
-From d0224a3953fac5b7f32633e9f8ddb93d6f98d1c5 Mon Sep 17 00:00:00 2001
+From 5c53af52cd59e372340379be50616fde358678ab Mon Sep 17 00:00:00 2001
 From: Ratan Nalumasu <ratan@google.com>
 Date: Sat, 22 Sep 2012 11:46:30 -0700
 Subject: [PATCH 071/109] HID: hidraw: don't deallocate memory when it is in
@@ -13,7 +13,7 @@ Signed-off-by: Ratan Nalumasu <ratan@google.com>
 Signed-off-by: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/hid/hidraw.c |   69 +++++++++++++++++++-------------------------------
+ drivers/hid/hidraw.c | 69 ++++++++++++++++++++--------------------------------
  1 file changed, 26 insertions(+), 43 deletions(-)
 
 diff --git a/drivers/hid/hidraw.c b/drivers/hid/hidraw.c
@@ -133,5 +133,5 @@ index 7c47fc3..17d15bb 100644
 +	mutex_unlock(&minors_lock);
 +}
 -- 
-1.7.10.4
+1.8.1.4
 

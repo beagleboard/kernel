@@ -1,0 +1,271 @@
+From 9b8609c1af9657019c9c573913d68f681eabba3f Mon Sep 17 00:00:00 2001
+From: "Steven Rostedt (Red Hat)" <rostedt@goodmis.org>
+Date: Thu, 14 Mar 2013 15:03:53 -0400
+Subject: [PATCH 61/92] tracing: Prevent buffer overwrite disabled for latency
+ tracers
+
+commit 613f04a0f51e6e68ac6fe571ab79da3c0a5eb4da upstream.
+
+The latency tracers require the buffers to be in overwrite mode,
+otherwise they get screwed up. Force the buffers to stay in overwrite
+mode when latency tracers are enabled.
+
+Added a flag_changed() method to the tracer structure to allow
+the tracers to see what flags are being changed, and also be able
+to prevent the change from happing.
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+[bwh: Backported to 3.2:
+ - Adjust context
+ - Drop some changes that are not needed because trace_set_options() is not
+   separate from tracing_trace_options_write()]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/trace/trace.c              | 31 +++++++++++++++++++++++++++----
+ kernel/trace/trace.h              |  7 +++++++
+ kernel/trace/trace_irqsoff.c      | 19 ++++++++++++++-----
+ kernel/trace/trace_sched_wakeup.c | 18 +++++++++++++-----
+ 4 files changed, 61 insertions(+), 14 deletions(-)
+
+diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
+index 0c6ce44..17edb14 100644
+--- a/kernel/trace/trace.c
++++ b/kernel/trace/trace.c
+@@ -2636,11 +2636,25 @@ static int set_tracer_option(struct tracer *trace, char *cmp, int neg)
+ 	return -EINVAL;
+ }
+ 
+-static void set_tracer_flags(unsigned int mask, int enabled)
++/* Some tracers require overwrite to stay enabled */
++int trace_keep_overwrite(struct tracer *tracer, u32 mask, int set)
++{
++	if (tracer->enabled && (mask & TRACE_ITER_OVERWRITE) && !set)
++		return -1;
++
++	return 0;
++}
++
++int set_tracer_flag(unsigned int mask, int enabled)
+ {
+ 	/* do nothing if flag is already set */
+ 	if (!!(trace_flags & mask) == !!enabled)
+-		return;
++		return 0;
++
++	/* Give the tracer a chance to approve the change */
++	if (current_trace->flag_changed)
++		if (current_trace->flag_changed(current_trace, mask, !!enabled))
++			return -EINVAL;
+ 
+ 	if (enabled)
+ 		trace_flags |= mask;
+@@ -2656,6 +2670,8 @@ static void set_tracer_flags(unsigned int mask, int enabled)
+ 		ring_buffer_change_overwrite(max_tr.buffer, enabled);
+ #endif
+ 	}
++
++	return 0;
+ }
+ 
+ static ssize_t
+@@ -2686,7 +2702,7 @@ tracing_trace_options_write(struct file *filp, const char __user *ubuf,
+ 
+ 	for (i = 0; trace_options[i]; i++) {
+ 		if (strcmp(cmp, trace_options[i]) == 0) {
+-			set_tracer_flags(1 << i, !neg);
++			ret = set_tracer_flag(1 << i, !neg);
+ 			break;
+ 		}
+ 	}
+@@ -3022,6 +3038,9 @@ static int tracing_set_tracer(const char *buf)
+ 		goto out;
+ 
+ 	trace_branch_disable();
++
++	current_trace->enabled = false;
++
+ 	if (current_trace && current_trace->reset)
+ 		current_trace->reset(tr);
+ 	if (current_trace && current_trace->use_max_tr) {
+@@ -3051,6 +3070,7 @@ static int tracing_set_tracer(const char *buf)
+ 			goto out;
+ 	}
+ 
++	current_trace->enabled = true;
+ 	trace_branch_enable(tr);
+  out:
+ 	mutex_unlock(&trace_types_lock);
+@@ -4387,9 +4407,12 @@ trace_options_core_write(struct file *filp, const char __user *ubuf, size_t cnt,
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&trace_types_lock);
+-	set_tracer_flags(1 << index, val);
++	ret = set_tracer_flag(1 << index, val);
+ 	mutex_unlock(&trace_types_lock);
+ 
++	if (ret < 0)
++		return ret;
++
+ 	*ppos += cnt;
+ 
+ 	return cnt;
+diff --git a/kernel/trace/trace.h b/kernel/trace/trace.h
+index 092e1f8..c3c3f6b 100644
+--- a/kernel/trace/trace.h
++++ b/kernel/trace/trace.h
+@@ -271,10 +271,14 @@ struct tracer {
+ 	enum print_line_t	(*print_line)(struct trace_iterator *iter);
+ 	/* If you handled the flag setting, return 0 */
+ 	int			(*set_flag)(u32 old_flags, u32 bit, int set);
++	/* Return 0 if OK with change, else return non-zero */
++	int			(*flag_changed)(struct tracer *tracer,
++						u32 mask, int set);
+ 	struct tracer		*next;
+ 	struct tracer_flags	*flags;
+ 	int			print_max;
+ 	int			use_max_tr;
++	bool			enabled;
+ };
+ 
+ 
+@@ -815,6 +819,9 @@ extern struct list_head ftrace_events;
+ extern const char *__start___trace_bprintk_fmt[];
+ extern const char *__stop___trace_bprintk_fmt[];
+ 
++int trace_keep_overwrite(struct tracer *tracer, u32 mask, int set);
++int set_tracer_flag(unsigned int mask, int enabled);
++
+ #undef FTRACE_ENTRY
+ #define FTRACE_ENTRY(call, struct_name, id, tstruct, print)		\
+ 	extern struct ftrace_event_call					\
+diff --git a/kernel/trace/trace_irqsoff.c b/kernel/trace/trace_irqsoff.c
+index 20dad0d..1626e1a 100644
+--- a/kernel/trace/trace_irqsoff.c
++++ b/kernel/trace/trace_irqsoff.c
+@@ -32,7 +32,7 @@ enum {
+ 
+ static int trace_type __read_mostly;
+ 
+-static int save_lat_flag;
++static int save_flags;
+ 
+ static void stop_irqsoff_tracer(struct trace_array *tr, int graph);
+ static int start_irqsoff_tracer(struct trace_array *tr, int graph);
+@@ -546,8 +546,11 @@ static void stop_irqsoff_tracer(struct trace_array *tr, int graph)
+ 
+ static void __irqsoff_tracer_init(struct trace_array *tr)
+ {
+-	save_lat_flag = trace_flags & TRACE_ITER_LATENCY_FMT;
+-	trace_flags |= TRACE_ITER_LATENCY_FMT;
++	save_flags = trace_flags;
++
++	/* non overwrite screws up the latency tracers */
++	set_tracer_flag(TRACE_ITER_OVERWRITE, 1);
++	set_tracer_flag(TRACE_ITER_LATENCY_FMT, 1);
+ 
+ 	tracing_max_latency = 0;
+ 	irqsoff_trace = tr;
+@@ -561,10 +564,13 @@ static void __irqsoff_tracer_init(struct trace_array *tr)
+ 
+ static void irqsoff_tracer_reset(struct trace_array *tr)
+ {
++	int lat_flag = save_flags & TRACE_ITER_LATENCY_FMT;
++	int overwrite_flag = save_flags & TRACE_ITER_OVERWRITE;
++
+ 	stop_irqsoff_tracer(tr, is_graph());
+ 
+-	if (!save_lat_flag)
+-		trace_flags &= ~TRACE_ITER_LATENCY_FMT;
++	set_tracer_flag(TRACE_ITER_LATENCY_FMT, lat_flag);
++	set_tracer_flag(TRACE_ITER_OVERWRITE, overwrite_flag);
+ }
+ 
+ static void irqsoff_tracer_start(struct trace_array *tr)
+@@ -597,6 +603,7 @@ static struct tracer irqsoff_tracer __read_mostly =
+ 	.print_line     = irqsoff_print_line,
+ 	.flags		= &tracer_flags,
+ 	.set_flag	= irqsoff_set_flag,
++	.flag_changed	= trace_keep_overwrite,
+ #ifdef CONFIG_FTRACE_SELFTEST
+ 	.selftest    = trace_selftest_startup_irqsoff,
+ #endif
+@@ -630,6 +637,7 @@ static struct tracer preemptoff_tracer __read_mostly =
+ 	.print_line     = irqsoff_print_line,
+ 	.flags		= &tracer_flags,
+ 	.set_flag	= irqsoff_set_flag,
++	.flag_changed	= trace_keep_overwrite,
+ #ifdef CONFIG_FTRACE_SELFTEST
+ 	.selftest    = trace_selftest_startup_preemptoff,
+ #endif
+@@ -665,6 +673,7 @@ static struct tracer preemptirqsoff_tracer __read_mostly =
+ 	.print_line     = irqsoff_print_line,
+ 	.flags		= &tracer_flags,
+ 	.set_flag	= irqsoff_set_flag,
++	.flag_changed	= trace_keep_overwrite,
+ #ifdef CONFIG_FTRACE_SELFTEST
+ 	.selftest    = trace_selftest_startup_preemptirqsoff,
+ #endif
+diff --git a/kernel/trace/trace_sched_wakeup.c b/kernel/trace/trace_sched_wakeup.c
+index e4a70c0..6857e0c 100644
+--- a/kernel/trace/trace_sched_wakeup.c
++++ b/kernel/trace/trace_sched_wakeup.c
+@@ -36,7 +36,7 @@ static void __wakeup_reset(struct trace_array *tr);
+ static int wakeup_graph_entry(struct ftrace_graph_ent *trace);
+ static void wakeup_graph_return(struct ftrace_graph_ret *trace);
+ 
+-static int save_lat_flag;
++static int save_flags;
+ 
+ #define TRACE_DISPLAY_GRAPH     1
+ 
+@@ -528,8 +528,11 @@ static void stop_wakeup_tracer(struct trace_array *tr)
+ 
+ static int __wakeup_tracer_init(struct trace_array *tr)
+ {
+-	save_lat_flag = trace_flags & TRACE_ITER_LATENCY_FMT;
+-	trace_flags |= TRACE_ITER_LATENCY_FMT;
++	save_flags = trace_flags;
++
++	/* non overwrite screws up the latency tracers */
++	set_tracer_flag(TRACE_ITER_OVERWRITE, 1);
++	set_tracer_flag(TRACE_ITER_LATENCY_FMT, 1);
+ 
+ 	tracing_max_latency = 0;
+ 	wakeup_trace = tr;
+@@ -551,12 +554,15 @@ static int wakeup_rt_tracer_init(struct trace_array *tr)
+ 
+ static void wakeup_tracer_reset(struct trace_array *tr)
+ {
++	int lat_flag = save_flags & TRACE_ITER_LATENCY_FMT;
++	int overwrite_flag = save_flags & TRACE_ITER_OVERWRITE;
++
+ 	stop_wakeup_tracer(tr);
+ 	/* make sure we put back any tasks we are tracing */
+ 	wakeup_reset(tr);
+ 
+-	if (!save_lat_flag)
+-		trace_flags &= ~TRACE_ITER_LATENCY_FMT;
++	set_tracer_flag(TRACE_ITER_LATENCY_FMT, lat_flag);
++	set_tracer_flag(TRACE_ITER_OVERWRITE, overwrite_flag);
+ }
+ 
+ static void wakeup_tracer_start(struct trace_array *tr)
+@@ -582,6 +588,7 @@ static struct tracer wakeup_tracer __read_mostly =
+ 	.print_line	= wakeup_print_line,
+ 	.flags		= &tracer_flags,
+ 	.set_flag	= wakeup_set_flag,
++	.flag_changed	= trace_keep_overwrite,
+ #ifdef CONFIG_FTRACE_SELFTEST
+ 	.selftest    = trace_selftest_startup_wakeup,
+ #endif
+@@ -603,6 +610,7 @@ static struct tracer wakeup_rt_tracer __read_mostly =
+ 	.print_line	= wakeup_print_line,
+ 	.flags		= &tracer_flags,
+ 	.set_flag	= wakeup_set_flag,
++	.flag_changed	= trace_keep_overwrite,
+ #ifdef CONFIG_FTRACE_SELFTEST
+ 	.selftest    = trace_selftest_startup_wakeup,
+ #endif
+-- 
+1.8.1.4
+

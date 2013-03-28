@@ -1,4 +1,4 @@
-From d156e345944f49f204809fb8c30c100ccc9209cf Mon Sep 17 00:00:00 2001
+From 9ee2de9e9092847849aa67bbda6ced05f7055f7d Mon Sep 17 00:00:00 2001
 From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 Date: Mon, 3 Sep 2012 17:12:29 +0300
 Subject: [PATCH 029/135] UBI: fix a horrible memory deallocation bug
@@ -31,8 +31,8 @@ Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 [bwh: Backported to 3.2: aeb_slab_cache was actually named scan_leb_slab]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/mtd/ubi/vtbl.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/ubi/vtbl.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/mtd/ubi/vtbl.c b/drivers/mtd/ubi/vtbl.c
 index 890754c..95b29f5 100644
@@ -57,5 +57,5 @@ index 890754c..95b29f5 100644
  	ubi_free_vid_hdr(ubi, vid_hdr);
  	return err;
 -- 
-1.7.7.6
+1.8.1.4
 

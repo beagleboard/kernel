@@ -1,8 +1,8 @@
-From 559ba336e9af9db13ebbb51dd97cb994674dc7eb Mon Sep 17 00:00:00 2001
+From 34540b09b2a7bd00a722c07410fd54ebf4328c96 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>
 Date: Mon, 16 Jan 2012 15:11:59 +0100
-Subject: [PATCH 67/90] USB: cdc-wdm: better allocate a buffer that is at
- least as big as we tell the USB core
+Subject: [PATCH 67/90] USB: cdc-wdm: better allocate a buffer that is at least
+ as big as we tell the USB core
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -17,8 +17,8 @@ Signed-off-by: Bjørn Mork <bjorn@mork.no>
 Cc: Oliver Neukum <oliver@neukum.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/class/cdc-wdm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/usb/class/cdc-wdm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/usb/class/cdc-wdm.c b/drivers/usb/class/cdc-wdm.c
 index d2cda26..f0deb9e 100644
@@ -34,5 +34,5 @@ index d2cda26..f0deb9e 100644
  					 &desc->response->transfer_dma);
  	if (!desc->inbuf)
 -- 
-1.7.7.6
+1.8.1.4
 

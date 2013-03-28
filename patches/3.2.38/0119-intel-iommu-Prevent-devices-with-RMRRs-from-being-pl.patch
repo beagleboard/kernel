@@ -1,0 +1,69 @@
+From 414de00cd50fce2beac691677d60176266f88cd9 Mon Sep 17 00:00:00 2001
+From: Tom Mingarelli <thomas.mingarelli@hp.com>
+Date: Tue, 20 Nov 2012 19:43:17 +0000
+Subject: [PATCH 119/127] intel-iommu: Prevent devices with RMRRs from being
+ placed into SI Domain
+
+commit ea2447f700cab264019b52e2b417d689e052dcfd upstream.
+
+This patch is to prevent non-USB devices that have RMRRs associated with them from
+being placed into the SI Domain during init. This fixes the issue where the RMRR info
+for devices being placed in and out of the SI Domain gets lost.
+
+Signed-off-by: Thomas Mingarelli <thomas.mingarelli@hp.com>
+Tested-by: Shuah Khan <shuah.khan@hp.com>
+Reviewed-by: Donald Dutile <ddutile@redhat.com>
+Reviewed-by: Alex Williamson <alex.williamson@redhat.com>
+Signed-off-by: Joerg Roedel <joro@8bytes.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/iommu/intel-iommu.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
+index 6c886cd..dffdca8 100644
+--- a/drivers/iommu/intel-iommu.c
++++ b/drivers/iommu/intel-iommu.c
+@@ -2302,8 +2302,39 @@ static int domain_add_dev_info(struct dmar_domain *domain,
+ 	return 0;
+ }
+ 
++static bool device_has_rmrr(struct pci_dev *dev)
++{
++	struct dmar_rmrr_unit *rmrr;
++	int i;
++
++	for_each_rmrr_units(rmrr) {
++		for (i = 0; i < rmrr->devices_cnt; i++) {
++			/*
++			 * Return TRUE if this RMRR contains the device that
++			 * is passed in.
++			 */
++			if (rmrr->devices[i] == dev)
++				return true;
++		}
++	}
++	return false;
++}
++
+ static int iommu_should_identity_map(struct pci_dev *pdev, int startup)
+ {
++
++	/*
++	 * We want to prevent any device associated with an RMRR from
++	 * getting placed into the SI Domain. This is done because
++	 * problems exist when devices are moved in and out of domains
++	 * and their respective RMRR info is lost. We exempt USB devices
++	 * from this process due to their usage of RMRRs that are known
++	 * to not be needed after BIOS hand-off to OS.
++	 */
++	if (device_has_rmrr(pdev) &&
++	    (pdev->class >> 8) != PCI_CLASS_SERIAL_USB)
++		return 0;
++
+ 	if ((iommu_identity_mapping & IDENTMAP_AZALIA) && IS_AZALIA(pdev))
+ 		return 1;
+ 
+-- 
+1.8.1.4
+

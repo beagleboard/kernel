@@ -1,4 +1,4 @@
-From d6ac96ef802495666a41278a3ea169b4049f117b Mon Sep 17 00:00:00 2001
+From edf44057b35375e579c9b9f0d1b4b62350f1ce19 Mon Sep 17 00:00:00 2001
 From: Mel Gorman <mgorman@suse.de>
 Date: Tue, 31 Jul 2012 16:46:20 -0700
 Subject: [PATCH 56/70] mm: hugetlbfs: close race during teardown of hugetlbfs
@@ -237,9 +237,9 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
  - Drop the mmu_gather * parameters]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/hugetlb.h |   10 ++++++++++
- mm/hugetlb.c            |   28 ++++++++++++++++++++++++++--
- mm/memory.c             |    7 +++++--
+ include/linux/hugetlb.h | 10 ++++++++++
+ mm/hugetlb.c            | 28 ++++++++++++++++++++++++++--
+ mm/memory.c             |  7 +++++--
  3 files changed, 41 insertions(+), 4 deletions(-)
 
 diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
@@ -336,5 +336,5 @@ index 1b1ca17..70f5daf 100644
  				start = end;
  			} else
 -- 
-1.7.7.6
+1.8.1.4
 

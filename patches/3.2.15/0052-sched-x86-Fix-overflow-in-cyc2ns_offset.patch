@@ -1,4 +1,4 @@
-From 335e054bca40ad8c1ffe9a5618c889fa28053a8f Mon Sep 17 00:00:00 2001
+From 01f2c8e0460b705bb84627a6430742cdac32d86f Mon Sep 17 00:00:00 2001
 From: Salman Qazi <sqazi@google.com>
 Date: Fri, 9 Mar 2012 16:41:01 -0800
 Subject: [PATCH 52/60] sched/x86: Fix overflow in cyc2ns_offset
@@ -30,9 +30,9 @@ Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Mike Galbraith <efault@gmx.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/x86/include/asm/timer.h |    8 ++------
- arch/x86/kernel/tsc.c        |    3 ++-
- include/linux/kernel.h       |   13 +++++++++++++
+ arch/x86/include/asm/timer.h |  8 ++------
+ arch/x86/kernel/tsc.c        |  3 ++-
+ include/linux/kernel.h       | 13 +++++++++++++
  3 files changed, 17 insertions(+), 7 deletions(-)
 
 diff --git a/arch/x86/include/asm/timer.h b/arch/x86/include/asm/timer.h
@@ -95,5 +95,5 @@ index e8b1597..a70783d 100644
  #define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
  
 -- 
-1.7.7.6
+1.8.1.4
 

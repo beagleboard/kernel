@@ -1,4 +1,4 @@
-From 376dfa727e50b186d865adb9bfa484d5851153b4 Mon Sep 17 00:00:00 2001
+From 0dcbd64ca9882077f588f6d2c2589a7f2b015fc6 Mon Sep 17 00:00:00 2001
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Date: Fri, 4 May 2012 14:46:02 -0700
 Subject: [PATCH 133/165] Fix __read_seqcount_begin() to use ACCESS_ONCE for
@@ -30,8 +30,8 @@ incredibly annoying to debug.  Let's just make sure.
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/seqlock.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ include/linux/seqlock.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/include/linux/seqlock.h b/include/linux/seqlock.h
 index c6db9fb..bb1fac5 100644
@@ -47,5 +47,5 @@ index c6db9fb..bb1fac5 100644
  		cpu_relax();
  		goto repeat;
 -- 
-1.7.7.6
+1.8.1.4
 

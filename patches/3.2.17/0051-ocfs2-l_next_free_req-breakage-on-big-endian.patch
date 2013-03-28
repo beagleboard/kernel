@@ -1,4 +1,4 @@
-From 3971dc35b40dc7148d7ffa6661e3640c8f5177f6 Mon Sep 17 00:00:00 2001
+From 85accd45e0064332b5fd308006010da5ac8915a0 Mon Sep 17 00:00:00 2001
 From: Al Viro <viro@zeniv.linux.org.uk>
 Date: Fri, 13 Apr 2012 12:22:00 -0400
 Subject: [PATCH 051/165] ocfs2: ->l_next_free_req breakage on big-endian
@@ -10,8 +10,8 @@ It's le16, not le32...
 Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ocfs2/alloc.c        |    2 +-
- fs/ocfs2/refcounttree.c |    4 ++--
+ fs/ocfs2/alloc.c        | 2 +-
+ fs/ocfs2/refcounttree.c | 4 ++--
  2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/fs/ocfs2/alloc.c b/fs/ocfs2/alloc.c
@@ -49,5 +49,5 @@ index cf78233..a7b7217 100644
  out:
  	ocfs2_free_path(left_path);
 -- 
-1.7.7.6
+1.8.1.4
 

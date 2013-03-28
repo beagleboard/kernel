@@ -1,0 +1,31 @@
+From 505f5b46fa7da6dbbebf4889da19b09f82d710c8 Mon Sep 17 00:00:00 2001
+From: Ian Campbell <Ian.Campbell@citrix.com>
+Date: Wed, 6 Feb 2013 23:41:38 +0000
+Subject: [PATCH 59/67] netback: correct netbk_tx_err to handle wrap around.
+
+[ Upstream commit b9149729ebdcfce63f853aa54a404c6a8f6ebbf3 ]
+
+Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
+Acked-by: Jan Beulich <JBeulich@suse.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/xen-netback/netback.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/xen-netback/netback.c b/drivers/net/xen-netback/netback.c
+index a14b3a2..b802bb3 100644
+--- a/drivers/net/xen-netback/netback.c
++++ b/drivers/net/xen-netback/netback.c
+@@ -852,7 +852,7 @@ static void netbk_tx_err(struct xenvif *vif,
+ 
+ 	do {
+ 		make_tx_response(vif, txp, XEN_NETIF_RSP_ERROR);
+-		if (cons >= end)
++		if (cons == end)
+ 			break;
+ 		txp = RING_GET_REQUEST(&vif->tx, cons++);
+ 	} while (1);
+-- 
+1.8.1.4
+

@@ -1,0 +1,633 @@
+From f670b8b5630690d1d69005e0b7e5d431b079c303 Mon Sep 17 00:00:00 2001
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Fri, 1 Mar 2013 22:45:44 +0000
+Subject: [PATCH 18/82] dm: fix truncated status strings
+
+commit fd7c092e711ebab55b2688d3859d95dfd0301f73 upstream.
+
+Avoid returning a truncated table or status string instead of setting
+the DM_BUFFER_FULL_FLAG when the last target of a table fills the
+buffer.
+
+When processing a table or status request, the function retrieve_status
+calls ti->type->status. If ti->type->status returns non-zero,
+retrieve_status assumes that the buffer overflowed and sets
+DM_BUFFER_FULL_FLAG.
+
+However, targets don't return non-zero values from their status method
+on overflow. Most targets returns always zero.
+
+If a buffer overflow happens in a target that is not the last in the
+table, it gets noticed during the next iteration of the loop in
+retrieve_status; but if a buffer overflow happens in the last target, it
+goes unnoticed and erroneously truncated data is returned.
+
+In the current code, the targets behave in the following way:
+* dm-crypt returns -ENOMEM if there is not enough space to store the
+  key, but it returns 0 on all other overflows.
+* dm-thin returns errors from the status method if a disk error happened.
+  This is incorrect because retrieve_status doesn't check the error
+  code, it assumes that all non-zero values mean buffer overflow.
+* all the other targets always return 0.
+
+This patch changes the ti->type->status function to return void (because
+most targets don't use the return code). Overflow is detected in
+retrieve_status: if the status method fills up the remaining space
+completely, it is assumed that buffer overflow happened.
+
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+Signed-off-by: Alasdair G Kergon <agk@redhat.com>
+[bwh: Backported to 3.2:
+ - Adjust context
+ - dm_status_fn doesn't take a status_flags parameter
+ - Bump the last component of each current version (verified not to
+   match any version used in mainline)
+ - Drop changes to dm-verity]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/md/dm-crypt.c         | 39 +++++-----------------
+ drivers/md/dm-delay.c         |  8 ++---
+ drivers/md/dm-flakey.c        |  7 ++--
+ drivers/md/dm-ioctl.c         | 14 +++++---
+ drivers/md/dm-linear.c        |  7 ++--
+ drivers/md/dm-mpath.c         |  8 ++---
+ drivers/md/dm-raid.c          |  8 ++---
+ drivers/md/dm-raid1.c         |  8 ++---
+ drivers/md/dm-snap.c          | 16 ++++-----
+ drivers/md/dm-stripe.c        |  7 ++--
+ drivers/md/dm-thin.c          | 78 ++++++++++++++++++++++++++-----------------
+ include/linux/device-mapper.h |  4 +--
+ 12 files changed, 95 insertions(+), 109 deletions(-)
+
+diff --git a/drivers/md/dm-crypt.c b/drivers/md/dm-crypt.c
+index 58d8c6d..aa142f9 100644
+--- a/drivers/md/dm-crypt.c
++++ b/drivers/md/dm-crypt.c
+@@ -1262,20 +1262,6 @@ static int crypt_decode_key(u8 *key, char *hex, unsigned int size)
+ 	return 0;
+ }
+ 
+-/*
+- * Encode key into its hex representation
+- */
+-static void crypt_encode_key(char *hex, u8 *key, unsigned int size)
+-{
+-	unsigned int i;
+-
+-	for (i = 0; i < size; i++) {
+-		sprintf(hex, "%02x", *key);
+-		hex += 2;
+-		key++;
+-	}
+-}
+-
+ static void crypt_free_tfms(struct crypt_config *cc, int cpu)
+ {
+ 	struct crypt_cpu *cpu_cc = per_cpu_ptr(cc->cpu, cpu);
+@@ -1739,11 +1725,11 @@ static int crypt_map(struct dm_target *ti, struct bio *bio,
+ 	return DM_MAPIO_SUBMITTED;
+ }
+ 
+-static int crypt_status(struct dm_target *ti, status_type_t type,
+-			char *result, unsigned int maxlen)
++static void crypt_status(struct dm_target *ti, status_type_t type,
++			 char *result, unsigned maxlen)
+ {
+ 	struct crypt_config *cc = ti->private;
+-	unsigned int sz = 0;
++	unsigned i, sz = 0;
+ 
+ 	switch (type) {
+ 	case STATUSTYPE_INFO:
+@@ -1753,17 +1739,11 @@ static int crypt_status(struct dm_target *ti, status_type_t type,
+ 	case STATUSTYPE_TABLE:
+ 		DMEMIT("%s ", cc->cipher_string);
+ 
+-		if (cc->key_size > 0) {
+-			if ((maxlen - sz) < ((cc->key_size << 1) + 1))
+-				return -ENOMEM;
+-
+-			crypt_encode_key(result + sz, cc->key, cc->key_size);
+-			sz += cc->key_size << 1;
+-		} else {
+-			if (sz >= maxlen)
+-				return -ENOMEM;
+-			result[sz++] = '-';
+-		}
++		if (cc->key_size > 0)
++			for (i = 0; i < cc->key_size; i++)
++				DMEMIT("%02x", cc->key[i]);
++		else
++			DMEMIT("-");
+ 
+ 		DMEMIT(" %llu %s %llu", (unsigned long long)cc->iv_offset,
+ 				cc->dev->name, (unsigned long long)cc->start);
+@@ -1773,7 +1753,6 @@ static int crypt_status(struct dm_target *ti, status_type_t type,
+ 
+ 		break;
+ 	}
+-	return 0;
+ }
+ 
+ static void crypt_postsuspend(struct dm_target *ti)
+@@ -1867,7 +1846,7 @@ static int crypt_iterate_devices(struct dm_target *ti,
+ 
+ static struct target_type crypt_target = {
+ 	.name   = "crypt",
+-	.version = {1, 11, 0},
++	.version = {1, 11, 1},
+ 	.module = THIS_MODULE,
+ 	.ctr    = crypt_ctr,
+ 	.dtr    = crypt_dtr,
+diff --git a/drivers/md/dm-delay.c b/drivers/md/dm-delay.c
+index f18375d..11431ac 100644
+--- a/drivers/md/dm-delay.c
++++ b/drivers/md/dm-delay.c
+@@ -293,8 +293,8 @@ static int delay_map(struct dm_target *ti, struct bio *bio,
+ 	return delay_bio(dc, dc->read_delay, bio);
+ }
+ 
+-static int delay_status(struct dm_target *ti, status_type_t type,
+-			char *result, unsigned maxlen)
++static void delay_status(struct dm_target *ti, status_type_t type,
++			 char *result, unsigned maxlen)
+ {
+ 	struct delay_c *dc = ti->private;
+ 	int sz = 0;
+@@ -314,8 +314,6 @@ static int delay_status(struct dm_target *ti, status_type_t type,
+ 			       dc->write_delay);
+ 		break;
+ 	}
+-
+-	return 0;
+ }
+ 
+ static int delay_iterate_devices(struct dm_target *ti,
+@@ -337,7 +335,7 @@ out:
+ 
+ static struct target_type delay_target = {
+ 	.name	     = "delay",
+-	.version     = {1, 1, 0},
++	.version     = {1, 1, 1},
+ 	.module      = THIS_MODULE,
+ 	.ctr	     = delay_ctr,
+ 	.dtr	     = delay_dtr,
+diff --git a/drivers/md/dm-flakey.c b/drivers/md/dm-flakey.c
+index b280c43..746b5e8 100644
+--- a/drivers/md/dm-flakey.c
++++ b/drivers/md/dm-flakey.c
+@@ -331,8 +331,8 @@ static int flakey_end_io(struct dm_target *ti, struct bio *bio,
+ 	return error;
+ }
+ 
+-static int flakey_status(struct dm_target *ti, status_type_t type,
+-			 char *result, unsigned int maxlen)
++static void flakey_status(struct dm_target *ti, status_type_t type,
++			  char *result, unsigned maxlen)
+ {
+ 	unsigned sz = 0;
+ 	struct flakey_c *fc = ti->private;
+@@ -362,7 +362,6 @@ static int flakey_status(struct dm_target *ti, status_type_t type,
+ 
+ 		break;
+ 	}
+-	return 0;
+ }
+ 
+ static int flakey_ioctl(struct dm_target *ti, unsigned int cmd, unsigned long arg)
+@@ -405,7 +404,7 @@ static int flakey_iterate_devices(struct dm_target *ti, iterate_devices_callout_
+ 
+ static struct target_type flakey_target = {
+ 	.name   = "flakey",
+-	.version = {1, 2, 0},
++	.version = {1, 2, 1},
+ 	.module = THIS_MODULE,
+ 	.ctr    = flakey_ctr,
+ 	.dtr    = flakey_dtr,
+diff --git a/drivers/md/dm-ioctl.c b/drivers/md/dm-ioctl.c
+index 42c873f..e6a300c 100644
+--- a/drivers/md/dm-ioctl.c
++++ b/drivers/md/dm-ioctl.c
+@@ -1065,6 +1065,7 @@ static void retrieve_status(struct dm_table *table,
+ 	num_targets = dm_table_get_num_targets(table);
+ 	for (i = 0; i < num_targets; i++) {
+ 		struct dm_target *ti = dm_table_get_target(table, i);
++		size_t l;
+ 
+ 		remaining = len - (outptr - outbuf);
+ 		if (remaining <= sizeof(struct dm_target_spec)) {
+@@ -1089,14 +1090,17 @@ static void retrieve_status(struct dm_table *table,
+ 
+ 		/* Get the status/table string from the target driver */
+ 		if (ti->type->status) {
+-			if (ti->type->status(ti, type, outptr, remaining)) {
+-				param->flags |= DM_BUFFER_FULL_FLAG;
+-				break;
+-			}
++			ti->type->status(ti, type, outptr, remaining);
+ 		} else
+ 			outptr[0] = '\0';
+ 
+-		outptr += strlen(outptr) + 1;
++		l = strlen(outptr) + 1;
++		if (l == remaining) {
++			param->flags |= DM_BUFFER_FULL_FLAG;
++			break;
++		}
++
++		outptr += l;
+ 		used = param->data_start + (outptr - outbuf);
+ 
+ 		outptr = align_ptr(outptr);
+diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
+index 9728839..c55d8e4 100644
+--- a/drivers/md/dm-linear.c
++++ b/drivers/md/dm-linear.c
+@@ -94,8 +94,8 @@ static int linear_map(struct dm_target *ti, struct bio *bio,
+ 	return DM_MAPIO_REMAPPED;
+ }
+ 
+-static int linear_status(struct dm_target *ti, status_type_t type,
+-			 char *result, unsigned int maxlen)
++static void linear_status(struct dm_target *ti, status_type_t type,
++			  char *result, unsigned maxlen)
+ {
+ 	struct linear_c *lc = (struct linear_c *) ti->private;
+ 
+@@ -109,7 +109,6 @@ static int linear_status(struct dm_target *ti, status_type_t type,
+ 				(unsigned long long)lc->start);
+ 		break;
+ 	}
+-	return 0;
+ }
+ 
+ static int linear_ioctl(struct dm_target *ti, unsigned int cmd,
+@@ -154,7 +153,7 @@ static int linear_iterate_devices(struct dm_target *ti,
+ 
+ static struct target_type linear_target = {
+ 	.name   = "linear",
+-	.version = {1, 1, 0},
++	.version = {1, 1, 1},
+ 	.module = THIS_MODULE,
+ 	.ctr    = linear_ctr,
+ 	.dtr    = linear_dtr,
+diff --git a/drivers/md/dm-mpath.c b/drivers/md/dm-mpath.c
+index a417f94..7e766f9 100644
+--- a/drivers/md/dm-mpath.c
++++ b/drivers/md/dm-mpath.c
+@@ -1323,8 +1323,8 @@ static void multipath_resume(struct dm_target *ti)
+  *     [priority selector-name num_ps_args [ps_args]*
+  *      num_paths num_selector_args [path_dev [selector_args]* ]+ ]+
+  */
+-static int multipath_status(struct dm_target *ti, status_type_t type,
+-			    char *result, unsigned int maxlen)
++static void multipath_status(struct dm_target *ti, status_type_t type,
++			     char *result, unsigned maxlen)
+ {
+ 	int sz = 0;
+ 	unsigned long flags;
+@@ -1427,8 +1427,6 @@ static int multipath_status(struct dm_target *ti, status_type_t type,
+ 	}
+ 
+ 	spin_unlock_irqrestore(&m->lock, flags);
+-
+-	return 0;
+ }
+ 
+ static int multipath_message(struct dm_target *ti, unsigned argc, char **argv)
+@@ -1623,7 +1621,7 @@ out:
+  *---------------------------------------------------------------*/
+ static struct target_type multipath_target = {
+ 	.name = "multipath",
+-	.version = {1, 3, 0},
++	.version = {1, 3, 1},
+ 	.module = THIS_MODULE,
+ 	.ctr = multipath_ctr,
+ 	.dtr = multipath_dtr,
+diff --git a/drivers/md/dm-raid.c b/drivers/md/dm-raid.c
+index d2a3223..86862ea 100644
+--- a/drivers/md/dm-raid.c
++++ b/drivers/md/dm-raid.c
+@@ -1017,8 +1017,8 @@ static int raid_map(struct dm_target *ti, struct bio *bio, union map_info *map_c
+ 	return DM_MAPIO_SUBMITTED;
+ }
+ 
+-static int raid_status(struct dm_target *ti, status_type_t type,
+-		       char *result, unsigned maxlen)
++static void raid_status(struct dm_target *ti, status_type_t type,
++			char *result, unsigned maxlen)
+ {
+ 	struct raid_set *rs = ti->private;
+ 	unsigned raid_param_cnt = 1; /* at least 1 for chunksize */
+@@ -1153,8 +1153,6 @@ static int raid_status(struct dm_target *ti, status_type_t type,
+ 				DMEMIT(" -");
+ 		}
+ 	}
+-
+-	return 0;
+ }
+ 
+ static int raid_iterate_devices(struct dm_target *ti, iterate_devices_callout_fn fn, void *data)
+@@ -1208,7 +1206,7 @@ static void raid_resume(struct dm_target *ti)
+ 
+ static struct target_type raid_target = {
+ 	.name = "raid",
+-	.version = {1, 1, 0},
++	.version = {1, 1, 1},
+ 	.module = THIS_MODULE,
+ 	.ctr = raid_ctr,
+ 	.dtr = raid_dtr,
+diff --git a/drivers/md/dm-raid1.c b/drivers/md/dm-raid1.c
+index dae2b7a..b7b649d 100644
+--- a/drivers/md/dm-raid1.c
++++ b/drivers/md/dm-raid1.c
+@@ -1358,8 +1358,8 @@ static char device_status_char(struct mirror *m)
+ }
+ 
+ 
+-static int mirror_status(struct dm_target *ti, status_type_t type,
+-			 char *result, unsigned int maxlen)
++static void mirror_status(struct dm_target *ti, status_type_t type,
++			  char *result, unsigned maxlen)
+ {
+ 	unsigned int m, sz = 0;
+ 	struct mirror_set *ms = (struct mirror_set *) ti->private;
+@@ -1394,8 +1394,6 @@ static int mirror_status(struct dm_target *ti, status_type_t type,
+ 		if (ms->features & DM_RAID1_HANDLE_ERRORS)
+ 			DMEMIT(" 1 handle_errors");
+ 	}
+-
+-	return 0;
+ }
+ 
+ static int mirror_iterate_devices(struct dm_target *ti,
+@@ -1414,7 +1412,7 @@ static int mirror_iterate_devices(struct dm_target *ti,
+ 
+ static struct target_type mirror_target = {
+ 	.name	 = "mirror",
+-	.version = {1, 12, 1},
++	.version = {1, 12, 2},
+ 	.module	 = THIS_MODULE,
+ 	.ctr	 = mirror_ctr,
+ 	.dtr	 = mirror_dtr,
+diff --git a/drivers/md/dm-snap.c b/drivers/md/dm-snap.c
+index 6f75887..463c65a 100644
+--- a/drivers/md/dm-snap.c
++++ b/drivers/md/dm-snap.c
+@@ -1845,8 +1845,8 @@ static void snapshot_merge_resume(struct dm_target *ti)
+ 	start_merge(s);
+ }
+ 
+-static int snapshot_status(struct dm_target *ti, status_type_t type,
+-			   char *result, unsigned int maxlen)
++static void snapshot_status(struct dm_target *ti, status_type_t type,
++			    char *result, unsigned maxlen)
+ {
+ 	unsigned sz = 0;
+ 	struct dm_snapshot *snap = ti->private;
+@@ -1892,8 +1892,6 @@ static int snapshot_status(struct dm_target *ti, status_type_t type,
+ 					  maxlen - sz);
+ 		break;
+ 	}
+-
+-	return 0;
+ }
+ 
+ static int snapshot_iterate_devices(struct dm_target *ti,
+@@ -2148,8 +2146,8 @@ static void origin_resume(struct dm_target *ti)
+ 	ti->split_io = get_origin_minimum_chunksize(dev->bdev);
+ }
+ 
+-static int origin_status(struct dm_target *ti, status_type_t type, char *result,
+-			 unsigned int maxlen)
++static void origin_status(struct dm_target *ti, status_type_t type,
++			  char *result, unsigned maxlen)
+ {
+ 	struct dm_dev *dev = ti->private;
+ 
+@@ -2162,8 +2160,6 @@ static int origin_status(struct dm_target *ti, status_type_t type, char *result,
+ 		snprintf(result, maxlen, "%s", dev->name);
+ 		break;
+ 	}
+-
+-	return 0;
+ }
+ 
+ static int origin_merge(struct dm_target *ti, struct bvec_merge_data *bvm,
+@@ -2191,7 +2187,7 @@ static int origin_iterate_devices(struct dm_target *ti,
+ 
+ static struct target_type origin_target = {
+ 	.name    = "snapshot-origin",
+-	.version = {1, 7, 1},
++	.version = {1, 7, 2},
+ 	.module  = THIS_MODULE,
+ 	.ctr     = origin_ctr,
+ 	.dtr     = origin_dtr,
+@@ -2204,7 +2200,7 @@ static struct target_type origin_target = {
+ 
+ static struct target_type snapshot_target = {
+ 	.name    = "snapshot",
+-	.version = {1, 10, 0},
++	.version = {1, 10, 1},
+ 	.module  = THIS_MODULE,
+ 	.ctr     = snapshot_ctr,
+ 	.dtr     = snapshot_dtr,
+diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
+index 3d80cf0..cbd41d2 100644
+--- a/drivers/md/dm-stripe.c
++++ b/drivers/md/dm-stripe.c
+@@ -301,8 +301,8 @@ static int stripe_map(struct dm_target *ti, struct bio *bio,
+  *
+  */
+ 
+-static int stripe_status(struct dm_target *ti,
+-			 status_type_t type, char *result, unsigned int maxlen)
++static void stripe_status(struct dm_target *ti, status_type_t type,
++			  char *result, unsigned maxlen)
+ {
+ 	struct stripe_c *sc = (struct stripe_c *) ti->private;
+ 	char buffer[sc->stripes + 1];
+@@ -329,7 +329,6 @@ static int stripe_status(struct dm_target *ti,
+ 			    (unsigned long long)sc->stripe[i].physical_start);
+ 		break;
+ 	}
+-	return 0;
+ }
+ 
+ static int stripe_end_io(struct dm_target *ti, struct bio *bio,
+@@ -418,7 +417,7 @@ static int stripe_merge(struct dm_target *ti, struct bvec_merge_data *bvm,
+ 
+ static struct target_type stripe_target = {
+ 	.name   = "striped",
+-	.version = {1, 4, 0},
++	.version = {1, 4, 1},
+ 	.module = THIS_MODULE,
+ 	.ctr    = stripe_ctr,
+ 	.dtr    = stripe_dtr,
+diff --git a/drivers/md/dm-thin.c b/drivers/md/dm-thin.c
+index d432032..da4d299 100644
+--- a/drivers/md/dm-thin.c
++++ b/drivers/md/dm-thin.c
+@@ -2090,8 +2090,8 @@ static int pool_message(struct dm_target *ti, unsigned argc, char **argv)
+  *    <transaction id> <used metadata sectors>/<total metadata sectors>
+  *    <used data sectors>/<total data sectors> <held metadata root>
+  */
+-static int pool_status(struct dm_target *ti, status_type_t type,
+-		       char *result, unsigned maxlen)
++static void pool_status(struct dm_target *ti, status_type_t type,
++			char *result, unsigned maxlen)
+ {
+ 	int r;
+ 	unsigned sz = 0;
+@@ -2108,32 +2108,41 @@ static int pool_status(struct dm_target *ti, status_type_t type,
+ 
+ 	switch (type) {
+ 	case STATUSTYPE_INFO:
+-		r = dm_pool_get_metadata_transaction_id(pool->pmd,
+-							&transaction_id);
+-		if (r)
+-			return r;
++		r = dm_pool_get_metadata_transaction_id(pool->pmd, &transaction_id);
++		if (r) {
++			DMERR("dm_pool_get_metadata_transaction_id returned %d", r);
++			goto err;
++		}
+ 
+-		r = dm_pool_get_free_metadata_block_count(pool->pmd,
+-							  &nr_free_blocks_metadata);
+-		if (r)
+-			return r;
++		r = dm_pool_get_free_metadata_block_count(pool->pmd, &nr_free_blocks_metadata);
++		if (r) {
++			DMERR("dm_pool_get_free_metadata_block_count returned %d", r);
++			goto err;
++		}
+ 
+ 		r = dm_pool_get_metadata_dev_size(pool->pmd, &nr_blocks_metadata);
+-		if (r)
+-			return r;
++		if (r) {
++			DMERR("dm_pool_get_metadata_dev_size returned %d", r);
++			goto err;
++		}
+ 
+-		r = dm_pool_get_free_block_count(pool->pmd,
+-						 &nr_free_blocks_data);
+-		if (r)
+-			return r;
++		r = dm_pool_get_free_block_count(pool->pmd, &nr_free_blocks_data);
++		if (r) {
++			DMERR("dm_pool_get_free_block_count returned %d", r);
++			goto err;
++		}
+ 
+ 		r = dm_pool_get_data_dev_size(pool->pmd, &nr_blocks_data);
+-		if (r)
+-			return r;
++		if (r) {
++			DMERR("dm_pool_get_data_dev_size returned %d", r);
++			goto err;
++		}
+ 
+ 		r = dm_pool_get_held_metadata_root(pool->pmd, &held_root);
+-		if (r)
+-			return r;
++		if (r) {
++			DMERR("dm_pool_get_held_metadata_root returned %d", r);
++			goto err;
++		}
+ 
+ 		DMEMIT("%llu %llu/%llu %llu/%llu ",
+ 		       (unsigned long long)transaction_id,
+@@ -2162,8 +2171,10 @@ static int pool_status(struct dm_target *ti, status_type_t type,
+ 			DMEMIT("skip_block_zeroing ");
+ 		break;
+ 	}
++	return;
+ 
+-	return 0;
++err:
++	DMEMIT("Error");
+ }
+ 
+ static int pool_iterate_devices(struct dm_target *ti,
+@@ -2201,7 +2212,7 @@ static struct target_type pool_target = {
+ 	.name = "thin-pool",
+ 	.features = DM_TARGET_SINGLETON | DM_TARGET_ALWAYS_WRITEABLE |
+ 		    DM_TARGET_IMMUTABLE,
+-	.version = {1, 0, 0},
++	.version = {1, 0, 1},
+ 	.module = THIS_MODULE,
+ 	.ctr = pool_ctr,
+ 	.dtr = pool_dtr,
+@@ -2339,8 +2350,8 @@ static void thin_postsuspend(struct dm_target *ti)
+ /*
+  * <nr mapped sectors> <highest mapped sector>
+  */
+-static int thin_status(struct dm_target *ti, status_type_t type,
+-		       char *result, unsigned maxlen)
++static void thin_status(struct dm_target *ti, status_type_t type,
++			char *result, unsigned maxlen)
+ {
+ 	int r;
+ 	ssize_t sz = 0;
+@@ -2354,12 +2365,16 @@ static int thin_status(struct dm_target *ti, status_type_t type,
+ 		switch (type) {
+ 		case STATUSTYPE_INFO:
+ 			r = dm_thin_get_mapped_count(tc->td, &mapped);
+-			if (r)
+-				return r;
++			if (r) {
++				DMERR("dm_thin_get_mapped_count returned %d", r);
++				goto err;
++			}
+ 
+ 			r = dm_thin_get_highest_mapped_block(tc->td, &highest);
+-			if (r < 0)
+-				return r;
++			if (r < 0) {
++				DMERR("dm_thin_get_highest_mapped_block returned %d", r);
++				goto err;
++			}
+ 
+ 			DMEMIT("%llu ", mapped * tc->pool->sectors_per_block);
+ 			if (r)
+@@ -2377,7 +2392,10 @@ static int thin_status(struct dm_target *ti, status_type_t type,
+ 		}
+ 	}
+ 
+-	return 0;
++	return;
++
++err:
++	DMEMIT("Error");
+ }
+ 
+ static int thin_iterate_devices(struct dm_target *ti,
+@@ -2410,7 +2428,7 @@ static void thin_io_hints(struct dm_target *ti, struct queue_limits *limits)
+ 
+ static struct target_type thin_target = {
+ 	.name = "thin",
+-	.version = {1, 0, 0},
++	.version = {1, 0, 1},
+ 	.module	= THIS_MODULE,
+ 	.ctr = thin_ctr,
+ 	.dtr = thin_dtr,
+diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
+index 98f34b8..6712ab6 100644
+--- a/include/linux/device-mapper.h
++++ b/include/linux/device-mapper.h
+@@ -72,8 +72,8 @@ typedef void (*dm_postsuspend_fn) (struct dm_target *ti);
+ typedef int (*dm_preresume_fn) (struct dm_target *ti);
+ typedef void (*dm_resume_fn) (struct dm_target *ti);
+ 
+-typedef int (*dm_status_fn) (struct dm_target *ti, status_type_t status_type,
+-			     char *result, unsigned int maxlen);
++typedef void (*dm_status_fn) (struct dm_target *ti, status_type_t status_type,
++			      char *result, unsigned maxlen);
+ 
+ typedef int (*dm_message_fn) (struct dm_target *ti, unsigned argc, char **argv);
+ 
+-- 
+1.8.1.4
+

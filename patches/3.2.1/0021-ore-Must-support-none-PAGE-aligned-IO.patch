@@ -1,4 +1,4 @@
-From 0a5597fc875f23bc59221547dcb9fdcb4cc12c72 Mon Sep 17 00:00:00 2001
+From 50b64c673740d565c4d1c847c2954a989e25e001 Mon Sep 17 00:00:00 2001
 From: Boaz Harrosh <bharrosh@panasas.com>
 Date: Wed, 28 Dec 2011 19:21:45 +0200
 Subject: [PATCH 21/49] ore: Must support none-PAGE-aligned IO
@@ -20,8 +20,8 @@ later Kernels.
 Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- fs/exofs/ore_raid.c |   72 ++++++++++++++++++++++++++++++++++++++++++--------
- 1 files changed, 60 insertions(+), 12 deletions(-)
+ fs/exofs/ore_raid.c | 72 ++++++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 60 insertions(+), 12 deletions(-)
 
 diff --git a/fs/exofs/ore_raid.c b/fs/exofs/ore_raid.c
 index 414a2df..d222c77 100644
@@ -159,5 +159,5 @@ index 414a2df..d222c77 100644
  		first_stripe = div_u64(ios->offset, stripe_size);
  		last_stripe = div_u64(ios->offset + ios->length, stripe_size);
 -- 
-1.7.7.6
+1.8.1.4
 

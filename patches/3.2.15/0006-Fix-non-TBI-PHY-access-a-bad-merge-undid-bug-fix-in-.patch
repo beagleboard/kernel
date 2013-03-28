@@ -1,4 +1,4 @@
-From b82a3c1e33043cf3e3bd2fdc312d356098b55179 Mon Sep 17 00:00:00 2001
+From 9af344f3224575bf4ac88294a87d69637941bb76 Mon Sep 17 00:00:00 2001
 From: Kenth Eriksson <kenth.eriksson@transmode.com>
 Date: Tue, 27 Mar 2012 22:05:54 +0000
 Subject: [PATCH 06/60] Fix non TBI PHY access; a bad merge undid bug fix in a
@@ -14,8 +14,8 @@ Signed-off-by: Kenth Eriksson <kenth.eriksson@transmode.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/ethernet/freescale/fsl_pq_mdio.c |   13 ++++++-------
- 1 files changed, 6 insertions(+), 7 deletions(-)
+ drivers/net/ethernet/freescale/fsl_pq_mdio.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/net/ethernet/freescale/fsl_pq_mdio.c b/drivers/net/ethernet/freescale/fsl_pq_mdio.c
 index 4d9f84b..ada234a 100644
@@ -45,5 +45,5 @@ index 4d9f84b..ada234a 100644
  	if (err) {
  		printk (KERN_ERR "%s: Cannot register as MDIO bus\n",
 -- 
-1.7.7.6
+1.8.1.4
 

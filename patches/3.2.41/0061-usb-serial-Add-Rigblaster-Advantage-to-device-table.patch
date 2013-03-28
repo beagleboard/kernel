@@ -1,0 +1,33 @@
+From 49ac3934c42b1b4c1bd689d06ee576d6ab55cca8 Mon Sep 17 00:00:00 2001
+From: Steve Conklin <sconklin@canonical.com>
+Date: Thu, 7 Mar 2013 17:19:33 -0600
+Subject: [PATCH 61/82] usb: serial: Add Rigblaster Advantage to device table
+
+commit a57e82a18779ab8a5e5a1f5841cef937cf578913 upstream.
+
+The Rigblaster Advantage is an amateur radio interface sold by West Mountain
+Radio. It contains a cp210x serial interface but the device ID is not in
+the driver.
+
+Signed-off-by: Steve Conklin <sconklin@canonical.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/cp210x.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/usb/serial/cp210x.c b/drivers/usb/serial/cp210x.c
+index 96cd80c..913a178 100644
+--- a/drivers/usb/serial/cp210x.c
++++ b/drivers/usb/serial/cp210x.c
+@@ -91,6 +91,7 @@ static const struct usb_device_id id_table[] = {
+ 	{ USB_DEVICE(0x10C4, 0x813F) }, /* Tams Master Easy Control */
+ 	{ USB_DEVICE(0x10C4, 0x814A) }, /* West Mountain Radio RIGblaster P&P */
+ 	{ USB_DEVICE(0x10C4, 0x814B) }, /* West Mountain Radio RIGtalk */
++	{ USB_DEVICE(0x2405, 0x0003) }, /* West Mountain Radio RIGblaster Advantage */
+ 	{ USB_DEVICE(0x10C4, 0x8156) }, /* B&G H3000 link cable */
+ 	{ USB_DEVICE(0x10C4, 0x815E) }, /* Helicomm IP-Link 1220-DVM */
+ 	{ USB_DEVICE(0x10C4, 0x815F) }, /* Timewave HamLinkUSB */
+-- 
+1.8.1.4
+

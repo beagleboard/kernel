@@ -1,4 +1,4 @@
-From cc90151396ffc183a38942d2323d3fa50f443c70 Mon Sep 17 00:00:00 2001
+From a84eaeb2e01df99751e7853c37bcf50e91a1467e Mon Sep 17 00:00:00 2001
 From: Dan Williams <dan.j.williams@intel.com>
 Date: Fri, 22 Jun 2012 11:31:14 -0700
 Subject: [PATCH 001/146] isci: fix isci_pci_probe() generates warning on efi
@@ -18,8 +18,8 @@ Reported-by: Don Morris <don.morris@hp.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/scsi/isci/init.c       |    1 -
- drivers/scsi/isci/probe_roms.c |    1 -
+ drivers/scsi/isci/init.c       | 1 -
+ drivers/scsi/isci/probe_roms.c | 1 -
  2 files changed, 2 deletions(-)
 
 diff --git a/drivers/scsi/isci/init.c b/drivers/scsi/isci/init.c
@@ -47,5 +47,5 @@ index b5f4341..7cd637d 100644
  	}
  	pci_unmap_biosrom(oprom);
 -- 
-1.7.10.4
+1.8.1.4
 

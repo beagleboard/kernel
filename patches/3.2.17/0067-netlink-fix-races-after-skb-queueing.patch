@@ -1,4 +1,4 @@
-From 08c7c29e6b4696bd94cf56a362592c56544f715c Mon Sep 17 00:00:00 2001
+From c2c6937b88bbb8e1c6a10c79639aeb37707f3ef1 Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Thu, 5 Apr 2012 22:17:46 +0000
 Subject: [PATCH 067/165] netlink: fix races after skb queueing
@@ -13,8 +13,8 @@ Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/netlink/af_netlink.c |   24 +++++++++++++-----------
- 1 files changed, 13 insertions(+), 11 deletions(-)
+ net/netlink/af_netlink.c | 24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
 diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
 index 1201b6d..a99fb41 100644
@@ -78,5 +78,5 @@ index 1201b6d..a99fb41 100644
  	if (cb->done)
  		cb->done(cb);
 -- 
-1.7.7.6
+1.8.1.4
 

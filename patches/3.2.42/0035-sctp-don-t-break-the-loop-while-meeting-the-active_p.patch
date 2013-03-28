@@ -1,0 +1,39 @@
+From f723d83ff750fcf819b4f946cb97ce3989e05f9a Mon Sep 17 00:00:00 2001
+From: Xufeng Zhang <xufeng.zhang@windriver.com>
+Date: Thu, 7 Mar 2013 21:39:37 +0000
+Subject: [PATCH 35/92] sctp: don't break the loop while meeting the
+ active_path so as to find the matched transport
+
+[ Upstream commit 2317f449af30073cfa6ec8352e4a65a89e357bdd ]
+
+sctp_assoc_lookup_tsn() function searchs which transport a certain TSN
+was sent on, if not found in the active_path transport, then go search
+all the other transports in the peer's transport_addr_list, however, we
+should continue to the next entry rather than break the loop when meet
+the active_path transport.
+
+Signed-off-by: Xufeng Zhang <xufeng.zhang@windriver.com>
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
+Acked-by: Vlad Yasevich <vyasevich@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/sctp/associola.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/sctp/associola.c b/net/sctp/associola.c
+index acd2edb..3c04692 100644
+--- a/net/sctp/associola.c
++++ b/net/sctp/associola.c
+@@ -1050,7 +1050,7 @@ struct sctp_transport *sctp_assoc_lookup_tsn(struct sctp_association *asoc,
+ 			transports) {
+ 
+ 		if (transport == active)
+-			break;
++			continue;
+ 		list_for_each_entry(chunk, &transport->transmitted,
+ 				transmitted_list) {
+ 			if (key == chunk->subh.data_hdr->tsn) {
+-- 
+1.8.1.4
+

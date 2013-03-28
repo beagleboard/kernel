@@ -1,4 +1,4 @@
-From 5faae97d6f106a1062e4cf6ea47b88ee1086cd3b Mon Sep 17 00:00:00 2001
+From 71546ba4c42ff22256d04cff534ce3b5856204d9 Mon Sep 17 00:00:00 2001
 From: Dan Magenheimer <dan.magenheimer@oracle.com>
 Date: Mon, 23 Jan 2012 16:52:20 -0500
 Subject: [PATCH 82/87] zcache: Set SWIZ_BITS to 8 to reduce tmem bucket lock
@@ -22,8 +22,8 @@ Acked-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/staging/zcache/zcache-main.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/staging/zcache/zcache-main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/staging/zcache/zcache-main.c b/drivers/staging/zcache/zcache-main.c
 index 56c1f9c..d3a8e67 100644
@@ -42,5 +42,5 @@ index 56c1f9c..d3a8e67 100644
  #define _oswiz(_type, _ind)	((_type << SWIZ_BITS) | (_ind & SWIZ_MASK))
  #define iswiz(_ind)		(_ind >> SWIZ_BITS)
 -- 
-1.7.7.6
+1.8.1.4
 

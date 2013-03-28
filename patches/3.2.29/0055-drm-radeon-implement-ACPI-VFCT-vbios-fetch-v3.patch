@@ -1,4 +1,4 @@
-From c3ee98367c45b02961424d9336c4d65bc4bc682a Mon Sep 17 00:00:00 2001
+From 3f6a377dcead404c732a7b38eddcb05996419bac Mon Sep 17 00:00:00 2001
 From: David Lamparter <equinox@diac24.net>
 Date: Thu, 16 Aug 2012 15:45:20 -0400
 Subject: [PATCH 55/94] drm/radeon: implement ACPI VFCT vbios fetch (v3)
@@ -18,8 +18,8 @@ Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
 Reviewed-by: Jerome Glisse <jglisse@redhat.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/radeon/radeon_bios.c |   60 ++++++++++++++++++++++++++++++++++
- 1 files changed, 60 insertions(+), 0 deletions(-)
+ drivers/gpu/drm/radeon/radeon_bios.c | 60 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 60 insertions(+)
 
 diff --git a/drivers/gpu/drm/radeon/radeon_bios.c b/drivers/gpu/drm/radeon/radeon_bios.c
 index 229a20f..f8e4dfe 100644
@@ -107,5 +107,5 @@ index 229a20f..f8e4dfe 100644
  	if (r == false)
  		r = radeon_read_bios(rdev);
 -- 
-1.7.7.6
+1.8.1.4
 

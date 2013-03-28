@@ -1,4 +1,4 @@
-From a8d78df58a068078766c645c7e4da0956295bd3b Mon Sep 17 00:00:00 2001
+From 08559a4ce0106130cc16773b2ef7662642e3d6b7 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Date: Fri, 4 May 2012 12:09:39 -0700
 Subject: [PATCH 147/165] hfsplus: Fix potential buffer overflows
@@ -26,9 +26,9 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/hfsplus/catalog.c |    4 ++++
- fs/hfsplus/dir.c     |   11 +++++++++++
- 2 files changed, 15 insertions(+), 0 deletions(-)
+ fs/hfsplus/catalog.c |  4 ++++
+ fs/hfsplus/dir.c     | 11 +++++++++++
+ 2 files changed, 15 insertions(+)
 
 diff --git a/fs/hfsplus/catalog.c b/fs/hfsplus/catalog.c
 index 4dfbfec..ec2a9c2 100644
@@ -75,5 +75,5 @@ index 4536cd3..5adb740 100644
  			fd.entrylength);
  		type = be16_to_cpu(entry.type);
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 100119e212814336b6606644547a8507563efacc Mon Sep 17 00:00:00 2001
+From a39cbffe692f8210ea4cdc190a00139da386e705 Mon Sep 17 00:00:00 2001
 From: Jeff Layton <jlayton@redhat.com>
 Date: Wed, 11 Jul 2012 09:09:35 -0400
 Subject: [PATCH 061/109] cifs: on CONFIG_HIGHMEM machines, limit the
@@ -31,8 +31,8 @@ Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: Steve French <smfrench@gmail.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/cifs/connect.c |   18 ++++++++++++++++++
- 1 files changed, 18 insertions(+), 0 deletions(-)
+ fs/cifs/connect.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
 diff --git a/fs/cifs/connect.c b/fs/cifs/connect.c
 index b21670c..56c152d 100644
@@ -78,5 +78,5 @@ index b21670c..56c152d 100644
  	rsize = min_t(unsigned int, rsize, CIFS_MAX_RSIZE);
  
 -- 
-1.7.7.6
+1.8.1.4
 

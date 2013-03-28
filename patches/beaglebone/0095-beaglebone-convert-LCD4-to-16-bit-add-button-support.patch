@@ -1,12 +1,13 @@
-From 8f587269699bc3a23eb395f3da2a15b9b76bafa8 Mon Sep 17 00:00:00 2001
+From a3fd2cf631bd538875323240589c8ada30d94b9c Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Wed, 10 Oct 2012 13:18:57 +0200
-Subject: [PATCH 2/2] beaglebone: convert LCD4 to 16 bit, add button support
+Subject: [PATCH 095/102] beaglebone: convert LCD4 to 16 bit, add button
+ support
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
- arch/arm/mach-omap2/board-am335xevm.c |   80 ++++++++++++++++++++++++++++-----
- 1 files changed, 69 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap2/board-am335xevm.c | 80 ++++++++++++++++++++++++++++++-----
+ 1 file changed, 69 insertions(+), 11 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
 index 8386116..0e00629 100644
@@ -134,5 +135,5 @@ index 8386116..0e00629 100644
  			gpio_request(GPIO_TO_PIN(3, 19), "LCD4_DISEN");
  			gpio_direction_output(GPIO_TO_PIN(3, 19), 1);
 -- 
-1.7.7.6
+1.8.1.4
 

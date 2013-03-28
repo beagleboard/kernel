@@ -1,0 +1,37 @@
+From 255197dd22e88e7ffb594855cd356f51255c4340 Mon Sep 17 00:00:00 2001
+From: Paul Bolle <pebolle@tiscali.nl>
+Date: Sat, 9 Mar 2013 23:16:44 +0100
+Subject: [PATCH 60/82] tty: serial: fix typo "ARCH_S5P6450"
+
+commit 827aa0d36d486f359808c8fb931cf7a71011a09d upstream.
+
+This could have been either ARCH_S5P64X0 or CPU_S5P6450. Looking at
+commit 2555e663b367b8d555e76023f4de3f6338c28d6c ("ARM: S5P64X0: Add UART
+serial support for S5P6450") - which added this typo - makes clear this
+should be CPU_S5P6450.
+
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/tty/serial/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/tty/serial/Kconfig b/drivers/tty/serial/Kconfig
+index 925a1e5..3771277 100644
+--- a/drivers/tty/serial/Kconfig
++++ b/drivers/tty/serial/Kconfig
+@@ -464,7 +464,7 @@ config SERIAL_SAMSUNG_UARTS_4
+ config SERIAL_SAMSUNG_UARTS
+ 	int
+ 	depends on ARM && PLAT_SAMSUNG
+-	default 6 if ARCH_S5P6450
++	default 6 if CPU_S5P6450
+ 	default 4 if SERIAL_SAMSUNG_UARTS_4
+ 	default 3
+ 	help
+-- 
+1.8.1.4
+

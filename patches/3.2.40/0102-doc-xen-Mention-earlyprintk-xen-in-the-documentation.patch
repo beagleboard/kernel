@@ -1,0 +1,47 @@
+From 59d9d44a2d97a802a59dc64515b810e36617ff95 Mon Sep 17 00:00:00 2001
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Date: Mon, 25 Feb 2013 15:54:08 -0500
+Subject: [PATCH 102/153] doc, xen: Mention 'earlyprintk=xen' in the
+ documentation.
+
+commit 2482a92e7d17187301d7313cfe5021b13393a0b4 upstream.
+
+The earlyprintk for Xen PV guests utilizes a simple hypercall
+(console_io) to provide output to Xen emergency console.
+
+Note that the Xen hypervisor should be booted with 'loglevel=all'
+to output said information.
+
+Reported-by: H. Peter Anvin <hpa@zytor.com>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Link: http://lkml.kernel.org/r/1361825650-14031-2-git-send-email-konrad.wilk@oracle.com
+Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ Documentation/kernel-parameters.txt | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 81c287f..4a4cff8 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -703,6 +703,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 
+ 	earlyprintk=	[X86,SH,BLACKFIN]
+ 			earlyprintk=vga
++			earlyprintk=xen
+ 			earlyprintk=serial[,ttySn[,baudrate]]
+ 			earlyprintk=ttySn[,baudrate]
+ 			earlyprintk=dbgp[debugController#]
+@@ -720,6 +721,8 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 			The VGA output is eventually overwritten by the real
+ 			console.
+ 
++			The xen output can only be used by Xen PV guests.
++
+ 	ekgdboc=	[X86,KGDB] Allow early kernel console debugging
+ 			ekgdboc=kbd
+ 
+-- 
+1.8.1.4
+

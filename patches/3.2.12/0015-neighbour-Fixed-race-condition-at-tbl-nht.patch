@@ -1,4 +1,4 @@
-From 0de304cf638c7860a900e514803ef74fbc51df15 Mon Sep 17 00:00:00 2001
+From a039981716e50e21711908953e7ccb7d4ea031ae Mon Sep 17 00:00:00 2001
 From: Michel Machado <michel@digirati.com.br>
 Date: Tue, 21 Feb 2012 11:04:13 +0000
 Subject: [PATCH 15/42] neighbour: Fixed race condition at tbl->nht
@@ -27,8 +27,8 @@ CC: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/core/neighbour.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ net/core/neighbour.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/net/core/neighbour.c b/net/core/neighbour.c
 index 5ac07d3..7aafaed 100644
@@ -44,5 +44,5 @@ index 5ac07d3..7aafaed 100644
  	/* Cycle through all hash buckets every base_reachable_time/2 ticks.
  	 * ARP entry timeouts range from 1/2 base_reachable_time to 3/2
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 45362d796d1e3e37d3b6ff2bfba5185db2231967 Mon Sep 17 00:00:00 2001
+From 5f5bc9fa2802cae543db282aae97c531a9c99648 Mon Sep 17 00:00:00 2001
 From: Yasunori Goto <y-goto@jp.fujitsu.com>
 Date: Tue, 17 Jan 2012 17:40:31 +0900
 Subject: [PATCH 013/109] sched: Fix ancient race in do_exit()
@@ -90,7 +90,7 @@ Link: http://lkml.kernel.org/r/20120117174031.3118.E1E9C6FF@jp.fujitsu.com
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/exit.c |   16 ++++++++++++++++
+ kernel/exit.c | 16 ++++++++++++++++
  1 file changed, 16 insertions(+)
 
 diff --git a/kernel/exit.c b/kernel/exit.c
@@ -121,5 +121,5 @@ index 5a8a66e..234e152 100644
  	tsk->state = TASK_DEAD;
  	schedule();
 -- 
-1.7.10.4
+1.8.1.4
 

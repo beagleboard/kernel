@@ -1,4 +1,4 @@
-From 63b842351b0c4d67081a43a4af969e52ad0a6baf Mon Sep 17 00:00:00 2001
+From d196703dda4d7bd6865d72a6c5434a0f8b0aaaab Mon Sep 17 00:00:00 2001
 From: stephen hemminger <shemminger@vyatta.com>
 Date: Sat, 31 Dec 2011 13:26:46 +0000
 Subject: [PATCH 46/49] bonding: fix error handling if slave is busy (v2)
@@ -26,8 +26,8 @@ Reviewed-by: Nicolas de Pesloüan <nicolas.2p.debian@free.fr>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/net/bonding/bond_main.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/net/bonding/bond_main.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
 index 7f87568..e58aa2b 100644
@@ -64,5 +64,5 @@ index 7f87568..e58aa2b 100644
  	dev_close(slave_dev);
  
 -- 
-1.7.7.6
+1.8.1.4
 

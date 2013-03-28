@@ -1,4 +1,4 @@
-From 276903ae4ed41d5e033b45ee4362d608213628ee Mon Sep 17 00:00:00 2001
+From e06fdb87f4e0a359067a859d6afd8904d5bbca08 Mon Sep 17 00:00:00 2001
 From: Tejun Heo <tj@kernel.org>
 Date: Tue, 15 May 2012 08:22:04 +0200
 Subject: [PATCH 010/117] block: fix buffer overflow when printing partition
@@ -39,8 +39,8 @@ Cc: Will Drewry <wad@chromium.org>
 Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- block/genhd.c         |   10 ++++++----
- include/linux/genhd.h |    6 ------
+ block/genhd.c         | 10 ++++++----
+ include/linux/genhd.h |  6 ------
  2 files changed, 6 insertions(+), 10 deletions(-)
 
 diff --git a/block/genhd.c b/block/genhd.c
@@ -94,5 +94,5 @@ index c6f7f6a..4eec461 100644
  {
  	if (disk->flags & GENHD_FL_EXT_DEVT)
 -- 
-1.7.7.6
+1.8.1.4
 

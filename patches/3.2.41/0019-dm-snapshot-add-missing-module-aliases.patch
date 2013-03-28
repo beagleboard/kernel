@@ -1,0 +1,33 @@
+From 16b633984c9c20ad28cde29bad3c57be58b30065 Mon Sep 17 00:00:00 2001
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Fri, 1 Mar 2013 22:45:47 +0000
+Subject: [PATCH 19/82] dm snapshot: add missing module aliases
+
+commit 23cb21092eb9dcec9d3604b68d95192b79915890 upstream.
+
+Add module aliases so that autoloading works correctly if the user
+tries to activate "snapshot-origin" or "snapshot-merge" targets.
+
+Reference: https://bugzilla.redhat.com/889973
+
+Reported-by: Chao Yang <chyang@redhat.com>
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+Signed-off-by: Alasdair G Kergon <agk@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/md/dm-snap.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/md/dm-snap.c b/drivers/md/dm-snap.c
+index 463c65a..34ec2b5 100644
+--- a/drivers/md/dm-snap.c
++++ b/drivers/md/dm-snap.c
+@@ -2323,3 +2323,5 @@ module_exit(dm_snapshot_exit);
+ MODULE_DESCRIPTION(DM_NAME " snapshot target");
+ MODULE_AUTHOR("Joe Thornber");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("dm-snapshot-origin");
++MODULE_ALIAS("dm-snapshot-merge");
+-- 
+1.8.1.4
+

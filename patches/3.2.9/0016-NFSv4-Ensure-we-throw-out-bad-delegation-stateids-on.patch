@@ -1,4 +1,4 @@
-From 90b71ab8b09e3402db1949d0be8619dc29c0371a Mon Sep 17 00:00:00 2001
+From bb41805c375936486ecc8a643664395055da6219 Mon Sep 17 00:00:00 2001
 From: Trond Myklebust <Trond.Myklebust@netapp.com>
 Date: Thu, 9 Feb 2012 15:31:36 -0500
 Subject: [PATCH 16/72] NFSv4: Ensure we throw out bad delegation stateids on
@@ -12,8 +12,8 @@ recover the nfs4_state that received the bad stateid error.
 Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/nfs/nfs4state.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ fs/nfs/nfs4state.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/fs/nfs/nfs4state.c b/fs/nfs/nfs4state.c
 index 6a7107a..a58eed7 100644
@@ -29,5 +29,5 @@ index 6a7107a..a58eed7 100644
  	nfs4_schedule_state_manager(clp);
  }
 -- 
-1.7.7.6
+1.8.1.4
 

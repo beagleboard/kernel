@@ -1,0 +1,37 @@
+From 038b7395d42eb434b231f742dfca633d6161ffd2 Mon Sep 17 00:00:00 2001
+From: Alex Deucher <alexander.deucher@amd.com>
+Date: Thu, 31 Jan 2013 09:00:52 -0500
+Subject: [PATCH 117/153] drm/radeon/evergreen+: wait for the MC to settle
+ after MC blackout
+
+commit ed39fadd6df01095378e499fac3674883f16b853 upstream.
+
+Some chips seem to need a little delay after blacking out
+the MC before the requests actually stop.
+
+May fix:
+https://bugs.freedesktop.org/show_bug.cgi?id=56139
+https://bugs.freedesktop.org/show_bug.cgi?id=57567
+
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/evergreen.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/gpu/drm/radeon/evergreen.c b/drivers/gpu/drm/radeon/evergreen.c
+index 0977849..60d13fe 100644
+--- a/drivers/gpu/drm/radeon/evergreen.c
++++ b/drivers/gpu/drm/radeon/evergreen.c
+@@ -1137,6 +1137,8 @@ void evergreen_mc_stop(struct radeon_device *rdev, struct evergreen_mc_save *sav
+ 		blackout &= ~BLACKOUT_MODE_MASK;
+ 		WREG32(MC_SHARED_BLACKOUT_CNTL, blackout | 1);
+ 	}
++	/* wait for the MC to settle */
++	udelay(100);
+ }
+ 
+ void evergreen_mc_resume(struct radeon_device *rdev, struct evergreen_mc_save *save)
+-- 
+1.8.1.4
+

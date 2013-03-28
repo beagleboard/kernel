@@ -1,0 +1,49 @@
+From 861861f07dcfb487bbd36cdcf210389c384e6343 Mon Sep 17 00:00:00 2001
+From: Szymon Janc <szymon.janc@tieto.com>
+Date: Tue, 11 Dec 2012 08:51:19 +0100
+Subject: [PATCH 38/67] Bluetooth: Fix sending HCI commands after reset
+
+commit dbccd791a3fbbdac12c33834b73beff3984988e9 upstream.
+
+After sending reset command wait for its command complete event before
+sending next command. Some chips sends CC event for command received
+before reset if reset was send before chip replied with CC.
+
+This is also required by specification that host shall not send
+additional HCI commands before receiving CC for reset.
+
+< HCI Command: Reset (0x03|0x0003) plen 0                              [hci0] 18.404612
+> HCI Event: Command Complete (0x0e) plen 4                            [hci0] 18.405850
+      Write Extended Inquiry Response (0x03|0x0052) ncmd 1
+        Status: Success (0x00)
+< HCI Command: Read Local Supported Features (0x04|0x0003) plen 0      [hci0] 18.406079
+> HCI Event: Command Complete (0x0e) plen 4                            [hci0] 18.407864
+      Reset (0x03|0x0003) ncmd 1
+        Status: Success (0x00)
+< HCI Command: Read Local Supported Features (0x04|0x0003) plen 0      [hci0] 18.408062
+> HCI Event: Command Complete (0x0e) plen 12                           [hci0] 18.408835
+
+Signed-off-by: Szymon Janc <szymon.janc@tieto.com>
+Acked-by: Johan Hedberg <johan.hedberg@intel.com>
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/bluetooth/hci_event.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/bluetooth/hci_event.c b/net/bluetooth/hci_event.c
+index 6033f02..7a157b3 100644
+--- a/net/bluetooth/hci_event.c
++++ b/net/bluetooth/hci_event.c
+@@ -1972,7 +1972,7 @@ static inline void hci_cmd_complete_evt(struct hci_dev *hdev, struct sk_buff *sk
+ 	if (ev->opcode != HCI_OP_NOP)
+ 		del_timer(&hdev->cmd_timer);
+ 
+-	if (ev->ncmd) {
++	if (ev->ncmd && !test_bit(HCI_RESET, &hdev->flags)) {
+ 		atomic_set(&hdev->cmd_cnt, 1);
+ 		if (!skb_queue_empty(&hdev->cmd_q))
+ 			tasklet_schedule(&hdev->cmd_task);
+-- 
+1.8.1.4
+

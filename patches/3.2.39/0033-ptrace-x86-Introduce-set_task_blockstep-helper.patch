@@ -1,0 +1,89 @@
+From b49d95c33940b87e0ae6f45e408e4757e41e755f Mon Sep 17 00:00:00 2001
+From: Oleg Nesterov <oleg@redhat.com>
+Date: Fri, 3 Aug 2012 17:31:46 +0200
+Subject: [PATCH 33/67] ptrace/x86: Introduce set_task_blockstep() helper
+
+commit 848e8f5f0ad3169560c516fff6471be65f76e69f upstream.
+
+No functional changes, preparation for the next fix and for uprobes
+single-step fixes.
+
+Move the code playing with TIF_BLOCKSTEP/DEBUGCTLMSR_BTF into the
+new helper, set_task_blockstep().
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kernel/step.c | 41 +++++++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 20 deletions(-)
+
+diff --git a/arch/x86/kernel/step.c b/arch/x86/kernel/step.c
+index c346d11..7a51498 100644
+--- a/arch/x86/kernel/step.c
++++ b/arch/x86/kernel/step.c
+@@ -157,6 +157,21 @@ static int enable_single_step(struct task_struct *child)
+ 	return 1;
+ }
+ 
++static void set_task_blockstep(struct task_struct *task, bool on)
++{
++	unsigned long debugctl;
++
++	debugctl = get_debugctlmsr();
++	if (on) {
++		debugctl |= DEBUGCTLMSR_BTF;
++		set_tsk_thread_flag(task, TIF_BLOCKSTEP);
++	} else {
++		debugctl &= ~DEBUGCTLMSR_BTF;
++		clear_tsk_thread_flag(task, TIF_BLOCKSTEP);
++	}
++	update_debugctlmsr(debugctl);
++}
++
+ /*
+  * Enable single or block step.
+  */
+@@ -169,19 +184,10 @@ static void enable_step(struct task_struct *child, bool block)
+ 	 * So no one should try to use debugger block stepping in a program
+ 	 * that uses user-mode single stepping itself.
+ 	 */
+-	if (enable_single_step(child) && block) {
+-		unsigned long debugctl = get_debugctlmsr();
+-
+-		debugctl |= DEBUGCTLMSR_BTF;
+-		update_debugctlmsr(debugctl);
+-		set_tsk_thread_flag(child, TIF_BLOCKSTEP);
+-	} else if (test_tsk_thread_flag(child, TIF_BLOCKSTEP)) {
+-		unsigned long debugctl = get_debugctlmsr();
+-
+-		debugctl &= ~DEBUGCTLMSR_BTF;
+-		update_debugctlmsr(debugctl);
+-		clear_tsk_thread_flag(child, TIF_BLOCKSTEP);
+-	}
++	if (enable_single_step(child) && block)
++		set_task_blockstep(child, true);
++	else if (test_tsk_thread_flag(child, TIF_BLOCKSTEP))
++		set_task_blockstep(child, false);
+ }
+ 
+ void user_enable_single_step(struct task_struct *child)
+@@ -199,13 +205,8 @@ void user_disable_single_step(struct task_struct *child)
+ 	/*
+ 	 * Make sure block stepping (BTF) is disabled.
+ 	 */
+-	if (test_tsk_thread_flag(child, TIF_BLOCKSTEP)) {
+-		unsigned long debugctl = get_debugctlmsr();
+-
+-		debugctl &= ~DEBUGCTLMSR_BTF;
+-		update_debugctlmsr(debugctl);
+-		clear_tsk_thread_flag(child, TIF_BLOCKSTEP);
+-	}
++	if (test_tsk_thread_flag(child, TIF_BLOCKSTEP))
++		set_task_blockstep(child, false);
+ 
+ 	/* Always clear TIF_SINGLESTEP... */
+ 	clear_tsk_thread_flag(child, TIF_SINGLESTEP);
+-- 
+1.8.1.4
+

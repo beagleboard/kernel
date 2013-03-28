@@ -1,4 +1,4 @@
-From 6d7b820926bd1cd47b18fc251d3aeafd8426a010 Mon Sep 17 00:00:00 2001
+From 10a788f558e9bc374ef93a4c08c53b4e9d1d8c40 Mon Sep 17 00:00:00 2001
 From: Andrea Arcangeli <aarcange@redhat.com>
 Date: Tue, 29 May 2012 15:06:49 -0700
 Subject: [PATCH 07/46] mm: pmd_read_atomic: fix 32bit PAE pmd walk vs
@@ -105,8 +105,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/x86/include/asm/pgtable-3level.h |   50 +++++++++++++++++++++++++++++++++
- include/asm-generic/pgtable.h         |   22 +++++++++++++-
+ arch/x86/include/asm/pgtable-3level.h | 50 +++++++++++++++++++++++++++++++++++
+ include/asm-generic/pgtable.h         | 22 +++++++++++++--
  2 files changed, 70 insertions(+), 2 deletions(-)
 
 diff --git a/arch/x86/include/asm/pgtable-3level.h b/arch/x86/include/asm/pgtable-3level.h
@@ -214,5 +214,5 @@ index a03c098..831924a 100644
  	 * The barrier will stabilize the pmdval in a register or on
  	 * the stack so that it will stop changing under the code.
 -- 
-1.7.7.6
+1.8.1.4
 

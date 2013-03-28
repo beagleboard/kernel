@@ -1,4 +1,4 @@
-From eb98c309e8237ec60375dbdb5bbb56772ad9cabd Mon Sep 17 00:00:00 2001
+From 6117377f95e06f9fa9fbb69452373696d9447592 Mon Sep 17 00:00:00 2001
 From: Paul Mackerras <paulus@samba.org>
 Date: Tue, 4 Sep 2012 18:33:08 +0000
 Subject: [PATCH 040/135] powerpc: Make sure IPI handlers see data written by
@@ -45,9 +45,9 @@ Signed-off-by: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/powerpc/kernel/dbell.c       |    2 ++
- arch/powerpc/kernel/smp.c         |   11 +++++++++--
- arch/powerpc/sysdev/xics/icp-hv.c |    6 +++++-
+ arch/powerpc/kernel/dbell.c       |  2 ++
+ arch/powerpc/kernel/smp.c         | 11 +++++++++--
+ arch/powerpc/sysdev/xics/icp-hv.c |  6 +++++-
  3 files changed, 16 insertions(+), 3 deletions(-)
 
 diff --git a/arch/powerpc/kernel/dbell.c b/arch/powerpc/kernel/dbell.c
@@ -111,5 +111,5 @@ index 784b3fc..5c76bf7 100644
  		pr_err("%s: bad return code qirr cpu=%d hw_cpu=%d mfrr=0x%x "
  			"returned %ld\n", __func__, n_cpu, hw_cpu, value, rc);
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From b4756a677cc207e705ab55c1f0d1d63dd7213a9f Mon Sep 17 00:00:00 2001
+From 56135852bdf476a93ebaa0ed2afafb367df518d0 Mon Sep 17 00:00:00 2001
 From: Dan Williams <dan.j.williams@intel.com>
 Date: Fri, 22 Jun 2012 10:52:34 -0700
 Subject: [PATCH 035/109] libsas: fix taskfile corruption in
@@ -22,9 +22,9 @@ Signed-off-by: James Bottomley <JBottomley@Parallels.com>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/scsi/aic94xx/aic94xx_task.c |    2 +-
- drivers/scsi/libsas/sas_ata.c       |   12 ++++++------
- include/scsi/libsas.h               |    6 ++++--
+ drivers/scsi/aic94xx/aic94xx_task.c |  2 +-
+ drivers/scsi/libsas/sas_ata.c       | 12 ++++++------
+ include/scsi/libsas.h               |  6 ++++--
  3 files changed, 11 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/scsi/aic94xx/aic94xx_task.c b/drivers/scsi/aic94xx/aic94xx_task.c
@@ -112,5 +112,5 @@ index 6a308d4..1e100c6 100644
  	u32  serror;
  	u32  scontrol;
 -- 
-1.7.7.6
+1.8.1.4
 

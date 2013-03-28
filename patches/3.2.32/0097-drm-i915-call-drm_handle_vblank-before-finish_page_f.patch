@@ -1,4 +1,4 @@
-From 16150bafaf9d3ed0ca27493b7f9c94f61027f57f Mon Sep 17 00:00:00 2001
+From 3c1d46126479b526eff3b7039769fe49200b63b4 Mon Sep 17 00:00:00 2001
 From: Daniel Vetter <daniel.vetter@ffwll.ch>
 Date: Tue, 2 Oct 2012 17:54:35 +0200
 Subject: [PATCH 097/146] drm/i915: call drm_handle_vblank before
@@ -24,7 +24,7 @@ Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
  so make a similar change to that in ironlake_irq_handler()]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/i915/i915_irq.c |   24 ++++++++++++------------
+ drivers/gpu/drm/i915/i915_irq.c | 24 ++++++++++++------------
  1 file changed, 12 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/i915_irq.c b/drivers/gpu/drm/i915/i915_irq.c
@@ -84,5 +84,5 @@ index c8b5bc1..2812d7b 100644
  	if (de_iir & DE_PCH_EVENT) {
  		if (pch_iir & hotplug_mask)
 -- 
-1.7.10.4
+1.8.1.4
 

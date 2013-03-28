@@ -1,4 +1,4 @@
-From 4320d21db8c12ef8dc39327c28f1e5d06e86545b Mon Sep 17 00:00:00 2001
+From 08f1bf807fdd79a9e0db7a619793fe485ed4758a Mon Sep 17 00:00:00 2001
 From: Jun'ichi Nomura <j-nomura@ce.jp.nec.com>
 Date: Fri, 2 Mar 2012 10:38:33 +0100
 Subject: [PATCH 29/42] block: Fix NULL pointer dereference in
@@ -38,9 +38,9 @@ Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/block_dev.c        |   16 ++++++++++++----
- fs/partitions/check.c |   48 ++++++++++++++++++++++++++++++++++++++++--------
- include/linux/genhd.h |    1 +
+ fs/block_dev.c        | 16 ++++++++++++----
+ fs/partitions/check.c | 48 ++++++++++++++++++++++++++++++++++++++++--------
+ include/linux/genhd.h |  1 +
  3 files changed, 53 insertions(+), 12 deletions(-)
 
 diff --git a/fs/block_dev.c b/fs/block_dev.c
@@ -166,5 +166,5 @@ index 6d18f35..c6f7f6a 100644
  						     int partno, sector_t start,
  						     sector_t len, int flags,
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From a749c4d39ada3e33ef71b0fdaa4c45d0539c1682 Mon Sep 17 00:00:00 2001
+From 3b4543dfca1ae198d758a8662f2ea5d4b245bc04 Mon Sep 17 00:00:00 2001
 From: Jeff Moyer <jmoyer@redhat.com>
 Date: Thu, 12 Jul 2012 09:43:14 -0400
 Subject: [PATCH 046/109] block: fix infinite loop in __getblk_slow
@@ -63,8 +63,8 @@ Stable Notes: this patch requires backport to 3.0, 3.2 and 3.3.
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/buffer.c |   22 +++++++++++++---------
- 1 files changed, 13 insertions(+), 9 deletions(-)
+ fs/buffer.c | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
 
 diff --git a/fs/buffer.c b/fs/buffer.c
 index c807931..4115eca 100644
@@ -112,5 +112,5 @@ index c807931..4115eca 100644
  
  /*
 -- 
-1.7.7.6
+1.8.1.4
 

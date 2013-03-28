@@ -1,4 +1,4 @@
-From b4e9f42ce4b7a9d16dda482d848d21372d9d3856 Mon Sep 17 00:00:00 2001
+From b92c900985016aa075673c0cc826d5f86a7d2fea Mon Sep 17 00:00:00 2001
 From: Hugh Dickins <hughd@google.com>
 Date: Fri, 20 Jan 2012 14:34:19 -0800
 Subject: [PATCH 127/129] SHM_UNLOCK: fix long unpreemptible section
@@ -53,9 +53,9 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- ipc/shm.c   |   37 ++++++++++++++++++++++---------------
- mm/shmem.c  |    7 -------
- mm/vmscan.c |   12 +++++++++++-
+ ipc/shm.c   | 37 ++++++++++++++++++++++---------------
+ mm/shmem.c  |  7 -------
+ mm/vmscan.c | 12 +++++++++++-
  3 files changed, 33 insertions(+), 23 deletions(-)
 
 diff --git a/ipc/shm.c b/ipc/shm.c
@@ -182,5 +182,5 @@ index f54a05b..824676a 100644
  static void warn_scan_unevictable_pages(void)
  {
 -- 
-1.7.7.6
+1.8.1.4
 

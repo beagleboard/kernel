@@ -1,4 +1,4 @@
-From d7653123590d86490c6d6f3144c8ce36ed0d0e2f Mon Sep 17 00:00:00 2001
+From 997d9b516ab56985a9b2248ad7827eef9435250c Mon Sep 17 00:00:00 2001
 From: Daniel Vetter <daniel.vetter@ffwll.ch>
 Date: Wed, 23 May 2012 14:02:00 +0200
 Subject: [PATCH 04/67] drm/i915: fix up ivb plane 3 pageflips
@@ -25,9 +25,9 @@ Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/i915/i915_reg.h      |    8 ++++++++
- drivers/gpu/drm/i915/intel_display.c |   19 ++++++++++++++++++-
- 2 files changed, 26 insertions(+), 1 deletions(-)
+ drivers/gpu/drm/i915/i915_reg.h      |  8 ++++++++
+ drivers/gpu/drm/i915/intel_display.c | 19 ++++++++++++++++++-
+ 2 files changed, 26 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/i915/i915_reg.h b/drivers/gpu/drm/i915/i915_reg.h
 index 06ec1e5..fd53122 100644
@@ -89,5 +89,5 @@ index 1f43ae5..5c1cdb8 100644
  	intel_ring_emit(ring, (obj->gtt_offset));
  	intel_ring_emit(ring, (MI_NOOP));
 -- 
-1.7.7.6
+1.8.1.4
 

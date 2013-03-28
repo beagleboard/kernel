@@ -1,4 +1,4 @@
-From 6839ff8722fbcb67320460c5cea567d13de4ceec Mon Sep 17 00:00:00 2001
+From 76d4709167426deae08b794a15b365e71fe410e4 Mon Sep 17 00:00:00 2001
 From: Len Brown <len.brown@intel.com>
 Date: Thu, 29 Mar 2012 14:49:17 -0700
 Subject: [PATCH 02/83] x86: Remove the ancient and deprecated disable_hlt()
@@ -55,11 +55,11 @@ Signed-off-by: Ingo Molnar <mingo@kernel.org>
 [bwh: Backported to 3.2: adjust filename, context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- Documentation/feature-removal-schedule.txt |    8 ------
- arch/x86/include/asm/system.h              |    7 -----
- arch/x86/kernel/process.c                  |   24 ------------------
- drivers/block/floppy.c                     |   36 ----------------------------
- 4 files changed, 0 insertions(+), 75 deletions(-)
+ Documentation/feature-removal-schedule.txt |  8 -------
+ arch/x86/include/asm/system.h              |  7 ------
+ arch/x86/kernel/process.c                  | 24 --------------------
+ drivers/block/floppy.c                     | 36 ------------------------------
+ 4 files changed, 75 deletions(-)
 
 diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
 index a7e4ac1..94f2dfa 100644
@@ -220,5 +220,5 @@ index c864add..38c062c 100644
  	if (floppy_track_buffer && max_buffer_sectors) {
  		tmpsize = max_buffer_sectors * 1024;
 -- 
-1.7.7.6
+1.8.1.4
 

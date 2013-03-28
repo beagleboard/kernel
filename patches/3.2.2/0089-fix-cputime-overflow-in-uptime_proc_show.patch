@@ -1,4 +1,4 @@
-From 2b74ec50a3d2c34f0adcffa6c8310e0ff1c8ef55 Mon Sep 17 00:00:00 2001
+From f99bdd3ae7372afd8bc8156725384023cb04a03e Mon Sep 17 00:00:00 2001
 From: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Date: Thu, 15 Dec 2011 14:56:10 +0100
 Subject: [PATCH 089/129] fix cputime overflow in uptime_proc_show
@@ -14,8 +14,8 @@ Cc: Michael Abbott <michael.abbott@diamond.ac.uk>
 Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- fs/proc/uptime.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ fs/proc/uptime.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/fs/proc/uptime.c b/fs/proc/uptime.c
 index 766b1d4..29166ec 100644
@@ -45,5 +45,5 @@ index 766b1d4..29166ec 100644
  			(unsigned long) uptime.tv_sec,
  			(uptime.tv_nsec / (NSEC_PER_SEC / 100)),
 -- 
-1.7.7.6
+1.8.1.4
 

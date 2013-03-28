@@ -1,8 +1,7 @@
-From d45eaddce06b80ef284e829c8dc1e4df7f797f5a Mon Sep 17 00:00:00 2001
+From 60eb36e6ef3d9293dd8e49a9e73a9408921633de Mon Sep 17 00:00:00 2001
 From: Xishi Qiu <qiuxishi@huawei.com>
 Date: Tue, 31 Jul 2012 16:43:19 -0700
-Subject: [PATCH 54/70] mm: setup pageblock_order before it's used by
- sparsemem
+Subject: [PATCH 54/70] mm: setup pageblock_order before it's used by sparsemem
 
 commit ca57df79d4f64e1a4886606af4289d40636189c5 upstream.
 
@@ -45,9 +44,9 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- mm/internal.h   |    2 ++
- mm/page_alloc.c |    4 ++--
- mm/sparse.c     |    3 +++
+ mm/internal.h   | 2 ++
+ mm/page_alloc.c | 4 ++--
+ mm/sparse.c     | 3 +++
  3 files changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/mm/internal.h b/mm/internal.h
@@ -97,5 +96,5 @@ index a8bc7d3..bf7d3cc 100644
  	 * map is using big page (aka 2M in x86 64 bit)
  	 * usemap is less one page (aka 24 bytes)
 -- 
-1.7.7.6
+1.8.1.4
 

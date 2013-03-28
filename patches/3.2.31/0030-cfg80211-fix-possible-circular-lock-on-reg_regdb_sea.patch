@@ -1,4 +1,4 @@
-From bb1643df590d3184df959040484d89cf74387acb Mon Sep 17 00:00:00 2001
+From 7a95e32fd2fc9802c09f46d8c956cad5be52b9e9 Mon Sep 17 00:00:00 2001
 From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
 Date: Fri, 14 Sep 2012 15:36:57 -0700
 Subject: [PATCH 030/109] cfg80211: fix possible circular lock on
@@ -86,7 +86,7 @@ Reviewed-by: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/wireless/reg.c |   12 +++++++++---
+ net/wireless/reg.c | 12 +++++++++---
  1 file changed, 9 insertions(+), 3 deletions(-)
 
 diff --git a/net/wireless/reg.c b/net/wireless/reg.c
@@ -127,5 +127,5 @@ index d57d05b..fa39731 100644
  
  static DECLARE_WORK(reg_regdb_work, reg_regdb_search);
 -- 
-1.7.10.4
+1.8.1.4
 

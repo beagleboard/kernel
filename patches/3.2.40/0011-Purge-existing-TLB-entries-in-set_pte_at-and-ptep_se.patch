@@ -1,0 +1,100 @@
+From bf7efe6bd5cb571593fa371a9b7cc5fc9030e4da Mon Sep 17 00:00:00 2001
+From: John David Anglin <dave.anglin@bell.net>
+Date: Mon, 14 Jan 2013 19:45:00 -0500
+Subject: [PATCH 011/153] Purge existing TLB entries in set_pte_at and
+ ptep_set_wrprotect
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit 7139bc1579901b53db7e898789e916ee2fb52d78 upstream.
+
+This patch goes a long way toward fixing the minifail bug, and
+it  significantly improves the stability of SMP machines such as
+the rp3440.  When write  protecting a page for COW, we need to
+purge the existing translation.  Otherwise, the COW break
+doesn't occur as expected because the TLB may still have a stale entry
+which allows writes.
+
+[jejb: fix up checkpatch errors]
+Signed-off-by: John David Anglin <dave.anglin@bell.net>
+Signed-off-by: James Bottomley <JBottomley@Parallels.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/parisc/include/asm/pgtable.h | 13 ++++++++++---
+ arch/parisc/kernel/cache.c        | 18 ++++++++++++++++++
+ 2 files changed, 28 insertions(+), 3 deletions(-)
+
+diff --git a/arch/parisc/include/asm/pgtable.h b/arch/parisc/include/asm/pgtable.h
+index 22dadeb..9d35a3e 100644
+--- a/arch/parisc/include/asm/pgtable.h
++++ b/arch/parisc/include/asm/pgtable.h
+@@ -12,11 +12,10 @@
+ 
+ #include <linux/bitops.h>
+ #include <linux/spinlock.h>
++#include <linux/mm_types.h>
+ #include <asm/processor.h>
+ #include <asm/cache.h>
+ 
+-struct vm_area_struct;
+-
+ /*
+  * kern_addr_valid(ADDR) tests if ADDR is pointing to valid kernel
+  * memory.  For the return value to be meaningful, ADDR must be >=
+@@ -40,7 +39,14 @@ struct vm_area_struct;
+         do{                                                     \
+                 *(pteptr) = (pteval);                           \
+         } while(0)
+-#define set_pte_at(mm,addr,ptep,pteval) set_pte(ptep,pteval)
++
++extern void purge_tlb_entries(struct mm_struct *, unsigned long);
++
++#define set_pte_at(mm, addr, ptep, pteval)                      \
++	do {                                                    \
++		set_pte(ptep, pteval);                          \
++		purge_tlb_entries(mm, addr);                    \
++	} while (0)
+ 
+ #endif /* !__ASSEMBLY__ */
+ 
+@@ -464,6 +470,7 @@ static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr,
+ 		old = pte_val(*ptep);
+ 		new = pte_val(pte_wrprotect(__pte (old)));
+ 	} while (cmpxchg((unsigned long *) ptep, old, new) != old);
++	purge_tlb_entries(mm, addr);
+ #else
+ 	pte_t old_pte = *ptep;
+ 	set_pte_at(mm, addr, ptep, pte_wrprotect(old_pte));
+diff --git a/arch/parisc/kernel/cache.c b/arch/parisc/kernel/cache.c
+index 83335f3..5241698 100644
+--- a/arch/parisc/kernel/cache.c
++++ b/arch/parisc/kernel/cache.c
+@@ -421,6 +421,24 @@ void kunmap_parisc(void *addr)
+ EXPORT_SYMBOL(kunmap_parisc);
+ #endif
+ 
++void purge_tlb_entries(struct mm_struct *mm, unsigned long addr)
++{
++	unsigned long flags;
++
++	/* Note: purge_tlb_entries can be called at startup with
++	   no context.  */
++
++	/* Disable preemption while we play with %sr1.  */
++	preempt_disable();
++	mtsp(mm->context, 1);
++	purge_tlb_start(flags);
++	pdtlb(addr);
++	pitlb(addr);
++	purge_tlb_end(flags);
++	preempt_enable();
++}
++EXPORT_SYMBOL(purge_tlb_entries);
++
+ void __flush_tlb_range(unsigned long sid, unsigned long start,
+ 		       unsigned long end)
+ {
+-- 
+1.8.1.4
+

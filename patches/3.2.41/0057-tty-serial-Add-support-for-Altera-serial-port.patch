@@ -1,0 +1,102 @@
+From db9a2584f0b9e3dc92bd9e76f890e07692be7dc5 Mon Sep 17 00:00:00 2001
+From: Ley Foon Tan <lftan@altera.com>
+Date: Thu, 7 Mar 2013 10:28:37 +0800
+Subject: [PATCH 57/82] tty/serial: Add support for Altera serial port
+
+commit e06c93cacb82dd147266fd1bdb2d0a0bd45ff2c1 upstream.
+
+Add support for Altera 8250/16550 compatible serial port.
+
+Signed-off-by: Ley Foon Tan <lftan@altera.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+[bwh: Backported to 3.2: adjust filenames, context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ .../devicetree/bindings/tty/serial/of-serial.txt    |  3 +++
+ drivers/tty/serial/8250.c                           | 21 +++++++++++++++++++++
+ drivers/tty/serial/of_serial.c                      |  6 ++++++
+ include/linux/serial_core.h                         |  5 ++++-
+ 4 files changed, 34 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/devicetree/bindings/tty/serial/of-serial.txt b/Documentation/devicetree/bindings/tty/serial/of-serial.txt
+index b8b27b0..3f89cbd 100644
+--- a/Documentation/devicetree/bindings/tty/serial/of-serial.txt
++++ b/Documentation/devicetree/bindings/tty/serial/of-serial.txt
+@@ -10,6 +10,9 @@ Required properties:
+ 	- "ns16850"
+ 	- "nvidia,tegra20-uart"
+ 	- "ibm,qpace-nwp-serial"
++	- "altr,16550-FIFO32"
++	- "altr,16550-FIFO64"
++	- "altr,16550-FIFO128"
+ 	- "serial" if the port type is unknown.
+ - reg : offset and length of the register set for the device.
+ - interrupts : should contain uart interrupt.
+diff --git a/drivers/tty/serial/8250.c b/drivers/tty/serial/8250.c
+index 6748568..cff03e5 100644
+--- a/drivers/tty/serial/8250.c
++++ b/drivers/tty/serial/8250.c
+@@ -322,6 +322,27 @@ static const struct serial8250_config uart_config[] = {
+ 		.tx_loadsz	= 1024,
+ 		.flags		= UART_CAP_HFIFO,
+ 	},
++	[PORT_ALTR_16550_F32] = {
++		.name		= "Altera 16550 FIFO32",
++		.fifo_size	= 32,
++		.tx_loadsz	= 32,
++		.fcr		= UART_FCR_ENABLE_FIFO | UART_FCR_R_TRIG_10,
++		.flags		= UART_CAP_FIFO | UART_CAP_AFE,
++	},
++	[PORT_ALTR_16550_F64] = {
++		.name		= "Altera 16550 FIFO64",
++		.fifo_size	= 64,
++		.tx_loadsz	= 64,
++		.fcr		= UART_FCR_ENABLE_FIFO | UART_FCR_R_TRIG_10,
++		.flags		= UART_CAP_FIFO | UART_CAP_AFE,
++	},
++	[PORT_ALTR_16550_F128] = {
++		.name		= "Altera 16550 FIFO128",
++		.fifo_size	= 128,
++		.tx_loadsz	= 128,
++		.fcr		= UART_FCR_ENABLE_FIFO | UART_FCR_R_TRIG_10,
++		.flags		= UART_CAP_FIFO | UART_CAP_AFE,
++	},
+ };
+ 
+ #if defined(CONFIG_MIPS_ALCHEMY)
+diff --git a/drivers/tty/serial/of_serial.c b/drivers/tty/serial/of_serial.c
+index e8c9cee..6563cad 100644
+--- a/drivers/tty/serial/of_serial.c
++++ b/drivers/tty/serial/of_serial.c
+@@ -182,6 +182,12 @@ static struct of_device_id __devinitdata of_platform_serial_table[] = {
+ 	{ .compatible = "ns16750",  .data = (void *)PORT_16750, },
+ 	{ .compatible = "ns16850",  .data = (void *)PORT_16850, },
+ 	{ .compatible = "nvidia,tegra20-uart", .data = (void *)PORT_TEGRA, },
++	{ .compatible = "altr,16550-FIFO32",
++		.data = (void *)PORT_ALTR_16550_F32, },
++	{ .compatible = "altr,16550-FIFO64",
++		.data = (void *)PORT_ALTR_16550_F64, },
++	{ .compatible = "altr,16550-FIFO128",
++		.data = (void *)PORT_ALTR_16550_F128, },
+ #ifdef CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL
+ 	{ .compatible = "ibm,qpace-nwp-serial",
+ 		.data = (void *)PORT_NWPSERIAL, },
+diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+index bae516e..42e35c3 100644
+--- a/include/linux/serial_core.h
++++ b/include/linux/serial_core.h
+@@ -48,7 +48,10 @@
+ #define PORT_TEGRA	20	/* NVIDIA Tegra internal UART */
+ #define PORT_XR17D15X	21	/* Exar XR17D15x UART */
+ #define PORT_BRCM_TRUMANAGE	25
+-#define PORT_MAX_8250	25	/* max port ID */
++#define PORT_ALTR_16550_F32 26	/* Altera 16550 UART with 32 FIFOs */
++#define PORT_ALTR_16550_F64 27	/* Altera 16550 UART with 64 FIFOs */
++#define PORT_ALTR_16550_F128 28 /* Altera 16550 UART with 128 FIFOs */
++#define PORT_MAX_8250	28	/* max port ID */
+ 
+ /*
+  * ARM specific type numbers.  These are not currently guaranteed
+-- 
+1.8.1.4
+

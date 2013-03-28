@@ -1,4 +1,4 @@
-From f63985151d62bf6c2c4f09e936f6a1261890349d Mon Sep 17 00:00:00 2001
+From 5268958475f4a2e3ad823395fd33bbf81a8c8d4f Mon Sep 17 00:00:00 2001
 From: majianpeng <majianpeng@gmail.com>
 Date: Tue, 12 Jun 2012 08:31:10 +0800
 Subject: [PATCH 15/49] md/raid5: Do not add data_offset before call to
@@ -24,8 +24,8 @@ Signed-off-by: NeilBrown <neilb@suse.de>
 [bwh: Backported to 3.2: ignored missing comment]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/md/raid5.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/md/raid5.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/md/raid5.c b/drivers/md/raid5.c
 index 858fdbb..d423c7e 100644
@@ -50,5 +50,5 @@ index 858fdbb..d423c7e 100644
  		wait_event_lock_irq(conf->wait_for_stripe,
  				    conf->quiesce == 0,
 -- 
-1.7.7.6
+1.8.1.4
 

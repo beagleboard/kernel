@@ -1,0 +1,63 @@
+From 7a0b10d373665516cb145f3db2bcda03f1cf9e4d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timo=20Ter=C3=A4s?= <timo.teras@iki.fi>
+Date: Mon, 21 Jan 2013 22:30:35 +0000
+Subject: [PATCH 47/67] r8169: remove the obsolete and incorrect AMD workaround
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+[ Upstream commit 5d0feaff230c0abfe4a112e6f09f096ed99e0b2d ]
+
+This was introduced in commit 6dccd16 "r8169: merge with version
+6.001.00 of Realtek's r8169 driver". I did not find the version
+6.001.00 online, but in 6.002.00 or any later r8169 from Realtek
+this hunk is no longer present.
+
+Also commit 05af214 "r8169: fix Ethernet Hangup for RTL8110SC
+rev d" claims to have fixed this issue otherwise.
+
+The magic compare mask of 0xfffe000 is dubious as it masks
+parts of the Reserved part, and parts of the VLAN tag. But this
+does not make much sense as the VLAN tag parts are perfectly
+valid there. In matter of fact this seems to be triggered with
+any VLAN tagged packet as RxVlanTag bit is matched. I would
+suspect 0xfffe0000 was intended to test reserved part only.
+
+Finally, this hunk is evil as it can cause more packets to be
+handled than what was NAPI quota causing net/core/dev.c:
+net_rx_action(): WARN_ON_ONCE(work > weight) to trigger, and
+mess up the NAPI state causing device to hang.
+
+As result, any system using VLANs and having high receive
+traffic (so that NAPI poll budget limits rtl_rx) would result
+in device hang.
+
+Signed-off-by: Timo Teräs <timo.teras@iki.fi>
+Acked-by: Francois Romieu <romieu@fr.zoreil.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/realtek/r8169.c | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/drivers/net/ethernet/realtek/r8169.c b/drivers/net/ethernet/realtek/r8169.c
+index b8db4cd..a6153f1 100644
+--- a/drivers/net/ethernet/realtek/r8169.c
++++ b/drivers/net/ethernet/realtek/r8169.c
+@@ -5829,13 +5829,6 @@ static int rtl8169_rx_interrupt(struct net_device *dev,
+ 			dev->stats.rx_bytes += pkt_size;
+ 			dev->stats.rx_packets++;
+ 		}
+-
+-		/* Work around for AMD plateform. */
+-		if ((desc->opts2 & cpu_to_le32(0xfffe000)) &&
+-		    (tp->mac_version == RTL_GIGA_MAC_VER_05)) {
+-			desc->opts2 = 0;
+-			cur_rx++;
+-		}
+ 	}
+ 
+ 	count = cur_rx - tp->cur_rx;
+-- 
+1.8.1.4
+

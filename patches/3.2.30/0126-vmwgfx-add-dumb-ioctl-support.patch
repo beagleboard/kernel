@@ -1,4 +1,4 @@
-From 7af4f76b1afe4db403a9c437527800d344f963ad Mon Sep 17 00:00:00 2001
+From b3f4f6232e10c9d86f067e5868bc92ff953e3241 Mon Sep 17 00:00:00 2001
 From: Dave Airlie <airlied@redhat.com>
 Date: Tue, 28 Aug 2012 01:53:54 +0000
 Subject: [PATCH 126/135] vmwgfx: add dumb ioctl support
@@ -12,10 +12,10 @@ Signed-off-by: Dave Airlie <airlied@redhat.com>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/vmwgfx/vmwgfx_drv.c      |    5 ++
- drivers/gpu/drm/vmwgfx/vmwgfx_drv.h      |   10 ++++
- drivers/gpu/drm/vmwgfx/vmwgfx_resource.c |   73 ++++++++++++++++++++++++++++++
- 3 files changed, 88 insertions(+), 0 deletions(-)
+ drivers/gpu/drm/vmwgfx/vmwgfx_drv.c      |  5 +++
+ drivers/gpu/drm/vmwgfx/vmwgfx_drv.h      | 10 +++++
+ drivers/gpu/drm/vmwgfx/vmwgfx_resource.c | 73 ++++++++++++++++++++++++++++++++
+ 3 files changed, 88 insertions(+)
 
 diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.c b/drivers/gpu/drm/vmwgfx/vmwgfx_drv.c
 index 6cea3a8..033fc96 100644
@@ -136,5 +136,5 @@ index 1c7f09e..0795d17 100644
 +					 handle, TTM_REF_USAGE);
 +}
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,9 +1,8 @@
-From cba5e950b1e6de0f7ff0619b3543bcb6c4d5cc59 Mon Sep 17 00:00:00 2001
+From de639187b783c5a6ebb48a7da629c8321a0d8d07 Mon Sep 17 00:00:00 2001
 From: Mel Gorman <mgorman@suse.de>
 Date: Fri, 3 Feb 2012 15:37:18 -0800
 Subject: [PATCH 28/87] mm: compaction: check pfn_valid when entering a new
- MAX_ORDER_NR_PAGES block during isolation for
- migration
+ MAX_ORDER_NR_PAGES block during isolation for migration
 
 commit 0bf380bc70ecba68cb4d74dc656cc2fa8c4d801a upstream.
 
@@ -80,8 +79,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- mm/compaction.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+ mm/compaction.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
 diff --git a/mm/compaction.c b/mm/compaction.c
 index 899d956..edc1e26 100644
@@ -108,5 +107,5 @@ index 899d956..edc1e26 100644
  			continue;
  		nr_scanned++;
 -- 
-1.7.7.6
+1.8.1.4
 

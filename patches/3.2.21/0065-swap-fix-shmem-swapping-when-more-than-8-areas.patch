@@ -1,4 +1,4 @@
-From 6cfa1ccb595cd322a9c45f1a9bcb866dab031486 Mon Sep 17 00:00:00 2001
+From 2143cd509e021856ce65eb0cfc8f8bd5d42f5f68 Mon Sep 17 00:00:00 2001
 From: Hugh Dickins <hughd@google.com>
 Date: Fri, 15 Jun 2012 17:55:50 -0700
 Subject: [PATCH 65/67] swap: fix shmem swapping when more than 8 areas
@@ -37,8 +37,8 @@ Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/swapops.h |    8 +++++---
- mm/swapfile.c           |   12 ++++--------
+ include/linux/swapops.h |  8 +++++---
+ mm/swapfile.c           | 12 ++++--------
  2 files changed, 9 insertions(+), 11 deletions(-)
 
 diff --git a/include/linux/swapops.h b/include/linux/swapops.h
@@ -98,5 +98,5 @@ index d3955f2..fad1830 100644
  		maxpages = swap_header->info.last_page + 1;
  		/* p->max is an unsigned int: don't overflow it */
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,8 +1,8 @@
-From 7d23b3d49c3a02fb68dc876b13036ffd2ab52ad3 Mon Sep 17 00:00:00 2001
+From 0308029efa22a76560dad37e4599c969bf3cea18 Mon Sep 17 00:00:00 2001
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Date: Thu, 16 Feb 2012 19:11:15 -0800
-Subject: [PATCH 08/11] i387: move AMD K7/K8 fpu fxsave/fxrstor workaround
- from save to restore
+Subject: [PATCH 08/11] i387: move AMD K7/K8 fpu fxsave/fxrstor workaround from
+ save to restore
 
 commit 4903062b5485f0e2c286a23b44c9b59d9b017d53 upstream.
 
@@ -31,9 +31,9 @@ simply a much more natural place for the leaked state cleanup.
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/x86/include/asm/i387.h  |   19 -------------------
- arch/x86/kernel/process_64.c |    5 ++---
- arch/x86/kernel/traps.c      |   14 ++++++++++++++
+ arch/x86/include/asm/i387.h  | 19 -------------------
+ arch/x86/kernel/process_64.c |  5 ++---
+ arch/x86/kernel/traps.c      | 14 ++++++++++++++
  3 files changed, 16 insertions(+), 22 deletions(-)
 
 diff --git a/arch/x86/include/asm/i387.h b/arch/x86/include/asm/i387.h
@@ -129,5 +129,5 @@ index 7767ed2..c24bb75 100644
  	 * Paranoid restore. send a SIGSEGV if we fail to restore the state.
  	 */
 -- 
-1.7.7.6
+1.8.1.4
 

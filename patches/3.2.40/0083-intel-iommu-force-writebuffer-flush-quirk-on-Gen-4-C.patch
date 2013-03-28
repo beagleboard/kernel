@@ -1,0 +1,50 @@
+From 2f28fbdfbd4c8d2744c16c111cf6229e9ff7732d Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Mon, 21 Jan 2013 19:48:59 +0100
+Subject: [PATCH 083/153] intel/iommu: force writebuffer-flush quirk on Gen 4
+ Chipsets
+
+commit 210561ffd72d00eccf12c0131b8024d5436bae95 upstream.
+
+We already have the quirk entry for the mobile platform, but also
+reports on some desktop versions. So be paranoid and set it
+everywhere.
+
+References: http://www.mail-archive.com/dri-devel@lists.freedesktop.org/msg33138.html
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: "Sankaran, Rajesh" <rajesh.sankaran@intel.com>
+Reported-and-tested-by: Mihai Moldovan <ionic@ionic.de>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/iommu/intel-iommu.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
+index dffdca8..f44a067 100644
+--- a/drivers/iommu/intel-iommu.c
++++ b/drivers/iommu/intel-iommu.c
+@@ -4140,13 +4140,19 @@ static void __devinit quirk_iommu_rwbf(struct pci_dev *dev)
+ {
+ 	/*
+ 	 * Mobile 4 Series Chipset neglects to set RWBF capability,
+-	 * but needs it:
++	 * but needs it. Same seems to hold for the desktop versions.
+ 	 */
+ 	printk(KERN_INFO "DMAR: Forcing write-buffer flush capability\n");
+ 	rwbf_quirk = 1;
+ }
+ 
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x2a40, quirk_iommu_rwbf);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x2e00, quirk_iommu_rwbf);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x2e10, quirk_iommu_rwbf);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x2e20, quirk_iommu_rwbf);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x2e30, quirk_iommu_rwbf);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x2e40, quirk_iommu_rwbf);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x2e90, quirk_iommu_rwbf);
+ 
+ #define GGC 0x52
+ #define GGC_MEMORY_SIZE_MASK	(0xf << 8)
+-- 
+1.8.1.4
+

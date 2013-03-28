@@ -1,4 +1,4 @@
-From 86dbef54ae481d42575927271b6bff6e1214f763 Mon Sep 17 00:00:00 2001
+From 0d9835db6f29f4149f806cf6a3060fe1ed4f116f Mon Sep 17 00:00:00 2001
 From: Wen Congyang <wency@cn.fujitsu.com>
 Date: Thu, 20 Sep 2012 14:04:47 +0800
 Subject: [PATCH 034/109] tracing: Don't call page_to_pfn() if page is NULL
@@ -19,7 +19,7 @@ Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/trace/events/kmem.h |    4 ++--
+ include/trace/events/kmem.h | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/include/trace/events/kmem.h b/include/trace/events/kmem.h
@@ -45,5 +45,5 @@ index a9c87ad..a9536da 100644
  		__entry->migratetype,
  		__entry->order == 0)
 -- 
-1.7.10.4
+1.8.1.4
 

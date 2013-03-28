@@ -1,4 +1,4 @@
-From cdc4549c26f4873b0dab9771d46ac628175e3011 Mon Sep 17 00:00:00 2001
+From 71d70e539666cf58691c77d00609623ad4eb48c9 Mon Sep 17 00:00:00 2001
 From: Chris Mason <chris.mason@fusionio.com>
 Date: Wed, 25 Jul 2012 15:57:13 -0400
 Subject: [PATCH 70/73] Btrfs: call the ordered free operation without any
@@ -17,8 +17,8 @@ and find a cleaner way that doesn't bounce the lock around so much.
 Signed-off-by: Chris Mason <chris.mason@fusionio.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/btrfs/async-thread.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
+ fs/btrfs/async-thread.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/fs/btrfs/async-thread.c b/fs/btrfs/async-thread.c
 index 0b39458..03321e5 100644
@@ -44,5 +44,5 @@ index 0b39458..03321e5 100644
  
  	spin_unlock(&workers->order_lock);
 -- 
-1.7.7.6
+1.8.1.4
 

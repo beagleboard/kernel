@@ -1,4 +1,4 @@
-From 21ac6d7b90dfdd42d7ce1d45a6fc37bfaeecba93 Mon Sep 17 00:00:00 2001
+From 116428f7e6f50ceb5358596b28bd64dd08b804c1 Mon Sep 17 00:00:00 2001
 From: Grazvydas Ignotas <notasas@gmail.com>
 Date: Fri, 18 May 2012 03:04:08 +0300
 Subject: [PATCH 23/86] wl1251: fix oops on early interrupt
@@ -19,8 +19,8 @@ Signed-off-by: John W. Linville <linville@tuxdriver.com>
 [bwh: Backported to 3.2: adjust filename]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/wireless/wl1251/sdio.c |    2 +-
- drivers/net/wireless/wl1251/spi.c  |    3 +--
+ drivers/net/wireless/wl1251/sdio.c | 2 +-
+ drivers/net/wireless/wl1251/spi.c  | 3 +--
  2 files changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/net/wireless/wl1251/sdio.c b/drivers/net/wireless/wl1251/sdio.c
@@ -65,5 +65,5 @@ index eaa5f95..134ae9c 100644
  	if (ret)
  		goto out_irq;
 -- 
-1.7.7.6
+1.8.1.4
 

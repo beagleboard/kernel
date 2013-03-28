@@ -1,0 +1,39 @@
+From fd54ff6a699bb63402f24c14efaf66a680b18e51 Mon Sep 17 00:00:00 2001
+From: Alex Deucher <alexander.deucher@amd.com>
+Date: Wed, 27 Feb 2013 12:01:58 -0500
+Subject: [PATCH 27/82] drm/radeon: add primary dac adj quirk for R200 board
+
+commit e8fc41377f5037ff7a661ea06adc05f1daec1548 upstream.
+
+vbios values are wrong leading to colors that are
+too bright.  Use the default values instead.
+
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/radeon/radeon_combios.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_combios.c b/drivers/gpu/drm/radeon/radeon_combios.c
+index ec36dd9..c32fd93 100644
+--- a/drivers/gpu/drm/radeon/radeon_combios.c
++++ b/drivers/gpu/drm/radeon/radeon_combios.c
+@@ -958,6 +958,15 @@ struct radeon_encoder_primary_dac *radeon_combios_get_primary_dac_info(struct
+ 			found = 1;
+ 	}
+ 
++	/* quirks */
++	/* Radeon 9100 (R200) */
++	if ((dev->pdev->device == 0x514D) &&
++	    (dev->pdev->subsystem_vendor == 0x174B) &&
++	    (dev->pdev->subsystem_device == 0x7149)) {
++		/* vbios value is bad, use the default */
++		found = 0;
++	}
++
+ 	if (!found) /* fallback to defaults */
+ 		radeon_legacy_get_primary_dac_info_from_table(rdev, p_dac);
+ 
+-- 
+1.8.1.4
+

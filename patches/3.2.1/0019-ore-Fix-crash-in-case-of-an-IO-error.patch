@@ -1,4 +1,4 @@
-From 3747010035d6753987be35d990b1be8190dbc67e Mon Sep 17 00:00:00 2001
+From d663b082e4412542bcd963b588a29142305caa5a Mon Sep 17 00:00:00 2001
 From: Boaz Harrosh <bharrosh@panasas.com>
 Date: Tue, 27 Dec 2011 19:23:36 +0200
 Subject: [PATCH 19/49] ore: Fix crash in case of an IO error.
@@ -15,8 +15,8 @@ an IO error.
 Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- fs/exofs/ore.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ fs/exofs/ore.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/fs/exofs/ore.c b/fs/exofs/ore.c
 index d271ad8..894f3e1 100644
@@ -37,5 +37,5 @@ index d271ad8..894f3e1 100644
  		}
  		if (osi.osd_err_pri >= acumulated_osd_err) {
 -- 
-1.7.7.6
+1.8.1.4
 

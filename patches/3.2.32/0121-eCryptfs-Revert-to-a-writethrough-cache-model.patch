@@ -1,4 +1,4 @@
-From 832dd64a64394ede0c2c9bfb4da05d659abd7767 Mon Sep 17 00:00:00 2001
+From 3f4955373f88056ae8170174890b507fd89c02b7 Mon Sep 17 00:00:00 2001
 From: Tyler Hicks <tyhicks@canonical.com>
 Date: Tue, 3 Jul 2012 16:50:57 -0700
 Subject: [PATCH 121/146] eCryptfs: Revert to a writethrough cache model
@@ -36,9 +36,9 @@ Cc: Colin King <colin.king@canonical.com>
 Cc: Thieu Le <thieule@google.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ecryptfs/file.c  |   33 ++-------------------------------
- fs/ecryptfs/inode.c |    6 ------
- fs/ecryptfs/mmap.c  |   39 +++++++++++++--------------------------
+ fs/ecryptfs/file.c  | 33 ++-------------------------------
+ fs/ecryptfs/inode.c |  6 ------
+ fs/ecryptfs/mmap.c  | 39 +++++++++++++--------------------------
  3 files changed, 15 insertions(+), 63 deletions(-)
 
 diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
@@ -188,5 +188,5 @@ index 6a44148..93a998a 100644
  	return rc;
  }
 -- 
-1.7.10.4
+1.8.1.4
 

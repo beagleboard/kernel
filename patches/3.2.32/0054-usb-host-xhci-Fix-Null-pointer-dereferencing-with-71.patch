@@ -1,4 +1,4 @@
-From 52a28034cdc0fb5f85bb7c83ce016df99dd49b2b Mon Sep 17 00:00:00 2001
+From d3aac2992317d3b12714f7b00c01c95a75780585 Mon Sep 17 00:00:00 2001
 From: Vivek Gautam <gautam.vivek@samsung.com>
 Date: Sat, 22 Sep 2012 18:11:19 +0530
 Subject: [PATCH 054/146] usb: host: xhci: Fix Null pointer dereferencing with
@@ -24,7 +24,7 @@ Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Reported-by: Sebastian Gottschall (DD-WRT) <s.gottschall@dd-wrt.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/host/xhci.c |    2 ++
+ drivers/usb/host/xhci.c | 2 ++
  1 file changed, 2 insertions(+)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
@@ -41,5 +41,5 @@ index 9322aae..f5c0f38 100644
  	if (!(strstr(dmi_sys_vendor, "Hewlett-Packard")))
  		return false;
 -- 
-1.7.10.4
+1.8.1.4
 

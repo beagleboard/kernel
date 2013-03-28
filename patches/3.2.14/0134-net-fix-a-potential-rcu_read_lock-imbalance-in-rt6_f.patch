@@ -1,4 +1,4 @@
-From 48f5c6e05e4cef598bbab562bbc8e87984463c6b Mon Sep 17 00:00:00 2001
+From 63608f4d38fc53011f50bcfd4f72564a4480205a Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Tue, 27 Mar 2012 09:53:52 +0000
 Subject: [PATCH 134/147] net: fix a potential rcu_read_lock() imbalance in
@@ -23,8 +23,8 @@ Tested-by: Ben Greear <greearb@candelatech.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/ipv6/route.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ net/ipv6/route.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/net/ipv6/route.c b/net/ipv6/route.c
 index b582a0a..059b9d9 100644
@@ -46,5 +46,5 @@ index b582a0a..059b9d9 100644
  
  	if (rt->dst.dev)
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 9512d7345cfdf1720a6495bfe330477e25965cf0 Mon Sep 17 00:00:00 2001
+From 0801deaafa32cd1523e8fb46236087b121df578b Mon Sep 17 00:00:00 2001
 From: Linus Walleij <linus.walleij@linaro.org>
 Date: Tue, 13 Mar 2012 13:27:23 +0100
 Subject: [PATCH 41/68] serial: PL011: clear pending interrupts
@@ -27,8 +27,8 @@ Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 Reviewed-by: Jong-Sung Kim <neidhard.kim@lge.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/tty/serial/amba-pl011.c |   15 +++++++++++----
- 1 files changed, 11 insertions(+), 4 deletions(-)
+ drivers/tty/serial/amba-pl011.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
 index 8e00926..dddc3f2 100644
@@ -78,5 +78,5 @@ index 8e00926..dddc3f2 100644
  	uap->lcrh_rx = vendor->lcrh_rx;
  	uap->lcrh_tx = vendor->lcrh_tx;
 -- 
-1.7.7.6
+1.8.1.4
 

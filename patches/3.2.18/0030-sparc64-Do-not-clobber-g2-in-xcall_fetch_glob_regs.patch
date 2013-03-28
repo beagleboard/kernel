@@ -1,8 +1,7 @@
-From 0c61d01b6d4ff6fdcd85914ceff8cdb0a7c82c92 Mon Sep 17 00:00:00 2001
+From dddfee1fe86af01afeeb2e59fd4a96ba34093c62 Mon Sep 17 00:00:00 2001
 From: "David S. Miller" <davem@davemloft.net>
 Date: Thu, 10 May 2012 11:00:46 -0700
-Subject: [PATCH 30/56] sparc64: Do not clobber %g2 in
- xcall_fetch_glob_regs().
+Subject: [PATCH 30/56] sparc64: Do not clobber %g2 in xcall_fetch_glob_regs().
 
 [ Upstream commit a5a737e090e25981e99d69f01400e3a80356581c ]
 
@@ -20,8 +19,8 @@ Reported-by: Meelis Roos <mroos@linux.ee>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/sparc/kernel/central.c |    2 +-
- arch/sparc/mm/ultra.S       |    6 +++---
+ arch/sparc/kernel/central.c | 2 +-
+ arch/sparc/mm/ultra.S       | 6 +++---
  2 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/arch/sparc/kernel/central.c b/arch/sparc/kernel/central.c
@@ -54,5 +53,5 @@ index b57a594..874162a 100644
  	sethi		%hi(trap_block), %g7
  	or		%g7, %lo(trap_block), %g7
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 0971373cb43eb58cde521109b552dbf2e1090a22 Mon Sep 17 00:00:00 2001
+From e1b9ce2a4fc5e83544af9ef7ad3c5b8d0cf92e86 Mon Sep 17 00:00:00 2001
 From: David Daney <david.daney@cavium.com>
 Date: Thu, 19 Jul 2012 09:11:14 +0200
 Subject: [PATCH 066/109] MIPS: Properly align the .data..init_task section.
@@ -19,8 +19,8 @@ Patchwork: https://patchwork.linux-mips.org/patch/3881/
 Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/mips/include/asm/thread_info.h |    4 ++--
- arch/mips/kernel/vmlinux.lds.S      |    3 ++-
+ arch/mips/include/asm/thread_info.h | 4 ++--
+ arch/mips/kernel/vmlinux.lds.S      | 3 ++-
  2 files changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/arch/mips/include/asm/thread_info.h b/arch/mips/include/asm/thread_info.h
@@ -66,5 +66,5 @@ index a81176f..be281c6 100644
  		CACHELINE_ALIGNED_DATA(1 << CONFIG_MIPS_L1_CACHE_SHIFT)
  		READ_MOSTLY_DATA(1 << CONFIG_MIPS_L1_CACHE_SHIFT)
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 89ae4e3584e6da9167e23416ce59835926bed564 Mon Sep 17 00:00:00 2001
+From d5f719e8f12e9c8a3f8424aadfa74749603298d8 Mon Sep 17 00:00:00 2001
 From: Wu Fengguang <fengguang.wu@intel.com>
 Date: Tue, 17 Jan 2012 11:18:56 -0600
 Subject: [PATCH 15/30] writeback: fix NULL bdi->dev in trace
@@ -16,8 +16,8 @@ Tested-by: Rabin Vincent <rabin@rab.in>
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/fs-writeback.c                |   16 ++++++++--------
- include/trace/events/writeback.h |    2 +-
+ fs/fs-writeback.c                | 16 ++++++++--------
+ include/trace/events/writeback.h |  2 +-
  2 files changed, 9 insertions(+), 9 deletions(-)
 
 diff --git a/fs/fs-writeback.c b/fs/fs-writeback.c
@@ -68,5 +68,5 @@ index 99d1d0d..46e389c 100644
  		__entry->state		= inode->i_state;
  		__entry->dirtied_when	= inode->dirtied_when;
 -- 
-1.7.7.6
+1.8.1.4
 

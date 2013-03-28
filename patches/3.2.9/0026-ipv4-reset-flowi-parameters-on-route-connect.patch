@@ -1,4 +1,4 @@
-From 255d139097677ff2c21cbfde6aa2340bf80d4c8f Mon Sep 17 00:00:00 2001
+From 70566a7d858ae8b65c73b47438bbff1537e8a603 Mon Sep 17 00:00:00 2001
 From: Julian Anastasov <ja@ssi.bg>
 Date: Sat, 4 Feb 2012 13:04:46 +0000
 Subject: [PATCH 26/72] ipv4: reset flowi parameters on route connect
@@ -38,9 +38,9 @@ Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- include/net/flow.h  |   10 ++++++++++
- include/net/route.h |    4 ++++
- 2 files changed, 14 insertions(+), 0 deletions(-)
+ include/net/flow.h  | 10 ++++++++++
+ include/net/route.h |  4 ++++
+ 2 files changed, 14 insertions(+)
 
 diff --git a/include/net/flow.h b/include/net/flow.h
 index 57f15a7..2a7eefd 100644
@@ -86,5 +86,5 @@ index 91855d1..b1c0d5b 100644
  		return ip_route_output_flow(sock_net(sk), fl4, sk);
  	}
 -- 
-1.7.7.6
+1.8.1.4
 

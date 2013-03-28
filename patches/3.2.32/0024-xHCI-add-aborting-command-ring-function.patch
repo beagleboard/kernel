@@ -1,4 +1,4 @@
-From f710cbad0f3c3f178da24e37aba9db3313a97db5 Mon Sep 17 00:00:00 2001
+From 55ed5721b9ed653cf892fcbe45bb42e8752cd1f5 Mon Sep 17 00:00:00 2001
 From: Elric Fu <elricfu1@gmail.com>
 Date: Wed, 27 Jun 2012 16:31:12 +0800
 Subject: [PATCH 024/146] xHCI: add aborting command ring function
@@ -30,10 +30,10 @@ Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Tested-by: Miroslav Sabljic <miroslav.sabljic@avl.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/host/xhci-mem.c  |    7 +++
- drivers/usb/host/xhci-ring.c |  108 ++++++++++++++++++++++++++++++++++++++++++
- drivers/usb/host/xhci.c      |    2 +-
- drivers/usb/host/xhci.h      |   12 +++++
+ drivers/usb/host/xhci-mem.c  |   7 +++
+ drivers/usb/host/xhci-ring.c | 108 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/usb/host/xhci.c      |   2 +-
+ drivers/usb/host/xhci.h      |  12 +++++
  4 files changed, 128 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/host/xhci-mem.c b/drivers/usb/host/xhci-mem.c
@@ -245,5 +245,5 @@ index 430163d..c755cf6 100644
  		unsigned int ep_index, unsigned int stream_id);
  
 -- 
-1.7.10.4
+1.8.1.4
 

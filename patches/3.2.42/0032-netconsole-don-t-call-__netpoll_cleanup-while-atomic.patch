@@ -1,0 +1,65 @@
+From 4cc7f9733c5580bd3ac773e8802d7c0517ed0b96 Mon Sep 17 00:00:00 2001
+From: Veaceslav Falico <vfalico@redhat.com>
+Date: Mon, 11 Mar 2013 00:21:48 +0000
+Subject: [PATCH 32/92] netconsole: don't call __netpoll_cleanup() while atomic
+
+[ Upstream commit 3f315bef23075ea8a98a6fe4221a83b83456d970 ]
+
+__netpoll_cleanup() is called in netconsole_netdev_event() while holding a
+spinlock. Release/acquire the spinlock before/after it and restart the
+loop. Also, disable the netconsole completely, because we won't have chance
+after the restart of the loop, and might end up in a situation where
+nt->enabled == 1 and nt->np.dev == NULL.
+
+Signed-off-by: Veaceslav Falico <vfalico@redhat.com>
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/netconsole.c | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/net/netconsole.c b/drivers/net/netconsole.c
+index 01b104e..bff6908 100644
+--- a/drivers/net/netconsole.c
++++ b/drivers/net/netconsole.c
+@@ -630,6 +630,7 @@ static int netconsole_netdev_event(struct notifier_block *this,
+ 		goto done;
+ 
+ 	spin_lock_irqsave(&target_list_lock, flags);
++restart:
+ 	list_for_each_entry(nt, &target_list, list) {
+ 		netconsole_target_get(nt);
+ 		if (nt->np.dev == dev) {
+@@ -642,20 +643,17 @@ static int netconsole_netdev_event(struct notifier_block *this,
+ 			case NETDEV_UNREGISTER:
+ 				/*
+ 				 * rtnl_lock already held
++				 * we might sleep in __netpoll_cleanup()
+ 				 */
+-				if (nt->np.dev) {
+-					spin_unlock_irqrestore(
+-							      &target_list_lock,
+-							      flags);
+-					__netpoll_cleanup(&nt->np);
+-					spin_lock_irqsave(&target_list_lock,
+-							  flags);
+-					dev_put(nt->np.dev);
+-					nt->np.dev = NULL;
+-				}
++				spin_unlock_irqrestore(&target_list_lock, flags);
++				__netpoll_cleanup(&nt->np);
++				spin_lock_irqsave(&target_list_lock, flags);
++				dev_put(nt->np.dev);
++				nt->np.dev = NULL;
+ 				nt->enabled = 0;
+ 				stopped = true;
+-				break;
++				netconsole_target_put(nt);
++				goto restart;
+ 			}
+ 		}
+ 		netconsole_target_put(nt);
+-- 
+1.8.1.4
+

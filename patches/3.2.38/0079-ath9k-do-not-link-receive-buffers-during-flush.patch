@@ -1,0 +1,53 @@
+From 18897e1a7e655e07d5266da932bf618972bf8599 Mon Sep 17 00:00:00 2001
+From: Felix Fietkau <nbd@openwrt.org>
+Date: Wed, 9 Jan 2013 16:16:52 +0100
+Subject: [PATCH 079/127] ath9k: do not link receive buffers during flush
+
+commit a3dc48e82bb146ef11cf75676c8410c1df29b0c4 upstream.
+
+On AR9300 the rx FIFO needs to be empty during reset to ensure that no
+further DMA activity is generated, otherwise it might lead to memory
+corruption issues.
+
+Signed-off-by: Felix Fietkau <nbd@openwrt.org>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/ath/ath9k/recv.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/wireless/ath/ath9k/recv.c b/drivers/net/wireless/ath/ath9k/recv.c
+index b4cbc82..d171a72 100644
+--- a/drivers/net/wireless/ath/ath9k/recv.c
++++ b/drivers/net/wireless/ath/ath9k/recv.c
+@@ -786,6 +786,7 @@ static struct ath_buf *ath_get_next_rx_buf(struct ath_softc *sc,
+ 			return NULL;
+ 	}
+ 
++	list_del(&bf->list);
+ 	if (!bf->bf_mpdu)
+ 		return bf;
+ 
+@@ -1966,14 +1967,15 @@ requeue_drop_frag:
+ 			sc->rx.frag = NULL;
+ 		}
+ requeue:
++		list_add_tail(&bf->list, &sc->rx.rxbuf);
++		if (flush)
++			continue;
++
+ 		if (edma) {
+-			list_add_tail(&bf->list, &sc->rx.rxbuf);
+ 			ath_rx_edma_buf_link(sc, qtype);
+ 		} else {
+-			list_move_tail(&bf->list, &sc->rx.rxbuf);
+ 			ath_rx_buf_link(sc, bf);
+-			if (!flush)
+-				ath9k_hw_rxena(ah);
++			ath9k_hw_rxena(ah);
+ 		}
+ 	} while (1);
+ 
+-- 
+1.8.1.4
+

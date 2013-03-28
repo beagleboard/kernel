@@ -1,4 +1,4 @@
-From 5d91e56499386ee10af55eaba1c25618a3db6c18 Mon Sep 17 00:00:00 2001
+From 9fd3d2ea54f4531712bb5f3c34fbe2e096ef6d3d Mon Sep 17 00:00:00 2001
 From: Alex Williamson <alex.williamson@redhat.com>
 Date: Tue, 17 Apr 2012 21:46:44 -0600
 Subject: [PATCH 003/117] KVM: lock slots_lock around device assignment
@@ -20,8 +20,8 @@ Signed-off-by: Marcelo Tosatti <mtosatti@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- virt/kvm/iommu.c |   23 +++++++++++++++--------
- 1 files changed, 15 insertions(+), 8 deletions(-)
+ virt/kvm/iommu.c | 23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
 diff --git a/virt/kvm/iommu.c b/virt/kvm/iommu.c
 index fd817a2..533db33 100644
@@ -79,5 +79,5 @@ index fd817a2..533db33 100644
  	return 0;
  }
 -- 
-1.7.7.6
+1.8.1.4
 

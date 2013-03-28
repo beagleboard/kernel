@@ -1,4 +1,4 @@
-From e661b8dc2f901cda59a83386fc58ffdf4c0c7a7c Mon Sep 17 00:00:00 2001
+From a691d9ac4d97afa7c18f742c8c40fa9864eb733b Mon Sep 17 00:00:00 2001
 From: Johan Hovold <jhovold@gmail.com>
 Date: Thu, 25 Oct 2012 10:29:17 +0200
 Subject: [PATCH 084/105] USB: sierra: fix memory leak in attach error path
@@ -11,8 +11,8 @@ Signed-off-by: Johan Hovold <jhovold@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/serial/sierra.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
+ drivers/usb/serial/sierra.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/serial/sierra.c b/drivers/usb/serial/sierra.c
 index 7041d77..ade4397 100644
@@ -42,5 +42,5 @@ index 7041d77..ade4397 100644
  
  static void sierra_release(struct usb_serial *serial)
 -- 
-1.7.7.6
+1.8.1.4
 

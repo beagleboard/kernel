@@ -1,0 +1,42 @@
+From 2b1ab7e6abf2c06f502db51f410dc50616bfb6bf Mon Sep 17 00:00:00 2001
+From: Jan Kara <jack@suse.cz>
+Date: Wed, 23 Jan 2013 13:56:18 +0100
+Subject: [PATCH 100/127] xfs: Fix possible use-after-free with AIO
+
+commit 4b05d09c18d9aa62d2e7fb4b057f54e5a38963f5 upstream.
+
+Running AIO is pinning inode in memory using file reference. Once AIO
+is completed using aio_complete(), file reference is put and inode can
+be freed from memory. So we have to be sure that calling aio_complete()
+is the last thing we do with the inode.
+
+CC: xfs@oss.sgi.com
+CC: Ben Myers <bpm@sgi.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Ben Myers <bpm@sgi.com>
+Signed-off-by: Ben Myers <bpm@sgi.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/xfs/xfs_aops.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
+index 574d4ee..b367581 100644
+--- a/fs/xfs/xfs_aops.c
++++ b/fs/xfs/xfs_aops.c
+@@ -88,11 +88,11 @@ xfs_destroy_ioend(
+ 	}
+ 
+ 	if (ioend->io_iocb) {
++		inode_dio_done(ioend->io_inode);
+ 		if (ioend->io_isasync) {
+ 			aio_complete(ioend->io_iocb, ioend->io_error ?
+ 					ioend->io_error : ioend->io_result, 0);
+ 		}
+-		inode_dio_done(ioend->io_inode);
+ 	}
+ 
+ 	mempool_free(ioend, xfs_ioend_pool);
+-- 
+1.8.1.4
+

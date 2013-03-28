@@ -1,4 +1,4 @@
-From 2a7391e15d35b4a71a0bf0bcdd0aad91ef6e9a65 Mon Sep 17 00:00:00 2001
+From dac7b71581824fd3994cf2dfc8142df94cb4350a Mon Sep 17 00:00:00 2001
 From: stephen hemminger <shemminger@vyatta.com>
 Date: Tue, 26 Jun 2012 05:48:45 +0000
 Subject: [PATCH 40/49] bridge: Assign rtnl_link_ops to bridge devices created
@@ -15,10 +15,10 @@ Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/bridge/br_if.c      |    1 +
- net/bridge/br_netlink.c |    2 +-
- net/bridge/br_private.h |    1 +
- 3 files changed, 3 insertions(+), 1 deletions(-)
+ net/bridge/br_if.c      | 1 +
+ net/bridge/br_netlink.c | 2 +-
+ net/bridge/br_private.h | 1 +
+ 3 files changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/net/bridge/br_if.c b/net/bridge/br_if.c
 index f603e5b..f3f75ad 100644
@@ -58,5 +58,5 @@ index 93264df..b9bba8f 100644
  extern void br_netlink_fini(void);
  extern void br_ifinfo_notify(int event, struct net_bridge_port *port);
 -- 
-1.7.7.6
+1.8.1.4
 

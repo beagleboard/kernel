@@ -1,4 +1,4 @@
-From 6e6b7a51579c587298f8bf914fe3751477861843 Mon Sep 17 00:00:00 2001
+From d3ebb98c88f6c2af605af36e430ef97b80ec019c Mon Sep 17 00:00:00 2001
 From: Ming Lei <tom.leiming@gmail.com>
 Date: Thu, 26 Apr 2012 11:33:46 +0800
 Subject: [PATCH 44/56] usbnet: fix skb traversing races during unlink(v2)
@@ -31,8 +31,8 @@ Cc: Oliver Neukum <oneukum@suse.de>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/usb/usbnet.c   |   54 +++++++++++++++++++++++++++++++-------------
- include/linux/usb/usbnet.h |    3 +-
+ drivers/net/usb/usbnet.c   | 54 ++++++++++++++++++++++++++++++++--------------
+ include/linux/usb/usbnet.h |  3 ++-
  2 files changed, 40 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/net/usb/usbnet.c b/drivers/net/usb/usbnet.c
@@ -218,5 +218,5 @@ index 605b0aa..76f4396 100644
  
  struct skb_data {	/* skb->cb is one of these */
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From fc45d98f3398731bb4b185d591f39d36653d49c4 Mon Sep 17 00:00:00 2001
+From 1b2942151476d8a29b497e9aca339415ca710db4 Mon Sep 17 00:00:00 2001
 From: Luis Henriques <luis.henriques@canonical.com>
 Date: Sat, 21 Apr 2012 12:25:21 -0300
 Subject: [PATCH 25/56] rc: Postpone ISR registration
@@ -18,11 +18,11 @@ Acked-by: Jarod Wilson <jarod@redhat.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/media/rc/ene_ir.c      |   32 ++++++++--------
- drivers/media/rc/fintek-cir.c  |   20 +++++-----
- drivers/media/rc/ite-cir.c     |   20 +++++-----
- drivers/media/rc/nuvoton-cir.c |   36 +++++++++---------
- drivers/media/rc/winbond-cir.c |   78 ++++++++++++++++++++--------------------
+ drivers/media/rc/ene_ir.c      | 32 ++++++++---------
+ drivers/media/rc/fintek-cir.c  | 20 +++++------
+ drivers/media/rc/ite-cir.c     | 20 +++++------
+ drivers/media/rc/nuvoton-cir.c | 36 +++++++++----------
+ drivers/media/rc/winbond-cir.c | 78 +++++++++++++++++++++---------------------
  5 files changed, 93 insertions(+), 93 deletions(-)
 
 diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
@@ -321,5 +321,5 @@ index a7e7d6f..4591770 100644
  	kfree(data);
  	pnp_set_drvdata(device, NULL);
 -- 
-1.7.7.6
+1.8.1.4
 

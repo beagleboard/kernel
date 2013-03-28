@@ -1,4 +1,4 @@
-From 3d964ae6b306a2e5bab8ea22f55400668e8f8271 Mon Sep 17 00:00:00 2001
+From 05ac0908613deb5f71253e80f36bc5ba1d4d108c Mon Sep 17 00:00:00 2001
 From: Neil Horman <nhorman@tuxdriver.com>
 Date: Mon, 16 Jul 2012 09:13:51 +0000
 Subject: [PATCH 03/38] sctp: Fix list corruption resulting from freeing an
@@ -117,8 +117,8 @@ CC: linux-sctp@vger.kernel.org
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/sctp/input.c  |    7 ++-----
- net/sctp/socket.c |   12 ++++++++++--
+ net/sctp/input.c  |  7 ++-----
+ net/sctp/socket.c | 12 ++++++++++--
  2 files changed, 12 insertions(+), 7 deletions(-)
 
 diff --git a/net/sctp/input.c b/net/sctp/input.c
@@ -184,5 +184,5 @@ index 0075554..8e49d76 100644
  	sctp_release_sock(sk);
  
 -- 
-1.7.7.6
+1.8.1.4
 

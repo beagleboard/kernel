@@ -1,0 +1,51 @@
+From c348484b95b2c30edd7e26af9522572debd08d30 Mon Sep 17 00:00:00 2001
+From: Xose Vazquez Perez <xose.vazquez@gmail.com>
+Date: Sat, 14 Apr 2012 23:00:01 +0200
+Subject: [PATCH 27/67] wireless: rt2x00: rt{2500,73}usb.c put back duplicate
+ id
+
+commit 8f35f787b75e9b6435ea37dabcae2d40dc72d31c upstream.
+
+put back 0x050d,0x7050 to rt73usb, same usb_id for two chips:
+
+K7SF5D7050A ver 2xxx is rt2500
+K7SF5D7050B ver 3xxx is rt73
+
+<http://en-us-support.belkin.com/app/answers/detail/a_id/297/kw/K7SF5D7050>
+
+Signed-off-by: Xose Vazquez Perez <xose.vazquez@gmail.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/rt2x00/rt2500usb.c | 2 +-
+ drivers/net/wireless/rt2x00/rt73usb.c   | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/rt2x00/rt2500usb.c b/drivers/net/wireless/rt2x00/rt2500usb.c
+index 22ed6df..2be9880 100644
+--- a/drivers/net/wireless/rt2x00/rt2500usb.c
++++ b/drivers/net/wireless/rt2x00/rt2500usb.c
+@@ -1921,7 +1921,7 @@ static struct usb_device_id rt2500usb_device_table[] = {
+ 	{ USB_DEVICE(0x0b05, 0x1706) },
+ 	{ USB_DEVICE(0x0b05, 0x1707) },
+ 	/* Belkin */
+-	{ USB_DEVICE(0x050d, 0x7050) },
++	{ USB_DEVICE(0x050d, 0x7050) },	/* FCC ID: K7SF5D7050A ver. 2.x */
+ 	{ USB_DEVICE(0x050d, 0x7051) },
+ 	/* Cisco Systems */
+ 	{ USB_DEVICE(0x13b1, 0x000d) },
+diff --git a/drivers/net/wireless/rt2x00/rt73usb.c b/drivers/net/wireless/rt2x00/rt73usb.c
+index 2ad468d..9e724eb 100644
+--- a/drivers/net/wireless/rt2x00/rt73usb.c
++++ b/drivers/net/wireless/rt2x00/rt73usb.c
+@@ -2421,6 +2421,7 @@ static struct usb_device_id rt73usb_device_table[] = {
+ 	{ USB_DEVICE(0x0b05, 0x1723) },
+ 	{ USB_DEVICE(0x0b05, 0x1724) },
+ 	/* Belkin */
++	{ USB_DEVICE(0x050d, 0x7050) },	/* FCC ID: K7SF5D7050B ver. 3.x */
+ 	{ USB_DEVICE(0x050d, 0x705a) },
+ 	{ USB_DEVICE(0x050d, 0x905b) },
+ 	{ USB_DEVICE(0x050d, 0x905c) },
+-- 
+1.8.1.4
+

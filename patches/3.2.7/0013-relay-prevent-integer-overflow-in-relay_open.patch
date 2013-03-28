@@ -1,4 +1,4 @@
-From 04e9242565b515d6513dda610a820596e68dcb9c Mon Sep 17 00:00:00 2001
+From c9e288b093d7153353493a454294c00a9d46cc71 Mon Sep 17 00:00:00 2001
 From: Dan Carpenter <dan.carpenter@oracle.com>
 Date: Fri, 10 Feb 2012 09:03:58 +0100
 Subject: [PATCH 13/30] relay: prevent integer overflow in relay_open()
@@ -12,8 +12,8 @@ Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- kernel/relay.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ kernel/relay.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/kernel/relay.c b/kernel/relay.c
 index 226fade..b6f803a 100644
@@ -46,5 +46,5 @@ index 226fade..b6f803a 100644
  	chan = kzalloc(sizeof(struct rchan), GFP_KERNEL);
  	if (!chan)
 -- 
-1.7.7.6
+1.8.1.4
 

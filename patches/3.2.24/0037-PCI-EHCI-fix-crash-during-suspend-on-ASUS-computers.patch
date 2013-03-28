@@ -1,8 +1,7 @@
-From 68e35cc999b0509e4f331dfb9a4957ade5e6572d Mon Sep 17 00:00:00 2001
+From 5b79768196dcebb267665018b54b3128c68c40b5 Mon Sep 17 00:00:00 2001
 From: Alan Stern <stern@rowland.harvard.edu>
 Date: Mon, 9 Jul 2012 11:09:21 -0400
-Subject: [PATCH 037/109] PCI: EHCI: fix crash during suspend on ASUS
- computers
+Subject: [PATCH 037/109] PCI: EHCI: fix crash during suspend on ASUS computers
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -66,10 +65,10 @@ Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/pci/pci-driver.c |   12 ++++++++++++
- drivers/pci/pci.c        |    5 -----
- drivers/pci/quirks.c     |   26 --------------------------
- include/linux/pci.h      |    2 --
+ drivers/pci/pci-driver.c | 12 ++++++++++++
+ drivers/pci/pci.c        |  5 -----
+ drivers/pci/quirks.c     | 26 --------------------------
+ include/linux/pci.h      |  2 --
  4 files changed, 12 insertions(+), 33 deletions(-)
 
 diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
@@ -162,5 +161,5 @@ index c0cfa0d..7cda65b 100644
  
  enum pci_irq_reroute_variant {
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From afee3de56bdf6c22cc89488112ee6877d938e877 Mon Sep 17 00:00:00 2001
+From baf8a9c709d16c2b8bab7b3deeb169232245d7f9 Mon Sep 17 00:00:00 2001
 From: Alexey Khoroshilov <khoroshilov@ispras.ru>
 Date: Wed, 8 Aug 2012 00:33:25 +0000
 Subject: [PATCH 053/135] net/core: Fix potential memory leak in
@@ -14,8 +14,8 @@ Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/core/dev.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+ net/core/dev.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/net/core/dev.c b/net/core/dev.c
 index e6f2635..75da76d 100644
@@ -44,5 +44,5 @@ index e6f2635..75da76d 100644
  	strlcpy(dev->ifalias, alias, len+1);
  	return len;
 -- 
-1.7.7.6
+1.8.1.4
 

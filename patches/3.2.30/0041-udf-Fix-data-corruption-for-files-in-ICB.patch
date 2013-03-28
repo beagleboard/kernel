@@ -1,4 +1,4 @@
-From d851bd77208fc6fcc88cc74c6ea12ab0798a64ae Mon Sep 17 00:00:00 2001
+From 48255be6070024f9965376a3321d880d1909c8dc Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Wed, 5 Sep 2012 15:48:23 +0200
 Subject: [PATCH 041/135] udf: Fix data corruption for files in ICB
@@ -19,8 +19,8 @@ Reported-by: Ian Abbott <abbotti@mev.co.uk>
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/udf/file.c |   35 +++++++++++++++++++++++++++++------
- 1 files changed, 29 insertions(+), 6 deletions(-)
+ fs/udf/file.c | 35 +++++++++++++++++++++++++++++------
+ 1 file changed, 29 insertions(+), 6 deletions(-)
 
 diff --git a/fs/udf/file.c b/fs/udf/file.c
 index d567b84..874c9e3 100644
@@ -93,5 +93,5 @@ index d567b84..874c9e3 100644
  
  static ssize_t udf_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
 -- 
-1.7.7.6
+1.8.1.4
 

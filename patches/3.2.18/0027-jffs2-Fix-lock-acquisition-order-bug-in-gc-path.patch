@@ -1,4 +1,4 @@
-From 1d480863c6a1bbeea8f5f5eae98128d935acadf7 Mon Sep 17 00:00:00 2001
+From 28b71f2e13eb5c095b2863f7c29be780507cbe30 Mon Sep 17 00:00:00 2001
 From: Josh Cartwright <joshc@linux.com>
 Date: Thu, 29 Mar 2012 19:34:53 -0400
 Subject: [PATCH 27/56] jffs2: Fix lock acquisition order bug in gc path
@@ -81,8 +81,8 @@ Signed-off-by: David Woodhouse <David.Woodhouse@intel.com>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/jffs2/gc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ fs/jffs2/gc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/fs/jffs2/gc.c b/fs/jffs2/gc.c
 index 31dce61..4bbd521 100644
@@ -99,5 +99,5 @@ index 31dce61..4bbd521 100644
  
  	/* First, work out which block we're garbage-collecting */
 -- 
-1.7.7.6
+1.8.1.4
 

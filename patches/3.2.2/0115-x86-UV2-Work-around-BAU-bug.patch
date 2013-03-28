@@ -1,4 +1,4 @@
-From 3f8667c93e5c9bb8aa4e61930772c9ee7032f54d Mon Sep 17 00:00:00 2001
+From 9463269bad407418d5b2c512701db88c6884b7a3 Mon Sep 17 00:00:00 2001
 From: Cliff Wickman <cpw@sgi.com>
 Date: Mon, 16 Jan 2012 15:19:47 -0600
 Subject: [PATCH 115/129] x86/UV2: Work around BAU bug
@@ -31,8 +31,8 @@ Link: http://lkml.kernel.org/r/20120116211947.GC5767@sgi.com
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- arch/x86/include/asm/uv/uv_bau.h |   13 ++-
- arch/x86/platform/uv/tlb_uv.c    |  274 +++++++++++++++++++++++++++++++++-----
+ arch/x86/include/asm/uv/uv_bau.h |  13 +-
+ arch/x86/platform/uv/tlb_uv.c    | 274 ++++++++++++++++++++++++++++++++++-----
  2 files changed, 254 insertions(+), 33 deletions(-)
 
 diff --git a/arch/x86/include/asm/uv/uv_bau.h b/arch/x86/include/asm/uv/uv_bau.h
@@ -566,5 +566,5 @@ index c425ff1..9010ca7 100644
  			printk(KERN_EMERG "%d cpus per uvhub invalid\n",
  				bcp->uvhub_cpu);
 -- 
-1.7.7.6
+1.8.1.4
 

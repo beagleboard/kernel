@@ -1,4 +1,4 @@
-From e1d4a526c1d9abc00ac047a8d91be68302a5668e Mon Sep 17 00:00:00 2001
+From f5b511c997b8f76735caaf97851292530f1fda1c Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pshelar@nicira.com>
 Date: Fri, 23 Mar 2012 15:02:55 -0700
 Subject: [PATCH 098/147] proc-ns: use d_set_d_op() API to set dentry ops in
@@ -28,8 +28,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/proc/namespaces.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ fs/proc/namespaces.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/fs/proc/namespaces.c b/fs/proc/namespaces.c
 index be177f7..d6c078e 100644
@@ -45,5 +45,5 @@ index be177f7..d6c078e 100644
  	/* Close the race of the process dying before we return the dentry */
  	if (pid_revalidate(dentry, NULL))
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From b82ef2f4cee5ebd8c6ffbf8a51b9af0388f3c6bf Mon Sep 17 00:00:00 2001
+From a712bbb6c362f816f8c9abf04bf1665fa6b0274a Mon Sep 17 00:00:00 2001
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Date: Mon, 30 Apr 2012 09:18:01 -0400
 Subject: [PATCH 136/165] hwmon: (coretemp) fix oops on cpu unplug
@@ -54,8 +54,8 @@ Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/hwmon/coretemp.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ drivers/hwmon/coretemp.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
 index 8b53a7a..427468f 100644
@@ -73,5 +73,5 @@ index 8b53a7a..427468f 100644
  		coretemp_remove_core(pdata, &pdev->dev, indx);
  
 -- 
-1.7.7.6
+1.8.1.4
 

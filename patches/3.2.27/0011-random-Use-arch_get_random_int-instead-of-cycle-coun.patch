@@ -1,4 +1,4 @@
-From 9661c9f2dd50767325bcd6c6e9ea45784b6d5eb4 Mon Sep 17 00:00:00 2001
+From 9dcd58ec02e80ff33c64df36e6cdaa0dab53f861 Mon Sep 17 00:00:00 2001
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Date: Thu, 22 Dec 2011 11:36:22 -0800
 Subject: [PATCH 11/70] random: Use arch_get_random_int instead of cycle
@@ -34,8 +34,8 @@ Cc: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/char/random.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/char/random.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/char/random.c b/drivers/char/random.c
 index 6035ab8..85da874 100644
@@ -65,5 +65,5 @@ index 6035ab8..85da874 100644
  	mix_pool_bytes(&input_pool, &sample, sizeof(sample));
  
 -- 
-1.7.7.6
+1.8.1.4
 

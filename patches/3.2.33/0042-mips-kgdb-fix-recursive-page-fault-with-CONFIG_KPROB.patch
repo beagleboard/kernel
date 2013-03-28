@@ -1,4 +1,4 @@
-From 2b2f45a27435b7c2dab6eda723fad3d11e349701 Mon Sep 17 00:00:00 2001
+From 1d212b78a2b926d1aed8f646bc4fe92b8b92d12e Mon Sep 17 00:00:00 2001
 From: Jason Wessel <jason.wessel@windriver.com>
 Date: Fri, 10 Aug 2012 12:21:15 -0500
 Subject: [PATCH 042/105] mips,kgdb: fix recursive page fault with
@@ -26,8 +26,8 @@ Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/mips/kernel/kgdb.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ arch/mips/kernel/kgdb.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
 diff --git a/arch/mips/kernel/kgdb.c b/arch/mips/kernel/kgdb.c
 index f4546e9..23817a6 100644
@@ -50,5 +50,5 @@ index f4546e9..23817a6 100644
  	if (user_mode(regs))
  		return NOTIFY_DONE;
 -- 
-1.7.7.6
+1.8.1.4
 

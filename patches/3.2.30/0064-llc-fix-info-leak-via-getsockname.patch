@@ -1,4 +1,4 @@
-From 5bed0f794aa42f433ff4571a50ca375074b3e56e Mon Sep 17 00:00:00 2001
+From 2c3cfd49de3e4ccb71c5f2d3493f244a110c9e75 Mon Sep 17 00:00:00 2001
 From: Mathias Krause <minipli@googlemail.com>
 Date: Wed, 15 Aug 2012 11:31:53 +0000
 Subject: [PATCH 064/135] llc: fix info leak via getsockname()
@@ -20,8 +20,8 @@ Cc: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/llc/af_llc.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ net/llc/af_llc.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/net/llc/af_llc.c b/net/llc/af_llc.c
 index a18e6c3..99a60d5 100644
@@ -44,5 +44,5 @@ index a18e6c3..99a60d5 100644
  		rc = -ENOTCONN;
  		if (sk->sk_state != TCP_ESTABLISHED)
 -- 
-1.7.7.6
+1.8.1.4
 

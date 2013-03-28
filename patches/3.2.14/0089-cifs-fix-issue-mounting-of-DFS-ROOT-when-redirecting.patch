@@ -1,8 +1,8 @@
-From ffd3e764a79e4c4dcda0a29151fb2f4f5b279bd6 Mon Sep 17 00:00:00 2001
+From 22515243f1e0ea4542c329f8c73e73ed6fd487cc Mon Sep 17 00:00:00 2001
 From: Jeff Layton <jlayton@redhat.com>
 Date: Wed, 21 Mar 2012 06:30:40 -0400
-Subject: [PATCH 089/147] cifs: fix issue mounting of DFS ROOT when
- redirecting from one domain controller to the next
+Subject: [PATCH 089/147] cifs: fix issue mounting of DFS ROOT when redirecting
+ from one domain controller to the next
 
 commit 1daaae8fa4afe3df78ca34e724ed7e8187e4eb32 upstream.
 
@@ -26,8 +26,8 @@ Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: Steve French <sfrench@us.ibm.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/cifs/connect.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ fs/cifs/connect.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/fs/cifs/connect.c b/fs/cifs/connect.c
 index a26b98f..9e0675a 100644
@@ -51,5 +51,5 @@ index a26b98f..9e0675a 100644
  	pSesInfo = NULL;
  	srvTcp = NULL;
 -- 
-1.7.7.6
+1.8.1.4
 

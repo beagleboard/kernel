@@ -1,4 +1,4 @@
-From 7ee160c38cb7f06fdd04d2d1cf0031b2568ada9c Mon Sep 17 00:00:00 2001
+From 964d950e3acc489b56338cdbe48245119c2cd0eb Mon Sep 17 00:00:00 2001
 From: Wu Fengguang <fengguang.wu@intel.com>
 Date: Sat, 4 Feb 2012 20:54:03 -0600
 Subject: [PATCH 16/30] writeback: fix dereferencing NULL bdi->dev on
@@ -20,8 +20,8 @@ Tested-by: Namjae Jeon <linkinjeon@gmail.com>
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- include/trace/events/writeback.h |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ include/trace/events/writeback.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/include/trace/events/writeback.h b/include/trace/events/writeback.h
 index 46e389c..1f48f14 100644
@@ -40,5 +40,5 @@ index 46e389c..1f48f14 100644
  		__entry->sb_dev = work->sb ? work->sb->s_dev : 0;
  		__entry->sync_mode = work->sync_mode;
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,7 +1,7 @@
-From 57a939202136c5652edc7651d3cc09d9b168513b Mon Sep 17 00:00:00 2001
+From 987dcdedb0d523b07f35c64eeabc1cc8e3d75515 Mon Sep 17 00:00:00 2001
 From: Aditya Nellutla <aditya.n@ti.com>
 Date: Thu, 29 Mar 2012 15:45:39 +0530
-Subject: [PATCH 62/92] da8xx-fb: Rounding FB size to satisfy SGX buffer
+Subject: [PATCH 062/102] da8xx-fb: Rounding FB size to satisfy SGX buffer
  requirements
 
 In the real time use-case when SGX is used for rendering to FB buffers it has been
@@ -21,8 +21,8 @@ This patch makes sure that FB allocates buffers aligned to above formula.
 
 Signed-off-by: Aditya Nellutla <aditya.n@ti.com>
 ---
- drivers/video/da8xx-fb.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/video/da8xx-fb.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
 index 86b19ac..9aaca5d 100644
@@ -55,5 +55,5 @@ index 86b19ac..9aaca5d 100644
  
  	par->vram_virt = dma_alloc_coherent(NULL,
 -- 
-1.7.7.6
+1.8.1.4
 

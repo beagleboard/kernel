@@ -1,4 +1,4 @@
-From 0c458b5a467a3aaeadc0ebe4e5fb7c551c29525c Mon Sep 17 00:00:00 2001
+From 343ea36f20ce0087eac797ea9507ff6c3c62b8a7 Mon Sep 17 00:00:00 2001
 From: Jonathan E Brassow <jbrassow@redhat.com>
 Date: Wed, 7 Mar 2012 19:09:47 +0000
 Subject: [PATCH 90/95] dm raid: set MD_CHANGE_DEVS when rebuilding
@@ -21,8 +21,8 @@ Signed-off-by: Jonathan Brassow <jbrassow@redhat.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/md/dm-raid.c |   16 ++++++++++------
- 1 files changed, 10 insertions(+), 6 deletions(-)
+ drivers/md/dm-raid.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/md/dm-raid.c b/drivers/md/dm-raid.c
 index c2907d8..4834d43 100644
@@ -59,5 +59,5 @@ index c2907d8..4834d43 100644
  		} else if (test_bit(FirstUse, &r->flags))
  			new_devs++;
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 24b7afa21cf883ff4eb478c43dcca49f785a2017 Mon Sep 17 00:00:00 2001
+From 416dbf7a39473f6d8555b2367dc3bd1eca4b7607 Mon Sep 17 00:00:00 2001
 From: Jeff Layton <jlayton@redhat.com>
 Date: Thu, 2 Aug 2012 14:30:56 -0400
 Subject: [PATCH 02/94] nfs: tear down caches in nfs_init_writepagecache when
@@ -15,8 +15,8 @@ Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 [bwh: Backported to 3.2: drop the nfs_cdata_cachep cleanup; it doesn't exist]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/nfs/write.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ fs/nfs/write.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/fs/nfs/write.c b/fs/nfs/write.c
 index c6e523a..301391a 100644
@@ -51,5 +51,5 @@ index c6e523a..301391a 100644
  
  void nfs_destroy_writepagecache(void)
 -- 
-1.7.7.6
+1.8.1.4
 

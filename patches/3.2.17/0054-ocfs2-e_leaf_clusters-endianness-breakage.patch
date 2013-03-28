@@ -1,4 +1,4 @@
-From 8a12f6dc0855d6c485bc777b473f0ff2a76e9899 Mon Sep 17 00:00:00 2001
+From 4a78f9a6ad8f2c98cc0dc30d0dca8a77dd4aa4b2 Mon Sep 17 00:00:00 2001
 From: Al Viro <viro@zeniv.linux.org.uk>
 Date: Fri, 13 Apr 2012 12:30:02 -0400
 Subject: [PATCH 054/165] ocfs2: ->e_leaf_clusters endianness breakage
@@ -10,8 +10,8 @@ le16, not le32...
 Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ocfs2/suballoc.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/suballoc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/fs/ocfs2/suballoc.c b/fs/ocfs2/suballoc.c
 index ba5d97e..f169da4 100644
@@ -36,5 +36,5 @@ index ba5d97e..f169da4 100644
  	if (res->sr_bit_offset < bitoff)
  		return 0;
 -- 
-1.7.7.6
+1.8.1.4
 

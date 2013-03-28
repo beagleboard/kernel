@@ -1,0 +1,105 @@
+From 115041327e9fb74d147c3387909665926ba53fa3 Mon Sep 17 00:00:00 2001
+From: T Makphaibulchoke <tmac@hp.com>
+Date: Thu, 4 Oct 2012 17:16:55 -0700
+Subject: [PATCH 40/67] kernel/resource.c: fix stack overflow in
+ __reserve_region_with_split()
+
+commit 4965f5667f36a95b41cda6638875bc992bd7d18b upstream.
+
+Using a recursive call add a non-conflicting region in
+__reserve_region_with_split() could result in a stack overflow in the case
+that the recursive calls are too deep.  Convert the recursive calls to an
+iterative loop to avoid the problem.
+
+Tested on a machine containing 135 regions.  The kernel no longer panicked
+with stack overflow.
+
+Also tested with code arbitrarily adding regions with no conflict,
+embedding two consecutive conflicts and embedding two non-consecutive
+conflicts.
+
+Signed-off-by: T Makphaibulchoke <tmac@hp.com>
+Reviewed-by: Ram Pai <linuxram@us.ibm.com>
+Cc: Paul Gortmaker <paul.gortmaker@gmail.com>
+Cc: Wei Yang <weiyang@linux.vnet.ibm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/resource.c | 50 ++++++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 38 insertions(+), 12 deletions(-)
+
+diff --git a/kernel/resource.c b/kernel/resource.c
+index 7640b3a..08aa28e 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -757,6 +757,7 @@ static void __init __reserve_region_with_split(struct resource *root,
+ 	struct resource *parent = root;
+ 	struct resource *conflict;
+ 	struct resource *res = kzalloc(sizeof(*res), GFP_ATOMIC);
++	struct resource *next_res = NULL;
+ 
+ 	if (!res)
+ 		return;
+@@ -766,21 +767,46 @@ static void __init __reserve_region_with_split(struct resource *root,
+ 	res->end = end;
+ 	res->flags = IORESOURCE_BUSY;
+ 
+-	conflict = __request_resource(parent, res);
+-	if (!conflict)
+-		return;
++	while (1) {
+ 
+-	/* failed, split and try again */
+-	kfree(res);
++		conflict = __request_resource(parent, res);
++		if (!conflict) {
++			if (!next_res)
++				break;
++			res = next_res;
++			next_res = NULL;
++			continue;
++		}
+ 
+-	/* conflict covered whole area */
+-	if (conflict->start <= start && conflict->end >= end)
+-		return;
++		/* conflict covered whole area */
++		if (conflict->start <= res->start &&
++				conflict->end >= res->end) {
++			kfree(res);
++			WARN_ON(next_res);
++			break;
++		}
++
++		/* failed, split and try again */
++		if (conflict->start > res->start) {
++			end = res->end;
++			res->end = conflict->start - 1;
++			if (conflict->end < end) {
++				next_res = kzalloc(sizeof(*next_res),
++						GFP_ATOMIC);
++				if (!next_res) {
++					kfree(res);
++					break;
++				}
++				next_res->name = name;
++				next_res->start = conflict->end + 1;
++				next_res->end = end;
++				next_res->flags = IORESOURCE_BUSY;
++			}
++		} else {
++			res->start = conflict->end + 1;
++		}
++	}
+ 
+-	if (conflict->start > start)
+-		__reserve_region_with_split(root, start, conflict->start-1, name);
+-	if (conflict->end < end)
+-		__reserve_region_with_split(root, conflict->end+1, end, name);
+ }
+ 
+ void __init reserve_region_with_split(struct resource *root,
+-- 
+1.8.1.4
+

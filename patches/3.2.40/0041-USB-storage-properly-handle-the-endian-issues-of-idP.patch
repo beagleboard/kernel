@@ -1,0 +1,43 @@
+From 48611546a5ba90fb021734b775f669bd53da3215 Mon Sep 17 00:00:00 2001
+From: fangxiaozhi <huananhu@huawei.com>
+Date: Thu, 7 Feb 2013 15:32:07 +0800
+Subject: [PATCH 041/153] USB: storage: properly handle the endian issues of
+ idProduct
+
+commit cd060956c5e97931c3909e4a808508469c0bb9f6 upstream.
+
+1. The idProduct is little endian, so make sure its value to be
+compatible with the current CPU. Make no break on big endian processors.
+
+Signed-off-by: fangxiaozhi <huananhu@huawei.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/storage/initializers.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/storage/initializers.c b/drivers/usb/storage/initializers.c
+index 16b0bf0..7ab9046 100644
+--- a/drivers/usb/storage/initializers.c
++++ b/drivers/usb/storage/initializers.c
+@@ -147,7 +147,7 @@ static int usb_stor_huawei_dongles_pid(struct us_data *us)
+ 	int idProduct;
+ 
+ 	idesc = &us->pusb_intf->cur_altsetting->desc;
+-	idProduct = us->pusb_dev->descriptor.idProduct;
++	idProduct = le16_to_cpu(us->pusb_dev->descriptor.idProduct);
+ 	/* The first port is CDROM,
+ 	 * means the dongle in the single port mode,
+ 	 * and a switch command is required to be sent. */
+@@ -169,7 +169,7 @@ int usb_stor_huawei_init(struct us_data *us)
+ 	int result = 0;
+ 
+ 	if (usb_stor_huawei_dongles_pid(us)) {
+-		if (us->pusb_dev->descriptor.idProduct >= 0x1446)
++		if (le16_to_cpu(us->pusb_dev->descriptor.idProduct) >= 0x1446)
+ 			result = usb_stor_huawei_scsi_init(us);
+ 		else
+ 			result = usb_stor_huawei_feature_init(us);
+-- 
+1.8.1.4
+

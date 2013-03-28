@@ -1,0 +1,59 @@
+From 85dbba5b5c7d38ba5a097ebd2fa96f65baf8bc08 Mon Sep 17 00:00:00 2001
+From: Oleg Nesterov <oleg@redhat.com>
+Date: Fri, 23 Mar 2012 15:02:47 -0700
+Subject: [PATCH 143/153] usermodehelper: introduce umh_complete(sub_info)
+
+commit b3449922502f5a161ee2b5022a33aec8472fbf18 upstream.
+
+Preparation.  Add the new trivial helper, umh_complete().  Currently it
+simply does complete(sub_info->complete).
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/kmod.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/kernel/kmod.c b/kernel/kmod.c
+index a4bea97..e5e30b6 100644
+--- a/kernel/kmod.c
++++ b/kernel/kmod.c
+@@ -197,6 +197,11 @@ void call_usermodehelper_freeinfo(struct subprocess_info *info)
+ }
+ EXPORT_SYMBOL(call_usermodehelper_freeinfo);
+ 
++static void umh_complete(struct subprocess_info *sub_info)
++{
++	complete(sub_info->complete);
++}
++
+ /* Keventd can't block, but this (a child) can. */
+ static int wait_for_helper(void *data)
+ {
+@@ -233,7 +238,7 @@ static int wait_for_helper(void *data)
+ 			sub_info->retval = ret;
+ 	}
+ 
+-	complete(sub_info->complete);
++	umh_complete(sub_info);
+ 	return 0;
+ }
+ 
+@@ -267,7 +272,7 @@ static void __call_usermodehelper(struct work_struct *work)
+ 	case UMH_WAIT_EXEC:
+ 		if (pid < 0)
+ 			sub_info->retval = pid;
+-		complete(sub_info->complete);
++		umh_complete(sub_info);
+ 	}
+ }
+ 
+-- 
+1.8.1.4
+

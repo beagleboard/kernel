@@ -1,4 +1,4 @@
-From b94097f7c029d775058c4a094810f107a6d17235 Mon Sep 17 00:00:00 2001
+From d010092121757f20abea6ed5ffd29bac815627d2 Mon Sep 17 00:00:00 2001
 From: Bernd Schubert <bernd.schubert@itwm.fraunhofer.de>
 Date: Wed, 26 Sep 2012 21:24:57 -0400
 Subject: [PATCH 066/146] ext4: always set i_op in ext4_mknod()
@@ -13,7 +13,7 @@ Signed-off-by: Bernd Schubert <bernd.schubert@itwm.fraunhofer.de>
 Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ext4/namei.c |    2 --
+ fs/ext4/namei.c | 2 --
  1 file changed, 2 deletions(-)
 
 diff --git a/fs/ext4/namei.c b/fs/ext4/namei.c
@@ -31,5 +31,5 @@ index 4dd0890..88f97e5 100644
  	}
  	ext4_journal_stop(handle);
 -- 
-1.7.10.4
+1.8.1.4
 

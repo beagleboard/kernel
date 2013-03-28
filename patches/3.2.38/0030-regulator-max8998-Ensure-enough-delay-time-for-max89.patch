@@ -1,0 +1,35 @@
+From f9b68df96f6ff3efd8c9bb4303cbdbc6420e43d0 Mon Sep 17 00:00:00 2001
+From: Axel Lin <axel.lin@ingics.com>
+Date: Wed, 9 Jan 2013 19:34:57 +0800
+Subject: [PATCH 030/127] regulator: max8998: Ensure enough delay time for
+ max8998_set_voltage_buck_time_sel
+
+commit 81d0a6ae7befb24c06f4aa4856af7f8d1f612171 upstream.
+
+Use DIV_ROUND_UP to prevent truncation by integer division issue.
+This ensures we return enough delay time.
+
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+[bwh: Backported to 3.2: delay is done by driver, not returned to the caller]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/regulator/max8998.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/regulator/max8998.c b/drivers/regulator/max8998.c
+index 41a1495..27fe1c6 100644
+--- a/drivers/regulator/max8998.c
++++ b/drivers/regulator/max8998.c
+@@ -497,7 +497,7 @@ buck2_exit:
+ 
+ 	difference = desc->min + desc->step*i - previous_vol/1000;
+ 	if (difference > 0)
+-		udelay(difference / ((val & 0x0f) + 1));
++		udelay(DIV_ROUND_UP(difference, (val & 0x0f) + 1));
+ 
+ 	return ret;
+ }
+-- 
+1.8.1.4
+

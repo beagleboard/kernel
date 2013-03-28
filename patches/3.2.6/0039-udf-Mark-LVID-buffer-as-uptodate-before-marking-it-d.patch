@@ -1,4 +1,4 @@
-From 607e6cbfda2903c2b967a05d4e3bc52aa1c363a7 Mon Sep 17 00:00:00 2001
+From aac2414a3b08206ab3492af13d5ce3d7519dc675 Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Fri, 23 Dec 2011 11:53:07 +0100
 Subject: [PATCH 39/87] udf: Mark LVID buffer as uptodate before marking it
@@ -15,8 +15,8 @@ Signed-off-by: Jan Kara <jack@suse.cz>
 Cc: Dave Jones <davej@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/udf/super.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ fs/udf/super.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/fs/udf/super.c b/fs/udf/super.c
 index e185253..87cb24a 100644
@@ -36,5 +36,5 @@ index e185253..87cb24a 100644
  	sbi->s_lvid_dirty = 0;
  	mutex_unlock(&sbi->s_alloc_mutex);
 -- 
-1.7.7.6
+1.8.1.4
 

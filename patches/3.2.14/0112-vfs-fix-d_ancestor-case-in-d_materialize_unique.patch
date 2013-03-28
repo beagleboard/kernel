@@ -1,4 +1,4 @@
-From 210bb5af16af9c10edee7bb56cda126c4889b748 Mon Sep 17 00:00:00 2001
+From 4c812aff99281f1efc9793efe13bbef05c43b908 Mon Sep 17 00:00:00 2001
 From: Michel Lespinasse <walken@google.com>
 Date: Mon, 26 Mar 2012 17:32:44 -0700
 Subject: [PATCH 112/147] vfs: fix d_ancestor() case in d_materialize_unique
@@ -25,8 +25,8 @@ Signed-off-by: Michel Lespinasse <walken@google.com>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/dcache.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ fs/dcache.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/fs/dcache.c b/fs/dcache.c
 index f7908ae..eb723d3 100644
@@ -50,5 +50,5 @@ index f7908ae..eb723d3 100644
  			}
  			write_sequnlock(&rename_lock);
 -- 
-1.7.7.6
+1.8.1.4
 

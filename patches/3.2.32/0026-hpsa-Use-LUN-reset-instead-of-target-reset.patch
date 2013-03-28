@@ -1,4 +1,4 @@
-From 813c47490151e9355ed04c4dbf7f23a3edc869e8 Mon Sep 17 00:00:00 2001
+From cbd8b9d64b6f874cc455b46874d92fbde381791b Mon Sep 17 00:00:00 2001
 From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
 Date: Thu, 26 Jul 2012 11:34:10 -0500
 Subject: [PATCH 026/146] hpsa: Use LUN reset instead of target reset
@@ -34,7 +34,7 @@ Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Signed-off-by: James Bottomley <JBottomley@Parallels.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/scsi/hpsa.c |    2 +-
+ drivers/scsi/hpsa.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/scsi/hpsa.c b/drivers/scsi/hpsa.c
@@ -51,5 +51,5 @@ index be9aad8..a133724 100644
  			/* LunID device */
  			c->Request.CDB[4] = 0x00;
 -- 
-1.7.10.4
+1.8.1.4
 

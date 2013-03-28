@@ -1,4 +1,4 @@
-From f11c08043b778e08b8788f620d0dea0e5bcfc863 Mon Sep 17 00:00:00 2001
+From c51e7f56dc0b29f2c2c8b2e7c960d778c4ecef86 Mon Sep 17 00:00:00 2001
 From: Jason Wessel <jason.wessel@windriver.com>
 Date: Thu, 29 Mar 2012 06:55:44 -0500
 Subject: [PATCH 34/60] kgdbts: Fix kernel oops with CONFIG_DEBUG_RODATA
@@ -31,8 +31,8 @@ by detecting and using the hw breakpoints.
 Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/misc/kgdbts.c |   52 ++++++++++++++++++++++++++----------------------
- 1 files changed, 28 insertions(+), 24 deletions(-)
+ drivers/misc/kgdbts.c | 52 +++++++++++++++++++++++++++------------------------
+ 1 file changed, 28 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/misc/kgdbts.c b/drivers/misc/kgdbts.c
 index 3f7ad83..997e94d 100644
@@ -117,5 +117,5 @@ index 3f7ad83..997e94d 100644
  	 * executed because a kernel thread will be spawned at the very
  	 * end to unregister the debug hooks.
 -- 
-1.7.7.6
+1.8.1.4
 

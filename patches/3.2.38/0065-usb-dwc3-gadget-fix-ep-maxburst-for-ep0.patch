@@ -1,0 +1,32 @@
+From e6c46e22e3e5ef759d245953ea0b6a34cbf88dcc Mon Sep 17 00:00:00 2001
+From: Pratyush Anand <pratyush.anand@st.com>
+Date: Fri, 18 Jan 2013 16:53:56 +0530
+Subject: [PATCH 065/127] usb: dwc3: gadget: fix ep->maxburst for ep0
+
+commit 6048e4c69d80600baba35856651056860d5d8f5a upstream.
+
+dwc3_gadget_set_ep_config expects maxburst as incremented by 1. So, by
+default initialize ep->maxburst to 1 for ep0.
+
+Signed-off-by: Pratyush Anand <pratyush.anand@st.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/dwc3/gadget.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index dfcda94..4e2cea1 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -1277,6 +1277,7 @@ static int __devinit dwc3_gadget_init_endpoints(struct dwc3 *dwc)
+ 
+ 		if (epnum == 0 || epnum == 1) {
+ 			dep->endpoint.maxpacket = 512;
++			dep->endpoint.maxburst = 1;
+ 			dep->endpoint.ops = &dwc3_gadget_ep0_ops;
+ 			if (!epnum)
+ 				dwc->gadget.ep0 = &dep->endpoint;
+-- 
+1.8.1.4
+

@@ -1,8 +1,7 @@
-From fb36a8ac1fa5be9695a550f4d43f242043ebef75 Mon Sep 17 00:00:00 2001
+From 19ddea313054fbe3cb1bf8d49678f18137e56e3a Mon Sep 17 00:00:00 2001
 From: Karsten Wiese <fzu@wemgehoertderstaat.de>
 Date: Fri, 30 Dec 2011 01:42:01 +0100
-Subject: [PATCH 008/129] ALSA: snd-usb-us122l: Delete calls to
- preempt_disable
+Subject: [PATCH 008/129] ALSA: snd-usb-us122l: Delete calls to preempt_disable
 
 commit d0f3a2eb9062560bebca8b923424f3ca02a331ba upstream.
 
@@ -12,8 +11,8 @@ Signed-off-by: Karsten Wiese <fzu@wemgehoertderstaat.de>
 Signed-off-by: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- sound/usb/usx2y/usb_stream.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ sound/usb/usx2y/usb_stream.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/sound/usb/usx2y/usb_stream.c b/sound/usb/usx2y/usb_stream.c
 index c400ade..1e7a47a 100644
@@ -50,5 +49,5 @@ index c400ade..1e7a47a 100644
  			snd_printd(KERN_DEBUG
  				   "u[%i] start_frames differ in:%u out:%u\n",
 -- 
-1.7.7.6
+1.8.1.4
 

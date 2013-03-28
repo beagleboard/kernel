@@ -1,4 +1,4 @@
-From a03663285b73f6fcbc6b050dc2071544f59cd0cd Mon Sep 17 00:00:00 2001
+From 4aab8859f0f1da0934279ef616369ddd020f182b Mon Sep 17 00:00:00 2001
 From: Szymon Janc <szymon.janc@tieto.com>
 Date: Thu, 19 Jul 2012 14:46:08 +0200
 Subject: [PATCH 09/94] Bluetooth: Fix legacy pairing with some devices
@@ -86,9 +86,9 @@ Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
  - hci_conn_ssp_enabled() is not defined; open-code the condition]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/bluetooth/hci_event.c  |    8 +++++++-
- net/bluetooth/l2cap_core.c |    1 +
- 2 files changed, 8 insertions(+), 1 deletions(-)
+ net/bluetooth/hci_event.c  | 8 +++++++-
+ net/bluetooth/l2cap_core.c | 1 +
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/net/bluetooth/hci_event.c b/net/bluetooth/hci_event.c
 index 643a41b..6033f02 100644
@@ -122,5 +122,5 @@ index 17b5b1c..888fdca 100644
  	bacpy(&bt_sk(sk)->src, conn->src);
  	bacpy(&bt_sk(sk)->dst, conn->dst);
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,0 +1,40 @@
+From 0a7b3bd2655ee29087cd9c99cc4c25e12ffbb6ee Mon Sep 17 00:00:00 2001
+From: Alan Stern <stern@rowland.harvard.edu>
+Date: Thu, 17 Jan 2013 10:32:16 -0500
+Subject: [PATCH 04/67] USB: XHCI: fix memory leak of URB-private data
+
+commit 48c3375c5f69b1c2ef3d1051a0009cb9bce0ce24 upstream.
+
+This patch (as1640) fixes a memory leak in xhci-hcd.  The urb_priv
+data structure isn't always deallocated in the handle_tx_event()
+routine for non-control transfers.  The patch adds a kfree() call so
+that all paths end up freeing the memory properly.
+
+This patch should be backported to kernels as old as 2.6.36, that
+contain the commit 8e51adccd4c4b9ffcd509d7f2afce0a906139f75 "USB: xHCI:
+Introduce urb_priv structure"
+
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Reported-and-tested-by: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/host/xhci-ring.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
+index 62a548a..5c1f9e7 100644
+--- a/drivers/usb/host/xhci-ring.c
++++ b/drivers/usb/host/xhci-ring.c
+@@ -2504,6 +2504,8 @@ cleanup:
+ 				(trb_comp_code != COMP_STALL &&
+ 					trb_comp_code != COMP_BABBLE))
+ 				xhci_urb_free_priv(xhci, urb_priv);
++			else
++				kfree(urb_priv);
+ 
+ 			usb_hcd_unlink_urb_from_ep(bus_to_hcd(urb->dev->bus), urb);
+ 			if ((urb->actual_length != urb->transfer_buffer_length &&
+-- 
+1.8.1.4
+

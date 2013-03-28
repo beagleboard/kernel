@@ -1,4 +1,4 @@
-From 93dae05ef250972afaaa3976c40701d90aabe23e Mon Sep 17 00:00:00 2001
+From 2bd752b1405b1b6d680a9ee759df434d904ecb22 Mon Sep 17 00:00:00 2001
 From: "nagalakshmi.nandigama@lsi.com" <nagalakshmi.nandigama@lsi.com>
 Date: Thu, 1 Dec 2011 07:53:08 +0530
 Subject: [PATCH 037/129] SCSI: mpt2sas : Fix for memory allocation error for
@@ -21,8 +21,8 @@ Signed-off-by: Nagalakshmi Nandigama <nagalakshmi.nandigama@lsi.com>
 Signed-off-by: James Bottomley <JBottomley@Parallels.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/scsi/mpt2sas/mpt2sas_base.c  |   83 +++++++++++-----------------------
- drivers/scsi/mpt2sas/mpt2sas_scsih.c |    4 +-
+ drivers/scsi/mpt2sas/mpt2sas_base.c  | 83 ++++++++++++------------------------
+ drivers/scsi/mpt2sas/mpt2sas_scsih.c |  4 +-
  2 files changed, 29 insertions(+), 58 deletions(-)
 
 diff --git a/drivers/scsi/mpt2sas/mpt2sas_base.c b/drivers/scsi/mpt2sas/mpt2sas_base.c
@@ -173,5 +173,5 @@ index 3a4f666..9bc6fb2 100644
  	}
  	chain_req = list_entry(ioc->free_chain_list.next,
 -- 
-1.7.7.6
+1.8.1.4
 

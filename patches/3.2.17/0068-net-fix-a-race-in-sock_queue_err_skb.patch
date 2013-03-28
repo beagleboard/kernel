@@ -1,4 +1,4 @@
-From 10a3147048a8c833dea0fc2d670371426f6e12b6 Mon Sep 17 00:00:00 2001
+From 736da0fbc15226c4e1e662d8660ed2df5af53b37 Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Fri, 6 Apr 2012 10:49:10 +0200
 Subject: [PATCH 068/165] net: fix a race in sock_queue_err_skb()
@@ -13,8 +13,8 @@ Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/core/skbuff.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ net/core/skbuff.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/net/core/skbuff.c b/net/core/skbuff.c
 index 3c30ee4..29cb392 100644
@@ -39,5 +39,5 @@ index 3c30ee4..29cb392 100644
  }
  EXPORT_SYMBOL(sock_queue_err_skb);
 -- 
-1.7.7.6
+1.8.1.4
 

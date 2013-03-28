@@ -1,4 +1,4 @@
-From 1f785b49d6b1a36660ba724e127b104bb11656d7 Mon Sep 17 00:00:00 2001
+From 644ccd666e30ff3923a21c49c0e6982467f337de Mon Sep 17 00:00:00 2001
 From: Johannes Berg <johannes.berg@intel.com>
 Date: Wed, 18 Jan 2012 14:10:25 +0100
 Subject: [PATCH 18/90] mac80211: fix work removal on deauth request
@@ -33,8 +33,8 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 Signed-off-by: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/mac80211/mlme.c |   38 +++++++++++++++++++++++++++-----------
- 1 files changed, 27 insertions(+), 11 deletions(-)
+ net/mac80211/mlme.c | 38 +++++++++++++++++++++++++++-----------
+ 1 file changed, 27 insertions(+), 11 deletions(-)
 
 diff --git a/net/mac80211/mlme.c b/net/mac80211/mlme.c
 index b1b1bb3..9da8626 100644
@@ -107,5 +107,5 @@ index b1b1bb3..9da8626 100644
  		 * If somebody requests authentication and we haven't
  		 * sent out an auth frame yet there's no need to send
 -- 
-1.7.7.6
+1.8.1.4
 

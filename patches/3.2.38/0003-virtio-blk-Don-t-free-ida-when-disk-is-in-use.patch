@@ -1,0 +1,60 @@
+From 7525cc8ba8f30e506f6951d3b60e8ba8b90e6aef Mon Sep 17 00:00:00 2001
+From: Alexander Graf <agraf@suse.de>
+Date: Wed, 2 Jan 2013 15:37:17 +1030
+Subject: [PATCH 003/127] virtio-blk: Don't free ida when disk is in use
+
+commit f4953fe6c4aeada2d5cafd78aa97587a46d2d8f9 upstream.
+
+When a file system is mounted on a virtio-blk disk, we then remove it
+and then reattach it, the reattached disk gets the same disk name and
+ids as the hot removed one.
+
+This leads to very nasty effects - mostly rendering the newly attached
+device completely unusable.
+
+Trying what happens when I do the same thing with a USB device, I saw
+that the sd node simply doesn't get free'd when a device gets forcefully
+removed.
+
+Imitate the same behavior for vd devices. This way broken vd devices
+simply are never free'd and newly attached ones keep working just fine.
+
+Signed-off-by: Alexander Graf <agraf@suse.de>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/block/virtio_blk.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/block/virtio_blk.c b/drivers/block/virtio_blk.c
+index de9c800..166cb36 100644
+--- a/drivers/block/virtio_blk.c
++++ b/drivers/block/virtio_blk.c
+@@ -546,6 +546,7 @@ static void __devexit virtblk_remove(struct virtio_device *vdev)
+ {
+ 	struct virtio_blk *vblk = vdev->priv;
+ 	int index = vblk->index;
++	int refc;
+ 
+ 	/* Prevent config work handler from accessing the device. */
+ 	mutex_lock(&vblk->config_lock);
+@@ -560,11 +561,15 @@ static void __devexit virtblk_remove(struct virtio_device *vdev)
+ 
+ 	flush_work(&vblk->config_work);
+ 
++	refc = atomic_read(&disk_to_dev(vblk->disk)->kobj.kref.refcount);
+ 	put_disk(vblk->disk);
+ 	mempool_destroy(vblk->pool);
+ 	vdev->config->del_vqs(vdev);
+ 	kfree(vblk);
+-	ida_simple_remove(&vd_index_ida, index);
++
++	/* Only free device id if we don't have any users */
++	if (refc == 1)
++		ida_simple_remove(&vd_index_ida, index);
+ }
+ 
+ static const struct virtio_device_id id_table[] = {
+-- 
+1.8.1.4
+

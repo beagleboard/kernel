@@ -1,4 +1,4 @@
-From e04936db130c1b10ee16b5dff0a5b6cfa773b936 Mon Sep 17 00:00:00 2001
+From 28aa2ef9e579b5949ffb5d9da83555dcbb8b33f3 Mon Sep 17 00:00:00 2001
 From: Dave Martin <dave.martin@linaro.org>
 Date: Mon, 30 Jan 2012 20:22:28 +0100
 Subject: [PATCH 12/87] ARM: 7307/1: vfp: fix ptrace regset modification race
@@ -33,8 +33,8 @@ Signed-off-by: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/arm/kernel/ptrace.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ arch/arm/kernel/ptrace.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/kernel/ptrace.c b/arch/arm/kernel/ptrace.c
 index 483727a..8b17fb4 100644
@@ -64,5 +64,5 @@ index 483727a..8b17fb4 100644
  	vfp_flush_hwstate(thread);
  
 -- 
-1.7.7.6
+1.8.1.4
 

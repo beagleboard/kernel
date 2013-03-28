@@ -1,4 +1,4 @@
-From 88cc3aa191db9454d8eea4d39d6e7e25503bfbc7 Mon Sep 17 00:00:00 2001
+From 271034151f7314bdf96efcb47a660c0c4eceb604 Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Wed, 11 Jul 2012 23:16:25 +0200
 Subject: [PATCH 004/105] jbd: Fix assertion failure in commit code due to
@@ -33,8 +33,8 @@ Reviewed-by: Josef Bacik <jbacik@fusionio.com>
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/jbd/commit.c      |   45 ++++++++++++++++++++++++++--------
- fs/jbd/transaction.c |   64 ++++++++++++++++++++++++++++++++++---------------
+ fs/jbd/commit.c      | 45 +++++++++++++++++++++++++++---------
+ fs/jbd/transaction.c | 64 ++++++++++++++++++++++++++++++++++++----------------
  2 files changed, 78 insertions(+), 31 deletions(-)
 
 diff --git a/fs/jbd/commit.c b/fs/jbd/commit.c
@@ -231,5 +231,5 @@ index 7e59c6e..edac004 100644
  		}
  		curr_off = next_off;
 -- 
-1.7.7.6
+1.8.1.4
 

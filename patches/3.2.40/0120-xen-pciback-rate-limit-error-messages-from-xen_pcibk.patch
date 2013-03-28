@@ -1,0 +1,75 @@
+From 25934d3fc49b53f69cf81a29f683239502f22bb8 Mon Sep 17 00:00:00 2001
+From: Jan Beulich <jbeulich@suse.com>
+Date: Wed, 6 Feb 2013 10:30:38 -0500
+Subject: [PATCH 120/153] xen-pciback: rate limit error messages from
+ xen_pcibk_enable_msi{,x}()
+
+commit 51ac8893a7a51b196501164e645583bf78138699 upstream.
+
+... as being guest triggerable (e.g. by invoking
+XEN_PCI_OP_enable_msi{,x} on a device not being MSI/MSI-X capable).
+
+This is CVE-2013-0231 / XSA-43.
+
+Also make the two messages uniform in both their wording and severity.
+
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
+Acked-by: Ian Campbell <ian.campbell@citrix.com>
+Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+[bwh: Backported to 3.2: add #include <linux/ratelimited.h>, needed by
+ printk_ratelimited()]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/xen/xen-pciback/pciback_ops.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/xen/xen-pciback/pciback_ops.c b/drivers/xen/xen-pciback/pciback_ops.c
+index 63616d7..d07c4cd 100644
+--- a/drivers/xen/xen-pciback/pciback_ops.c
++++ b/drivers/xen/xen-pciback/pciback_ops.c
+@@ -8,6 +8,7 @@
+ #include <linux/bitops.h>
+ #include <xen/events.h>
+ #include <linux/sched.h>
++#include <linux/ratelimit.h>
+ #include "pciback.h"
+ 
+ int verbose_request;
+@@ -135,7 +136,6 @@ int xen_pcibk_enable_msi(struct xen_pcibk_device *pdev,
+ 			 struct pci_dev *dev, struct xen_pci_op *op)
+ {
+ 	struct xen_pcibk_dev_data *dev_data;
+-	int otherend = pdev->xdev->otherend_id;
+ 	int status;
+ 
+ 	if (unlikely(verbose_request))
+@@ -144,8 +144,9 @@ int xen_pcibk_enable_msi(struct xen_pcibk_device *pdev,
+ 	status = pci_enable_msi(dev);
+ 
+ 	if (status) {
+-		printk(KERN_ERR "error enable msi for guest %x status %x\n",
+-			otherend, status);
++		pr_warn_ratelimited(DRV_NAME ": %s: error enabling MSI for guest %u: err %d\n",
++				    pci_name(dev), pdev->xdev->otherend_id,
++				    status);
+ 		op->value = 0;
+ 		return XEN_PCI_ERR_op_failed;
+ 	}
+@@ -223,10 +224,10 @@ int xen_pcibk_enable_msix(struct xen_pcibk_device *pdev,
+ 						pci_name(dev), i,
+ 						op->msix_entries[i].vector);
+ 		}
+-	} else {
+-		printk(KERN_WARNING DRV_NAME ": %s: failed to enable MSI-X: err %d!\n",
+-			pci_name(dev), result);
+-	}
++	} else
++		pr_warn_ratelimited(DRV_NAME ": %s: error enabling MSI-X for guest %u: err %d!\n",
++				    pci_name(dev), pdev->xdev->otherend_id,
++				    result);
+ 	kfree(entries);
+ 
+ 	op->value = result;
+-- 
+1.8.1.4
+

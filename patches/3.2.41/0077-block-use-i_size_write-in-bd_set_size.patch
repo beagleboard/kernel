@@ -1,0 +1,42 @@
+From 31266cb03bd621c61c28bf88772a8e0aec9b90b5 Mon Sep 17 00:00:00 2001
+From: Guo Chao <yan@linux.vnet.ibm.com>
+Date: Thu, 21 Feb 2013 15:16:42 -0800
+Subject: [PATCH 77/82] block: use i_size_write() in bd_set_size()
+
+commit d646a02a9d44d1421f273ae3923d97b47b918176 upstream.
+
+blkdev_ioctl(GETBLKSIZE) uses i_size_read() to read size of block device.
+If we update block size directly, reader may see intermediate result in
+some machines and configurations.  Use i_size_write() instead.
+
+Signed-off-by: Guo Chao <yan@linux.vnet.ibm.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Guo Chao <yan@linux.vnet.ibm.com>
+Cc: M. Hindess <hindessm@uk.ibm.com>
+Cc: Nikanth Karthikesan <knikanth@suse.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/block_dev.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 613edd8..833dddb 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -1064,7 +1064,9 @@ void bd_set_size(struct block_device *bdev, loff_t size)
+ {
+ 	unsigned bsize = bdev_logical_block_size(bdev);
+ 
+-	bdev->bd_inode->i_size = size;
++	mutex_lock(&bdev->bd_inode->i_mutex);
++	i_size_write(bdev->bd_inode, size);
++	mutex_unlock(&bdev->bd_inode->i_mutex);
+ 	while (bsize < PAGE_CACHE_SIZE) {
+ 		if (size & bsize)
+ 			break;
+-- 
+1.8.1.4
+

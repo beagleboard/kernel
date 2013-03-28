@@ -1,0 +1,41 @@
+From a152cdd3711e945e5a6d979844033504c438fd7f Mon Sep 17 00:00:00 2001
+From: Eric Anholt <eric@anholt.net>
+Date: Thu, 19 Jan 2012 10:50:05 -0800
+Subject: [PATCH 086/127] drm/i915: Remove the MI_FLUSH_ENABLE setting.
+
+commit 8d79c3490aecfe6e51f0ba6f9780746fb1434954 upstream.
+
+We have always been using the wrong bit -- it's bit 12.  However, the
+bit also doesn't do anything -- hardware has always accepted the
+MI_FLUSH command even when it was specced not to.
+
+Given that there is only one MI_FLUSH emitted in all of the driver
+stack on gen6+ (in i965_video.c of the 2d driver, and it should be
+using other code to do its flush instead), just remove the MI_FLUSH
+enable instead of trying to fix it.
+
+Signed-off-by: Eric Anholt <eric@anholt.net>
+Reviewed-by: Kenneth Graunke <kenneth@whitecape.org>
+Reviewed-by: Ben Widawsky <ben@bwidawsk.net>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_ringbuffer.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.c b/drivers/gpu/drm/i915/intel_ringbuffer.c
+index 19085c0..93819f8 100644
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.c
++++ b/drivers/gpu/drm/i915/intel_ringbuffer.c
+@@ -398,8 +398,6 @@ static int init_render_ring(struct intel_ring_buffer *ring)
+ 
+ 	if (INTEL_INFO(dev)->gen > 3) {
+ 		int mode = VS_TIMER_DISPATCH << 16 | VS_TIMER_DISPATCH;
+-		if (IS_GEN6(dev) || IS_GEN7(dev))
+-			mode |= MI_FLUSH_ENABLE << 16 | MI_FLUSH_ENABLE;
+ 		I915_WRITE(MI_MODE, mode);
+ 		if (IS_GEN7(dev))
+ 			I915_WRITE(GFX_MODE_GEN7,
+-- 
+1.8.1.4
+

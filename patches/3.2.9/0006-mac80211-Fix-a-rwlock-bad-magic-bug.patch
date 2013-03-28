@@ -1,4 +1,4 @@
-From 7404b28e1609caebb27b5ae739951d38c350b6ce Mon Sep 17 00:00:00 2001
+From 86afd403390c4a04ecc4978ff7b945a15179cc37 Mon Sep 17 00:00:00 2001
 From: Mohammed Shafi Shajakhan <mohammed@qca.qualcomm.com>
 Date: Thu, 9 Feb 2012 19:59:43 +0530
 Subject: [PATCH 06/72] mac80211: Fix a rwlock bad magic bug
@@ -61,8 +61,8 @@ Signed-off-by: Mohammed Shafi Shajakhan <mohammed@qca.qualcomm.com>
 Signed-off-by: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/mac80211/main.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ net/mac80211/main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/net/mac80211/main.c b/net/mac80211/main.c
 index a7536fd..7d9b21d 100644
@@ -87,5 +87,5 @@ index a7536fd..7d9b21d 100644
  		ieee80211_max_network_latency;
  	result = pm_qos_add_notifier(PM_QOS_NETWORK_LATENCY,
 -- 
-1.7.7.6
+1.8.1.4
 

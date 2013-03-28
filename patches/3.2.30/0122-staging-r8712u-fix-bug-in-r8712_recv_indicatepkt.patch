@@ -1,4 +1,4 @@
-From 89d4a589b7402873137983bd7e715a69c4564a99 Mon Sep 17 00:00:00 2001
+From b047c4edf8e6ce1220a13c250cea1c9fc0a4048e Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <edumazet@google.com>
 Date: Mon, 10 Sep 2012 21:22:11 +0200
 Subject: [PATCH 122/135] staging: r8712u: fix bug in r8712_recv_indicatepkt()
@@ -18,8 +18,8 @@ Acked-by: Larry Finger <Larry.Finger@lwfinger.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/staging/rtl8712/recv_linux.c |    7 +------
- 1 files changed, 1 insertions(+), 6 deletions(-)
+ drivers/staging/rtl8712/recv_linux.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
 diff --git a/drivers/staging/rtl8712/recv_linux.c b/drivers/staging/rtl8712/recv_linux.c
 index 0e26d5f..495ee12 100644
@@ -41,5 +41,5 @@ index 0e26d5f..495ee12 100644
  		skb->ip_summed = CHECKSUM_UNNECESSARY;
  	else
 -- 
-1.7.7.6
+1.8.1.4
 

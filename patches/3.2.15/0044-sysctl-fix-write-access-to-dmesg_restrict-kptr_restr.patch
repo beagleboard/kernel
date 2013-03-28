@@ -1,4 +1,4 @@
-From 9676bb7b67f7b11abd42f42ac4f226a04fc95511 Mon Sep 17 00:00:00 2001
+From f71c25748e7a82ecfd42423b509891f69920179b Mon Sep 17 00:00:00 2001
 From: Kees Cook <keescook@chromium.org>
 Date: Wed, 4 Apr 2012 11:40:19 -0700
 Subject: [PATCH 44/60] sysctl: fix write access to
@@ -24,8 +24,8 @@ Acked-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: James Morris <james.l.morris@oracle.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- kernel/sysctl.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/sysctl.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/kernel/sysctl.c b/kernel/sysctl.c
 index ae27196..ea7ec7f 100644
@@ -68,5 +68,5 @@ index ae27196..ea7ec7f 100644
  {
  	if (write && !capable(CAP_SYS_ADMIN))
 -- 
-1.7.7.6
+1.8.1.4
 

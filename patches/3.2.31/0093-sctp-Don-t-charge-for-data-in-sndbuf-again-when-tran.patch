@@ -1,4 +1,4 @@
-From e065d48196ee736a4e1344243b671b9bfdffa5e9 Mon Sep 17 00:00:00 2001
+From 5f7e4e010c28b860085cc77ab5fa67b8c16a6723 Mon Sep 17 00:00:00 2001
 From: Thomas Graf <tgraf@suug.ch>
 Date: Mon, 3 Sep 2012 04:27:42 +0000
 Subject: [PATCH 093/109] sctp: Don't charge for data in sndbuf again when
@@ -41,7 +41,7 @@ Acked-by: Vlad Yasevich <vyasevich@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/sctp/output.c |   21 ++++++++++++++++++++-
+ net/sctp/output.c | 21 ++++++++++++++++++++-
  1 file changed, 20 insertions(+), 1 deletion(-)
 
 diff --git a/net/sctp/output.c b/net/sctp/output.c
@@ -84,5 +84,5 @@ index 8fc4dcd..32ba8d0 100644
  	if (!sctp_transport_dst_check(tp)) {
  		sctp_transport_route(tp, NULL, sctp_sk(sk));
 -- 
-1.7.10.4
+1.8.1.4
 

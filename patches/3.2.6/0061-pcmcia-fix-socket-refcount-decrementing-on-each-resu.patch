@@ -1,8 +1,7 @@
-From f907c444ae3cd5c26e3c705d175af56d1956a6a6 Mon Sep 17 00:00:00 2001
+From 6ae9b98f46aa4b6b689394534202bc1f571a4390 Mon Sep 17 00:00:00 2001
 From: Russell King <rmk+kernel@arm.linux.org.uk>
 Date: Wed, 8 Feb 2012 17:13:41 -0800
-Subject: [PATCH 61/87] pcmcia: fix socket refcount decrementing on each
- resume
+Subject: [PATCH 61/87] pcmcia: fix socket refcount decrementing on each resume
 
 commit 025e4ab3db07fcbf62c01e4f30d1012234beb980 upstream.
 
@@ -155,8 +154,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/pcmcia/ds.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+ drivers/pcmcia/ds.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/drivers/pcmcia/ds.c b/drivers/pcmcia/ds.c
 index 749c2a1..1932029 100644
@@ -175,5 +174,5 @@ index 749c2a1..1932029 100644
  	dev_dbg(&skt->dev, "cis mismatch - different card\n");
  
 -- 
-1.7.7.6
+1.8.1.4
 

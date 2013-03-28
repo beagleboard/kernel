@@ -1,4 +1,4 @@
-From fc7993c6b18a1df669c936b025d6ee828e45c3a6 Mon Sep 17 00:00:00 2001
+From 9b95c51d2226ec7b0b3d717c3b7fcc1a3cc7fe7a Mon Sep 17 00:00:00 2001
 From: Will Deacon <will.deacon@arm.com>
 Date: Thu, 12 Apr 2012 05:54:09 +0000
 Subject: [PATCH 075/165] net: smsc911x: fix skb handling in receive path
@@ -19,8 +19,8 @@ Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/ethernet/smsc/smsc911x.c |   14 +++++---------
- 1 files changed, 5 insertions(+), 9 deletions(-)
+ drivers/net/ethernet/smsc/smsc911x.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/net/ethernet/smsc/smsc911x.c b/drivers/net/ethernet/smsc/smsc911x.c
 index 8843071..8c7dd21 100644
@@ -74,5 +74,5 @@ index 8843071..8c7dd21 100644
  	/* enable NAPI polling before enabling RX interrupts */
  	napi_enable(&pdata->napi);
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,0 +1,34 @@
+From bfbbf438ea91a4425de391b145c06a5cfa3600f6 Mon Sep 17 00:00:00 2001
+From: Dave Airlie <airlied@redhat.com>
+Date: Thu, 7 Feb 2013 10:10:04 +1000
+Subject: [PATCH 033/153] drm/usb: bind driver to correct device
+
+commit 9f23de52b64f7fb801fd76f3dd8651a0dc89187b upstream.
+
+While looking at plymouth on udl I noticed that plymouth was trying
+to use its fb plugin not its drm one, it was trying to drmOpen a driver called
+usb not udl, noticed that we actually had out driver pointing at the wrong
+device.
+
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/drm_usb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/drm_usb.c b/drivers/gpu/drm/drm_usb.c
+index 445003f..471f453 100644
+--- a/drivers/gpu/drm/drm_usb.c
++++ b/drivers/gpu/drm/drm_usb.c
+@@ -19,7 +19,7 @@ int drm_get_usb_dev(struct usb_interface *interface,
+ 
+ 	usbdev = interface_to_usbdev(interface);
+ 	dev->usbdev = usbdev;
+-	dev->dev = &usbdev->dev;
++	dev->dev = &interface->dev;
+ 
+ 	mutex_lock(&drm_global_mutex);
+ 
+-- 
+1.8.1.4
+

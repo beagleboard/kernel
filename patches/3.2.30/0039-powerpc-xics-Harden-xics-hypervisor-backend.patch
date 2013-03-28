@@ -1,4 +1,4 @@
-From 45c7ca015e4759b6a53722badf58226de1b1552e Mon Sep 17 00:00:00 2001
+From 12e4730229a7055f9c22c4ac21ba610b81daa24a Mon Sep 17 00:00:00 2001
 From: Anton Blanchard <anton@samba.org>
 Date: Thu, 24 Nov 2011 19:39:36 +0000
 Subject: [PATCH 039/135] powerpc/xics: Harden xics hypervisor backend
@@ -19,8 +19,8 @@ Signed-off-by: Anton Blanchard <anton@samba.org>
 Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/powerpc/sysdev/xics/icp-hv.c |   38 ++++++++++++++++++++++++++----------
- 1 files changed, 27 insertions(+), 11 deletions(-)
+ arch/powerpc/sysdev/xics/icp-hv.c | 38 +++++++++++++++++++++++++++-----------
+ 1 file changed, 27 insertions(+), 11 deletions(-)
 
 diff --git a/arch/powerpc/sysdev/xics/icp-hv.c b/arch/powerpc/sysdev/xics/icp-hv.c
 index 9518d36..784b3fc 100644
@@ -88,5 +88,5 @@ index 9518d36..784b3fc 100644
  
  static void icp_hv_eoi(struct irq_data *d)
 -- 
-1.7.7.6
+1.8.1.4
 

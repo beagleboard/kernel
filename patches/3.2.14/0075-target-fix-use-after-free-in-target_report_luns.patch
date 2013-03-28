@@ -1,4 +1,4 @@
-From 4c762f84ac28044d55941f2390d4da2d0c5bbaeb Mon Sep 17 00:00:00 2001
+From 8e403539da069327dc8e726cb1c13516f3dc0095 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?J=C3=B6rn=20Engel?= <joern@logfs.org>
 Date: Wed, 15 Feb 2012 16:51:32 -0500
 Subject: [PATCH 075/147] target: fix use after free in target_report_luns
@@ -11,8 +11,8 @@ Signed-off-by: Joern Engel <joern@logfs.org>
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/target/target_core_device.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/target/target_core_device.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/target/target_core_device.c b/drivers/target/target_core_device.c
 index 19f8aca..097178b 100644
@@ -33,5 +33,5 @@ index 19f8aca..097178b 100644
  	se_task->task_scsi_status = GOOD;
  	transport_complete_task(se_task, 1);
 -- 
-1.7.7.6
+1.8.1.4
 

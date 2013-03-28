@@ -1,0 +1,47 @@
+From 27fa71f0448c9085601aed5b6959d3ca0334624b Mon Sep 17 00:00:00 2001
+From: Nithin Nayak Sujir <nsujir@broadcom.com>
+Date: Mon, 14 Jan 2013 17:10:59 +0000
+Subject: [PATCH 64/67] tg3: Avoid null pointer dereference in tg3_interrupt in
+ netconsole mode
+
+[ Upstream commit 9c13cb8bb477a83b9a3c9e5a5478a4e21294a760 ]
+
+When netconsole is enabled, logging messages generated during tg3_open
+can result in a null pointer dereference for the uninitialized tg3
+status block. Use the irq_sync flag to disable polling in the early
+stages. irq_sync is cleared when the driver is enabling interrupts after
+all initialization is completed.
+
+Signed-off-by: Nithin Nayak Sujir <nsujir@broadcom.com>
+Signed-off-by: Michael Chan <mchan@broadcom.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/broadcom/tg3.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/net/ethernet/broadcom/tg3.c b/drivers/net/ethernet/broadcom/tg3.c
+index 01bc102..c3197d9 100644
+--- a/drivers/net/ethernet/broadcom/tg3.c
++++ b/drivers/net/ethernet/broadcom/tg3.c
+@@ -6353,6 +6353,9 @@ static void tg3_poll_controller(struct net_device *dev)
+ 	int i;
+ 	struct tg3 *tp = netdev_priv(dev);
+ 
++	if (tg3_irq_sync(tp))
++		return;
++
+ 	for (i = 0; i < tp->irq_cnt; i++)
+ 		tg3_interrupt(tp->napi[i].irq_vec, &tp->napi[i]);
+ }
+@@ -15388,6 +15391,7 @@ static int __devinit tg3_init_one(struct pci_dev *pdev,
+ 	tp->pm_cap = pm_cap;
+ 	tp->rx_mode = TG3_DEF_RX_MODE;
+ 	tp->tx_mode = TG3_DEF_TX_MODE;
++	tp->irq_sync = 1;
+ 
+ 	if (tg3_debug > 0)
+ 		tp->msg_enable = tg3_debug;
+-- 
+1.8.1.4
+

@@ -1,0 +1,44 @@
+From 795731f7d8c15d79fe63a9e8e33397aed65924f7 Mon Sep 17 00:00:00 2001
+From: "Steven Rostedt (Red Hat)" <rostedt@goodmis.org>
+Date: Wed, 13 Mar 2013 11:15:19 -0400
+Subject: [PATCH 58/92] tracing: Fix free of probe entry by calling
+ call_rcu_sched()
+
+commit 740466bc89ad8bd5afcc8de220f715f62b21e365 upstream.
+
+Because function tracing is very invasive, and can even trace
+calls to rcu_read_lock(), RCU access in function tracing is done
+with preempt_disable_notrace(). This requires a synchronize_sched()
+for updates and not a synchronize_rcu().
+
+Function probes (traceon, traceoff, etc) must be freed after
+a synchronize_sched() after its entry has been removed from the
+hash. But call_rcu() is used. Fix this by using call_rcu_sched().
+
+Also fix the usage to use hlist_del_rcu() instead of hlist_del().
+
+Cc: Paul McKenney <paulmck@linux.vnet.ibm.com>
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/trace/ftrace.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/kernel/trace/ftrace.c b/kernel/trace/ftrace.c
+index 6c880e8..0943d2a 100644
+--- a/kernel/trace/ftrace.c
++++ b/kernel/trace/ftrace.c
+@@ -2725,8 +2725,8 @@ __unregister_ftrace_function_probe(char *glob, struct ftrace_probe_ops *ops,
+ 					continue;
+ 			}
+ 
+-			hlist_del(&entry->node);
+-			call_rcu(&entry->rcu, ftrace_free_entry_rcu);
++			hlist_del_rcu(&entry->node);
++			call_rcu_sched(&entry->rcu, ftrace_free_entry_rcu);
+ 		}
+ 	}
+ 	__disable_ftrace_function_probe();
+-- 
+1.8.1.4
+

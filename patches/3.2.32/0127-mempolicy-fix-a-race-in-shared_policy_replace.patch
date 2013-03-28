@@ -1,4 +1,4 @@
-From f0d715dd1ebf48bffdc033a74d3618f3922d095a Mon Sep 17 00:00:00 2001
+From 75bcd048d869be422227f4b27069b6a4636ac01f Mon Sep 17 00:00:00 2001
 From: Mel Gorman <mgorman@suse.de>
 Date: Tue, 9 Oct 2012 17:58:39 +0100
 Subject: [PATCH 127/146] mempolicy: fix a race in shared_policy_replace()
@@ -27,8 +27,8 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/mempolicy.h |    2 +-
- mm/mempolicy.c            |   37 ++++++++++++++++---------------------
+ include/linux/mempolicy.h |  2 +-
+ mm/mempolicy.c            | 37 ++++++++++++++++---------------------
  2 files changed, 17 insertions(+), 22 deletions(-)
 
 diff --git a/include/linux/mempolicy.h b/include/linux/mempolicy.h
@@ -152,5 +152,5 @@ index ede5489..2ac1b38 100644
  
  /* assumes fs == KERNEL_DS */
 -- 
-1.7.10.4
+1.8.1.4
 

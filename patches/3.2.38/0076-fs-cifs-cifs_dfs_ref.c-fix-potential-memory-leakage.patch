@@ -1,0 +1,36 @@
+From f8d5fc3d7ce3c13ca37e26159f9dda4f826ff067 Mon Sep 17 00:00:00 2001
+From: Cong Ding <dinggnu@gmail.com>
+Date: Tue, 22 Jan 2013 19:20:58 -0500
+Subject: [PATCH 076/127] fs/cifs/cifs_dfs_ref.c: fix potential memory leakage
+
+commit 10b8c7dff5d3633b69e77f57d404dab54ead3787 upstream.
+
+When it goes to error through line 144, the memory allocated to *devname is
+not freed, and the caller doesn't free it either in line 250. So we free the
+memroy of *devname in function cifs_compose_mount_options() when it goes to
+error.
+
+Signed-off-by: Cong Ding <dinggnu@gmail.com>
+Reviewed-by: Jeff Layton <jlayton@redhat.com>
+Signed-off-by: Steve French <smfrench@gmail.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/cifs/cifs_dfs_ref.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/fs/cifs/cifs_dfs_ref.c b/fs/cifs/cifs_dfs_ref.c
+index 6873bb6..2263144 100644
+--- a/fs/cifs/cifs_dfs_ref.c
++++ b/fs/cifs/cifs_dfs_ref.c
+@@ -226,6 +226,8 @@ compose_mount_options_out:
+ compose_mount_options_err:
+ 	kfree(mountdata);
+ 	mountdata = ERR_PTR(rc);
++	kfree(*devname);
++	*devname = NULL;
+ 	goto compose_mount_options_out;
+ }
+ 
+-- 
+1.8.1.4
+

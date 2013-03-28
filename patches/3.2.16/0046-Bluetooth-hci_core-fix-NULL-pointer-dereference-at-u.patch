@@ -1,4 +1,4 @@
-From 493b4c9cee26aefcaf7c91e5ca69f8d6a992e067 Mon Sep 17 00:00:00 2001
+From 9574037172865f7764cda88d8d91e3d5a8ab4413 Mon Sep 17 00:00:00 2001
 From: Johan Hovold <jhovold@gmail.com>
 Date: Thu, 15 Mar 2012 14:48:41 +0100
 Subject: [PATCH 46/68] Bluetooth: hci_core: fix NULL-pointer dereference at
@@ -87,9 +87,9 @@ Acked-by: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Johan Hedberg <johan.hedberg@intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- include/net/bluetooth/hci.h |    1 +
- net/bluetooth/hci_core.c    |    7 +++++++
- 2 files changed, 8 insertions(+), 0 deletions(-)
+ include/net/bluetooth/hci.h | 1 +
+ net/bluetooth/hci_core.c    | 7 +++++++
+ 2 files changed, 8 insertions(+)
 
 diff --git a/include/net/bluetooth/hci.h b/include/net/bluetooth/hci.h
 index aaf79af..a7e13bf 100644
@@ -129,5 +129,5 @@ index b84458d..857dc88 100644
  	list_del(&hdev->list);
  	write_unlock_bh(&hci_dev_list_lock);
 -- 
-1.7.7.6
+1.8.1.4
 

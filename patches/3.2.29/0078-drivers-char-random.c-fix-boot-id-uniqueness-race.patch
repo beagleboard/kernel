@@ -1,4 +1,4 @@
-From 68e2f6ad2ea331c522ae9603dedfb3c0d6186461 Mon Sep 17 00:00:00 2001
+From b2a6aa82e761183870feb0b871519e909d926c4d Mon Sep 17 00:00:00 2001
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Date: Thu, 12 Apr 2012 12:49:12 -0700
 Subject: [PATCH 78/94] drivers/char/random.c: fix boot id uniqueness race
@@ -24,8 +24,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/char/random.c |   11 ++++++++---
- 1 files changed, 8 insertions(+), 3 deletions(-)
+ drivers/char/random.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/char/random.c b/drivers/char/random.c
 index 631d4f6..918979f 100644
@@ -51,5 +51,5 @@ index 631d4f6..918979f 100644
  	sprintf(buf, "%pU", uuid);
  
 -- 
-1.7.7.6
+1.8.1.4
 

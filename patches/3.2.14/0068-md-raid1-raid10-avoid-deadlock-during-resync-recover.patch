@@ -1,4 +1,4 @@
-From bb723b00c91a470b99eee38549d57b4fe4072492 Mon Sep 17 00:00:00 2001
+From 25b5a57395acbf574e9ce22b387b9b7c2dc6d8e0 Mon Sep 17 00:00:00 2001
 From: NeilBrown <neilb@suse.de>
 Date: Mon, 19 Mar 2012 12:46:38 +1100
 Subject: [PATCH 068/147] md/raid1,raid10: avoid deadlock during
@@ -30,8 +30,8 @@ Tested-by: Ray Morris <support@bettercgi.com>
 Signed-off-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/md/raid1.c  |   17 +++++++++++++++--
- drivers/md/raid10.c |   17 +++++++++++++++--
+ drivers/md/raid1.c  | 17 +++++++++++++++--
+ drivers/md/raid10.c | 17 +++++++++++++++--
  2 files changed, 30 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/md/raid1.c b/drivers/md/raid1.c
@@ -93,5 +93,5 @@ index 685ddf3..b219449 100644
  	}
  	conf->nr_pending++;
 -- 
-1.7.7.6
+1.8.1.4
 

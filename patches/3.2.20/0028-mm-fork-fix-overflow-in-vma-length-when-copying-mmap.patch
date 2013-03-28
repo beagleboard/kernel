@@ -1,4 +1,4 @@
-From 6f53263866c24febd4e48185e0ecbe0aa22331a2 Mon Sep 17 00:00:00 2001
+From fd913784ec27dc096f62d5e6bed3e0ef5e9f761c Mon Sep 17 00:00:00 2001
 From: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
 Date: Tue, 29 May 2012 15:06:22 -0700
 Subject: [PATCH 28/86] mm/fork: fix overflow in vma length when copying mmap
@@ -59,8 +59,8 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/fork.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ kernel/fork.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/fork.c b/kernel/fork.c
 index 26f1ab0..79ee71f 100644
@@ -77,5 +77,5 @@ index 26f1ab0..79ee71f 100644
  				goto fail_nomem;
  			charge = len;
 -- 
-1.7.7.6
+1.8.1.4
 

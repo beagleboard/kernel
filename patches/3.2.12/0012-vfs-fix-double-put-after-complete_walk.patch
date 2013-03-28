@@ -1,4 +1,4 @@
-From fa5e63ba9ab09ba31a272a2e82952cc9245a03e2 Mon Sep 17 00:00:00 2001
+From 97b2c1dc9152b46cc95c5f655ca817b0933b5282 Mon Sep 17 00:00:00 2001
 From: Miklos Szeredi <mszeredi@suse.cz>
 Date: Tue, 6 Mar 2012 13:56:33 +0100
 Subject: [PATCH 12/42] vfs: fix double put after complete_walk()
@@ -14,8 +14,8 @@ Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/namei.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ fs/namei.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/fs/namei.c b/fs/namei.c
 index b8344d0..9680cef 100644
@@ -31,5 +31,5 @@ index b8344d0..9680cef 100644
  	if (S_ISDIR(nd->inode->i_mode))
  		goto exit;
 -- 
-1.7.7.6
+1.8.1.4
 

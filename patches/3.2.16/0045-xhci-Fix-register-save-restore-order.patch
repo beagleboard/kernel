@@ -1,4 +1,4 @@
-From 7adadcff6fc45d6b0cefc5c2a216d52cb845fd50 Mon Sep 17 00:00:00 2001
+From 68cc960c0989d405a04954c9d665975eb80bab9c Mon Sep 17 00:00:00 2001
 From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Date: Fri, 16 Mar 2012 13:19:35 -0700
 Subject: [PATCH 45/68] xhci: Fix register save/restore order.
@@ -22,8 +22,8 @@ Tested-by: Elric Fu <elricfu1@gmail.com>
 Cc: Andiry Xu <andiry.xu@amd.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/host/xhci.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/usb/host/xhci.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
 index 4d44713..4c00606 100644
@@ -58,5 +58,5 @@ index 4d44713..4c00606 100644
  
  static void xhci_set_cmd_ring_deq(struct xhci_hcd *xhci)
 -- 
-1.7.7.6
+1.8.1.4
 

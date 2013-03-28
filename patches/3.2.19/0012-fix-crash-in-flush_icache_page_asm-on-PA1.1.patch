@@ -1,4 +1,4 @@
-From 1cbd078564140b39aaa9b597486e919c734c2f30 Mon Sep 17 00:00:00 2001
+From 1e76964858ef8e8b69035c882de5b9794c542f8d Mon Sep 17 00:00:00 2001
 From: John David Anglin <dave.anglin@bell.net>
 Date: Wed, 16 May 2012 10:14:52 +0100
 Subject: [PATCH 012/117] fix crash in flush_icache_page_asm on PA1.1
@@ -23,8 +23,8 @@ Signed-off-by: John David Anglin <dave.anglin@bell.net>
 Signed-off-by: James Bottomley <JBottomley@Parallels.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/parisc/kernel/pacache.S |   38 ++++++++++++++++++++------------------
- 1 files changed, 20 insertions(+), 18 deletions(-)
+ arch/parisc/kernel/pacache.S | 38 ++++++++++++++++++++------------------
+ 1 file changed, 20 insertions(+), 18 deletions(-)
 
 diff --git a/arch/parisc/kernel/pacache.S b/arch/parisc/kernel/pacache.S
 index 93ff3d9..5d7218a 100644
@@ -87,5 +87,5 @@ index 93ff3d9..5d7218a 100644
  
  	.procend
 -- 
-1.7.7.6
+1.8.1.4
 

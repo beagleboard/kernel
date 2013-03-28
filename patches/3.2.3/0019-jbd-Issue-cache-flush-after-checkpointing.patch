@@ -1,4 +1,4 @@
-From 8070fa91195a53f1336a26d28e203c22cc2b7de7 Mon Sep 17 00:00:00 2001
+From 7d3a43a165a51bde3afd96ac2bba942a08cb9823 Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Sat, 26 Nov 2011 00:35:39 +0100
 Subject: [PATCH 19/90] jbd: Issue cache flush after checkpointing
@@ -30,8 +30,8 @@ several fs images I've gathered over time points to a problem like this.
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/jbd/checkpoint.c |   27 ++++++++++++++++++++++-----
- fs/jbd/recovery.c   |    4 ++++
+ fs/jbd/checkpoint.c | 27 ++++++++++++++++++++++-----
+ fs/jbd/recovery.c   |  4 ++++
  2 files changed, 26 insertions(+), 5 deletions(-)
 
 diff --git a/fs/jbd/checkpoint.c b/fs/jbd/checkpoint.c
@@ -114,5 +114,5 @@ index 5b43e96..008bf06 100644
  	return err;
  }
 -- 
-1.7.7.6
+1.8.1.4
 

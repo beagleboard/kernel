@@ -1,4 +1,4 @@
-From 4c4b95a0aa978634dfe8c42d4685feaeaa39b665 Mon Sep 17 00:00:00 2001
+From 614f9598daae2222e8b5d829688c2c3191660c17 Mon Sep 17 00:00:00 2001
 From: Sebastian Siewior <bigeasy@linutronix.de>
 Date: Wed, 7 Mar 2012 10:19:28 +0000
 Subject: [PATCH 82/95] net/usbnet: avoid recursive locking in usbnet_stop()
@@ -33,8 +33,8 @@ Acked-by: Oliver Neukum <oliver@neukum.org>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/usb/usbnet.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/net/usb/usbnet.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/net/usb/usbnet.c b/drivers/net/usb/usbnet.c
 index fae0fbd..81b96e3 100644
@@ -57,5 +57,5 @@ index fae0fbd..81b96e3 100644
  	spin_unlock_irqrestore (&q->lock, flags);
  	return count;
 -- 
-1.7.7.6
+1.8.1.4
 

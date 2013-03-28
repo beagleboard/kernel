@@ -1,4 +1,4 @@
-From 3ccbe689e638129281f2f16dcea9a65225ee331a Mon Sep 17 00:00:00 2001
+From 4a9fd65cc5b5c1dc89a623a7969e4b68c9adbfc6 Mon Sep 17 00:00:00 2001
 From: Eric Sandeen <sandeen@redhat.com>
 Date: Mon, 20 Feb 2012 23:06:18 -0500
 Subject: [PATCH 36/56] ext4: avoid deadlock on sync-mounted FS w/o journal
@@ -29,8 +29,8 @@ Signed-off-by: Eric Sandeen <sandeen@redhat.com>
 Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ext4/xattr.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ fs/ext4/xattr.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/fs/ext4/xattr.c b/fs/ext4/xattr.c
 index 93a00d8..4410ae7 100644
@@ -60,5 +60,5 @@ index 93a00d8..4410ae7 100644
  	ext4_std_error(inode->i_sb, error);
  	return;
 -- 
-1.7.7.6
+1.8.1.4
 

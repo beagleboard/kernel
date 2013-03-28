@@ -1,0 +1,57 @@
+From d886190a0e89ea1f2c64b6218545c0adb2625fa1 Mon Sep 17 00:00:00 2001
+From: Li Zefan <lizefan@huawei.com>
+Date: Thu, 24 Jan 2013 14:43:28 +0800
+Subject: [PATCH 067/153] cgroup: fix exit() vs rmdir() race
+
+commit 71b5707e119653039e6e95213f00479668c79b75 upstream.
+
+In cgroup_exit() put_css_set_taskexit() is called without any lock,
+which might lead to accessing a freed cgroup:
+
+thread1                           thread2
+---------------------------------------------
+exit()
+  cgroup_exit()
+    put_css_set_taskexit()
+      atomic_dec(cgrp->count);
+                                   rmdir();
+      /* not safe !! */
+      check_for_release(cgrp);
+
+rcu_read_lock() can be used to make sure the cgroup is alive.
+
+Signed-off-by: Li Zefan <lizefan@huawei.com>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/cgroup.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/kernel/cgroup.c b/kernel/cgroup.c
+index b6cacf1..c0739f8 100644
+--- a/kernel/cgroup.c
++++ b/kernel/cgroup.c
+@@ -361,12 +361,20 @@ static void __put_css_set(struct css_set *cg, int taskexit)
+ 		struct cgroup *cgrp = link->cgrp;
+ 		list_del(&link->cg_link_list);
+ 		list_del(&link->cgrp_link_list);
++
++		/*
++		 * We may not be holding cgroup_mutex, and if cgrp->count is
++		 * dropped to 0 the cgroup can be destroyed at any time, hence
++		 * rcu_read_lock is used to keep it alive.
++		 */
++		rcu_read_lock();
+ 		if (atomic_dec_and_test(&cgrp->count) &&
+ 		    notify_on_release(cgrp)) {
+ 			if (taskexit)
+ 				set_bit(CGRP_RELEASABLE, &cgrp->flags);
+ 			check_for_release(cgrp);
+ 		}
++		rcu_read_unlock();
+ 
+ 		kfree(link);
+ 	}
+-- 
+1.8.1.4
+

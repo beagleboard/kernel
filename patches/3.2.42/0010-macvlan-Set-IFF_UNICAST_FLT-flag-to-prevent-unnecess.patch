@@ -1,0 +1,35 @@
+From f0ec50bddd54a907f088d132153d6aba61165981 Mon Sep 17 00:00:00 2001
+From: Vlad Yasevich <vyasevic@redhat.com>
+Date: Thu, 7 Mar 2013 10:21:48 +0000
+Subject: [PATCH 10/92] macvlan: Set IFF_UNICAST_FLT flag to prevent
+ unnecessary promisc mode.
+
+[ Upstream commit 87ab7f6f2874f1115817e394a7ed2dea1c72549e ]
+
+Macvlan already supports hw address filters.  Set the IFF_UNICAST_FLT
+so that it doesn't needlesly enter PROMISC mode when macvlans are
+stacked.
+
+Signed-of-by: Vlad Yasevich <vyasevic@redhat.com>
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/macvlan.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/net/macvlan.c b/drivers/net/macvlan.c
+index 97f342e..544ac06 100644
+--- a/drivers/net/macvlan.c
++++ b/drivers/net/macvlan.c
+@@ -585,6 +585,7 @@ void macvlan_common_setup(struct net_device *dev)
+ 	ether_setup(dev);
+ 
+ 	dev->priv_flags	       &= ~(IFF_XMIT_DST_RELEASE | IFF_TX_SKB_SHARING);
++	dev->priv_flags	       |= IFF_UNICAST_FLT;
+ 	dev->netdev_ops		= &macvlan_netdev_ops;
+ 	dev->destructor		= free_netdev;
+ 	dev->header_ops		= &macvlan_hard_header_ops,
+-- 
+1.8.1.4
+

@@ -1,0 +1,45 @@
+From 4e676c74a73800fc451f74c988be23d88ab8ee1f Mon Sep 17 00:00:00 2001
+From: Jan Luebbe <jlu@pengutronix.de>
+Date: Mon, 4 Feb 2013 14:28:53 -0800
+Subject: [PATCH 24/67] drivers/rtc/rtc-isl1208.c: call rtc_update_irq() from
+ the alarm irq handler
+
+commit 72fca4a4b32dc778b5b885c3498700e42b610d49 upstream.
+
+Previously the alarm event was not propagated into the RTC subsystem.
+By adding a call to rtc_update_irq, this fixes a timeout problem with
+the hwclock utility.
+
+Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/rtc/rtc-isl1208.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/rtc/rtc-isl1208.c b/drivers/rtc/rtc-isl1208.c
+index da8beb8..627b66a 100644
+--- a/drivers/rtc/rtc-isl1208.c
++++ b/drivers/rtc/rtc-isl1208.c
+@@ -494,6 +494,7 @@ isl1208_rtc_interrupt(int irq, void *data)
+ {
+ 	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
+ 	struct i2c_client *client = data;
++	struct rtc_device *rtc = i2c_get_clientdata(client);
+ 	int handled = 0, sr, err;
+ 
+ 	/*
+@@ -516,6 +517,8 @@ isl1208_rtc_interrupt(int irq, void *data)
+ 	if (sr & ISL1208_REG_SR_ALM) {
+ 		dev_dbg(&client->dev, "alarm!\n");
+ 
++		rtc_update_irq(rtc, 1, RTC_IRQF | RTC_AF);
++
+ 		/* Clear the alarm */
+ 		sr &= ~ISL1208_REG_SR_ALM;
+ 		sr = i2c_smbus_write_byte_data(client, ISL1208_REG_SR, sr);
+-- 
+1.8.1.4
+

@@ -1,4 +1,4 @@
-From 5e12cdc8c57e2eeebf4b48a355d08d5e13a32438 Mon Sep 17 00:00:00 2001
+From c12a6eade48d86488497c09daa8105f6ccc45a46 Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <edumazet@google.com>
 Date: Tue, 12 Jun 2012 00:47:58 +0200
 Subject: [PATCH 07/49] NFC: Return from rawsock_release when sk is NULL
@@ -83,8 +83,8 @@ Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
 [bwh: Backported to 3.2: keep using nfc_dbg(), not pr_debug()]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/nfc/rawsock.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ net/nfc/rawsock.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/net/nfc/rawsock.c b/net/nfc/rawsock.c
 index ee7b2b3..7a167fc 100644
@@ -103,5 +103,5 @@ index ee7b2b3..7a167fc 100644
  	sock_orphan(sk);
  	sock_put(sk);
 -- 
-1.7.7.6
+1.8.1.4
 

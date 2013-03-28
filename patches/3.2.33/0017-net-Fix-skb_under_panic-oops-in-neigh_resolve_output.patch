@@ -1,8 +1,7 @@
-From 824a51b52ac3545df30cf652c09646dfdcf72c0e Mon Sep 17 00:00:00 2001
+From ce353d0af1f53226f6e067f1a7ade93387ad90f5 Mon Sep 17 00:00:00 2001
 From: "ramesh.nagappa@gmail.com" <ramesh.nagappa@gmail.com>
 Date: Fri, 5 Oct 2012 19:10:15 +0000
-Subject: [PATCH 017/105] net: Fix skb_under_panic oops in
- neigh_resolve_output
+Subject: [PATCH 017/105] net: Fix skb_under_panic oops in neigh_resolve_output
 
 [ Upstream commit e1f165032c8bade3a6bdf546f8faf61fda4dd01c ]
 
@@ -18,8 +17,8 @@ Reviewed-by: Billie Alsup <billie.alsup@ericsson.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/core/neighbour.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ net/core/neighbour.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/net/core/neighbour.c b/net/core/neighbour.c
 index 7aafaed..5b9709f 100644
@@ -54,5 +53,5 @@ index 7aafaed..5b9709f 100644
  		err = dev_hard_header(skb, dev, ntohs(skb->protocol),
  				      neigh->ha, NULL, skb->len);
 -- 
-1.7.7.6
+1.8.1.4
 

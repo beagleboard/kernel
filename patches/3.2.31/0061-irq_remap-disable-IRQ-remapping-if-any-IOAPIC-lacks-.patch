@@ -1,4 +1,4 @@
-From 6f360bcab3940d43cd8ad58a34d12f82958ae857 Mon Sep 17 00:00:00 2001
+From f445d55359b64de907bb0fee2090bd846c6c193d Mon Sep 17 00:00:00 2001
 From: Seth Forshee <seth.forshee@canonical.com>
 Date: Wed, 8 Aug 2012 08:27:03 -0500
 Subject: [PATCH 061/109] irq_remap: disable IRQ remapping if any IOAPIC lacks
@@ -26,7 +26,7 @@ Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
 [bwh: Backported to 3.2: adjust filename]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/iommu/intr_remapping.c |   18 +++++++++++++-----
+ drivers/iommu/intr_remapping.c | 18 +++++++++++++-----
  1 file changed, 13 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/iommu/intr_remapping.c b/drivers/iommu/intr_remapping.c
@@ -68,5 +68,5 @@ index 6777ca0..73ca321 100644
  
  int __init ir_dev_scope_init(void)
 -- 
-1.7.10.4
+1.8.1.4
 

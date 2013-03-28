@@ -1,0 +1,39 @@
+From 4f75dd70c80b2c306e1096b3773c4966833e89b7 Mon Sep 17 00:00:00 2001
+From: Mark Rustad <mark.d.rustad@intel.com>
+Date: Fri, 21 Dec 2012 10:58:14 -0800
+Subject: [PATCH 032/127] tcm_fc: Do not indicate retry capability to
+ initiators
+
+commit f2eeba214bcd0215b7f558cab6420e5fd153042b upstream.
+
+When generating a PRLI response to an initiator, clear the
+FCP_SPPF_RETRY bit in the response.
+
+Signed-off-by: Mark Rustad <mark.d.rustad@intel.com>
+Reviewed-by: Bhanu Prakash Gollapudi <bprakash@broadcom.com>
+Acked by Robert Love <robert.w.love@intel.com>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/target/tcm_fc/tfc_sess.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/target/tcm_fc/tfc_sess.c b/drivers/target/tcm_fc/tfc_sess.c
+index 3f28fdb..4c5d9d7 100644
+--- a/drivers/target/tcm_fc/tfc_sess.c
++++ b/drivers/target/tcm_fc/tfc_sess.c
+@@ -431,10 +431,10 @@ static int ft_prli_locked(struct fc_rport_priv *rdata, u32 spp_len,
+ 
+ 	/*
+ 	 * OR in our service parameters with other provider (initiator), if any.
+-	 * TBD XXX - indicate RETRY capability?
+ 	 */
+ fill:
+ 	fcp_parm = ntohl(spp->spp_params);
++	fcp_parm &= ~FCP_SPPF_RETRY;
+ 	spp->spp_params = htonl(fcp_parm | FCP_SPPF_TARG_FCN);
+ 	return FC_SPP_RESP_ACK;
+ }
+-- 
+1.8.1.4
+

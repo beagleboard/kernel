@@ -1,4 +1,4 @@
-From effdabd05d69ebf538577cfb353557f68bae43ce Mon Sep 17 00:00:00 2001
+From 6a7dcace0b9c79b33c0bbc65ad8cb88854e75044 Mon Sep 17 00:00:00 2001
 From: Ben Hutchings <ben@decadent.org.uk>
 Date: Fri, 16 Nov 2012 16:46:46 +0000
 Subject: [PATCH 01/83] Bluetooth: Avoid calling undefined smp_conn_security()
@@ -15,8 +15,8 @@ SCO and L2CAP in Bluetooth Core') removed that option.
 
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/bluetooth/hci_conn.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ net/bluetooth/hci_conn.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/net/bluetooth/hci_conn.c b/net/bluetooth/hci_conn.c
 index 1fb1aec..aa12649 100644
@@ -34,5 +34,5 @@ index 1fb1aec..aa12649 100644
  	/* For sdp we don't need the link key. */
  	if (sec_level == BT_SECURITY_SDP)
 -- 
-1.7.7.6
+1.8.1.4
 

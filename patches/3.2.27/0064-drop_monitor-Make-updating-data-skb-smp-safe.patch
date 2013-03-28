@@ -1,4 +1,4 @@
-From a7b80e00ef179f2bf77e80f61a4d5e710dbe2602 Mon Sep 17 00:00:00 2001
+From c3337268e2be4cca8380744ad1103880ce823f42 Mon Sep 17 00:00:00 2001
 From: Neil Horman <nhorman@tuxdriver.com>
 Date: Fri, 27 Apr 2012 10:11:49 +0000
 Subject: [PATCH 64/70] drop_monitor: Make updating data->skb smp safe
@@ -18,8 +18,8 @@ Acked-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/core/drop_monitor.c |   70 ++++++++++++++++++++++++++++++++++++-----------
- 1 files changed, 54 insertions(+), 16 deletions(-)
+ net/core/drop_monitor.c | 70 ++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 54 insertions(+), 16 deletions(-)
 
 diff --git a/net/core/drop_monitor.c b/net/core/drop_monitor.c
 index f74d7d7..d75cbfc 100644
@@ -183,5 +183,5 @@ index f74d7d7..d75cbfc 100644
  
  out_unreg:
 -- 
-1.7.7.6
+1.8.1.4
 

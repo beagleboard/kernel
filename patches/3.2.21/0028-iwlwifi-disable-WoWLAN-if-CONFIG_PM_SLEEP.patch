@@ -1,4 +1,4 @@
-From 414accc7c8fa37e70c5f6a83bb394e9c035ae9f2 Mon Sep 17 00:00:00 2001
+From 59439bb4d78dab1530481f129ed40c99e129ad0b Mon Sep 17 00:00:00 2001
 From: Johannes Berg <johannes.berg@intel.com>
 Date: Mon, 4 Jun 2012 13:43:11 +0200
 Subject: [PATCH 28/67] iwlwifi: disable WoWLAN if !CONFIG_PM_SLEEP
@@ -16,8 +16,8 @@ Signed-off-by: John W. Linville <linville@tuxdriver.com>
 [bwh: Backported to 3.2: adjust filename, context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/wireless/iwlwifi/iwl-agn.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/net/wireless/iwlwifi/iwl-agn.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/net/wireless/iwlwifi/iwl-agn.c b/drivers/net/wireless/iwlwifi/iwl-agn.c
 index d7d2512..8b88e87 100644
@@ -40,5 +40,5 @@ index d7d2512..8b88e87 100644
  	if (iwlagn_mod_params.power_save)
  		hw->wiphy->flags |= WIPHY_FLAG_PS_ON_BY_DEFAULT;
 -- 
-1.7.7.6
+1.8.1.4
 

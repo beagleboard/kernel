@@ -1,4 +1,4 @@
-From 681169dd2b67bc64d663d7eb0ad0f0f10b473217 Mon Sep 17 00:00:00 2001
+From 9d6c335eafab0b834ccc93efff4ad0bc46f38fa1 Mon Sep 17 00:00:00 2001
 From: Alan Stern <stern@rowland.harvard.edu>
 Date: Wed, 13 Jun 2012 11:20:19 -0400
 Subject: [PATCH 56/67] USB: add NO_D3_DURING_SLEEP flag and revert
@@ -48,12 +48,12 @@ Reviewed-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/pci/pci.c           |    5 +++++
- drivers/pci/quirks.c        |   26 ++++++++++++++++++++++++++
- drivers/usb/core/hcd-pci.c  |    9 ---------
- drivers/usb/host/ehci-pci.c |    8 --------
- include/linux/pci.h         |    2 ++
- include/linux/usb/hcd.h     |    2 --
+ drivers/pci/pci.c           |  5 +++++
+ drivers/pci/quirks.c        | 26 ++++++++++++++++++++++++++
+ drivers/usb/core/hcd-pci.c  |  9 ---------
+ drivers/usb/host/ehci-pci.c |  8 --------
+ include/linux/pci.h         |  2 ++
+ include/linux/usb/hcd.h     |  2 --
  6 files changed, 33 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
@@ -175,5 +175,5 @@ index 64cec8d..03354d5 100644
  	int			irq;		/* irq allocated */
  	void __iomem		*regs;		/* device memory/io */
 -- 
-1.7.7.6
+1.8.1.4
 

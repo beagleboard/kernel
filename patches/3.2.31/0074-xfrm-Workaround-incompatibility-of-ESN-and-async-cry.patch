@@ -1,4 +1,4 @@
-From 58a3d9d75238d7e18fbbd6d9af8cf2d141727089 Mon Sep 17 00:00:00 2001
+From 97565faa11335da040f6e290b7c5b5ac6bd3683b Mon Sep 17 00:00:00 2001
 From: Steffen Klassert <steffen.klassert@secunet.com>
 Date: Tue, 4 Sep 2012 00:03:29 +0000
 Subject: [PATCH 074/109] xfrm: Workaround incompatibility of ESN and async
@@ -27,9 +27,9 @@ Acked-by: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/net/xfrm.h     |    3 +++
- net/xfrm/xfrm_input.c  |    2 +-
- net/xfrm/xfrm_replay.c |   15 +++++++++++++++
+ include/net/xfrm.h     |  3 +++
+ net/xfrm/xfrm_input.c  |  2 +-
+ net/xfrm/xfrm_replay.c | 15 +++++++++++++++
  3 files changed, 19 insertions(+), 1 deletion(-)
 
 diff --git a/include/net/xfrm.h b/include/net/xfrm.h
@@ -107,5 +107,5 @@ index 2f6d11d..3efb07d 100644
  	.overflow	= xfrm_replay_overflow_esn,
  };
 -- 
-1.7.10.4
+1.8.1.4
 

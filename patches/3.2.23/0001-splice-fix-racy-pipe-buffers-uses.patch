@@ -1,4 +1,4 @@
-From 8f17fd5a82c588b8470b428596fd371f85486e9d Mon Sep 17 00:00:00 2001
+From 3d979a43bc9be4444d6ded46b20bb2579611c2ef Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <edumazet@google.com>
 Date: Tue, 12 Jun 2012 15:24:40 +0200
 Subject: [PATCH 01/49] splice: fix racy pipe->buffers uses
@@ -31,12 +31,12 @@ Signed-off-by: Jens Axboe <axboe@kernel.dk>
  - Update one more call to splice_shrink_spd(), from skb_splice_bits()]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/splice.c            |   35 ++++++++++++++++++++---------------
- include/linux/splice.h |    8 ++++----
- kernel/relay.c         |    5 +++--
- kernel/trace/trace.c   |    6 ++++--
- mm/shmem.c             |    3 ++-
- net/core/skbuff.c      |    3 ++-
+ fs/splice.c            | 35 ++++++++++++++++++++---------------
+ include/linux/splice.h |  8 ++++----
+ kernel/relay.c         |  5 +++--
+ kernel/trace/trace.c   |  6 ++++--
+ mm/shmem.c             |  3 ++-
+ net/core/skbuff.c      |  3 ++-
  6 files changed, 35 insertions(+), 25 deletions(-)
 
 diff --git a/fs/splice.c b/fs/splice.c
@@ -294,5 +294,5 @@ index 2ec200de..af9c3c6 100644
  }
  
 -- 
-1.7.7.6
+1.8.1.4
 

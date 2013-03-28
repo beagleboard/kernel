@@ -1,4 +1,4 @@
-From f25cb83e2b382d9b864dd01234c70f581a409534 Mon Sep 17 00:00:00 2001
+From 2bc06804237f79fa59fe7444f91c0252a4d1ef6d Mon Sep 17 00:00:00 2001
 From: Anton Blanchard <anton@samba.org>
 Date: Wed, 23 Nov 2011 20:07:17 +0000
 Subject: [PATCH 12/49] powerpc/time: Handle wrapping of decrementer
@@ -24,9 +24,9 @@ Signed-off-by: Anton Blanchard <anton@samba.org>
 Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- arch/powerpc/include/asm/time.h |    2 ++
- arch/powerpc/kernel/irq.c       |   15 ++++++---------
- arch/powerpc/kernel/time.c      |    9 +++++++++
+ arch/powerpc/include/asm/time.h |  2 ++
+ arch/powerpc/kernel/irq.c       | 15 ++++++---------
+ arch/powerpc/kernel/time.c      |  9 +++++++++
  3 files changed, 17 insertions(+), 9 deletions(-)
 
 diff --git a/arch/powerpc/include/asm/time.h b/arch/powerpc/include/asm/time.h
@@ -89,5 +89,5 @@ index 522bb1d..5db163c 100644
  				      struct clock_event_device *dev)
  {
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 31ddfbce2d39bb89d16ce2329cc2a15db4fa12c4 Mon Sep 17 00:00:00 2001
+From bdb11ce7dda0533bfe6bd39bab14b048ebd1c530 Mon Sep 17 00:00:00 2001
 From: Nikolaus Schulz <schulz@macnetix.de>
 Date: Wed, 8 Feb 2012 18:56:10 +0100
 Subject: [PATCH 10/30] hwmon: (f75375s) Fix bit shifting in f75375_write16
@@ -12,8 +12,8 @@ Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/hwmon/f75375s.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/hwmon/f75375s.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
 index 95cbfb3..dcfd9e1 100644
@@ -29,5 +29,5 @@ index 95cbfb3..dcfd9e1 100644
  		return;
  	i2c_smbus_write_byte_data(client, reg + 1, (value & 0xFF));
 -- 
-1.7.7.6
+1.8.1.4
 

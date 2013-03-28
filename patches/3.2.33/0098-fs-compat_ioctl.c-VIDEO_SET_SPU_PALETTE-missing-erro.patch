@@ -1,4 +1,4 @@
-From 829332aa385ce94933a6450ca91e58cb22a06bb2 Mon Sep 17 00:00:00 2001
+From 86bf13bcdb25b0db298116e96285709e63e02a4b Mon Sep 17 00:00:00 2001
 From: Kees Cook <keescook@chromium.org>
 Date: Thu, 25 Oct 2012 13:38:16 -0700
 Subject: [PATCH 098/105] fs/compat_ioctl.c: VIDEO_SET_SPU_PALETTE missing
@@ -20,8 +20,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/compat_ioctl.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ fs/compat_ioctl.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
 index 51352de..f854cf9 100644
@@ -37,5 +37,5 @@ index 51352de..f854cf9 100644
  	up_native = compat_alloc_user_space(sizeof(struct video_spu_palette));
  	err  = put_user(compat_ptr(palp), &up_native->palette);
 -- 
-1.7.7.6
+1.8.1.4
 

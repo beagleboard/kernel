@@ -1,4 +1,4 @@
-From 180d89043377f5940b01fb1e27f608aca521ef60 Mon Sep 17 00:00:00 2001
+From 951d8718bd6c510ba06f0baedfd912af53f36a82 Mon Sep 17 00:00:00 2001
 From: Felix Fietkau <nbd@openwrt.org>
 Date: Fri, 15 Jun 2012 03:04:52 +0200
 Subject: [PATCH 25/46] ath9k: fix a tx rate duration calculation bug
@@ -14,8 +14,8 @@ Signed-off-by: Felix Fietkau <nbd@openwrt.org>
 Signed-off-by: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/wireless/ath/ath9k/xmit.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/net/wireless/ath/ath9k/xmit.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/net/wireless/ath/ath9k/xmit.c b/drivers/net/wireless/ath/ath9k/xmit.c
 index 76fd277..c59c592 100644
@@ -37,5 +37,5 @@ index 76fd277..c59c592 100644
  		if (rate->hw_value_short) {
  			if (rates[i].flags & IEEE80211_TX_RC_USE_SHORT_PREAMBLE)
 -- 
-1.7.7.6
+1.8.1.4
 

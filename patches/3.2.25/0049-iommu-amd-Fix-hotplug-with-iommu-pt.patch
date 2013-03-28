@@ -1,4 +1,4 @@
-From a1a114bdcacc5270ff09e72ba4b75192758466d4 Mon Sep 17 00:00:00 2001
+From ec3f01e694fbc0895f1875af8f4d0ab9724d7550 Mon Sep 17 00:00:00 2001
 From: Joerg Roedel <joerg.roedel@amd.com>
 Date: Thu, 19 Jul 2012 13:42:54 +0200
 Subject: [PATCH 49/73] iommu/amd: Fix hotplug with iommu=pt
@@ -12,8 +12,8 @@ Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
 [bwh: Backported to 3.2: do not use iommu_dev_data::passthrough]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/iommu/amd_iommu.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/iommu/amd_iommu.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
 index a1b8caa..0f074e0 100644
@@ -44,5 +44,5 @@ index a1b8caa..0f074e0 100644
  		break;
  	case BUS_NOTIFY_DEL_DEVICE:
 -- 
-1.7.7.6
+1.8.1.4
 

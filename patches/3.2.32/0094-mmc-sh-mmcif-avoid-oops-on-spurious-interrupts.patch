@@ -1,4 +1,4 @@
-From cf459be325089855c0fa13cfe7ada2c9bb8c5fb6 Mon Sep 17 00:00:00 2001
+From 051aea4a168c0d04fa4b03bb20fe6a166943f8e9 Mon Sep 17 00:00:00 2001
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Date: Tue, 18 Sep 2012 06:42:42 +0000
 Subject: [PATCH 094/146] mmc: sh-mmcif: avoid oops on spurious interrupts
@@ -16,7 +16,7 @@ Signed-off-by: Chris Ball <cjb@laptop.org>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/mmc/host/sh_mmcif.c |    4 ++++
+ drivers/mmc/host/sh_mmcif.c | 4 ++++
  1 file changed, 4 insertions(+)
 
 diff --git a/drivers/mmc/host/sh_mmcif.c b/drivers/mmc/host/sh_mmcif.c
@@ -35,5 +35,5 @@ index d5505f3..559d30d 100644
  		complete(&host->intr_wait);
  	else
 -- 
-1.7.10.4
+1.8.1.4
 

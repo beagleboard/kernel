@@ -1,0 +1,77 @@
+From 33e96cbcca0f4be1e7266dfa03bd4ab4af3f6d37 Mon Sep 17 00:00:00 2001
+From: Zheng Liu <wenqing.lz@taobao.com>
+Date: Sun, 10 Mar 2013 21:20:23 -0400
+Subject: [PATCH 50/92] ext4: fix the wrong number of the allocated blocks in
+ ext4_split_extent()
+
+commit 3a2256702e47f68f921dfad41b1764d05c572329 upstream.
+
+This commit fixes a wrong return value of the number of the allocated
+blocks in ext4_split_extent.  When the length of blocks we want to
+allocate is greater than the length of the current extent, we return a
+wrong number.  Let's see what happens in the following case when we
+call ext4_split_extent().
+
+  map: [48, 72]
+  ex:  [32, 64, u]
+
+'ex' will be split into two parts:
+  ex1: [32, 47, u]
+  ex2: [48, 64, w]
+
+'map->m_len' is returned from this function, and the value is 24.  But
+the real length is 16.  So it should be fixed.
+
+Meanwhile in this commit we use right length of the allocated blocks
+when get_reserved_cluster_alloc in ext4_ext_handle_uninitialized_extents
+is called.
+
+Signed-off-by: Zheng Liu <wenqing.lz@taobao.com>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Dmitry Monakhov <dmonakhov@openvz.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/ext4/extents.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
+index b48e0dc..ce0bc25 100644
+--- a/fs/ext4/extents.c
++++ b/fs/ext4/extents.c
+@@ -2960,6 +2960,7 @@ static int ext4_split_extent(handle_t *handle,
+ 	int err = 0;
+ 	int uninitialized;
+ 	int split_flag1, flags1;
++	int allocated = map->m_len;
+ 
+ 	depth = ext_depth(inode);
+ 	ex = path[depth].p_ext;
+@@ -2979,6 +2980,8 @@ static int ext4_split_extent(handle_t *handle,
+ 				map->m_lblk + map->m_len, split_flag1, flags1);
+ 		if (err)
+ 			goto out;
++	} else {
++		allocated = ee_len - (map->m_lblk - ee_block);
+ 	}
+ 
+ 	ext4_ext_drop_refs(path);
+@@ -3001,7 +3004,7 @@ static int ext4_split_extent(handle_t *handle,
+ 
+ 	ext4_ext_show_leaf(inode, path);
+ out:
+-	return err ? err : map->m_len;
++	return err ? err : allocated;
+ }
+ 
+ #define EXT4_EXT_ZERO_LEN 7
+@@ -3663,6 +3666,7 @@ out:
+ 					allocated - map->m_len);
+ 		allocated = map->m_len;
+ 	}
++	map->m_len = allocated;
+ 
+ 	/*
+ 	 * If we have done fallocate with the offset that is already
+-- 
+1.8.1.4
+

@@ -1,4 +1,4 @@
-From 3ee3694983222b7c22cac9e77f4c620b7090ab92 Mon Sep 17 00:00:00 2001
+From 0d1fac79e4dd8b4a5b6a6ee4f770015f4832e6fb Mon Sep 17 00:00:00 2001
 From: Florian Westphal <fw@strlen.de>
 Date: Mon, 7 May 2012 10:51:43 +0000
 Subject: [PATCH 139/146] netfilter: limit, hashlimit: avoid duplicated inline
@@ -19,8 +19,8 @@ Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/netfilter/xt_hashlimit.c |    8 +++-----
- net/netfilter/xt_limit.c     |    5 ++---
+ net/netfilter/xt_hashlimit.c | 8 +++-----
+ net/netfilter/xt_limit.c     | 5 ++---
  2 files changed, 5 insertions(+), 8 deletions(-)
 
 diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
@@ -80,5 +80,5 @@ index 32b7a57..5c22ce8 100644
  	}
  	return 0;
 -- 
-1.7.10.4
+1.8.1.4
 

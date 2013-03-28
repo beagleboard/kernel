@@ -1,0 +1,42 @@
+From 86aa1ccfcd2207548f353e642359197a93707f5e Mon Sep 17 00:00:00 2001
+From: CQ Tang <cq.tang@intel.com>
+Date: Mon, 18 Mar 2013 11:02:21 -0400
+Subject: [PATCH 67/92] x86-64: Fix the failure case in copy_user_handle_tail()
+
+commit 66db3feb486c01349f767b98ebb10b0c3d2d021b upstream.
+
+The increment of "to" in copy_user_handle_tail() will have incremented
+before a failure has been noted.  This causes us to skip a byte in the
+failure case.
+
+Only do the increment when assured there is no failure.
+
+Signed-off-by: CQ Tang <cq.tang@intel.com>
+Link: http://lkml.kernel.org/r/20130318150221.8439.993.stgit@phlsvslse11.ph.intel.com
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/lib/usercopy_64.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/x86/lib/usercopy_64.c b/arch/x86/lib/usercopy_64.c
+index b7c2849..554b7b5 100644
+--- a/arch/x86/lib/usercopy_64.c
++++ b/arch/x86/lib/usercopy_64.c
+@@ -169,10 +169,10 @@ copy_user_handle_tail(char *to, char *from, unsigned len, unsigned zerorest)
+ 	char c;
+ 	unsigned zero_len;
+ 
+-	for (; len; --len) {
++	for (; len; --len, to++) {
+ 		if (__get_user_nocheck(c, from++, sizeof(char)))
+ 			break;
+-		if (__put_user_nocheck(c, to++, sizeof(char)))
++		if (__put_user_nocheck(c, to, sizeof(char)))
+ 			break;
+ 	}
+ 
+-- 
+1.8.1.4
+

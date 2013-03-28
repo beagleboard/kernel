@@ -1,0 +1,35 @@
+From 72331caacb1f674fdd0b388a86e615f940267925 Mon Sep 17 00:00:00 2001
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Date: Wed, 13 Mar 2013 09:55:02 +1100
+Subject: [PATCH 23/92] powerpc: Fix cputable entry for 970MP rev 1.0
+
+commit d63ac5f6cf31c8a83170a9509b350c1489a7262b upstream.
+
+Commit 44ae3ab3358e962039c36ad4ae461ae9fb29596c forgot to update
+the entry for the 970MP rev 1.0 processor when moving some CPU
+features bits to the MMU feature bit mask. This breaks booting
+on some rare G5 models using that chip revision.
+
+Reported-by: Phileas Fogg <phileas-fogg@mail.ru>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/powerpc/kernel/cputable.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/powerpc/kernel/cputable.c b/arch/powerpc/kernel/cputable.c
+index edae5bb..b92b756 100644
+--- a/arch/powerpc/kernel/cputable.c
++++ b/arch/powerpc/kernel/cputable.c
+@@ -268,7 +268,7 @@ static struct cpu_spec __initdata cpu_specs[] = {
+ 		.cpu_features		= CPU_FTRS_PPC970,
+ 		.cpu_user_features	= COMMON_USER_POWER4 |
+ 			PPC_FEATURE_HAS_ALTIVEC_COMP,
+-		.mmu_features		= MMU_FTR_HPTE_TABLE,
++		.mmu_features		= MMU_FTRS_PPC970,
+ 		.icache_bsize		= 128,
+ 		.dcache_bsize		= 128,
+ 		.num_pmcs		= 8,
+-- 
+1.8.1.4
+

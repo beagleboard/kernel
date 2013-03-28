@@ -1,8 +1,8 @@
-From a89bb091a3795c2a3123178f8dc1453b336aab95 Mon Sep 17 00:00:00 2001
+From fd61bf726fdea119e54fb43e6ad67f139f02b53e Mon Sep 17 00:00:00 2001
 From: Al Viro <viro@zeniv.linux.org.uk>
 Date: Fri, 13 Apr 2012 00:00:04 -0400
-Subject: [PATCH 047/165] nfsd: fix error values returned by nfsd4_lockt()
- when nfsd_open() fails
+Subject: [PATCH 047/165] nfsd: fix error values returned by nfsd4_lockt() when
+ nfsd_open() fails
 
 commit 04da6e9d63427b2d0fd04766712200c250b3278f upstream.
 
@@ -14,8 +14,8 @@ three years ago...
 Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/nfsd/nfs4state.c |   23 +++++++++--------------
- 1 files changed, 9 insertions(+), 14 deletions(-)
+ fs/nfsd/nfs4state.c | 23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
 
 diff --git a/fs/nfsd/nfs4state.c b/fs/nfsd/nfs4state.c
 index 5abced7..4cfe260 100644
@@ -69,5 +69,5 @@ index 5abced7..4cfe260 100644
  		status = nfserr_denied;
  		nfs4_set_lock_denied(&file_lock, &lockt->lt_denied);
 -- 
-1.7.7.6
+1.8.1.4
 

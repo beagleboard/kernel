@@ -1,0 +1,135 @@
+From d15da04c1148a1eb55e6db0d33d469ede1713fad Mon Sep 17 00:00:00 2001
+From: Thadeu Lima de Souza Cascardo <cascardo@linux.vnet.ibm.com>
+Date: Fri, 28 Dec 2012 09:13:19 +0000
+Subject: [PATCH 008/153] powerpc/eeh: Fix crash when adding a device in a slot
+ with DDW
+
+commit 6a040ce72598159a74969a2d01ab0ba5ee6536b3 upstream.
+
+The DDW code uses a eeh_dev struct from the pci_dev. However, this is
+not set until eeh_add_device_late is called.
+
+Since pci_bus_add_devices is called before eeh_add_device_late, the PCI
+devices are added to the bus, making drivers' probe hooks to be called.
+These will call set_dma_mask, which will call the DDW code, which will
+require the eeh_dev struct from pci_dev. This would result in a crash,
+due to a NULL dereference.
+
+Calling eeh_add_device_late after pci_bus_add_devices would make the
+system BUG, because device files shouldn't be added to devices there
+were not added to the system. So, a new function is needed to add such
+files only after pci_bus_add_devices have been called.
+
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@linux.vnet.ibm.com>
+Acked-by: Gavin Shan <shangw@linux.vnet.ibm.com>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/powerpc/include/asm/eeh.h       |  3 +++
+ arch/powerpc/kernel/of_platform.c    |  3 +++
+ arch/powerpc/kernel/pci-common.c     |  7 +++++--
+ arch/powerpc/platforms/pseries/eeh.c | 24 +++++++++++++++++++++++-
+ 4 files changed, 34 insertions(+), 3 deletions(-)
+
+diff --git a/arch/powerpc/include/asm/eeh.h b/arch/powerpc/include/asm/eeh.h
+index 66ea9b8..21165a4 100644
+--- a/arch/powerpc/include/asm/eeh.h
++++ b/arch/powerpc/include/asm/eeh.h
+@@ -61,6 +61,7 @@ void __init pci_addr_cache_build(void);
+  */
+ void eeh_add_device_tree_early(struct device_node *);
+ void eeh_add_device_tree_late(struct pci_bus *);
++void eeh_add_sysfs_files(struct pci_bus *);
+ 
+ /**
+  * eeh_remove_device_recursive - undo EEH for device & children.
+@@ -105,6 +106,8 @@ static inline void eeh_add_device_tree_early(struct device_node *dn) { }
+ 
+ static inline void eeh_add_device_tree_late(struct pci_bus *bus) { }
+ 
++static inline void eeh_add_sysfs_files(struct pci_bus *bus) { }
++
+ static inline void eeh_remove_bus_device(struct pci_dev *dev) { }
+ #define EEH_POSSIBLE_ERROR(val, type) (0)
+ #define EEH_IO_ERROR_VALUE(size) (-1UL)
+diff --git a/arch/powerpc/kernel/of_platform.c b/arch/powerpc/kernel/of_platform.c
+index e1612df..b10beef 100644
+--- a/arch/powerpc/kernel/of_platform.c
++++ b/arch/powerpc/kernel/of_platform.c
+@@ -91,6 +91,9 @@ static int __devinit of_pci_phb_probe(struct platform_device *dev)
+ 	/* Add probed PCI devices to the device model */
+ 	pci_bus_add_devices(phb->bus);
+ 
++	/* sysfs files should only be added after devices are added */
++	eeh_add_sysfs_files(phb->bus);
++
+ 	return 0;
+ }
+ 
+diff --git a/arch/powerpc/kernel/pci-common.c b/arch/powerpc/kernel/pci-common.c
+index 458ed3b..a3cd949 100644
+--- a/arch/powerpc/kernel/pci-common.c
++++ b/arch/powerpc/kernel/pci-common.c
+@@ -1536,11 +1536,14 @@ void pcibios_finish_adding_to_bus(struct pci_bus *bus)
+ 	pcibios_allocate_bus_resources(bus);
+ 	pcibios_claim_one_bus(bus);
+ 
++	/* Fixup EEH */
++	eeh_add_device_tree_late(bus);
++
+ 	/* Add new devices to global lists.  Register in proc, sysfs. */
+ 	pci_bus_add_devices(bus);
+ 
+-	/* Fixup EEH */
+-	eeh_add_device_tree_late(bus);
++	/* sysfs files should only be added after devices are added */
++	eeh_add_sysfs_files(bus);
+ }
+ EXPORT_SYMBOL_GPL(pcibios_finish_adding_to_bus);
+ 
+diff --git a/arch/powerpc/platforms/pseries/eeh.c b/arch/powerpc/platforms/pseries/eeh.c
+index 5658690..389e06b 100644
+--- a/arch/powerpc/platforms/pseries/eeh.c
++++ b/arch/powerpc/platforms/pseries/eeh.c
+@@ -1238,7 +1238,6 @@ static void eeh_add_device_late(struct pci_dev *dev)
+ 	pdn->pcidev = dev;
+ 
+ 	pci_addr_cache_insert_device(dev);
+-	eeh_sysfs_add_device(dev);
+ }
+ 
+ void eeh_add_device_tree_late(struct pci_bus *bus)
+@@ -1257,6 +1256,29 @@ void eeh_add_device_tree_late(struct pci_bus *bus)
+ EXPORT_SYMBOL_GPL(eeh_add_device_tree_late);
+ 
+ /**
++ * eeh_add_sysfs_files - Add EEH sysfs files for the indicated PCI bus
++ * @bus: PCI bus
++ *
++ * This routine must be used to add EEH sysfs files for PCI
++ * devices which are attached to the indicated PCI bus. The PCI bus
++ * is added after system boot through hotplug or dlpar.
++ */
++void eeh_add_sysfs_files(struct pci_bus *bus)
++{
++	struct pci_dev *dev;
++
++	list_for_each_entry(dev, &bus->devices, bus_list) {
++		eeh_sysfs_add_device(dev);
++		if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE) {
++			struct pci_bus *subbus = dev->subordinate;
++			if (subbus)
++				eeh_add_sysfs_files(subbus);
++		}
++	}
++}
++EXPORT_SYMBOL_GPL(eeh_add_sysfs_files);
++
++/**
+  * eeh_remove_device - undo EEH setup for the indicated pci device
+  * @dev: pci device to be removed
+  *
+-- 
+1.8.1.4
+

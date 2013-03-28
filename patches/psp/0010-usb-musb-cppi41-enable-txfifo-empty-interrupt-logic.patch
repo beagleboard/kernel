@@ -1,4 +1,4 @@
-From 5f7a6d39c7db9ca541ecfeb6d581c6310b9f452d Mon Sep 17 00:00:00 2001
+From 751ad2fce3fe8fbe27bf442413d367e2864fa5b6 Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Wed, 23 May 2012 15:25:32 +0530
 Subject: [PATCH 10/19] usb: musb: cppi41: enable txfifo empty interrupt logic
@@ -22,13 +22,13 @@ The application issues fixed are -
 
 Signed-off-by: Ravi B <ravibabu@ti.com>
 ---
- drivers/usb/musb/cppi41_dma.c  |  101 ++++++++++++++++++++++++++++++++++++++--
- drivers/usb/musb/cppi41_dma.h  |    7 +++
- drivers/usb/musb/musb_core.h   |   16 ++++++
- drivers/usb/musb/musb_gadget.c |    1 +
- drivers/usb/musb/musb_host.c   |    1 +
- drivers/usb/musb/ti81xx.c      |   51 ++++++++++++++++++++-
- drivers/usb/musb/ti81xx.h      |    3 +
+ drivers/usb/musb/cppi41_dma.c  | 101 +++++++++++++++++++++++++++++++++++++++--
+ drivers/usb/musb/cppi41_dma.h  |   7 +++
+ drivers/usb/musb/musb_core.h   |  16 +++++++
+ drivers/usb/musb/musb_gadget.c |   1 +
+ drivers/usb/musb/musb_host.c   |   1 +
+ drivers/usb/musb/ti81xx.c      |  51 ++++++++++++++++++++-
+ drivers/usb/musb/ti81xx.h      |   3 ++
  7 files changed, 174 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/usb/musb/cppi41_dma.c b/drivers/usb/musb/cppi41_dma.c
@@ -421,5 +421,5 @@ index e0dbd3e..d173b55 100644
  #define USB_INTR_DRVVBUS        0x100
  #define USB_INTR_RX_SHIFT       16
 -- 
-1.7.7.6
+1.8.1.4
 

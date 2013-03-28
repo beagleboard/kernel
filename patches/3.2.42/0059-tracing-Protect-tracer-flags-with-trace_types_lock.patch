@@ -1,0 +1,79 @@
+From ae351c5cf6bd2bda4647c205fac846adb887e230 Mon Sep 17 00:00:00 2001
+From: "Steven Rostedt (Red Hat)" <rostedt@goodmis.org>
+Date: Thu, 14 Mar 2013 13:50:56 -0400
+Subject: [PATCH 59/92] tracing: Protect tracer flags with trace_types_lock
+
+commit 69d34da2984c95b33ea21518227e1f9470f11d95 upstream.
+
+Seems that the tracer flags have never been protected from
+synchronous writes. Luckily, admins don't usually modify the
+tracing flags via two different tasks. But if scripts were to
+be used to modify them, then they could get corrupted.
+
+Move the trace_types_lock that protects against tracers changing
+to also protect the flags being set.
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+[bwh: Backported to 3.2: also move failure return in
+ tracing_trace_options_write() after unlocking]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/trace/trace.c | 19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
+
+diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
+index 262d9df..6751c11 100644
+--- a/kernel/trace/trace.c
++++ b/kernel/trace/trace.c
+@@ -2661,7 +2661,7 @@ tracing_trace_options_write(struct file *filp, const char __user *ubuf,
+ 	char buf[64];
+ 	char *cmp;
+ 	int neg = 0;
+-	int ret;
++	int ret = 0;
+ 	int i;
+ 
+ 	if (cnt >= sizeof(buf))
+@@ -2678,6 +2678,8 @@ tracing_trace_options_write(struct file *filp, const char __user *ubuf,
+ 		cmp += 2;
+ 	}
+ 
++	mutex_lock(&trace_types_lock);
++
+ 	for (i = 0; trace_options[i]; i++) {
+ 		if (strcmp(cmp, trace_options[i]) == 0) {
+ 			set_tracer_flags(1 << i, !neg);
+@@ -2686,13 +2688,13 @@ tracing_trace_options_write(struct file *filp, const char __user *ubuf,
+ 	}
+ 
+ 	/* If no option could be set, test the specific tracer options */
+-	if (!trace_options[i]) {
+-		mutex_lock(&trace_types_lock);
++	if (!trace_options[i])
+ 		ret = set_tracer_option(current_trace, cmp, neg);
+-		mutex_unlock(&trace_types_lock);
+-		if (ret)
+-			return ret;
+-	}
++
++	mutex_unlock(&trace_types_lock);
++
++	if (ret)
++		return ret;
+ 
+ 	*ppos += cnt;
+ 
+@@ -4379,7 +4381,10 @@ trace_options_core_write(struct file *filp, const char __user *ubuf, size_t cnt,
+ 
+ 	if (val != 0 && val != 1)
+ 		return -EINVAL;
++
++	mutex_lock(&trace_types_lock);
+ 	set_tracer_flags(1 << index, val);
++	mutex_unlock(&trace_types_lock);
+ 
+ 	*ppos += cnt;
+ 
+-- 
+1.8.1.4
+

@@ -1,4 +1,4 @@
-From 22e29b797b8bf0d55d5fb81615f2c4d07f8f52ce Mon Sep 17 00:00:00 2001
+From b5cf0940d75074088385ba76fb981d3473ac6baa Mon Sep 17 00:00:00 2001
 From: Chris Wilson <chris@chris-wilson.co.uk>
 Date: Thu, 27 Sep 2012 21:25:58 +0100
 Subject: [PATCH 087/146] drm/i915: Flush the pending flips on the CRTC before
@@ -25,7 +25,7 @@ Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
 Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/i915/intel_display.c |   24 ++++++++++++++++++++++--
+ drivers/gpu/drm/i915/intel_display.c | 24 ++++++++++++++++++++++--
  1 file changed, 22 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
@@ -79,5 +79,5 @@ index ea4503e..8d5087e 100644
  
  	trace_i915_flip_complete(intel_crtc->plane, work->pending_flip_obj);
 -- 
-1.7.10.4
+1.8.1.4
 

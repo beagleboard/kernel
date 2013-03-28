@@ -1,0 +1,82 @@
+From fbabf7e8708de79672b098e461f713aba8c6ef95 Mon Sep 17 00:00:00 2001
+From: Vyacheslav Dubeyko <slava@dubeyko.com>
+Date: Mon, 4 Feb 2013 14:28:41 -0800
+Subject: [PATCH 23/67] nilfs2: fix fix very long mount time issue
+
+commit a9bae189542e71f91e61a4428adf6e5a7dfe8063 upstream.
+
+There exists a situation when GC can work in background alone without
+any other filesystem activity during significant time.
+
+The nilfs_clean_segments() method calls nilfs_segctor_construct() that
+updates superblocks in the case of NILFS_SC_SUPER_ROOT and
+THE_NILFS_DISCONTINUED flags are set.  But when GC is working alone the
+nilfs_clean_segments() is called with unset THE_NILFS_DISCONTINUED flag.
+As a result, the update of superblocks doesn't occurred all this time
+and in the case of SPOR superblocks keep very old values of last super
+root placement.
+
+SYMPTOMS:
+
+Trying to mount a NILFS2 volume after SPOR in such environment ends with
+very long mounting time (it can achieve about several hours in some
+cases).
+
+REPRODUCING PATH:
+
+1. It needs to use external USB HDD, disable automount and doesn't
+   make any additional filesystem activity on the NILFS2 volume.
+
+2. Generate temporary file with size about 100 - 500 GB (for example,
+   dd if=/dev/zero of=<file_name> bs=1073741824 count=200).  The size of
+   file defines duration of GC working.
+
+3. Then it needs to delete file.
+
+4. Start GC manually by means of command "nilfs-clean -p 0".  When you
+   start GC by means of such way then, at the end, superblocks is updated
+   by once.  So, for simulation of SPOR, it needs to wait sometime (15 -
+   40 minutes) and simply switch off USB HDD manually.
+
+5. Switch on USB HDD again and try to mount NILFS2 volume.  As a
+   result, NILFS2 volume will mount during very long time.
+
+REPRODUCIBILITY: 100%
+
+FIX:
+
+This patch adds checking that superblocks need to update and set
+THE_NILFS_DISCONTINUED flag before nilfs_clean_segments() call.
+
+Reported-by: Sergey Alexandrov <splavgm@gmail.com>
+Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Tested-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nilfs2/ioctl.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/fs/nilfs2/ioctl.c b/fs/nilfs2/ioctl.c
+index c598cfb..2b5e695 100644
+--- a/fs/nilfs2/ioctl.c
++++ b/fs/nilfs2/ioctl.c
+@@ -664,8 +664,11 @@ static int nilfs_ioctl_clean_segments(struct inode *inode, struct file *filp,
+ 	if (ret < 0)
+ 		printk(KERN_ERR "NILFS: GC failed during preparation: "
+ 			"cannot read source blocks: err=%d\n", ret);
+-	else
++	else {
++		if (nilfs_sb_need_update(nilfs))
++			set_nilfs_discontinued(nilfs);
+ 		ret = nilfs_clean_segments(inode->i_sb, argv, kbufs);
++	}
+ 
+ 	nilfs_remove_all_gcinodes(nilfs);
+ 	clear_nilfs_gc_running(nilfs);
+-- 
+1.8.1.4
+

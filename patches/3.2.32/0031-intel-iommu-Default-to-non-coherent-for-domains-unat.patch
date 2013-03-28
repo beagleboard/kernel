@@ -1,4 +1,4 @@
-From e5c9c226e1fbfe88a1c5486e3ddda12cd3c8877c Mon Sep 17 00:00:00 2001
+From f2f04c4d92bd8d52416eafbbee367c1291bb2764 Mon Sep 17 00:00:00 2001
 From: Alex Williamson <alex.williamson@redhat.com>
 Date: Fri, 11 Nov 2011 17:26:44 -0700
 Subject: [PATCH 031/146] intel-iommu: Default to non-coherent for domains
@@ -34,7 +34,7 @@ Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
  not an array, so add &]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/iommu/intel-iommu.c |    4 +++-
+ drivers/iommu/intel-iommu.c | 4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
@@ -53,5 +53,5 @@ index ccf347f..b9062c0 100644
  	for_each_set_bit(i, &domain->iommu_bmp, g_num_of_iommus) {
  		if (!ecap_coherent(g_iommus[i]->ecap)) {
 -- 
-1.7.10.4
+1.8.1.4
 

@@ -1,0 +1,38 @@
+From eb65417a7107fd3adba588e0c2d2b05e5a97ceb8 Mon Sep 17 00:00:00 2001
+From: Johannes Berg <johannes.berg@intel.com>
+Date: Thu, 13 Dec 2012 23:08:52 +0100
+Subject: [PATCH 004/127] mac80211: use del_timer_sync for final sta cleanup
+ timer deletion
+
+commit a56f992cdabc63f56b4b142885deebebf936ff76 upstream.
+
+This is a very old bug, but there's nothing that prevents the
+timer from running while the module is being removed when we
+only do del_timer() instead of del_timer_sync().
+
+The timer should normally not be running at this point, but
+it's not clearly impossible (or we could just remove this.)
+
+Tested-by: Ben Greear <greearb@candelatech.com>
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/mac80211/sta_info.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/mac80211/sta_info.c b/net/mac80211/sta_info.c
+index 1c775f0..488600c 100644
+--- a/net/mac80211/sta_info.c
++++ b/net/mac80211/sta_info.c
+@@ -1021,7 +1021,7 @@ void sta_info_init(struct ieee80211_local *local)
+ 
+ void sta_info_stop(struct ieee80211_local *local)
+ {
+-	del_timer(&local->sta_cleanup);
++	del_timer_sync(&local->sta_cleanup);
+ 	sta_info_flush(local, NULL);
+ }
+ 
+-- 
+1.8.1.4
+

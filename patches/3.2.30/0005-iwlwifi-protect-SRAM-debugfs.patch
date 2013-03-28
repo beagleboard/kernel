@@ -1,4 +1,4 @@
-From 89064450542a159d099d284671485230b600e29d Mon Sep 17 00:00:00 2001
+From 64bb14b5f416d8ca64f55ac18fdec94fb8f8a6fc Mon Sep 17 00:00:00 2001
 From: Johannes Berg <johannes.berg@intel.com>
 Date: Tue, 21 Aug 2012 18:57:11 +0200
 Subject: [PATCH 005/135] iwlwifi: protect SRAM debugfs
@@ -16,8 +16,8 @@ Signed-off-by: John W. Linville <linville@tuxdriver.com>
  - Pass iwl_shared not iwl_priv pointer to iwl_is_ready_rf()]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/wireless/iwlwifi/iwl-debugfs.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ drivers/net/wireless/iwlwifi/iwl-debugfs.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/drivers/net/wireless/iwlwifi/iwl-debugfs.c b/drivers/net/wireless/iwlwifi/iwl-debugfs.c
 index a1670e3..93e6179 100644
@@ -34,5 +34,5 @@ index a1670e3..93e6179 100644
  	if (!priv->dbgfs_sram_offset && !priv->dbgfs_sram_len) {
  		priv->dbgfs_sram_offset = 0x800000;
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,8 +1,7 @@
-From e3a005de39e0ec72050b3ea06d288e55b014f228 Mon Sep 17 00:00:00 2001
+From ced3eb800f4757b7a01b7fe99f3db847cadb2378 Mon Sep 17 00:00:00 2001
 From: Mel Gorman <mgorman@suse.de>
 Date: Thu, 12 Jan 2012 17:19:22 -0800
-Subject: [PATCH 02/73] mm: compaction: allow compaction to isolate dirty
- pages
+Subject: [PATCH 02/73] mm: compaction: allow compaction to isolate dirty pages
 
 commit a77ebd333cd810d7b680d544be88c875131c2bd3 upstream.
 
@@ -414,8 +413,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- mm/compaction.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ mm/compaction.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
 diff --git a/mm/compaction.c b/mm/compaction.c
 index 50f1c60..b81625d 100644
@@ -432,5 +431,5 @@ index 50f1c60..b81625d 100644
  		if (__isolate_lru_page(page, mode, 0) != 0)
  			continue;
 -- 
-1.7.7.6
+1.8.1.4
 

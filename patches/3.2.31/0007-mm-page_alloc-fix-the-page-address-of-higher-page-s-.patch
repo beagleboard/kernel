@@ -1,4 +1,4 @@
-From 61f9cdd70c6a476425e3609eaa7a0f85a4f46042 Mon Sep 17 00:00:00 2001
+From ef71173c3b0820e0a2e67a715b30e6185b1c80e4 Mon Sep 17 00:00:00 2001
 From: Li Haifeng <omycle@gmail.com>
 Date: Mon, 17 Sep 2012 14:09:21 -0700
 Subject: [PATCH 007/109] mm/page_alloc: fix the page address of higher page's
@@ -28,7 +28,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- mm/page_alloc.c |    2 +-
+ mm/page_alloc.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/mm/page_alloc.c b/mm/page_alloc.c
@@ -45,5 +45,5 @@ index 6e51bf0..a88dded 100644
  			list_add_tail(&page->lru,
  				&zone->free_area[order].free_list[migratetype]);
 -- 
-1.7.10.4
+1.8.1.4
 

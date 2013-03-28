@@ -1,0 +1,66 @@
+From ee35c4ccf5238734904a8d8589fda0fd1165a1cb Mon Sep 17 00:00:00 2001
+From: Jiri Slaby <jslaby@suse.cz>
+Date: Tue, 15 Jan 2013 23:26:22 +0100
+Subject: [PATCH 01/92] TTY: do not reset master's packet mode
+
+commit b81273a132177edd806476b953f6afeb17b786d5 upstream.
+
+Now that login from util-linux is forced to drop all references to a
+TTY which it wants to hangup (to reach reference count 1) we are
+seeing issues with telnet. When login closes its last reference to the
+slave PTY, it also resets packet mode on the *master* side. And we
+have a race here.
+
+What telnet does is fork+exec of `login'. Then there are two
+scenarios:
+* `login' closes the slave TTY and resets thus master's packet mode,
+  but even now telnet properly sets the mode, or
+* `telnetd' sets packet mode on the master, `login' closes the slave
+  TTY and resets master's packet mode.
+
+The former case is OK. However the latter happens in much more cases,
+by the order of magnitude to be precise. So when one tries to login to
+such a messed telnet setup, they see the following:
+inux login:
+            ogin incorrect
+
+Note the missing first letters -- telnet thinks it is still in the
+packet mode, so when it receives "linux login" from `login', it
+considers "l" as the type of the packet and strips it.
+
+SuS does not mention how the implementation should behave. Both BSDs I
+checked (Free and Net) do not reset the flag upon the last close.
+
+By this I am resurrecting an old bug, see References. We are hitting
+it regularly now, i.e. with updated util-linux, ergo login.
+
+Here, I am changing a behavior introduced back in 2.1 times. It would
+better have a long time testing before goes upstream.
+
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Bryan Mason <bmason@redhat.com>
+References: https://lkml.org/lkml/2009/11/11/223
+References: https://bugzilla.redhat.com/show_bug.cgi?id=504703
+References: https://bugzilla.novell.com/show_bug.cgi?id=797042
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/tty/pty.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/tty/pty.c b/drivers/tty/pty.c
+index e18604b..d19b879 100644
+--- a/drivers/tty/pty.c
++++ b/drivers/tty/pty.c
+@@ -49,7 +49,6 @@ static void pty_close(struct tty_struct *tty, struct file *filp)
+ 	tty->packet = 0;
+ 	if (!tty->link)
+ 		return;
+-	tty->link->packet = 0;
+ 	set_bit(TTY_OTHER_CLOSED, &tty->link->flags);
+ 	wake_up_interruptible(&tty->link->read_wait);
+ 	wake_up_interruptible(&tty->link->write_wait);
+-- 
+1.8.1.4
+

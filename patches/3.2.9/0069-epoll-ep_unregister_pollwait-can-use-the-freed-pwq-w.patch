@@ -1,4 +1,4 @@
-From 43d3118b7d2b4fac08b585ff093f4eb73e9c4ac2 Mon Sep 17 00:00:00 2001
+From c8c5a0cf81f19a04ceada7faf6bfb0cf5b62a47e Mon Sep 17 00:00:00 2001
 From: Oleg Nesterov <oleg@redhat.com>
 Date: Fri, 24 Feb 2012 20:07:29 +0100
 Subject: [PATCH 69/72] epoll: ep_unregister_pollwait() can use the freed
@@ -27,8 +27,8 @@ Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/eventpoll.c |   30 +++++++++++++++++++++++++++---
- fs/signalfd.c  |    6 +++++-
+ fs/eventpoll.c | 30 +++++++++++++++++++++++++++---
+ fs/signalfd.c  |  6 +++++-
  2 files changed, 32 insertions(+), 4 deletions(-)
 
 diff --git a/fs/eventpoll.c b/fs/eventpoll.c
@@ -112,5 +112,5 @@ index 79c1eea..7ae2a57 100644
  		return;
  
 -- 
-1.7.7.6
+1.8.1.4
 

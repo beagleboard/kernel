@@ -1,0 +1,197 @@
+From bc9684c7f109f2f8ceef2e079d5f455d45a53f90 Mon Sep 17 00:00:00 2001
+From: Joe Thornber <ejt@redhat.com>
+Date: Wed, 20 Mar 2013 17:21:24 +0000
+Subject: [PATCH 73/92] dm thin: fix discard corruption
+
+commit f046f89a99ccfd9408b94c653374ff3065c7edb3 upstream.
+
+Fix a bug in dm_btree_remove that could leave leaf values with incorrect
+reference counts.  The effect of this was that removal of a shared block
+could result in the space maps thinking the block was no longer used.
+More concretely, if you have a thin device and a snapshot of it, sending
+a discard to a shared region of the thin could corrupt the snapshot.
+
+Thinp uses a 2-level nested btree to store it's mappings.  This first
+level is indexed by thin device, and the second level by logical
+block.
+
+Often when we're removing an entry in this mapping tree we need to
+rebalance nodes, which can involve shadowing them, possibly creating a
+copy if the block is shared.  If we do create a copy then children of
+that node need to have their reference counts incremented.  In this
+way reference counts percolate down the tree as shared trees diverge.
+
+The rebalance functions were incrementing the children at the
+appropriate time, but they were always assuming the children were
+internal nodes.  This meant the leaf values (in our case packed
+block/flags entries) were not being incremented.
+
+Signed-off-by: Joe Thornber <ejt@redhat.com>
+Signed-off-by: Alasdair G Kergon <agk@redhat.com>
+[bwh: Backported to 3.2: bump target version numbers from 1.0.1 to 1.0.2]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/md/dm-thin.c                         |  4 +--
+ drivers/md/persistent-data/dm-btree-remove.c | 46 +++++++++++++++-------------
+ 2 files changed, 26 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/md/dm-thin.c b/drivers/md/dm-thin.c
+index da4d299..2c9dd2c 100644
+--- a/drivers/md/dm-thin.c
++++ b/drivers/md/dm-thin.c
+@@ -2212,7 +2212,7 @@ static struct target_type pool_target = {
+ 	.name = "thin-pool",
+ 	.features = DM_TARGET_SINGLETON | DM_TARGET_ALWAYS_WRITEABLE |
+ 		    DM_TARGET_IMMUTABLE,
+-	.version = {1, 0, 1},
++	.version = {1, 0, 2},
+ 	.module = THIS_MODULE,
+ 	.ctr = pool_ctr,
+ 	.dtr = pool_dtr,
+@@ -2428,7 +2428,7 @@ static void thin_io_hints(struct dm_target *ti, struct queue_limits *limits)
+ 
+ static struct target_type thin_target = {
+ 	.name = "thin",
+-	.version = {1, 0, 1},
++	.version = {1, 0, 2},
+ 	.module	= THIS_MODULE,
+ 	.ctr = thin_ctr,
+ 	.dtr = thin_dtr,
+diff --git a/drivers/md/persistent-data/dm-btree-remove.c b/drivers/md/persistent-data/dm-btree-remove.c
+index e6cdfde..1de0f5f 100644
+--- a/drivers/md/persistent-data/dm-btree-remove.c
++++ b/drivers/md/persistent-data/dm-btree-remove.c
+@@ -139,15 +139,8 @@ struct child {
+ 	struct btree_node *n;
+ };
+ 
+-static struct dm_btree_value_type le64_type = {
+-	.context = NULL,
+-	.size = sizeof(__le64),
+-	.inc = NULL,
+-	.dec = NULL,
+-	.equal = NULL
+-};
+-
+-static int init_child(struct dm_btree_info *info, struct btree_node *parent,
++static int init_child(struct dm_btree_info *info, struct dm_btree_value_type *vt,
++		      struct btree_node *parent,
+ 		      unsigned index, struct child *result)
+ {
+ 	int r, inc;
+@@ -164,7 +157,7 @@ static int init_child(struct dm_btree_info *info, struct btree_node *parent,
+ 	result->n = dm_block_data(result->block);
+ 
+ 	if (inc)
+-		inc_children(info->tm, result->n, &le64_type);
++		inc_children(info->tm, result->n, vt);
+ 
+ 	*((__le64 *) value_ptr(parent, index, sizeof(__le64))) =
+ 		cpu_to_le64(dm_block_location(result->block));
+@@ -236,7 +229,7 @@ static void __rebalance2(struct dm_btree_info *info, struct btree_node *parent,
+ }
+ 
+ static int rebalance2(struct shadow_spine *s, struct dm_btree_info *info,
+-		      unsigned left_index)
++		      struct dm_btree_value_type *vt, unsigned left_index)
+ {
+ 	int r;
+ 	struct btree_node *parent;
+@@ -244,11 +237,11 @@ static int rebalance2(struct shadow_spine *s, struct dm_btree_info *info,
+ 
+ 	parent = dm_block_data(shadow_current(s));
+ 
+-	r = init_child(info, parent, left_index, &left);
++	r = init_child(info, vt, parent, left_index, &left);
+ 	if (r)
+ 		return r;
+ 
+-	r = init_child(info, parent, left_index + 1, &right);
++	r = init_child(info, vt, parent, left_index + 1, &right);
+ 	if (r) {
+ 		exit_child(info, &left);
+ 		return r;
+@@ -368,7 +361,7 @@ static void __rebalance3(struct dm_btree_info *info, struct btree_node *parent,
+ }
+ 
+ static int rebalance3(struct shadow_spine *s, struct dm_btree_info *info,
+-		      unsigned left_index)
++		      struct dm_btree_value_type *vt, unsigned left_index)
+ {
+ 	int r;
+ 	struct btree_node *parent = dm_block_data(shadow_current(s));
+@@ -377,17 +370,17 @@ static int rebalance3(struct shadow_spine *s, struct dm_btree_info *info,
+ 	/*
+ 	 * FIXME: fill out an array?
+ 	 */
+-	r = init_child(info, parent, left_index, &left);
++	r = init_child(info, vt, parent, left_index, &left);
+ 	if (r)
+ 		return r;
+ 
+-	r = init_child(info, parent, left_index + 1, &center);
++	r = init_child(info, vt, parent, left_index + 1, &center);
+ 	if (r) {
+ 		exit_child(info, &left);
+ 		return r;
+ 	}
+ 
+-	r = init_child(info, parent, left_index + 2, &right);
++	r = init_child(info, vt, parent, left_index + 2, &right);
+ 	if (r) {
+ 		exit_child(info, &left);
+ 		exit_child(info, &center);
+@@ -434,7 +427,8 @@ static int get_nr_entries(struct dm_transaction_manager *tm,
+ }
+ 
+ static int rebalance_children(struct shadow_spine *s,
+-			      struct dm_btree_info *info, uint64_t key)
++			      struct dm_btree_info *info,
++			      struct dm_btree_value_type *vt, uint64_t key)
+ {
+ 	int i, r, has_left_sibling, has_right_sibling;
+ 	uint32_t child_entries;
+@@ -472,13 +466,13 @@ static int rebalance_children(struct shadow_spine *s,
+ 	has_right_sibling = i < (le32_to_cpu(n->header.nr_entries) - 1);
+ 
+ 	if (!has_left_sibling)
+-		r = rebalance2(s, info, i);
++		r = rebalance2(s, info, vt, i);
+ 
+ 	else if (!has_right_sibling)
+-		r = rebalance2(s, info, i - 1);
++		r = rebalance2(s, info, vt, i - 1);
+ 
+ 	else
+-		r = rebalance3(s, info, i - 1);
++		r = rebalance3(s, info, vt, i - 1);
+ 
+ 	return r;
+ }
+@@ -529,7 +523,7 @@ static int remove_raw(struct shadow_spine *s, struct dm_btree_info *info,
+ 		if (le32_to_cpu(n->header.flags) & LEAF_NODE)
+ 			return do_leaf(n, key, index);
+ 
+-		r = rebalance_children(s, info, key);
++		r = rebalance_children(s, info, vt, key);
+ 		if (r)
+ 			break;
+ 
+@@ -550,6 +544,14 @@ static int remove_raw(struct shadow_spine *s, struct dm_btree_info *info,
+ 	return r;
+ }
+ 
++static struct dm_btree_value_type le64_type = {
++	.context = NULL,
++	.size = sizeof(__le64),
++	.inc = NULL,
++	.dec = NULL,
++	.equal = NULL
++};
++
+ int dm_btree_remove(struct dm_btree_info *info, dm_block_t root,
+ 		    uint64_t *keys, dm_block_t *new_root)
+ {
+-- 
+1.8.1.4
+

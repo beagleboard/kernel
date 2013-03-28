@@ -1,4 +1,4 @@
-From 458e7099f25856bfff295ac810880774fd2c1440 Mon Sep 17 00:00:00 2001
+From 6ab2846ba35d55e27d83148567b8805669d91758 Mon Sep 17 00:00:00 2001
 From: Jan Beulich <JBeulich@suse.com>
 Date: Thu, 8 Mar 2012 08:58:13 +0000
 Subject: [PATCH 83/95] x86/amd: iommu_set_device_table() must not be __init
@@ -12,8 +12,8 @@ Signed-off-by: Jan Beulich <jbeulich@suse.com>
 Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/iommu/amd_iommu_init.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/iommu/amd_iommu_init.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/iommu/amd_iommu_init.c b/drivers/iommu/amd_iommu_init.c
 index 82d2410..5c74179 100644
@@ -29,5 +29,5 @@ index 82d2410..5c74179 100644
  	u64 entry;
  
 -- 
-1.7.7.6
+1.8.1.4
 

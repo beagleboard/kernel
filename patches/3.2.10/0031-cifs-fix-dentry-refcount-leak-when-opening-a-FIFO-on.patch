@@ -1,4 +1,4 @@
-From 443855db23b37affa304aadf109c11e316b79562 Mon Sep 17 00:00:00 2001
+From ea2cb1a9ac7b3c6c36888d182dcd3c90f9f53a8a Mon Sep 17 00:00:00 2001
 From: Jeff Layton <jlayton@redhat.com>
 Date: Thu, 23 Feb 2012 09:37:45 -0500
 Subject: [PATCH 31/95] cifs: fix dentry refcount leak when opening a FIFO on
@@ -23,8 +23,8 @@ Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: Steve French <smfrench@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/cifs/dir.c |   20 ++++++++++++++++++--
- 1 files changed, 18 insertions(+), 2 deletions(-)
+ fs/cifs/dir.c | 20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
 diff --git a/fs/cifs/dir.c b/fs/cifs/dir.c
 index e4c3334..bf68b4f 100644
@@ -60,5 +60,5 @@ index e4c3334..bf68b4f 100644
  		if (!posix_open)
  			rc = cifs_get_inode_info_unix(&newInode, full_path,
 -- 
-1.7.7.6
+1.8.1.4
 

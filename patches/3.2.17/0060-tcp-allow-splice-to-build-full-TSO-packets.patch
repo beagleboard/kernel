@@ -1,4 +1,4 @@
-From 2b17ee705b72bf3c764d60ac1c7e9fc625cc53ad Mon Sep 17 00:00:00 2001
+From 21d00851d94869c2f69985fcc708ebce14f09609 Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Tue, 24 Apr 2012 22:12:06 -0400
 Subject: [PATCH 060/165] tcp: allow splice() to build full TSO packets
@@ -52,10 +52,10 @@ Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/splice.c            |    5 ++++-
- include/linux/socket.h |    2 +-
- net/ipv4/tcp.c         |    2 +-
- net/socket.c           |    6 +++---
+ fs/splice.c            | 5 ++++-
+ include/linux/socket.h | 2 +-
+ net/ipv4/tcp.c         | 2 +-
+ net/socket.c           | 6 +++---
  4 files changed, 9 insertions(+), 6 deletions(-)
 
 diff --git a/fs/splice.c b/fs/splice.c
@@ -125,5 +125,5 @@ index 2dce67a..273cbce 100644
  	return kernel_sendpage(sock, page, offset, size, flags);
  }
 -- 
-1.7.7.6
+1.8.1.4
 

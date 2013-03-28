@@ -1,4 +1,4 @@
-From 5ac3f92f5384c6d752aef75ace6cf631893e4b3c Mon Sep 17 00:00:00 2001
+From b6ba165470fa6bb063bb058462783100c0ad6863 Mon Sep 17 00:00:00 2001
 From: "David S. Miller" <davem@davemloft.net>
 Date: Fri, 13 Apr 2012 11:56:22 -0700
 Subject: [PATCH 20/68] sparc64: Fix bootup crash on sun4v.
@@ -15,8 +15,8 @@ Register DS using device_initcall() insteal.
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/sparc/kernel/ds.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/sparc/kernel/ds.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
 index 381edcd..27728e1 100644
@@ -29,5 +29,5 @@ index 381edcd..27728e1 100644
 -subsys_initcall(ds_init);
 +fs_initcall(ds_init);
 -- 
-1.7.7.6
+1.8.1.4
 

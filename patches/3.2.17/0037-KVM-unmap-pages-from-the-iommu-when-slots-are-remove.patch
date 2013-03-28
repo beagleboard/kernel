@@ -1,4 +1,4 @@
-From a49485a9fbe9d4b7fa61fece6a2793c39c24e4d3 Mon Sep 17 00:00:00 2001
+From 27996beb0a375559e5870f0abaed9e2482936c86 Mon Sep 17 00:00:00 2001
 From: Alex Williamson <alex.williamson@redhat.com>
 Date: Fri, 27 Apr 2012 16:54:08 -0500
 Subject: [PATCH 037/165] KVM: unmap pages from the iommu when slots are
@@ -25,9 +25,9 @@ Signed-off-by: Marcelo Tosatti <mtosatti@redhat.com>
 Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/kvm_host.h |    6 ++++++
- virt/kvm/iommu.c         |   12 ++++++++----
- virt/kvm/kvm_main.c      |    5 +++--
+ include/linux/kvm_host.h |  6 ++++++
+ virt/kvm/iommu.c         | 12 ++++++++----
+ virt/kvm/kvm_main.c      |  5 +++--
  3 files changed, 17 insertions(+), 6 deletions(-)
 
 diff --git a/include/linux/kvm_host.h b/include/linux/kvm_host.h
@@ -105,5 +105,5 @@ index d9cfb78..e401c1b 100644
  	r = -ENOMEM;
  	slots = kzalloc(sizeof(struct kvm_memslots), GFP_KERNEL);
 -- 
-1.7.7.6
+1.8.1.4
 

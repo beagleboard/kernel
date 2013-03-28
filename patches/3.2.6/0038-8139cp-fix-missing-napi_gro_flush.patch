@@ -1,4 +1,4 @@
-From 0a2f1e88fcdcbe541b1e0140e3284ffd5e854ebd Mon Sep 17 00:00:00 2001
+From 799e388ade587c2ec222e16de0ca36ad252fd4b2 Mon Sep 17 00:00:00 2001
 From: Francois Romieu <romieu@fr.zoreil.com>
 Date: Sun, 8 Jan 2012 13:41:33 +0000
 Subject: [PATCH 38/87] 8139cp: fix missing napi_gro_flush.
@@ -13,8 +13,8 @@ Tested-by: Marin Glibic <zhilla2@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/ethernet/realtek/8139cp.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/net/ethernet/realtek/8139cp.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/drivers/net/ethernet/realtek/8139cp.c b/drivers/net/ethernet/realtek/8139cp.c
 index ee5da92..aba4f67 100644
@@ -29,5 +29,5 @@ index ee5da92..aba4f67 100644
  		__napi_complete(napi);
  		cpw16_f(IntrMask, cp_intr_mask);
 -- 
-1.7.7.6
+1.8.1.4
 

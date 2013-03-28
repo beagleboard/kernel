@@ -1,4 +1,4 @@
-From 42c9fe34a99b1e377fcddc7673e2194a06a7642f Mon Sep 17 00:00:00 2001
+From 1a245b907b7b12b46e3a85b73ec14214a38bdfea Mon Sep 17 00:00:00 2001
 From: Francois Romieu <romieu@fr.zoreil.com>
 Date: Fri, 27 Jan 2012 15:05:38 +0100
 Subject: [PATCH 68/86] r8169: missing barriers.
@@ -9,8 +9,8 @@ Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
 Cc: Hayes Wang <hayeswang@realtek.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/ethernet/realtek/r8169.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/realtek/r8169.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/net/ethernet/realtek/r8169.c b/drivers/net/ethernet/realtek/r8169.c
 index 697cae3..5104d76 100644
@@ -43,5 +43,5 @@ index 697cae3..5104d76 100644
  			RTL_W8(TxPoll, NPQ);
  	}
 -- 
-1.7.7.6
+1.8.1.4
 

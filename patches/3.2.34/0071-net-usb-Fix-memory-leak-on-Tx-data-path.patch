@@ -1,4 +1,4 @@
-From 0d885a93446f4c4f4f0c3a959d4a2054cd909ad8 Mon Sep 17 00:00:00 2001
+From 8c3ca2c39c46c1f49578591ebe8c0ed4bd81d8e9 Mon Sep 17 00:00:00 2001
 From: Hemant Kumar <hemantk@codeaurora.org>
 Date: Thu, 25 Oct 2012 18:17:54 +0000
 Subject: [PATCH 71/83] net: usb: Fix memory leak on Tx data path
@@ -23,8 +23,8 @@ Acked-by: Oliver Neukum <oneukum@suse.de>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/usb/usbnet.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ drivers/net/usb/usbnet.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/drivers/net/usb/usbnet.c b/drivers/net/usb/usbnet.c
 index b873b5d..dc53a8f 100644
@@ -48,5 +48,5 @@ index b873b5d..dc53a8f 100644
  		dev->driver_info->unbind (dev, intf);
  
 -- 
-1.7.7.6
+1.8.1.4
 

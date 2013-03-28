@@ -1,4 +1,4 @@
-From 7603d951f8c5085cd59c4a747342795b4722f8ec Mon Sep 17 00:00:00 2001
+From 25f80cf69e02777a287029c6ba05931f79e09012 Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Mon, 2 Apr 2012 22:33:02 +0000
 Subject: [PATCH 057/165] net: fix /proc/net/dev regression
@@ -28,9 +28,9 @@ Tested-by:  Ben Greear <greearb@candelatech.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/netdevice.h |    2 -
- net/core/dev.c            |   58 ++++++++++----------------------------------
- net/core/dev_addr_lists.c |    3 +-
+ include/linux/netdevice.h |  2 --
+ net/core/dev.c            | 58 +++++++++++------------------------------------
+ net/core/dev_addr_lists.c |  3 ++-
  3 files changed, 15 insertions(+), 48 deletions(-)
 
 diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
@@ -181,5 +181,5 @@ index febba51..277faef 100644
  
  static const struct file_operations dev_mc_seq_fops = {
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,0 +1,33 @@
+From afb82f799a94e206d8d60761aae81b6c4a8ad24a Mon Sep 17 00:00:00 2001
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Fri, 22 Mar 2013 19:56:51 +0000
+Subject: [PATCH 76/92] efivars: Fix check for
+ CONFIG_EFI_VARS_PSTORE_DEFAULT_DISABLE
+
+commit ca0ba26fbbd2d81c43085df49ce0abfe34535a90 upstream.
+
+The 'CONFIG_' prefix is not implicit in IS_ENABLED().
+
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Cc: Seth Forshee <seth.forshee@canonical.com>
+Signed-off-by: Matt Fleming <matt.fleming@intel.com>
+---
+ drivers/firmware/efivars.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/firmware/efivars.c b/drivers/firmware/efivars.c
+index 650ebde..75f7f17 100644
+--- a/drivers/firmware/efivars.c
++++ b/drivers/firmware/efivars.c
+@@ -93,7 +93,7 @@ MODULE_VERSION(EFIVARS_VERSION);
+ #define DUMP_NAME_LEN 52
+ 
+ static bool efivars_pstore_disable =
+-	IS_ENABLED(EFI_VARS_PSTORE_DEFAULT_DISABLE);
++	IS_ENABLED(CONFIG_EFI_VARS_PSTORE_DEFAULT_DISABLE);
+ 
+ module_param_named(pstore_disable, efivars_pstore_disable, bool, 0644);
+ 
+-- 
+1.8.1.4
+

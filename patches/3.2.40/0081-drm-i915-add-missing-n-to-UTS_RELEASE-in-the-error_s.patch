@@ -1,0 +1,39 @@
+From fdc7129bac10ebc95f49b4abcb1801863e01fd5a Mon Sep 17 00:00:00 2001
+From: Jani Nikula <jani.nikula@intel.com>
+Date: Thu, 14 Feb 2013 11:23:35 +0200
+Subject: [PATCH 081/153] drm/i915: add missing \n to UTS_RELEASE in the
+ error_state
+
+commit fdfa175d0a9cfa2082ce24e67e284e5acbba452a upstream.
+
+Amending
+commit 4518f611ba21ba165ea3714055938a8984a44ff9
+Author: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date:   Wed Jan 23 16:16:35 2013 +0100
+
+    drm/i915: dump UTS_RELEASE into the error_state
+
+Signed-off-by: Jani Nikula <jani.nikula@intel.com>
+Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_debugfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_debugfs.c b/drivers/gpu/drm/i915/i915_debugfs.c
+index 10fe480..5620192 100644
+--- a/drivers/gpu/drm/i915/i915_debugfs.c
++++ b/drivers/gpu/drm/i915/i915_debugfs.c
+@@ -756,7 +756,7 @@ static int i915_error_state(struct seq_file *m, void *unused)
+ 
+ 	seq_printf(m, "Time: %ld s %ld us\n", error->time.tv_sec,
+ 		   error->time.tv_usec);
+-	seq_printf(m, "Kernel: " UTS_RELEASE);
++	seq_printf(m, "Kernel: " UTS_RELEASE "\n");
+ 	seq_printf(m, "PCI ID: 0x%04x\n", dev->pci_device);
+ 	seq_printf(m, "EIR: 0x%08x\n", error->eir);
+ 	seq_printf(m, "PGTBL_ER: 0x%08x\n", error->pgtbl_er);
+-- 
+1.8.1.4
+

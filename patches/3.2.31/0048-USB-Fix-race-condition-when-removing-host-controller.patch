@@ -1,4 +1,4 @@
-From 1e561b8f20b6386ca6e4ff7e8db3c49cf5a064e0 Mon Sep 17 00:00:00 2001
+From c22bc12dbde35c514cddca23fcaa0c0231f8d265 Mon Sep 17 00:00:00 2001
 From: Alan Stern <stern@rowland.harvard.edu>
 Date: Wed, 26 Sep 2012 13:09:53 -0400
 Subject: [PATCH 048/109] USB: Fix race condition when removing host
@@ -28,8 +28,8 @@ Reported-by: Don Zickus <dzickus@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/core/devices.c |    2 +-
- drivers/usb/core/hcd.c     |    6 ++----
+ drivers/usb/core/devices.c | 2 +-
+ drivers/usb/core/hcd.c     | 6 ++----
  2 files changed, 3 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/core/devices.c b/drivers/usb/core/devices.c
@@ -70,5 +70,5 @@ index 8cb9304..032e5a6 100644
  	return retval;
  }
 -- 
-1.7.10.4
+1.8.1.4
 

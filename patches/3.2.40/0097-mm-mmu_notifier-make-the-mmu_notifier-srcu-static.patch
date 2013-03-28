@@ -1,0 +1,57 @@
+From d7fed5ba728029ea3b824298b2f6abee8ef5ec02 Mon Sep 17 00:00:00 2001
+From: Andrea Arcangeli <aarcange@redhat.com>
+Date: Mon, 8 Oct 2012 16:31:52 -0700
+Subject: [PATCH 097/153] mm: mmu_notifier: make the mmu_notifier srcu static
+
+commit 70400303ce0c4ced3139499c676d5c79636b0c72 upstream.
+
+The variable must be static especially given the variable name.
+
+s/RCU/SRCU/ over a few comments.
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Sagi Grimberg <sagig@mellanox.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Haggai Eran <haggaie@mellanox.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ mm/mmu_notifier.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/mm/mmu_notifier.c b/mm/mmu_notifier.c
+index 35ff447..3775c90 100644
+--- a/mm/mmu_notifier.c
++++ b/mm/mmu_notifier.c
+@@ -20,7 +20,7 @@
+ #include <linux/slab.h>
+ 
+ /* global SRCU for all MMs */
+-struct srcu_struct srcu;
++static struct srcu_struct srcu;
+ 
+ /*
+  * This function can't run concurrently against mmu_notifier_register
+@@ -41,7 +41,7 @@ void __mmu_notifier_release(struct mm_struct *mm)
+ 	int id;
+ 
+ 	/*
+-	 * RCU here will block mmu_notifier_unregister until
++	 * SRCU here will block mmu_notifier_unregister until
+ 	 * ->release returns.
+ 	 */
+ 	id = srcu_read_lock(&srcu);
+@@ -302,7 +302,7 @@ void mmu_notifier_unregister(struct mmu_notifier *mn, struct mm_struct *mm)
+ 
+ 	if (!hlist_unhashed(&mn->hlist)) {
+ 		/*
+-		 * RCU here will force exit_mmap to wait ->release to finish
++		 * SRCU here will force exit_mmap to wait ->release to finish
+ 		 * before freeing the pages.
+ 		 */
+ 		int id;
+-- 
+1.8.1.4
+

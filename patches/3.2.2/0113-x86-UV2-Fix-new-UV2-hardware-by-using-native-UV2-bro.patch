@@ -1,4 +1,4 @@
-From 9c88be9a4f3daff510139cbce3d85a25d2a68f2d Mon Sep 17 00:00:00 2001
+From 188610a5e7ec430fdcbe7c763c669555080a9591 Mon Sep 17 00:00:00 2001
 From: Cliff Wickman <cpw@sgi.com>
 Date: Mon, 16 Jan 2012 15:17:50 -0600
 Subject: [PATCH 113/129] x86/UV2: Fix new UV2 hardware by using native UV2
@@ -17,8 +17,8 @@ Link: http://lkml.kernel.org/r/20120116211750.GA5767@sgi.com
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- arch/x86/include/asm/uv/uv_bau.h |   93 +++++++++++++++++++++++++++++++++++---
- arch/x86/platform/uv/tlb_uv.c    |   88 ++++++++++++++++++++++++++---------
+ arch/x86/include/asm/uv/uv_bau.h | 93 +++++++++++++++++++++++++++++++++++++---
+ arch/x86/platform/uv/tlb_uv.c    | 88 +++++++++++++++++++++++++++----------
  2 files changed, 151 insertions(+), 30 deletions(-)
 
 diff --git a/arch/x86/include/asm/uv/uv_bau.h b/arch/x86/include/asm/uv/uv_bau.h
@@ -346,5 +346,5 @@ index 5b55219..1341a2e 100644
  	}
  
 -- 
-1.7.7.6
+1.8.1.4
 

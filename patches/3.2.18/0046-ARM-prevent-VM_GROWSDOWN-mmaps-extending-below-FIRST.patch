@@ -1,4 +1,4 @@
-From e10f958a1b65746975d13a67d31f43b07a838932 Mon Sep 17 00:00:00 2001
+From be1cf7a06c65c444974d776e689bf3cb85629898 Mon Sep 17 00:00:00 2001
 From: Russell King <rmk+kernel@arm.linux.org.uk>
 Date: Wed, 16 May 2012 15:19:20 +0100
 Subject: [PATCH 46/56] ARM: prevent VM_GROWSDOWN mmaps extending below
@@ -10,8 +10,8 @@ Reported-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/arm/mm/fault.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ arch/arm/mm/fault.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/mm/fault.c b/arch/arm/mm/fault.c
 index aa33949..4b0bc37 100644
@@ -29,5 +29,5 @@ index aa33949..4b0bc37 100644
  out:
  	return fault;
 -- 
-1.7.7.6
+1.8.1.4
 

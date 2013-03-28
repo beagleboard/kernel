@@ -1,0 +1,36 @@
+From a514b32f1b46a073fd6039757b14813d12b6c980 Mon Sep 17 00:00:00 2001
+From: Mathias Krause <minipli@googlemail.com>
+Date: Sat, 9 Mar 2013 05:52:20 +0000
+Subject: [PATCH 14/92] rtnl: fix info leak on RTM_GETLINK request for VF
+ devices
+
+[ Upstream commit 84d73cd3fb142bf1298a8c13fd4ca50fd2432372 ]
+
+Initialize the mac address buffer with 0 as the driver specific function
+will probably not fill the whole buffer. In fact, all in-kernel drivers
+fill only ETH_ALEN of the MAX_ADDR_LEN bytes, i.e. 6 of the 32 possible
+bytes. Therefore we currently leak 26 bytes of stack memory to userland
+via the netlink interface.
+
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/core/rtnetlink.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
+index 5229c7f..92f8ed8 100644
+--- a/net/core/rtnetlink.c
++++ b/net/core/rtnetlink.c
+@@ -973,6 +973,7 @@ static int rtnl_fill_ifinfo(struct sk_buff *skb, struct net_device *dev,
+ 			 * report anything.
+ 			 */
+ 			ivi.spoofchk = -1;
++			memset(ivi.mac, 0, sizeof(ivi.mac));
+ 			if (dev->netdev_ops->ndo_get_vf_config(dev, i, &ivi))
+ 				break;
+ 			vf_mac.vf =
+-- 
+1.8.1.4
+

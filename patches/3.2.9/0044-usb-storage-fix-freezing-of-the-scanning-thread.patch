@@ -1,4 +1,4 @@
-From a34e14af429031504cb43009d4c8f3d49a29a1a4 Mon Sep 17 00:00:00 2001
+From 930963ebe9b066faef7403abf11333f42d010539 Mon Sep 17 00:00:00 2001
 From: Alan Stern <stern@rowland.harvard.edu>
 Date: Tue, 21 Feb 2012 13:16:32 -0500
 Subject: [PATCH 44/72] usb-storage: fix freezing of the scanning thread
@@ -31,8 +31,8 @@ Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
 Acked-by: Seth Forshee <seth.forshee@canonical.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/storage/usb.c |   89 ++++++++++++++++-----------------------------
- drivers/usb/storage/usb.h |    7 ++--
+ drivers/usb/storage/usb.c | 89 +++++++++++++++++------------------------------
+ drivers/usb/storage/usb.h |  7 ++--
  2 files changed, 35 insertions(+), 61 deletions(-)
 
 diff --git a/drivers/usb/storage/usb.c b/drivers/usb/storage/usb.c
@@ -209,5 +209,5 @@ index 7b0f211..75f70f0 100644
  	/* subdriver information */
  	void			*extra;		 /* Any extra data          */
 -- 
-1.7.7.6
+1.8.1.4
 

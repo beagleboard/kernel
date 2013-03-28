@@ -1,0 +1,83 @@
+From 7b3a53ec3830b4601cbe15e90b3b0c208d02dc0c Mon Sep 17 00:00:00 2001
+From: Jim Somerville <Jim.Somerville@windriver.com>
+Date: Thu, 21 Feb 2013 16:41:59 -0800
+Subject: [PATCH 089/153] inotify: remove broken mask checks causing unmount to
+ be EINVAL
+
+commit 676a0675cf9200ac047fb50825f80867b3bb733b upstream.
+
+Running the command:
+
+	inotifywait -e unmount /mnt/disk
+
+immediately aborts with a -EINVAL return code.  This is however a valid
+parameter.  This abort occurs only if unmount is the sole event
+parameter.  If other event parameters are supplied, then the unmount
+event wait will work.
+
+The problem was introduced by commit 44b350fc23e ("inotify: Fix mask
+checks").  In that commit, it states:
+
+	The mask checks in inotify_update_existing_watch() and
+	inotify_new_watch() are useless because inotify_arg_to_mask()
+	sets FS_IN_IGNORED and FS_EVENT_ON_CHILD bits anyway.
+
+But instead of removing the useless checks, it did this:
+
+	        mask = inotify_arg_to_mask(arg);
+	-       if (unlikely(!mask))
+	+       if (unlikely(!(mask & IN_ALL_EVENTS)))
+	                return -EINVAL;
+
+The problem is that IN_ALL_EVENTS doesn't include IN_UNMOUNT, and other
+parts of the code keep IN_UNMOUNT separate from IN_ALL_EVENTS.  So the
+check should be:
+
+	if (unlikely(!(mask & (IN_ALL_EVENTS | IN_UNMOUNT))))
+
+But inotify_arg_to_mask(arg) always sets the IN_UNMOUNT bit in the mask
+anyway, so the check is always going to pass and thus should simply be
+removed.  Also note that inotify_arg_to_mask completely controls what
+mask bits get set from arg, there's no way for invalid bits to get
+enabled there.
+
+Lets fix it by simply removing the useless broken checks.
+
+Signed-off-by: Jim Somerville <Jim.Somerville@windriver.com>
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: John McCutchan <john@johnmccutchan.com>
+Cc: Robert Love <rlove@rlove.org>
+Cc: Eric Paris <eparis@parisplace.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/notify/inotify/inotify_user.c | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/fs/notify/inotify/inotify_user.c b/fs/notify/inotify/inotify_user.c
+index 8445fbc..6f292dd 100644
+--- a/fs/notify/inotify/inotify_user.c
++++ b/fs/notify/inotify/inotify_user.c
+@@ -579,8 +579,6 @@ static int inotify_update_existing_watch(struct fsnotify_group *group,
+ 
+ 	/* don't allow invalid bits: we don't want flags set */
+ 	mask = inotify_arg_to_mask(arg);
+-	if (unlikely(!(mask & IN_ALL_EVENTS)))
+-		return -EINVAL;
+ 
+ 	fsn_mark = fsnotify_find_inode_mark(group, inode);
+ 	if (!fsn_mark)
+@@ -632,8 +630,6 @@ static int inotify_new_watch(struct fsnotify_group *group,
+ 
+ 	/* don't allow invalid bits: we don't want flags set */
+ 	mask = inotify_arg_to_mask(arg);
+-	if (unlikely(!(mask & IN_ALL_EVENTS)))
+-		return -EINVAL;
+ 
+ 	tmp_i_mark = kmem_cache_alloc(inotify_inode_mark_cachep, GFP_KERNEL);
+ 	if (unlikely(!tmp_i_mark))
+-- 
+1.8.1.4
+

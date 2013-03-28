@@ -1,4 +1,4 @@
-From f9c6260e78b3b247ac0d8ce14f2b251cb0851c18 Mon Sep 17 00:00:00 2001
+From 2146c817d2ab503315f400271e99c9617fba2d7d Mon Sep 17 00:00:00 2001
 From: Michal Hocko <mhocko@suse.cz>
 Date: Wed, 10 Oct 2012 11:51:09 +0530
 Subject: [PATCH 037/105] nohz: Fix idle ticks in cpu summary line of
@@ -35,8 +35,8 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/proc/stat.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
+ fs/proc/stat.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
 diff --git a/fs/proc/stat.c b/fs/proc/stat.c
 index 0855e6f..4c9a859 100644
@@ -77,5 +77,5 @@ index 0855e6f..4c9a859 100644
  	else
  		iowait = usecs_to_cputime64(iowait_time);
 -- 
-1.7.7.6
+1.8.1.4
 

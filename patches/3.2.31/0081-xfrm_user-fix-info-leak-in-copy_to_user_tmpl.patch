@@ -1,4 +1,4 @@
-From f3d7e939cf0850450078dc1e303ac897cae5dbb6 Mon Sep 17 00:00:00 2001
+From 9ed24c44e21e985e1a8b174f2fcbdc0d177f3ec1 Mon Sep 17 00:00:00 2001
 From: Mathias Krause <minipli@googlemail.com>
 Date: Wed, 19 Sep 2012 11:33:41 +0000
 Subject: [PATCH 081/109] xfrm_user: fix info leak in copy_to_user_tmpl()
@@ -18,7 +18,7 @@ Acked-by: Steffen Klassert <steffen.klassert@secunet.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/xfrm/xfrm_user.c |    1 +
+ net/xfrm/xfrm_user.c | 1 +
  1 file changed, 1 insertion(+)
 
 diff --git a/net/xfrm/xfrm_user.c b/net/xfrm/xfrm_user.c
@@ -34,5 +34,5 @@ index 1d222e9..8f916a7 100644
  		up->family = kp->encap_family;
  		memcpy(&up->saddr, &kp->saddr, sizeof(up->saddr));
 -- 
-1.7.10.4
+1.8.1.4
 

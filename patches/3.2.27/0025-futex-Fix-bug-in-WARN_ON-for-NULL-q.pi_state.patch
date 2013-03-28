@@ -1,4 +1,4 @@
-From 2116c35e377ef55d89d345b1c672b44c07d645ca Mon Sep 17 00:00:00 2001
+From b63eb00e72dd1aa3c49cbb09841ee36962f3b819 Mon Sep 17 00:00:00 2001
 From: Darren Hart <dvhart@linux.intel.com>
 Date: Fri, 20 Jul 2012 11:53:30 -0700
 Subject: [PATCH 25/70] futex: Fix bug in WARN_ON for NULL q.pi_state
@@ -15,8 +15,8 @@ Link: http://lkml.kernel.org/r/1c85d97f6e5f79ec389a4ead3e367363c74bd09a.13428096
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- kernel/futex.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ kernel/futex.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/kernel/futex.c b/kernel/futex.c
 index ed96926..68e817a 100644
@@ -32,5 +32,5 @@ index ed96926..68e817a 100644
  		ret = rt_mutex_finish_proxy_lock(pi_mutex, to, &rt_waiter, 1);
  		debug_rt_mutex_free_waiter(&rt_waiter);
 -- 
-1.7.7.6
+1.8.1.4
 

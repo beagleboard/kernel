@@ -1,4 +1,4 @@
-From e4f4470a06196cd49a8ca6591d41dbe1cd09a3c9 Mon Sep 17 00:00:00 2001
+From bd6dc9ca3c30ab013773fe5da0e86d93e6ce6f2a Mon Sep 17 00:00:00 2001
 From: Gavin Shan <shangw@linux.vnet.ibm.com>
 Date: Mon, 17 Sep 2012 04:34:27 +0000
 Subject: [PATCH 030/146] powerpc/eeh: Lock module while handling EEH event
@@ -47,7 +47,7 @@ Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
  - Assume that the 'dev' arguments are non-null]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/powerpc/platforms/pseries/eeh_driver.c |   94 +++++++++++++++++++++------
+ arch/powerpc/platforms/pseries/eeh_driver.c | 94 ++++++++++++++++++++++-------
  1 file changed, 73 insertions(+), 21 deletions(-)
 
 diff --git a/arch/powerpc/platforms/pseries/eeh_driver.c b/arch/powerpc/platforms/pseries/eeh_driver.c
@@ -258,5 +258,5 @@ index 1b6cb10..a0a4e8a 100644
  }
  
 -- 
-1.7.10.4
+1.8.1.4
 

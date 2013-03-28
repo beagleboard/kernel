@@ -1,8 +1,8 @@
-From c0680f642fd7f5743da701c2db89978fb5efa285 Mon Sep 17 00:00:00 2001
+From cde86a996e232b726e3972b1d2cf65a431b34bb0 Mon Sep 17 00:00:00 2001
 From: Chris D Schimp <silverchris@gmail.com>
 Date: Mon, 20 Feb 2012 17:44:59 -0500
-Subject: [PATCH 51/72] hwmon: (max6639) Fix PPR register initialization to
- set both channels
+Subject: [PATCH 51/72] hwmon: (max6639) Fix PPR register initialization to set
+ both channels
 
 commit 2f2da1ac0ba5b6cc6e1957c4da5ff20e67d8442b upstream.
 
@@ -15,8 +15,8 @@ Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 Acked-by: Roland Stigge <stigge@antcom.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/hwmon/max6639.c |   16 +++++++++-------
- 1 files changed, 9 insertions(+), 7 deletions(-)
+ drivers/hwmon/max6639.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/hwmon/max6639.c b/drivers/hwmon/max6639.c
 index 1b844db..8c3df04 100644
@@ -61,5 +61,5 @@ index 1b844db..8c3df04 100644
  		err = i2c_smbus_write_byte_data(client,
  			MAX6639_REG_FAN_CONFIG1(i),
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From a18d1f742ac40da85e610319743a4d4afe66c118 Mon Sep 17 00:00:00 2001
+From 11fcab52744d2b167d144262c421ef1e6f35cf92 Mon Sep 17 00:00:00 2001
 From: Anton Blanchard <anton@samba.org>
 Date: Mon, 3 Sep 2012 16:51:10 +0000
 Subject: [PATCH 038/135] powerpc: Restore correct DSCR in context switch
@@ -29,8 +29,8 @@ Signed-off-by: Anton Blanchard <anton@samba.org>
 Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/powerpc/kernel/asm-offsets.c |    1 +
- arch/powerpc/kernel/entry_64.S    |   23 +++++++++++++++++------
+ arch/powerpc/kernel/asm-offsets.c |  1 +
+ arch/powerpc/kernel/entry_64.S    | 23 +++++++++++++++++------
  2 files changed, 18 insertions(+), 6 deletions(-)
 
 diff --git a/arch/powerpc/kernel/asm-offsets.c b/arch/powerpc/kernel/asm-offsets.c
@@ -99,5 +99,5 @@ index d834425..654fc53 100644
  	REST_8GPRS(14, r1)
  	REST_10GPRS(22, r1)
 -- 
-1.7.7.6
+1.8.1.4
 

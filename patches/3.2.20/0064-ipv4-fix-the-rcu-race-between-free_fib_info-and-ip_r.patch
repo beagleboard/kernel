@@ -1,4 +1,4 @@
-From 43ffbf791e6e03b4ec1a7aa3bab131f60b154bc9 Mon Sep 17 00:00:00 2001
+From 64b64464b6f287797c75bb3b4b46e37d2c0f4e7f Mon Sep 17 00:00:00 2001
 From: Yanmin Zhang <yanmin_zhang@linux.intel.com>
 Date: Wed, 23 May 2012 15:39:45 +0000
 Subject: [PATCH 64/86] ipv4: fix the rcu race between free_fib_info and
@@ -53,8 +53,8 @@ Acked-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/ipv4/fib_semantics.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ net/ipv4/fib_semantics.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/net/ipv4/fib_semantics.c b/net/ipv4/fib_semantics.c
 index 80106d8..d01f9c6 100644
@@ -88,5 +88,5 @@ index 80106d8..d01f9c6 100644
  }
  
 -- 
-1.7.7.6
+1.8.1.4
 

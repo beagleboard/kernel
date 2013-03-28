@@ -1,0 +1,50 @@
+From ab2b0e0e1de24309c5f1d62e6bbc2042430a53a5 Mon Sep 17 00:00:00 2001
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
+Date: Wed, 30 Jan 2013 13:04:10 -0500
+Subject: [PATCH 106/127] NFSv4.1: Handle NFS4ERR_DELAY when resetting the
+ NFSv4.1 session
+
+commit c489ee290bdbbace6bb63ebe6ebd4dd605819495 upstream.
+
+NFS4ERR_DELAY is a legal reply when we call DESTROY_SESSION. It
+usually means that the server is busy handling an unfinished RPC
+request. Just sleep for a second and then retry.
+We also need to be able to handle the NFS4ERR_BACK_CHAN_BUSY return
+value. If the NFS server has outstanding callbacks, we just want to
+similarly sleep & retry.
+
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/nfs/nfs4state.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/fs/nfs/nfs4state.c b/fs/nfs/nfs4state.c
+index 07354b7..b2e1136 100644
+--- a/fs/nfs/nfs4state.c
++++ b/fs/nfs/nfs4state.c
+@@ -1583,8 +1583,18 @@ static int nfs4_reset_session(struct nfs_client *clp)
+ 
+ 	nfs4_begin_drain_session(clp);
+ 	status = nfs4_proc_destroy_session(clp->cl_session);
+-	if (status && status != -NFS4ERR_BADSESSION &&
+-	    status != -NFS4ERR_DEADSESSION) {
++	switch (status) {
++	case 0:
++	case -NFS4ERR_BADSESSION:
++	case -NFS4ERR_DEADSESSION:
++		break;
++	case -NFS4ERR_BACK_CHAN_BUSY:
++	case -NFS4ERR_DELAY:
++		set_bit(NFS4CLNT_SESSION_RESET, &clp->cl_state);
++		status = 0;
++		ssleep(1);
++		goto out;
++	default:
+ 		status = nfs4_recovery_handle_error(clp, status);
+ 		goto out;
+ 	}
+-- 
+1.8.1.4
+

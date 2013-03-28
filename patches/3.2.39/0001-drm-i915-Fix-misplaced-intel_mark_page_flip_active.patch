@@ -1,0 +1,44 @@
+From 0abbc4dec3b7b39fe0aee9fce3732a71e986d131 Mon Sep 17 00:00:00 2001
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Thu, 7 Feb 2013 05:28:14 +0000
+Subject: [PATCH 01/67] drm/i915: Fix misplaced intel_mark_page_flip_active()
+
+In commit 28c4566d30b8, backport of commit e7d841ca03b7 ('drm/i915:
+Close race between processing unpin task and queueing the flip') I
+somehow added two calls to intel_mark_page_flip_active() from
+intel_gen4_queue_flip() and none from intel_gen6_queue_flip().  There
+should of course be one from each.
+
+Reported-by: Julien Cristau <jcristau@debian.org>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/intel_display.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index c05e825..7817429 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -7156,8 +7156,6 @@ static int intel_gen4_queue_flip(struct drm_device *dev,
+ 	OUT_RING(pf | pipesrc);
+ 
+ 	intel_mark_page_flip_active(intel_crtc);
+-
+-	intel_mark_page_flip_active(intel_crtc);
+ 	ADVANCE_LP_RING();
+ 	return 0;
+ 
+@@ -7193,6 +7191,8 @@ static int intel_gen6_queue_flip(struct drm_device *dev,
+ 	pf = I915_READ(PF_CTL(intel_crtc->pipe)) & PF_ENABLE;
+ 	pipesrc = I915_READ(PIPESRC(intel_crtc->pipe)) & 0x0fff0fff;
+ 	OUT_RING(pf | pipesrc);
++
++	intel_mark_page_flip_active(intel_crtc);
+ 	ADVANCE_LP_RING();
+ 	return 0;
+ 
+-- 
+1.8.1.4
+

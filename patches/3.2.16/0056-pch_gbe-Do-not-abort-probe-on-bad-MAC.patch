@@ -1,4 +1,4 @@
-From 21e492a16d8195956f3f1b24ad4dfe02ebf1ed2f Mon Sep 17 00:00:00 2001
+From ac2ba56ce36e4a07800431690e9beb821d6661ba Mon Sep 17 00:00:00 2001
 From: Darren Hart <dvhart@linux.intel.com>
 Date: Mon, 16 Jan 2012 09:50:19 +0000
 Subject: [PATCH 56/68] pch_gbe: Do not abort probe on bad MAC
@@ -38,8 +38,8 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Tomoya MORINAGA <tomoya.rohm@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- .../net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c   |   17 ++++++++++++++---
- 1 files changed, 14 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c b/drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
 index 48406ca..43c7b25 100644
@@ -77,5 +77,5 @@ index 48406ca..43c7b25 100644
  	setup_timer(&adapter->watchdog_timer, pch_gbe_watchdog,
  		    (unsigned long)adapter);
 -- 
-1.7.7.6
+1.8.1.4
 

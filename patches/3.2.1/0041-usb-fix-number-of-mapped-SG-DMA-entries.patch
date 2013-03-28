@@ -1,4 +1,4 @@
-From 58f1243fbad2b82b82eda0a440cab8555b403f8e Mon Sep 17 00:00:00 2001
+From c28123c94483f0b6d33dacf489b152264da4e2d5 Mon Sep 17 00:00:00 2001
 From: Clemens Ladisch <clemens@ladisch.de>
 Date: Sat, 3 Dec 2011 23:41:31 +0100
 Subject: [PATCH 41/49] usb: fix number of mapped SG DMA entries
@@ -42,12 +42,12 @@ This fixes warnings like the following when using USB storage devices:
 Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/usb/core/hcd.c       |    5 ++---
- drivers/usb/host/ehci-q.c    |    2 +-
- drivers/usb/host/uhci-q.c    |    2 +-
- drivers/usb/host/whci/qset.c |    4 ++--
- drivers/usb/host/xhci-ring.c |    4 ++--
- include/linux/usb.h          |    1 +
+ drivers/usb/core/hcd.c       | 5 ++---
+ drivers/usb/host/ehci-q.c    | 2 +-
+ drivers/usb/host/uhci-q.c    | 2 +-
+ drivers/usb/host/whci/qset.c | 4 ++--
+ drivers/usb/host/xhci-ring.c | 4 ++--
+ include/linux/usb.h          | 1 +
  6 files changed, 9 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
@@ -151,5 +151,5 @@ index 1cea207..7626e5a 100644
  	u32 transfer_buffer_length;	/* (in) data buffer length */
  	u32 actual_length;		/* (return) actual transfer length */
 -- 
-1.7.7.6
+1.8.1.4
 

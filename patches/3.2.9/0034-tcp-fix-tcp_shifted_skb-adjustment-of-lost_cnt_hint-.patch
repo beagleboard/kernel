@@ -1,4 +1,4 @@
-From 0ccd113edc686a1dcf6a2f7b3f1f7d42ad38df01 Mon Sep 17 00:00:00 2001
+From 784724e1366bda872af0696430c5a755858a16ee Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Mon, 13 Feb 2012 20:22:08 +0000
 Subject: [PATCH 34/72] tcp: fix tcp_shifted_skb() adjustment of lost_cnt_hint
@@ -19,8 +19,8 @@ Signed-off-by: Neal Cardwell <ncardwell@google.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/ipv4/tcp_input.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ net/ipv4/tcp_input.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
 index b16fbf3..53113b9 100644
@@ -38,5 +38,5 @@ index b16fbf3..53113b9 100644
  	TCP_SKB_CB(skb)->seq += shifted;
  
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From ac9949fd99048ccb7f3688140153b85902702a9e Mon Sep 17 00:00:00 2001
+From 998c82abf399fa6e1defc8f84aeb77bc9aed9579 Mon Sep 17 00:00:00 2001
 From: Mark Rustad <mark.d.rustad@intel.com>
 Date: Tue, 3 Apr 2012 10:24:52 -0700
 Subject: [PATCH 43/60] tcm_fc: Do not free tpg structure during wq allocation
@@ -15,8 +15,8 @@ Acked-by: Kiran Patil <Kiran.patil@intel.com>
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/target/tcm_fc/tfc_conf.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+ drivers/target/tcm_fc/tfc_conf.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/target/tcm_fc/tfc_conf.c b/drivers/target/tcm_fc/tfc_conf.c
 index 9402b73..7962325 100644
@@ -57,5 +57,5 @@ index 9402b73..7962325 100644
  	mutex_lock(&ft_lport_lock);
  	list_add_tail(&tpg->list, &lacl->tpg_list);
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From e630a8ca8d6d37503d30ee885e89a1d1cef0be0b Mon Sep 17 00:00:00 2001
+From c7ea84589e0add1bc3771084464fe74ef3e1e81f Mon Sep 17 00:00:00 2001
 From: Ben Hutchings <ben@decadent.org.uk>
 Date: Wed, 7 Dec 2011 14:30:58 +0000
 Subject: [PATCH 52/87] lockdep, bug: Exclude TAINT_OOT_MODULE from disabling
@@ -29,8 +29,8 @@ Link: http://lkml.kernel.org/r/1323268258.18450.11.camel@deadeye
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- kernel/panic.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ kernel/panic.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/kernel/panic.c b/kernel/panic.c
 index 1b83fd8..3458469 100644
@@ -52,5 +52,5 @@ index 1b83fd8..3458469 100644
  	case TAINT_FIRMWARE_WORKAROUND:
  		break;
 -- 
-1.7.7.6
+1.8.1.4
 

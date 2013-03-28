@@ -1,8 +1,7 @@
-From d099259300d712a6672c4109490374bf0fcce6d8 Mon Sep 17 00:00:00 2001
+From fcedb5fb18cdd544492f093793574bec6dc7610d Mon Sep 17 00:00:00 2001
 From: Ben Hutchings <bhutchings@solarflare.com>
 Date: Fri, 24 Feb 2012 15:12:34 +0000
-Subject: [PATCH 18/42] sfc: Fix assignment of ip_summed for pre-allocated
- skbs
+Subject: [PATCH 18/42] sfc: Fix assignment of ip_summed for pre-allocated skbs
 
 [ Upstream commit ff3bc1e7527504a93710535611b2f812f3bb89bf ]
 
@@ -23,8 +22,8 @@ Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/ethernet/sfc/rx.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/sfc/rx.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/ethernet/sfc/rx.c b/drivers/net/ethernet/sfc/rx.c
 index 752d521..5ef4cc0 100644
@@ -52,5 +51,5 @@ index 752d521..5ef4cc0 100644
  		gro_result = napi_gro_receive(napi, skb);
  	}
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,7 +1,7 @@
-From 96333d400ef208c65054e1fcf05f77cd951751b0 Mon Sep 17 00:00:00 2001
+From 2b1d0f03d75ae6deea073efa63df913489c4c997 Mon Sep 17 00:00:00 2001
 From: Joel A Fernandes <joelagnel@ti.com>
 Date: Wed, 30 Nov 2011 15:00:40 +0100
-Subject: [PATCH 06/92] tscadc: Add general purpose mode, untested with
+Subject: [PATCH 006/102] tscadc: Add general purpose mode, untested with
  touchscreen functionality
 
 Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
@@ -11,11 +11,11 @@ Conflicts:
 	drivers/input/touchscreen/ti_tscadc.c
 	[Fixed by Koen - needs review]
 ---
- arch/arm/mach-omap2/board-am335xevm.c |    2 +
- arch/arm/mach-omap2/mux33xx.c         |   12 ++
- arch/arm/mach-omap2/mux33xx.h         |    4 +
- drivers/input/touchscreen/ti_tscadc.c |  205 +++++++++++++++++++++++++--------
- include/linux/input/ti_tscadc.h       |    4 +
+ arch/arm/mach-omap2/board-am335xevm.c |   2 +
+ arch/arm/mach-omap2/mux33xx.c         |  12 ++
+ arch/arm/mach-omap2/mux33xx.h         |   4 +
+ drivers/input/touchscreen/ti_tscadc.c | 205 ++++++++++++++++++++++++++--------
+ include/linux/input/ti_tscadc.h       |   4 +
  5 files changed, 178 insertions(+), 49 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
@@ -402,5 +402,5 @@ index 2c547bb..850cd4b 100644
 +	int mode;
  };
 -- 
-1.7.7.6
+1.8.1.4
 

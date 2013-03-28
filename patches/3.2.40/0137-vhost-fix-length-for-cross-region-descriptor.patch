@@ -1,0 +1,36 @@
+From 6e24a11bc90b44cf7820e08da836c52738eea394 Mon Sep 17 00:00:00 2001
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Mon, 26 Nov 2012 05:57:27 +0000
+Subject: [PATCH 137/153] vhost: fix length for cross region descriptor
+
+commit bd97120fc3d1a11f3124c7c9ba1d91f51829eb85 upstream.
+
+If a single descriptor crosses a region, the
+second chunk length should be decremented
+by size translated so far, instead it includes
+the full descriptor length.
+
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Jason Wang <jasowang@redhat.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/vhost/vhost.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/vhost/vhost.c b/drivers/vhost/vhost.c
+index ae66278..be32b1b 100644
+--- a/drivers/vhost/vhost.c
++++ b/drivers/vhost/vhost.c
+@@ -1073,7 +1073,7 @@ static int translate_desc(struct vhost_dev *dev, u64 addr, u32 len,
+ 		}
+ 		_iov = iov + ret;
+ 		size = reg->memory_size - addr + reg->guest_phys_addr;
+-		_iov->iov_len = min((u64)len, size);
++		_iov->iov_len = min((u64)len - s, size);
+ 		_iov->iov_base = (void __user *)(unsigned long)
+ 			(reg->userspace_addr + addr - reg->guest_phys_addr);
+ 		s += size;
+-- 
+1.8.1.4
+

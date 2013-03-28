@@ -1,4 +1,4 @@
-From 375140def546d6970df8e7ce5988f5214f8e18a7 Mon Sep 17 00:00:00 2001
+From 03be1de67637114ea2a926410547c7ce0156618e Mon Sep 17 00:00:00 2001
 From: Larry Finger <Larry.Finger@lwfinger.net>
 Date: Mon, 26 Mar 2012 10:48:20 -0500
 Subject: [PATCH 07/68] rtlwifi: Add missing DMA buffer unmapping for PCI
@@ -18,8 +18,8 @@ Signed-off-by: Larry Finger <Larry.Finger@lwfinger.net>
 Signed-off-by: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/wireless/rtlwifi/pci.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+ drivers/net/wireless/rtlwifi/pci.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/net/wireless/rtlwifi/pci.c b/drivers/net/wireless/rtlwifi/pci.c
 index 9afcad3..d44d398 100644
@@ -41,5 +41,5 @@ index 9afcad3..d44d398 100644
  	/*NB: the beacon data buffer must be 32-bit aligned. */
  	pskb = ieee80211_beacon_get(hw, mac->vif);
 -- 
-1.7.7.6
+1.8.1.4
 

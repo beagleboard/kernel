@@ -1,0 +1,39 @@
+From 5f6f55c3ec4c4c9db2ea1589b80e8b3daef99bb4 Mon Sep 17 00:00:00 2001
+From: Eric Anholt <eric@anholt.net>
+Date: Thu, 19 Jan 2012 10:50:06 -0800
+Subject: [PATCH 087/127] drm/i915: Correct the bit number for the
+ MI_FLUSH_ENABLE.
+
+commit fc74d8e01165b567922921d110b6d16320a61fa6 upstream.
+
+Older specs claimed this was bit 11, but newer specs and the actual
+simulator code say it was bit 12.  Regardless, we don't use MI_FLUSH,
+or try to enable it any more.
+
+Signed-off-by: Eric Anholt <eric@anholt.net>
+Reviewed-by: Kenneth Graunke <kenneth@whitecape.org>
+Reviewed-by: Ben Widawsky <ben@bwidawsk.net>
+[danvet: Anyone trying to use this bit, please read all the relevant
+discussions, it's epic.]
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/gpu/drm/i915/i915_reg.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_reg.h b/drivers/gpu/drm/i915/i915_reg.h
+index 7a10f5f..56d931ae 100644
+--- a/drivers/gpu/drm/i915/i915_reg.h
++++ b/drivers/gpu/drm/i915/i915_reg.h
+@@ -399,7 +399,7 @@
+ 
+ #define MI_MODE		0x0209c
+ # define VS_TIMER_DISPATCH				(1 << 6)
+-# define MI_FLUSH_ENABLE				(1 << 11)
++# define MI_FLUSH_ENABLE				(1 << 12)
+ 
+ #define GEN6_GT_MODE	0x20d0
+ #define   GEN6_GT_MODE_HI	(1 << 9)
+-- 
+1.8.1.4
+

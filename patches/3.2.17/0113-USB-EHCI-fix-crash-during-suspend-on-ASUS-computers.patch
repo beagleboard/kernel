@@ -1,8 +1,7 @@
-From bd6c6e088b125178ec8a55c6c4b906bd82435373 Mon Sep 17 00:00:00 2001
+From cc95433fe1a2b73ca2e3cabfd0af88c65c440b29 Mon Sep 17 00:00:00 2001
 From: Alan Stern <stern@rowland.harvard.edu>
 Date: Tue, 24 Apr 2012 14:07:22 -0400
-Subject: [PATCH 113/165] USB: EHCI: fix crash during suspend on ASUS
- computers
+Subject: [PATCH 113/165] USB: EHCI: fix crash during suspend on ASUS computers
 
 commit 151b61284776be2d6f02d48c23c3625678960b97 upstream.
 
@@ -35,10 +34,10 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/core/hcd-pci.c  |    9 +++++++++
- drivers/usb/host/ehci-pci.c |    8 ++++++++
- include/linux/usb/hcd.h     |    2 ++
- 3 files changed, 19 insertions(+), 0 deletions(-)
+ drivers/usb/core/hcd-pci.c  | 9 +++++++++
+ drivers/usb/host/ehci-pci.c | 8 ++++++++
+ include/linux/usb/hcd.h     | 2 ++
+ 3 files changed, 19 insertions(+)
 
 diff --git a/drivers/usb/core/hcd-pci.c b/drivers/usb/core/hcd-pci.c
 index 61d08dd..5f1404a 100644
@@ -93,5 +92,5 @@ index 03354d5..64cec8d 100644
  	int			irq;		/* irq allocated */
  	void __iomem		*regs;		/* device memory/io */
 -- 
-1.7.7.6
+1.8.1.4
 

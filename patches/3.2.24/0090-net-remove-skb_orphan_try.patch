@@ -1,4 +1,4 @@
-From a6f1cdc66a56954712219072ed46b7b820ee059a Mon Sep 17 00:00:00 2001
+From 62fbb80dacd74985d89a29fdc7a73e73cd721796 Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <edumazet@google.com>
 Date: Thu, 14 Jun 2012 06:42:44 +0000
 Subject: [PATCH 090/109] net: remove skb_orphan_try()
@@ -33,10 +33,10 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  - SKBTX_WIFI_STATUS is not defined]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/skbuff.h |    5 +----
- net/can/raw.c          |    3 ---
- net/core/dev.c         |   23 +----------------------
- net/iucv/af_iucv.c     |    1 -
+ include/linux/skbuff.h |  5 +----
+ net/can/raw.c          |  3 ---
+ net/core/dev.c         | 23 +----------------------
+ net/iucv/af_iucv.c     |  1 -
  4 files changed, 2 insertions(+), 30 deletions(-)
 
 diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
@@ -131,5 +131,5 @@ index 274d150..cf98d62 100644
  	if (!nskb)
  		return -ENOMEM;
 -- 
-1.7.7.6
+1.8.1.4
 

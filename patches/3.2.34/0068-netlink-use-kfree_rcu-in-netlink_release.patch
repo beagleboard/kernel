@@ -1,4 +1,4 @@
-From bf4663df73b197cad59450dbdea96b4f4a697b23 Mon Sep 17 00:00:00 2001
+From d833b60f699fa2a7ca4cbda41af9bd857cdae2eb Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <edumazet@google.com>
 Date: Thu, 18 Oct 2012 03:21:55 +0000
 Subject: [PATCH 68/83] netlink: use kfree_rcu() in netlink_release()
@@ -34,8 +34,8 @@ Cc: Sam Leffler <sleffler@google.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/netlink/af_netlink.c |   19 +++++++++++++++----
- 1 files changed, 15 insertions(+), 4 deletions(-)
+ net/netlink/af_netlink.c | 19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
 diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
 index 38b78b9..3d1d55d 100644
@@ -103,5 +103,5 @@ index 38b78b9..3d1d55d 100644
  		rcu_assign_pointer(tbl->listeners, new);
  
 -- 
-1.7.7.6
+1.8.1.4
 

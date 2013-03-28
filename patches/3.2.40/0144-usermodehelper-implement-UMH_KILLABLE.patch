@@ -1,0 +1,110 @@
+From a2ebeb3511e5b170ed79cff69033ca4acc460c48 Mon Sep 17 00:00:00 2001
+From: Oleg Nesterov <oleg@redhat.com>
+Date: Fri, 23 Mar 2012 15:02:47 -0700
+Subject: [PATCH 144/153] usermodehelper: implement UMH_KILLABLE
+
+commit d0bd587a80960d7ba7e0c8396e154028c9045c54 upstream.
+
+Implement UMH_KILLABLE, should be used along with UMH_WAIT_EXEC/PROC.
+The caller must ensure that subprocess_info->path/etc can not go away
+until call_usermodehelper_freeinfo().
+
+call_usermodehelper_exec(UMH_KILLABLE) does
+wait_for_completion_killable.  If it fails, it uses
+xchg(&sub_info->complete, NULL) to serialize with umh_complete() which
+does the same xhcg() to access sub_info->complete.
+
+If call_usermodehelper_exec wins, it can safely return.  umh_complete()
+should get NULL and call call_usermodehelper_freeinfo().
+
+Otherwise we know that umh_complete() was already called, in this case
+call_usermodehelper_exec() falls back to wait_for_completion() which
+should succeed "very soon".
+
+Note: UMH_NO_WAIT == -1 but it obviously should not be used with
+UMH_KILLABLE.  We delay the neccessary cleanup to simplify the back
+porting.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ include/linux/kmod.h |  2 ++
+ kernel/kmod.c        | 27 +++++++++++++++++++++++++--
+ 2 files changed, 27 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/kmod.h b/include/linux/kmod.h
+index b16f653..f8d4b27 100644
+--- a/include/linux/kmod.h
++++ b/include/linux/kmod.h
+@@ -54,6 +54,8 @@ enum umh_wait {
+ 	UMH_WAIT_PROC = 1,	/* wait for the process to complete */
+ };
+ 
++#define UMH_KILLABLE	4	/* wait for EXEC/PROC killable */
++
+ struct subprocess_info {
+ 	struct work_struct work;
+ 	struct completion *complete;
+diff --git a/kernel/kmod.c b/kernel/kmod.c
+index e5e30b6..ff1277c 100644
+--- a/kernel/kmod.c
++++ b/kernel/kmod.c
+@@ -199,7 +199,15 @@ EXPORT_SYMBOL(call_usermodehelper_freeinfo);
+ 
+ static void umh_complete(struct subprocess_info *sub_info)
+ {
+-	complete(sub_info->complete);
++	struct completion *comp = xchg(&sub_info->complete, NULL);
++	/*
++	 * See call_usermodehelper_exec(). If xchg() returns NULL
++	 * we own sub_info, the UMH_KILLABLE caller has gone away.
++	 */
++	if (comp)
++		complete(comp);
++	else
++		call_usermodehelper_freeinfo(sub_info);
+ }
+ 
+ /* Keventd can't block, but this (a child) can. */
+@@ -250,6 +258,9 @@ static void __call_usermodehelper(struct work_struct *work)
+ 	enum umh_wait wait = sub_info->wait;
+ 	pid_t pid;
+ 
++	if (wait != UMH_NO_WAIT)
++		wait &= ~UMH_KILLABLE;
++
+ 	/* CLONE_VFORK: wait until the usermode helper has execve'd
+ 	 * successfully We need the data structures to stay around
+ 	 * until that is done.  */
+@@ -440,9 +451,21 @@ int call_usermodehelper_exec(struct subprocess_info *sub_info,
+ 	queue_work(khelper_wq, &sub_info->work);
+ 	if (wait == UMH_NO_WAIT)	/* task has freed sub_info */
+ 		goto unlock;
++
++	if (wait & UMH_KILLABLE) {
++		retval = wait_for_completion_killable(&done);
++		if (!retval)
++			goto wait_done;
++
++		/* umh_complete() will see NULL and free sub_info */
++		if (xchg(&sub_info->complete, NULL))
++			goto unlock;
++		/* fallthrough, umh_complete() was already called */
++	}
++
+ 	wait_for_completion(&done);
++wait_done:
+ 	retval = sub_info->retval;
+-
+ out:
+ 	call_usermodehelper_freeinfo(sub_info);
+ unlock:
+-- 
+1.8.1.4
+

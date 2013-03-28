@@ -1,4 +1,4 @@
-From c56a0e03be45307a11968a8b169547d42b4c578c Mon Sep 17 00:00:00 2001
+From 6bf2ddc312fdf27e753d41c33d46fd2d77b210dd Mon Sep 17 00:00:00 2001
 From: Alex Deucher <alexander.deucher@amd.com>
 Date: Wed, 22 Aug 2012 09:54:56 -0400
 Subject: [PATCH 023/135] drm/radeon/atom: rework DIG modesetting on DCE3+
@@ -18,8 +18,8 @@ Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
 [bwh: Backported to 3.2: drop DCE6 cases]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/radeon/atombios_encoders.c |  105 +++++++++++++---------------
- 1 files changed, 49 insertions(+), 56 deletions(-)
+ drivers/gpu/drm/radeon/atombios_encoders.c | 105 ++++++++++++++---------------
+ 1 file changed, 49 insertions(+), 56 deletions(-)
 
 diff --git a/drivers/gpu/drm/radeon/atombios_encoders.c b/drivers/gpu/drm/radeon/atombios_encoders.c
 index 5351ee1..382e141 100644
@@ -201,5 +201,5 @@ index 5351ee1..382e141 100644
  	case ENCODER_OBJECT_ID_INTERNAL_DDI:
  	case ENCODER_OBJECT_ID_INTERNAL_DVO1:
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,0 +1,59 @@
+From bf095f990ff5321788000a6014a78df138e991e8 Mon Sep 17 00:00:00 2001
+From: Felix Fietkau <nbd@openwrt.org>
+Date: Sun, 20 Jan 2013 21:55:20 +0100
+Subject: [PATCH 083/127] ath9k_hw: fix calibration issues on chainmask that
+ don't include chain 0
+
+commit 4a8f199508d79ff8a7d1e22f47b912baaf225336 upstream.
+
+Signed-off-by: Felix Fietkau <nbd@openwrt.org>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/ath/ath9k/ar9003_calib.c | 2 ++
+ drivers/net/wireless/ath/ath9k/ar9003_phy.c   | 2 +-
+ drivers/net/wireless/ath/ath9k/hw.h           | 1 +
+ 3 files changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/ath/ath9k/ar9003_calib.c b/drivers/net/wireless/ath/ath9k/ar9003_calib.c
+index 12a730d..ae750f9 100644
+--- a/drivers/net/wireless/ath/ath9k/ar9003_calib.c
++++ b/drivers/net/wireless/ath/ath9k/ar9003_calib.c
+@@ -946,6 +946,8 @@ static bool ar9003_hw_init_cal(struct ath_hw *ah,
+ 					  AR_PHY_CL_TAB_1,
+ 					  AR_PHY_CL_TAB_2 };
+ 
++	ar9003_hw_set_chain_masks(ah, ah->caps.rx_chainmask, ah->caps.tx_chainmask);
++
+ 	if (rtt) {
+ 		if (!ar9003_hw_rtt_restore(ah, chan))
+ 			run_rtt_cal = true;
+diff --git a/drivers/net/wireless/ath/ath9k/ar9003_phy.c b/drivers/net/wireless/ath/ath9k/ar9003_phy.c
+index 2330e7e..8935f2a 100644
+--- a/drivers/net/wireless/ath/ath9k/ar9003_phy.c
++++ b/drivers/net/wireless/ath/ath9k/ar9003_phy.c
+@@ -541,7 +541,7 @@ static void ar9003_hw_init_bb(struct ath_hw *ah,
+ 	udelay(synthDelay + BASE_ACTIVATE_DELAY);
+ }
+ 
+-static void ar9003_hw_set_chain_masks(struct ath_hw *ah, u8 rx, u8 tx)
++void ar9003_hw_set_chain_masks(struct ath_hw *ah, u8 rx, u8 tx)
+ {
+ 	switch (rx) {
+ 	case 0x5:
+diff --git a/drivers/net/wireless/ath/ath9k/hw.h b/drivers/net/wireless/ath/ath9k/hw.h
+index a5c4ba8..0c65a09 100644
+--- a/drivers/net/wireless/ath/ath9k/hw.h
++++ b/drivers/net/wireless/ath/ath9k/hw.h
+@@ -1016,6 +1016,7 @@ int ar9003_paprd_setup_gain_table(struct ath_hw *ah, int chain);
+ int ar9003_paprd_init_table(struct ath_hw *ah);
+ bool ar9003_paprd_is_done(struct ath_hw *ah);
+ void ar9003_hw_set_paprd_txdesc(struct ath_hw *ah, void *ds, u8 chains);
++void ar9003_hw_set_chain_masks(struct ath_hw *ah, u8 rx, u8 tx);
+ 
+ /* Hardware family op attach helpers */
+ void ar5008_hw_attach_phy_ops(struct ath_hw *ah);
+-- 
+1.8.1.4
+

@@ -1,8 +1,7 @@
-From a9a933e72ade5b14b8fee067fa0b259531edd44c Mon Sep 17 00:00:00 2001
+From c817b61bc12bc566662f5878210fd6faa6d0bc3d Mon Sep 17 00:00:00 2001
 From: Jason Wang <jasowang@redhat.com>
 Date: Wed, 11 Apr 2012 22:10:54 +0000
-Subject: [PATCH 074/165] 8139cp: set intr mask after its handler is
- registered
+Subject: [PATCH 074/165] 8139cp: set intr mask after its handler is registered
 
 [ Upstream commit a8c9cb106fe79c28d6b7f1397652cadd228715ff ]
 
@@ -17,8 +16,8 @@ Reviewed-by: Flavio Leitner <fbl@redhat.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/ethernet/realtek/8139cp.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/realtek/8139cp.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/ethernet/realtek/8139cp.c b/drivers/net/ethernet/realtek/8139cp.c
 index aba4f67..8f47907 100644
@@ -63,5 +62,5 @@ index aba4f67..8f47907 100644
  
  	spin_lock_irqsave (&cp->lock, flags);
 -- 
-1.7.7.6
+1.8.1.4
 

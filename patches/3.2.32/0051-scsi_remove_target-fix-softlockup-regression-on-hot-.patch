@@ -1,4 +1,4 @@
-From ae38623ec7dae4ebacabf595148bb86bbd486870 Mon Sep 17 00:00:00 2001
+From 641adbec9508a0c86886477146d8d414ad7bbdfd Mon Sep 17 00:00:00 2001
 From: Dan Williams <djbw@fb.com>
 Date: Tue, 28 Aug 2012 22:12:10 -0700
 Subject: [PATCH 051/146] scsi_remove_target: fix softlockup regression on hot
@@ -32,7 +32,7 @@ Signed-off-by: Dan Williams <djbw@fb.com>
 Signed-off-by: James Bottomley <JBottomley@Parallels.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/scsi/scsi_sysfs.c |   30 ++++++++++++++----------------
+ drivers/scsi/scsi_sysfs.c | 30 ++++++++++++++----------------
  1 file changed, 14 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/scsi/scsi_sysfs.c b/drivers/scsi/scsi_sysfs.c
@@ -88,5 +88,5 @@ index bb7c482..08d48a3 100644
  EXPORT_SYMBOL(scsi_remove_target);
  
 -- 
-1.7.10.4
+1.8.1.4
 

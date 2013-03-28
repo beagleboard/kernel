@@ -1,4 +1,4 @@
-From cd709a66f0c16a0aae3e173bd9a104a5731fa380 Mon Sep 17 00:00:00 2001
+From e45941e8541b6de1dbec25fcc841c629c6a01e1d Mon Sep 17 00:00:00 2001
 From: Florian Zumbiehl <florz@florz.de>
 Date: Sun, 7 Oct 2012 15:51:58 +0000
 Subject: [PATCH 019/105] vlan: don't deliver frames for unknown vlans to
@@ -32,9 +32,9 @@ Signed-off-by: Florian Zumbiehl <florz@florz.de>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/if_vlan.h |    8 ++++----
- net/8021q/vlan_core.c   |   10 ++--------
- net/core/dev.c          |    7 +++++--
+ include/linux/if_vlan.h |  8 ++++----
+ net/8021q/vlan_core.c   | 10 ++--------
+ net/core/dev.c          |  7 +++++--
  3 files changed, 11 insertions(+), 14 deletions(-)
 
 diff --git a/include/linux/if_vlan.h b/include/linux/if_vlan.h
@@ -136,5 +136,5 @@ index abe1147..f500a69 100644
  	null_or_dev = deliver_exact ? skb->dev : NULL;
  
 -- 
-1.7.7.6
+1.8.1.4
 

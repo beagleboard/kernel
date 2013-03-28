@@ -1,4 +1,4 @@
-From cfd3fe7fb1e7d3ee7d49ccab92a37de1c4dec581 Mon Sep 17 00:00:00 2001
+From c561e89fc0176210c028f928bb8ae384bcbbf28a Mon Sep 17 00:00:00 2001
 From: Steven Rostedt <srostedt@redhat.com>
 Date: Fri, 13 Jan 2012 21:40:59 -0500
 Subject: [PATCH 112/129] tracepoints/module: Fix disabling tracepoints with
@@ -23,8 +23,8 @@ Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- kernel/tracepoint.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ kernel/tracepoint.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/kernel/tracepoint.c b/kernel/tracepoint.c
 index db110b8..f1539de 100644
@@ -46,5 +46,5 @@ index db110b8..f1539de 100644
  	mutex_lock(&tracepoints_mutex);
  	tp_mod = kmalloc(sizeof(struct tp_module), GFP_KERNEL);
 -- 
-1.7.7.6
+1.8.1.4
 

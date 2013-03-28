@@ -1,0 +1,42 @@
+From 3f641c85b9405e8cc38cd9e09223938d46f7539b Mon Sep 17 00:00:00 2001
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Date: Fri, 11 Jan 2013 11:19:07 -0800
+Subject: [PATCH 02/67] xhci: Fix isoc TD encoding.
+
+commit 760973d2a74b93eb1697981f7448f0e62767cfc4 upstream.
+
+An isochronous TD is comprised of one isochronous TRB chained to zero or
+more normal TRBs.  Only the isoc TRB has the TBC and TLBPC fields.  The
+normal TRBs must set those fields to zeroes.  The code was setting the
+TBC and TLBPC fields for both isoc and normal TRBs.  Fix this.
+
+This should be backported to stable kernels as old as 3.0, that contain
+the commit b61d378f2da41c748aba6ca19d77e1e1c02bcea5 " xhci 1.0: Set
+transfer burst last packet count field."
+
+Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/host/xhci-ring.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
+index 2ed591d..3b5b81c 100644
+--- a/drivers/usb/host/xhci-ring.c
++++ b/drivers/usb/host/xhci-ring.c
+@@ -3617,9 +3617,11 @@ static int xhci_queue_isoc_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
+ 		td = urb_priv->td[i];
+ 		for (j = 0; j < trbs_per_td; j++) {
+ 			u32 remainder = 0;
+-			field = TRB_TBC(burst_count) | TRB_TLBPC(residue);
++			field = 0;
+ 
+ 			if (first_trb) {
++				field = TRB_TBC(burst_count) |
++					TRB_TLBPC(residue);
+ 				/* Queue the isoc TRB */
+ 				field |= TRB_TYPE(TRB_ISOC);
+ 				/* Assume URB_ISO_ASAP is set */
+-- 
+1.8.1.4
+

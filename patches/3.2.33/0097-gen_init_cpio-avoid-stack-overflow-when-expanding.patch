@@ -1,4 +1,4 @@
-From 4cc6950b4d8f0e4ab5238ecaf77e05ed8c3b366e Mon Sep 17 00:00:00 2001
+From 1ff86e85701c2e02e07891e7974164710de96823 Mon Sep 17 00:00:00 2001
 From: Kees Cook <keescook@chromium.org>
 Date: Thu, 25 Oct 2012 13:38:14 -0700
 Subject: [PATCH 097/105] gen_init_cpio: avoid stack overflow when expanding
@@ -31,8 +31,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- usr/gen_init_cpio.c |   43 +++++++++++++++++++++++--------------------
- 1 files changed, 23 insertions(+), 20 deletions(-)
+ usr/gen_init_cpio.c | 43 +++++++++++++++++++++++--------------------
+ 1 file changed, 23 insertions(+), 20 deletions(-)
 
 diff --git a/usr/gen_init_cpio.c b/usr/gen_init_cpio.c
 index af0f22f..aca6edc 100644
@@ -96,5 +96,5 @@ index af0f22f..aca6edc 100644
  
  
 -- 
-1.7.7.6
+1.8.1.4
 

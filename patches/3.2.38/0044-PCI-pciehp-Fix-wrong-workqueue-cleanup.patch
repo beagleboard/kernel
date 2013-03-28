@@ -1,0 +1,40 @@
+From 80cbe640b05ca18d8367f5362885e31e3781df3b Mon Sep 17 00:00:00 2001
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Date: Mon, 7 Nov 2011 20:55:46 +0900
+Subject: [PATCH 044/127] PCI: pciehp: Fix wrong workqueue cleanup
+
+commit 027e8d52abdd44bc00e405af83cd2fbfb96c0824 upstream.
+
+Fix improper workqueue cleanup.
+
+In the current pciehp, pcied_cleanup() calls destroy_workqueue()
+before calling pcie_port_service_unregister(). This causes kernel oops
+because flush_workqueue() is called in the pcie_port_service_unregister()
+code path after the workqueue was destroyed. So pcied_cleanup() must call
+pcie_port_service_unregister() first before calling destroy_workqueue().
+
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/pci/hotplug/pciehp_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/pci/hotplug/pciehp_core.c b/drivers/pci/hotplug/pciehp_core.c
+index 7ac8358..a13ad13 100644
+--- a/drivers/pci/hotplug/pciehp_core.c
++++ b/drivers/pci/hotplug/pciehp_core.c
+@@ -366,9 +366,9 @@ static int __init pcied_init(void)
+ static void __exit pcied_cleanup(void)
+ {
+ 	dbg("unload_pciehpd()\n");
++	pcie_port_service_unregister(&hpdriver_portdrv);
+ 	destroy_workqueue(pciehp_ordered_wq);
+ 	destroy_workqueue(pciehp_wq);
+-	pcie_port_service_unregister(&hpdriver_portdrv);
+ 	info(DRIVER_DESC " version: " DRIVER_VERSION " unloaded\n");
+ }
+ 
+-- 
+1.8.1.4
+

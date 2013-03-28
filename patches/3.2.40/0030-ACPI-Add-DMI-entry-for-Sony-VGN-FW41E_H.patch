@@ -1,0 +1,40 @@
+From 6ec036f5842e8b414e9413fa058fd96033b09650 Mon Sep 17 00:00:00 2001
+From: Joseph Salisbury <joseph.salisbury@canonical.com>
+Date: Tue, 5 Feb 2013 00:16:29 +0000
+Subject: [PATCH 030/153] ACPI: Add DMI entry for Sony VGN-FW41E_H
+
+commit 66f2fda93b67fa744d406e6dcf443f67bac204b6 upstream.
+
+This patch adds a quirk to allow the Sony VGN-FW41E_H to suspend/resume
+properly.
+
+References: http://bugs.launchpad.net/bugs/1113547
+Signed-off-by: Joseph Salisbury <joseph.salisbury@canonical.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/acpi/sleep.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index d790791..cc9d020 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -156,6 +156,14 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+ 	},
+ 	{
+ 	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VGN-FW41E_H",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW41E_H"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
+ 	.ident = "Sony Vaio VGN-FW21E",
+ 	.matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-- 
+1.8.1.4
+

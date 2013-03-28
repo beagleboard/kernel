@@ -1,0 +1,39 @@
+From 8372e77100a9630fbfacbf6f380e0e4e535202d7 Mon Sep 17 00:00:00 2001
+From: Takashi Iwai <tiwai@suse.de>
+Date: Fri, 1 Feb 2013 14:01:27 +0100
+Subject: [PATCH 020/153] ALSA: hda - Release assigned pin/cvt at error path of
+ hdmi_pcm_open()
+
+commit 2ad779b7329d6894a80df94e693e72eaa0d56790 upstream.
+
+If the driver detects and invalid ELD, it gives an open error.
+But it forgot to release the assigned pin, converter and spdif ctls
+before returning.
+
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ sound/pci/hda/patch_hdmi.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/sound/pci/hda/patch_hdmi.c b/sound/pci/hda/patch_hdmi.c
+index bde2615..98e9baf 100644
+--- a/sound/pci/hda/patch_hdmi.c
++++ b/sound/pci/hda/patch_hdmi.c
+@@ -918,8 +918,12 @@ static int hdmi_pcm_open(struct hda_pcm_stream *hinfo,
+ 	if (!static_hdmi_pcm && eld->eld_valid) {
+ 		snd_hdmi_eld_update_pcm_info(eld, hinfo);
+ 		if (hinfo->channels_min > hinfo->channels_max ||
+-		    !hinfo->rates || !hinfo->formats)
++		    !hinfo->rates || !hinfo->formats) {
++			per_cvt->assigned = 0;
++			hinfo->nid = 0;
++			snd_hda_spdif_ctls_unassign(codec, pin_idx);
+ 			return -ENODEV;
++		}
+ 	}
+ 
+ 	/* Store the updated parameters */
+-- 
+1.8.1.4
+

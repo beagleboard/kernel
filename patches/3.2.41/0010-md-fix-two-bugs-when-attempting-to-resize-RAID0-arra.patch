@@ -1,0 +1,70 @@
+From ac5fce08b8bd19554301cf0fc82b6d166e1467e2 Mon Sep 17 00:00:00 2001
+From: NeilBrown <neilb@suse.de>
+Date: Thu, 21 Feb 2013 14:33:17 +1100
+Subject: [PATCH 10/82] md: fix two bugs when attempting to resize RAID0 array.
+
+commit a64685399181780998281fe07309a94b25dd24c3 upstream.
+
+You cannot resize a RAID0 array (in terms of making the devices
+bigger), but the code doesn't entirely stop you.
+So:
+
+ disable setting of the available size on each device for
+ RAID0 and Linear devices.  This must not change as doing so
+ can change the effective layout of data.
+
+ Make sure that the size that raid0_size() reports is accurate,
+ but rounding devices sizes to chunk sizes.  As the device sizes
+ cannot change now, this isn't so important, but it is best to be
+ safe.
+
+Without this change:
+  mdadm --grow /dev/md0 -z max
+  mdadm --grow /dev/md0 -Z max
+  then read to the end of the array
+
+can cause a BUG in a RAID0 array.
+
+These bugs have been present ever since it became possible
+to resize any device, which is a long time.  So the fix is
+suitable for any -stable kerenl.
+
+Signed-off-by: NeilBrown <neilb@suse.de>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/md/md.c    | 3 +++
+ drivers/md/raid0.c | 3 ++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/md/md.c b/drivers/md/md.c
+index 5cbc496..1702133 100644
+--- a/drivers/md/md.c
++++ b/drivers/md/md.c
+@@ -2842,6 +2842,9 @@ rdev_size_store(struct md_rdev *rdev, const char *buf, size_t len)
+ 		} else if (!sectors)
+ 			sectors = (i_size_read(rdev->bdev->bd_inode) >> 9) -
+ 				rdev->data_offset;
++		if (!my_mddev->pers->resize)
++			/* Cannot change size for RAID0 or Linear etc */
++			return -EINVAL;
+ 	}
+ 	if (sectors < my_mddev->dev_sectors)
+ 		return -EINVAL; /* component must fit device */
+diff --git a/drivers/md/raid0.c b/drivers/md/raid0.c
+index 7294bd1..0c7bff9 100644
+--- a/drivers/md/raid0.c
++++ b/drivers/md/raid0.c
+@@ -330,7 +330,8 @@ static sector_t raid0_size(struct mddev *mddev, sector_t sectors, int raid_disks
+ 		  "%s does not support generic reshape\n", __func__);
+ 
+ 	list_for_each_entry(rdev, &mddev->disks, same_set)
+-		array_sectors += rdev->sectors;
++		array_sectors += (rdev->sectors &
++				  ~(sector_t)(mddev->chunk_sectors-1));
+ 
+ 	return array_sectors;
+ }
+-- 
+1.8.1.4
+

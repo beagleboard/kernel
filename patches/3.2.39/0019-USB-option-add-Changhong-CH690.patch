@@ -1,0 +1,50 @@
+From 2b36da1244d1d5481296a87b214b9d4cdf2bc44d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>
+Date: Fri, 1 Feb 2013 12:06:51 +0100
+Subject: [PATCH 19/67] USB: option: add Changhong CH690
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit d4fa681541aa7bf8570d03426dd7ba663a71c467 upstream.
+
+New device with 3 serial interfaces:
+
+ If#= 0 Alt= 0 #EPs= 3 Cls=ff(vend) Sub=ff Prot=ff
+ If#= 1 Alt= 0 #EPs= 2 Cls=ff(vend) Sub=ff Prot=ff
+ If#= 2 Alt= 0 #EPs= 2 Cls=ff(vend) Sub=ff Prot=ff
+ If#= 3 Alt= 0 #EPs= 2 Cls=08(stor) Sub=06 Prot=50
+
+Signed-off-by: Bjørn Mork <bjorn@mork.no>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/option.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/usb/serial/option.c b/drivers/usb/serial/option.c
+index 9182a73..52cd814 100644
+--- a/drivers/usb/serial/option.c
++++ b/drivers/usb/serial/option.c
+@@ -454,6 +454,10 @@ static void option_instat_callback(struct urb *urb);
+ #define TPLINK_VENDOR_ID			0x2357
+ #define TPLINK_PRODUCT_MA180			0x0201
+ 
++/* Changhong products */
++#define CHANGHONG_VENDOR_ID			0x2077
++#define CHANGHONG_PRODUCT_CH690			0x7001
++
+ /* some devices interfaces need special handling due to a number of reasons */
+ enum option_blacklist_reason {
+ 		OPTION_BLACKLIST_NONE = 0,
+@@ -1326,6 +1330,7 @@ static const struct usb_device_id option_ids[] = {
+ 	{ USB_DEVICE(PETATEL_VENDOR_ID, PETATEL_PRODUCT_NP10T) },
+ 	{ USB_DEVICE(TPLINK_VENDOR_ID, TPLINK_PRODUCT_MA180),
+ 	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
++	{ USB_DEVICE(CHANGHONG_VENDOR_ID, CHANGHONG_PRODUCT_CH690) },
+ 	{ } /* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, option_ids);
+-- 
+1.8.1.4
+

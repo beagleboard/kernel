@@ -1,4 +1,4 @@
-From 92758505abc538c64617a5851b503e03703df1fb Mon Sep 17 00:00:00 2001
+From 2d256a14786a6f4233517d7956420f1209e9ba61 Mon Sep 17 00:00:00 2001
 From: Johan Hovold <jhovold@gmail.com>
 Date: Tue, 20 Mar 2012 16:59:33 +0100
 Subject: [PATCH 26/68] USB: serial: fix race between probe and open
@@ -63,8 +63,8 @@ Reported-and-tested-by: Ken Huang <csuhgw@gmail.com>
 Signed-off-by: Johan Hovold <jhovold@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/serial/usb-serial.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ drivers/usb/serial/usb-serial.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/drivers/usb/serial/usb-serial.c b/drivers/usb/serial/usb-serial.c
 index cc274fd..38d7ebd 100644
@@ -93,5 +93,5 @@ index cc274fd..38d7ebd 100644
  
  exit:
 -- 
-1.7.7.6
+1.8.1.4
 

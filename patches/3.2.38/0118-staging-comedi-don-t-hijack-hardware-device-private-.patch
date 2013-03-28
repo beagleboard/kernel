@@ -1,0 +1,166 @@
+From dba9fed41782336ada04a975d1938cb256503c80 Mon Sep 17 00:00:00 2001
+From: Ian Abbott <abbotti@mev.co.uk>
+Date: Fri, 30 Mar 2012 17:14:58 +0100
+Subject: [PATCH 118/127] staging: comedi: don't hijack hardware device private
+ data
+
+commit c43435d7722134ed1fda58ce1025f41029bd58ad upstream.
+
+comedi_auto_config() associates a Comedi minor device number with an
+auto-configured hardware device and comedi_auto_unconfig() disassociates
+it.  Currently, these use the hardware device's private data pointer to
+point to some allocated storage holding the minor device number.  This
+is a bit of a waste of the hardware device's private data pointer,
+preventing it from being used for something more useful by the low-level
+comedi device drivers.  For example, it would make more sense if
+comedi_usb_auto_config() was passed a pointer to the struct
+usb_interface instead of the struct usb_device, but this cannot be done
+currently because the low-level comedi drivers already use the private
+data pointer in the struct usb_interface for something more useful.
+
+This patch stops the comedi core hijacking the hardware device's private
+data pointer.  Instead, comedi_auto_config() stores a pointer to the
+hardware device's struct device in the struct comedi_device_file_info
+associated with the minor device number, and comedi_auto_unconfig()
+calls new function comedi_find_board_minor() to recover the minor device
+number associated with the hardware device.
+
+Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/comedi/comedi_fops.c | 18 ++++++++++++++++++
+ drivers/staging/comedi/comedidev.h   |  1 +
+ drivers/staging/comedi/drivers.c     | 34 ++++++++++------------------------
+ drivers/staging/comedi/internal.h    |  1 +
+ 4 files changed, 30 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/staging/comedi/comedi_fops.c b/drivers/staging/comedi/comedi_fops.c
+index 9465bce..ab9f5ed 100644
+--- a/drivers/staging/comedi/comedi_fops.c
++++ b/drivers/staging/comedi/comedi_fops.c
+@@ -2207,6 +2207,7 @@ int comedi_alloc_board_minor(struct device *hardware_device)
+ 		kfree(info);
+ 		return -ENOMEM;
+ 	}
++	info->hardware_device = hardware_device;
+ 	comedi_device_init(info->device);
+ 	spin_lock_irqsave(&comedi_file_info_table_lock, flags);
+ 	for (i = 0; i < COMEDI_NUM_BOARD_MINORS; ++i) {
+@@ -2295,6 +2296,23 @@ void comedi_free_board_minor(unsigned minor)
+ 	}
+ }
+ 
++int comedi_find_board_minor(struct device *hardware_device)
++{
++	int minor;
++	struct comedi_device_file_info *info;
++
++	for (minor = 0; minor < COMEDI_NUM_BOARD_MINORS; minor++) {
++		spin_lock(&comedi_file_info_table_lock);
++		info = comedi_file_info_table[minor];
++		if (info && info->hardware_device == hardware_device) {
++			spin_unlock(&comedi_file_info_table_lock);
++			return minor;
++		}
++		spin_unlock(&comedi_file_info_table_lock);
++	}
++	return -ENODEV;
++}
++
+ int comedi_alloc_subdevice_minor(struct comedi_device *dev,
+ 				 struct comedi_subdevice *s)
+ {
+diff --git a/drivers/staging/comedi/comedidev.h b/drivers/staging/comedi/comedidev.h
+index 7a0d4bc..00d3c65 100644
+--- a/drivers/staging/comedi/comedidev.h
++++ b/drivers/staging/comedi/comedidev.h
+@@ -234,6 +234,7 @@ struct comedi_device_file_info {
+ 	struct comedi_device *device;
+ 	struct comedi_subdevice *read_subdevice;
+ 	struct comedi_subdevice *write_subdevice;
++	struct device *hardware_device;
+ };
+ 
+ #ifdef CONFIG_COMEDI_DEBUG
+diff --git a/drivers/staging/comedi/drivers.c b/drivers/staging/comedi/drivers.c
+index db1fd63..538b568 100644
+--- a/drivers/staging/comedi/drivers.c
++++ b/drivers/staging/comedi/drivers.c
+@@ -823,25 +823,14 @@ static int comedi_auto_config(struct device *hardware_device,
+ 	int minor;
+ 	struct comedi_device_file_info *dev_file_info;
+ 	int retval;
+-	unsigned *private_data = NULL;
+ 
+-	if (!comedi_autoconfig) {
+-		dev_set_drvdata(hardware_device, NULL);
++	if (!comedi_autoconfig)
+ 		return 0;
+-	}
+ 
+ 	minor = comedi_alloc_board_minor(hardware_device);
+ 	if (minor < 0)
+ 		return minor;
+ 
+-	private_data = kmalloc(sizeof(unsigned), GFP_KERNEL);
+-	if (private_data == NULL) {
+-		retval = -ENOMEM;
+-		goto cleanup;
+-	}
+-	*private_data = minor;
+-	dev_set_drvdata(hardware_device, private_data);
+-
+ 	dev_file_info = comedi_get_device_file_info(minor);
+ 
+ 	memset(&it, 0, sizeof(it));
+@@ -854,25 +843,22 @@ static int comedi_auto_config(struct device *hardware_device,
+ 	retval = comedi_device_attach(dev_file_info->device, &it);
+ 	mutex_unlock(&dev_file_info->device->mutex);
+ 
+-cleanup:
+-	if (retval < 0) {
+-		kfree(private_data);
++	if (retval < 0)
+ 		comedi_free_board_minor(minor);
+-	}
+ 	return retval;
+ }
+ 
+ static void comedi_auto_unconfig(struct device *hardware_device)
+ {
+-	unsigned *minor = (unsigned *)dev_get_drvdata(hardware_device);
+-	if (minor == NULL)
+-		return;
+-
+-	BUG_ON(*minor >= COMEDI_NUM_BOARD_MINORS);
++	int minor;
+ 
+-	comedi_free_board_minor(*minor);
+-	dev_set_drvdata(hardware_device, NULL);
+-	kfree(minor);
++	if (hardware_device == NULL)
++		return;
++	minor = comedi_find_board_minor(hardware_device);
++	if (minor < 0)
++		return;
++	BUG_ON(minor >= COMEDI_NUM_BOARD_MINORS);
++	comedi_free_board_minor(minor);
+ }
+ 
+ int comedi_pci_auto_config(struct pci_dev *pcidev, const char *board_name)
+diff --git a/drivers/staging/comedi/internal.h b/drivers/staging/comedi/internal.h
+index 434ce34..4208fb4 100644
+--- a/drivers/staging/comedi/internal.h
++++ b/drivers/staging/comedi/internal.h
+@@ -7,6 +7,7 @@ int insn_inval(struct comedi_device *dev, struct comedi_subdevice *s,
+ 	       struct comedi_insn *insn, unsigned int *data);
+ int comedi_alloc_board_minor(struct device *hardware_device);
+ void comedi_free_board_minor(unsigned minor);
++int comedi_find_board_minor(struct device *hardware_device);
+ void comedi_reset_async_buf(struct comedi_async *async);
+ int comedi_buf_alloc(struct comedi_device *dev, struct comedi_subdevice *s,
+ 		     unsigned long new_size);
+-- 
+1.8.1.4
+

@@ -1,4 +1,4 @@
-From 73db5de736bf0daa1c6c52a14e086aa596b09427 Mon Sep 17 00:00:00 2001
+From e0f3f5f5958c985b3b2d6f31a373c5ae25a6fa22 Mon Sep 17 00:00:00 2001
 From: majianpeng <majianpeng@gmail.com>
 Date: Tue, 3 Jul 2012 12:11:54 +1000
 Subject: [PATCH 16/49] md/raid5: In ops_run_io, inc nr_pending before calling
@@ -20,8 +20,8 @@ Signed-off-by: majianpeng <majianpeng@gmail.com>
 Signed-off-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/md/raid5.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ drivers/md/raid5.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/drivers/md/raid5.c b/drivers/md/raid5.c
 index d423c7e..6ba4954 100644
@@ -41,5 +41,5 @@ index d423c7e..6ba4954 100644
  			} else {
  				/* Acknowledged bad block - skip the write */
 -- 
-1.7.7.6
+1.8.1.4
 

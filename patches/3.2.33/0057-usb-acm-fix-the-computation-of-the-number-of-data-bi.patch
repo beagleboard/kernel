@@ -1,4 +1,4 @@
-From 2b26f3ff52da585e303600a425fd5a1c2c949f00 Mon Sep 17 00:00:00 2001
+From acc6ea7edf328b78ee3f9e4e31a98c82b53acc23 Mon Sep 17 00:00:00 2001
 From: Nicolas Boullis <nboullis@debian.org>
 Date: Tue, 16 Oct 2012 00:06:23 +0200
 Subject: [PATCH 057/105] usb: acm: fix the computation of the number of data
@@ -14,8 +14,8 @@ Acked-by: Oliver Neukum <oneukum@suse.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/class/cdc-acm.c |   20 +++++++++++++++-----
- 1 files changed, 15 insertions(+), 5 deletions(-)
+ drivers/usb/class/cdc-acm.c | 20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/class/cdc-acm.c b/drivers/usb/class/cdc-acm.c
 index 7881832..b10dc4f 100644
@@ -56,5 +56,5 @@ index 7881832..b10dc4f 100644
  	acm->clocal = ((termios->c_cflag & CLOCAL) != 0);
  
 -- 
-1.7.7.6
+1.8.1.4
 

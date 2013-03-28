@@ -1,0 +1,40 @@
+From 230dbce5a8b0d5ab2e80490e36f96a3dd46e3453 Mon Sep 17 00:00:00 2001
+From: Maciej Sosnowski <maciej.sosnowski@intel.com>
+Date: Wed, 23 May 2012 17:27:07 +0200
+Subject: [PATCH 007/153] dca: check against empty dca_domains list before
+ unregister provider
+
+commit c419fcfd071cf34ba00f9f65282583772d2655e7 upstream.
+
+When providers get blocked unregister_dca_providers() is called ending up
+with dca_providers and dca_domain lists emptied. Dca should be prevented from
+trying to unregister any provider if dca_domain list is found empty.
+
+Reported-by: Jiang Liu <jiang.liu@huawei.com>
+Tested-by: Gaohuai Han <hangaohuai@huawei.com>
+Signed-off-by: Maciej Sosnowski <maciej.sosnowski@intel.com>
+Signed-off-by: Dan Williams <djbw@fb.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/dca/dca-core.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/dca/dca-core.c b/drivers/dca/dca-core.c
+index bc6f5fa..819dfda 100644
+--- a/drivers/dca/dca-core.c
++++ b/drivers/dca/dca-core.c
+@@ -420,6 +420,11 @@ void unregister_dca_provider(struct dca_provider *dca, struct device *dev)
+ 
+ 	raw_spin_lock_irqsave(&dca_lock, flags);
+ 
++	if (list_empty(&dca_domains)) {
++		raw_spin_unlock_irqrestore(&dca_lock, flags);
++		return;
++	}
++
+ 	list_del(&dca->node);
+ 
+ 	pci_rc = dca_pci_rc_from_dev(dev);
+-- 
+1.8.1.4
+

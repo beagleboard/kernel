@@ -1,4 +1,4 @@
-From 5dabf06404e3077466970ec839b8d5f65dfff4e8 Mon Sep 17 00:00:00 2001
+From 65726df85a580f23d29c10757af57d41009a1861 Mon Sep 17 00:00:00 2001
 From: Jonathan Brassow <jbrassow@redhat.com>
 Date: Wed, 16 May 2012 04:06:14 -0500
 Subject: [PATCH 48/56] MD: Add del_timer_sync to mddev_suspend (fix nasty
@@ -17,8 +17,8 @@ Therefore, we add a del_timer_sync to mddev_suspend to prevent this.
 Signed-off-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/md/md.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/md/md.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/md/md.c b/drivers/md/md.c
 index 065ab4f..adcd850 100644
@@ -34,5 +34,5 @@ index 065ab4f..adcd850 100644
  EXPORT_SYMBOL_GPL(mddev_suspend);
  
 -- 
-1.7.7.6
+1.8.1.4
 

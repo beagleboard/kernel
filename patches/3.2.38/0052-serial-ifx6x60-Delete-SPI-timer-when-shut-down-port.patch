@@ -1,0 +1,34 @@
+From 0982786716a15f08f55379e781102fba8a935de8 Mon Sep 17 00:00:00 2001
+From: chao bi <chao.bi@intel.com>
+Date: Wed, 12 Dec 2012 11:40:56 +0800
+Subject: [PATCH 052/127] serial:ifx6x60:Delete SPI timer when shut down port
+
+commit 014b9b4ce84281ccb3d723c792bed19815f3571a upstream.
+
+When shut down SPI port, it's possible that MRDY has been asserted and a SPI
+timer was activated waiting for SRDY assert, in the case, it needs to delete
+this timer.
+
+Signed-off-by: Chen Jun <jun.d.chen@intel.com>
+Signed-off-by: channing <chao.bi@intel.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/tty/serial/ifx6x60.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/tty/serial/ifx6x60.c b/drivers/tty/serial/ifx6x60.c
+index 426434e..a6a6777 100644
+--- a/drivers/tty/serial/ifx6x60.c
++++ b/drivers/tty/serial/ifx6x60.c
+@@ -552,6 +552,7 @@ static void ifx_port_shutdown(struct tty_port *port)
+ 		container_of(port, struct ifx_spi_device, tty_port);
+ 
+ 	mrdy_set_low(ifx_dev);
++	del_timer(&ifx_dev->spi_timer);
+ 	clear_bit(IFX_SPI_STATE_TIMER_PENDING, &ifx_dev->flags);
+ 	tasklet_kill(&ifx_dev->io_work_tasklet);
+ }
+-- 
+1.8.1.4
+

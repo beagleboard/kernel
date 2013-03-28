@@ -1,4 +1,4 @@
-From aea74f9ed300910a43bf44452db47acc1868d4ed Mon Sep 17 00:00:00 2001
+From b854180aff56b80ba312ffd795416703a3b70fdc Mon Sep 17 00:00:00 2001
 From: "J. Bruce Fields" <bfields@redhat.com>
 Date: Tue, 29 Nov 2011 11:35:35 -0500
 Subject: [PATCH 067/129] svcrpc: destroy server sockets all at once
@@ -11,9 +11,9 @@ closing the two lists of sockets.
 Signed-off-by: J. Bruce Fields <bfields@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- include/linux/sunrpc/svcsock.h |    2 +-
- net/sunrpc/svc.c               |    7 +------
- net/sunrpc/svc_xprt.c          |   11 ++++++++++-
+ include/linux/sunrpc/svcsock.h |  2 +-
+ net/sunrpc/svc.c               |  7 +------
+ net/sunrpc/svc_xprt.c          | 11 ++++++++++-
  3 files changed, 12 insertions(+), 8 deletions(-)
 
 diff --git a/include/linux/sunrpc/svcsock.h b/include/linux/sunrpc/svcsock.h
@@ -81,5 +81,5 @@ index 447cd0e..dcdc8df 100644
   * Handle defer and revisit of requests
   */
 -- 
-1.7.7.6
+1.8.1.4
 

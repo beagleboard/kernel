@@ -1,4 +1,4 @@
-From 831089b38a40c5988f76190e5067f520f36313ba Mon Sep 17 00:00:00 2001
+From 486cdf95b6de049a3748932e8ca029fc52b3590a Mon Sep 17 00:00:00 2001
 From: Guenter Roeck <linux@roeck-us.net>
 Date: Fri, 27 Jan 2012 05:43:59 -0800
 Subject: [PATCH 48/87] hwmon: (w83627ehf) Fix number of fans for NCT6776F
@@ -13,8 +13,8 @@ Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 Acked-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/hwmon/w83627ehf.c |   23 ++++++++++++++++++++---
- 1 files changed, 20 insertions(+), 3 deletions(-)
+ drivers/hwmon/w83627ehf.c | 23 ++++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
 index 4b57ab6..c25387d 100644
@@ -51,5 +51,5 @@ index 4b57ab6..c25387d 100644
  	} else if (sio_data->kind == w83667hg || sio_data->kind == w83667hg_b) {
  		fan3pin = 1;
 -- 
-1.7.7.6
+1.8.1.4
 

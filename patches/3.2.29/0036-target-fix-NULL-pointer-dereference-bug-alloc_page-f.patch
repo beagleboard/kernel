@@ -1,4 +1,4 @@
-From d44b7ac24cf4f82d0aab696d00b23a0f5736c0ae Mon Sep 17 00:00:00 2001
+From 2974017b723b1e7ec57143f9a1ddef701bd56e6d Mon Sep 17 00:00:00 2001
 From: Yi Zou <yi.zou@intel.com>
 Date: Tue, 14 Aug 2012 16:06:43 -0700
 Subject: [PATCH 36/94] target: fix NULL pointer dereference bug alloc_page()
@@ -18,8 +18,8 @@ Cc: Open-FCoE.org <devel@open-fcoe.org>
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/target/target_core_transport.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/target/target_core_transport.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/target/target_core_transport.c b/drivers/target/target_core_transport.c
 index 94c03d2..597fb9b 100644
@@ -38,5 +38,5 @@ index 94c03d2..597fb9b 100644
  	kfree(cmd->t_data_sg);
  	cmd->t_data_sg = NULL;
 -- 
-1.7.7.6
+1.8.1.4
 

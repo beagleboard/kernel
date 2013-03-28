@@ -1,4 +1,4 @@
-From 5b82ba1bf7d1b1c2ac4a358463e782a6cc0691ce Mon Sep 17 00:00:00 2001
+From f568f2496bb5eaeddfc50b9d1e1236449f2ff70b Mon Sep 17 00:00:00 2001
 From: stephen hemminger <shemminger@vyatta.com>
 Date: Mon, 30 Apr 2012 06:47:37 +0000
 Subject: [PATCH 15/56] sky2: fix receive length error in mixed non-VLAN/VLAN
@@ -27,8 +27,8 @@ Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/ethernet/marvell/sky2.c |   28 +++++++++++++++++-----------
- drivers/net/ethernet/marvell/sky2.h |    1 -
+ drivers/net/ethernet/marvell/sky2.c | 28 +++++++++++++++++-----------
+ drivers/net/ethernet/marvell/sky2.h |  1 -
  2 files changed, 17 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/net/ethernet/marvell/sky2.c b/drivers/net/ethernet/marvell/sky2.c
@@ -132,5 +132,5 @@ index ff6f58b..3c896ce 100644
  	struct {
  		unsigned long last;
 -- 
-1.7.7.6
+1.8.1.4
 

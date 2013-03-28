@@ -1,4 +1,4 @@
-From 033047d4966a8ee8b77dd490d28c8dbb897cf891 Mon Sep 17 00:00:00 2001
+From 8718f8f41b4194bf23137d8fa6b88bf0ca6382c7 Mon Sep 17 00:00:00 2001
 From: Jiri Kosina <jkosina@suse.cz>
 Date: Fri, 27 Jul 2012 10:38:50 +0000
 Subject: [PATCH 11/38] tcp: perform DMA to userspace only if there is a task
@@ -34,8 +34,8 @@ Signed-off-by: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/ipv4/tcp_input.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ net/ipv4/tcp_input.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
 index 32e6ca2..a08a621 100644
@@ -53,5 +53,5 @@ index 32e6ca2..a08a621 100644
  					eaten = 1;
  				}
 -- 
-1.7.7.6
+1.8.1.4
 

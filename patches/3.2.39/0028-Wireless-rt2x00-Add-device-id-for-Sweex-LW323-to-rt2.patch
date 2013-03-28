@@ -1,0 +1,37 @@
+From 4cff557fe688ce8211eca79184fb903ca76e3a34 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jaume=20Delcl=C3=B2s?= <jaume@delclos.com>
+Date: Fri, 2 Nov 2012 23:35:20 +0100
+Subject: [PATCH 28/67] Wireless: rt2x00: Add device id for Sweex LW323 to
+ rt2800usb.c
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit 36f318bb124b231c01db6965a009f46d5731f012 upstream.
+
+This patch adds detection for the Sweex LW323 USB wireless network card
+in the rt2x00 driver (just one line in rt2800usb.c).
+It applies to linux-3.7-rc3.
+
+Signed-off-by: Jaume Delclòs <jaume@delclos.com>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/wireless/rt2x00/rt2800usb.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/net/wireless/rt2x00/rt2800usb.c b/drivers/net/wireless/rt2x00/rt2800usb.c
+index b66a61b..91750d3 100644
+--- a/drivers/net/wireless/rt2x00/rt2800usb.c
++++ b/drivers/net/wireless/rt2x00/rt2800usb.c
+@@ -1090,6 +1090,7 @@ static struct usb_device_id rt2800usb_device_table[] = {
+ 	{ USB_DEVICE(0x177f, 0x0153) },
+ 	{ USB_DEVICE(0x177f, 0x0302) },
+ 	{ USB_DEVICE(0x177f, 0x0313) },
++	{ USB_DEVICE(0x177f, 0x0323) },
+ 	/* U-Media */
+ 	{ USB_DEVICE(0x157e, 0x300e) },
+ 	{ USB_DEVICE(0x157e, 0x3013) },
+-- 
+1.8.1.4
+

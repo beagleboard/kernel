@@ -1,4 +1,4 @@
-From 6bb7b9202cb6eb2c6fc2b9a7809101b6ea50a546 Mon Sep 17 00:00:00 2001
+From 3c0fc063d528ed2bba3a6b39d1eda4c44c3b2bfe Mon Sep 17 00:00:00 2001
 From: Cloud Ren <cjren@qca.qualcomm.com>
 Date: Tue, 3 Jul 2012 16:51:48 +0000
 Subject: [PATCH 052/109] atl1c: fix issue of transmit queue 0 timed out
@@ -22,8 +22,8 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/net/ethernet/atheros/atl1c/atl1c_main.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ drivers/net/ethernet/atheros/atl1c/atl1c_main.c | 1 -
+ 1 file changed, 1 deletion(-)
 
 diff --git a/drivers/net/ethernet/atheros/atl1c/atl1c_main.c b/drivers/net/ethernet/atheros/atl1c/atl1c_main.c
 index eccdcff..5ae7df7 100644
@@ -38,5 +38,5 @@ index eccdcff..5ae7df7 100644
  		atl1c_phy_init(&adapter->hw);
  	} else {
 -- 
-1.7.7.6
+1.8.1.4
 

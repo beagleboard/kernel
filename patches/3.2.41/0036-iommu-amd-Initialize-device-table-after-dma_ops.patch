@@ -1,0 +1,60 @@
+From efc83e2e76550f09711b57d16603c9f26d2b7f67 Mon Sep 17 00:00:00 2001
+From: Shuah Khan <shuah.khan@hp.com>
+Date: Thu, 28 Feb 2013 14:39:50 -0700
+Subject: [PATCH 36/82] iommu/amd: Initialize device table after dma_ops
+
+commit f528d980c17b8714aedc918ba86e058af914d66b upstream.
+
+When dma_ops are initialized the unity mappings are created. The
+init_device_table_dma() function makes sure DMA from all devices is
+blocked by default. This opens a short window in time where DMA to
+unity mapped regions is blocked by the IOMMU. Make sure this does not
+happen by initializing the device table after dma_ops.
+
+Tested on 3.2.38
+
+Signed-off-by: Joerg Roedel <joro@8bytes.org>
+Signed-off-by: Shuah Khan <shuah.khan@hp.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/iommu/amd_iommu_init.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/iommu/amd_iommu_init.c b/drivers/iommu/amd_iommu_init.c
+index 62a4d5c..b7d1cdd 100644
+--- a/drivers/iommu/amd_iommu_init.c
++++ b/drivers/iommu/amd_iommu_init.c
+@@ -1396,6 +1396,7 @@ static struct syscore_ops amd_iommu_syscore_ops = {
+  */
+ static int __init amd_iommu_init(void)
+ {
++	struct amd_iommu *iommu;
+ 	int i, ret = 0;
+ 
+ 	/*
+@@ -1444,9 +1445,6 @@ static int __init amd_iommu_init(void)
+ 	if (amd_iommu_pd_alloc_bitmap == NULL)
+ 		goto free;
+ 
+-	/* init the device table */
+-	init_device_table();
+-
+ 	/*
+ 	 * let all alias entries point to itself
+ 	 */
+@@ -1496,6 +1494,12 @@ static int __init amd_iommu_init(void)
+ 	if (ret)
+ 		goto free_disable;
+ 
++	/* init the device table */
++	init_device_table();
++
++	for_each_iommu(iommu)
++		iommu_flush_all_caches(iommu);
++
+ 	amd_iommu_init_api();
+ 
+ 	amd_iommu_init_notifier();
+-- 
+1.8.1.4
+

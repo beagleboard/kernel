@@ -1,0 +1,48 @@
+From 0f4ed7c667e3910c68e73c1e06744c0517aa50b3 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Sun, 3 Feb 2013 09:13:05 +0000
+Subject: [PATCH 60/67] tcp: frto should not set snd_cwnd to 0
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+[ Upstream commit 2e5f421211ff76c17130b4597bc06df4eeead24f ]
+
+Commit 9dc274151a548 (tcp: fix ABC in tcp_slow_start())
+uncovered a bug in FRTO code :
+tcp_process_frto() is setting snd_cwnd to 0 if the number
+of in flight packets is 0.
+
+As Neal pointed out, if no packet is in flight we lost our
+chance to disambiguate whether a loss timeout was spurious.
+
+We should assume it was a proper loss.
+
+Reported-by: Pasi Kärkkäinen <pasik@iki.fi>
+Signed-off-by: Neal Cardwell <ncardwell@google.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Ilpo Järvinen <ilpo.jarvinen@helsinki.fi>
+Cc: Yuchung Cheng <ycheng@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/ipv4/tcp_input.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
+index aab8f08..308b5b4 100644
+--- a/net/ipv4/tcp_input.c
++++ b/net/ipv4/tcp_input.c
+@@ -3635,7 +3635,8 @@ static int tcp_process_frto(struct sock *sk, int flag)
+ 	    ((tp->frto_counter >= 2) && (flag & FLAG_RETRANS_DATA_ACKED)))
+ 		tp->undo_marker = 0;
+ 
+-	if (!before(tp->snd_una, tp->frto_highmark)) {
++	if (!before(tp->snd_una, tp->frto_highmark) ||
++	    !tcp_packets_in_flight(tp)) {
+ 		tcp_enter_frto_loss(sk, (tp->frto_counter == 1 ? 2 : 3), flag);
+ 		return 1;
+ 	}
+-- 
+1.8.1.4
+

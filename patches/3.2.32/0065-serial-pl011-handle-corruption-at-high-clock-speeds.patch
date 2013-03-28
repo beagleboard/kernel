@@ -1,8 +1,7 @@
-From 9d933f0f5e038f5459b382e3e63ecd7256b20d22 Mon Sep 17 00:00:00 2001
+From 65cf03e1cda51b76a2941cc6c75215d8b233d845 Mon Sep 17 00:00:00 2001
 From: Linus Walleij <linus.walleij@linaro.org>
 Date: Wed, 26 Sep 2012 17:21:36 +0200
-Subject: [PATCH 065/146] serial: pl011: handle corruption at high clock
- speeds
+Subject: [PATCH 065/146] serial: pl011: handle corruption at high clock speeds
 
 commit c5dd553b9fd069892c9e2de734f4f604e280fa7a upstream.
 
@@ -39,7 +38,7 @@ Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/tty/serial/amba-pl011.c |   15 ++++++++++++++-
+ drivers/tty/serial/amba-pl011.c | 15 ++++++++++++++-
  1 file changed, 14 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
@@ -75,5 +74,5 @@ index 6da8cf8..fe9f111 100644
  	 */
  	writew(lcr_h, port->membase + uap->lcrh_rx);
 -- 
-1.7.10.4
+1.8.1.4
 

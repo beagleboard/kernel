@@ -1,4 +1,4 @@
-From 4e96cbad35c5f39bd86397d1e5d5f811eb674ab7 Mon Sep 17 00:00:00 2001
+From 810671da0322795b3afb64582405d745aa507218 Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Thu, 26 Jan 2012 00:41:38 +0000
 Subject: [PATCH 69/90] netns: fix net_alloc_generic()
@@ -42,8 +42,8 @@ Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/core/net_namespace.c |   31 ++++++++++++++++---------------
- 1 files changed, 16 insertions(+), 15 deletions(-)
+ net/core/net_namespace.c | 31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
 
 diff --git a/net/core/net_namespace.c b/net/core/net_namespace.c
 index aefcd7a..0e950fd 100644
@@ -116,5 +116,5 @@ index aefcd7a..0e950fd 100644
  	error = __register_pernet_operations(list, ops);
  	if (error) {
 -- 
-1.7.7.6
+1.8.1.4
 

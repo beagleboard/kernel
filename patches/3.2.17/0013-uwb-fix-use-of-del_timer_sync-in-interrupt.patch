@@ -1,4 +1,4 @@
-From ba1000cde1c660ba27dc0221e09b6c3f1126a94c Mon Sep 17 00:00:00 2001
+From 27ee98743e0af7470c46cbf3f390e69ca3ad2ac4 Mon Sep 17 00:00:00 2001
 From: Oliver Neukum <oliver@neukum.org>
 Date: Mon, 16 Apr 2012 15:28:28 +0200
 Subject: [PATCH 013/165] uwb: fix use of del_timer_sync() in interrupt
@@ -12,8 +12,8 @@ Signed-off-by: Oliver Neukum <oneukum@suse.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/uwb/neh.c |   12 +++++++++++-
- 1 files changed, 11 insertions(+), 1 deletions(-)
+ drivers/uwb/neh.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/uwb/neh.c b/drivers/uwb/neh.c
 index a269937..8cb71bb 100644
@@ -60,5 +60,5 @@ index a269937..8cb71bb 100644
  		__uwb_rc_neh_rm(rc, neh);
  	else
 -- 
-1.7.7.6
+1.8.1.4
 

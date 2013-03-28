@@ -1,0 +1,53 @@
+From 186391f43506dc383ddd7efc8ee23c9788977bb0 Mon Sep 17 00:00:00 2001
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+Date: Tue, 15 Jan 2013 18:51:32 +0100
+Subject: [PATCH 057/127] ARM: 7628/1: head.S: map one extra section for the
+ ATAG/DTB area
+
+commit 6f16f4998f98e42e3f2dedf663cfb691ff0324af upstream.
+
+We currently use a temporary 1MB section aligned to a 1MB boundary for
+mapping the provided device tree until the final page table is created.
+However, if the device tree happens to cross that 1MB boundary, the end
+of it remains unmapped and the kernel crashes when it attempts to access
+it.  Given no restriction on the location of that DTB, it could end up
+with only a few bytes mapped at the end of a section.
+
+Solve this issue by mapping two consecutive sections.
+
+Signed-off-by: Nicolas Pitre <nico@linaro.org>
+Tested-by: Sascha Hauer <s.hauer@pengutronix.de>
+Tested-by: Tomasz Figa <t.figa@samsung.com>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+[bwh: Backported to 3.2:
+ - Adjust context
+ - The mapping is not conditional; drop the 'ne' suffixes]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/arm/kernel/head.S | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/arch/arm/kernel/head.S b/arch/arm/kernel/head.S
+index 08c82fd..3606e85 100644
+--- a/arch/arm/kernel/head.S
++++ b/arch/arm/kernel/head.S
+@@ -221,6 +221,7 @@ __create_page_tables:
+ 	/*
+ 	 * Then map boot params address in r2 or
+ 	 * the first 1MB of ram if boot params address is not specified.
++	 * We map 2 sections in case the ATAGs/DTB crosses a section boundary.
+ 	 */
+ 	mov	r0, r2, lsr #SECTION_SHIFT
+ 	movs	r0, r0, lsl #SECTION_SHIFT
+@@ -229,6 +230,8 @@ __create_page_tables:
+ 	add	r3, r3, #PAGE_OFFSET
+ 	add	r3, r4, r3, lsr #(SECTION_SHIFT - PMD_ORDER)
+ 	orr	r6, r7, r0
++	str	r6, [r3], #1 << PMD_ORDER
++	add	r6, r6, #1 << SECTION_SHIFT
+ 	str	r6, [r3]
+ 
+ #ifdef CONFIG_DEBUG_LL
+-- 
+1.8.1.4
+

@@ -1,8 +1,7 @@
-From 299075570f234b39bf1753eb67bb0b6732b29536 Mon Sep 17 00:00:00 2001
+From 5e19ae990fdf3a149e113300235d2008d5e428b6 Mon Sep 17 00:00:00 2001
 From: Richard Genoud <richard.genoud@gmail.com>
 Date: Wed, 12 Sep 2012 14:26:26 +0200
-Subject: [PATCH 080/146] mtd: nandsim: bugfix: fail if overridesize is too
- big
+Subject: [PATCH 080/146] mtd: nandsim: bugfix: fail if overridesize is too big
 
 commit bb0a13a13411c4ce24c48c8ff3cdf7b48d237240 upstream.
 
@@ -17,7 +16,7 @@ Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 Signed-off-by: David Woodhouse <David.Woodhouse@intel.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/mtd/nand/nandsim.c |    1 +
+ drivers/mtd/nand/nandsim.c | 1 +
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/mtd/nand/nandsim.c b/drivers/mtd/nand/nandsim.c
@@ -33,5 +32,5 @@ index 83e8e1b..ade0da0 100644
  		}
  		/* N.B. This relies on nand_scan not doing anything with the size before we change it */
 -- 
-1.7.10.4
+1.8.1.4
 

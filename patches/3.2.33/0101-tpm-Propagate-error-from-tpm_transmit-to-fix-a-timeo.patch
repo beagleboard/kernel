@@ -1,4 +1,4 @@
-From 9882fd3c165d058cd07b07dcda172287a88ee784 Mon Sep 17 00:00:00 2001
+From 118b8581c60cc737c7111dcaaf7d5d36927da304 Mon Sep 17 00:00:00 2001
 From: Peter Huewe <peter.huewe@infineon.com>
 Date: Thu, 27 Sep 2012 16:09:33 +0200
 Subject: [PATCH 101/105] tpm: Propagate error from tpm_transmit to fix a
@@ -48,8 +48,8 @@ Signed-off-by: Kent Yoder <key@linux.vnet.ibm.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/char/tpm/tpm.c |   21 ++++++++++++++-------
- 1 files changed, 14 insertions(+), 7 deletions(-)
+ drivers/char/tpm/tpm.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/char/tpm/tpm.c b/drivers/char/tpm/tpm.c
 index b366b34..0d91655 100644
@@ -95,5 +95,5 @@ index b366b34..0d91655 100644
  	atomic_set(&chip->data_pending, out_size);
  	mutex_unlock(&chip->buffer_mutex);
 -- 
-1.7.7.6
+1.8.1.4
 

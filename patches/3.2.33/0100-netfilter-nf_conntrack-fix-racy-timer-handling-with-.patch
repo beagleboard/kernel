@@ -1,8 +1,8 @@
-From e4e60436368a49207c399521356a2342e2ec799a Mon Sep 17 00:00:00 2001
+From 751aab7af98de0cf5b517b8f938d90e635435dbd Mon Sep 17 00:00:00 2001
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Date: Wed, 29 Aug 2012 16:25:49 +0000
-Subject: [PATCH 100/105] netfilter: nf_conntrack: fix racy timer handling
- with reliable events
+Subject: [PATCH 100/105] netfilter: nf_conntrack: fix racy timer handling with
+ reliable events
 
 commit 5b423f6a40a0327f9d40bc8b97ce9be266f74368 upstream.
 
@@ -24,8 +24,8 @@ Acked-by: David Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/net/netfilter/nf_conntrack_ecache.h |    1 +
- net/netfilter/nf_conntrack_core.c           |   16 +++++++++++-----
+ include/net/netfilter/nf_conntrack_ecache.h |  1 +
+ net/netfilter/nf_conntrack_core.c           | 16 +++++++++++-----
  2 files changed, 12 insertions(+), 5 deletions(-)
 
 diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
@@ -87,5 +87,5 @@ index 1d15193..7489bd3 100644
  EXPORT_SYMBOL_GPL(nf_ct_insert_dying_list);
  
 -- 
-1.7.7.6
+1.8.1.4
 

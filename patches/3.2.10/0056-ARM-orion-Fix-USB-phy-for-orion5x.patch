@@ -1,4 +1,4 @@
-From ee427101b681930d78c61d9a2bae899e404e5ea9 Mon Sep 17 00:00:00 2001
+From 48da32630ec6076a647982113c744092aafac107 Mon Sep 17 00:00:00 2001
 From: Andrew Lunn <andrew@lunn.ch>
 Date: Wed, 8 Feb 2012 15:52:47 +0100
 Subject: [PATCH 56/95] ARM: orion: Fix USB phy for orion5x.
@@ -23,12 +23,12 @@ Acked-by: Nicolas Pitre <nico@linaro.org>
 Signed-off-by: Olof Johansson <olof@lixom.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/arm/mach-dove/common.c               |    3 ++-
- arch/arm/mach-kirkwood/common.c           |    3 ++-
- arch/arm/mach-mv78xx0/common.c            |    3 ++-
- arch/arm/mach-orion5x/common.c            |    4 +++-
- arch/arm/plat-orion/common.c              |    9 ++++-----
- arch/arm/plat-orion/include/plat/common.h |    3 ++-
+ arch/arm/mach-dove/common.c               | 3 ++-
+ arch/arm/mach-kirkwood/common.c           | 3 ++-
+ arch/arm/mach-mv78xx0/common.c            | 3 ++-
+ arch/arm/mach-orion5x/common.c            | 4 +++-
+ arch/arm/plat-orion/common.c              | 9 ++++-----
+ arch/arm/plat-orion/include/plat/common.h | 3 ++-
  6 files changed, 15 insertions(+), 10 deletions(-)
 
 diff --git a/arch/arm/mach-dove/common.c b/arch/arm/mach-dove/common.c
@@ -160,5 +160,5 @@ index a63c357..a2c0e31 100644
  void __init orion_ehci_1_init(struct mbus_dram_target_info *mbus_dram_info,
  			      unsigned long mapbase,
 -- 
-1.7.7.6
+1.8.1.4
 

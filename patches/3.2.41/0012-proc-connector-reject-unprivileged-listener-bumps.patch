@@ -1,0 +1,53 @@
+From 39618b2ed4b5d9c5e7e03cbcc926b754c3f762fc Mon Sep 17 00:00:00 2001
+From: Kees Cook <keescook@chromium.org>
+Date: Mon, 25 Feb 2013 21:32:25 +0000
+Subject: [PATCH 12/82] proc connector: reject unprivileged listener bumps
+
+commit e70ab977991964a5a7ad1182799451d067e62669 upstream.
+
+While PROC_CN_MCAST_LISTEN/IGNORE is entirely advisory, it was possible
+for an unprivileged user to turn off notifications for all listeners by
+sending PROC_CN_MCAST_IGNORE. Instead, require the same privileges as
+required for a multicast bind.
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Evgeniy Polyakov <zbr@ioremap.net>
+Cc: Matt Helsley <matthltc@us.ibm.com>
+Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
+Acked-by: Matt Helsley <matthltc@us.ibm.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/connector/cn_proc.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/connector/cn_proc.c b/drivers/connector/cn_proc.c
+index 77e1e6c..46bbf43 100644
+--- a/drivers/connector/cn_proc.c
++++ b/drivers/connector/cn_proc.c
+@@ -303,6 +303,12 @@ static void cn_proc_mcast_ctl(struct cn_msg *msg,
+ 	if (msg->len != sizeof(*mc_op))
+ 		return;
+ 
++	/* Can only change if privileged. */
++	if (!capable(CAP_NET_ADMIN)) {
++		err = EPERM;
++		goto out;
++	}
++
+ 	mc_op = (enum proc_cn_mcast_op*)msg->data;
+ 	switch (*mc_op) {
+ 	case PROC_CN_MCAST_LISTEN:
+@@ -315,6 +321,8 @@ static void cn_proc_mcast_ctl(struct cn_msg *msg,
+ 		err = EINVAL;
+ 		break;
+ 	}
++
++out:
+ 	cn_proc_ack(err, msg->seq, msg->ack);
+ }
+ 
+-- 
+1.8.1.4
+

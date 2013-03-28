@@ -1,4 +1,4 @@
-From 7c3ec6f8a03988dd63c6ecab491d357e9fa8f0f6 Mon Sep 17 00:00:00 2001
+From 7940f9f6c21749ef4263f5faf9da4f27b26b2461 Mon Sep 17 00:00:00 2001
 From: Richard Weinberger <richard@nod.at>
 Date: Sat, 14 Apr 2012 17:46:01 +0200
 Subject: [PATCH 068/117] um: Fix __swp_type()
@@ -13,8 +13,8 @@ Analyzed-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/um/include/asm/pgtable.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/um/include/asm/pgtable.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/um/include/asm/pgtable.h b/arch/um/include/asm/pgtable.h
 index 0fea0ec..aa365c5 100644
@@ -35,5 +35,5 @@ index 0fea0ec..aa365c5 100644
  	((swp_entry_t) { pte_val(pte_mkuptodate(pte)) })
  #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
 -- 
-1.7.7.6
+1.8.1.4
 

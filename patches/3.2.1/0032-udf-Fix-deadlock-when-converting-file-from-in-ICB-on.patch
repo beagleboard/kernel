@@ -1,4 +1,4 @@
-From b46fa7d61c09811652bc1feae5851e46a124e844 Mon Sep 17 00:00:00 2001
+From dabe2e0d6c4a7f694bda39da3f54c379e386e56d Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Sat, 10 Dec 2011 02:30:48 +0100
 Subject: [PATCH 32/49] udf: Fix deadlock when converting file from in-ICB one
@@ -21,8 +21,8 @@ Reviewed-by: Namjae Jeon <linkinjeon@gmail.com>
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- fs/udf/file.c  |    6 +++---
- fs/udf/inode.c |   21 ++++++++++++++++++---
+ fs/udf/file.c  |  6 +++---
+ fs/udf/inode.c | 21 ++++++++++++++++++---
  2 files changed, 21 insertions(+), 6 deletions(-)
 
 diff --git a/fs/udf/file.c b/fs/udf/file.c
@@ -126,5 +126,5 @@ index 4fd1d80..e2787d0 100644
  				iinfo->i_lenAlloc = newsize;
  		}
 -- 
-1.7.7.6
+1.8.1.4
 

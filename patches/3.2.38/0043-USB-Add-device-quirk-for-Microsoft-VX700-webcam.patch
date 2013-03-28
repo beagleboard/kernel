@@ -1,0 +1,35 @@
+From 1449b4d9ecbc97c9bb5102eac6faeb31345fd396 Mon Sep 17 00:00:00 2001
+From: Andreas Fleig <andreasfleig@gmail.com>
+Date: Wed, 5 Dec 2012 16:17:49 +0100
+Subject: [PATCH 043/127] USB: Add device quirk for Microsoft VX700 webcam
+
+commit bc009eca8d539162f7271c2daf0ab5e9e3bb90a0 upstream.
+
+Add device quirk for Microsoft Lifecam VX700 v2.0 webcams.
+Fixes squeaking noise of the microphone.
+
+Signed-off-by: Andreas Fleig <andreasfleig@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/core/quirks.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/usb/core/quirks.c b/drivers/usb/core/quirks.c
+index 8b2a9d8..3f08c09 100644
+--- a/drivers/usb/core/quirks.c
++++ b/drivers/usb/core/quirks.c
+@@ -38,6 +38,9 @@ static const struct usb_device_id usb_quirk_list[] = {
+ 	/* Creative SB Audigy 2 NX */
+ 	{ USB_DEVICE(0x041e, 0x3020), .driver_info = USB_QUIRK_RESET_RESUME },
+ 
++	/* Microsoft LifeCam-VX700 v2.0 */
++	{ USB_DEVICE(0x045e, 0x0770), .driver_info = USB_QUIRK_RESET_RESUME },
++
+ 	/* Logitech Webcam C200 */
+ 	{ USB_DEVICE(0x046d, 0x0802), .driver_info = USB_QUIRK_RESET_RESUME },
+ 
+-- 
+1.8.1.4
+

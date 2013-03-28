@@ -1,4 +1,4 @@
-From c3bc6eddb4223bf7488a310d8488b681cf782eab Mon Sep 17 00:00:00 2001
+From 8ee91403bf5c227ceb8fafcb8737efa0369d136f Mon Sep 17 00:00:00 2001
 From: Alex Deucher <alexander.deucher@amd.com>
 Date: Tue, 31 Jul 2012 11:01:10 -0400
 Subject: [PATCH 35/38] drm/radeon: fix bank tiling parameters on evergreen
@@ -10,8 +10,8 @@ Handle the 16 bank case.
 Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/radeon/evergreen.c |   14 +++++++++++---
- 1 files changed, 11 insertions(+), 3 deletions(-)
+ drivers/gpu/drm/radeon/evergreen.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/radeon/evergreen.c b/drivers/gpu/drm/radeon/evergreen.c
 index 931f4df..3fdbdd1 100644
@@ -40,5 +40,5 @@ index 931f4df..3fdbdd1 100644
  	rdev->config.evergreen.tile_config |=
  		((mc_arb_ramcfg & BURSTLENGTH_MASK) >> BURSTLENGTH_SHIFT) << 8;
 -- 
-1.7.7.6
+1.8.1.4
 

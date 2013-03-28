@@ -1,0 +1,59 @@
+From a9232d3e06fdd30065f638ea7a609f6448fec105 Mon Sep 17 00:00:00 2001
+From: Cong Wang <amwang@redhat.com>
+Date: Sun, 27 Jan 2013 21:14:08 +0000
+Subject: [PATCH 49/67] pktgen: correctly handle failures when adding a device
+
+[ Upstream commit 604dfd6efc9b79bce432f2394791708d8e8f6efc ]
+
+The return value of pktgen_add_device() is not checked, so
+even if we fail to add some device, for example, non-exist one,
+we still see "OK:...". This patch fixes it.
+
+After this patch, I got:
+
+	# echo "add_device non-exist" > /proc/net/pktgen/kpktgend_0
+	-bash: echo: write error: No such device
+	# cat /proc/net/pktgen/kpktgend_0
+	Running:
+	Stopped:
+	Result: ERROR: can not add device non-exist
+	# echo "add_device eth0" > /proc/net/pktgen/kpktgend_0
+	# cat /proc/net/pktgen/kpktgend_0
+	Running:
+	Stopped: eth0
+	Result: OK: add_device=eth0
+
+(Candidate for -stable)
+
+Cc: David S. Miller <davem@davemloft.net>
+Signed-off-by: Cong Wang <amwang@redhat.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/core/pktgen.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/net/core/pktgen.c b/net/core/pktgen.c
+index 7bc9991..2ef7da0 100644
+--- a/net/core/pktgen.c
++++ b/net/core/pktgen.c
+@@ -1803,10 +1803,13 @@ static ssize_t pktgen_thread_write(struct file *file,
+ 			return -EFAULT;
+ 		i += len;
+ 		mutex_lock(&pktgen_thread_lock);
+-		pktgen_add_device(t, f);
++		ret = pktgen_add_device(t, f);
+ 		mutex_unlock(&pktgen_thread_lock);
+-		ret = count;
+-		sprintf(pg_result, "OK: add_device=%s", f);
++		if (!ret) {
++			ret = count;
++			sprintf(pg_result, "OK: add_device=%s", f);
++		} else
++			sprintf(pg_result, "ERROR: can not add device %s", f);
+ 		goto out;
+ 	}
+ 
+-- 
+1.8.1.4
+

@@ -1,0 +1,33 @@
+From 0dd8058256f2c2a7ee13845324b16561bb90d812 Mon Sep 17 00:00:00 2001
+From: "David S. Miller" <davem@davemloft.net>
+Date: Thu, 14 Feb 2013 11:49:01 -0800
+Subject: [PATCH 001/153] sunvdc: Fix off-by-one in generic_request().
+
+[ Upstream commit f4d9605434c0fd4cc8639bf25cfc043418c52362 ]
+
+The 'operations' bitmap corresponds one-for-one with the operation
+codes, no adjustment is necessary.
+
+Reported-by: Mark Kettenis <mark.kettenis@xs4all.nl>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/block/sunvdc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/block/sunvdc.c b/drivers/block/sunvdc.c
+index 48e8fee..94f6ae2 100644
+--- a/drivers/block/sunvdc.c
++++ b/drivers/block/sunvdc.c
+@@ -461,7 +461,7 @@ static int generic_request(struct vdc_port *port, u8 op, void *buf, int len)
+ 	int op_len, err;
+ 	void *req_buf;
+ 
+-	if (!(((u64)1 << ((u64)op - 1)) & port->operations))
++	if (!(((u64)1 << (u64)op) & port->operations))
+ 		return -EOPNOTSUPP;
+ 
+ 	switch (op) {
+-- 
+1.8.1.4
+

@@ -1,4 +1,4 @@
-From b24954a8459688bfcf03be637f83df1ec1fbc08a Mon Sep 17 00:00:00 2001
+From 30b4530f4c342144e80e927d2228fd190d197724 Mon Sep 17 00:00:00 2001
 From: Dan Carpenter <dan.carpenter@oracle.com>
 Date: Sat, 3 Mar 2012 12:09:17 +0100
 Subject: [PATCH 30/42] block, sx8: fix pointer math issue getting fw version
@@ -13,8 +13,8 @@ Acked-by: Jeff Garzik <jgarzik@redhat.com>
 Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/block/sx8.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/block/sx8.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/block/sx8.c b/drivers/block/sx8.c
 index b70f0fc..eec7b7a 100644
@@ -30,5 +30,5 @@ index b70f0fc..eec7b7a 100644
  				host->fw_ver = le32_to_cpu(ver->version);
  				host->flags |= (ver->features & FL_FW_VER_MASK);
 -- 
-1.7.7.6
+1.8.1.4
 

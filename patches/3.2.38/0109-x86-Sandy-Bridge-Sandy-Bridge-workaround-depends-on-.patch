@@ -1,0 +1,41 @@
+From dfc9c4aecba3520da0b9c711dec92f860e026b75 Mon Sep 17 00:00:00 2001
+From: "H. Peter Anvin" <hpa@linux.intel.com>
+Date: Sun, 13 Jan 2013 20:56:41 -0800
+Subject: [PATCH 109/127] x86/Sandy Bridge: Sandy Bridge workaround depends on
+ CONFIG_PCI
+
+commit e43b3cec711a61edf047adf6204d542f3a659ef8 upstream.
+
+early_pci_allowed() and read_pci_config_16() are only available if
+CONFIG_PCI is defined.
+
+Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kernel/setup.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 4c2e927..b506f41 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -633,6 +633,7 @@ static unsigned reserve_low = CONFIG_X86_RESERVE_LOW << 10;
+ 
+ static bool __init snb_gfx_workaround_needed(void)
+ {
++#ifdef CONFIG_PCI
+ 	int i;
+ 	u16 vendor, devid;
+ 	static const __initconst u16 snb_ids[] = {
+@@ -657,6 +658,7 @@ static bool __init snb_gfx_workaround_needed(void)
+ 	for (i = 0; i < ARRAY_SIZE(snb_ids); i++)
+ 		if (devid == snb_ids[i])
+ 			return true;
++#endif
+ 
+ 	return false;
+ }
+-- 
+1.8.1.4
+

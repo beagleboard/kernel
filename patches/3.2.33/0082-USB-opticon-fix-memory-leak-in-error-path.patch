@@ -1,4 +1,4 @@
-From 2cc9340529fc07f37b905a1da1e3ce408a54c7d5 Mon Sep 17 00:00:00 2001
+From 14910b1b382e0c044464741e76622bf5b9e9348e Mon Sep 17 00:00:00 2001
 From: Johan Hovold <jhovold@gmail.com>
 Date: Thu, 25 Oct 2012 10:29:12 +0200
 Subject: [PATCH 082/105] USB: opticon: fix memory leak in error path
@@ -11,8 +11,8 @@ Signed-off-by: Johan Hovold <jhovold@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/serial/opticon.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/usb/serial/opticon.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/serial/opticon.c b/drivers/usb/serial/opticon.c
 index 5b83e10..d6c5ed6 100644
@@ -37,5 +37,5 @@ index 5b83e10..d6c5ed6 100644
  error_no_urb:
  	kfree(buffer);
 -- 
-1.7.7.6
+1.8.1.4
 

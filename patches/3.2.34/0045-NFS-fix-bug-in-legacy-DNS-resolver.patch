@@ -1,4 +1,4 @@
-From ff86c75d7b1b2271507d337206e2bf1763d1f0d3 Mon Sep 17 00:00:00 2001
+From 9bc0bf917dea286154d1702d936fc2395c5a8478 Mon Sep 17 00:00:00 2001
 From: NeilBrown <neilb@suse.de>
 Date: Wed, 31 Oct 2012 12:16:01 +1100
 Subject: [PATCH 45/83] NFS: fix bug in legacy DNS resolver.
@@ -27,8 +27,8 @@ Signed-off-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/nfs/dns_resolve.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ fs/nfs/dns_resolve.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/fs/nfs/dns_resolve.c b/fs/nfs/dns_resolve.c
 index a6e711a..ee02db5 100644
@@ -54,5 +54,5 @@ index a6e711a..ee02db5 100644
  		goto out;
  	key.h.expiry_time = ttl + seconds_since_boot();
 -- 
-1.7.7.6
+1.8.1.4
 

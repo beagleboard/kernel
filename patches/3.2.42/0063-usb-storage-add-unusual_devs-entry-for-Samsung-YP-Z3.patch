@@ -1,0 +1,41 @@
+From 09edc451687e22158eaa7cab96fcade49c324047 Mon Sep 17 00:00:00 2001
+From: Dmitry Artamonow <mad_soft@inbox.ru>
+Date: Sat, 9 Mar 2013 20:30:58 +0400
+Subject: [PATCH 63/92] usb-storage: add unusual_devs entry for Samsung YP-Z3
+ mp3 player
+
+commit 29f86e66428ee083aec106cca1748dc63d98ce23 upstream.
+
+Device stucks on filesystem writes, unless following quirk is passed:
+  echo 04e8:5136:m > /sys/module/usb_storage/parameters/quirks
+
+Add corresponding entry to unusual_devs.h
+
+Signed-off-by: Dmitry Artamonow <mad_soft@inbox.ru>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/storage/unusual_devs.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/usb/storage/unusual_devs.h b/drivers/usb/storage/unusual_devs.h
+index fa8a1b2..7b8d564 100644
+--- a/drivers/usb/storage/unusual_devs.h
++++ b/drivers/usb/storage/unusual_devs.h
+@@ -488,6 +488,13 @@ UNUSUAL_DEV(  0x04e8, 0x5122, 0x0000, 0x9999,
+ 		USB_SC_DEVICE, USB_PR_DEVICE, NULL,
+ 		US_FL_MAX_SECTORS_64 | US_FL_BULK_IGNORE_TAG),
+ 
++/* Added by Dmitry Artamonow <mad_soft@inbox.ru> */
++UNUSUAL_DEV(  0x04e8, 0x5136, 0x0000, 0x9999,
++		"Samsung",
++		"YP-Z3",
++		USB_SC_DEVICE, USB_PR_DEVICE, NULL,
++		US_FL_MAX_SECTORS_64),
++
+ /* Entry and supporting patch by Theodore Kilgore <kilgota@auburn.edu>.
+  * Device uses standards-violating 32-byte Bulk Command Block Wrappers and
+  * reports itself as "Proprietary SCSI Bulk." Cf. device entry 0x084d:0x0011.
+-- 
+1.8.1.4
+

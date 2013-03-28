@@ -1,4 +1,4 @@
-From b06ed891ea35fd6b6dd19c3d43099c245f97e3c5 Mon Sep 17 00:00:00 2001
+From 9f3053457d191cd09a12d66b9bb6ef5f9be473f1 Mon Sep 17 00:00:00 2001
 From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
 Date: Tue, 31 Jul 2012 16:45:52 -0700
 Subject: [PATCH 55/70] mm: mmu_notifier: fix freed page still mapped in
@@ -45,8 +45,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- mm/mmu_notifier.c |   45 +++++++++++++++++++++++----------------------
- 1 files changed, 23 insertions(+), 22 deletions(-)
+ mm/mmu_notifier.c | 45 +++++++++++++++++++++++----------------------
+ 1 file changed, 23 insertions(+), 22 deletions(-)
 
 diff --git a/mm/mmu_notifier.c b/mm/mmu_notifier.c
 index 9a611d3..862b608 100644
@@ -133,5 +133,5 @@ index 9a611d3..862b608 100644
  	/*
  	 * Wait any running method to finish, of course including
 -- 
-1.7.7.6
+1.8.1.4
 

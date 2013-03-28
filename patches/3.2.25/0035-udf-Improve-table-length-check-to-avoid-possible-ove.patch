@@ -1,4 +1,4 @@
-From 98e04346078b0b247f7bbdf1f41277c90bd8fe80 Mon Sep 17 00:00:00 2001
+From 995f7800d1f4068662145bb90d03612512ac3f55 Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Tue, 10 Jul 2012 17:58:04 +0200
 Subject: [PATCH 35/73] udf: Improve table length check to avoid possible
@@ -15,8 +15,8 @@ Reported-by: Ben Hutchings <ben@decadent.org.uk>
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/udf/super.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ fs/udf/super.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/fs/udf/super.c b/fs/udf/super.c
 index 270e135..516b7f0 100644
@@ -32,5 +32,5 @@ index 270e135..516b7f0 100644
  			"Partition table too long (%u > %lu)\n", table_len,
  			sb->s_blocksize - sizeof(*lvd));
 -- 
-1.7.7.6
+1.8.1.4
 

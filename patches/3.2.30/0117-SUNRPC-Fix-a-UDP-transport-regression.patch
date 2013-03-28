@@ -1,4 +1,4 @@
-From 667f7060793c632568976b8aff64cf7a5e7b0f87 Mon Sep 17 00:00:00 2001
+From 8164aa17fe3042f7acaf0ae3c2eeb36e086f5329 Mon Sep 17 00:00:00 2001
 From: Trond Myklebust <Trond.Myklebust@netapp.com>
 Date: Fri, 7 Sep 2012 11:08:50 -0400
 Subject: [PATCH 117/135] SUNRPC: Fix a UDP transport regression
@@ -21,10 +21,10 @@ Reported-by: Dick Streefland <dick.streefland@altium.nl>
 Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/sunrpc/xprt.h     |    3 +++
- net/sunrpc/xprt.c               |   34 ++++++++++++++++++++--------------
- net/sunrpc/xprtrdma/transport.c |    1 +
- net/sunrpc/xprtsock.c           |    3 +++
+ include/linux/sunrpc/xprt.h     |  3 +++
+ net/sunrpc/xprt.c               | 34 ++++++++++++++++++++--------------
+ net/sunrpc/xprtrdma/transport.c |  1 +
+ net/sunrpc/xprtsock.c           |  3 +++
  4 files changed, 27 insertions(+), 14 deletions(-)
 
 diff --git a/include/linux/sunrpc/xprt.h b/include/linux/sunrpc/xprt.h
@@ -159,5 +159,5 @@ index 1a6edc7..c5391af 100644
  	.set_port		= xs_set_port,
  	.connect		= xs_connect,
 -- 
-1.7.7.6
+1.8.1.4
 

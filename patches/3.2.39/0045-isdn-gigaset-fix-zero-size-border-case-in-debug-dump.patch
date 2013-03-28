@@ -1,0 +1,34 @@
+From e8243ae664d42a7e9d5dde26d0127c406051e8f1 Mon Sep 17 00:00:00 2001
+From: Tilman Schmidt <tilman@imap.cc>
+Date: Mon, 21 Jan 2013 11:57:21 +0000
+Subject: [PATCH 45/67] isdn/gigaset: fix zero size border case in debug dump
+
+[ Upstream commit d721a1752ba544df8d7d36959038b26bc92bdf80 ]
+
+If subtracting 12 from l leaves zero we'd do a zero size allocation,
+leading to an oops later when we try to set the NUL terminator.
+
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Tilman Schmidt <tilman@imap.cc>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/isdn/gigaset/capi.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/isdn/gigaset/capi.c b/drivers/isdn/gigaset/capi.c
+index fd17bb3..08c2329 100644
+--- a/drivers/isdn/gigaset/capi.c
++++ b/drivers/isdn/gigaset/capi.c
+@@ -264,6 +264,8 @@ static inline void dump_rawmsg(enum debuglevel level, const char *tag,
+ 		CAPIMSG_APPID(data), CAPIMSG_MSGID(data), l,
+ 		CAPIMSG_CONTROL(data));
+ 	l -= 12;
++	if (l <= 0)
++		return;
+ 	dbgline = kmalloc(3*l, GFP_ATOMIC);
+ 	if (!dbgline)
+ 		return;
+-- 
+1.8.1.4
+

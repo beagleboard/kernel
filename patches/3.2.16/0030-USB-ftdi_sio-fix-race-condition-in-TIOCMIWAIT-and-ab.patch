@@ -1,4 +1,4 @@
-From 9408551d4018c516ed2e5d93cc8e526089fbca38 Mon Sep 17 00:00:00 2001
+From 99f947e457d049e776ab08f86c8df417861eee41 Mon Sep 17 00:00:00 2001
 From: Simon Arlott <simon@fire.lp0.eu>
 Date: Mon, 26 Mar 2012 23:27:59 +0100
 Subject: [PATCH 30/68] USB: ftdi_sio: fix race condition in TIOCMIWAIT, and
@@ -47,8 +47,8 @@ return -EIO.
 Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/serial/ftdi_sio.c |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/usb/serial/ftdi_sio.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/serial/ftdi_sio.c b/drivers/usb/serial/ftdi_sio.c
 index cfc8e59..c4cf3f3 100644
@@ -107,5 +107,5 @@ index cfc8e59..c4cf3f3 100644
  	case TIOCSERGETLSR:
  		return get_lsr_info(port, (struct serial_struct __user *)arg);
 -- 
-1.7.7.6
+1.8.1.4
 

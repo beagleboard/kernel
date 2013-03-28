@@ -1,4 +1,4 @@
-From 12e2f696592c25e9e356e25ab4480d9b734dc739 Mon Sep 17 00:00:00 2001
+From 65ba3f9f253cd7f667b9ef0bd98bf1179cb9c610 Mon Sep 17 00:00:00 2001
 From: Steffen Maier <maier@linux.vnet.ibm.com>
 Date: Tue, 4 Sep 2012 15:23:34 +0200
 Subject: [PATCH 048/146] zfcp: restore refcount check on port_remove
@@ -22,11 +22,11 @@ Reviewed-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: James Bottomley <JBottomley@Parallels.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/s390/scsi/zfcp_aux.c   |    1 +
- drivers/s390/scsi/zfcp_def.h   |    1 +
- drivers/s390/scsi/zfcp_ext.h   |    1 +
- drivers/s390/scsi/zfcp_sysfs.c |   18 ++++++++++++++++--
- drivers/s390/scsi/zfcp_unit.c  |   36 ++++++++++++++++++++++++++----------
+ drivers/s390/scsi/zfcp_aux.c   |  1 +
+ drivers/s390/scsi/zfcp_def.h   |  1 +
+ drivers/s390/scsi/zfcp_ext.h   |  1 +
+ drivers/s390/scsi/zfcp_sysfs.c | 18 ++++++++++++++++--
+ drivers/s390/scsi/zfcp_unit.c  | 36 ++++++++++++++++++++++++++----------
  5 files changed, 45 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/s390/scsi/zfcp_aux.c b/drivers/s390/scsi/zfcp_aux.c
@@ -197,5 +197,5 @@ index 20796eb..4e6a535 100644
  
  /**
 -- 
-1.7.10.4
+1.8.1.4
 

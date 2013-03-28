@@ -1,0 +1,48 @@
+From c86c5d1bd70e142c1556ea0df6d22306614cf764 Mon Sep 17 00:00:00 2001
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Sun, 17 Mar 2013 15:44:43 -0700
+Subject: [PATCH 03/92] perf,x86: fix wrmsr_on_cpu() warning on suspend/resume
+
+commit 2a6e06b2aed6995af401dcd4feb5e79a0c7ea554 upstream.
+
+Commit 1d9d8639c063 ("perf,x86: fix kernel crash with PEBS/BTS after
+suspend/resume") fixed a crash when doing PEBS performance profiling
+after resuming, but in using init_debug_store_on_cpu() to restore the
+DS_AREA mtrr it also resulted in a new WARN_ON() triggering.
+
+init_debug_store_on_cpu() uses "wrmsr_on_cpu()", which in turn uses CPU
+cross-calls to do the MSR update.  Which is not really valid at the
+early resume stage, and the warning is quite reasonable.  Now, it all
+happens to _work_, for the simple reason that smp_call_function_single()
+ends up just doing the call directly on the CPU when the CPU number
+matches, but we really should just do the wrmsr() directly instead.
+
+This duplicates the wrmsr() logic, but hopefully we can just remove the
+wrmsr_on_cpu() version eventually.
+
+Reported-and-tested-by: Parag Warudkar <parag.lkml@gmail.com>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ arch/x86/kernel/cpu/perf_event_intel_ds.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/arch/x86/kernel/cpu/perf_event_intel_ds.c b/arch/x86/kernel/cpu/perf_event_intel_ds.c
+index 41a7d21..2d4e76b 100644
+--- a/arch/x86/kernel/cpu/perf_event_intel_ds.c
++++ b/arch/x86/kernel/cpu/perf_event_intel_ds.c
+@@ -739,8 +739,10 @@ void intel_ds_init(void)
+ 
+ void perf_restore_debug_store(void)
+ {
++	struct debug_store *ds = __this_cpu_read(cpu_hw_events.ds);
++
+ 	if (!x86_pmu.bts && !x86_pmu.pebs)
+ 		return;
+ 
+-	init_debug_store_on_cpu(smp_processor_id());
++	wrmsrl(MSR_IA32_DS_AREA, (unsigned long)ds);
+ }
+-- 
+1.8.1.4
+

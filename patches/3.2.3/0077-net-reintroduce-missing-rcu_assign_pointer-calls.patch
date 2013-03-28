@@ -1,4 +1,4 @@
-From a30a721c069d286b02dcde82b3f04800a4043eeb Mon Sep 17 00:00:00 2001
+From 1f9c34ae365622b5b4b430ee75b7ac51fdfe3155 Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Date: Thu, 12 Jan 2012 04:41:32 +0000
 Subject: [PATCH 77/90] net: reintroduce missing rcu_assign_pointer() calls
@@ -18,38 +18,38 @@ CC: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/core/net-sysfs.c                 |    6 +++---
- net/core/netpoll.c                   |    2 +-
- net/decnet/dn_dev.c                  |    4 ++--
- net/ipv4/devinet.c                   |    2 +-
- net/ipv4/fib_trie.c                  |   10 +++++-----
- net/ipv4/igmp.c                      |    8 ++++----
- net/ipv4/ipip.c                      |    8 ++++----
- net/ipv4/ipmr.c                      |    2 +-
- net/ipv6/addrconf.c                  |    2 +-
- net/ipv6/ip6_tunnel.c                |    8 ++++----
- net/ipv6/raw.c                       |    2 +-
- net/ipv6/sit.c                       |   10 +++++-----
- net/mac80211/agg-rx.c                |    2 +-
- net/mac80211/cfg.c                   |    4 ++--
- net/mac80211/ibss.c                  |    2 +-
- net/mac80211/sta_info.c              |    6 +++---
- net/netfilter/nf_conntrack_core.c    |    2 +-
- net/netfilter/nf_conntrack_ecache.c  |    4 ++--
- net/netfilter/nf_conntrack_extend.c  |    2 +-
- net/netfilter/nf_conntrack_helper.c  |    2 +-
- net/netfilter/nf_conntrack_netlink.c |    2 +-
- net/netfilter/nf_log.c               |    6 +++---
- net/netfilter/nf_queue.c             |    2 +-
- net/netfilter/nfnetlink.c            |    4 ++--
- net/netlabel/netlabel_domainhash.c   |    4 ++--
- net/netlabel/netlabel_unlabeled.c    |    6 ++----
- net/phonet/af_phonet.c               |    2 +-
- net/phonet/pn_dev.c                  |    2 +-
- net/phonet/socket.c                  |    2 +-
- net/socket.c                         |    2 +-
- net/sunrpc/auth_gss/auth_gss.c       |    2 +-
- net/xfrm/xfrm_user.c                 |    2 +-
+ net/core/net-sysfs.c                 |  6 +++---
+ net/core/netpoll.c                   |  2 +-
+ net/decnet/dn_dev.c                  |  4 ++--
+ net/ipv4/devinet.c                   |  2 +-
+ net/ipv4/fib_trie.c                  | 10 +++++-----
+ net/ipv4/igmp.c                      |  8 ++++----
+ net/ipv4/ipip.c                      |  8 ++++----
+ net/ipv4/ipmr.c                      |  2 +-
+ net/ipv6/addrconf.c                  |  2 +-
+ net/ipv6/ip6_tunnel.c                |  8 ++++----
+ net/ipv6/raw.c                       |  2 +-
+ net/ipv6/sit.c                       | 10 +++++-----
+ net/mac80211/agg-rx.c                |  2 +-
+ net/mac80211/cfg.c                   |  4 ++--
+ net/mac80211/ibss.c                  |  2 +-
+ net/mac80211/sta_info.c              |  6 +++---
+ net/netfilter/nf_conntrack_core.c    |  2 +-
+ net/netfilter/nf_conntrack_ecache.c  |  4 ++--
+ net/netfilter/nf_conntrack_extend.c  |  2 +-
+ net/netfilter/nf_conntrack_helper.c  |  2 +-
+ net/netfilter/nf_conntrack_netlink.c |  2 +-
+ net/netfilter/nf_log.c               |  6 +++---
+ net/netfilter/nf_queue.c             |  2 +-
+ net/netfilter/nfnetlink.c            |  4 ++--
+ net/netlabel/netlabel_domainhash.c   |  4 ++--
+ net/netlabel/netlabel_unlabeled.c    |  6 ++----
+ net/phonet/af_phonet.c               |  2 +-
+ net/phonet/pn_dev.c                  |  2 +-
+ net/phonet/socket.c                  |  2 +-
+ net/socket.c                         |  2 +-
+ net/sunrpc/auth_gss/auth_gss.c       |  2 +-
+ net/xfrm/xfrm_user.c                 |  2 +-
  32 files changed, 61 insertions(+), 63 deletions(-)
 
 diff --git a/net/core/net-sysfs.c b/net/core/net-sysfs.c
@@ -299,7 +299,7 @@ index 4e2e9ff..d19f499 100644
  }
  
 diff --git a/net/ipv6/raw.c b/net/ipv6/raw.c
-index 331af3b..361ebf3 100644
+index 331af3b8..361ebf3 100644
 --- a/net/ipv6/raw.c
 +++ b/net/ipv6/raw.c
 @@ -131,7 +131,7 @@ static mh_filter_t __rcu *mh_filter __read_mostly;
@@ -699,5 +699,5 @@ index d0a42df..7cae73e 100644
  }
  
 -- 
-1.7.7.6
+1.8.1.4
 

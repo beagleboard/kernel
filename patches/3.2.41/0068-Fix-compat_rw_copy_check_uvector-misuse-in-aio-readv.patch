@@ -1,0 +1,135 @@
+From 66a47c2cbec5d6fc1eb66f10f744771a7359befe Mon Sep 17 00:00:00 2001
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Date: Mon, 25 Feb 2013 10:20:36 -0500
+Subject: [PATCH 68/82] Fix: compat_rw_copy_check_uvector() misuse in aio,
+ readv, writev, and security keys
+
+commit 8aec0f5d4137532de14e6554fd5dd201ff3a3c49 upstream.
+
+Looking at mm/process_vm_access.c:process_vm_rw() and comparing it to
+compat_process_vm_rw() shows that the compatibility code requires an
+explicit "access_ok()" check before calling
+compat_rw_copy_check_uvector(). The same difference seems to appear when
+we compare fs/read_write.c:do_readv_writev() to
+fs/compat.c:compat_do_readv_writev().
+
+This subtle difference between the compat and non-compat requirements
+should probably be debated, as it seems to be error-prone. In fact,
+there are two others sites that use this function in the Linux kernel,
+and they both seem to get it wrong:
+
+Now shifting our attention to fs/aio.c, we see that aio_setup_iocb()
+also ends up calling compat_rw_copy_check_uvector() through
+aio_setup_vectored_rw(). Unfortunately, the access_ok() check appears to
+be missing. Same situation for
+security/keys/compat.c:compat_keyctl_instantiate_key_iov().
+
+I propose that we add the access_ok() check directly into
+compat_rw_copy_check_uvector(), so callers don't have to worry about it,
+and it therefore makes the compat call code similar to its non-compat
+counterpart. Place the access_ok() check in the same location where
+copy_from_user() can trigger a -EFAULT error in the non-compat code, so
+the ABI behaviors are alike on both compat and non-compat.
+
+While we are here, fix compat_do_readv_writev() so it checks for
+compat_rw_copy_check_uvector() negative return values.
+
+And also, fix a memory leak in compat_keyctl_instantiate_key_iov() error
+handling.
+
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ fs/compat.c            | 15 +++++++--------
+ mm/process_vm_access.c |  8 --------
+ security/keys/compat.c |  4 ++--
+ 3 files changed, 9 insertions(+), 18 deletions(-)
+
+diff --git a/fs/compat.c b/fs/compat.c
+index e07a3d3..4bf082d 100644
+--- a/fs/compat.c
++++ b/fs/compat.c
+@@ -572,6 +572,10 @@ ssize_t compat_rw_copy_check_uvector(int type,
+ 	}
+ 	*ret_pointer = iov;
+ 
++	ret = -EFAULT;
++	if (!access_ok(VERIFY_READ, uvector, nr_segs*sizeof(*uvector)))
++		goto out;
++
+ 	/*
+ 	 * Single unix specification:
+ 	 * We should -EINVAL if an element length is not >= 0 and fitting an
+@@ -1103,17 +1107,12 @@ static ssize_t compat_do_readv_writev(int type, struct file *file,
+ 	if (!file->f_op)
+ 		goto out;
+ 
+-	ret = -EFAULT;
+-	if (!access_ok(VERIFY_READ, uvector, nr_segs*sizeof(*uvector)))
+-		goto out;
+-
+-	tot_len = compat_rw_copy_check_uvector(type, uvector, nr_segs,
++	ret = compat_rw_copy_check_uvector(type, uvector, nr_segs,
+ 					       UIO_FASTIOV, iovstack, &iov, 1);
+-	if (tot_len == 0) {
+-		ret = 0;
++	if (ret <= 0)
+ 		goto out;
+-	}
+ 
++	tot_len = ret;
+ 	ret = rw_verify_area(type, file, pos, tot_len);
+ 	if (ret < 0)
+ 		goto out;
+diff --git a/mm/process_vm_access.c b/mm/process_vm_access.c
+index e920aa3..70e814a 100644
+--- a/mm/process_vm_access.c
++++ b/mm/process_vm_access.c
+@@ -434,12 +434,6 @@ compat_process_vm_rw(compat_pid_t pid,
+ 	if (flags != 0)
+ 		return -EINVAL;
+ 
+-	if (!access_ok(VERIFY_READ, lvec, liovcnt * sizeof(*lvec)))
+-		goto out;
+-
+-	if (!access_ok(VERIFY_READ, rvec, riovcnt * sizeof(*rvec)))
+-		goto out;
+-
+ 	if (vm_write)
+ 		rc = compat_rw_copy_check_uvector(WRITE, lvec, liovcnt,
+ 						  UIO_FASTIOV, iovstack_l,
+@@ -464,8 +458,6 @@ free_iovecs:
+ 		kfree(iov_r);
+ 	if (iov_l != iovstack_l)
+ 		kfree(iov_l);
+-
+-out:
+ 	return rc;
+ }
+ 
+diff --git a/security/keys/compat.c b/security/keys/compat.c
+index 4c48e13..1b0b7bf 100644
+--- a/security/keys/compat.c
++++ b/security/keys/compat.c
+@@ -40,12 +40,12 @@ long compat_keyctl_instantiate_key_iov(
+ 					   ARRAY_SIZE(iovstack),
+ 					   iovstack, &iov, 1);
+ 	if (ret < 0)
+-		return ret;
++		goto err;
+ 	if (ret == 0)
+ 		goto no_payload_free;
+ 
+ 	ret = keyctl_instantiate_key_common(id, iov, ioc, ret, ringid);
+-
++err:
+ 	if (iov != iovstack)
+ 		kfree(iov);
+ 	return ret;
+-- 
+1.8.1.4
+

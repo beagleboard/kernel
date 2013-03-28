@@ -1,4 +1,4 @@
-From 228f65b2ee43445ef6815c3b3774f74ab34cc758 Mon Sep 17 00:00:00 2001
+From 6e7e6064f862d925542ebe62f1d421085468bceb Mon Sep 17 00:00:00 2001
 From: Mathias Krause <minipli@googlemail.com>
 Date: Wed, 15 Aug 2012 11:31:46 +0000
 Subject: [PATCH 058/135] Bluetooth: HCI - Fix info leak in
@@ -18,8 +18,8 @@ Cc: Johan Hedberg <johan.hedberg@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/bluetooth/hci_sock.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ net/bluetooth/hci_sock.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/net/bluetooth/hci_sock.c b/net/bluetooth/hci_sock.c
 index f6afe3d..e4c8bc0 100644
@@ -34,5 +34,5 @@ index f6afe3d..e4c8bc0 100644
  			uf.opcode    = f->opcode;
  			uf.event_mask[0] = *((u32 *) f->event_mask + 0);
 -- 
-1.7.7.6
+1.8.1.4
 

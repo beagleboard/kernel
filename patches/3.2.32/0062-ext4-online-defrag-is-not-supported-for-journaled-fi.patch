@@ -1,4 +1,4 @@
-From 3e969273768b75afb17fe8bbf16b8a2303ca8d19 Mon Sep 17 00:00:00 2001
+From 332b5f43afe3b5a8722a00bf92fcca3a7a96267b Mon Sep 17 00:00:00 2001
 From: Dmitry Monakhov <dmonakhov@openvz.org>
 Date: Wed, 26 Sep 2012 12:32:54 -0400
 Subject: [PATCH 062/146] ext4: online defrag is not supported for journaled
@@ -14,7 +14,7 @@ Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
 Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ext4/move_extent.c |    7 ++++++-
+ fs/ext4/move_extent.c | 7 ++++++-
  1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/fs/ext4/move_extent.c b/fs/ext4/move_extent.c
@@ -36,5 +36,5 @@ index df5cde5..e2016f3 100644
  	mext_inode_double_lock(orig_inode, donor_inode);
  
 -- 
-1.7.10.4
+1.8.1.4
 

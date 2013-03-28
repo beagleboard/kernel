@@ -1,0 +1,35 @@
+From fe13c89e94471d918080b533f1174f692f3d7ec7 Mon Sep 17 00:00:00 2001
+From: Betty Dall <betty.dall@hp.com>
+Date: Sun, 13 Jan 2013 15:46:18 -0700
+Subject: [PATCH 048/127] PCI/AER: pci_get_domain_bus_and_slot() call missing
+ required pci_dev_put()
+
+commit a82b6af37d20bfe6e99a4d890f1cf1d89059929f upstream.
+
+The function aer_recover_queue() calls pci_get_domain_bus_and_slot(), which
+requires that the caller decrement the reference count with pci_dev_put().
+This patch adds the missing call to pci_dev_put().
+
+Signed-off-by: Betty Dall <betty.dall@hp.com>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Reviewed-by: Shuah Khan <shuah.khan@hp.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/pci/pcie/aer/aerdrv_core.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/pci/pcie/aer/aerdrv_core.c b/drivers/pci/pcie/aer/aerdrv_core.c
+index 9674e9f..ee82c55 100644
+--- a/drivers/pci/pcie/aer/aerdrv_core.c
++++ b/drivers/pci/pcie/aer/aerdrv_core.c
+@@ -637,6 +637,7 @@ static void aer_recover_work_func(struct work_struct *work)
+ 			continue;
+ 		}
+ 		do_recovery(pdev, entry.severity);
++		pci_dev_put(pdev);
+ 	}
+ }
+ #endif
+-- 
+1.8.1.4
+

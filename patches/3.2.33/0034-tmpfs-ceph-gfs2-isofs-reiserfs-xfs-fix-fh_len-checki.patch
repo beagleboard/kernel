@@ -1,4 +1,4 @@
-From fcb4ba2e676a14d07a30113dceacae5258fcd715 Mon Sep 17 00:00:00 2001
+From 44ef091fee9cf0700c4f1f1feb832574bfbf2e3b Mon Sep 17 00:00:00 2001
 From: Hugh Dickins <hughd@google.com>
 Date: Sun, 7 Oct 2012 20:32:51 -0700
 Subject: [PATCH 034/105] tmpfs,ceph,gfs2,isofs,reiserfs,xfs: fix fh_len
@@ -36,12 +36,12 @@ Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/ceph/export.c    |   18 ++++++++++++++----
- fs/gfs2/export.c    |    4 ++++
- fs/isofs/export.c   |    2 +-
- fs/reiserfs/inode.c |    6 +++++-
- fs/xfs/xfs_export.c |    3 +++
- mm/shmem.c          |    6 ++++--
+ fs/ceph/export.c    | 18 ++++++++++++++----
+ fs/gfs2/export.c    |  4 ++++
+ fs/isofs/export.c   |  2 +-
+ fs/reiserfs/inode.c |  6 +++++-
+ fs/xfs/xfs_export.c |  3 +++
+ mm/shmem.c          |  6 ++++--
  6 files changed, 31 insertions(+), 8 deletions(-)
 
 diff --git a/fs/ceph/export.c b/fs/ceph/export.c
@@ -205,5 +205,5 @@ index 7a82174..126ca35 100644
  			shmem_match, fid->raw);
  	if (inode) {
 -- 
-1.7.7.6
+1.8.1.4
 

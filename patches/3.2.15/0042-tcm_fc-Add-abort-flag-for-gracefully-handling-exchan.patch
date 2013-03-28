@@ -1,8 +1,8 @@
-From eca8deb0aec9144d2254c0e0c6b35b5f92356e06 Mon Sep 17 00:00:00 2001
+From 3d9aaabf9b8d23ea4fda6dda5781ab5f92e4a161 Mon Sep 17 00:00:00 2001
 From: Mark Rustad <mark.d.rustad@intel.com>
 Date: Tue, 3 Apr 2012 10:24:41 -0700
-Subject: [PATCH 42/60] tcm_fc: Add abort flag for gracefully handling
- exchange timeout
+Subject: [PATCH 42/60] tcm_fc: Add abort flag for gracefully handling exchange
+ timeout
 
 commit e1c4038282c7586c3544542b37872c434669d3ac upstream.
 
@@ -23,9 +23,9 @@ Acked-by: Kiran Patil <Kiran.patil@intel.com>
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/target/tcm_fc/tcm_fc.h  |    1 +
- drivers/target/tcm_fc/tfc_cmd.c |   10 ++++++++--
- drivers/target/tcm_fc/tfc_io.c  |    2 ++
+ drivers/target/tcm_fc/tcm_fc.h  |  1 +
+ drivers/target/tcm_fc/tfc_cmd.c | 10 ++++++++--
+ drivers/target/tcm_fc/tfc_io.c  |  2 ++
  3 files changed, 11 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/target/tcm_fc/tcm_fc.h b/drivers/target/tcm_fc/tcm_fc.h
@@ -98,5 +98,5 @@ index 1369b1c..ada131c 100644
  	lport = ep->lp;
  	cmd->seq = lport->tt.seq_start_next(cmd->seq);
 -- 
-1.7.7.6
+1.8.1.4
 

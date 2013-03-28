@@ -1,4 +1,4 @@
-From cf9b039a1373460fc5122bd5c68b9c0af0e54f45 Mon Sep 17 00:00:00 2001
+From 9a0a9317190384a0a0ee750181c86967a286db7d Mon Sep 17 00:00:00 2001
 From: Alexey Dobriyan <adobriyan@gmail.com>
 Date: Sat, 14 Jan 2012 21:40:57 +0300
 Subject: [PATCH 21/90] crypto: sha512 - reduce stack usage to safe number
@@ -36,8 +36,8 @@ Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- crypto/sha512_generic.c |   58 +++++++++++++++++++++++++++-------------------
- 1 files changed, 34 insertions(+), 24 deletions(-)
+ crypto/sha512_generic.c | 58 +++++++++++++++++++++++++++++--------------------
+ 1 file changed, 34 insertions(+), 24 deletions(-)
 
 diff --git a/crypto/sha512_generic.c b/crypto/sha512_generic.c
 index 8b9035b..88f160b 100644
@@ -125,5 +125,5 @@ index 8b9035b..88f160b 100644
  
  	state[0] += a; state[1] += b; state[2] += c; state[3] += d;
 -- 
-1.7.7.6
+1.8.1.4
 

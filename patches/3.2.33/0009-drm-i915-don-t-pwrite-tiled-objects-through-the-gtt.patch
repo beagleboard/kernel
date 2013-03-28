@@ -1,4 +1,4 @@
-From 48bc264ccce2bd8598bff26fd4d4fa9b9437e1d9 Mon Sep 17 00:00:00 2001
+From d5b7acba25364e69e2836ac2d802cf67fc5b0347 Mon Sep 17 00:00:00 2001
 From: Daniel Vetter <daniel.vetter@ffwll.ch>
 Date: Fri, 13 Apr 2012 15:51:51 +0200
 Subject: [PATCH 009/105] drm/i915: don't pwrite tiled objects through the gtt
@@ -34,8 +34,8 @@ edited it to affect the code that matched the same logical location on
 the same function.]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/i915/i915_gem.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/gpu/drm/i915/i915_gem.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
 index 33e1555..dbe4dbe 100644
@@ -50,5 +50,5 @@ index 33e1555..dbe4dbe 100644
  		ret = i915_gem_object_pin(obj, 0, true);
  		if (ret)
 -- 
-1.7.7.6
+1.8.1.4
 

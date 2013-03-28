@@ -1,4 +1,4 @@
-From 049682790d5d845ed9e4063c7ee8c886cbc1f98f Mon Sep 17 00:00:00 2001
+From 6caf8edbb43d1d5c0f5e2da2689526a21d57f22d Mon Sep 17 00:00:00 2001
 From: NeilBrown <neilb@suse.de>
 Date: Thu, 16 Aug 2012 16:46:12 +1000
 Subject: [PATCH 34/94] md: Don't truncate size at 4TB for RAID0 and Linear
@@ -25,8 +25,8 @@ providing that list).
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/md/md.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/md/md.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/md/md.c b/drivers/md/md.c
 index d8646d7..2887f22 100644
@@ -56,5 +56,5 @@ index d8646d7..2887f22 100644
  	md_super_write(rdev->mddev, rdev, rdev->sb_start, rdev->sb_size,
  		       rdev->sb_page);
 -- 
-1.7.7.6
+1.8.1.4
 

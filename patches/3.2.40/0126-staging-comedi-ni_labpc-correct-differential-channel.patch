@@ -1,0 +1,54 @@
+From 62b008e39a6b0d223412d75122b5e2f0966205d7 Mon Sep 17 00:00:00 2001
+From: Ian Abbott <abbotti@mev.co.uk>
+Date: Wed, 27 Feb 2013 12:52:45 +0000
+Subject: [PATCH 126/153] staging: comedi: ni_labpc: correct differential
+ channel sequence for AI commands
+
+commit 4c4bc25d0fa6beaf054c0b4c3b324487f266c820 upstream.
+
+Tuomas <tvainikk _at_ gmail _dot_ com> reported problems getting
+meaningful output from a Lab-PC+ in differential mode for AI cmds, but
+AI insn reads gave correct readings.  He tracked it down to two
+problems, one of which is addressed by this patch.
+
+It seems the setting of the channel bits for particular scanning modes
+was incorrect for differential mode.  (Only half the number of channels
+are available in differential mode; comedi refers to them as channels 0,
+1, 2 and 3, but the hardware documentation refers to them as channels 0,
+2, 4 and 6.)  In differential mode, the setting of the channel enable
+bits in the command1 register should depend on whether the scan enable
+bit is set.  Effectively, we need to double the comedi channel number
+when the scan enable bit is not set in differential mode.  The scan
+enable bit gets set when the AI scan mode is `MODE_MULT_CHAN_UP` or
+`MODE_MULT_CHAN_DOWN`, and gets cleared when the AI scan mode is
+`MODE_SINGLE_CHAN` or `MODE_SINGLE_CHAN_INTERVAL`.  The existing test
+for whether the comedi channel number needs to be doubled in
+differential mode is incorrect in `labpc_ai_cmd()`.  This patch corrects
+the test.
+
+Thanks to Tuomas for suggesting the fix.
+
+Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/staging/comedi/drivers/ni_labpc.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/staging/comedi/drivers/ni_labpc.c b/drivers/staging/comedi/drivers/ni_labpc.c
+index 721b2be..9b876e0 100644
+--- a/drivers/staging/comedi/drivers/ni_labpc.c
++++ b/drivers/staging/comedi/drivers/ni_labpc.c
+@@ -1264,7 +1264,9 @@ static int labpc_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
+ 	else
+ 		channel = CR_CHAN(cmd->chanlist[0]);
+ 	/* munge channel bits for differential / scan disabled mode */
+-	if (labpc_ai_scan_mode(cmd) != MODE_SINGLE_CHAN && aref == AREF_DIFF)
++	if ((labpc_ai_scan_mode(cmd) == MODE_SINGLE_CHAN ||
++	     labpc_ai_scan_mode(cmd) == MODE_SINGLE_CHAN_INTERVAL) &&
++	    aref == AREF_DIFF)
+ 		channel *= 2;
+ 	devpriv->command1_bits |= ADC_CHAN_BITS(channel);
+ 	devpriv->command1_bits |= thisboard->ai_range_code[range];
+-- 
+1.8.1.4
+

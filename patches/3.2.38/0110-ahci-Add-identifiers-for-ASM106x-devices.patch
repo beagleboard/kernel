@@ -1,0 +1,38 @@
+From 1911925e188e20356e424faa4eed66f3e0d7d7b7 Mon Sep 17 00:00:00 2001
+From: Alan Cox <alan@linux.intel.com>
+Date: Tue, 4 Sep 2012 16:25:25 +0100
+Subject: [PATCH 110/127] ahci: Add identifiers for ASM106x devices
+
+commit 7b4f6ecacb14f384adc1a5a67ad95eb082c02bd1 upstream.
+
+They don't always appear as AHCI class devices but instead as IDE class.
+
+Based on an initial patch by Hiroaki Nito
+
+Resolves-bug: https://bugzilla.kernel.org/show_bug.cgi?id=42804
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/ata/ahci.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/ata/ahci.c b/drivers/ata/ahci.c
+index 608257a..b07edc4 100644
+--- a/drivers/ata/ahci.c
++++ b/drivers/ata/ahci.c
+@@ -395,7 +395,10 @@ static const struct pci_device_id ahci_pci_tbl[] = {
+ 	{ PCI_VDEVICE(PROMISE, 0x3f20), board_ahci },	/* PDC42819 */
+ 
+ 	/* Asmedia */
+-	{ PCI_VDEVICE(ASMEDIA, 0x0612), board_ahci },	/* ASM1061 */
++	{ PCI_VDEVICE(ASMEDIA, 0x0601), board_ahci },	/* ASM1060 */
++	{ PCI_VDEVICE(ASMEDIA, 0x0602), board_ahci },	/* ASM1060 */
++	{ PCI_VDEVICE(ASMEDIA, 0x0611), board_ahci },	/* ASM1061 */
++	{ PCI_VDEVICE(ASMEDIA, 0x0612), board_ahci },	/* ASM1062 */
+ 
+ 	/* Generic, PCI class code for AHCI */
+ 	{ PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
+-- 
+1.8.1.4
+

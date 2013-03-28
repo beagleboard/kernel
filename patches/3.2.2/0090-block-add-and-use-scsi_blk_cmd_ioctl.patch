@@ -1,4 +1,4 @@
-From a5c2a3fc690a46a246a713f0b64e6672c07bad83 Mon Sep 17 00:00:00 2001
+From 3cd004dca2055334810399a5fcc3a623ff77f600 Mon Sep 17 00:00:00 2001
 From: Paolo Bonzini <pbonzini@redhat.com>
 Date: Thu, 12 Jan 2012 16:01:27 +0100
 Subject: [PATCH 090/129] block: add and use scsi_blk_cmd_ioctl
@@ -17,14 +17,14 @@ Signed-off-by: Paolo Bonzini <pbonzini@redhat.com>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- block/scsi_ioctl.c             |    7 +++++++
- drivers/block/cciss.c          |    6 +++---
- drivers/block/ub.c             |    3 +--
- drivers/block/virtio_blk.c     |    4 ++--
- drivers/cdrom/cdrom.c          |    3 +--
- drivers/ide/ide-floppy_ioctl.c |    3 +--
- drivers/scsi/sd.c              |    2 +-
- include/linux/blkdev.h         |    2 ++
+ block/scsi_ioctl.c             | 7 +++++++
+ drivers/block/cciss.c          | 6 +++---
+ drivers/block/ub.c             | 3 +--
+ drivers/block/virtio_blk.c     | 4 ++--
+ drivers/cdrom/cdrom.c          | 3 +--
+ drivers/ide/ide-floppy_ioctl.c | 3 +--
+ drivers/scsi/sd.c              | 2 +-
+ include/linux/blkdev.h         | 2 ++
  8 files changed, 18 insertions(+), 12 deletions(-)
 
 diff --git a/block/scsi_ioctl.c b/block/scsi_ioctl.c
@@ -162,5 +162,5 @@ index 94acd81..ca7b869 100644
  			  unsigned int, void __user *);
  extern int sg_scsi_ioctl(struct request_queue *, struct gendisk *, fmode_t,
 -- 
-1.7.7.6
+1.8.1.4
 

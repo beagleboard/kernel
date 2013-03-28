@@ -1,4 +1,4 @@
-From c6965be16f7951b1c6819ee4fb339097a39b2987 Mon Sep 17 00:00:00 2001
+From f3d603f5c52503099090c11be49cda671b8f3634 Mon Sep 17 00:00:00 2001
 From: Jan Engelhardt <jengelh@inai.de>
 Date: Fri, 21 Sep 2012 22:26:52 +0000
 Subject: [PATCH 140/146] netfilter: xt_limit: have r->cost != 0 case work
@@ -15,7 +15,7 @@ Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/netfilter/xt_limit.c |    8 ++++----
+ net/netfilter/xt_limit.c | 8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
@@ -39,5 +39,5 @@ index 5c22ce8..a4c1e45 100644
  		r->cost = user2credits(r->avg);
  	}
 -- 
-1.7.10.4
+1.8.1.4
 

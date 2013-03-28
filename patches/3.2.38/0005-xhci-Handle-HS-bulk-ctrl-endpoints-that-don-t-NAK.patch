@@ -1,0 +1,49 @@
+From 03a6f61f6498b697a3b58dc7d85468b91f4fe503 Mon Sep 17 00:00:00 2001
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Date: Mon, 17 Dec 2012 14:12:35 -0800
+Subject: [PATCH 005/127] xhci: Handle HS bulk/ctrl endpoints that don't NAK.
+
+commit 55c1945edaac94c5338a3647bc2e85ff75d9cf36 upstream.
+
+A high speed control or bulk endpoint may have bInterval set to zero,
+which means it does not NAK.  If bInterval is non-zero, it means the
+endpoint NAKs at a rate of 2^(bInterval - 1).
+
+The xHCI code to compute the NAK interval does not handle the special
+case of zero properly.  The current code unconditionally subtracts one
+from bInterval and uses it as an exponent.  This causes a very large
+bInterval to be used, and warning messages like these will be printed:
+
+usb 1-1: ep 0x1 - rounding interval to 32768 microframes, ep desc says 0 microframes
+
+This may cause the xHCI host hardware to reject the Configure Endpoint
+command, which means the HS device will be unusable under xHCI ports.
+
+This patch should be backported to kernels as old as 2.6.31, that contain
+commit dfa49c4ad120a784ef1ff0717168aa79f55a483a "USB: xhci - fix math in
+xhci_get_endpoint_interval()".
+
+Reported-by: Vincent Pelletier <plr.vincent@gmail.com>
+Suggested-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/host/xhci-mem.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/usb/host/xhci-mem.c b/drivers/usb/host/xhci-mem.c
+index 5719c4d..ee5ec11 100644
+--- a/drivers/usb/host/xhci-mem.c
++++ b/drivers/usb/host/xhci-mem.c
+@@ -1152,6 +1152,8 @@ static unsigned int xhci_microframes_to_exponent(struct usb_device *udev,
+ static unsigned int xhci_parse_microframe_interval(struct usb_device *udev,
+ 		struct usb_host_endpoint *ep)
+ {
++	if (ep->desc.bInterval == 0)
++		return 0;
+ 	return xhci_microframes_to_exponent(udev, ep,
+ 			ep->desc.bInterval, 0, 15);
+ }
+-- 
+1.8.1.4
+

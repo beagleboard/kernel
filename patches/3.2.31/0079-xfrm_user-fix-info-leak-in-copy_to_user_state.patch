@@ -1,4 +1,4 @@
-From 2492d438f675689aff6ac39d9f1d0012793a55f9 Mon Sep 17 00:00:00 2001
+From 349b2d81adc6a1442f1313b2e2d8873a9764f0d2 Mon Sep 17 00:00:00 2001
 From: Mathias Krause <minipli@googlemail.com>
 Date: Wed, 19 Sep 2012 11:33:39 +0000
 Subject: [PATCH 079/109] xfrm_user: fix info leak in copy_to_user_state()
@@ -15,7 +15,7 @@ Acked-by: Steffen Klassert <steffen.klassert@secunet.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/xfrm/xfrm_user.c |    1 +
+ net/xfrm/xfrm_user.c | 1 +
  1 file changed, 1 insertion(+)
 
 diff --git a/net/xfrm/xfrm_user.c b/net/xfrm/xfrm_user.c
@@ -31,5 +31,5 @@ index 7f53c82..f252cae 100644
  	memcpy(&p->sel, &x->sel, sizeof(p->sel));
  	memcpy(&p->lft, &x->lft, sizeof(p->lft));
 -- 
-1.7.10.4
+1.8.1.4
 

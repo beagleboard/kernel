@@ -1,4 +1,4 @@
-From 858d4b5db6c0b808e0387fc25fef3103974ec428 Mon Sep 17 00:00:00 2001
+From 6d0e9870b1d29c399b6988cb94f27ff3c0981493 Mon Sep 17 00:00:00 2001
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Date: Mon, 21 May 2012 12:52:42 -0700
 Subject: [PATCH 032/117] Fix blocking allocations called very early during
@@ -36,8 +36,8 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- init/main.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ init/main.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/init/main.c b/init/main.c
 index 217ed23..cb08fea2 100644
@@ -65,5 +65,5 @@ index 217ed23..cb08fea2 100644
  	 * init can allocate pages on any node
  	 */
 -- 
-1.7.7.6
+1.8.1.4
 

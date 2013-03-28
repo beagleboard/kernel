@@ -1,4 +1,4 @@
-From 516eaf54b1cf11b39d2a8e24834e8a2b627bac84 Mon Sep 17 00:00:00 2001
+From b0a3dfd435004b07da5e4664bbe462cb1930adda Mon Sep 17 00:00:00 2001
 From: John Stultz <john.stultz@linaro.org>
 Date: Tue, 17 Jul 2012 03:05:14 -0400
 Subject: [PATCH 074/109] ntp: Fix leap-second hrtimer livelock
@@ -73,9 +73,9 @@ Cc: Linux Kernel <linux-kernel@vger.kernel.org>
 Signed-off-by: John Stultz <john.stultz@linaro.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/timex.h     |    2 +-
- kernel/time/ntp.c         |  122 +++++++++++++++------------------------------
- kernel/time/timekeeping.c |   18 +++----
+ include/linux/timex.h     |   2 +-
+ kernel/time/ntp.c         | 122 +++++++++++++++-------------------------------
+ kernel/time/timekeeping.c |  18 +++----
  3 files changed, 48 insertions(+), 94 deletions(-)
 
 diff --git a/include/linux/timex.h b/include/linux/timex.h
@@ -345,5 +345,5 @@ index 2378413..4780a7d 100644
  
  	/* check to see if there is a new clocksource to use */
 -- 
-1.7.7.6
+1.8.1.4
 

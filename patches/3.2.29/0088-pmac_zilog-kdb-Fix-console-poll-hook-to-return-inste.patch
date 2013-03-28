@@ -1,8 +1,8 @@
-From 455bff5111c5ffbc35bb03076fed744653af54aa Mon Sep 17 00:00:00 2001
+From 20df33346574018f928a2d9731d22523737e4239 Mon Sep 17 00:00:00 2001
 From: Jason Wessel <jason.wessel@windriver.com>
 Date: Sun, 12 Aug 2012 07:16:43 -0500
-Subject: [PATCH 88/94] pmac_zilog,kdb: Fix console poll hook to return
- instead of loop
+Subject: [PATCH 88/94] pmac_zilog,kdb: Fix console poll hook to return instead
+ of loop
 
 commit 38f8eefccf3a23c4058a570fa2938a4f553cf8e0 upstream.
 
@@ -18,8 +18,8 @@ Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/tty/serial/pmac_zilog.c |   12 +++++++++---
- 1 files changed, 9 insertions(+), 3 deletions(-)
+ drivers/tty/serial/pmac_zilog.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/tty/serial/pmac_zilog.c b/drivers/tty/serial/pmac_zilog.c
 index 5acd24a..086f7fe 100644
@@ -46,5 +46,5 @@ index 5acd24a..086f7fe 100644
  
  static void pmz_poll_put_char(struct uart_port *port, unsigned char c)
 -- 
-1.7.7.6
+1.8.1.4
 

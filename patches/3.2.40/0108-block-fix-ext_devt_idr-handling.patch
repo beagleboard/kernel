@@ -1,0 +1,115 @@
+From 125ee81bcb9cee611c169d65aa838d39ae6d4638 Mon Sep 17 00:00:00 2001
+From: Tomas Henzl <thenzl@redhat.com>
+Date: Wed, 27 Feb 2013 17:03:32 -0800
+Subject: [PATCH 108/153] block: fix ext_devt_idr handling
+
+commit 7b74e912785a11572da43292786ed07ada7e3e0c upstream.
+
+While adding and removing a lot of disks disks and partitions this
+sometimes shows up:
+
+  WARNING: at fs/sysfs/dir.c:512 sysfs_add_one+0xc9/0x130() (Not tainted)
+  Hardware name:
+  sysfs: cannot create duplicate filename '/dev/block/259:751'
+  Modules linked in: raid1 autofs4 bnx2fc cnic uio fcoe libfcoe libfc 8021q scsi_transport_fc scsi_tgt garp stp llc sunrpc cpufreq_ondemand powernow_k8 freq_table mperf ipv6 dm_mirror dm_region_hash dm_log power_meter microcode dcdbas serio_raw amd64_edac_mod edac_core edac_mce_amd i2c_piix4 i2c_core k10temp bnx2 sg ixgbe dca mdio ext4 mbcache jbd2 dm_round_robin sr_mod cdrom sd_mod crc_t10dif ata_generic pata_acpi pata_atiixp ahci mptsas mptscsih mptbase scsi_transport_sas dm_multipath dm_mod [last unloaded: scsi_wait_scan]
+  Pid: 44103, comm: async/16 Not tainted 2.6.32-195.el6.x86_64 #1
+  Call Trace:
+    warn_slowpath_common+0x87/0xc0
+    warn_slowpath_fmt+0x46/0x50
+    sysfs_add_one+0xc9/0x130
+    sysfs_do_create_link+0x12b/0x170
+    sysfs_create_link+0x13/0x20
+    device_add+0x317/0x650
+    idr_get_new+0x13/0x50
+    add_partition+0x21c/0x390
+    rescan_partitions+0x32b/0x470
+    sd_open+0x81/0x1f0 [sd_mod]
+    __blkdev_get+0x1b6/0x3c0
+    blkdev_get+0x10/0x20
+    register_disk+0x155/0x170
+    add_disk+0xa6/0x160
+    sd_probe_async+0x13b/0x210 [sd_mod]
+    add_wait_queue+0x46/0x60
+    async_thread+0x102/0x250
+    default_wake_function+0x0/0x20
+    async_thread+0x0/0x250
+    kthread+0x96/0xa0
+    child_rip+0xa/0x20
+    kthread+0x0/0xa0
+    child_rip+0x0/0x20
+
+This most likely happens because dev_t is freed while the number is
+still used and idr_get_new() is not protected on every use.  The fix
+adds a mutex where it wasn't before and moves the dev_t free function so
+it is called after device del.
+
+Signed-off-by: Tomas Henzl <thenzl@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+[bwh: Backported to 3.2: adjust filename]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ block/genhd.c         | 6 +++++-
+ fs/partitions/check.c | 2 +-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/block/genhd.c b/block/genhd.c
+index 4927476..ac9aeb4 100644
+--- a/block/genhd.c
++++ b/block/genhd.c
+@@ -421,14 +421,18 @@ int blk_alloc_devt(struct hd_struct *part, dev_t *devt)
+ 	do {
+ 		if (!idr_pre_get(&ext_devt_idr, GFP_KERNEL))
+ 			return -ENOMEM;
++		mutex_lock(&ext_devt_mutex);
+ 		rc = idr_get_new(&ext_devt_idr, part, &idx);
++		mutex_unlock(&ext_devt_mutex);
+ 	} while (rc == -EAGAIN);
+ 
+ 	if (rc)
+ 		return rc;
+ 
+ 	if (idx > MAX_EXT_DEVT) {
++		mutex_lock(&ext_devt_mutex);
+ 		idr_remove(&ext_devt_idr, idx);
++		mutex_unlock(&ext_devt_mutex);
+ 		return -EBUSY;
+ 	}
+ 
+@@ -645,7 +649,6 @@ void del_gendisk(struct gendisk *disk)
+ 	disk_part_iter_exit(&piter);
+ 
+ 	invalidate_partition(disk, 0);
+-	blk_free_devt(disk_to_dev(disk)->devt);
+ 	set_capacity(disk, 0);
+ 	disk->flags &= ~GENHD_FL_UP;
+ 
+@@ -663,6 +666,7 @@ void del_gendisk(struct gendisk *disk)
+ 	if (!sysfs_deprecated)
+ 		sysfs_remove_link(block_depr, dev_name(disk_to_dev(disk)));
+ 	device_del(disk_to_dev(disk));
++	blk_free_devt(disk_to_dev(disk)->devt);
+ }
+ EXPORT_SYMBOL(del_gendisk);
+ 
+diff --git a/fs/partitions/check.c b/fs/partitions/check.c
+index 6b5fcc5..1ef15cc 100644
+--- a/fs/partitions/check.c
++++ b/fs/partitions/check.c
+@@ -399,11 +399,11 @@ void delete_partition(struct gendisk *disk, int partno)
+ 	if (!part)
+ 		return;
+ 
+-	blk_free_devt(part_devt(part));
+ 	rcu_assign_pointer(ptbl->part[partno], NULL);
+ 	rcu_assign_pointer(ptbl->last_lookup, NULL);
+ 	kobject_put(part->holder_dir);
+ 	device_del(part_to_dev(part));
++	blk_free_devt(part_devt(part));
+ 
+ 	hd_struct_put(part);
+ }
+-- 
+1.8.1.4
+

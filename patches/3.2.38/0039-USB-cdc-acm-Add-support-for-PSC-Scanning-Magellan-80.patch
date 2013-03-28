@@ -1,0 +1,38 @@
+From 2f36a71c6b790f0d97e0bd3ef0b9f7fc38774283 Mon Sep 17 00:00:00 2001
+From: Denis N Ladin <denladin@gmail.com>
+Date: Wed, 26 Dec 2012 18:29:44 +0500
+Subject: [PATCH 039/127] USB: cdc-acm: Add support for "PSC Scanning, Magellan
+ 800i"
+
+commit 036915a7a402753c05b8d0529f5fd08805ab46d0 upstream.
+
+Adding support "PSC Scanning, Magellan 800i" in cdc-acm
+
+Very simple, but very necessary.
+Suitable for all versions of the kernel > 2.6
+
+Signed-off-by: Denis N Ladin <denladin@gmail.com>
+Acked-by: Oliver Neukum <oneukum@suse.de>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/class/cdc-acm.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/usb/class/cdc-acm.c b/drivers/usb/class/cdc-acm.c
+index df7f15d..0cdff38 100644
+--- a/drivers/usb/class/cdc-acm.c
++++ b/drivers/usb/class/cdc-acm.c
+@@ -1509,6 +1509,9 @@ static const struct usb_device_id acm_ids[] = {
+ 	{ USB_DEVICE(0x0572, 0x1340), /* Conexant CX93010-2x UCMxx */
+ 	.driver_info = NO_UNION_NORMAL,
+ 	},
++	{ USB_DEVICE(0x05f9, 0x4002), /* PSC Scanning, Magellan 800i */
++	.driver_info = NO_UNION_NORMAL,
++	},
+ 	{ USB_DEVICE(0x1bbb, 0x0003), /* Alcatel OT-I650 */
+ 	.driver_info = NO_UNION_NORMAL, /* reports zero length descriptor */
+ 	},
+-- 
+1.8.1.4
+

@@ -1,0 +1,43 @@
+From b8bce3785a979cb1be3074b1c35dbb78b9bf4be2 Mon Sep 17 00:00:00 2001
+From: Stephen Hemminger <stephen@networkplumber.org>
+Date: Mon, 11 Feb 2013 08:22:22 +0000
+Subject: [PATCH 121/153] bridge: set priority of STP packets
+
+[ Upstream commit 547b4e718115eea74087e28d7fa70aec619200db ]
+
+Spanning Tree Protocol packets should have always been marked as
+control packets, this causes them to get queued in the high prirority
+FIFO. As Radia Perlman mentioned in her LCA talk, STP dies if bridge
+gets overloaded and can't communicate. This is a long-standing bug back
+to the first versions of Linux bridge.
+
+Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/bridge/br_stp_bpdu.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/net/bridge/br_stp_bpdu.c b/net/bridge/br_stp_bpdu.c
+index e16aade..718cbe8 100644
+--- a/net/bridge/br_stp_bpdu.c
++++ b/net/bridge/br_stp_bpdu.c
+@@ -16,6 +16,7 @@
+ #include <linux/etherdevice.h>
+ #include <linux/llc.h>
+ #include <linux/slab.h>
++#include <linux/pkt_sched.h>
+ #include <net/net_namespace.h>
+ #include <net/llc.h>
+ #include <net/llc_pdu.h>
+@@ -40,6 +41,7 @@ static void br_send_bpdu(struct net_bridge_port *p,
+ 
+ 	skb->dev = p->dev;
+ 	skb->protocol = htons(ETH_P_802_2);
++	skb->priority = TC_PRIO_CONTROL;
+ 
+ 	skb_reserve(skb, LLC_RESERVE);
+ 	memcpy(__skb_put(skb, length), data, length);
+-- 
+1.8.1.4
+

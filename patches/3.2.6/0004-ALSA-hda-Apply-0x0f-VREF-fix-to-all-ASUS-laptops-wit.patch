@@ -1,4 +1,4 @@
-From e67d0630762a02a8867d31a86bd65c9bd5dd1d91 Mon Sep 17 00:00:00 2001
+From 3d1dec94b783bf497c6ffa97f56bfe9a9469b87a Mon Sep 17 00:00:00 2001
 From: Takashi Iwai <tiwai@suse.de>
 Date: Mon, 30 Jan 2012 10:54:08 +0100
 Subject: [PATCH 04/87] ALSA: hda - Apply 0x0f-VREF fix to all ASUS laptops
@@ -24,8 +24,8 @@ Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=42588
 Signed-off-by: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- sound/pci/hda/patch_realtek.c |   43 +++++++++++++++++++++++++++++++++-------
- 1 files changed, 35 insertions(+), 8 deletions(-)
+ sound/pci/hda/patch_realtek.c | 43 +++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 35 insertions(+), 8 deletions(-)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
 index d02e8e0..34e5fcc 100644
@@ -113,5 +113,5 @@ index d02e8e0..34e5fcc 100644
  	SND_PCI_QUIRK(0x1734, 0x10c7, "FSC Amilo Pi1505", PINFIX_FSC_AMILO_PI1505),
  	{}
 -- 
-1.7.7.6
+1.8.1.4
 

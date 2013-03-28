@@ -1,4 +1,4 @@
-From b41e8b870ca2684e24f5213fd759a87ca84b47ef Mon Sep 17 00:00:00 2001
+From a9ec790657b459e87809f461c2ed1ba24388588a Mon Sep 17 00:00:00 2001
 From: Haogang Chen <haogangchen@gmail.com>
 Date: Tue, 29 Nov 2011 18:32:25 -0300
 Subject: [PATCH 074/129] uvcvideo: Fix integer overflow in
@@ -21,9 +21,9 @@ Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/media/video/uvc/uvc_v4l2.c |    9 +++++++++
- drivers/media/video/uvc/uvcvideo.h |    1 +
- 2 files changed, 10 insertions(+), 0 deletions(-)
+ drivers/media/video/uvc/uvc_v4l2.c | 9 +++++++++
+ drivers/media/video/uvc/uvcvideo.h | 1 +
+ 2 files changed, 10 insertions(+)
 
 diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
 index dadf11f..cf7788f 100644
@@ -58,5 +58,5 @@ index 4c1392e..bc446ba 100644
  /* Devices quirks */
  #define UVC_QUIRK_STATUS_INTERVAL	0x00000001
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From d10197235bc0b3a2a37cfbb1048ab16496bc8962 Mon Sep 17 00:00:00 2001
+From 20de2e44172be70bbe6d9612fde0d27ba8e38162 Mon Sep 17 00:00:00 2001
 From: Hante Meuleman <meuleman@broadcom.com>
 Date: Tue, 11 Sep 2012 21:16:48 +0200
 Subject: [PATCH 017/109] brcmfmac: Fix big endian host configuration data.
@@ -14,7 +14,7 @@ Signed-off-by: John W. Linville <linville@tuxdriver.com>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- .../net/wireless/brcm80211/brcmfmac/dhd_common.c   |   26 ++++++++++++--------
+ .../net/wireless/brcm80211/brcmfmac/dhd_common.c   | 26 +++++++++++++---------
  1 file changed, 16 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/net/wireless/brcm80211/brcmfmac/dhd_common.c b/drivers/net/wireless/brcm80211/brcmfmac/dhd_common.c
@@ -92,5 +92,5 @@ index 8918261..746202f 100644
  	/* Set and enable ARP offload feature */
  	brcmf_c_arp_offload_set(drvr, BRCMF_ARPOL_MODE);
 -- 
-1.7.10.4
+1.8.1.4
 

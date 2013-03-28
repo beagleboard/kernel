@@ -1,0 +1,69 @@
+From f8327a0190be4da3bac1a9f14fa22ef6a59096bf Mon Sep 17 00:00:00 2001
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
+Date: Mon, 7 Jan 2013 14:30:46 -0500
+Subject: [PATCH 027/127] SUNRPC: Ensure we release the socket write lock if
+ the rpc_task exits early
+
+commit 87ed50036b866db2ec2ba16b2a7aec4a2b0b7c39 upstream.
+
+If the rpc_task exits while holding the socket write lock before it has
+allocated an rpc slot, then the usual mechanism for releasing the write
+lock in xprt_release() is defeated.
+
+The problem occurs if the call to xprt_lock_write() initially fails, so
+that the rpc_task is put on the xprt->sending wait queue. If the task
+exits after being assigned the lock by __xprt_lock_write_func, but
+before it has retried the call to xprt_lock_and_alloc_slot(), then
+it calls xprt_release() while holding the write lock, but will
+immediately exit due to the test for task->tk_rqstp != NULL.
+
+Reported-by: Chris Perl <chris.perl@gmail.com>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/sunrpc/sched.c |  3 +--
+ net/sunrpc/xprt.c  | 12 ++++++++++--
+ 2 files changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/net/sunrpc/sched.c b/net/sunrpc/sched.c
+index 56c3f85..18c5a50 100644
+--- a/net/sunrpc/sched.c
++++ b/net/sunrpc/sched.c
+@@ -918,8 +918,7 @@ static void rpc_async_release(struct work_struct *work)
+ 
+ static void rpc_release_resources_task(struct rpc_task *task)
+ {
+-	if (task->tk_rqstp)
+-		xprt_release(task);
++	xprt_release(task);
+ 	if (task->tk_msg.rpc_cred) {
+ 		put_rpccred(task->tk_msg.rpc_cred);
+ 		task->tk_msg.rpc_cred = NULL;
+diff --git a/net/sunrpc/xprt.c b/net/sunrpc/xprt.c
+index ffba207..6c91208 100644
+--- a/net/sunrpc/xprt.c
++++ b/net/sunrpc/xprt.c
+@@ -1132,10 +1132,18 @@ static void xprt_request_init(struct rpc_task *task, struct rpc_xprt *xprt)
+ void xprt_release(struct rpc_task *task)
+ {
+ 	struct rpc_xprt	*xprt;
+-	struct rpc_rqst	*req;
++	struct rpc_rqst	*req = task->tk_rqstp;
+ 
+-	if (!(req = task->tk_rqstp))
++	if (req == NULL) {
++		if (task->tk_client) {
++			rcu_read_lock();
++			xprt = rcu_dereference(task->tk_client->cl_xprt);
++			if (xprt->snd_task == task)
++				xprt_release_write(xprt, task);
++			rcu_read_unlock();
++		}
+ 		return;
++	}
+ 
+ 	xprt = req->rq_xprt;
+ 	rpc_count_iostats(task);
+-- 
+1.8.1.4
+

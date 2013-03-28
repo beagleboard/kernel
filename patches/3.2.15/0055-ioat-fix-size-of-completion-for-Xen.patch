@@ -1,4 +1,4 @@
-From ab75039a09538b8c4d75b832369facef9c20c3c2 Mon Sep 17 00:00:00 2001
+From a4aef85d021214498c9a8e73bef4f662c5e902da Mon Sep 17 00:00:00 2001
 From: Dan Williams <dan.j.williams@intel.com>
 Date: Fri, 23 Mar 2012 13:36:42 -0700
 Subject: [PATCH 55/60] ioat: fix size of 'completion' for Xen
@@ -26,10 +26,10 @@ Tested-by: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/dma/ioat/dma.c    |   16 ++++++++--------
- drivers/dma/ioat/dma.h    |    6 +++---
- drivers/dma/ioat/dma_v2.c |    8 ++++----
- drivers/dma/ioat/dma_v3.c |    8 ++++----
+ drivers/dma/ioat/dma.c    | 16 ++++++++--------
+ drivers/dma/ioat/dma.h    |  6 +++---
+ drivers/dma/ioat/dma_v2.c |  8 ++++----
+ drivers/dma/ioat/dma_v3.c |  8 ++++----
  4 files changed, 19 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/dma/ioat/dma.c b/drivers/dma/ioat/dma.c
@@ -205,5 +205,5 @@ index f519c93..2dbf32b 100644
  
  		status = ioat_chansts(chan);
 -- 
-1.7.7.6
+1.8.1.4
 

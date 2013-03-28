@@ -1,0 +1,44 @@
+From 8ee61abf22c59722b198ba8bfd8ca3b5a4fdc71f Mon Sep 17 00:00:00 2001
+From: "Steven Rostedt (Red Hat)" <rostedt@goodmis.org>
+Date: Thu, 14 Mar 2013 14:20:54 -0400
+Subject: [PATCH 60/92] tracing: Keep overwrite in sync between regular and
+ snapshot buffers
+
+commit 80902822658aab18330569587cdb69ac1dfdcea8 upstream.
+
+Changing the overwrite mode for the ring buffer via the trace
+option only sets the normal buffer. But the snapshot buffer could
+swap with it, and then the snapshot would be in non overwrite mode
+and the normal buffer would be in overwrite mode, even though the
+option flag states otherwise.
+
+Keep the two buffers overwrite modes in sync.
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+[bwh: Backported to 3.2: adjust context]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ kernel/trace/trace.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
+index 6751c11..0c6ce44 100644
+--- a/kernel/trace/trace.c
++++ b/kernel/trace/trace.c
+@@ -2650,8 +2650,12 @@ static void set_tracer_flags(unsigned int mask, int enabled)
+ 	if (mask == TRACE_ITER_RECORD_CMD)
+ 		trace_event_enable_cmd_record(enabled);
+ 
+-	if (mask == TRACE_ITER_OVERWRITE)
++	if (mask == TRACE_ITER_OVERWRITE) {
+ 		ring_buffer_change_overwrite(global_trace.buffer, enabled);
++#ifdef CONFIG_TRACER_MAX_TRACE
++		ring_buffer_change_overwrite(max_tr.buffer, enabled);
++#endif
++	}
+ }
+ 
+ static ssize_t
+-- 
+1.8.1.4
+

@@ -1,4 +1,4 @@
-From 8272a7513d7a3802f39ec291f763ad494b02c4dc Mon Sep 17 00:00:00 2001
+From 260a5c4dd4c84e957534f05e056b6cf0d6777e4f Mon Sep 17 00:00:00 2001
 From: Takashi Iwai <tiwai@suse.de>
 Date: Fri, 1 Jun 2012 10:06:24 +0200
 Subject: [PATCH 59/67] xhci: Don't free endpoints in xhci_mem_cleanup()
@@ -28,8 +28,8 @@ Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Reviewed-by: Oliver Neukum <oneukum@suse.de>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/usb/host/xhci-mem.c |   35 ++++++++++++++---------------------
- 1 files changed, 14 insertions(+), 21 deletions(-)
+ drivers/usb/host/xhci-mem.c | 35 ++++++++++++++---------------------
+ 1 file changed, 14 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/usb/host/xhci-mem.c b/drivers/usb/host/xhci-mem.c
 index b85eb36..a40ab98 100644
@@ -90,5 +90,5 @@ index b85eb36..a40ab98 100644
  
  	xhci->num_usb2_ports = 0;
 -- 
-1.7.7.6
+1.8.1.4
 

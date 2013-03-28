@@ -1,4 +1,4 @@
-From 418690584ca41feb14c709a45fb8749104832498 Mon Sep 17 00:00:00 2001
+From e6744cfa46dc97986c57966a71bd3ee0521932d3 Mon Sep 17 00:00:00 2001
 From: Johan Hovold <jhovold@gmail.com>
 Date: Fri, 10 Feb 2012 13:20:49 +0100
 Subject: [PATCH 024/147] USB: serial: fix console error reporting
@@ -12,8 +12,8 @@ Reported-by: Stephen Hemminger <shemminger@vyatta.com>
 Signed-off-by: Johan Hovold <jhovold@gmail.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/usb/serial/generic.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/usb/serial/generic.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/serial/generic.c b/drivers/usb/serial/generic.c
 index e4db5ad..9f0b2bf 100644
@@ -32,5 +32,5 @@ index e4db5ad..9f0b2bf 100644
  		spin_lock_irqsave(&port->lock, flags);
  		port->tx_bytes -= count;
 -- 
-1.7.7.6
+1.8.1.4
 

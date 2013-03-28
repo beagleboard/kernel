@@ -1,4 +1,4 @@
-From 64de14e121a7f9a79429d25844a724f9fa436fd5 Mon Sep 17 00:00:00 2001
+From 66d5f7a3b4aa7439355c3aba1433efece6d6da48 Mon Sep 17 00:00:00 2001
 From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 Date: Thu, 26 Jul 2012 12:03:59 -0700
 Subject: [PATCH 081/135] xhci: Fix bug after deq ptr set to link TRB.
@@ -56,8 +56,8 @@ older.
 
 Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 ---
- drivers/usb/host/xhci-ring.c |   39 ++++++++++++++++++++++++---------------
- 1 files changed, 24 insertions(+), 15 deletions(-)
+ drivers/usb/host/xhci-ring.c | 39 ++++++++++++++++++++++++---------------
+ 1 file changed, 24 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
 index fb0981e..c7c530c 100644
@@ -114,5 +114,5 @@ index fb0981e..c7c530c 100644
  }
  
 -- 
-1.7.7.6
+1.8.1.4
 

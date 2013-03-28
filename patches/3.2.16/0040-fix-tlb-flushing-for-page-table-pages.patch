@@ -1,4 +1,4 @@
-From 340da8ad9ec0ed1b31cbd0e215967c01a52d7f82 Mon Sep 17 00:00:00 2001
+From b73f5f7f6e77e3e0dff6701aeb01dedde45fe903 Mon Sep 17 00:00:00 2001
 From: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Date: Wed, 11 Apr 2012 14:28:07 +0200
 Subject: [PATCH 40/68] fix tlb flushing for page table pages
@@ -30,10 +30,10 @@ This is applicable to 3.0+ kernels.
 Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/s390/Kconfig               |    1 -
- arch/s390/include/asm/pgalloc.h |    3 --
- arch/s390/include/asm/tlb.h     |   22 +-------------
- arch/s390/mm/pgtable.c          |   63 +++++++++++++++++++++++++++++++++++++--
+ arch/s390/Kconfig               |  1 -
+ arch/s390/include/asm/pgalloc.h |  3 --
+ arch/s390/include/asm/tlb.h     | 22 +-------------
+ arch/s390/mm/pgtable.c          | 63 +++++++++++++++++++++++++++++++++++++++--
  4 files changed, 61 insertions(+), 28 deletions(-)
 
 diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
@@ -236,5 +236,5 @@ index 301c84d..f8ceac4 100644
  /*
   * switch on pgstes for its userspace process (for kvm)
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 195707d207ef3f2957eb6acf1b7bacc7fb7ef7e5 Mon Sep 17 00:00:00 2001
+From a4a5898b953b087e9c2f15165ef0a8d22f22ef21 Mon Sep 17 00:00:00 2001
 From: Chris Wilson <chris@chris-wilson.co.uk>
 Date: Sat, 15 Sep 2012 09:41:57 +0100
 Subject: [PATCH 021/109] drm/i915: Reduce a pin-leak BUG into a WARN
@@ -16,7 +16,7 @@ Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/i915/i915_gem.c |    3 ++-
+ drivers/gpu/drm/i915/i915_gem.c | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
@@ -34,5 +34,5 @@ index 548a400..e48e01e 100644
  
  	if (obj->gtt_space != NULL) {
 -- 
-1.7.10.4
+1.8.1.4
 

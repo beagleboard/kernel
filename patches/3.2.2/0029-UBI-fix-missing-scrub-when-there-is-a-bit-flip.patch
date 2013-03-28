@@ -1,4 +1,4 @@
-From 4188969132152c98e1ed96ffc97ed2c9f00e59d5 Mon Sep 17 00:00:00 2001
+From 8d9b1bbeecd9e567bcf062e43f410ed11ccdcf1e Mon Sep 17 00:00:00 2001
 From: Bhavesh Parekh <bparekh@nvidia.com>
 Date: Wed, 30 Nov 2011 17:43:42 +0530
 Subject: [PATCH 029/129] UBI: fix missing scrub when there is a bit-flip
@@ -14,9 +14,9 @@ Signed-off-by: Bhavesh Parekh <bparekh@nvidia.com>
 Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/mtd/ubi/eba.c |    6 ++++--
- drivers/mtd/ubi/ubi.h |    2 ++
- drivers/mtd/ubi/wl.c  |    5 ++++-
+ drivers/mtd/ubi/eba.c | 6 ++++--
+ drivers/mtd/ubi/ubi.h | 2 ++
+ drivers/mtd/ubi/wl.c  | 5 ++++-
  3 files changed, 10 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/mtd/ubi/eba.c b/drivers/mtd/ubi/eba.c
@@ -77,5 +77,5 @@ index 42c684c..277c429 100644
  		    err == MOVE_TARGET_RD_ERR) {
  			/*
 -- 
-1.7.7.6
+1.8.1.4
 

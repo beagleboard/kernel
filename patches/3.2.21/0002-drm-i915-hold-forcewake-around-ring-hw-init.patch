@@ -1,4 +1,4 @@
-From 91ff572e91bbb73730417f4650c2f7b264226a95 Mon Sep 17 00:00:00 2001
+From 4f78638570de6661d8e61bfbba51058ed983654a Mon Sep 17 00:00:00 2001
 From: Daniel Vetter <daniel.vetter@ffwll.ch>
 Date: Mon, 4 Jun 2012 11:18:15 +0200
 Subject: [PATCH 02/67] drm/i915: hold forcewake around ring hw init
@@ -38,9 +38,9 @@ Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
  - NEEDS_FORCE_WAKE didn't refer to Valley View anyway]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/gpu/drm/i915/i915_drv.c         |    6 +++++-
- drivers/gpu/drm/i915/i915_drv.h         |    3 +++
- drivers/gpu/drm/i915/intel_ringbuffer.c |   16 +++++++++++++---
+ drivers/gpu/drm/i915/i915_drv.c         |  6 +++++-
+ drivers/gpu/drm/i915/i915_drv.h         |  3 +++
+ drivers/gpu/drm/i915/intel_ringbuffer.c | 16 +++++++++++++---
  3 files changed, 21 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/i915_drv.c b/drivers/gpu/drm/i915/i915_drv.c
@@ -154,5 +154,5 @@ index 83da6e5..933e66b 100644
  
  static int
 -- 
-1.7.7.6
+1.8.1.4
 

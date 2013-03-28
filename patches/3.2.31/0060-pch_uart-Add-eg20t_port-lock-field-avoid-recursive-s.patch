@@ -1,4 +1,4 @@
-From 03d319301a539689b1d2dfdb09773ea8cffb3a97 Mon Sep 17 00:00:00 2001
+From 7b0b585047fcef964916e52f5bc419d8aa0e62e8 Mon Sep 17 00:00:00 2001
 From: Darren Hart <dvhart@linux.intel.com>
 Date: Tue, 19 Jun 2012 14:00:18 -0700
 Subject: [PATCH 060/109] pch_uart: Add eg20t_port lock field, avoid recursive
@@ -55,7 +55,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  - Drop changes to pch_console_write()]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/tty/serial/pch_uart.c |   19 +++++++++++++------
+ drivers/tty/serial/pch_uart.c | 19 +++++++++++++------
  1 file changed, 13 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/tty/serial/pch_uart.c b/drivers/tty/serial/pch_uart.c
@@ -132,5 +132,5 @@ index 08b92a6..8d70fbc 100644
  	mapbase = pci_resource_start(pdev, 1);
  	priv->mapbase = mapbase;
 -- 
-1.7.10.4
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 664b18c96320930c2348c45fb87f9dbcc1a8c810 Mon Sep 17 00:00:00 2001
+From a8e2839d9bcaa36bac752e0cfc73ae12f8881dcf Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Date: Fri, 22 Jun 2012 15:52:09 +0200
 Subject: [PATCH 028/109] sched/nohz: Rewrite and fix load-avg computation --
@@ -28,10 +28,10 @@ Signed-off-by: Ingo Molnar <mingo@kernel.org>
 [bwh: Backported to 3.2: adjust filenames, context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- include/linux/sched.h    |    8 ++
- kernel/sched.c           |  276 ++++++++++++++++++++++++++++++++++------------
- kernel/sched_idletask.c  |    1 -
- kernel/time/tick-sched.c |    2 +
+ include/linux/sched.h    |   8 ++
+ kernel/sched.c           | 276 ++++++++++++++++++++++++++++++++++-------------
+ kernel/sched_idletask.c  |   1 -
+ kernel/time/tick-sched.c |   2 +
  4 files changed, 213 insertions(+), 74 deletions(-)
 
 diff --git a/include/linux/sched.h b/include/linux/sched.h
@@ -458,5 +458,5 @@ index c923640..9955ebd 100644
  	/*
  	 * Cancel the scheduled timer and restore the tick
 -- 
-1.7.7.6
+1.8.1.4
 

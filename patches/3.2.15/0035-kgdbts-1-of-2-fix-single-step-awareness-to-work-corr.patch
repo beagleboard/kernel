@@ -1,4 +1,4 @@
-From 4a795327121960565b7333e46cfdb4a592fe532b Mon Sep 17 00:00:00 2001
+From 8330166604d8ffa29d72d2950ebd53052ffb5a9b Mon Sep 17 00:00:00 2001
 From: Jason Wessel <jason.wessel@windriver.com>
 Date: Thu, 29 Mar 2012 17:41:24 -0500
 Subject: [PATCH 35/60] kgdbts: (1 of 2) fix single step awareness to work
@@ -77,8 +77,8 @@ level description of the sequence of events.
 Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/misc/kgdbts.c |   54 +++++++++++++++++++++++++++++++++++++++----------
- 1 files changed, 43 insertions(+), 11 deletions(-)
+ drivers/misc/kgdbts.c | 54 ++++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 43 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/misc/kgdbts.c b/drivers/misc/kgdbts.c
 index 997e94d..3cad9fc 100644
@@ -208,5 +208,5 @@ index 997e94d..3cad9fc 100644
  	{ "g", "sys_open", NULL, check_single_step },
  	{ "sys_open", "OK", sw_break, }, /* set sw breakpoint */
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 33489c3f0eb1433edb83902f2642c9b6594b5a4f Mon Sep 17 00:00:00 2001
+From a359abbe1940a3aad007adac6ea94c9aba6075f1 Mon Sep 17 00:00:00 2001
 From: Jan Kara <jack@suse.cz>
 Date: Mon, 20 Feb 2012 17:49:56 +0100
 Subject: [PATCH 114/147] udf: Fix deadlock in udf_release_file()
@@ -15,8 +15,8 @@ Reviewed-by: Namjae Jeon <linkinjeon@gmail.com>
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/udf/file.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ fs/udf/file.c | 2 --
+ 1 file changed, 2 deletions(-)
 
 diff --git a/fs/udf/file.c b/fs/udf/file.c
 index dca0c38..d567b84 100644
@@ -36,5 +36,5 @@ index dca0c38..d567b84 100644
  	return 0;
  }
 -- 
-1.7.7.6
+1.8.1.4
 

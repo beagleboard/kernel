@@ -1,4 +1,4 @@
-From 0afce7052a0120223e3ae7111a5f0fc914d7fbc1 Mon Sep 17 00:00:00 2001
+From 8ea8821d45b4285db9f937fede68627eb8f9136a Mon Sep 17 00:00:00 2001
 From: "Luck, Tony" <tony.luck@intel.com>
 Date: Mon, 16 Apr 2012 16:28:01 -0700
 Subject: [PATCH 14/68] ia64: fix futex_atomic_cmpxchg_inatomic()
@@ -25,8 +25,8 @@ Signed-off-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/ia64/include/asm/futex.h |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ arch/ia64/include/asm/futex.h | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/arch/ia64/include/asm/futex.h b/arch/ia64/include/asm/futex.h
 index 8428525..21ab376 100644
@@ -54,5 +54,5 @@ index 8428525..21ab376 100644
  			  "rO" ((long) (unsigned) oldval)
  			: "memory");
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,4 +1,4 @@
-From 15a9e0f9d91ddce2c6d8c722f43be874f0ad72fb Mon Sep 17 00:00:00 2001
+From 88a24a38dd05042511286a110619bed9d6c235ab Mon Sep 17 00:00:00 2001
 From: Asias He <asias@redhat.com>
 Date: Fri, 25 May 2012 10:34:47 +0800
 Subject: [PATCH 85/94] virtio-blk: Call del_gendisk() before disable guest
@@ -40,8 +40,8 @@ Acked-by: Michael S. Tsirkin <mst@redhat.com>
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/block/virtio_blk.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/virtio_blk.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/block/virtio_blk.c b/drivers/block/virtio_blk.c
 index cadf9bb..4f018c4 100644
@@ -64,5 +64,5 @@ index cadf9bb..4f018c4 100644
  	spin_lock_irqsave(&vblk->lock, flags);
  	while ((vbr = virtqueue_detach_unused_buf(vblk->vq))) {
 -- 
-1.7.7.6
+1.8.1.4
 

@@ -1,0 +1,35 @@
+From 24b3f5b9192582f07ea43311ae045698dac21e02 Mon Sep 17 00:00:00 2001
+From: Johan Hovold <jhovold@gmail.com>
+Date: Tue, 19 Mar 2013 09:21:08 +0100
+Subject: [PATCH 82/92] USB: io_ti: fix get_icount for two port adapters
+
+commit 5492bf3d5655b4954164f69c02955a7fca267611 upstream.
+
+Add missing get_icount field to two-port driver.
+
+The two-port driver was not updated when switching to the new icount
+interface in commit 0bca1b913aff ("tty: Convert the USB drivers to the
+new icount interface").
+
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/usb/serial/io_ti.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/usb/serial/io_ti.c b/drivers/usb/serial/io_ti.c
+index 3de751d..1f145bf 100644
+--- a/drivers/usb/serial/io_ti.c
++++ b/drivers/usb/serial/io_ti.c
+@@ -2796,6 +2796,7 @@ static struct usb_serial_driver edgeport_2port_device = {
+ 	.set_termios		= edge_set_termios,
+ 	.tiocmget		= edge_tiocmget,
+ 	.tiocmset		= edge_tiocmset,
++	.get_icount		= edge_get_icount,
+ 	.write			= edge_write,
+ 	.write_room		= edge_write_room,
+ 	.chars_in_buffer	= edge_chars_in_buffer,
+-- 
+1.8.1.4
+

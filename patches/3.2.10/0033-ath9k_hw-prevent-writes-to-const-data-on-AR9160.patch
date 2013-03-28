@@ -1,4 +1,4 @@
-From 0757d75820152685f344402e218b6193aa853542 Mon Sep 17 00:00:00 2001
+From 8f3fc2120fe9fa2271d1432e72acb2e819350cae Mon Sep 17 00:00:00 2001
 From: Felix Fietkau <nbd@openwrt.org>
 Date: Wed, 15 Feb 2012 19:31:20 +0100
 Subject: [PATCH 33/95] ath9k_hw: prevent writes to const data on AR9160
@@ -17,9 +17,9 @@ Reported-by: Magnus Määttä <magnus.maatta@logica.com>
 Signed-off-by: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/wireless/ath/ath9k/ar5008_phy.c |   25 +------------------------
- drivers/net/wireless/ath/ath9k/ar9002_hw.c  |   19 +++++++++++++++++++
- drivers/net/wireless/ath/ath9k/hw.h         |    1 -
+ drivers/net/wireless/ath/ath9k/ar5008_phy.c | 25 +------------------------
+ drivers/net/wireless/ath/ath9k/ar9002_hw.c  | 19 +++++++++++++++++++
+ drivers/net/wireless/ath/ath9k/hw.h         |  1 -
  3 files changed, 20 insertions(+), 25 deletions(-)
 
 diff --git a/drivers/net/wireless/ath/ath9k/ar5008_phy.c b/drivers/net/wireless/ath/ath9k/ar5008_phy.c
@@ -115,5 +115,5 @@ index f389b3c..1bd8edf 100644
  
  	u8 txpower_limit;
 -- 
-1.7.7.6
+1.8.1.4
 

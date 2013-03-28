@@ -1,4 +1,4 @@
-From 6fcad3c1d746ef364ae17c647fab09cb38eef24a Mon Sep 17 00:00:00 2001
+From 1d88115177b7ae9975d1d4f35bfa4ab44fed1aec Mon Sep 17 00:00:00 2001
 From: Nicholas Bellinger <nab@linux-iscsi.org>
 Date: Wed, 16 May 2012 16:05:26 -0700
 Subject: [PATCH 49/56] target: Fix bug in handling of FILEIO + block_device
@@ -18,8 +18,8 @@ Reported-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/target/target_core_file.c |   22 ++++++++++++++++------
- 1 files changed, 16 insertions(+), 6 deletions(-)
+ drivers/target/target_core_file.c | 22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/target/target_core_file.c b/drivers/target/target_core_file.c
 index b4864fb..cad8b92 100644
@@ -74,5 +74,5 @@ index b4864fb..cad8b92 100644
  
  static struct se_subsystem_api fileio_template = {
 -- 
-1.7.7.6
+1.8.1.4
 

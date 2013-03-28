@@ -1,0 +1,39 @@
+From 7d742a3bfdfdeac97dc05f666effb4b660433772 Mon Sep 17 00:00:00 2001
+From: Tejun Heo <tj@kernel.org>
+Date: Wed, 27 Feb 2013 17:04:04 -0800
+Subject: [PATCH 111/153] firewire: add minor number range check to
+ fw_device_init()
+
+commit 3bec60d511179853138836ae6e1b61fe34d9235f upstream.
+
+fw_device_init() didn't check whether the allocated minor number isn't
+too large.  Fail if it goes overflows MINORBITS.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Suggested-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Acked-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/firewire/core-device.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/firewire/core-device.c b/drivers/firewire/core-device.c
+index f3b890d..1f3dd51 100644
+--- a/drivers/firewire/core-device.c
++++ b/drivers/firewire/core-device.c
+@@ -995,6 +995,10 @@ static void fw_device_init(struct work_struct *work)
+ 	ret = idr_pre_get(&fw_device_idr, GFP_KERNEL) ?
+ 	      idr_get_new(&fw_device_idr, device, &minor) :
+ 	      -ENOMEM;
++	if (minor >= 1 << MINORBITS) {
++		idr_remove(&fw_device_idr, minor);
++		minor = -ENOSPC;
++	}
+ 	up_write(&fw_device_rwsem);
+ 
+ 	if (ret < 0)
+-- 
+1.8.1.4
+

@@ -1,8 +1,8 @@
-From a45dc064fe58c138b416bc69ba0c490e26996731 Mon Sep 17 00:00:00 2001
+From c244663691da5d2d99709ac9656215168e88f278 Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Date: Tue, 10 Apr 2012 16:04:49 -0700
-Subject: [PATCH 49/60] Revert "x86/ioapic: Add register level checks to
- detect bogus io-apic entries"
+Subject: [PATCH 49/60] Revert "x86/ioapic: Add register level checks to detect
+ bogus io-apic entries"
 
 This reverts commit 273fb194e86b795b08a724c7646d0f694949070b
 [73d63d038ee9f769f5e5b46792d227fe20e442c5 upstream]
@@ -19,8 +19,8 @@ Cc: Teck Choon Giam <giamteckchoon@gmail.com>
 Cc: Ben Guthro <ben@guthro.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/x86/kernel/apic/io_apic.c |   40 ++++++++--------------------------------
- 1 files changed, 8 insertions(+), 32 deletions(-)
+ arch/x86/kernel/apic/io_apic.c | 40 ++++++++--------------------------------
+ 1 file changed, 8 insertions(+), 32 deletions(-)
 
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
 index a25e276..6d939d7 100644
@@ -96,5 +96,5 @@ index a25e276..6d939d7 100644
  	nr_ioapics++;
  }
 -- 
-1.7.7.6
+1.8.1.4
 

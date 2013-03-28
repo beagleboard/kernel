@@ -1,4 +1,4 @@
-From 4821bb78a1a3c53c00bc21ebe175d233c734d751 Mon Sep 17 00:00:00 2001
+From 32cda6ff44c33602f8aa86511fe9cbea62431b9b Mon Sep 17 00:00:00 2001
 From: Eric Dumazet <edumazet@google.com>
 Date: Tue, 12 Jun 2012 19:30:21 +0000
 Subject: [PATCH 38/49] netpoll: fix netpoll_send_udp() bugs
@@ -36,8 +36,8 @@ Reviewed-by: Cong Wang <xiyou.wangcong@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- net/core/netpoll.c |   11 ++++++-----
- 1 files changed, 6 insertions(+), 5 deletions(-)
+ net/core/netpoll.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/net/core/netpoll.c b/net/core/netpoll.c
 index ab0633f..db4bb7a 100644
@@ -73,5 +73,5 @@ index ab0633f..db4bb7a 100644
  	skb_push(skb, sizeof(*udph));
  	skb_reset_transport_header(skb);
 -- 
-1.7.7.6
+1.8.1.4
 

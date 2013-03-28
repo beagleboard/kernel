@@ -1,0 +1,71 @@
+From d64629f9e44a6b645e5089aa7453f14e35f76902 Mon Sep 17 00:00:00 2001
+From: "J. Bruce Fields" <bfields@redhat.com>
+Date: Sun, 10 Feb 2013 11:33:48 -0500
+Subject: [PATCH 064/153] svcrpc: make svc_age_temp_xprts enqueue under sv_lock
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit e75bafbff2270993926abcc31358361db74a9bc2 upstream.
+
+svc_age_temp_xprts expires xprts in a two-step process: first it takes
+the sv_lock and moves the xprts to expire off their server-wide list
+(sv_tempsocks or sv_permsocks) to a local list.  Then it drops the
+sv_lock and enqueues and puts each one.
+
+I see no reason for this: svc_xprt_enqueue() will take sp_lock, but the
+sv_lock and sp_lock are not otherwise nested anywhere (and documentation
+at the top of this file claims it's correct to nest these with sp_lock
+inside.)
+
+Tested-by: Jason Tibbitts <tibbs@math.uh.edu>
+Tested-by: Paweł Sikora <pawel.sikora@agmk.net>
+Signed-off-by: J. Bruce Fields <bfields@redhat.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ net/sunrpc/svc_xprt.c | 15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
+
+diff --git a/net/sunrpc/svc_xprt.c b/net/sunrpc/svc_xprt.c
+index 3282453..9acee9d 100644
+--- a/net/sunrpc/svc_xprt.c
++++ b/net/sunrpc/svc_xprt.c
+@@ -816,7 +816,6 @@ static void svc_age_temp_xprts(unsigned long closure)
+ 	struct svc_serv *serv = (struct svc_serv *)closure;
+ 	struct svc_xprt *xprt;
+ 	struct list_head *le, *next;
+-	LIST_HEAD(to_be_aged);
+ 
+ 	dprintk("svc_age_temp_xprts\n");
+ 
+@@ -837,25 +836,15 @@ static void svc_age_temp_xprts(unsigned long closure)
+ 		if (atomic_read(&xprt->xpt_ref.refcount) > 1 ||
+ 		    test_bit(XPT_BUSY, &xprt->xpt_flags))
+ 			continue;
+-		svc_xprt_get(xprt);
+-		list_move(le, &to_be_aged);
++		list_del_init(le);
+ 		set_bit(XPT_CLOSE, &xprt->xpt_flags);
+ 		set_bit(XPT_DETACHED, &xprt->xpt_flags);
+-	}
+-	spin_unlock_bh(&serv->sv_lock);
+-
+-	while (!list_empty(&to_be_aged)) {
+-		le = to_be_aged.next;
+-		/* fiddling the xpt_list node is safe 'cos we're XPT_DETACHED */
+-		list_del_init(le);
+-		xprt = list_entry(le, struct svc_xprt, xpt_list);
+-
+ 		dprintk("queuing xprt %p for closing\n", xprt);
+ 
+ 		/* a thread will dequeue and close it soon */
+ 		svc_xprt_enqueue(xprt);
+-		svc_xprt_put(xprt);
+ 	}
++	spin_unlock_bh(&serv->sv_lock);
+ 
+ 	mod_timer(&serv->sv_temptimer, jiffies + svc_conn_age_period * HZ);
+ }
+-- 
+1.8.1.4
+

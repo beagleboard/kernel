@@ -1,4 +1,4 @@
-From dd84fe2752ccdc966bdde1b8faced845efc40ad3 Mon Sep 17 00:00:00 2001
+From 2343d8578741e4352e4a018619bce771d92bef62 Mon Sep 17 00:00:00 2001
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Date: Thu, 16 Feb 2012 13:33:12 -0800
 Subject: [PATCH 06/11] i387: don't ever touch TS_USEDFPU directly, use helper
@@ -26,10 +26,10 @@ own or even make it a per-cpu variable.
 Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/x86/include/asm/i387.h |   75 +++++++++++++++++++++++++++++++-----------
- arch/x86/kernel/traps.c     |    2 +-
- arch/x86/kernel/xsave.c     |    2 +-
- arch/x86/kvm/vmx.c          |    2 +-
+ arch/x86/include/asm/i387.h | 75 +++++++++++++++++++++++++++++++++------------
+ arch/x86/kernel/traps.c     |  2 +-
+ arch/x86/kernel/xsave.c     |  2 +-
+ arch/x86/kvm/vmx.c          |  2 +-
  4 files changed, 58 insertions(+), 23 deletions(-)
 
 diff --git a/arch/x86/include/asm/i387.h b/arch/x86/include/asm/i387.h
@@ -224,5 +224,5 @@ index 579a0b5..b2c612d 100644
  	load_gdt(&__get_cpu_var(host_gdt));
  }
 -- 
-1.7.7.6
+1.8.1.4
 

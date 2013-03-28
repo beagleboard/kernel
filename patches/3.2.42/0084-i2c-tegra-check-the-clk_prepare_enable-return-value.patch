@@ -1,0 +1,61 @@
+From 257de7ba8ec83c09ce582a0af6009de1a3a01de4 Mon Sep 17 00:00:00 2001
+From: Laxman Dewangan <ldewangan@nvidia.com>
+Date: Fri, 15 Mar 2013 05:34:08 +0000
+Subject: [PATCH 84/92] i2c: tegra: check the clk_prepare_enable() return value
+
+commit 132c803f7b70b17322579f6f4f3f65cf68e55135 upstream.
+
+NVIDIA's Tegra SoC allows read/write of controller register only
+if controller clock is enabled. System hangs if read/write happens
+to registers without enabling clock.
+
+clk_prepare_enable() can be fail due to unknown reason and hence
+adding check for return value of this function. If this function
+success then only access register otherwise return to caller with
+error.
+
+Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+Reviewed-by: Stephen Warren <swarren@nvidia.com>
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+[bwh: Backported to 3.2:
+ - Adjust context
+ - Keep calling clk_enable() directly]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/i2c/busses/i2c-tegra.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-tegra.c b/drivers/i2c/busses/i2c-tegra.c
+index 3d7885a..3056ea4 100644
+--- a/drivers/i2c/busses/i2c-tegra.c
++++ b/drivers/i2c/busses/i2c-tegra.c
+@@ -341,7 +341,11 @@ static int tegra_i2c_init(struct tegra_i2c_dev *i2c_dev)
+ 	u32 val;
+ 	int err = 0;
+ 
+-	clk_enable(i2c_dev->clk);
++	err = clk_enable(i2c_dev->clk);
++	if (err < 0) {
++		dev_err(i2c_dev->dev, "Clock enable failed %d\n", err);
++		return err;
++	}
+ 
+ 	tegra_periph_reset_assert(i2c_dev->clk);
+ 	udelay(2);
+@@ -536,7 +540,12 @@ static int tegra_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
+ 	if (i2c_dev->is_suspended)
+ 		return -EBUSY;
+ 
+-	clk_enable(i2c_dev->clk);
++	ret = clk_enable(i2c_dev->clk);
++	if (ret < 0) {
++		dev_err(i2c_dev->dev, "Clock enable failed %d\n", ret);
++		return ret;
++	}
++
+ 	for (i = 0; i < num; i++) {
+ 		int stop = (i == (num - 1)) ? 1  : 0;
+ 		ret = tegra_i2c_xfer_msg(i2c_dev, &msgs[i], stop);
+-- 
+1.8.1.4
+

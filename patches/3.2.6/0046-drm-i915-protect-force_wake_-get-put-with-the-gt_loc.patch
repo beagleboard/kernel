@@ -1,8 +1,7 @@
-From 300d0f0b953e39222185c773b1d3e1e9dca0874f Mon Sep 17 00:00:00 2001
+From 4c26a13755e330552c381f439fcbea8ed83a9a9b Mon Sep 17 00:00:00 2001
 From: Daniel Vetter <daniel.vetter@ffwll.ch>
 Date: Wed, 14 Dec 2011 13:57:03 +0100
-Subject: [PATCH 46/87] drm/i915: protect force_wake_(get|put) with the
- gt_lock
+Subject: [PATCH 46/87] drm/i915: protect force_wake_(get|put) with the gt_lock
 
 commit 9f1f46a45a681d357d1ceedecec3671a5ae957f4 upstream.
 
@@ -37,10 +36,10 @@ Signed-off-by: Keith Packard <keithp@keithp.com>
 Signed-off-by: Eugeni Dodonov <eugeni.dodonov@intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/gpu/drm/i915/i915_debugfs.c |    8 ++++++--
- drivers/gpu/drm/i915/i915_dma.c     |    1 +
- drivers/gpu/drm/i915/i915_drv.c     |   18 ++++++++++++------
- drivers/gpu/drm/i915/i915_drv.h     |   10 +++++++---
+ drivers/gpu/drm/i915/i915_debugfs.c |  8 ++++++--
+ drivers/gpu/drm/i915/i915_dma.c     |  1 +
+ drivers/gpu/drm/i915/i915_drv.c     | 18 ++++++++++++------
+ drivers/gpu/drm/i915/i915_drv.h     | 10 +++++++---
  4 files changed, 26 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/i915_debugfs.c b/drivers/gpu/drm/i915/i915_debugfs.c
@@ -159,5 +158,5 @@ index 505af3f..ae294a0 100644
  
  enum i915_cache_level {
 -- 
-1.7.7.6
+1.8.1.4
 

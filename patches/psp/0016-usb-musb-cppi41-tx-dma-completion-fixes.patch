@@ -1,4 +1,4 @@
-From 015d8fd910fd8ae6542274a12b2bb323fa9b24ea Mon Sep 17 00:00:00 2001
+From 6d307b3a7c33d8ddf8a02e3889c119009e1c74af Mon Sep 17 00:00:00 2001
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Date: Thu, 24 May 2012 16:03:02 +0530
 Subject: [PATCH 16/19] usb: musb: cppi41: tx dma completion fixes
@@ -7,8 +7,8 @@ Use spinlock_irqsave/restore only during txdma completion giveback.
 
 Signed-off-by: Ravi B <ravibabu@ti.com>
 ---
- drivers/usb/musb/cppi41_dma.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/usb/musb/cppi41_dma.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/usb/musb/cppi41_dma.c b/drivers/usb/musb/cppi41_dma.c
 index 4367e4f..ea83f9a 100644
@@ -37,5 +37,5 @@ index 4367e4f..ea83f9a 100644
  			if (!resched)
  				cond_resched();
 -- 
-1.7.7.6
+1.8.1.4
 

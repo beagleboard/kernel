@@ -1,4 +1,4 @@
-From a07c090d1a86a58fbf6e72074fd6e1b8ebe3e8e6 Mon Sep 17 00:00:00 2001
+From 63c86e625872ceb32c45bee600593efdca13b8cb Mon Sep 17 00:00:00 2001
 From: Jeff Layton <jlayton@redhat.com>
 Date: Wed, 11 Jul 2012 09:09:36 -0400
 Subject: [PATCH 24/73] cifs: when CONFIG_HIGHMEM is set, serialize the
@@ -47,8 +47,8 @@ Signed-off-by: Steve French <smfrench@gmail.com>
 [bwh: Backported to 3.2: adjust context]
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- fs/cifs/cifssmb.c |   30 ++++++++++++++++++++++++++++++
- 1 files changed, 30 insertions(+), 0 deletions(-)
+ fs/cifs/cifssmb.c | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
 diff --git a/fs/cifs/cifssmb.c b/fs/cifs/cifssmb.c
 index 6aa7457..c858a29 100644
@@ -120,5 +120,5 @@ index 6aa7457..c858a29 100644
  	cFYI(1, "async write at %llu %u bytes", wdata->offset, wdata->bytes);
  
 -- 
-1.7.7.6
+1.8.1.4
 

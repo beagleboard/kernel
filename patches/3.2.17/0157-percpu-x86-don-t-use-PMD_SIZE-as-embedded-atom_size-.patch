@@ -1,8 +1,8 @@
-From 30cc3618bc7cb4c6198330683a1fa1f0f7308210 Mon Sep 17 00:00:00 2001
+From 11be5ec1ba122368d61165b3d42dd190940a28ea Mon Sep 17 00:00:00 2001
 From: Tejun Heo <tj@kernel.org>
 Date: Fri, 27 Apr 2012 10:54:35 -0700
-Subject: [PATCH 157/165] percpu, x86: don't use PMD_SIZE as embedded
- atom_size on 32bit
+Subject: [PATCH 157/165] percpu, x86: don't use PMD_SIZE as embedded atom_size
+ on 32bit
 
 commit d5e28005a1d2e67833852f4c9ea8ec206ea3ff85 upstream.
 
@@ -32,8 +32,8 @@ Acked-by: H. Peter Anvin <hpa@zytor.com>
 LKML-Reference: <4F97BA98.6010001@intel.com>
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/x86/kernel/setup_percpu.c |   14 +++++++++++++-
- 1 files changed, 13 insertions(+), 1 deletions(-)
+ arch/x86/kernel/setup_percpu.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
 diff --git a/arch/x86/kernel/setup_percpu.c b/arch/x86/kernel/setup_percpu.c
 index 71f4727..5a98aa2 100644
@@ -64,5 +64,5 @@ index 71f4727..5a98aa2 100644
  					    dyn_size, atom_size,
  					    pcpu_cpu_distance,
 -- 
-1.7.7.6
+1.8.1.4
 

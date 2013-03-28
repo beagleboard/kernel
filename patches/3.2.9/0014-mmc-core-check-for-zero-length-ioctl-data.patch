@@ -1,4 +1,4 @@
-From 6b327d8f94d94a930d8c2f07872f0fdc70ccbdd8 Mon Sep 17 00:00:00 2001
+From 6c27b086e49f0da1787a5db68347ca63a7e6f91d Mon Sep 17 00:00:00 2001
 From: Johan Rudholm <johan.rudholm@stericsson.com>
 Date: Wed, 23 Nov 2011 09:05:58 +0100
 Subject: [PATCH 14/72] mmc: core: check for zero length ioctl data
@@ -15,8 +15,8 @@ Signed-off-by: Johan Rudholm <johan.rudholm@stericsson.com>
 Signed-off-by: Chris Ball <cjb@laptop.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/mmc/card/block.c |   82 +++++++++++++++++++++++++---------------------
- 1 files changed, 45 insertions(+), 37 deletions(-)
+ drivers/mmc/card/block.c | 82 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 45 insertions(+), 37 deletions(-)
 
 diff --git a/drivers/mmc/card/block.c b/drivers/mmc/card/block.c
 index 969d49b..60e8951 100644
@@ -133,5 +133,5 @@ index 969d49b..60e8951 100644
  
  	if (cmd.error) {
 -- 
-1.7.7.6
+1.8.1.4
 

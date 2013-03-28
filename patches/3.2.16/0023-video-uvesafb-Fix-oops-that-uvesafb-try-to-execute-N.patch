@@ -1,4 +1,4 @@
-From 38e8e9bdd190a65e400ac0a851c374fce583cbff Mon Sep 17 00:00:00 2001
+From a44a3d7bfc126f9b9640def7870f4ddf26695368 Mon Sep 17 00:00:00 2001
 From: Wang YanQing <udknight@gmail.com>
 Date: Sun, 1 Apr 2012 08:54:02 +0800
 Subject: [PATCH 23/68] video:uvesafb: Fix oops that uvesafb try to execute
@@ -88,8 +88,8 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/video/uvesafb.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+ drivers/video/uvesafb.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/video/uvesafb.c b/drivers/video/uvesafb.c
 index 7f8472c..8813588 100644
@@ -114,5 +114,5 @@ index 7f8472c..8813588 100644
  	/* The protected mode interface is not available on non-x86. */
  	par->pmi_setpal = par->ypan = 0;
 -- 
-1.7.7.6
+1.8.1.4
 
