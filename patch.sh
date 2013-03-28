@@ -122,6 +122,7 @@ done
 
 echo '	file://defconfig \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 echo '  file://am335x-pm-firmware.bin \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+echo '  file://db.txt \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 echo "\"" >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 
 mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}
@@ -133,4 +134,5 @@ fi
 
 if [ -e ${DIR}/db.txt ] ; then
 	cp ${DIR}/db.txt ${DIR}/kernel/net/wireless
+	cp ${DIR}/db.txt ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
 fi

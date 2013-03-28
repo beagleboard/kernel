@@ -6,7 +6,7 @@ KERNEL_IMAGETYPE = "uImage"
 COMPATIBLE_MACHINE = "(beaglebone)"
 
 # The main PR is now using MACHINE_KERNEL_PR, for omap3 see conf/machine/include/omap3.inc
-MACHINE_KERNEL_PR_append = "a"
+MACHINE_KERNEL_PR_append = "d"
 
 FILESPATH =. "${FILE_DIRNAME}/linux-mainline-3.8:${FILE_DIRNAME}/linux-mainline-3.8/${MACHINE}:"
 
@@ -21,4 +21,6 @@ do_configure_prepend() {
 	if [ -e ${WORKDIR}/am335x-pm-firmware.bin ] ; then
 		cp ${WORKDIR}/am335x-pm-firmware.bin ${S}/firmware
 	fi
+
+	cp ${WORKDIR}/db.txt ${S}/net/wireless
 }
