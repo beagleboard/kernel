@@ -1,0 +1,57 @@
+From e9fcd2cce64d47e2e276153a386984e5e6086265 Mon Sep 17 00:00:00 2001
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+Date: Tue, 26 Feb 2013 11:46:40 +0100
+Subject: [PATCH 3/4] ssd1307fb: Speed up the communication with the controller
+
+The code until now was sending only 1pixel-wide page segment at once,
+and started a new transfer every time. It has proven very inefficient,
+because for one byte to display on the screen, we had to actually send 3
+bytes over I2C: the address, the type of data that was going to the
+controller, and then the actual data.
+
+This patches changes that by sending a whole page at once, avoiding most
+of this expensive overhead.
+
+Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+---
+ drivers/video/ssd1307fb.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/video/ssd1307fb.c b/drivers/video/ssd1307fb.c
+index 85e0860..676241b 100644
+--- a/drivers/video/ssd1307fb.c
++++ b/drivers/video/ssd1307fb.c
+@@ -153,22 +153,27 @@ static void ssd1307fb_update_display(struct ssd1307fb_par *par)
+ 	 */
+ 
+ 	for (i = 0; i < (par->height / 8); i++) {
++		struct ssd1307fb_array *array;
++
+ 		ssd1307fb_write_cmd(par->client, SSD1307FB_START_PAGE_ADDRESS + i + par->page_offset);
+ 		ssd1307fb_write_cmd(par->client, 0x00);
+ 		ssd1307fb_write_cmd(par->client, 0x10);
+ 
++		array = ssd1307fb_alloc_array(par->width, SSD1307FB_DATA);
++
+ 		for (j = 0; j < par->width; j++) {
+-			u8 buf = 0;
++			array->data[j] = 0;
+ 			for (k = 0; k < 8; k++) {
+ 				u32 page_length = par->width * i;
+ 				u32 index = page_length + (par->width * k + j) / 8;
+ 				u8 byte = *(vmem + index);
+ 				u8 bit = byte & (1 << (j % 8));
+ 				bit = bit >> (j % 8);
+-				buf |= bit << k;
++				array->data[j] |= bit << k;
+ 			}
+-			ssd1307fb_write_data(par->client, buf);
+ 		}
++
++		ssd1307fb_write_array(par->client, array, par->width);
+ 	}
+ }
+ 
+-- 
+1.8.1.4
+
