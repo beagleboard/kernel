@@ -1,22 +1,22 @@
-From 0f2fd63d84fb9f48a1301b00856478df85093b55 Mon Sep 17 00:00:00 2001
+From 05756c6501cd3a022d075b88db5cc30432f3db1c Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
-Date: Tue, 4 Sep 2012 23:48:13 -0400
-Subject: [PATCH 05/16] 6lowpan: use short IEEE 802.15.4 addresses for
+Date: Mon, 25 Mar 2013 23:59:25 -0400
+Subject: [PATCH 14/23] 6lowpan: use short IEEE 802.15.4 addresses for
  broadcast destination
 
-It is intended that the IEEE 802.15.4 standard uses the 0xFFFF short address (2
-bytes) for message broadcasting.
+The IEEE 802.15.4 standard uses the 0xFFFF short address (2 bytes) for message
+broadcasting.
 
 Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
 ---
- net/ieee802154/6lowpan.c | 21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ net/ieee802154/6lowpan.c | 23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
-index fee0d82..b4d8588 100644
+index e7f61de..0eebb96 100644
 --- a/net/ieee802154/6lowpan.c
 +++ b/net/ieee802154/6lowpan.c
-@@ -577,21 +577,26 @@ static int lowpan_header_create(struct sk_buff *skb,
+@@ -572,21 +572,28 @@ static int lowpan_header_create(struct sk_buff *skb,
  	 * this isn't implemented in mainline yet, so currently we assign 0xff
  	 */
  	{
@@ -34,8 +34,10 @@ index fee0d82..b4d8588 100644
  
 -		mac_cb(skb)->flags = IEEE802154_FC_TYPE_DATA;
 +		da.pan_id = 0xff;
-+		/* if the destination address is the broadcast address,
-+		   use short address */
++		/*
++		 * if the destination address is the broadcast address, use the
++		 * corresponding short address
++		 */
 +		if (lowpan_is_addr_broadcast(daddr)) {
 +			da.addr_type = IEEE802154_ADDR_SHORT;
 +			da.short_addr = IEEE802154_ADDR_BROADCAST;
@@ -52,5 +54,5 @@ index fee0d82..b4d8588 100644
  		return dev_hard_header(skb, lowpan_dev_info(dev)->real_dev,
  				type, (void *)&da, (void *)&sa, skb->len);
 -- 
-1.8.1.4
+1.7.11.2
 

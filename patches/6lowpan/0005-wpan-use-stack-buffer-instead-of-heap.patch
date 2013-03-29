@@ -1,0 +1,47 @@
+From d9b5d6aa1370429ad0d40504155a670bad20b7ec Mon Sep 17 00:00:00 2001
+From: Alexander Aring <alex.aring@gmail.com>
+Date: Tue, 5 Feb 2013 10:23:44 +0000
+Subject: [PATCH 05/23] wpan: use stack buffer instead of heap
+
+head buffer is only temporary available in mac802154_header_create.
+So it's not necessary to put it on the heap.
+
+Signed-off-by: Alexander Aring <alex.aring@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ net/mac802154/wpan.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/net/mac802154/wpan.c b/net/mac802154/wpan.c
+index 98c867b..d20c6d3 100644
+--- a/net/mac802154/wpan.c
++++ b/net/mac802154/wpan.c
+@@ -137,16 +137,12 @@ static int mac802154_header_create(struct sk_buff *skb,
+ 	struct ieee802154_addr dev_addr;
+ 	struct mac802154_sub_if_data *priv = netdev_priv(dev);
+ 	int pos = 2;
+-	u8 *head;
++	u8 head[MAC802154_FRAME_HARD_HEADER_LEN];
+ 	u16 fc;
+ 
+ 	if (!daddr)
+ 		return -EINVAL;
+ 
+-	head = kzalloc(MAC802154_FRAME_HARD_HEADER_LEN, GFP_KERNEL);
+-	if (head == NULL)
+-		return -ENOMEM;
+-
+ 	head[pos++] = mac_cb(skb)->seq; /* DSN/BSN */
+ 	fc = mac_cb_type(skb);
+ 
+@@ -210,7 +206,6 @@ static int mac802154_header_create(struct sk_buff *skb,
+ 	head[1] = fc >> 8;
+ 
+ 	memcpy(skb_push(skb, pos), head, pos);
+-	kfree(head);
+ 
+ 	return pos;
+ }
+-- 
+1.7.11.2
+

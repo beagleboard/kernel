@@ -1,0 +1,27 @@
+From 41c7cbd0cabb1f747fb7e239b326583ca0600f6f Mon Sep 17 00:00:00 2001
+From: Tony Cheneau <tony.cheneau@amnesiak.org>
+Date: Wed, 27 Mar 2013 00:09:25 -0400
+Subject: [PATCH 23/23] 6lowpan: use IEEE802154_ADDR_LEN instead of a magic
+ number
+
+Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
+---
+ net/ieee802154/6lowpan.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
+index f4969d7..e1b4580 100644
+--- a/net/ieee802154/6lowpan.c
++++ b/net/ieee802154/6lowpan.c
+@@ -602,7 +602,7 @@ static int lowpan_header_create(struct sk_buff *skb,
+ 			da.short_addr = IEEE802154_ADDR_BROADCAST;
+ 		} else {
+ 			da.addr_type = IEEE802154_ADDR_LONG;
+-			memcpy(&(da.hwaddr), daddr, 8);
++			memcpy(&(da.hwaddr), daddr, IEEE802154_ADDR_LEN);
+ 
+ 			/* request acknowledgment */
+ 			mac_cb(skb)->flags |= MAC_CB_FLAG_ACKREQ;
+-- 
+1.7.11.2
+

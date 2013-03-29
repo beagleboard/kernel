@@ -1,7 +1,7 @@
-From 0b84dd51a066c553b29342ef435b869c6b60bad1 Mon Sep 17 00:00:00 2001
+From 4cab5a3ed9186ce8985535c04b145c6637b0a5f8 Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
-Date: Fri, 6 Jul 2012 17:39:22 -0400
-Subject: [PATCH 07/16] 6lowpan: store fragment tag values per device instead
+Date: Mon, 25 Mar 2013 23:59:28 -0400
+Subject: [PATCH 17/23] 6lowpan: store fragment tag values per device instead
  of net stack wide
 
 Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
@@ -10,7 +10,7 @@ Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
  1 file changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
-index 7bd8c67..fc62906 100644
+index 61eee9d..f952451 100644
 --- a/net/ieee802154/6lowpan.c
 +++ b/net/ieee802154/6lowpan.c
 @@ -104,6 +104,7 @@ static const u8 lowpan_llprefix[] = {0xfe, 0x80};
@@ -29,7 +29,7 @@ index 7bd8c67..fc62906 100644
  static LIST_HEAD(lowpan_fragments);
  static DEFINE_SPINLOCK(flist_lock);
  
-@@ -1022,14 +1022,14 @@ lowpan_fragment_xmit(struct sk_buff *skb, u8 *head,
+@@ -1027,14 +1027,14 @@ lowpan_fragment_xmit(struct sk_buff *skb, u8 *head,
  }
  
  static int
@@ -46,7 +46,7 @@ index 7bd8c67..fc62906 100644
  
  	/* first fragment header */
  	head[0] = LOWPAN_DISPATCH_FRAG1 | ((payload_length >> 8) & 0x7);
-@@ -1096,7 +1096,7 @@ static netdev_tx_t lowpan_xmit(struct sk_buff *skb, struct net_device *dev)
+@@ -1099,7 +1099,7 @@ static netdev_tx_t lowpan_xmit(struct sk_buff *skb, struct net_device *dev)
  	}
  
  	pr_debug("frame is too big, fragmentation is needed\n");
@@ -55,7 +55,7 @@ index 7bd8c67..fc62906 100644
  error:
  	dev_kfree_skb(skb);
  out:
-@@ -1217,6 +1217,7 @@ static int lowpan_newlink(struct net *src_net, struct net_device *dev,
+@@ -1243,6 +1243,7 @@ static int lowpan_newlink(struct net *src_net, struct net_device *dev,
  		return -ENODEV;
  
  	lowpan_dev_info(dev)->real_dev = real_dev;
@@ -64,5 +64,5 @@ index 7bd8c67..fc62906 100644
  
  	entry = kzalloc(sizeof(struct lowpan_dev_record), GFP_KERNEL);
 -- 
-1.8.1.4
+1.7.11.2
 

@@ -1,0 +1,29 @@
+From 2d501664707b3754748cead8be7c9377aec93c86 Mon Sep 17 00:00:00 2001
+From: Alan Ott <alan@signal11.us>
+Date: Mon, 18 Mar 2013 01:26:01 -0400
+Subject: [PATCH 09/23] mrf24j40: Fix byte-order of IEEE address
+
+Load the 64-bit Extended (IEEE) address into the hardware in the proper
+byte order.
+
+Signed-off-by: Alan Ott <alan@signal11.us>
+---
+ drivers/net/ieee802154/mrf24j40.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ieee802154/mrf24j40.c b/drivers/net/ieee802154/mrf24j40.c
+index f6e723e..6481faf 100644
+--- a/drivers/net/ieee802154/mrf24j40.c
++++ b/drivers/net/ieee802154/mrf24j40.c
+@@ -478,7 +478,7 @@ static int mrf24j40_filter(struct ieee802154_dev *dev,
+ 		int i;
+ 		for (i = 0; i < 8; i++)
+ 			write_short_reg(devrec, REG_EADR0+i,
+-					filt->ieee_addr[i]);
++					filt->ieee_addr[7-i]);
+ 
+ #ifdef DEBUG
+ 		printk(KERN_DEBUG "Set long addr to: ");
+-- 
+1.7.11.2
+

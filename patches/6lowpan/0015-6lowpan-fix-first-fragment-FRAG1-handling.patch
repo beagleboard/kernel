@@ -1,26 +1,32 @@
-From 1b75ec18322f9deb592bf8397d0cec71e6bccf4f Mon Sep 17 00:00:00 2001
+From 78f6c0b7e7ab3d44cd16dea61687ff61e1774c04 Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
-Date: Sat, 8 Sep 2012 00:15:54 -0400
-Subject: [PATCH 06/16] 6lowpan: fix first fragment (FRAG1) handling
+Date: Mon, 25 Mar 2013 23:59:26 -0400
+Subject: [PATCH 15/23] 6lowpan: fix first fragment (FRAG1) handling
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
 The first fragment, FRAG1, must contain some payload according to the
 specs. However, as it is currently written, the first fragment will
 remain empty and only contain the 6lowpan headers.
 
-This patch also extract the transport layer information from the first
-fragment. This information is later on use when uncompressing UDP
+This patch also extracts the transport layer information from the first
+fragment. This information is used later on when uncompressing UDP
 header.
+
+Thanks to Wolf-Bastian Pöttner for noticing that the offset value was
+not properly initialized.
 
 Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
 ---
- net/ieee802154/6lowpan.c | 54 +++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 42 insertions(+), 12 deletions(-)
+ net/ieee802154/6lowpan.c | 36 +++++++++++++++++++++++-------------
+ 1 file changed, 23 insertions(+), 13 deletions(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
-index b4d8588..7bd8c67 100644
+index 0eebb96..4a62289 100644
 --- a/net/ieee802154/6lowpan.c
 +++ b/net/ieee802154/6lowpan.c
-@@ -654,7 +654,7 @@ static void lowpan_fragment_timer_expired(unsigned long entry_addr)
+@@ -661,7 +661,7 @@ static void lowpan_fragment_timer_expired(unsigned long entry_addr)
  }
  
  static struct lowpan_fragment *
@@ -29,33 +35,29 @@ index b4d8588..7bd8c67 100644
  {
  	struct lowpan_fragment *frame;
  
-@@ -735,6 +735,18 @@ lowpan_process_data(struct sk_buff *skb)
+@@ -731,7 +731,7 @@ lowpan_process_data(struct sk_buff *skb)
+ 	{
+ 		struct lowpan_fragment *frame;
+ 		/* slen stores the rightmost 8 bits of the 11 bits length */
+-		u8 slen, offset;
++		u8 slen, offset = 0;
+ 		u16 len, tag;
+ 		bool found = false;
+ 
+@@ -742,6 +742,12 @@ lowpan_process_data(struct sk_buff *skb)
  		/* adds the 3 MSB to the 8 LSB to retrieve the 11 bits length */
  		len = ((iphc0 & 7) << 8) | slen;
  
-+		if ((iphc0 & LOWPAN_DISPATCH_MASK) == LOWPAN_DISPATCH_FRAG1) {
-+			pr_debug("%s received a FRAG1 packet (tag: %d, "
-+				 "size of the entire IP packet: %d)"
-+				 , __func__, tag, len);
-+		} else { /* FRAGN */
++		/* FRAGN */
++		if ((iphc0 & LOWPAN_DISPATCH_MASK) != LOWPAN_DISPATCH_FRAG1) {
 +			if (lowpan_fetch_skb_u8(skb, &offset))
 +				goto unlock_and_drop;
-+			pr_debug("%s received a FRAGN packet (tag: %d, "
-+				 "size of the entire IP packet: %d, "
-+				 "offset: %d)", __func__, tag, len, offset * 8);
 +		}
 +
  		/*
  		 * check if frame assembling with the same tag is
  		 * already in progress
-@@ -749,17 +761,13 @@ lowpan_process_data(struct sk_buff *skb)
- 
- 		/* alloc new frame structure */
- 		if (!found) {
-+			pr_debug("%s first fragment received for tag %d, "
-+				 "begin packet reassembly", __func__, tag);
- 			frame = lowpan_alloc_new_frame(skb, len, tag);
- 			if (!frame)
+@@ -761,12 +767,6 @@ lowpan_process_data(struct sk_buff *skb)
  				goto unlock_and_drop;
  		}
  
@@ -68,18 +70,7 @@ index b4d8588..7bd8c67 100644
  		/* if payload fits buffer, copy it */
  		if (likely((offset * 8 + skb->len) <= frame->length))
  			skb_copy_to_linear_data_offset(frame->skb, offset * 8,
-@@ -777,6 +785,10 @@ lowpan_process_data(struct sk_buff *skb)
- 			list_del(&frame->list);
- 			spin_unlock_bh(&flist_lock);
- 
-+			pr_debug("%s successfully reassembled fragment "
-+				 "(tag %d)", __func__, tag);
-+
-+
- 			dev_kfree_skb(skb);
- 			skb = frame->skb;
- 			kfree(frame);
-@@ -976,13 +988,13 @@ static int lowpan_get_mac_header_length(struct sk_buff *skb)
+@@ -982,13 +982,13 @@ static int lowpan_get_mac_header_length(struct sk_buff *skb)
  
  static int
  lowpan_fragment_xmit(struct sk_buff *skb, u8 *head,
@@ -91,12 +82,12 @@ index b4d8588..7bd8c67 100644
  
 -	/* if payload length is zero, therefore it's a first fragment */
 -	hlen = (plen == 0 ? LOWPAN_FRAG1_HEAD_SIZE :  LOWPAN_FRAGN_HEAD_SIZE);
-+	hlen = (type == LOWPAN_DISPATCH_FRAG1 ? LOWPAN_FRAG1_HEAD_SIZE :
-+			LOWPAN_FRAGN_HEAD_SIZE);
++	hlen = (type == LOWPAN_DISPATCH_FRAG1) ?
++			LOWPAN_FRAG1_HEAD_SIZE : LOWPAN_FRAGN_HEAD_SIZE;
  
  	lowpan_raw_dump_inline(__func__, "6lowpan fragment header", head, hlen);
  
-@@ -1025,7 +1037,18 @@ lowpan_skb_fragmentation(struct sk_buff *skb)
+@@ -1031,7 +1031,13 @@ lowpan_skb_fragmentation(struct sk_buff *skb)
  	head[2] = tag >> 8;
  	head[3] = tag & 0xff;
  
@@ -104,29 +95,21 @@ index b4d8588..7bd8c67 100644
 +	err = lowpan_fragment_xmit(skb, head, header_length, LOWPAN_FRAG_SIZE,
 +				   0, LOWPAN_DISPATCH_FRAG1);
 +
-+	if (err) {
-+#if DEBUG
-+		pr_debug("%s unable to send FRAG1 packet (tag: %d)",
-+			 __func__, tag);
-+#endif /* DEBUG */
++	if (err)
 +		goto exit;
-+	}
 +
 +	offset = LOWPAN_FRAG_SIZE;
  
  	/* next fragment header */
  	head[0] &= ~LOWPAN_DISPATCH_FRAG1;
-@@ -1040,10 +1063,17 @@ lowpan_skb_fragmentation(struct sk_buff *skb)
+@@ -1046,10 +1052,14 @@ lowpan_skb_fragmentation(struct sk_buff *skb)
  			len = payload_length - offset;
  
  		err = lowpan_fragment_xmit(skb, head, header_length,
 -							len, offset);
 +					   len, offset, LOWPAN_DISPATCH_FRAGN);
-+		if (err) {
-+			pr_debug("%s unable to send a subsequent FRAGN packet "
-+				 "(tag: %d, offset: %d", __func__, tag, offset);
++		if (err)
 +			goto exit;
-+		}
 +
  		offset += len;
  	}
@@ -136,5 +119,5 @@ index b4d8588..7bd8c67 100644
  }
  
 -- 
-1.8.1.4
+1.7.11.2
 

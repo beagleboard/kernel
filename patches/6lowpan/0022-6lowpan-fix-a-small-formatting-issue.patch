@@ -1,0 +1,29 @@
+From 2bda04eddce0913484dbd170190d24ed54ae9c5e Mon Sep 17 00:00:00 2001
+From: Tony Cheneau <tony.cheneau@amnesiak.org>
+Date: Wed, 27 Mar 2013 00:09:24 -0400
+Subject: [PATCH 22/23] 6lowpan: fix a small formatting issue
+
+This formatting issue was introduced with commit
+d4ac32365dcbfd341a87eae444c26679f889249a
+
+Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
+---
+ net/ieee802154/6lowpan.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
+index c9c3f3d..f4969d7 100644
+--- a/net/ieee802154/6lowpan.c
++++ b/net/ieee802154/6lowpan.c
+@@ -104,7 +104,7 @@ static const u8 lowpan_llprefix[] = {0xfe, 0x80};
+ struct lowpan_dev_info {
+ 	struct net_device	*real_dev; /* real WPAN device ptr */
+ 	struct mutex		dev_list_mtx; /* mutex for list ops */
+-	unsigned short fragment_tag;
++	unsigned short		fragment_tag;
+ };
+ 
+ struct lowpan_dev_record {
+-- 
+1.7.11.2
+

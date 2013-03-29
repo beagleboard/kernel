@@ -1,0 +1,61 @@
+From adb8535eadda5edafb30fdcde3e548ae2e13a486 Mon Sep 17 00:00:00 2001
+From: Tony Cheneau <tony.cheneau@amnesiak.org>
+Date: Mon, 25 Mar 2013 23:59:29 -0400
+Subject: [PATCH 18/23] mac802154: add mac802154_dev_get_dsn()
+
+Bring-over mac802154_dev_get_dsn() function that was present in the
+Linux ZigBee kernel. This function is called by the 6LoWPAN code in
+order to properly set the DSN (Data Sequence Number) value in the IEEE
+802.15.4 frame.
+
+Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
+---
+ net/mac802154/mac802154.h | 1 +
+ net/mac802154/mac_cmd.c   | 1 +
+ net/mac802154/mib.c       | 9 +++++++++
+ 3 files changed, 11 insertions(+)
+
+diff --git a/net/mac802154/mac802154.h b/net/mac802154/mac802154.h
+index a4dcaf1..21fa386 100644
+--- a/net/mac802154/mac802154.h
++++ b/net/mac802154/mac802154.h
+@@ -114,5 +114,6 @@ void mac802154_dev_set_ieee_addr(struct net_device *dev);
+ u16 mac802154_dev_get_pan_id(const struct net_device *dev);
+ void mac802154_dev_set_pan_id(struct net_device *dev, u16 val);
+ void mac802154_dev_set_page_channel(struct net_device *dev, u8 page, u8 chan);
++u8 mac802154_dev_get_dsn(const struct net_device *dev);
+ 
+ #endif /* MAC802154_H */
+diff --git a/net/mac802154/mac_cmd.c b/net/mac802154/mac_cmd.c
+index d8d2770..a99910d 100644
+--- a/net/mac802154/mac_cmd.c
++++ b/net/mac802154/mac_cmd.c
+@@ -73,4 +73,5 @@ struct ieee802154_mlme_ops mac802154_mlme_wpan = {
+ 	.start_req = mac802154_mlme_start_req,
+ 	.get_pan_id = mac802154_dev_get_pan_id,
+ 	.get_short_addr = mac802154_dev_get_short_addr,
++	.get_dsn = mac802154_dev_get_dsn,
+ };
+diff --git a/net/mac802154/mib.c b/net/mac802154/mib.c
+index f47781a..f03e55f 100644
+--- a/net/mac802154/mib.c
++++ b/net/mac802154/mib.c
+@@ -159,6 +159,15 @@ void mac802154_dev_set_pan_id(struct net_device *dev, u16 val)
+ 	}
+ }
+ 
++u8 mac802154_dev_get_dsn(const struct net_device *dev)
++{
++	struct mac802154_sub_if_data *priv = netdev_priv(dev);
++
++	BUG_ON(dev->type != ARPHRD_IEEE802154);
++
++	return priv->dsn++;
++}
++
+ static void phy_chan_notify(struct work_struct *work)
+ {
+ 	struct phy_chan_notify_work *nw = container_of(work,
+-- 
+1.7.11.2
+

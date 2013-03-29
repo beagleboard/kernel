@@ -1,7 +1,7 @@
-From 2b0d419c70d2c96468ec60dc5e139bf5d4498df5 Mon Sep 17 00:00:00 2001
+From e2936a5a3385714e00ad625798740221f91bd580 Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
-Date: Mon, 24 Sep 2012 23:11:46 -0400
-Subject: [PATCH 10/16] 6lowpan: use the PANID provided by the device instead
+Date: Mon, 25 Mar 2013 23:59:31 -0400
+Subject: [PATCH 20/23] 6lowpan: use the PANID provided by the device instead
  of a static value
 
 Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
@@ -10,10 +10,10 @@ Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
  1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
-index a71452e..63dd8638 100644
+index d1d4ee6..276971b 100644
 --- a/net/ieee802154/6lowpan.c
 +++ b/net/ieee802154/6lowpan.c
-@@ -584,10 +584,12 @@ static int lowpan_header_create(struct sk_buff *skb,
+@@ -577,10 +577,12 @@ static int lowpan_header_create(struct sk_buff *skb,
  
  		/* prepare wpan address data */
  		sa.addr_type = IEEE802154_ADDR_LONG;
@@ -25,9 +25,9 @@ index a71452e..63dd8638 100644
 +		da.pan_id = ieee802154_mlme_ops(dev)->get_pan_id(dev);
  
 -		da.pan_id = 0xff;
- 		/* if the destination address is the broadcast address,
- 		   use short address */
- 		if (lowpan_is_addr_broadcast(daddr)) {
+ 		/*
+ 		 * if the destination address is the broadcast address, use the
+ 		 * corresponding short address
 -- 
-1.8.1.4
+1.7.11.2
 

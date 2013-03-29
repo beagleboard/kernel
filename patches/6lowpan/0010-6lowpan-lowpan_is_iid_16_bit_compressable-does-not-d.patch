@@ -1,0 +1,35 @@
+From 37db122b625196230ac7d2df2adeadada192ee4a Mon Sep 17 00:00:00 2001
+From: Tony Cheneau <tony.cheneau@amnesiak.org>
+Date: Mon, 25 Mar 2013 23:59:21 -0400
+Subject: [PATCH 10/23] 6lowpan: lowpan_is_iid_16_bit_compressable() does not
+ detect compressible address correctly
+
+The current test is not RFC6282 compliant. The same issue has been found
+and fixed in Contiki. This patch is basically a port of their fix.
+
+Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
+---
+ net/ieee802154/6lowpan.h | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/net/ieee802154/6lowpan.h b/net/ieee802154/6lowpan.h
+index bba5f83..4b8f917 100644
+--- a/net/ieee802154/6lowpan.h
++++ b/net/ieee802154/6lowpan.h
+@@ -92,9 +92,10 @@
+  */
+ #define lowpan_is_iid_16_bit_compressable(a)	\
+ 	((((a)->s6_addr16[4]) == 0) &&		\
+-	 (((a)->s6_addr16[5]) == 0) &&		\
+-	 (((a)->s6_addr16[6]) == 0) &&		\
+-	 ((((a)->s6_addr[14]) & 0x80) == 0))
++	 (((a)->s6_addr[10]) == 0) &&		\
++	 (((a)->s6_addr[11]) == 0xff) &&	\
++	 (((a)->s6_addr[12]) == 0xfe) &&	\
++	 (((a)->s6_addr[13]) == 0))
+ 
+ /* multicast address */
+ #define is_addr_mcast(a) (((a)->s6_addr[0]) == 0xFF)
+-- 
+1.7.11.2
+

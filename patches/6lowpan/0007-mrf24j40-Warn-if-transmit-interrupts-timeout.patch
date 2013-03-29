@@ -1,0 +1,27 @@
+From 23bd7903fb9a3f87ba5849b096837270485dd4de Mon Sep 17 00:00:00 2001
+From: Alan Ott <alan@signal11.us>
+Date: Mon, 18 Mar 2013 00:49:02 -0400
+Subject: [PATCH 07/23] mrf24j40: Warn if transmit interrupts timeout
+
+Issue a warning if a transmit complete interrupt doesn't happen in time.
+
+Signed-off-by: Alan Ott <alan@signal11.us>
+---
+ drivers/net/ieee802154/mrf24j40.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/net/ieee802154/mrf24j40.c b/drivers/net/ieee802154/mrf24j40.c
+index 3106895..bb7e613 100644
+--- a/drivers/net/ieee802154/mrf24j40.c
++++ b/drivers/net/ieee802154/mrf24j40.c
+@@ -363,6 +363,7 @@ static int mrf24j40_tx(struct ieee802154_dev *dev, struct sk_buff *skb)
+ 		goto err;
+ 	if (ret == 0) {
+ 		ret = -ETIMEDOUT;
++		dev_warn(printdev(devrec), "Timeout waiting for TX interrupt\n");
+ 		goto err;
+ 	}
+ 
+-- 
+1.7.11.2
+

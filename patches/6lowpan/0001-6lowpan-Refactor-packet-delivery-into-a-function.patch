@@ -1,0 +1,76 @@
+From 4a9aea3cc5119ec41919950f26a8018cdd8e42a8 Mon Sep 17 00:00:00 2001
+From: Alan Ott <alan@signal11.us>
+Date: Wed, 16 Jan 2013 19:09:47 +0000
+Subject: [PATCH 01/23] 6lowpan: Refactor packet delivery into a function
+
+Refactor the handing of the skb's to the individual lowpan devices into a
+function.
+
+Signed-off-by: Alan Ott <alan@signal11.us>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ net/ieee802154/6lowpan.c | 38 ++++++++++++++++++++++++--------------
+ 1 file changed, 24 insertions(+), 14 deletions(-)
+
+diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
+index 76c3d0a..9d39f5b 100644
+--- a/net/ieee802154/6lowpan.c
++++ b/net/ieee802154/6lowpan.c
+@@ -594,10 +594,32 @@ static int lowpan_header_create(struct sk_buff *skb,
+ 	}
+ }
+ 
++static int lowpan_give_skb_to_devices(struct sk_buff *skb)
++{
++	struct lowpan_dev_record *entry;
++	struct sk_buff *skb_cp;
++	int stat = NET_RX_SUCCESS;
++
++	rcu_read_lock();
++	list_for_each_entry_rcu(entry, &lowpan_devices, list)
++		if (lowpan_dev_info(entry->ldev)->real_dev == skb->dev) {
++			skb_cp = skb_copy(skb, GFP_ATOMIC);
++			if (!skb_cp) {
++				stat = -ENOMEM;
++				break;
++			}
++
++			skb_cp->dev = entry->ldev;
++			stat = netif_rx(skb_cp);
++		}
++	rcu_read_unlock();
++
++	return stat;
++}
++
+ static int lowpan_skb_deliver(struct sk_buff *skb, struct ipv6hdr *hdr)
+ {
+ 	struct sk_buff *new;
+-	struct lowpan_dev_record *entry;
+ 	int stat = NET_RX_SUCCESS;
+ 
+ 	new = skb_copy_expand(skb, sizeof(struct ipv6hdr), skb_tailroom(skb),
+@@ -614,19 +636,7 @@ static int lowpan_skb_deliver(struct sk_buff *skb, struct ipv6hdr *hdr)
+ 	new->protocol = htons(ETH_P_IPV6);
+ 	new->pkt_type = PACKET_HOST;
+ 
+-	rcu_read_lock();
+-	list_for_each_entry_rcu(entry, &lowpan_devices, list)
+-		if (lowpan_dev_info(entry->ldev)->real_dev == new->dev) {
+-			skb = skb_copy(new, GFP_ATOMIC);
+-			if (!skb) {
+-				stat = -ENOMEM;
+-				break;
+-			}
+-
+-			skb->dev = entry->ldev;
+-			stat = netif_rx(skb);
+-		}
+-	rcu_read_unlock();
++	stat = lowpan_give_skb_to_devices(new);
+ 
+ 	kfree_skb(new);
+ 
+-- 
+1.7.11.2
+
