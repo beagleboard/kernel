@@ -1,0 +1,56 @@
+From b8c8ff215313dc665de29a23e802ad4c2d5b4025 Mon Sep 17 00:00:00 2001
+From: Alan Ott <alan@signal11.us>
+Date: Fri, 29 Mar 2013 16:48:42 -0400
+Subject: [PATCH 1/2] am335x-bone-common: DT Override for MRF24J40 Cape
+
+Signed-off-by: Alan Ott <alan@signal11.us>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 3352859..0218f3f 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -196,6 +196,15 @@
+ 				manufacturer = "Koen Kooi";
+ 				part-number = "BB-BONE-HEXY-01";
+ 			};
++			/* MRF24J40 Cape Override */
++			slot@11 {
++				ti,cape-override;
++				compatible = "kernel-command-line", "runtime";
++				board-name = "Bone-MRF24J40";
++				version = "00A0";
++				manufacturer = "Signal 11 Software";
++				part-number = "BB-BONE-MRF24J40";
++			};
+ 		};
+ 
+ 		/* mapping between board names and dtb objects */
+@@ -272,7 +281,6 @@
+ 					dtbo = "cape-bone-nixie-00A0.dtbo";
+ 				};
+ 			};
+-
+ 			cape@7 {
+ 				part-number = "BB-BONE-TFT-01";
+ 				version@00A0 {
+@@ -296,6 +304,14 @@
+ 					dtbo = "cape-bone-hexy-00A0.dtbo";
+ 				};
+ 			};
++			/* mrf24j40 cape */
++			cape@10 {
++				part-number = "BB-BONE-MRF24J40";
++				version@00A0 {
++					version = "00A0";
++					dtbo = "cape-bone-mrf24j40-00A0.dtbo";
++				};
++			};
+ 		};
+ 	};
+ };
+-- 
+1.7.11.2
+
