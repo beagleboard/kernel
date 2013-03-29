@@ -1,0 +1,95 @@
+From 24d165609a256bdef1799d3d3ec20ef2c3c6be4b Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Tue, 26 Mar 2013 17:01:09 +0100
+Subject: [PATCH 145/146] fix cape-bone-hexy
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ firmware/capes/cape-bone-hexy-00A0.dts | 64 ++++++++++++++++++++--------------
+ 1 file changed, 37 insertions(+), 27 deletions(-)
+
+diff --git a/firmware/capes/cape-bone-hexy-00A0.dts b/firmware/capes/cape-bone-hexy-00A0.dts
+index 4a13484..abc1255 100644
+--- a/firmware/capes/cape-bone-hexy-00A0.dts
++++ b/firmware/capes/cape-bone-hexy-00A0.dts
+@@ -25,13 +25,13 @@
+  */
+ 
+ / {
+-       compatible = "ti,beaglebone", "ti,beaglebone-black";
+-       part-number = "BB-BONE-HEXY-01";
+-       version = "00A0";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++	part-number = "BB-BONE-HEXY-01";
++	version = "00A0";
+ 
+-       fragment@0 {
+-               target = <&am33xx_pinmux>;
+-               __overlay__ {
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
+ 			pwm_backlight_pins: pinmux_pwm_backlight_pins {
+ 				pinctrl-single,pins = <
+ 					0x020  0x4      /* gpmc_ad8.gpio0_22 | MODE4 */
+@@ -125,26 +125,36 @@
+ 	};
+ 
+ 	fragment@5 {
+-               target = <&i2c2>;
+-
+-               __overlay__ {
+-		       /* needed to avoid gripping by DTC */
+-		       #address-cells = <1>;
+-		       #size-cells = <0>;
+-
+-		       lsm303dlhc_magn@1e {
+-			       compatible = "st,lsm303dlhc_magn";
+-			       reg = <0x1E>;
+-		       };
+-
+-		       lsm303dlh_accel@1e {
+-			       compatible = "st,lsm303dlhc_accel";
+-			       reg = <0x19>;
+-		       };
+-		       vcnl4000@13 {
+-			       compatible = "vishay,vcnl4000";
+-			       reg = <0x13>;
+-		       };
+-               };
++		target = <&i2c2>;
++
++		__overlay__ {
++			/* needed to avoid gripping by DTC */
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			lsm303dlhc_magn@1e {
++				compatible = "st,lsm303dlhc_magn";
++				reg = <0x1E>;
++			};
++
++			lsm303dlh_accel@1e {
++				compatible = "st,lsm303dlhc_accel";
++				reg = <0x19>;
++			};
++
++			vcnl4000@13 {
++				compatible = "vishay,vcnl4000";
++				reg = <0x13>;
++			};
++
++			ssd1306: oled@3c {
++				compatible = "solomon,ssd1306fb-i2c";
++				reg = <0x3c>;
++				reset-gpios = <&gpio4 19 0>;
++				solomon,height = <32>;
++				solomon,width = <128>;
++				solomon,page-offset = <0>;
++			};
++		};
+ 	};
+ };
+-- 
+1.8.1.4
+
