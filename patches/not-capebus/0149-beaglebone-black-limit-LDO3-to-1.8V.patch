@@ -1,0 +1,30 @@
+From 061c583b89320319c59987f31494adf0dc7012e6 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Sat, 30 Mar 2013 08:37:26 +0100
+Subject: [PATCH 149/149] beaglebone black: limit LDO3 to 1.8V
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am335x-boneblack.dts | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index e88723c..3274dbd 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -26,6 +26,12 @@
+ 	>;
+ };
+ 
++&ldo3_reg {
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++	regulator-always-on;
++};
++
+ &mmc2 {
+ 	vmmc-supply = <&ldo3_reg>;
+ 	bus-width = <8>;
+-- 
+1.8.1.4
+
