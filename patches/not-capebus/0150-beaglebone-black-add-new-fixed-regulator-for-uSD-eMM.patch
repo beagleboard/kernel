@@ -1,0 +1,52 @@
+From fdcd9182e061c170cab4be7bdac74cf9bd2de1e5 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Mon, 1 Apr 2013 09:36:22 +0200
+Subject: [PATCH 150/150] beaglebone black: add new fixed regulator for
+ uSD/eMMC
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 8 ++++++++
+ arch/arm/boot/dts/am335x-boneblack.dts    | 6 +++++-
+ 2 files changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 29e72a61..6974fcd 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -314,6 +314,14 @@
+ 			};
+ 		};
+ 	};
++
++	vmmcsd_fixed: fixedregulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "vmmcsd_fixed";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++	};
++
+ };
+ 
+ &i2c0 {
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 3274dbd..5434bfd 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -32,8 +32,12 @@
+ 	regulator-always-on;
+ };
+ 
++&mmc1 {
++	vmmc-supply = <&vmmcsd_fixed>;
++};
++
+ &mmc2 {
+-	vmmc-supply = <&ldo3_reg>;
++	vmmc-supply = <&vmmcsd_fixed>;
+ 	bus-width = <8>;
+ 	ti,non-removable;
+ 	status = "okay";
+-- 
+1.8.1.4
+
