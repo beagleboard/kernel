@@ -1,0 +1,222 @@
+From 9eb554d68b933c04f754c4f3c927f9cbce676f6b Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Mon, 1 Apr 2013 18:20:35 +0300
+Subject: [PATCH 151/153] capemgr: Implement disable overrides on the cmd line
+
+Allow capes to be disabled on the kernel command line.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/misc/cape/beaglebone/capemgr.c | 133 ++++++++++++++++++++++-----------
+ 1 file changed, 88 insertions(+), 45 deletions(-)
+
+diff --git a/drivers/misc/cape/beaglebone/capemgr.c b/drivers/misc/cape/beaglebone/capemgr.c
+index 2ee7b11..5d87088 100644
+--- a/drivers/misc/cape/beaglebone/capemgr.c
++++ b/drivers/misc/cape/beaglebone/capemgr.c
+@@ -47,7 +47,14 @@
+ /* extra command line overrides */
+ static char *extra_override = NULL;
+ module_param(extra_override, charp, 0444);
+-MODULE_PARM_DESC(extra_override, "Comma delimited list of PART-NUMBER[:REV] overrides");
++MODULE_PARM_DESC(extra_override,
++		"Comma delimited list of PART-NUMBER[:REV] overrides");
++
++/* disabled capes */
++static char *disable_partno = NULL;
++module_param(disable_partno, charp, 0444);
++MODULE_PARM_DESC(disable_partno,
++		"Comma delimited list of PART-NUMBER[:REV] of disabled capes");
+ 
+ struct bone_capemgr_info;
+ 
+@@ -547,51 +554,19 @@ slot_fail_check:
+ 	return 0;
+ }
+ 
+-/* check an override slot node if it's compatible */
+-static int bone_is_compatible_override(struct device_node *node,
+-		const char *compatible_name)
++/* return 0 if not matched,, 1 if matched */
++static int bone_match_cape(const char *match,
++		const char *part_number, const char *version)
+ {
+-	struct property *prop;
+-	char *buf, *s, *e, *sn;
+-	const char *part_number;
+-	const char *version;
+ 	char *tmp_part_number, *tmp_version;
++	char *buf, *s, *e, *sn;
+ 	int found;
+ 
+-	/* check if the slot is compatible with the board */
+-	prop = of_find_property(node, "compatible", NULL);
+-
+-	/* no prop, it's something that's compatible with everything */
+-	if (prop == NULL)
+-		return 1;
+-
+-	/* check if it's directly compatible with the baseboard */
+-	if (of_multi_prop_cmp(prop, compatible_name) == 0)
+-		return 1;
+-
+-	/* forced override? */
+-	if (of_multi_prop_cmp(prop, "force") == 0)
+-		return 1;
+-
+-	/* final try, check if it's specified in the kernel command line */
+-	if (extra_override == NULL)
+-		return 0;
+-
+-	/* the compatible name should have kernel-command-line in it */
+-	if (of_multi_prop_cmp(prop, "kernel-command-line") != 0)
+-		return 0;
+-
+-	/* we must have at least the part-name */
+-	if (of_property_read_string(node, "part-number",
+-				&part_number) != 0)
++	if (match == NULL || part_number == NULL)
+ 		return 0;
+ 
+-	/* read the version (if it exists) */
+-	if (of_property_read_string(node, "version", &version) != 0)
+-		version = NULL;
+-
+ 	/* copy the argument to work on it */
+-	buf = kstrdup(extra_override, GFP_KERNEL);
++	buf = kstrdup(match, GFP_KERNEL);
+ 
+ 	/* no memory, too bad... */
+ 	if (buf == NULL)
+@@ -617,12 +592,6 @@ static int bone_is_compatible_override(struct device_node *node,
+ 		if (strcmp(tmp_part_number, part_number) != 0)
+ 			continue;
+ 
+-		pr_info("override: part-number='%s' version='%s' "
+-				"tmp_version='%s'\n",
+-				part_number,
+-				version ? version : "N/A",
+-				tmp_version ? tmp_version : "N/A");
+-
+ 		/* if there's no version, match any */
+ 		if (version == NULL || tmp_version == NULL ||
+ 			strcmp(version, tmp_version) == 0) {
+@@ -636,6 +605,50 @@ static int bone_is_compatible_override(struct device_node *node,
+ 	return found;
+ }
+ 
++/* check an override slot node if it's compatible */
++static int bone_is_compatible_override(struct device_node *node,
++		const char *compatible_name)
++{
++	struct property *prop;
++	const char *part_number;
++	const char *version;
++
++	/* check if the slot is compatible with the board */
++	prop = of_find_property(node, "compatible", NULL);
++
++	/* no prop, it's something that's compatible with everything */
++	if (prop == NULL)
++		return 1;
++
++	/* check if it's directly compatible with the baseboard */
++	if (of_multi_prop_cmp(prop, compatible_name) == 0)
++		return 1;
++
++	/* forced override? */
++	if (of_multi_prop_cmp(prop, "force") == 0)
++		return 1;
++
++	/* final try, check if it's specified in the kernel command line */
++	if (extra_override == NULL)
++		return 0;
++
++	/* the compatible name should have kernel-command-line in it */
++	if (of_multi_prop_cmp(prop, "kernel-command-line") != 0)
++		return 0;
++
++	/* we must have at least the part-name */
++	if (of_property_read_string(node, "part-number",
++				&part_number) != 0)
++		return 0;
++
++	/* read the version (if it exists) */
++	if (of_property_read_string(node, "version", &version) != 0)
++		version = NULL;
++
++	/* match on the extra override */
++	return bone_match_cape(extra_override, part_number, version);
++}
++
+ static int bone_is_compatible_runtime_override(struct device_node *node,
+ 		const char *req_part_number, const char *req_version)
+ {
+@@ -1045,6 +1058,15 @@ found:
+ 						part_number, version))
+ 				continue;
+ 
++			/* if matches the disabled ones skip */
++			if (bone_match_cape(disable_partno,
++						part_number, NULL)) {
++				dev_info(&pdev->dev,
++					"Skipping disabled cape with "
++						"part# %s\n", part_number);
++				continue;
++			}
++
+ 			slot = bone_capemgr_add_slot(info, node,
+ 					part_number, version);
+ 			if (IS_ERR(slot)) {
+@@ -1522,6 +1544,7 @@ bone_capemgr_add_slot(struct bone_capemgr_info *info, struct device_node *node,
+ 				slotno);
+ 		/* but all is fine */
+ 	} else {
++
+ 		dev_info(dev, "slot #%d: '%s'\n",
+ 				slotno, slot->text_id);
+ 
+@@ -1701,6 +1724,15 @@ bone_capemgr_probe(struct platform_device *pdev)
+ 						&part_number) != 0)
+ 				continue;
+ 
++			/* if matches the disabled ones skip */
++			if (bone_match_cape(disable_partno,
++						part_number, NULL)) {
++				dev_info(&pdev->dev,
++					"Skipping disabled cape with "
++						"part# %s\n", part_number);
++				continue;
++			}
++
+ 			len = sizeof(*capemap) + strlen(part_number) + 1;
+ 			capemap = devm_kzalloc(&pdev->dev, len, GFP_KERNEL);
+ 			if (capemap == NULL) {
+@@ -1741,6 +1773,7 @@ bone_capemgr_probe(struct platform_device *pdev)
+ 				ret = PTR_ERR(slot);
+ 				goto err_exit;
+ 			}
++			/* note that slot may be NULL (means it was disabled) */
+ 		}
+ 		of_node_put(slots_node);
+ 	}
+@@ -1760,6 +1793,16 @@ bone_capemgr_probe(struct platform_device *pdev)
+ 	/* now load each (take lock to be sure */
+ 	mutex_lock(&info->slots_list_mutex);
+ 	list_for_each_entry(slot, &info->slot_list, node) {
++
++		/* if matches the disabled ones skip */
++		if (bone_match_cape(disable_partno,
++					slot->part_number, NULL)) {
++			dev_info(&pdev->dev,
++				"Skipping loading of disabled cape with "
++					"part# %s\n", slot->part_number);
++			continue;
++		}
++
+ 		if (!slot->probe_failed && !slot->loaded) {
+ 			slot->loading = 1;
+ 			slot->loader_thread = kthread_run(bone_capemgr_loader,
+-- 
+1.8.1.4
+
