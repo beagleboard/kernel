@@ -1,0 +1,38 @@
+From 65a7ffed5520f34c6aa28510614c73d9fba6e1be Mon Sep 17 00:00:00 2001
+From: Bruce Ashfield <bruce.ashfield@windriver.com>
+Date: Wed, 3 Apr 2013 07:28:48 +0200
+Subject: [PATCH] scripts/Makefile.headersinst: install headers from scratch
+ file
+
+If headers_install is executed from a deep/long directory structure, the
+shell's maximum argument length can be execeeded, which breaks the operation
+with:
+
+| make[2]: execvp: /bin/sh: Argument list too long
+| make[2]: ***
+
+By dumping the input files to a scratch file and using xargs to read the
+input list from the scratch file, we can avoid blowing out the maximum
+argument size and install headers in a long path name environment.
+
+Signed-off-by: Bruce Ashfield <bruce.ashfield@windriver.com>
+---
+ scripts/Makefile.headersinst | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/Makefile.headersinst b/scripts/Makefile.headersinst
+index e253917..cd625ec 100644
+--- a/scripts/Makefile.headersinst
++++ b/scripts/Makefile.headersinst
+@@ -72,7 +72,7 @@ printdir = $(patsubst $(INSTALL_HDR_PATH)/%/,%,$(dir $@))
+ quiet_cmd_install = INSTALL $(printdir) ($(words $(all-files))\
+                             file$(if $(word 2, $(all-files)),s))
+       cmd_install = \
+-        $(PERL) $< $(installdir) $(SRCARCH) $(input-files); \
++        xargs $(PERL) $< $(installdir) $(SRCARCH) < $(INSTALL_HDR_PATH)/.input-files; \
+         for F in $(wrapper-files); do                                   \
+                 echo "\#include <asm-generic/$$F>" > $(installdir)/$$F;    \
+         done;                                                           \
+-- 
+1.8.1.4
+
