@@ -1,0 +1,46 @@
+From 4c8846627e861aa3410bbce1cad5a1fef07a5336 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Wed, 3 Apr 2013 15:39:38 +0200
+Subject: [PATCH 154/155] beaglebone: add support for DVI 00A3
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 8 ++++++++
+ firmware/capes/cape-bone-dvi-00A2.dts     | 2 +-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 6974fcd..524bf03 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -221,6 +221,14 @@
+ 					version = "00A1", "01";
+ 					dtbo = "cape-bone-dvi-00A1.dtbo";
+ 				};
++				version@00A2 {
++					version = "00A2", "A2";
++					dtbo = "cape-bone-dvi-00A2.dtbo";
++				};
++				version@00A3 {
++					version = "00A3";
++					dtbo = "cape-bone-dvi-00A2.dtbo";
++				};
+ 			};
+ 
+ 			/* beaglebone black emmc on board */
+diff --git a/firmware/capes/cape-bone-dvi-00A2.dts b/firmware/capes/cape-bone-dvi-00A2.dts
+index fb2dcf0..34ced98 100644
+--- a/firmware/capes/cape-bone-dvi-00A2.dts
++++ b/firmware/capes/cape-bone-dvi-00A2.dts
+@@ -13,7 +13,7 @@
+ 
+ 	/* identification */
+ 	part-number = "BB-BONE-DVID-01";
+-	version = "00A2", "A2";
++	version = "00A3", "00A2", "A2";
+ 
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+-- 
+1.8.1.4
+
