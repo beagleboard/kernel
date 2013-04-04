@@ -1,4 +1,4 @@
-From 69023e7e4f43de46bacb704d150a8f3d6367752d Mon Sep 17 00:00:00 2001
+From 9ae4219deb9bedf00c872fc765cd47a27e24db81 Mon Sep 17 00:00:00 2001
 From: Elias Bakken <elias.bakken@gmail.com>
 Date: Thu, 4 Apr 2013 11:22:38 -0500
 Subject: [PATCH 157/157] cape: add support for replicape 00A1 and fix the ADC
@@ -6,19 +6,19 @@ Subject: [PATCH 157/157] cape: add support for replicape 00A1 and fix the ADC
 Signed-off-by: Elias Bakken <elias.bakken@gmail.com>
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
- arch/arm/boot/dts/am335x-bone-common.dtsi   |    8 +
- drivers/iio/adc/ti_am335x_adc.c             |   59 ++++----
- drivers/input/touchscreen/ti_am335x_tsc.c   |   29 ++--
- drivers/mfd/ti_am335x_tscadc.c              |    3 +-
- drivers/pwm/pwm_test.c                      |  117 ++++++++-------
- firmware/Makefile                           |    4 +
- firmware/capes/cape-bone-replicape-00A1.dts |  216 +++++++++++++++++++++++++++
- include/linux/mfd/ti_am335x_tscadc.h        |    2 +
+ arch/arm/boot/dts/am335x-bone-common.dtsi   |   8 ++
+ drivers/iio/adc/ti_am335x_adc.c             |  59 ++++----
+ drivers/input/touchscreen/ti_am335x_tsc.c   |  29 ++--
+ drivers/mfd/ti_am335x_tscadc.c              |   3 +-
+ drivers/pwm/pwm_test.c                      | 117 ++++++++-------
+ firmware/Makefile                           |   4 +
+ firmware/capes/cape-bone-replicape-00A1.dts | 216 ++++++++++++++++++++++++++++
+ include/linux/mfd/ti_am335x_tscadc.h        |   2 +
  8 files changed, 338 insertions(+), 100 deletions(-)
  create mode 100644 firmware/capes/cape-bone-replicape-00A1.dts
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 4ef3d81..cee3943 100644
+index 524bf03..b64c348 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
 @@ -320,6 +320,14 @@
@@ -26,7 +26,7 @@ index 4ef3d81..cee3943 100644
  				};
  			};
 +			/* Replicape */
-+			cape@10 {
++			cape@11 {
 +				part-number = "BB-BONE-REPLICAP";
 +				version@00A1 {
 +					version = "00A1";
@@ -717,5 +717,5 @@ index 50a245f..9fe52ba 100644
  #define XPP			STEPCONFIG_XPP
  #define XNP			STEPCONFIG_XNP
 -- 
-1.7.10.4
+1.8.1.4
 
