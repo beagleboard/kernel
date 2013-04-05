@@ -1,7 +1,7 @@
-From d88d56d23878d6eefbeaf50e1d56a5ff06f3a32e Mon Sep 17 00:00:00 2001
+From 5833c8909c70b7d05c7db856bad29995a7840f99 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 22 Jan 2013 22:25:06 +0200
-Subject: [PATCH 09/10] MUSB: Hack around to make host port to work.
+Subject: [PATCH 09/11] MUSB: Hack around to make host port to work.
 
 It sort of works, but it doesn't handle hotplug.
 After removing the device, issue lsusb to cause it to scan the bus again.
@@ -16,10 +16,10 @@ Crappy, I know, but at least works.
  5 files changed, 105 insertions(+), 11 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 3dfbb86..3352859 100644
+index 524bf03..fc711df 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -417,3 +417,9 @@
+@@ -449,3 +449,9 @@
  &aes {
  	status = "okay";
  };

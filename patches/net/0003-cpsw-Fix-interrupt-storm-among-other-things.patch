@@ -1,4 +1,4 @@
-From d895ecc9a2f3560601cf666d2628a82f8a67df28 Mon Sep 17 00:00:00 2001
+From 9dce6f0a1909eb04de858bcbde3b28bb410678ad Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 17 Jan 2013 20:18:32 +0200
 Subject: [PATCH 3/3] cpsw: Fix interrupt storm among other things
@@ -29,7 +29,7 @@ index 6ddd028..d46b293 100644
  Optional properties:
  - ti,hwmods		: Must be "cpgmac0"
 diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 40aff68..b6ca4af 100644
+index 3b1be52..21ba53e 100644
 --- a/drivers/net/ethernet/ti/cpsw.c
 +++ b/drivers/net/ethernet/ti/cpsw.c
 @@ -148,10 +148,37 @@ struct cpsw_wr_regs {

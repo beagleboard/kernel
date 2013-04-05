@@ -1,0 +1,52 @@
+From 1782584802f4aefef36cdf23af37927a1031049a Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Fri, 5 Apr 2013 12:07:30 +0200
+Subject: [PATCH 157/157] cape-bone-hexy: add iio helper
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ firmware/capes/cape-bone-hexy-00A0.dts | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+
+diff --git a/firmware/capes/cape-bone-hexy-00A0.dts b/firmware/capes/cape-bone-hexy-00A0.dts
+index abc1255..ea353af 100644
+--- a/firmware/capes/cape-bone-hexy-00A0.dts
++++ b/firmware/capes/cape-bone-hexy-00A0.dts
+@@ -157,4 +157,34 @@
+ 			};
+ 		};
+ 	};
++
++	fragment@6 {
++		target = <&ocp>;
++		__overlay__ {
++			/* avoid stupid warning */
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			tscadc {
++				compatible = "ti,ti-tscadc";
++				reg = <0x44e0d000 0x1000>;
++
++				interrupt-parent = <&intc>;
++				interrupts = <16>;
++				ti,hwmods = "adc_tsc";
++				status = "okay";
++
++				adc {
++					ti,adc-channels = <8>;
++				};
++			};
++
++			test_helper: helper {
++				compatible = "bone-iio-helper";
++				vsense-name  = "AIN0", "AIN1", "AIN2", "AIN3", "AIN4", "AIN5", "AIN6", "AIN7";
++				vsense-scale = <100     100     100     100     100     100     100     100>;
++				status = "okay";
++			};
++		};
++	};
+ };
+-- 
+1.8.1.4
+
