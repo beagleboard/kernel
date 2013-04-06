@@ -128,9 +128,11 @@ echo "\"" >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}
 cp -a ${EXPORTPATH}/* ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
 
-if [ -e ${DIR}/kernel/.config ] ; then
-	cp ${DIR}/kernel/.config ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/defconfig
-fi
+mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/beaglebone
+cp ${DIR}/configs/beaglebone ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/beaglebone/defconfig
+
+mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/beagleboard
+cp ${DIR}/configs/beagleboard ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/beagleboard/defconfig
 
 if [ -e ${DIR}/db.txt ] ; then
 	cp ${DIR}/db.txt ${DIR}/kernel/net/wireless
