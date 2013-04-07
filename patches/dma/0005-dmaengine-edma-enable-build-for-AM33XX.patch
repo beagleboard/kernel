@@ -1,0 +1,28 @@
+From 44bd0ff80443a03b01a2cbe28d67d4ac327fa0ee Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Wed, 6 Mar 2013 11:15:34 -0500
+Subject: [PATCH 05/10] dmaengine: edma: enable build for AM33XX
+
+Enable TI EDMA option on OMAP.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ drivers/dma/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
+index aeaea32..e772e43 100644
+--- a/drivers/dma/Kconfig
++++ b/drivers/dma/Kconfig
+@@ -223,7 +223,7 @@ config SIRF_DMA
+ 
+ config TI_EDMA
+ 	tristate "TI EDMA support"
+-	depends on ARCH_DAVINCI
++	depends on ARCH_DAVINCI || ARCH_OMAP
+ 	select DMA_ENGINE
+ 	select DMA_VIRTUAL_CHANNELS
+ 	default n
+-- 
+1.8.1.4
+

@@ -1,0 +1,24 @@
+From 34c05d0e7173ad68db863a0ce3463fa012eaa0a2 Mon Sep 17 00:00:00 2001
+From: Daniel Mack <zonque@gmail.com>
+Date: Tue, 26 Feb 2013 15:05:09 +0100
+Subject: [PATCH 10/10] omap: enable EDMA for AM33XX
+
+---
+ arch/arm/mach-omap2/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 1d01905..95dc25d 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -18,6 +18,7 @@ config ARCH_OMAP2PLUS
+ 	select SPARSE_IRQ
+ 	select TI_PRIV_EDMA
+ 	select USE_OF
++	select TI_PRIV_EDMA
+ 	help
+ 	  Systems based on OMAP2, OMAP3, OMAP4 or OMAP5
+ 
+-- 
+1.8.1.4
+
