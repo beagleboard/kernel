@@ -1,0 +1,35 @@
+From ed78b6f62737751ac5c22c96ebeb0ab6b1151124 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Mon, 8 Apr 2013 22:35:55 +0300
+Subject: [PATCH 159/159] tester: button cape
+
+Disable pull up on the pinmux.
+---
+ firmware/capes/BB-BONELT-BT-00A0.dts | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/firmware/capes/BB-BONELT-BT-00A0.dts b/firmware/capes/BB-BONELT-BT-00A0.dts
+index f32d6f5..94b9a12 100644
+--- a/firmware/capes/BB-BONELT-BT-00A0.dts
++++ b/firmware/capes/BB-BONELT-BT-00A0.dts
+@@ -21,7 +21,7 @@
+ 
+ 			bone_bt_cape_key_pins: pinmux_bone_bt_cape_key_pins {
+ 				pinctrl-single,pins = <
+-					0x0a8 0x27 /* P8.43 lcd_data2.gpio2[8]    */
++					0x0a8 0x2f /* P8.43 lcd_data2.gpio2[8]  DISABLE internal pullup  */
+ 				>;
+ 			};
+ 		};
+@@ -39,7 +39,7 @@
+ 				#size-cells = <0>;
+ 
+ 				button@1 {
+-					debounce_interval = <1>;
++					debounce_interval = <0>;
+ 					linux,code = <28>;
+ 					label = "enter";
+ 					gpios = <&gpio3 8 0x0>;
+-- 
+1.8.1.4
+
