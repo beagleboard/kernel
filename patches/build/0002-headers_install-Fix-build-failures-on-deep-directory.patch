@@ -1,0 +1,60 @@
+From d72f941e0c175f8671551889eacd4f5766324540 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Mon, 8 Apr 2013 19:45:48 +0000
+Subject: [PATCH 2/2] headers_install: Fix build failures on deep directory
+ hierarchy
+
+Make headers_install croaks when we're on a deep directory hierarchy
+Fix using intermediate file lists in /tmp + xargs (but crud is left in /tmp)
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ scripts/Makefile.headersinst | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/scripts/Makefile.headersinst b/scripts/Makefile.headersinst
+index e253917..c399133 100644
+--- a/scripts/Makefile.headersinst
++++ b/scripts/Makefile.headersinst
+@@ -60,6 +60,13 @@ input-files   := $(foreach hdr, $(header-y), \
+ 			$(error Missing generated UAPI file $(gendir)/$(hdr)) \
+ 		   ))
+ 
++# these will leave a file in /tmp - but they work...
++input-files-temp := $(shell mktemp)
++$(foreach f, $(input-files), $(shell echo "$(f)" >> $(input-files-temp)))
++
++all-files-temp := $(shell mktemp)
++$(foreach f, $(all-files), $(shell echo "$(installdir)/$(f)" >> $(all-files-temp)))
++
+ # Work out what needs to be removed
+ oldheaders    := $(patsubst $(installdir)/%,%,$(wildcard $(installdir)/*.h))
+ unwanted      := $(filter-out $(all-files),$(oldheaders))
+@@ -72,7 +79,7 @@ printdir = $(patsubst $(INSTALL_HDR_PATH)/%/,%,$(dir $@))
+ quiet_cmd_install = INSTALL $(printdir) ($(words $(all-files))\
+                             file$(if $(word 2, $(all-files)),s))
+       cmd_install = \
+-        $(PERL) $< $(installdir) $(SRCARCH) $(input-files); \
++        cat $(input-files-temp) | xargs -d '\n' | $(PERL) $< $(installdir) $(SRCARCH); \
+         for F in $(wrapper-files); do                                   \
+                 echo "\#include <asm-generic/$$F>" > $(installdir)/$$F;    \
+         done;                                                           \
+@@ -84,11 +91,10 @@ quiet_cmd_remove = REMOVE  $(unwanted)
+ quiet_cmd_check = CHECK   $(printdir) ($(words $(all-files)) files)
+ # Headers list can be pretty long, xargs helps to avoid
+ # the "Argument list too long" error.
+-      cmd_check = for f in $(all-files); do                          \
+-                  echo "$(installdir)/$${f}"; done                      \
+-                  | xargs                                            \
+-                  $(PERL) $< $(INSTALL_HDR_PATH)/include $(SRCARCH); \
+-	          touch $@
++      cmd_check = \
++        cat $(all-files-temp) | xargs -d '\n' | \
++	$(PERL) $< $(INSTALL_HDR_PATH)/include $(SRCARCH); \
++	touch $@
+ 
+ PHONY += __headersinst __headerscheck
+ 
+-- 
+1.8.1.4
+
