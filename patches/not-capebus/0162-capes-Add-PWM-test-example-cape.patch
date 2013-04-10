@@ -1,0 +1,93 @@
+From cb1071d6b6c19b2dcdfdaa86a9adf0f56b5151bc Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Tue, 9 Apr 2013 22:52:14 +0300
+Subject: [PATCH 162/162] capes: Add PWM test example cape
+
+A simple example of a PWM test based cape.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ firmware/Makefile                    |  3 +-
+ firmware/capes/BB-BONE-PWMT-00A0.dts | 56 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 58 insertions(+), 1 deletion(-)
+ create mode 100644 firmware/capes/BB-BONE-PWMT-00A0.dts
+
+diff --git a/firmware/Makefile b/firmware/Makefile
+index d4403b5..098b4b4 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -155,7 +155,8 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	cape-bone-pinmux-test-00A0.dtbo \
+ 	cape-bone-exptest-00A0.dtbo \
+ 	cape-bone-mrf24j40-00A0.dtbo \
+-	BB-BONELT-BT-00A0.dtbo
++	BB-BONELT-BT-00A0.dtbo \
++	BB-BONE-PWMT-00A0.dtbo
+ 
+ # the geiger cape
+ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_GEIGER) += \
+diff --git a/firmware/capes/BB-BONE-PWMT-00A0.dts b/firmware/capes/BB-BONE-PWMT-00A0.dts
+new file mode 100644
+index 0000000..fb2b8b1
+--- /dev/null
++++ b/firmware/capes/BB-BONE-PWMT-00A0.dts
+@@ -0,0 +1,56 @@
++/*
++ * Copyright (C) 2013 CircuitCo
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone";
++
++	/* identification */
++	part-number = "BB-BONE-PWMT";
++	version = "00A0";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			pwm_test_pins: pinmux_pwm_test_pins {
++				pinctrl-single,pins = <0x150  0x3>; /* spi0_sclk = ehrpwm0A = P9_14 = Heater_HBP  | MODE 3 */
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&epwmss0>;
++		__overlay__ {
++			status = "okay";
++		};
++	};
++
++	fragment@2 {
++		target = <&ehrpwm0>;
++		__overlay__ {
++			pinctrl-names	= "default";
++			pinctrl-0	= <&pwm_test_pins>;
++			status = "okay";
++		};
++	};
++
++	fragment@3 {
++		target = <&ocp>;
++		__overlay__ {
++			pwm_test {
++				compatible	= "pwm_test";
++				pwms 		= <&ehrpwm0 0 500000 1>;
++				pwm-names 	= "PWM0";
++				enabled		= <1>;
++				duty		= <0>;
++				status 		= "okay";
++			};
++		};
++	};
++};
+-- 
+1.8.1.4
+
