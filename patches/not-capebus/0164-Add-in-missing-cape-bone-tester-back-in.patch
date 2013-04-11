@@ -1,0 +1,32 @@
+From 963837390b977ad3eb8671274d23455ddc0ac70e Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 11 Apr 2013 21:19:13 +0300
+Subject: [PATCH 164/164] Add in missing cape-bone-tester back in.
+
+---
+ arch/arm/boot/dts/am335x-tester.dts | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-tester.dts b/arch/arm/boot/dts/am335x-tester.dts
+index 5059988..4a5ae29 100644
+--- a/arch/arm/boot/dts/am335x-tester.dts
++++ b/arch/arm/boot/dts/am335x-tester.dts
+@@ -240,6 +240,15 @@
+ 				};
+ 			};
+ 
++			/* tester */
++			cape@100 {
++				part-number = "BB-BONE-TESTER";
++				version@00A0 {
++					version = "00A0";
++					dtbo = "cape-bone-tester-00A0.dtbo";
++				};
++			};
++
+ 			/* beaglebone black emmc on board */
+ 			cape@1 {
+ 				/* board-name = "BeagleBone 2G eMMC1 CAPE"; */
+-- 
+1.8.1.4
+
