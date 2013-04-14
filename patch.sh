@@ -12,19 +12,20 @@ DIR="$PWD"
 PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
-RECIPEDIR="linux-mainline-3.8"
-RECIPENAME="linux-mainline_3.8.bb"
+RECIPEDIR="linux-mainline-3.9"
+RECIPENAME="linux-mainline_3.9.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.8.6"
+TAG="v3.9-rc5"
 EXTRATAG=""
 
-EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git"
-EXTERNAL_BRANCH="linux-3.8.y"
-EXTERNAL_SHA="00cfbb8ad0a6419f40660362b4d8b5baa30d3efe"
+EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
+EXTERNAL_BRANCH="master"
+EXTERNAL_SHA="fe6969094214350e586d56fbfa3ef97cdd74b270"
 
-PATCHSET="dma rtc pinctrl cpufreq adc i2c da8xx-fb pwm mmc crypto 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net drm not-capebus pru usb PG2 reboot iio w1 gpmc mxt ssd130x build"
+PATCHSET="build arm dma"
+OLD="dma rtc pinctrl cpufreq adc i2c da8xx-fb pwm mmc crypto 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net drm not-capebus pru usb PG2 reboot iio w1 gpmc mxt ssd130x build"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
