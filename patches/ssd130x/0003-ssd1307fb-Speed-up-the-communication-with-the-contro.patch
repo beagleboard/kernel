@@ -1,7 +1,7 @@
-From 54e0b39ba72d3ee72350e203f1344a76b0eaeedc Mon Sep 17 00:00:00 2001
+From fb2e4954aac4397e65f2bac81e43e22374b46ea7 Mon Sep 17 00:00:00 2001
 From: Maxime Ripard <maxime.ripard@free-electrons.com>
 Date: Tue, 26 Feb 2013 11:46:40 +0100
-Subject: [PATCH 3/4] ssd1307fb: Speed up the communication with the controller
+Subject: [PATCH 3/5] ssd1307fb: Speed up the communication with the controller
 
 The code until now was sending only 1pixel-wide page segment at once,
 and started a new transfer every time. It has proven very inefficient,
