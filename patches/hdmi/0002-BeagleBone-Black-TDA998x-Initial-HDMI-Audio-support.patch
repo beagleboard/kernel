@@ -1,0 +1,788 @@
+From 39847b13a0e33024a528fb358513af19281d0e0e Mon Sep 17 00:00:00 2001
+From: Darren Etheridge <detheridge@ti.com>
+Date: Fri, 19 Apr 2013 12:37:37 -0500
+Subject: [PATCH 2/3] BeagleBone Black TDA998x Initial HDMI Audio support
+
+commit 5e166deffcfe438f57ec334e288e068e42fb05bb
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Fri Apr 19 11:34:44 2013 -0500
+
+    tda998x - select the correct i2s format for BBB
+
+commit 27ce11f74e084c2d49bd9d50db7eaf8fe3386bf9
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Thu Apr 18 15:42:57 2013 -0500
+
+    TDA998x initial attempt at adding HDMI/audio
+    This now supports HDMI with correct CEA timings and Audio output (fixed at 48KHz)
+
+commit a25d22ec97a60611ba8f3579a015fa05ee4f96fa
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Wed Apr 17 17:06:40 2013 -0500
+
+    TILCDC enable pulling in HDMI infoframe helper functions
+
+commit 90cd4a836a4d60232d70f84f56a854c794917422
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Wed Apr 17 14:11:59 2013 -0500
+
+    Adding new audio driver-combined with DRM driver for NXP TDA 998x
+
+commit df7d51d3aebcb2222be60acfd3408e67d83d9383
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Wed Apr 17 13:52:29 2013 -0500
+
+    Remove debug, changing codec name to dedicated NXP
+
+commit 566687c6bb1c80a1d8e8cb66b469152bf69ae67b
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Wed Apr 17 12:14:08 2013 -0500
+
+    Remove NXP supplied driver from the build
+    Replace with custom DRM driver.
+
+commit c150fef5971088705fc155163a3a5a4f805b321e
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Wed Apr 17 12:07:25 2013 -0500
+
+    AM335x audio back to original setup, with new NXP hdmi driver moved to DRM
+
+commit 19c2249b7e4ad600f28bfdb67106abe0c8509701
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Wed Apr 17 11:55:50 2013 -0500
+
+    Reverting file back to original form and replacing with custom NXP driver
+    that will be part of the DRM driver.
+
+commit da88657d82d52ad212f34429b7b349dbea093bc0
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Wed Apr 17 11:50:02 2013 -0500
+
+    Cleaning up for NXP codec support on BeagleBone Black
+
+commit bda7bcce6f54c8108bd8dc9efb5e0f4c375f112d
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Wed Apr 17 11:48:44 2013 -0500
+
+    Added a new build target for NXP audio driver
+
+commit 38b5a020fa895a6da2b495a5b46b7f5e4cb5a0a4
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Wed Apr 17 11:47:40 2013 -0500
+
+    Changing to put the NXP into HDMI mode by default
+    Much more work is needed to make this into a real driver
+    with audio support.
+
+commit 0bdff4a28649d1c17bff1d74ca41bf9ce28f7743
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Wed Apr 17 11:46:15 2013 -0500
+
+    Initial version of dummy codec driver for NXP HDMI encoder
+
+commit e15d0879137b6cb15c1ff57d9f32d60f4ba9e232
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Fri Apr 12 16:45:43 2013 -0500
+
+    Fixing typo in Bone Cape DTS file
+
+commit 8a2693c254cc56227f9b8ae180df64963ec944dd
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Fri Apr 5 16:15:45 2013 -0500
+
+    Fixing the default audio format from the mcasp for nxp hdmi driver.
+
+commit 1e66174fbe31672e3fb8776fe6146d4445916021
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Fri Apr 5 13:09:24 2013 -0500
+
+    Create an hdmi device and fix setting in mcasp
+    this is very much a temporary commit and needs to be cleaned up and
+    done the right way before it is rolled out further.
+
+commit e48b28929abdfa635d69fca38009bea1422745e7
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Fri Apr 5 13:07:51 2013 -0500
+
+    Set the right format for HDMI Codec
+
+commit 465924ca1fd1a27c252f47fe6f501444f624319d
+Author: Darren Etheridge <detheridge@ti.com>
+Date:   Fri Apr 5 10:44:03 2013 -0500
+
+    Add the necessary device tree nodes to enable HDMI audio.  Add code to enable the McASP clock
+    that is enabled by setting gpio1_27 high.  Create a new machine in Davinci audio driver for
+    BeagleBone Black.
+---
+ drivers/gpu/drm/i2c/Kconfig                 |   1 +
+ drivers/gpu/drm/i2c/Makefile                |   2 +-
+ drivers/gpu/drm/i2c/tda998x_audio_drv.c     |  76 +++++++++++
+ drivers/gpu/drm/i2c/tda998x_drv.c           | 205 +++++++++++++++++++++++++++-
+ firmware/capes/cape-boneblack-hdmi-00A0.dts |  52 +++++++
+ sound/soc/davinci/davinci-evm.c             |  50 ++++++-
+ sound/soc/davinci/davinci-mcasp.c           |  15 +-
+ 7 files changed, 385 insertions(+), 16 deletions(-)
+ create mode 100644 drivers/gpu/drm/i2c/tda998x_audio_drv.c
+
+diff --git a/drivers/gpu/drm/i2c/Kconfig b/drivers/gpu/drm/i2c/Kconfig
+index 4d341db..2342005 100644
+--- a/drivers/gpu/drm/i2c/Kconfig
++++ b/drivers/gpu/drm/i2c/Kconfig
+@@ -22,6 +22,7 @@ config DRM_I2C_SIL164
+ config DRM_I2C_NXP_TDA998X
+ 	tristate "NXP Semiconductors TDA998X HDMI encoder"
+ 	default m if DRM_TILCDC
++	select HDMI
+ 	help
+ 	  Support for NXP Semiconductors TDA998X HDMI encoders.
+ 
+diff --git a/drivers/gpu/drm/i2c/Makefile b/drivers/gpu/drm/i2c/Makefile
+index 43aa33b..0ba6bd3 100644
+--- a/drivers/gpu/drm/i2c/Makefile
++++ b/drivers/gpu/drm/i2c/Makefile
+@@ -6,5 +6,5 @@ obj-$(CONFIG_DRM_I2C_CH7006) += ch7006.o
+ sil164-y := sil164_drv.o
+ obj-$(CONFIG_DRM_I2C_SIL164) += sil164.o
+ 
+-tda998x-y := tda998x_drv.o
++tda998x-y := tda998x_drv.o tda998x_audio_drv.o
+ obj-$(CONFIG_DRM_I2C_NXP_TDA998X) += tda998x.o
+diff --git a/drivers/gpu/drm/i2c/tda998x_audio_drv.c b/drivers/gpu/drm/i2c/tda998x_audio_drv.c
+new file mode 100644
+index 0000000..c13e25b
+--- /dev/null
++++ b/drivers/gpu/drm/i2c/tda998x_audio_drv.c
+@@ -0,0 +1,76 @@
++/*
++ * ALSA SoC codec driver for HDMI audio on NXP TDA998x series.
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
++ * Author: Darren Etheridge <detheridge@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++#include <linux/module.h>
++#include <sound/soc.h>
++#include <linux/of_device.h>
++
++#define DRV_NAME "nxp-hdmi-audio-codec"
++
++static struct snd_soc_codec_driver nxp_hdmi_codec;
++
++static struct snd_soc_dai_driver nxp_hdmi_codec_dai = {
++	.name = "nxp-hdmi-hifi",
++	.playback = {
++		.channels_min = 2,
++		.channels_max = 2,
++		.rates = SNDRV_PCM_RATE_48000,
++		.formats = SNDRV_PCM_FMTBIT_S32_LE,
++	},
++};
++
++#ifdef CONFIG_OF
++static const struct of_device_id nxptda_dt_ids[] = {
++        { .compatible = "nxp,nxptda", },
++        { }
++};
++MODULE_DEVICE_TABLE(of, nxptda_dt_ids);
++#endif
++
++
++static int nxp_hdmi_codec_probe(struct platform_device *pdev)
++{
++	return snd_soc_register_codec(&pdev->dev, &nxp_hdmi_codec,
++			&nxp_hdmi_codec_dai, 1);
++}
++
++static int nxp_hdmi_codec_remove(struct platform_device *pdev)
++{
++	snd_soc_unregister_codec(&pdev->dev);
++	return 0;
++}
++
++static struct platform_driver nxp_hdmi_codec_driver = {
++	.driver		= {
++		.name	= DRV_NAME,
++		.owner	= THIS_MODULE,
++		.of_match_table = of_match_ptr(nxptda_dt_ids)
++	},
++
++	.probe		= nxp_hdmi_codec_probe,
++	.remove		= nxp_hdmi_codec_remove,
++};
++
++module_platform_driver(nxp_hdmi_codec_driver);
++
++MODULE_AUTHOR("Darren Etheridge <detheridge@ti.com>");
++MODULE_DESCRIPTION("ASoC NXP Dummy HDMI codec driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:" DRV_NAME);
+diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
+index e68b58a..e3e9101 100644
+--- a/drivers/gpu/drm/i2c/tda998x_drv.c
++++ b/drivers/gpu/drm/i2c/tda998x_drv.c
+@@ -23,7 +23,7 @@
+ #include <drm/drm_crtc_helper.h>
+ #include <drm/drm_encoder_slave.h>
+ #include <drm/drm_edid.h>
+-
++#include <linux/hdmi.h>
+ 
+ #define DBG(fmt, ...) DRM_DEBUG(fmt"\n", ##__VA_ARGS__)
+ 
+@@ -110,6 +110,9 @@ struct tda998x_priv {
+ #define REG_VIP_CNTRL_5           REG(0x00, 0x25)     /* write */
+ # define VIP_CNTRL_5_CKCASE       (1 << 0)
+ # define VIP_CNTRL_5_SP_CNT(x)    (((x) & 3) << 1)
++
++#define REG_MUX_AP                REG(0x00, 0x26)
++# define MUX_AP_SELECT_I2S        (0x64)
+ #define REG_MAT_CONTRL            REG(0x00, 0x80)     /* write */
+ # define MAT_CONTRL_MAT_SC(x)     (((x) & 3) << 0)
+ # define MAT_CONTRL_MAT_BP        (1 << 2)
+@@ -171,7 +174,10 @@ struct tda998x_priv {
+ # define HVF_CNTRL_1_PAD(x)       (((x) & 3) << 4)
+ # define HVF_CNTRL_1_SEMI_PLANAR  (1 << 6)
+ #define REG_RPT_CNTRL             REG(0x00, 0xf0)     /* write */
++#define REG_I2S_FORMAT            REG(0x00, 0xfc)
+ 
++#define REG_AIP_CLKSEL            REG(0x00, 0xfd)
++# define SEL_AIP_I2S              (1 << 3)  /* I2S Clk */
+ 
+ /* Page 02h: PLL settings */
+ #define REG_PLL_SERIAL_1          REG(0x02, 0x00)     /* read/write */
+@@ -212,7 +218,8 @@ struct tda998x_priv {
+ 
+ 
+ /* Page 10h: information frames and packets */
+-
++#define REG_AVI_IF                REG(0x10, 0x40)   /* AVI Infoframe packet */
++#define REG_AUDIO_IF              REG(0x10, 0x80)   /* AVI Infoframe packet */
+ 
+ /* Page 11h: audio settings and content info packets */
+ #define REG_AIP_CNTRL_0           REG(0x11, 0x00)     /* read/write */
+@@ -221,11 +228,28 @@ struct tda998x_priv {
+ # define AIP_CNTRL_0_LAYOUT       (1 << 2)
+ # define AIP_CNTRL_0_ACR_MAN      (1 << 5)
+ # define AIP_CNTRL_0_RST_CTS      (1 << 6)
++#define REG_ACR_CTS_0             REG(0x11, 0x05)
++#define REG_ACR_CTS_1             REG(0x11, 0x06)
++#define REG_ACR_CTS_2             REG(0x11, 0x07)
++#define REG_ACR_N_0               REG(0x11, 0x08)
++#define REG_ACR_N_1               REG(0x11, 0x09)
++#define REG_ACR_N_2               REG(0x11, 0x0a)
++#define REG_GC_AVMUTE             REG(0x11, 0x0b)
++# define GC_AVMUTE_CLRMUTE        (1 << 0)
++# define GC_AVMUTE_SETMUTE        (1 << 1)
++#define REG_CTS_N                 REG(0x11, 0x0c)
+ #define REG_ENC_CNTRL             REG(0x11, 0x0d)     /* read/write */
+ # define ENC_CNTRL_RST_ENC        (1 << 0)
+ # define ENC_CNTRL_RST_SEL        (1 << 1)
+ # define ENC_CNTRL_CTL_CODE(x)    (((x) & 3) << 2)
+-
++#define REG_DIP_FLAGS             REG(0x11, 0x0e)
++# define DIP_FLAGS_ACR            (1 << 0)
++#define REG_DIP_IF_FLAGS          REG(0x11, 0x0f)     /* read/write */
++#define DIP_IF_FLAGS_IF1          (1 << 1)
++#define DIP_IF_FLAGS_IF2          (1 << 2)
++#define DIP_IF_FLAGS_IF3          (1 << 3)
++#define DIP_IF_FLAGS_IF4          (1 << 4)
++#define DIP_IF_FLAGS_IF5          (1 << 5)
+ 
+ /* Page 12h: HDCP and OTP */
+ #define REG_TX3                   REG(0x12, 0x9a)     /* read/write */
+@@ -262,6 +286,9 @@ struct tda998x_priv {
+ #define TDA19989N2                0x0202
+ #define TDA19988                  0x0301
+ 
++static uint8_t *
++do_get_edid(struct drm_encoder *encoder);
++
+ static void
+ cec_write(struct drm_encoder *encoder, uint16_t addr, uint8_t val)
+ {
+@@ -338,6 +365,35 @@ fail:
+ 	return ret;
+ }
+ 
++static int
++reg_write_range(struct drm_encoder *encoder, uint16_t reg, char *buf, int cnt)
++{
++	struct i2c_client *client = drm_i2c_encoder_get_client(encoder);
++	int ret = 0;
++	uint8_t *i2cpacket;
++
++	i2cpacket = (uint8_t *)kmalloc(cnt + 1, GFP_KERNEL);
++	if(!i2cpacket) {
++		goto fail;
++	}
++	i2cpacket[0] = REG2ADDR(reg);
++	memcpy(&i2cpacket[1], buf, cnt);
++	
++	set_page(encoder, reg);
++
++	ret = i2c_master_send(client, i2cpacket, cnt+1);
++	kfree(i2cpacket);
++	if (ret < 0)
++		goto fail;
++
++	return ret;
++
++fail:
++	dev_err(&client->dev, "Error %d writing to 0x%x\n", ret, reg);
++	return ret;
++}
++
++
+ static uint8_t
+ reg_read(struct drm_encoder *encoder, uint16_t reg)
+ {
+@@ -437,7 +493,7 @@ tda998x_encoder_dpms(struct drm_encoder *encoder, int mode)
+ 	switch (mode) {
+ 	case DRM_MODE_DPMS_ON:
+ 		/* enable audio and video ports */
+-		reg_write(encoder, REG_ENA_AP, 0xff);
++		reg_write(encoder, REG_ENA_AP, 0x03);
+ 		reg_write(encoder, REG_ENA_VP_0, 0xff);
+ 		reg_write(encoder, REG_ENA_VP_1, 0xff);
+ 		reg_write(encoder, REG_ENA_VP_2, 0xff);
+@@ -488,6 +544,87 @@ tda998x_encoder_mode_valid(struct drm_encoder *encoder,
+ 	return MODE_OK;
+ }
+ 
++
++static void
++tda998x_audio_infoframe_enable(struct drm_encoder *encoder)
++{
++	uint8_t buffer[20];
++	struct hdmi_audio_infoframe audio_frame;
++	size_t len;
++
++	hdmi_audio_infoframe_init(&audio_frame);
++
++	/* NXP audio is fixed at these values for the time being */
++	audio_frame.channels = 2;
++	audio_frame.coding_type = HDMI_AUDIO_CODING_TYPE_PCM;
++	audio_frame.sample_size = HDMI_AUDIO_SAMPLE_SIZE_24;
++	audio_frame.sample_frequency = HDMI_AUDIO_SAMPLE_FREQUENCY_48000;
++
++	len = hdmi_audio_infoframe_pack(&audio_frame, buffer, sizeof(buffer));
++	WARN(len < 0, "hdmi_avi_infoframe_pack failed\n");
++
++	reg_write_range(encoder, REG_AUDIO_IF, buffer, len);
++
++	/* enable Audio Infoframe output in DIP_IF Register */
++	reg_clear(encoder, REG_DIP_IF_FLAGS, DIP_IF_FLAGS_IF4);
++	udelay(5);
++	reg_set(encoder, REG_DIP_IF_FLAGS, DIP_IF_FLAGS_IF4);
++}
++
++static void
++tda998x_avi_infoframe_enable(struct drm_encoder *encoder,
++			struct drm_display_mode *mode)
++{
++	uint8_t buffer[20];
++	struct hdmi_avi_infoframe avi_frame;
++	size_t len;
++
++	hdmi_avi_infoframe_init(&avi_frame);
++	avi_frame.video_code = drm_match_cea_mode(mode);
++	avi_frame.picture_aspect = HDMI_PICTURE_ASPECT_NONE;
++	avi_frame.active_aspect = HDMI_ACTIVE_ASPECT_PICTURE;
++	len = hdmi_avi_infoframe_pack(&avi_frame, buffer, sizeof(buffer));
++	WARN(len < 0, "hdmi_avi_infoframe_pack failed\n");
++
++	reg_write_range(encoder, REG_AVI_IF, buffer, len);
++
++	/* 
++	 * enable AVI Infoframe output in DIP_IF Register, but toggle it 
++	 * so that the hardware acknowledges that the packet data might have
++	 * changed
++	 */
++	reg_clear(encoder, REG_DIP_IF_FLAGS, DIP_IF_FLAGS_IF3);
++	udelay(5);
++	reg_set(encoder, REG_DIP_IF_FLAGS, DIP_IF_FLAGS_IF3);
++}
++
++/* loopup table for CEA values to VIDFORMAT values taken from NXP datasheet */
++static char cea_to_nxp_mode[32] = {-1, 0, 1, 1, 2, 3, 4, 4, 5, 5, -1, -1, 
++		-1, -1, -1, -1, 6, 7, 7, 8, 9, 10, 10,
++		11, 11, -1, -1, -1, -1, -1, -1, 12};
++
++static char tda998x_cea_to_vidformat(unsigned char cea_mode)
++{
++	if(cea_mode > 31) {
++		return -1;
++	}
++	return cea_to_nxp_mode[cea_mode];
++}
++
++static char tda998x_is_monitor_hdmi(struct drm_encoder *encoder)
++{
++	struct edid *edid = (struct edid *)do_get_edid(encoder);
++	char hdmi = 0;
++	if(edid) {
++		hdmi = drm_detect_hdmi_monitor(edid);
++		kfree(edid);
++	} else {
++		return -1;
++	}
++	return hdmi;
++}
++
++
+ static void
+ tda998x_encoder_mode_set(struct drm_encoder *encoder,
+ 			struct drm_display_mode *mode,
+@@ -534,7 +671,7 @@ tda998x_encoder_mode_set(struct drm_encoder *encoder,
+ 	/* mute the audio FIFO: */
+ 	reg_set(encoder, REG_AIP_CNTRL_0, AIP_CNTRL_0_RST_FIFO);
+ 
+-	/* set HDMI HDCP mode off: */
++	/*  HDMI/HDCP mode off... for now...: */
+ 	reg_set(encoder, REG_TBG_CNTRL_1, TBG_CNTRL_1_DWIN_DIS);
+ 	reg_clear(encoder, REG_TX33, TX33_HDMI);
+ 
+@@ -605,14 +742,69 @@ tda998x_encoder_mode_set(struct drm_encoder *encoder,
+ 	reg = TBG_CNTRL_1_VHX_EXT_DE |
+ 			TBG_CNTRL_1_VHX_EXT_HS |
+ 			TBG_CNTRL_1_VHX_EXT_VS |
+-			TBG_CNTRL_1_DWIN_DIS | /* HDCP off */
++	  		TBG_CNTRL_1_DWIN_DIS | /* HDCP off */
+ 			TBG_CNTRL_1_VH_TGL_2;
+ 	if (mode->flags & (DRM_MODE_FLAG_NVSYNC | DRM_MODE_FLAG_NHSYNC))
+ 		reg |= TBG_CNTRL_1_VH_TGL_0;
+ 	reg_set(encoder, REG_TBG_CNTRL_1, reg);
+ 
++
++
++
++	if(tda998x_is_monitor_hdmi(encoder) == 1) {
++		char vidformat;
++		vidformat = tda998x_cea_to_vidformat(drm_match_cea_mode(mode));
++		if(vidformat == (char)-1) {
++			dev_err(encoder->dev->dev, "Not sure which CEA mode to set, leaving as DVI");
++			goto out;
++		}
++		dev_info(encoder->dev->dev, "Connected to an HDMI monitor with cea mode %d", vidformat);
++			
++		/* this is an HDMI monitor, so set things up a bit differently */
++		reg_write(encoder, REG_TBG_CNTRL_1, 0);
++		reg_write(encoder, REG_VIDFORMAT, vidformat);
++		/* get the infoframes pumping */
++		tda998x_avi_infoframe_enable(encoder, mode);
++		tda998x_audio_infoframe_enable(encoder);
++		reg_set(encoder, REG_TX33, TX33_HDMI);
++
++		/* set up audio registers */
++		reg_write(encoder, REG_ACR_CTS_0, 0x0);
++		reg_write(encoder, REG_ACR_CTS_1, 0x0);
++		reg_write(encoder, REG_ACR_CTS_2, 0x0);
++
++		reg_write(encoder, REG_ACR_N_0, 0x0);
++		reg_write(encoder, REG_ACR_N_1, 0x18);
++		reg_write(encoder, REG_ACR_N_2, 0x0);
++
++		reg_set(encoder, REG_DIP_FLAGS, DIP_FLAGS_ACR);
++
++		reg_write(encoder, REG_ENC_CNTRL, 0x04);
++		reg_write(encoder, REG_CTS_N, 0x33);
++		/* Set 2 channel I2S mode */
++		reg_write(encoder, REG_ENA_AP, 0x3);
++
++		/* set audio divider in pll settings */
++		reg_write(encoder, REG_AUDIO_DIV, 0x2);
++
++		/* select the audio input port clock */
++		reg_write(encoder, REG_AIP_CLKSEL, SEL_AIP_I2S);
++		reg_write(encoder, REG_MUX_AP, MUX_AP_SELECT_I2S);
++
++		/* select I2S format, and datasize */
++		reg_write(encoder, REG_I2S_FORMAT, 0x0a);
++
++		/* enable the audio FIFO: */
++		reg_clear(encoder, REG_AIP_CNTRL_0, AIP_CNTRL_0_RST_FIFO);
++
++		/* mute and then unmute, to get audio going */
++		reg_write(encoder, REG_GC_AVMUTE, GC_AVMUTE_SETMUTE);
++		reg_write(encoder, REG_GC_AVMUTE, GC_AVMUTE_CLRMUTE);
++	}
++out:
+ 	/* must be last register set: */
+ 	reg_clear(encoder, REG_TBG_CNTRL_0, TBG_CNTRL_0_SYNC_ONCE);
++
+ }
+ 
+ static enum drm_connector_status
+@@ -904,3 +1096,4 @@ MODULE_LICENSE("GPL");
+ 
+ module_init(tda998x_init);
+ module_exit(tda998x_exit);
++
+diff --git a/firmware/capes/cape-boneblack-hdmi-00A0.dts b/firmware/capes/cape-boneblack-hdmi-00A0.dts
+index ee36d0e..e5f714a 100644
+--- a/firmware/capes/cape-boneblack-hdmi-00A0.dts
++++ b/firmware/capes/cape-boneblack-hdmi-00A0.dts
+@@ -46,6 +46,16 @@
+ 					0x1b0 0x03      /* xdma_event_intr0, OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
+ 				>;
+ 			};
++
++			mcasp0_pins: mcasp0_pins {
++				pinctrl-single,pins = <
++					0x1ac 0x30      /* mcasp0_ahclkx,       MODE0 | INPUT */
++					0x19c 0x02	/* mcasp0_ahclkr, */
++					0x194 0x10      /* mcasp0_fsx,         MODE0 | OUTPUT  */ 
++					0x190 0x00      /* mcasp0_aclkr.mcasp0_aclkx,     MODE0 | OUTPUT_PULLDOWN */
++					0x1a8 0x1f	/* mcasp0_axr1 GPIO1_27 | OUTPUT | PULLUP */
++				>;
++			};
+ 		};
+ 	};
+ 
+@@ -57,6 +67,11 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 
++			nxptda: nxptda@0 {
++			       compatible = "nxp,nxptda";
++			       status = "okay";
++			};
++
+ 			hdmi {
+ 				compatible = "tilcdc,slave";
+ 				i2c = <&i2c0>;
+@@ -77,4 +92,41 @@
+ 		};
+ 	};
+ 
++	fragment@3 {
++		target = <&mcasp0>;
++		__overlay__ {
++			pinctrl-names = "default";
++			pinctrl-0 = <&mcasp0_pins>;
++
++			status = "okay";
++
++			op-mode = <0>;          /* MCASP_IIS_MODE */
++			tdm-slots = <2>;
++			num-serializer = <16>;
++			serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
++				0 0 1 0
++				0 0 0 0
++				0 0 0 0
++				0 0 0 0
++			>;
++			tx-num-evt = <1>;
++			rx-num-evt = <1>;
++		};
++	};
++
++	fragment@4 {
++		target = <&ocp>;
++		__overlay__ {
++			sound {
++				compatible = "ti,am33xx-beaglebone-black";
++				ti,model = "TI BeagleBone Black";
++				ti,audio-codec = <&nxptda>;
++				ti,mcasp-controller = <&mcasp0>;
++				ti,codec-clock-rate = <2457600>;
++				mcasp_clock_enable = <&gpio2 27 0>; /* BeagleBone Black Clk enable on GPIO1_27 */
++			};
++		};
++
++	};
++
+ };
+diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/davinci/davinci-evm.c
+index 349db80..7a7fc47 100644
+--- a/sound/soc/davinci/davinci-evm.c
++++ b/sound/soc/davinci/davinci-evm.c
+@@ -30,6 +30,9 @@
+ #include "davinci-i2s.h"
+ #include "davinci-mcasp.h"
+ 
++#include <linux/of_gpio.h>
++
++
+ #define AUDIO_FORMAT (SND_SOC_DAIFMT_DSP_B | \
+ 		SND_SOC_DAIFMT_CBM_CFM | SND_SOC_DAIFMT_IB_NF)
+ static int evm_hw_params(struct snd_pcm_substream *substream,
+@@ -311,11 +314,13 @@ static struct snd_soc_card da850_snd_soc_card = {
+ 	.num_links = 1,
+ };
+ 
++
+ #if defined(CONFIG_OF)
+ 
+ enum {
+ 	MACHINE_VERSION_1 = 0,	/* DM365 with Voice Codec */
+ 	MACHINE_VERSION_2,	/* DM365/DA8xx/OMAPL1x/AM33xx */
++	MACHINE_VERSION_3,	/* AM33xx BeagleBone Black */
+ };
+ 
+ static const struct of_device_id davinci_evm_dt_ids[] = {
+@@ -327,6 +332,10 @@ static const struct of_device_id davinci_evm_dt_ids[] = {
+ 		.compatible = "ti,da830-evm-audio",
+ 		.data = (void *)MACHINE_VERSION_2,
+ 	},
++	{
++		.compatible = "ti,am33xx-beaglebone-black",
++		.data = (void *)MACHINE_VERSION_3,
++	},
+ 	{ /* sentinel */ }
+ };
+ MODULE_DEVICE_TABLE(of, davinci_mcasp_dt_ids);
+@@ -353,7 +362,7 @@ static int davinci_evm_probe(struct platform_device *pdev)
+ 	struct device_node *np = pdev->dev.of_node;
+ 	const struct of_device_id *match =
+ 		of_match_device(of_match_ptr(davinci_evm_dt_ids), &pdev->dev);
+-	u32 machine_ver;
++	u32 machine_ver, clk_gpio;
+ 	int ret = 0;
+ 
+ 	machine_ver = (u32)match->data;
+@@ -363,12 +372,37 @@ static int davinci_evm_probe(struct platform_device *pdev)
+ 		evm_dai.stream_name	= "CQ93";
+ 		evm_dai.codec_dai_name	= "cq93vc-hifi";
+ 		break;
+-
+ 	case MACHINE_VERSION_2:
+ 		evm_dai.ops = &evm_ops;
+ 		evm_dai.init = evm_aic3x_init;
+ 		break;
++	case MACHINE_VERSION_3:
++		evm_dai.name		= "NXP TDA HDMI Chip";
++		evm_dai.stream_name	= "HDMI";
++		evm_dai.codec_dai_name	= "nxp-hdmi-hifi";
++
++		/* 
++		 * Move GPIO handling out of the probe, if probe gets 
++		 * deferred, the gpio will have been claimed on previous
++		 * probe and will fail on the second and susequent probes 
++		 */
++		clk_gpio = of_get_named_gpio(np, "mcasp_clock_enable", 0);
++		if (clk_gpio < 0) {
++		  dev_err(&pdev->dev, "failed to find mcasp_clock enable GPIO!\n");
++		  return -EINVAL;
++		}
++		ret = gpio_request_one(clk_gpio, GPIOF_OUT_INIT_HIGH,
++				       "McASP Clock Enable Pin");
++		if (ret < 0) {
++		  dev_err(&pdev->dev, "Failed to claim McASP Clock Enable pin\n");
++		  return -EINVAL;
++		}
++		gpio_set_value(clk_gpio, 1);
++		evm_dai.dai_fmt = SND_SOC_DAIFMT_CBS_CFS | SND_SOC_DAIFMT_DSP_B | SND_SOC_DAIFMT_IB_NF;
++		break;
++	  
+ 	}
++	
+ 
+ 	evm_dai.codec_of_node = of_parse_phandle(np, "ti,audio-codec", 0);
+ 	if (!evm_dai.codec_of_node)
+@@ -387,9 +421,9 @@ static int davinci_evm_probe(struct platform_device *pdev)
+ 		return ret;
+ 
+ 	ret = snd_soc_register_card(&evm_soc_card);
+-	if (ret)
++	if (ret) {
+ 		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", ret);
+-
++	} 
+ 	return ret;
+ }
+ 
+@@ -426,8 +460,9 @@ static int __init evm_init(void)
+ 	 * If dtb is there, the devices will be created dynamically.
+ 	 * Only register platfrom driver structure.
+ 	 */
+-	if (of_have_populated_dt())
+-		return platform_driver_register(&davinci_evm_driver);
++	if (of_have_populated_dt()) {
++	  return platform_driver_register(&davinci_evm_driver);
++	}
+ #endif
+ 
+ 	if (machine_is_davinci_evm()) {
+@@ -448,8 +483,9 @@ static int __init evm_init(void)
+ 	} else if (machine_is_davinci_da850_evm()) {
+ 		evm_snd_dev_data = &da850_snd_soc_card;
+ 		index = 0;
+-	} else
++	} else {
+ 		return -EINVAL;
++	}
+ 
+ 	evm_snd_device = platform_device_alloc("soc-audio", index);
+ 	if (!evm_snd_device)
+diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
+index ea292f6..4c700df 100644
+--- a/sound/soc/davinci/davinci-mcasp.c
++++ b/sound/soc/davinci/davinci-mcasp.c
+@@ -497,16 +497,22 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
+ 
+ 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
+ 	case SND_SOC_DAIFMT_CBS_CFS:
+-		/* codec is clock and frame slave */
+-		mcasp_set_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
++	  /* codec is clock and frame slave */
++	  printk("SND_SOC_DAIFMT_CBS_CFS entered\n");
++	  mcasp_set_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE | ACLKXDIV(7));
++	  mcasp_set_bits(base + DAVINCI_MCASP_AHCLKXCTL_REG,  AHCLKXDIV(0));
++	  mcasp_clr_bits(base + DAVINCI_MCASP_AHCLKXCTL_REG,  AHCLKXE);
+ 		mcasp_set_bits(base + DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
+ 
+ 		mcasp_set_bits(base + DAVINCI_MCASP_ACLKRCTL_REG, ACLKRE);
+ 		mcasp_set_bits(base + DAVINCI_MCASP_RXFMCTL_REG, AFSRE);
+ 
+ 		mcasp_set_bits(base + DAVINCI_MCASP_PDIR_REG, ACLKX | AFSX);
++		mcasp_clr_bits(base + DAVINCI_MCASP_PDIR_REG, AHCLKX);
+ 		break;
+ 	case SND_SOC_DAIFMT_CBM_CFS:
++	  printk("SND_SOC_DAIFMT_CBM_CFS entered\n");
++
+ 		/* codec is clock master and frame slave */
+ 		mcasp_clr_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
+ 		mcasp_set_bits(base + DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
+@@ -520,6 +526,7 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
+ 				AFSX | AFSR);
+ 		break;
+ 	case SND_SOC_DAIFMT_CBM_CFM:
++	  printk("SND_SOC_DAIFMT_CBM_CFM entered\n");
+ 		/* codec is clock and frame master */
+ 		mcasp_clr_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
+ 		mcasp_clr_bits(base + DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
+@@ -746,6 +753,8 @@ static void davinci_hw_param(struct davinci_audio_dev *dev, int stream)
+ 	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
+ 		/* bit stream is MSB first  with no delay */
+ 		/* DSP_B mode */
++	  printk("davinci hw_params _ PLAYBACK modified\n");
++	  mcasp_clr_bits(dev->base + DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
+ 		mcasp_set_reg(dev->base + DAVINCI_MCASP_TXTDM_REG, mask);
+ 		mcasp_set_bits(dev->base + DAVINCI_MCASP_TXFMT_REG, TXORD);
+ 
+@@ -755,6 +764,8 @@ static void davinci_hw_param(struct davinci_audio_dev *dev, int stream)
+ 		else
+ 			printk(KERN_ERR "playback tdm slot %d not supported\n",
+ 				dev->tdm_slots);
++		mcasp_set_bits(dev->base + DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
++		mcasp_set_bits(dev->base + DAVINCI_MCASP_TXFMCTL_REG, FSXDUR);
+ 	} else {
+ 		/* bit stream is MSB first with no delay */
+ 		/* DSP_B mode */
+-- 
+1.8.1.4
+

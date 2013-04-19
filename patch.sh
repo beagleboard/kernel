@@ -24,7 +24,7 @@ EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable
 EXTERNAL_BRANCH="linux-3.8.y"
 EXTERNAL_SHA="2396403a0402caf7b9decbc5d206fa63ba62b6b7"
 
-PATCHSET="dma rtc pinctrl cpufreq adc i2c da8xx-fb pwm mmc crypto 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net drm not-capebus pru usb PG2 reboot iio w1 gpmc mxt ssd130x build"
+PATCHSET="dma rtc pinctrl cpufreq adc i2c da8xx-fb pwm mmc crypto 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net drm not-capebus pru usb PG2 reboot iio w1 gpmc mxt ssd130x build hdmi"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
@@ -86,7 +86,7 @@ for patchset in ${PATCHSET} ; do
 	mkdir -p ${EXPORTPATH}/$patchset
 	for patch in $(ls -1 ${PATCHPATH}/$patchset/*.patch | sort -n) ; do
 		$ECHO -n "$patch: "
-		git am -q $patch && echo applied || exit 1
+		git am -3 -q $patch && echo applied || exit 1
 	done
 
 	NEWCOMMIT="$(git log --oneline --no-abbrev -1 | awk '{print $1}')"
