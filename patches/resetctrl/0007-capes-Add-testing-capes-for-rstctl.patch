@@ -1,0 +1,135 @@
+From 43be5eb188c33faf605aed2304303b9f441646ee Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Mon, 22 Apr 2013 20:40:07 +0300
+Subject: [PATCH 7/9] capes: Add testing capes for rstctl
+
+Add a couple of reset control capes for testing rstctl
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ firmware/Makefile                    |  4 ++-
+ firmware/capes/BB-BONE-RST-00A0.dts  | 62 ++++++++++++++++++++++++++++++++++++
+ firmware/capes/BB-BONE-RST2-00A0.dts | 27 ++++++++++++++++
+ 3 files changed, 92 insertions(+), 1 deletion(-)
+ create mode 100644 firmware/capes/BB-BONE-RST-00A0.dts
+ create mode 100644 firmware/capes/BB-BONE-RST2-00A0.dts
+
+diff --git a/firmware/Makefile b/firmware/Makefile
+index 88a4e82..cfbab9e 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -171,7 +171,9 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	bone_pwm_P9_29-00A0.dtbo \
+ 	bone_pwm_P9_31-00A0.dtbo \
+ 	bone_pwm_P9_42-00A0.dtbo \
+-	BB-BONE-PWMT-00A0.dtbo
++	BB-BONE-PWMT-00A0.dtbo \
++	BB-BONE-RST-00A0.dtbo \
++	BB-BONE-RST2-00A0.dtbo
+ 
+ # the geiger cape
+ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_GEIGER) += \
+diff --git a/firmware/capes/BB-BONE-RST-00A0.dts b/firmware/capes/BB-BONE-RST-00A0.dts
+new file mode 100644
+index 0000000..acdcda4
+--- /dev/null
++++ b/firmware/capes/BB-BONE-RST-00A0.dts
+@@ -0,0 +1,62 @@
++/*
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone";
++
++	/* identification */
++	part-number = "BB-BONE-RST";
++	version = "00A0";
++
++	fragment@0 {
++		target = <&ocp>;
++		__overlay__ {
++			test_rctrl: test_reset {
++				compatible = "test-rctrl";
++				#reset-cells = <2>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&ocp>;
++		__overlay__ {
++			test_consumer_rctrl: test_consumer_reset {
++				compatible = "test-consumer-rctrl";
++
++				reset = <&test_rctrl 0 0>;
++				reset-names = "RESET_1";
++			};
++		};
++	};
++
++	fragment@2 {
++		target = <&ocp>;
++		__overlay__ {
++			gpio_rctrl: gpio_reset {
++				compatible = "gpio-rctrl";
++				#reset-cells = <2>;
++
++				gpios = <&gpio2 28 0x1>, <&gpio2 29 0x0>;
++				gpio-names = "HDMI-reset", "eMMC-reset";
++			};
++		};
++	};
++
++	fragment@3 {
++		target = <&ocp>;
++		__overlay__ {
++			gpio_consumer_rctrl:gpio_consumer_reset {
++				compatible = "test-consumer-rctrl";
++
++				reset = <&gpio_rctrl 0 0>, <&gpio_rctrl 1 0>;
++				reset-names = "RESET_1", "RESET_2";
++			};
++		};
++	};
++};
+diff --git a/firmware/capes/BB-BONE-RST2-00A0.dts b/firmware/capes/BB-BONE-RST2-00A0.dts
+new file mode 100644
+index 0000000..6904cc5
+--- /dev/null
++++ b/firmware/capes/BB-BONE-RST2-00A0.dts
+@@ -0,0 +1,27 @@
++/*
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone";
++
++	/* identification */
++	part-number = "BB-BONE-RST2";
++	version = "00A0";
++
++	fragment@0 {
++		target = <&ocp>;
++		__overlay__ {
++			emmc_reset_consumer_rctrl: emmc_reset_consumer {
++				compatible = "test-consumer-rctrl";
++
++				reset = <&rstctl 0 0>;
++				reset-names = "eMMC_RSTn-CONSUMER";
++			};
++		};
++	};
++};
+-- 
+1.8.1.4
+

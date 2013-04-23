@@ -1,0 +1,1053 @@
+From 59265f7de647a90ee13339d8123a833584f7be6e Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 11 Apr 2013 18:14:52 +0300
+Subject: [PATCH 3/9] rstctl: Reset control subsystem
+
+A reset control subsystem. Similar to pinctrl but for handling
+reset conditions.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/Kconfig                       |   2 +
+ drivers/Makefile                      |   2 +
+ drivers/rstctl/Kconfig                |  30 +++
+ drivers/rstctl/Makefile               |   8 +
+ drivers/rstctl/core.c                 | 368 ++++++++++++++++++++++++++++++++++
+ drivers/rstctl/rstctl-gpio.c          | 259 ++++++++++++++++++++++++
+ drivers/rstctl/rstctl-test-consumer.c |  82 ++++++++
+ drivers/rstctl/rstctl-test.c          | 138 +++++++++++++
+ include/linux/rstctl.h                |  71 +++++++
+ 9 files changed, 960 insertions(+)
+ create mode 100644 drivers/rstctl/Kconfig
+ create mode 100644 drivers/rstctl/Makefile
+ create mode 100644 drivers/rstctl/core.c
+ create mode 100644 drivers/rstctl/rstctl-gpio.c
+ create mode 100644 drivers/rstctl/rstctl-test-consumer.c
+ create mode 100644 drivers/rstctl/rstctl-test.c
+ create mode 100644 include/linux/rstctl.h
+
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index f5fb072..0e8852a 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -158,4 +158,6 @@ source "drivers/irqchip/Kconfig"
+ 
+ source "drivers/ipack/Kconfig"
+ 
++source "drivers/rstctl/Kconfig"
++
+ endmenu
+diff --git a/drivers/Makefile b/drivers/Makefile
+index 7863b9f..8c50114 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -11,6 +11,8 @@ obj-y				+= bus/
+ # GPIO must come after pinctrl as gpios may need to mux pins etc
+ obj-y				+= pinctrl/
+ obj-y				+= gpio/
++# similarly rstctl must come very early
++obj-y				+= rstctl/
+ obj-y				+= pwm/
+ obj-$(CONFIG_PCI)		+= pci/
+ obj-$(CONFIG_PARISC)		+= parisc/
+diff --git a/drivers/rstctl/Kconfig b/drivers/rstctl/Kconfig
+new file mode 100644
+index 0000000..b943253
+--- /dev/null
++++ b/drivers/rstctl/Kconfig
+@@ -0,0 +1,30 @@
++#
++# RSTCTL infrastructure and drivers
++#
++
++menuconfig RSTCTL
++	bool "Reset control subsystem"
++	help
++	  Select this to enable the reset control subsystem
++
++if RSTCTL
++
++config RSTCTL_GPIO
++	tristate "GPIO reset driver"
++	depends on RSTCTL
++	help
++	  This selects the GPIO based reset driver
++
++config RSTCTL_TEST
++	tristate "Test reset driver"
++	depends on RSTCTL
++	help
++	  This selects the test reset driver
++
++config RSTCTL_TEST_CONSUMER
++	tristate "Test reset consumer driver"
++	depends on RSTCTL
++	help
++	  This select the test reset consumer driver
++
++endif
+diff --git a/drivers/rstctl/Makefile b/drivers/rstctl/Makefile
+new file mode 100644
+index 0000000..26dfcf6
+--- /dev/null
++++ b/drivers/rstctl/Makefile
+@@ -0,0 +1,8 @@
++# rstctl support
++
++ccflags-$(CONFIG_DEBUG_RSTCTL)	+= -DDEBUG
++
++obj-$(CONFIG_RSTCTL)			+= core.o
++obj-$(CONFIG_RSTCTL_TEST)		+= rstctl-test.o
++obj-$(CONFIG_RSTCTL_TEST_CONSUMER)	+= rstctl-test-consumer.o
++obj-$(CONFIG_RSTCTL_GPIO)		+= rstctl-gpio.o
+diff --git a/drivers/rstctl/core.c b/drivers/rstctl/core.c
+new file mode 100644
+index 0000000..a3f02c2
+--- /dev/null
++++ b/drivers/rstctl/core.c
+@@ -0,0 +1,368 @@
++/*
++ * Core driver for the reset control subsystem
++ *
++ * Copyright (C) 2013 Pantelis Antoniou <panto@antoniou-consulting.com>
++ * Based on bits of rstctl, regulator core, gpio core and clk core
++ *
++ * License terms: GNU General Public License (GPL) version 2
++ */
++#define pr_fmt(fmt) "rstctl core: " fmt
++
++#include <linux/kernel.h>
++#include <linux/export.h>
++#include <linux/init.h>
++#include <linux/device.h>
++#include <linux/slab.h>
++#include <linux/err.h>
++#include <linux/list.h>
++#include <linux/sysfs.h>
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
++
++#include <linux/rstctl.h>
++
++static inline int reset_request(struct rstctl_dev *rdev,
++			const struct rstctl_line *line)
++{
++	/* no request op? */
++	if (rdev->rdesc->ops->request == NULL)
++		return 0;
++
++	return rdev->rdesc->ops->request(rdev, line);
++}
++
++static inline int reset_release(struct rstctl_dev *rdev,
++			const struct rstctl_line *line)
++{
++	/* no release op? */
++	if (rdev->rdesc->ops->release == NULL)
++		return 0;
++
++	return rdev->rdesc->ops->release(rdev, line);
++}
++
++static inline int reset_assert(struct rstctl_dev *rdev,
++			const struct rstctl_line *line)
++{
++	return rdev->rdesc->ops->assert(rdev, line);
++}
++
++static inline int reset_deassert(struct rstctl_dev *rdev,
++			const struct rstctl_line *line)
++{
++	return rdev->rdesc->ops->deassert(rdev, line);
++}
++
++static inline int reset_pulse(struct rstctl_dev *rdev,
++			const struct rstctl_line *line,
++			unsigned long hold_ns)
++{
++	return rdev->rdesc->ops->pulse(rdev, line, hold_ns);
++}
++
++int rstctl_assert(struct rstctl *rctrl)
++{
++	if (IS_ERR_OR_NULL(rctrl))
++		return -EINVAL;
++	return reset_assert(rctrl->rdev, rctrl->line);
++}
++EXPORT_SYMBOL(rstctl_assert);
++
++int rstctl_deassert(struct rstctl *rctrl)
++{
++	if (IS_ERR_OR_NULL(rctrl))
++		return -EINVAL;
++	return reset_deassert(rctrl->rdev, rctrl->line);
++}
++EXPORT_SYMBOL(rstctl_deassert);
++
++int rstctl_pulse(struct rstctl *rctrl, unsigned long hold_ns)
++{
++	if (IS_ERR_OR_NULL(rctrl))
++		return -EINVAL;
++	return reset_pulse(rctrl->rdev, rctrl->line, hold_ns);
++}
++EXPORT_SYMBOL(rstctl_pulse);
++
++/* Mutex taken by all entry points */
++static DEFINE_MUTEX(rstctl_lock);
++
++/* Global list of reset control devices (struct rstctl_dev) */
++static LIST_HEAD(rstctl_dev_list);
++
++static struct rstctl *rstctl_request_line(struct rstctl_dev *rdev,
++		struct device *dev, const struct rstctl_line *line)
++{
++	struct rstctl *rctrl;
++	int index, err;
++
++	index = line - rdev->rdesc->lines;
++
++	/* find if it's already requested */
++	list_for_each_entry(rctrl, &rdev->handles, node) {
++		/* retreive index from the point */
++		if (rctrl->line == line) {
++			dev_err(dev, "Reset %s:%d already requested\n",
++					rdev->rdesc->name, index);
++			return ERR_PTR(-EEXIST);
++		}
++	}
++
++	/* request from the driver */
++	err = reset_request(rdev, line);
++	if (err != 0) {
++		dev_err(dev, "reset_request on %s:%d failed\n",
++				rdev->rdesc->name, index);
++		return ERR_PTR(err);
++	}
++
++	/* allocate */
++	rctrl = kzalloc(sizeof(*rctrl), GFP_KERNEL);
++	if (rctrl == NULL) {
++		dev_err(dev, "Out of memory on %s:%d request\n",
++				rdev->rdesc->name, index);
++		reset_release(rdev, line);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	INIT_LIST_HEAD(&rctrl->node);
++	rctrl->rdev = rdev;
++	rctrl->dev = dev;
++	rctrl->line = line;
++
++	/* add it to the handle list */
++	list_add_tail(&rctrl->node, &rdev->handles);
++
++	return rctrl;
++}
++
++#ifdef CONFIG_OF
++
++static struct rstctl_dev *of_node_to_rstctl_dev(struct device_node *np)
++{
++	struct rstctl_dev *rdev;
++
++	list_for_each_entry(rdev, &rstctl_dev_list, node) {
++		if (rdev->dev && rdev->dev->of_node == np)
++			return rdev;
++	}
++
++	return ERR_PTR(-EPROBE_DEFER);
++}
++
++static struct rstctl *of_rstctl_get(struct device *dev, const char *id)
++{
++	struct device_node *np;
++	struct rstctl *rctrl;
++	struct rstctl_dev *rdev;
++	const struct rstctl_line *line;
++	struct of_phandle_args args;
++	int index, lineidx, err;
++
++	/* sanity check */
++	if (dev == NULL || dev->of_node == NULL)
++		return NULL;
++	np = dev->of_node;
++
++	index = 0;
++	if (id != NULL) {
++		err = of_property_match_string(np, "reset-names", id);
++		if (err < 0) {
++			dev_err(dev, "of_property_match of 'reset-names' failed\n");
++			rctrl = ERR_PTR(err);
++			goto out;
++		}
++		index = err;
++	}
++
++	err = of_parse_phandle_with_args(np, "reset", "#reset-cells", index,
++			&args);
++	if (err != 0) {
++		dev_err(dev, "of_parse_phandle_with_args of 'reset' failed\n");
++		rctrl = ERR_PTR(err);
++		goto out;
++	}
++
++	mutex_lock(&rstctl_lock);
++
++	rdev = of_node_to_rstctl_dev(args.np);
++	if (IS_ERR_OR_NULL(rdev)) {
++		dev_err(dev, "rstctl node not found\n");
++		rctrl = rdev == NULL ? ERR_PTR(-EINVAL) : (void *)rdev;
++		goto out_unlock;
++	}
++
++	if (args.args_count != 2) {
++		dev_err(dev, "#reset-cells not %d\n", 2);
++		rctrl = ERR_PTR(-EINVAL);
++		goto out_unlock;
++	}
++
++	lineidx = args.args[0];
++	/* make sure it's one we handle */
++	if (lineidx < 0 || lineidx >= rdev->rdesc->nlines) {
++		dev_err(dev, "Illegal reset #%d\n", lineidx);
++		rctrl = ERR_PTR(-EINVAL);
++		goto out_unlock;
++	}
++	line = &rdev->rdesc->lines[lineidx];
++
++	rctrl = rstctl_request_line(rdev, dev, line);
++	if (IS_ERR(rctrl)) {
++		dev_err(dev, "rstctl_request_line failed\n");
++		goto out_unlock;
++	}
++
++	/* put the label in */
++	err = of_property_read_string_index(np, "reset-names", index,
++				&rctrl->label);
++	if (err != 0)
++		rctrl->label = np->name;
++
++out_unlock:
++	mutex_unlock(&rstctl_lock);
++out:
++	return rctrl;
++}
++#else
++static inline struct rstctl *of_rstctl_get(struct device *dev,
++		const char *id)
++{
++	return NULL;
++}
++#endif
++
++struct rstctl *rstctl_get(struct device *dev, const char *id)
++{
++	struct rstctl_dev *rdev;
++	struct rstctl *rctrl;
++	const struct rstctl_line *line;
++	int i;
++
++	/* DT case goes through here */
++	if (IS_ENABLED(CONFIG_OF) && dev && dev->of_node)
++		return of_rstctl_get(dev, id);
++
++	/* non DT case does not support id == NULL */
++	if (id == NULL) {
++		dev_err(dev, "No reset ID supplied\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	/*
++	 * We search all the rstctl devices for a match
++	 * with the given label id
++	 */
++	mutex_lock(&rstctl_lock);
++	list_for_each_entry(rdev, &rstctl_dev_list, node) {
++		for (i = 0; i < rdev->rdesc->nlines; i++) {
++			line = &rdev->rdesc->lines[i];
++			if (strcmp(line->name, id) == 0) {
++				rctrl = rstctl_request_line(rdev, dev, line);
++				goto out;
++			}
++		}
++	}
++	rctrl = ERR_PTR(-ENODEV);
++out:
++	mutex_unlock(&rstctl_lock);
++
++	return rctrl;
++}
++EXPORT_SYMBOL(rstctl_get);
++
++void rstctl_put(struct rstctl *rctrl)
++{
++	struct rstctl_dev *rdev;
++	struct rstctl *rctrlt;
++
++	/* safe */
++	if (IS_ERR_OR_NULL(rctrl))
++		return;
++	rdev = rctrl->rdev;
++
++	mutex_lock(&rstctl_lock);
++	list_for_each_entry(rctrlt, &rdev->handles, node) {
++		if (rctrlt == rctrl)
++			goto found;
++	}
++	goto out;
++found:
++	/* release the reset */
++	reset_release(rctrl->rdev, rctrl->line);
++	list_del(&rctrl->node);
++	kfree(rctrl);
++out:
++	mutex_unlock(&rstctl_lock);
++}
++EXPORT_SYMBOL(rstctl_put);
++
++struct rstctl_dev *rstctl_register(struct device *dev,
++		const struct rstctl_desc *rdesc)
++{
++	struct rstctl_dev *rdev;
++
++	/* sanity check */
++	if (dev == NULL || rdesc == NULL || rdesc->ops == NULL)
++		return ERR_PTR(-EINVAL);
++
++	/* those three must be defined */
++	if (rdesc->ops->assert == NULL || rdesc->ops->deassert == NULL
++			|| rdesc->ops->pulse == NULL)
++		return ERR_PTR(-EINVAL);
++
++	rdev = kzalloc(sizeof(*rdev), GFP_KERNEL);
++	if (rdev == NULL) {
++		dev_err(dev, "failed to alloc struct rstctl_dev\n");
++		return ERR_PTR(-ENOMEM);
++	}
++
++	INIT_LIST_HEAD(&rdev->node);
++	rdev->dev = dev;
++	rdev->rdesc = rdesc;
++	INIT_LIST_HEAD(&rdev->handles);
++
++	mutex_lock(&rstctl_lock);
++	list_add_tail(&rdev->node, &rstctl_dev_list);
++	mutex_unlock(&rstctl_lock);
++
++	return rdev;
++}
++
++int rstctl_unregister(struct rstctl_dev *rdev)
++{
++	int err;
++
++	/* guard */
++	if (IS_ERR_OR_NULL(rdev))
++		return -EINVAL;
++
++	err = 0;
++
++	mutex_lock(&rstctl_lock);
++
++	if (!list_empty(&rdev->handles)) {
++		dev_err(rdev->dev, "%s still busy\n", rdev->rdesc->name);
++		err = -EBUSY;
++		goto out;
++	}
++	list_del(&rdev->node);
++
++	/* free */
++	kfree(rdev);
++
++	mutex_unlock(&rstctl_lock);
++
++out:
++	mutex_unlock(&rstctl_lock);
++	return err;
++}
++
++static int __init rstctl_init(void)
++{
++	pr_info("initialized rstctl subsystem\n");
++	return 0;
++}
++
++/* init early, resetting is needed pretty early */
++core_initcall(rstctl_init);
+diff --git a/drivers/rstctl/rstctl-gpio.c b/drivers/rstctl/rstctl-gpio.c
+new file mode 100644
+index 0000000..4f3b5c1
+--- /dev/null
++++ b/drivers/rstctl/rstctl-gpio.c
+@@ -0,0 +1,259 @@
++/*
++ * Test driver for rstctl
++ *
++ * Author: Pantelis Antoniou <panto@antoniou-consulting.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/rstctl.h>
++#include <linux/of.h>
++#include <linux/of_gpio.h>
++#include <linux/slab.h>
++#include <linux/err.h>
++#include <linux/delay.h>
++#include <linux/pinctrl/consumer.h>
++
++struct gpio_data {
++	int gpio;
++	enum of_gpio_flags flags;
++	int hold_ns;
++};
++
++struct gpio_rctrl_info {
++	struct rstctl_dev *rdev;
++	struct rstctl_desc desc;
++	struct gpio_data *gpio_data;
++};
++
++int gpio_rctrl_request(struct rstctl_dev *rdev,
++		const struct rstctl_line *line)
++{
++	struct device *dev = rdev->dev;
++	const struct gpio_data *gd = line->data;
++	unsigned long flags;
++	int err;
++
++	dev_info(dev, "%s %s\n", __func__, line->name);
++
++	flags = GPIOF_DIR_OUT;
++	if (gd->flags & OF_GPIO_ACTIVE_LOW)
++		flags |= GPIOF_INIT_LOW;
++	else
++		flags |= GPIOF_INIT_HIGH;
++	/* XXX more flags ? */
++
++	err = devm_gpio_request_one(dev, gd->gpio, flags, line->name);
++	if (err != 0) {
++		dev_err(dev, "Failed to gpio_request\n");
++		return err;
++	}
++	return 0;
++}
++
++int gpio_rctrl_release(struct rstctl_dev *rdev,
++		const struct rstctl_line *line)
++{
++	struct device *dev = rdev->dev;
++	const struct gpio_data *gd = line->data;
++
++	dev_info(dev, "%s %s\n", __func__, line->name);
++	devm_gpio_free(dev, gd->gpio);
++	return 0;
++}
++
++int gpio_rctrl_assert(struct rstctl_dev *rdev,
++		const struct rstctl_line *line)
++{
++	struct device *dev = rdev->dev;
++	const struct gpio_data *gd = line->data;
++
++	dev_info(dev, "%s %s\n", __func__, line->name);
++	gpio_set_value(gd->gpio,
++			(gd->flags & OF_GPIO_ACTIVE_LOW) ? 0 : 1);
++	return 0;
++}
++
++int gpio_rctrl_deassert(struct rstctl_dev *rdev,
++		const struct rstctl_line *line)
++{
++	struct device *dev = rdev->dev;
++	const struct gpio_data *gd = line->data;
++
++	dev_info(dev, "%s %s\n", __func__, line->name);
++	gpio_set_value(gd->gpio,
++			(gd->flags & OF_GPIO_ACTIVE_LOW) ? 1 : 0);
++	return 0;
++}
++
++int gpio_rctrl_pulse(struct rstctl_dev *rdev,
++		const struct rstctl_line *line,
++		unsigned long hold_ns)
++{
++	struct device *dev = rdev->dev;
++	const struct gpio_data *gd = line->data;
++
++	dev_info(dev, "%s %s\n", __func__, line->name);
++
++	gpio_set_value(gd->gpio,
++			(gd->flags & OF_GPIO_ACTIVE_LOW) ? 0 : 1);
++
++	if (hold_ns == 0)
++		hold_ns = gd->hold_ns;
++
++	if (hold_ns < 1000000)
++		ndelay(hold_ns);
++	else
++		mdelay(hold_ns / 1000000);
++
++	gpio_set_value(gd->gpio,
++			(gd->flags & OF_GPIO_ACTIVE_LOW) ? 1 : 0);
++	return 0;
++}
++
++static const struct rstctl_ops gpio_rctrl_ops = {
++	.request	= gpio_rctrl_request,
++	.release	= gpio_rctrl_release,
++	.assert		= gpio_rctrl_assert,
++	.deassert	= gpio_rctrl_deassert,
++	.pulse		= gpio_rctrl_pulse,
++};
++
++static int gpio_rctrl_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct device_node *np = dev->of_node;
++	struct gpio_rctrl_info *info;
++	struct rstctl_line *line, *lines;
++	struct gpio_data *gdata, *gd;
++	struct pinctrl *pinctrl;
++	int count, i, err;
++
++	/* we require OF */
++	if (!IS_ENABLED(CONFIG_OF) || np == NULL) {
++		dev_err(dev, "GPIO rstctl requires DT\n");
++		return -ENODEV;
++	}
++
++	pinctrl = devm_pinctrl_get_select_default(dev);
++	if (IS_ERR(pinctrl))
++		dev_warn(dev, "Unable to select pin group\n");
++
++	count = of_gpio_named_count(np, "gpios");
++	if (count == 0) {
++		dev_err(dev, "GPIO rstctl found no GPIO resources\n");
++		return -ENODEV;
++	}
++
++	if (of_property_count_strings(np, "gpio-names") != count) {
++		dev_err(dev, "GPIO rstctl gpio-names property is invalid\n");
++		return -ENODEV;
++	}
++
++	info = devm_kzalloc(dev, sizeof(*info), GFP_KERNEL);
++	if (!info) {
++		dev_err(dev, "GPIO rstctl kzalloc failed\n");
++		return -ENOMEM;
++	}
++	lines = devm_kzalloc(dev, sizeof(*line) * count, GFP_KERNEL);
++	if (!lines) {
++		dev_err(dev, "GPIO rstctl kzalloc failed\n");
++		return -ENOMEM;
++	}
++	gdata = devm_kzalloc(dev, sizeof(*gdata) * count, GFP_KERNEL);
++	if (!gdata) {
++		dev_err(dev, "GPIO rstctl kzalloc failed\n");
++		return -ENOMEM;
++	}
++
++	info->desc.name = "gpio";
++	info->desc.ops = &gpio_rctrl_ops;
++	info->desc.nlines = count;
++	info->desc.lines = lines;
++	info->gpio_data = gdata;
++
++	for (i = 0; i < count; i++) {
++		line = &lines[i];
++		err = of_property_read_string_index(np, "gpio-names",
++				i, &line->name);
++		if (err != 0) {
++			dev_err(dev, "Failed to get string property\n");
++			return err;
++		}
++
++		gd = &gdata[i];
++		err = of_get_named_gpio_flags(np, "gpios", i, &gd->flags);
++		if (IS_ERR_VALUE(err)) {
++			dev_err(dev, "Failed to get named gpio\n");
++			return err;
++		}
++		gd->gpio = err;
++		gd->hold_ns = 1000;	/* 1us reset */
++		line->data = gd;
++	}
++
++	info->rdev = rstctl_register(&pdev->dev, &info->desc);
++	if (IS_ERR(info->rdev)) {
++		dev_err(&pdev->dev, "failed to register\n");
++		return PTR_ERR(info->rdev);
++	}
++	platform_set_drvdata(pdev, info);
++
++	dev_info(&pdev->dev, "loaded OK\n");
++
++	return 0;
++}
++
++static int gpio_rctrl_remove(struct platform_device *pdev)
++{
++	struct gpio_rctrl_info *info = platform_get_drvdata(pdev);
++	int err;
++
++	err = rstctl_unregister(info->rdev);
++	if (err == 0)
++		dev_info(&pdev->dev, "removed OK\n");
++
++	return err;
++}
++
++#ifdef CONFIG_OF
++static struct of_device_id gpio_rctrl_of_match[] = {
++	{ .compatible = "gpio-rctrl" },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, gpio_rctrl_of_match);
++#endif
++
++static struct platform_driver gpio_rctrl_driver = {
++	.driver = {
++		.name = "gpio-rctrl",
++		.of_match_table = of_match_ptr(gpio_rctrl_of_match),
++	},
++	.probe = gpio_rctrl_probe,
++	.remove = gpio_rctrl_remove,
++};
++
++/*
++ * The reset control driver must be done very early.
++ */
++static int __init gpio_rctrl_drv_reg(void)
++{
++	return platform_driver_register(&gpio_rctrl_driver);
++}
++postcore_initcall(gpio_rctrl_drv_reg);
++
++MODULE_AUTHOR("Pantelis Antoniou <panto@antoniou-consulting.com>");
++MODULE_DESCRIPTION("rstctl GPIO driver");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/rstctl/rstctl-test-consumer.c b/drivers/rstctl/rstctl-test-consumer.c
+new file mode 100644
+index 0000000..dd26ca1
+--- /dev/null
++++ b/drivers/rstctl/rstctl-test-consumer.c
+@@ -0,0 +1,82 @@
++/*
++ * Test consumer driver for rstctl
++ *
++ * Author: Pantelis Antoniou <panto@antoniou-consulting.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/rstctl.h>
++#include <linux/of.h>
++#include <linux/slab.h>
++#include <linux/err.h>
++
++static int test_consumer_rctrl_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct rstctl *rctrl;
++
++	dev_info(dev, "Trying to get NULL (OF case only)\n");
++	rctrl = rstctl_get(dev, NULL);
++	if (IS_ERR(rctrl)) {
++		dev_info(dev, "Failed to get it\n");
++		return PTR_ERR(rctrl);
++	}
++
++	dev_info(dev, "Got it (%s:#%d name %s) label:%s\n",
++			rctrl->rdev->rdesc->name,
++			rctrl->line - rctrl->rdev->rdesc->lines,
++			rctrl->line->name, rctrl->label);
++
++	/* for now always assert */
++	rstctl_assert(rctrl);
++	platform_set_drvdata(pdev, rctrl);
++
++	dev_info(&pdev->dev, "loaded OK\n");
++	return 0;
++}
++
++static int test_consumer_rctrl_remove(struct platform_device *pdev)
++{
++	struct rstctl *rctrl = platform_get_drvdata(pdev);
++
++	rstctl_deassert(rctrl);
++	rstctl_put(rctrl);
++
++	dev_info(&pdev->dev, "unloaded OK\n");
++	return 0;
++}
++
++#ifdef CONFIG_OF
++static struct of_device_id test_consumer_rctrl_of_match[] = {
++	{ .compatible = "test-consumer-rctrl" },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, test_consumer_rctrl_of_match);
++#endif
++
++static struct platform_driver test_consumer_rctrl_driver = {
++	.driver = {
++		.name = "test-consumer-rctrl",
++		.of_match_table = of_match_ptr(test_consumer_rctrl_of_match),
++	},
++	.probe = test_consumer_rctrl_probe,
++	.remove = test_consumer_rctrl_remove,
++};
++module_platform_driver(test_consumer_rctrl_driver);
++
++MODULE_AUTHOR("Pantelis Antoniou <panto@antoniou-consulting.com>");
++MODULE_DESCRIPTION("rstctl test consumer driver");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/rstctl/rstctl-test.c b/drivers/rstctl/rstctl-test.c
+new file mode 100644
+index 0000000..144c048
+--- /dev/null
++++ b/drivers/rstctl/rstctl-test.c
+@@ -0,0 +1,138 @@
++/*
++ * Test driver for rstctl
++ *
++ * Author: Pantelis Antoniou <panto@antoniou-consulting.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/rstctl.h>
++#include <linux/of.h>
++#include <linux/slab.h>
++#include <linux/err.h>
++
++struct test_rctrl_info {
++	struct rstctl_dev *rdev;
++};
++
++int test_rctrl_request(struct rstctl_dev *rdev,
++		const struct rstctl_line *line)
++{
++	dev_info(rdev->dev, "%s %s\n", __func__, line->name);
++	return 0;
++}
++
++int test_rctrl_release(struct rstctl_dev *rdev,
++		const struct rstctl_line *line)
++{
++	dev_info(rdev->dev, "%s %s\n", __func__, line->name);
++	return 0;
++}
++
++int test_rctrl_assert(struct rstctl_dev *rdev,
++		const struct rstctl_line *line)
++{
++	dev_info(rdev->dev, "%s %s\n", __func__, line->name);
++	return 0;
++}
++
++int test_rctrl_deassert(struct rstctl_dev *rdev,
++		const struct rstctl_line *line)
++{
++	dev_info(rdev->dev, "%s %s\n", __func__, line->name);
++	return 0;
++}
++
++int test_rctrl_pulse(struct rstctl_dev *rdev,
++		const struct rstctl_line *line,
++		unsigned long hold_ns)
++{
++	dev_info(rdev->dev, "%s %s\n", __func__, line->name);
++	return 0;
++}
++
++static const struct rstctl_ops test_rctrl_ops = {
++	.request	= test_rctrl_request,
++	.release	= test_rctrl_release,
++	.assert		= test_rctrl_assert,
++	.deassert	= test_rctrl_deassert,
++	.pulse		= test_rctrl_pulse,
++};
++
++static const struct rstctl_line test_rctrl_lines[] = {
++	{ .name = "RESET1", },
++	{ .name = "RESET2", },
++};
++
++static const struct rstctl_desc test_rctrl_desc = {
++	.name	= "test",
++	.ops	= &test_rctrl_ops,
++	.nlines	= ARRAY_SIZE(test_rctrl_lines),
++	.lines	= test_rctrl_lines,
++};
++
++static int test_rctrl_probe(struct platform_device *pdev)
++{
++	struct test_rctrl_info *info;
++
++	info = devm_kzalloc(&pdev->dev, sizeof(*info), GFP_KERNEL);
++	if (!info)
++		return -ENOMEM;
++
++	info->rdev = rstctl_register(&pdev->dev, &test_rctrl_desc);
++	if (IS_ERR(info->rdev)) {
++		dev_err(&pdev->dev, "failed to register\n");
++		return PTR_ERR(info->rdev);
++	}
++	platform_set_drvdata(pdev, info);
++
++	dev_info(&pdev->dev, "loaded OK\n");
++
++	return 0;
++}
++
++static int test_rctrl_remove(struct platform_device *pdev)
++{
++	struct test_rctrl_info *info = platform_get_drvdata(pdev);
++	int err;
++
++	err = rstctl_unregister(info->rdev);
++	if (err == 0)
++		dev_info(&pdev->dev, "removed OK\n");
++
++	return err;
++}
++
++#ifdef CONFIG_OF
++static struct of_device_id test_rctrl_of_match[] = {
++	{ .compatible = "test-rctrl" },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, test_rctrl_of_match);
++#endif
++
++static struct platform_driver test_rctrl_driver = {
++	.driver = {
++		.name = "test-rctrl",
++		.of_match_table = of_match_ptr(test_rctrl_of_match),
++	},
++	.probe = test_rctrl_probe,
++	.remove = test_rctrl_remove,
++};
++module_platform_driver(test_rctrl_driver);
++
++MODULE_AUTHOR("Pantelis Antoniou <panto@antoniou-consulting.com>");
++MODULE_DESCRIPTION("rstctl test driver");
++MODULE_LICENSE("GPL");
+diff --git a/include/linux/rstctl.h b/include/linux/rstctl.h
+new file mode 100644
+index 0000000..b2e674a
+--- /dev/null
++++ b/include/linux/rstctl.h
+@@ -0,0 +1,71 @@
++/*
++ * Reset control subsystem
++ *
++ * Copyright (C) 2013 Pantelis Antoniou <panto@antoniou-consulting.com>
++ *
++ * License terms: GNU General Public License (GPL) version 2
++ */
++#ifndef __LINUX_RSTCTL_H
++#define __LINUX_RSTCTL_H
++
++#include <linux/of.h>
++#include <linux/list.h>
++
++struct rstctl_dev;
++
++struct rstctl_line {
++	const char *name;
++	void *data;
++};
++
++struct rstctl_ops {
++	int (*request)(struct rstctl_dev *rdev,
++			const struct rstctl_line *line);
++	int (*release)(struct rstctl_dev *rdev,
++			const struct rstctl_line *line);
++	int (*assert)(struct rstctl_dev *rdev,
++			const struct rstctl_line *line);
++	int (*deassert)(struct rstctl_dev *rdev,
++			const struct rstctl_line *line);
++	int (*pulse)(struct rstctl_dev *rdev,
++			const struct rstctl_line *line,
++			unsigned long hold_ns);
++	struct module *owner;
++};
++
++struct rstctl_desc {
++	const char *name;
++	const struct rstctl_ops *ops;
++	int nlines;
++	const struct rstctl_line *lines;
++};
++
++struct rstctl_dev {
++	struct list_head node;
++	struct device *dev;
++	const struct rstctl_desc *rdesc;
++	struct list_head handles;
++};
++
++struct rstctl {
++	struct list_head node;		/* linked all in */
++	struct device *dev; 		/* the user */
++	struct rstctl_dev *rdev;	/* the controler */
++	const struct rstctl_line *line;
++	const char *label;
++};
++
++/* driver API */
++struct rstctl_dev *rstctl_register(struct device *dev,
++		const struct rstctl_desc *rdesc);
++int rstctl_unregister(struct rstctl_dev *rdev);
++
++/* consumer API */
++struct rstctl *rstctl_get(struct device *dev, const char *id);
++void rstctl_put(struct rstctl *rctrl);
++
++int rstctl_assert(struct rstctl *rctrl);
++int rstctl_deassert(struct rstctl *rctrl);
++int rstctl_pulse(struct rstctl *rctrl, unsigned long hold_ns);
++
++#endif
+-- 
+1.8.1.4
+

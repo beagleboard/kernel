@@ -1,0 +1,47 @@
+From 0ec16de4418ddea8554591a34a90daa417ec0b1a Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 18 Apr 2013 12:34:45 +0300
+Subject: [PATCH 1/9] boneblack: Remove default pinmuxing for MMC1
+
+The MMC driver already has the right pinmuxing options, remove it
+from here.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/boot/dts/am335x-boneblack.dts | 16 ----------------
+ 1 file changed, 16 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 1abf267..a35a106 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -11,21 +11,6 @@
+ 
+ /include/ "am335x-bone-common.dtsi"
+ 
+-&userled_pins {
+-	pinctrl-single,pins = <
+-		0x54 0x7	/* gpmc_a5.gpio1_21, OUTPUT | MODE7 */
+-		0x58 0x17	/* gpmc_a6.gpio1_22, OUTPUT_PULLUP | MODE7 */
+-		0x5c 0x7	/* gpmc_a7.gpio1_23, OUTPUT | MODE7 */
+-		0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
+-		0x00c 0x31 /* P8_6 gpmc_ad3.mmc1_dat1 PIN_INPUT_PULLUP | OMAP_MUX_MODE1 */
+-		0x008 0x31 /* P8_5 gpmc_ad2.mmc1_dat2 PIN_INPUT_PULLUP | OMAP_MUX_MODE1 */
+-		0x004 0x31 /* P8_24 gpmc_ad1.mmc1_dat1 PIN_INPUT_PULLUP | OMAP_MUX_MODE1 */
+-		0x000 0x31 /* P8_25 gpmc_ad0.mmc1_dat0 PIN_INPUT_PULLUP | OMAP_MUX_MODE1 */
+-		0x084 0x32 /* P8_20 gpmc_csn2.mmc1_cmd OMAP_MUX_MODE2 | AM33XX_PIN_INPUT_PULLUP} */
+-		0x080 0x32 /* P8_21 gpmc_csn1.immc1_clk OMAP_MUX_MODE2 | AM33XX_PIN_INPUT_PULLUP} */
+-	>;
+-};
+-
+ &ldo3_reg {
+ 	regulator-min-microvolt = <1800000>;
+ 	regulator-max-microvolt = <1800000>;
+@@ -58,4 +43,3 @@
+ 		300000   969000
+ 	>;
+ };
+-
+-- 
+1.8.1.4
+

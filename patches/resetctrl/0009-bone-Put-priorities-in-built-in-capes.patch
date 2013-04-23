@@ -1,0 +1,118 @@
+From 54a956c2cb82fa090f02708a1fc18ac319fe13f0 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Mon, 22 Apr 2013 17:08:09 +0300
+Subject: [PATCH 9/9] bone: Put priorities in built-in capes
+
+Place priority entries to built-in cape entries. That way we can
+make sure that the add one capes take precedence
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 44 ++++++++++++++++++-------------
+ arch/arm/boot/dts/am33xx.dtsi             |  5 ++++
+ 2 files changed, 31 insertions(+), 18 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 985f2de..a081f9d 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -25,7 +25,7 @@
+ 
+ 	am33xx_pinmux: pinmux@44e10800 {
+ 		pinctrl-names = "default";
+-		pinctrl-0 = <&userleds_pins>;
++		pinctrl-0 = <&userled_pins>;
+ 
+ 		userled_pins: pinmux_userled_pins {
+ 			pinctrl-single,pins = <
+@@ -51,11 +51,6 @@
+ 
+ 	ocp: ocp {
+ 
+-		/* reset controller comes first (even if disabled) */
+-		rstctl: rstctl@0 {
+-			status = "disabled";
+-		};
+-
+ 		uart1: serial@44e09000 {
+ 			status = "okay";
+ 		};
+@@ -138,10 +133,10 @@
+ 			 slot@4 {
+ 			 	ti,cape-override;
+ 			 	compatible = "ti,beaglebone-black";
+-			 	board-name = "Bone-LT-eMMC-2G";
++			 	board-name = "BB-BONE-RST2";
+ 			 	version = "00A0";
+ 			 	manufacturer = "Texas Instruments";
+-			 	part-number = "BB-BONE-EMMC-2G";
++			 	part-number = "BB-BONE-RST2";
+ 			 };
+ 
+ 			/* geiger cape version A0 without an EEPROM */
+@@ -154,16 +149,6 @@
+ 				part-number = "BB-BONE-GEIGER";
+ 			};
+ 
+-			/* Beaglebone black has it soldered on */
+-			slot@6 {
+-				ti,cape-override;
+-				compatible = "ti,beaglebone-black";
+-				board-name = "Bone-Black-HDMI";
+-				version = "00A0";
+-				manufacturer = "Texas Instruments";
+-				part-number = "BB-BONELT-HDMI";
+-			};
+-
+ 			/* Nixie cape version A0 without an EEPROM */
+ 			slot@7 {
+ 				ti,cape-override;
+@@ -211,6 +196,29 @@
+ 				manufacturer = "Signal 11 Software";
+ 				part-number = "BB-BONE-MRF24J40";
+ 			};
++
++			/* Beaglebone black has it soldered on */
++			 slot@100 {
++			 	ti,cape-override;
++				priority = <1>;
++			 	compatible = "ti,beaglebone-black";
++			 	board-name = "Bone-LT-eMMC-2G";
++			 	version = "00A0";
++			 	manufacturer = "Texas Instruments";
++			 	part-number = "BB-BONE-EMMC-2G";
++			 };
++
++			/* Beaglebone black has it soldered on */
++			slot@101 {
++				ti,cape-override;
++				priority = <1>;
++				compatible = "ti,beaglebone-black";
++				board-name = "Bone-Black-HDMI";
++				version = "00A0";
++				manufacturer = "Texas Instruments";
++				part-number = "BB-BONELT-HDMI";
++			};
++
+ 		};
+ 
+ 		/* mapping between board names and dtb objects */
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 119ce8d..727f817 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -155,6 +155,11 @@
+ 			interrupts = <62>;
+ 		};
+ 
++		/* reset controller comes first (even if disabled) */
++		rstctl: rstctl@0 {
++			status = "disabled";
++		};
++
+ 		uart1: serial@44e09000 {
+ 			compatible = "ti,omap3-uart";
+ 			ti,hwmods = "uart1";
+-- 
+1.8.1.4
+
