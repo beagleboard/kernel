@@ -1,0 +1,26 @@
+From 8368d8074a95afcdfd0fe1782f889b2c62b71870 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?H=C3=A5kan=20Engblom?= <hkengblom@gmail.com>
+Date: Wed, 24 Apr 2013 10:53:46 +0200
+Subject: [PATCH 3/3] omap2 irq: fix interrupt latency
+
+The problem in my system was that interrutp latency for GPIO interrupts (GPIO used as interrupt source by use of "echo rising > /sys/class/gpio/gpioXX/edge") was _very_ long, probably until somother interrupt made GPIO interrupts "visable". The problem that the patch corrects is that also a AM33XX has four registers to check in the interrupt controller to find out which interrupt that caused the controlled to assert an interrupt.
+---
+ arch/arm/mach-omap2/irq.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index 3926f37..57d1b7d 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -233,7 +233,7 @@ static inline void omap_intc_handle_irq(void __iomem *base_addr, struct pt_regs
+ 			goto out;
+ 
+ 		irqnr = readl_relaxed(base_addr + 0xd8);
+-#ifdef CONFIG_SOC_TI81XX
++#if defined(CONFIG_SOC_TI81XX) || defined(CONFIG_SOC_AM33XX)
+ 		if (irqnr)
+ 			goto out;
+ 		irqnr = readl_relaxed(base_addr + 0xf8);
+-- 
+1.8.1.4
+
