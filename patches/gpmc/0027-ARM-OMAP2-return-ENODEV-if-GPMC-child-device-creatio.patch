@@ -1,0 +1,38 @@
+From 6c0f53c58b8d514f957b78933bad9a13f2225b67 Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Date: Thu, 14 Mar 2013 16:09:20 +0100
+Subject: [PATCH 27/37] ARM: OMAP2+: return -ENODEV if GPMC child device
+ creation fails
+
+gpmc_probe_nor_child() calls of_platform_device_create() to create a
+platform device for the NOR child. If this function fails the value
+of ret is returned to the caller but this value is zero since it was
+assigned the return of a previous call to gpmc_cs_program_settings()
+that had to succeed or otherwise gpmc_probe_nor_child() would have
+returned before.
+
+This means that if of_platform_device_create() fails, 0 will be returned
+to the caller instead of an appropriate error code.
+
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+ arch/arm/mach-omap2/gpmc.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 5482d23..e20c6d0 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1494,6 +1494,7 @@ static int gpmc_probe_nor_child(struct platform_device *pdev,
+ 		return 0;
+ 
+ 	dev_err(&pdev->dev, "failed to create gpmc child %s\n", child->name);
++	ret = -ENODEV;
+ 
+ err:
+ 	gpmc_cs_free(cs);
+-- 
+1.8.1.4
+

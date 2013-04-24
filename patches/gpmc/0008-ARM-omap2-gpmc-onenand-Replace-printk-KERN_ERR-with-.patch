@@ -1,0 +1,32 @@
+From d4015c2d10a76609925116ee92bd5a550bcb7bdd Mon Sep 17 00:00:00 2001
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Date: Tue, 12 Feb 2013 16:22:23 -0300
+Subject: [PATCH 08/37] ARM: omap2: gpmc-onenand: Replace printk KERN_ERR with
+ dev_warn()
+
+Since the condition is not an error but a warning, replace
+printk KERN_ERR with dev_warn.
+
+Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Reviewed-by: Jon Hunter <jon-hunter@ti.com>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/gpmc-onenand.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index e1daf94..428cb19 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -367,7 +367,7 @@ void __init gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
+ 
+ 	if (cpu_is_omap24xx() &&
+ 			(gpmc_onenand_data->flags & ONENAND_SYNC_READWRITE)) {
+-		printk(KERN_ERR "Onenand using only SYNC_READ on 24xx\n");
++		dev_warn(dev, "OneNAND using only SYNC_READ on 24xx\n");
+ 		gpmc_onenand_data->flags &= ~ONENAND_SYNC_READWRITE;
+ 		gpmc_onenand_data->flags |= ONENAND_SYNC_READ;
+ 	}
+-- 
+1.8.1.4
+

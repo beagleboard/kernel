@@ -1,0 +1,30 @@
+From fa1d9053daf72ea8e4b5572db0a6dc873fcc8db9 Mon Sep 17 00:00:00 2001
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Date: Fri, 25 Jan 2013 09:23:10 -0300
+Subject: [PATCH 34/37] ARM: OMAP2+: gpmc-onenand: drop __init annotation
+
+gpmc_onenand_init() will be called from another driver's probe() function,
+so drop the __init annotation, in order to prevent section mismatches.
+
+Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/gpmc-onenand.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index 1a2b84e..3df9230 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -354,7 +354,7 @@ static int gpmc_onenand_setup(void __iomem *onenand_base, int *freq_ptr)
+ 	return ret;
+ }
+ 
+-void __init gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
++void gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
+ {
+ 	int err;
+ 	struct device *dev = &gpmc_onenand_device.dev;
+-- 
+1.8.1.4
+

@@ -1,0 +1,200 @@
+From 6b58f1d6b4aef243c747d6cd392acbe2ce0abeb9 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jon-hunter@ti.com>
+Date: Wed, 20 Feb 2013 15:53:12 -0600
+Subject: [PATCH 19/37] ARM: OMAP2+: Add function to read GPMC settings from
+ device-tree
+
+Adds a function to read the various GPMC chip-select settings from
+device-tree and store them in the gpmc_settings structure.
+
+Update the GPMC device-tree binding documentation to describe these
+options.
+
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+ Documentation/devicetree/bindings/bus/ti-gpmc.txt | 107 ++++++++++++++++++++++
+ arch/arm/mach-omap2/gpmc.c                        |  40 ++++++++
+ arch/arm/mach-omap2/gpmc.h                        |   2 +
+ 3 files changed, 149 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/bus/ti-gpmc.txt
+
+diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+new file mode 100644
+index 0000000..6fde1cf
+--- /dev/null
++++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+@@ -0,0 +1,107 @@
++Device tree bindings for OMAP general purpose memory controllers (GPMC)
++
++The actual devices are instantiated from the child nodes of a GPMC node.
++
++Required properties:
++
++ - compatible:		Should be set to one of the following:
++
++			ti,omap2420-gpmc (omap2420)
++			ti,omap2430-gpmc (omap2430)
++			ti,omap3430-gpmc (omap3430 & omap3630)
++			ti,omap4430-gpmc (omap4430 & omap4460 & omap543x)
++			ti,am3352-gpmc   (am335x devices)
++
++ - reg:			A resource specifier for the register space
++			(see the example below)
++ - ti,hwmods:		Should be set to "ti,gpmc" until the DT transition is
++			completed.
++ - #address-cells:	Must be set to 2 to allow memory address translation
++ - #size-cells:		Must be set to 1 to allow CS address passing
++ - gpmc,num-cs:		The maximum number of chip-select lines that controller
++			can support.
++ - gpmc,num-waitpins:	The maximum number of wait pins that controller can
++			support.
++ - ranges:		Must be set up to reflect the memory layout with four
++			integer values for each chip-select line in use:
++
++			   <cs-number> 0 <physical address of mapping> <size>
++
++			Currently, calculated values derived from the contents
++			of the per-CS register GPMC_CONFIG7 (as set up by the
++			bootloader) are used for the physical address decoding.
++			As this will change in the future, filling correct
++			values here is a requirement.
++
++Timing properties for child nodes. All are optional and default to 0.
++
++ - gpmc,sync-clk:	Minimum clock period for synchronous mode, in picoseconds
++
++ Chip-select signal timings corresponding to GPMC_CONFIG2:
++ - gpmc,cs-on:		Assertion time
++ - gpmc,cs-rd-off:	Read deassertion time
++ - gpmc,cs-wr-off:	Write deassertion time
++
++ ADV signal timings corresponding to GPMC_CONFIG3:
++ - gpmc,adv-on:		Assertion time
++ - gpmc,adv-rd-off:	Read deassertion time
++ - gpmc,adv-wr-off:	Write deassertion time
++
++ WE signals timings corresponding to GPMC_CONFIG4:
++ - gpmc,we-on:		Assertion time
++ - gpmc,we-off:		Deassertion time
++
++ OE signals timings corresponding to GPMC_CONFIG4:
++ - gpmc,oe-on:		Assertion time
++ - gpmc,oe-off:		Deassertion time
++
++ Access time and cycle time timings corresponding to GPMC_CONFIG5:
++ - gpmc,page-burst-access: Multiple access word delay
++ - gpmc,access:		Start-cycle to first data valid delay
++ - gpmc,rd-cycle:	Total read cycle time
++ - gpmc,wr-cycle:	Total write cycle time
++
++The following are only applicable to OMAP3+ and AM335x:
++ - gpmc,wr-access
++ - gpmc,wr-data-mux-bus
++
++GPMC chip-select settings properties for child nodes. All are optional.
++
++- gpmc,burst-length	Page/burst length. Must be 4, 8 or 16.
++- gpmc,burst-wrap	Enables wrap bursting
++- gpmc,burst-read	Enables read page/burst mode
++- gpmc,burst-write	Enables write page/burst mode
++- gpmc,device-nand	Device is NAND
++- gpmc,device-width	Total width of device(s) connected to a GPMC
++			chip-select in bytes. The GPMC supports 8-bit
++			and 16-bit devices and so this property must be
++			1 or 2.
++- gpmc,mux-add-data	Address and data multiplexing configuration.
++			Valid values are 1 for address-address-data
++			multiplexing mode and 2 for address-data
++			multiplexing mode.
++- gpmc,sync-read	Enables synchronous read. Defaults to asynchronous
++			is this is not set.
++- gpmc,sync-write	Enables synchronous writes. Defaults to asynchronous
++			is this is not set.
++- gpmc,wait-pin		Wait-pin used by client. Must be less than
++			"gpmc,num-waitpins".
++- gpmc,wait-on-read	Enables wait monitoring on reads.
++- gpmc,wait-on-write	Enables wait monitoring on writes.
++
++Example for an AM33xx board:
++
++	gpmc: gpmc@50000000 {
++		compatible = "ti,am3352-gpmc";
++		ti,hwmods = "gpmc";
++		reg = <0x50000000 0x2000>;
++		interrupts = <100>;
++
++		gpmc,num-cs = <8>;
++		gpmc,num-waitpins = <2>;
++		#address-cells = <2>;
++		#size-cells = <1>;
++		ranges = <0 0 0x08000000 0x10000000>; /* CS0 @addr 0x8000000, size 0x10000000 */
++
++		/* child nodes go here */
++	};
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index de8be1e..dd2c72c 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1184,6 +1184,46 @@ static struct of_device_id gpmc_dt_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(of, gpmc_dt_ids);
+ 
++/**
++ * gpmc_read_settings_dt - read gpmc settings from device-tree
++ * @np:		pointer to device-tree node for a gpmc child device
++ * @p:		pointer to gpmc settings structure
++ *
++ * Reads the GPMC settings for a GPMC child device from device-tree and
++ * stores them in the GPMC settings structure passed. The GPMC settings
++ * structure is initialised to zero by this function and so any
++ * previously stored settings will be cleared.
++ */
++void gpmc_read_settings_dt(struct device_node *np, struct gpmc_settings *p)
++{
++	memset(p, 0, sizeof(struct gpmc_settings));
++
++	p->sync_read = of_property_read_bool(np, "gpmc,sync-read");
++	p->sync_write = of_property_read_bool(np, "gpmc,sync-write");
++	p->device_nand = of_property_read_bool(np, "gpmc,device-nand");
++	of_property_read_u32(np, "gpmc,device-width", &p->device_width);
++	of_property_read_u32(np, "gpmc,mux-add-data", &p->mux_add_data);
++
++	if (!of_property_read_u32(np, "gpmc,burst-length", &p->burst_len)) {
++		p->burst_wrap = of_property_read_bool(np, "gpmc,burst-wrap");
++		p->burst_read = of_property_read_bool(np, "gpmc,burst-read");
++		p->burst_write = of_property_read_bool(np, "gpmc,burst-write");
++		if (!p->burst_read && !p->burst_write)
++			pr_warn("%s: page/burst-length set but not used!\n",
++				__func__);
++	}
++
++	if (!of_property_read_u32(np, "gpmc,wait-pin", &p->wait_pin)) {
++		p->wait_on_read = of_property_read_bool(np,
++							"gpmc,wait-on-read");
++		p->wait_on_write = of_property_read_bool(np,
++							 "gpmc,wait-on-write");
++		if (!p->wait_on_read && !p->wait_on_write)
++			pr_warn("%s: read/write wait monitoring not enabled!\n",
++				__func__);
++	}
++}
++
+ static void __maybe_unused gpmc_read_timings_dt(struct device_node *np,
+ 						struct gpmc_timings *gpmc_t)
+ {
+diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
+index 87d2a22..707f6d5 100644
+--- a/arch/arm/mach-omap2/gpmc.h
++++ b/arch/arm/mach-omap2/gpmc.h
+@@ -225,5 +225,7 @@ extern void gpmc_cs_free(int cs);
+ extern void omap3_gpmc_save_context(void);
+ extern void omap3_gpmc_restore_context(void);
+ extern int gpmc_configure(int cmd, int wval);
++extern void gpmc_read_settings_dt(struct device_node *np,
++				  struct gpmc_settings *p);
+ 
+ #endif
+-- 
+1.8.1.4
+

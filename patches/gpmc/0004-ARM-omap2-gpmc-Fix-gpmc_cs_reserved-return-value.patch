@@ -1,0 +1,41 @@
+From 1fbe27c16e0ba70fd9a4421eef7bb2872080193c Mon Sep 17 00:00:00 2001
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Date: Tue, 12 Feb 2013 16:22:19 -0300
+Subject: [PATCH 04/37] ARM: omap2: gpmc: Fix gpmc_cs_reserved() return value
+
+Currently gpmc_cs_reserved() return value is somewhat inconsistent,
+returning a negative value on an error condition, a positive value
+if the chip select is reserved and zero if it's available.
+
+Fix this by returning a boolean value as the function name suggests:
+  * true if the chip select is reserved,
+  * false if it's available
+
+Suggested-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Reviewed-by: Jon Hunter <jon-hunter@ti.com>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/gpmc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index d7add37..83430a2 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -445,10 +445,10 @@ static int gpmc_cs_set_reserved(int cs, int reserved)
+ 	return 0;
+ }
+ 
+-static int gpmc_cs_reserved(int cs)
++static bool gpmc_cs_reserved(int cs)
+ {
+ 	if (cs > GPMC_CS_NUM)
+-		return -ENODEV;
++		return true;
+ 
+ 	return gpmc_cs_map & (1 << cs);
+ }
+-- 
+1.8.1.4
+

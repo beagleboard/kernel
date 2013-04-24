@@ -1,21 +1,23 @@
-From ade64662c2603ef166ae938d82994c4ab864eab5 Mon Sep 17 00:00:00 2001
+From ed985e9244a3466c9aa6ed0901548bd4bbeee740 Mon Sep 17 00:00:00 2001
 From: Daniel Mack <zonque@gmail.com>
-Date: Fri, 14 Dec 2012 10:36:43 +0000
-Subject: [PATCH 4/5] ARM: OMAP: gpmc: enable hwecc for AM33xx SoCs
+Date: Fri, 14 Dec 2012 11:36:43 +0100
+Subject: [PATCH 32/37] ARM: OMAP: gpmc: enable hwecc for AM33xx SoCs
 
 The am33xx is capable of handling bch error correction modes, so
 enable that feature in the driver.
 
 Signed-off-by: Daniel Mack <zonque@gmail.com>
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
  arch/arm/mach-omap2/gpmc-nand.c | 9 +++++----
  1 file changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index 3059f5e..afc1e8c 100644
+index b966784..d9c2719 100644
 --- a/arch/arm/mach-omap2/gpmc-nand.c
 +++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -92,17 +92,18 @@ static int omap2_nand_gpmc_retime(
+@@ -84,17 +84,18 @@ static int omap2_nand_gpmc_retime(
  static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
  {
  	/* support only OMAP3 class */

@@ -1,0 +1,81 @@
+From 1d18787be4ee421e1b436be5596b98b86fd5c7af Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jon-hunter@ti.com>
+Date: Wed, 6 Mar 2013 12:00:10 -0600
+Subject: [PATCH 24/37] ARM: OMAP2+: Detect incorrectly aligned GPMC base
+ address
+
+Each GPMC chip-select can be configured to map 16MB, 32MB, 64MB or 128MB
+of address space. The physical base address where a chip-select starts
+is also configurable and must be aligned on a boundary that is equal to
+or greater than the size of the address space mapped bt the chip-select.
+When enabling a GPMC chip-select, ensure that the base address is aligned
+to the appropriate boundary.
+
+Reported-by: Mark Jackson <mpfj-list@mimc.co.uk>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+ arch/arm/mach-omap2/gpmc.c | 22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 80dd023..9fed934 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -401,11 +401,18 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
+ 	return 0;
+ }
+ 
+-static void gpmc_cs_enable_mem(int cs, u32 base, u32 size)
++static int gpmc_cs_enable_mem(int cs, u32 base, u32 size)
+ {
+ 	u32 l;
+ 	u32 mask;
+ 
++	/*
++	 * Ensure that base address is aligned on a
++	 * boundary equal to or greater than size.
++	 */
++	if (base & (size - 1))
++		return -EINVAL;
++
+ 	mask = (1 << GPMC_SECTION_SHIFT) - size;
+ 	l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
+ 	l &= ~0x3f;
+@@ -414,6 +421,8 @@ static void gpmc_cs_enable_mem(int cs, u32 base, u32 size)
+ 	l |= ((mask >> GPMC_CHUNK_SHIFT) & 0x0f) << 8;
+ 	l |= GPMC_CONFIG7_CSVALID;
+ 	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG7, l);
++
++	return 0;
+ }
+ 
+ static void gpmc_cs_disable_mem(int cs)
+@@ -524,7 +533,9 @@ static int gpmc_cs_remap(int cs, u32 base)
+ 	ret = gpmc_cs_insert_mem(cs, base, size);
+ 	if (ret < 0)
+ 		return ret;
+-	gpmc_cs_enable_mem(cs, base, size);
++	ret = gpmc_cs_enable_mem(cs, base, size);
++	if (ret < 0)
++		return ret;
+ 
+ 	return 0;
+ }
+@@ -554,7 +565,12 @@ int gpmc_cs_request(int cs, unsigned long size, unsigned long *base)
+ 	if (r < 0)
+ 		goto out;
+ 
+-	gpmc_cs_enable_mem(cs, res->start, resource_size(res));
++	r = gpmc_cs_enable_mem(cs, res->start, resource_size(res));
++	if (r < 0) {
++		release_resource(res);
++		goto out;
++	}
++
+ 	*base = res->start;
+ 	gpmc_cs_set_reserved(cs, 1);
+ out:
+-- 
+1.8.1.4
+

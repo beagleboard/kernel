@@ -1,0 +1,111 @@
+From 4d9c1ff3ab6cac0c3aa882c2bb1484b6958471f6 Mon Sep 17 00:00:00 2001
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Date: Tue, 12 Feb 2013 16:22:17 -0300
+Subject: [PATCH 02/37] ARM: omap2: gpmc: Mark local scoped functions static
+
+This patch marks a bunch of functions that are local
+to gpmc.c file only as static.
+
+Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Reviewed-by: Jon Hunter <jon-hunter@ti.com>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/gpmc.c | 14 +++++++-------
+ arch/arm/mach-omap2/gpmc.h |  7 -------
+ 2 files changed, 7 insertions(+), 14 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index f4219c1..20de0f6 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -174,7 +174,7 @@ void gpmc_cs_write_reg(int cs, int idx, u32 val)
+ 	__raw_writel(val, reg_addr);
+ }
+ 
+-u32 gpmc_cs_read_reg(int cs, int idx)
++static u32 gpmc_cs_read_reg(int cs, int idx)
+ {
+ 	void __iomem *reg_addr;
+ 
+@@ -183,7 +183,7 @@ u32 gpmc_cs_read_reg(int cs, int idx)
+ }
+ 
+ /* TODO: Add support for gpmc_fck to clock framework and use it */
+-unsigned long gpmc_get_fclk_period(void)
++static unsigned long gpmc_get_fclk_period(void)
+ {
+ 	unsigned long rate = clk_get_rate(gpmc_l3_clk);
+ 
+@@ -198,7 +198,7 @@ unsigned long gpmc_get_fclk_period(void)
+ 	return rate;
+ }
+ 
+-unsigned int gpmc_ns_to_ticks(unsigned int time_ns)
++static unsigned int gpmc_ns_to_ticks(unsigned int time_ns)
+ {
+ 	unsigned long tick_ps;
+ 
+@@ -208,7 +208,7 @@ unsigned int gpmc_ns_to_ticks(unsigned int time_ns)
+ 	return (time_ns * 1000 + tick_ps - 1) / tick_ps;
+ }
+ 
+-unsigned int gpmc_ps_to_ticks(unsigned int time_ps)
++static unsigned int gpmc_ps_to_ticks(unsigned int time_ps)
+ {
+ 	unsigned long tick_ps;
+ 
+@@ -223,7 +223,7 @@ unsigned int gpmc_ticks_to_ns(unsigned int ticks)
+ 	return ticks * gpmc_get_fclk_period() / 1000;
+ }
+ 
+-unsigned int gpmc_round_ns_to_ticks(unsigned int time_ns)
++static unsigned int gpmc_round_ns_to_ticks(unsigned int time_ns)
+ {
+ 	unsigned long ticks = gpmc_ns_to_ticks(time_ns);
+ 
+@@ -441,7 +441,7 @@ static int gpmc_cs_mem_enabled(int cs)
+ 	return l & GPMC_CONFIG7_CSVALID;
+ }
+ 
+-int gpmc_cs_set_reserved(int cs, int reserved)
++static int gpmc_cs_set_reserved(int cs, int reserved)
+ {
+ 	if (cs > GPMC_CS_NUM)
+ 		return -ENODEV;
+@@ -452,7 +452,7 @@ int gpmc_cs_set_reserved(int cs, int reserved)
+ 	return 0;
+ }
+ 
+-int gpmc_cs_reserved(int cs)
++static int gpmc_cs_reserved(int cs)
+ {
+ 	if (cs > GPMC_CS_NUM)
+ 		return -ENODEV;
+diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
+index f79cbde..697ff42 100644
+--- a/arch/arm/mach-omap2/gpmc.h
++++ b/arch/arm/mach-omap2/gpmc.h
+@@ -198,20 +198,13 @@ extern int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
+ extern void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
+ extern int gpmc_get_client_irq(unsigned irq_config);
+ 
+-extern unsigned int gpmc_ns_to_ticks(unsigned int time_ns);
+-extern unsigned int gpmc_ps_to_ticks(unsigned int time_ps);
+ extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
+-extern unsigned int gpmc_round_ns_to_ticks(unsigned int time_ns);
+-extern unsigned long gpmc_get_fclk_period(void);
+ 
+ extern void gpmc_cs_write_reg(int cs, int idx, u32 val);
+-extern u32 gpmc_cs_read_reg(int cs, int idx);
+ extern int gpmc_calc_divider(unsigned int sync_clk);
+ extern int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t);
+ extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
+ extern void gpmc_cs_free(int cs);
+-extern int gpmc_cs_set_reserved(int cs, int reserved);
+-extern int gpmc_cs_reserved(int cs);
+ extern void omap3_gpmc_save_context(void);
+ extern void omap3_gpmc_restore_context(void);
+ extern int gpmc_cs_configure(int cs, int cmd, int wval);
+-- 
+1.8.1.4
+

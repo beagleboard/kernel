@@ -1,0 +1,56 @@
+From 714fbd651cc5d741f9df84dca0eb4181fe710602 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jon-hunter@ti.com>
+Date: Wed, 6 Mar 2013 14:12:59 -0600
+Subject: [PATCH 25/37] ARM: OMAP2+: Remove unnecesssary GPMC definitions and
+ variable
+
+With commit 21cc2bd (ARM: OMAP2+: Remove apollon board support) the
+variable "boot_rom_space" is now not needed and the code surrounding
+this variable can be cleaned up and simplified. Remove unnecessary
+definitions and clean-up the comment as well.
+
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+ arch/arm/mach-omap2/gpmc.c | 15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 9fed934..3f87752 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -90,9 +90,7 @@
+ #define GPMC_CS_SIZE		0x30
+ #define	GPMC_BCH_SIZE		0x10
+ 
+-#define GPMC_MEM_START		0x00000000
+ #define GPMC_MEM_END		0x3FFFFFFF
+-#define BOOT_ROM_SPACE		0x100000	/* 1MB */
+ 
+ #define GPMC_CHUNK_SHIFT	24		/* 16 MB */
+ #define GPMC_SECTION_SHIFT	28		/* 128 MB */
+@@ -788,16 +786,13 @@ static void gpmc_mem_exit(void)
+ static int gpmc_mem_init(void)
+ {
+ 	int cs, rc;
+-	unsigned long boot_rom_space = 0;
+ 
+-	/* never allocate the first page, to facilitate bug detection;
+-	 * even if we didn't boot from ROM.
++	/*
++	 * The first 1MB of GPMC address space is typically mapped to
++	 * the internal ROM. Never allocate the first page, to
++	 * facilitate bug detection; even if we didn't boot from ROM.
+ 	 */
+-	boot_rom_space = BOOT_ROM_SPACE;
+-	/* In apollon the CS0 is mapped as 0x0000 0000 */
+-	if (machine_is_omap_apollon())
+-		boot_rom_space = 0;
+-	gpmc_mem_root.start = GPMC_MEM_START + boot_rom_space;
++	gpmc_mem_root.start = SZ_1M;
+ 	gpmc_mem_root.end = GPMC_MEM_END;
+ 
+ 	/* Reserve all regions that has been set up by bootloader */
+-- 
+1.8.1.4
+

@@ -1,0 +1,133 @@
+From ce746f345df5af377f472e22ea4d8eaaeb52594c Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jon-hunter@ti.com>
+Date: Thu, 21 Feb 2013 13:00:21 -0600
+Subject: [PATCH 18/37] ARM: OMAP2+: Don't configure of chip-select options in
+ gpmc_cs_configure()
+
+With the addition of the gpmc_cs_program_settings(), we no longer need
+or use gpmc_cs_configure() to configure some of the GPMC chip-select
+options. So rename the function to gpmc_configure() and remove code that
+modifies options in the CONFIG1 register.
+
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+ arch/arm/mach-omap2/gpmc-nand.c |  2 +-
+ arch/arm/mach-omap2/gpmc.c      | 49 ++++++-----------------------------------
+ arch/arm/mach-omap2/gpmc.h      |  5 +----
+ 3 files changed, 9 insertions(+), 47 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index d8ad997..7c70752 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -153,7 +153,7 @@ int __init gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ 		if (err < 0)
+ 			goto out_free_cs;
+ 
+-		err = gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_WP, 0);
++		err = gpmc_configure(GPMC_CONFIG_WP, 0);
+ 		if (err < 0)
+ 			goto out_free_cs;
+ 	}
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 0302a03..de8be1e 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -544,16 +544,14 @@ void gpmc_cs_free(int cs)
+ EXPORT_SYMBOL(gpmc_cs_free);
+ 
+ /**
+- * gpmc_cs_configure - write request to configure gpmc
+- * @cs: chip select number
++ * gpmc_configure - write request to configure gpmc
+  * @cmd: command type
+  * @wval: value to write
+  * @return status of the operation
+  */
+-int gpmc_cs_configure(int cs, int cmd, int wval)
++int gpmc_configure(int cmd, int wval)
+ {
+-	int err = 0;
+-	u32 regval = 0;
++	u32 regval;
+ 
+ 	switch (cmd) {
+ 	case GPMC_ENABLE_IRQ:
+@@ -573,47 +571,14 @@ int gpmc_cs_configure(int cs, int cmd, int wval)
+ 		gpmc_write_reg(GPMC_CONFIG, regval);
+ 		break;
+ 
+-	case GPMC_CONFIG_RDY_BSY:
+-		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+-		if (wval)
+-			regval |= WR_RD_PIN_MONITORING;
+-		else
+-			regval &= ~WR_RD_PIN_MONITORING;
+-		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
+-		break;
+-
+-	case GPMC_CONFIG_DEV_SIZE:
+-		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+-
+-		/* clear 2 target bits */
+-		regval &= ~GPMC_CONFIG1_DEVICESIZE(3);
+-
+-		/* set the proper value */
+-		regval |= GPMC_CONFIG1_DEVICESIZE(wval);
+-
+-		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
+-		break;
+-
+-	case GPMC_CONFIG_DEV_TYPE:
+-		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+-		/* clear 4 target bits */
+-		regval &= ~(GPMC_CONFIG1_DEVICETYPE(3) |
+-			    GPMC_CONFIG1_MUXTYPE(3));
+-		/* set the proper value */
+-		regval |= GPMC_CONFIG1_DEVICETYPE(wval);
+-		if (wval == GPMC_DEVICETYPE_NOR)
+-			regval |= GPMC_CONFIG1_MUXADDDATA;
+-		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
+-		break;
+-
+ 	default:
+-		printk(KERN_ERR "gpmc_configure_cs: Not supported\n");
+-		err = -EINVAL;
++		pr_err("%s: command not supported\n", __func__);
++		return -EINVAL;
+ 	}
+ 
+-	return err;
++	return 0;
+ }
+-EXPORT_SYMBOL(gpmc_cs_configure);
++EXPORT_SYMBOL(gpmc_configure);
+ 
+ void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
+ {
+diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
+index ce6ae21..87d2a22 100644
+--- a/arch/arm/mach-omap2/gpmc.h
++++ b/arch/arm/mach-omap2/gpmc.h
+@@ -59,9 +59,6 @@
+ #define GPMC_CONFIG1_DEVICETYPE(val)    ((val & 3) << 10)
+ #define GPMC_CONFIG1_DEVICETYPE_NOR     GPMC_CONFIG1_DEVICETYPE(0)
+ #define GPMC_CONFIG1_MUXTYPE(val)       ((val & 3) << 8)
+-#define GPMC_CONFIG1_MUXNONMUX          GPMC_CONFIG1_MUXTYPE(0)
+-#define GPMC_CONFIG1_MUXAAD             GPMC_CONFIG1_MUXTYPE(GPMC_MUX_AAD)
+-#define GPMC_CONFIG1_MUXADDDATA         GPMC_CONFIG1_MUXTYPE(GPMC_MUX_AD)
+ #define GPMC_CONFIG1_TIME_PARA_GRAN     (1 << 4)
+ #define GPMC_CONFIG1_FCLK_DIV(val)      (val & 3)
+ #define GPMC_CONFIG1_FCLK_DIV2          (GPMC_CONFIG1_FCLK_DIV(1))
+@@ -227,6 +224,6 @@ extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
+ extern void gpmc_cs_free(int cs);
+ extern void omap3_gpmc_save_context(void);
+ extern void omap3_gpmc_restore_context(void);
+-extern int gpmc_cs_configure(int cs, int cmd, int wval);
++extern int gpmc_configure(int cmd, int wval);
+ 
+ #endif
+-- 
+1.8.1.4
+

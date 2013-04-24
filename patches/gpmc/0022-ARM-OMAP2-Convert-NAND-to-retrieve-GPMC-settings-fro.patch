@@ -1,0 +1,47 @@
+From 8842f2219ba3caf933f8de8256b057f22761e24d Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jon-hunter@ti.com>
+Date: Mon, 25 Feb 2013 11:36:47 -0600
+Subject: [PATCH 22/37] ARM: OMAP2+: Convert NAND to retrieve GPMC settings
+ from DT
+
+When booting with device-tree, retrieve GPMC settings for NAND from
+the device-tree blob. This will allow us to remove all static settings
+stored in the gpmc-nand.c in the future once the migration to
+device-tree is complete.
+
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+ arch/arm/mach-omap2/gpmc-nand.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index 7c70752..026785c 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -136,12 +136,16 @@ int __init gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ 			return err;
+ 		}
+ 
+-		s.device_nand = true;
+-
+-		/* Enable RD PIN Monitoring Reg */
+-		if (gpmc_nand_data->dev_ready) {
+-			s.wait_on_read = true;
+-			s.wait_on_write = true;
++		if (gpmc_nand_data->of_node) {
++			gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
++		} else {
++			s.device_nand = true;
++
++			/* Enable RD PIN Monitoring Reg */
++			if (gpmc_nand_data->dev_ready) {
++				s.wait_on_read = true;
++				s.wait_on_write = true;
++			}
+ 		}
+ 
+ 		if (gpmc_nand_data->devsize == NAND_BUSWIDTH_16)
+-- 
+1.8.1.4
+

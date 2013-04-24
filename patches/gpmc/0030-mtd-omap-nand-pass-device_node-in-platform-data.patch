@@ -1,7 +1,7 @@
-From 530ef9f438ab1ceccdc6788bc1762e03c93aa468 Mon Sep 17 00:00:00 2001
+From 0088dd383e69ed6bcb0d6bc9a50a387e01909629 Mon Sep 17 00:00:00 2001
 From: Daniel Mack <zonque@gmail.com>
 Date: Fri, 14 Dec 2012 11:36:41 +0100
-Subject: [PATCH 2/5] mtd: omap-nand: pass device_node in platform data
+Subject: [PATCH 30/37] mtd: omap-nand: pass device_node in platform data
 
 Pass an optional device_node pointer in the platform data, which in turn
 will be put into a mtd_part_parser_data. This way, code that sets up the
@@ -11,6 +11,9 @@ can be parsed.
 For non-DT boards, this change has no effect.
 
 Signed-off-by: Daniel Mack <zonque@gmail.com>
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
+Acked-by: Artem Bityutskiy <dedekind1@gmail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
  drivers/mtd/nand/omap2.c                     | 4 +++-
  include/linux/platform_data/mtd-nand-omap2.h | 4 +++-

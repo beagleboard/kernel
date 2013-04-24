@@ -1,0 +1,126 @@
+From db35adbc5f3f31585e6c101c9262938e8759016d Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jon-hunter@ti.com>
+Date: Mon, 25 Feb 2013 11:37:58 -0600
+Subject: [PATCH 23/37] ARM: OMAP2+: Convert ONENAND to retrieve GPMC settings
+ from DT
+
+When booting with device-tree, retrieve GPMC settings for ONENAND from
+the device-tree blob. This will allow us to remove all static settings
+stored in the gpmc-nand.c in the future once the migration to
+device-tree is complete.
+
+The user must now specify the ONENAND device width in the device-tree
+binding so that the GPMC can be programmed correctly. Therefore, update
+the device-tree binding documentation for ONENAND devices connected to
+the GPMC to reflect this.
+
+Please note that this does not include GPMC timings for ONENAND. The
+timings are being calculated at runtime.
+
+There is some legacy code that only enables read wait monitoring for
+non-OMAP3 devices. There are no known OMAP3 device issues that prevent
+this feature being enabled and so when booting with device-tree use the
+wait-monitoring settings described in the device-tree blob.
+
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+ .../devicetree/bindings/mtd/gpmc-onenand.txt       | 46 ++++++++++++++++++++++
+ arch/arm/mach-omap2/gpmc-onenand.c                 | 21 +++++++---
+ 2 files changed, 61 insertions(+), 6 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
+
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
+new file mode 100644
+index 0000000..b752942
+--- /dev/null
++++ b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
+@@ -0,0 +1,46 @@
++Device tree bindings for GPMC connected OneNANDs
++
++GPMC connected OneNAND (found on OMAP boards) are represented as child nodes of
++the GPMC controller with a name of "onenand".
++
++All timing relevant properties as well as generic gpmc child properties are
++explained in a separate documents - please refer to
++Documentation/devicetree/bindings/bus/ti-gpmc.txt
++
++Required properties:
++
++ - reg:			The CS line the peripheral is connected to
++ - gpmc,device-width	Width of the ONENAND device connected to the GPMC
++			in bytes. Must be 1 or 2.
++
++Optional properties:
++
++ - dma-channel:		DMA Channel index
++
++For inline partiton table parsing (optional):
++
++ - #address-cells: should be set to 1
++ - #size-cells: should be set to 1
++
++Example for an OMAP3430 board:
++
++	gpmc: gpmc@6e000000 {
++		compatible = "ti,omap3430-gpmc";
++		ti,hwmods = "gpmc";
++		reg = <0x6e000000 0x1000000>;
++		interrupts = <20>;
++		gpmc,num-cs = <8>;
++		gpmc,num-waitpins = <4>;
++		#address-cells = <2>;
++		#size-cells = <1>;
++
++		onenand@0 {
++			reg = <0 0 0>; /* CS0, offset 0 */
++			gpmc,device-width = <2>;
++
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			/* partitions go here */
++		};
++	};
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index dae6e05..1a2b84e 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -272,6 +272,10 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
+ 	struct gpmc_timings t;
+ 	int ret;
+ 
++	if (gpmc_onenand_data->of_node)
++		gpmc_read_settings_dt(gpmc_onenand_data->of_node,
++				      &onenand_async);
++
+ 	omap2_onenand_set_async_mode(onenand_base);
+ 
+ 	omap2_onenand_calc_async_timings(&t);
+@@ -300,12 +304,17 @@ static int omap2_onenand_setup_sync(void __iomem *onenand_base, int *freq_ptr)
+ 		set_onenand_cfg(onenand_base);
+ 	}
+ 
+-	/*
+-	 * FIXME: Appears to be legacy code from initial ONENAND commit.
+-	 * Unclear what boards this is for and if this can be removed.
+-	 */
+-	if (!cpu_is_omap34xx())
+-		onenand_sync.wait_on_read = true;
++	if (gpmc_onenand_data->of_node) {
++		gpmc_read_settings_dt(gpmc_onenand_data->of_node,
++				      &onenand_sync);
++	} else {
++		/*
++		 * FIXME: Appears to be legacy code from initial ONENAND commit.
++		 * Unclear what boards this is for and if this can be removed.
++		 */
++		if (!cpu_is_omap34xx())
++			onenand_sync.wait_on_read = true;
++	}
+ 
+ 	omap2_onenand_calc_sync_timings(&t, gpmc_onenand_data->flags, freq);
+ 
+-- 
+1.8.1.4
+

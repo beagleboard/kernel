@@ -1,0 +1,58 @@
+From 6fa2419a3c6eb2ed7092f2932df50f2561d46c9b Mon Sep 17 00:00:00 2001
+From: Mark Jackson <mpfj-list@mimc.co.uk>
+Date: Tue, 5 Mar 2013 10:13:40 +0000
+Subject: [PATCH 01/37] ARM: OMAP: Clear GPMC bits when applying new setting.
+
+When setting the GPMC device type, make sure any previous
+bits are cleared down, before applying the new setting.
+
+For OMAP4+ devices MUXADDDATA is a 2-bit field (bits 9:8)
+where as for OMAP2/3 devices it was only a one bit field
+(bit 9). For OMAP2/3 devices bit 8 is reserved and the
+OMAP documentation says to write a 0 to this bit. So
+clearing bit 8 on OMAP2/3 devices should not be a problem.
+Hence update the code to handle both bits 8 and 9 for all
+devices.
+
+Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
+[jon-hunter@ti.com: updated changelog]
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/gpmc.c | 4 ++++
+ arch/arm/mach-omap2/gpmc.h | 5 ++++-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 8033cb7..f4219c1 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -606,6 +606,10 @@ int gpmc_cs_configure(int cs, int cmd, int wval)
+ 
+ 	case GPMC_CONFIG_DEV_TYPE:
+ 		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
++		/* clear 4 target bits */
++		regval &= ~(GPMC_CONFIG1_DEVICETYPE(3) |
++			    GPMC_CONFIG1_MUXTYPE(3));
++		/* set the proper value */
+ 		regval |= GPMC_CONFIG1_DEVICETYPE(wval);
+ 		if (wval == GPMC_DEVICETYPE_NOR)
+ 			regval |= GPMC_CONFIG1_MUXADDDATA;
+diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
+index fe0a844..f79cbde 100644
+--- a/arch/arm/mach-omap2/gpmc.h
++++ b/arch/arm/mach-omap2/gpmc.h
+@@ -58,7 +58,10 @@
+ #define GPMC_CONFIG1_DEVICESIZE_16      GPMC_CONFIG1_DEVICESIZE(1)
+ #define GPMC_CONFIG1_DEVICETYPE(val)    ((val & 3) << 10)
+ #define GPMC_CONFIG1_DEVICETYPE_NOR     GPMC_CONFIG1_DEVICETYPE(0)
+-#define GPMC_CONFIG1_MUXADDDATA         (1 << 9)
++#define GPMC_CONFIG1_MUXTYPE(val)       ((val & 3) << 8)
++#define GPMC_CONFIG1_MUXNONMUX          GPMC_CONFIG1_MUXTYPE(0)
++#define GPMC_CONFIG1_MUXAAD             GPMC_CONFIG1_MUXTYPE(1)
++#define GPMC_CONFIG1_MUXADDDATA         GPMC_CONFIG1_MUXTYPE(2)
+ #define GPMC_CONFIG1_TIME_PARA_GRAN     (1 << 4)
+ #define GPMC_CONFIG1_FCLK_DIV(val)      (val & 3)
+ #define GPMC_CONFIG1_FCLK_DIV2          (GPMC_CONFIG1_FCLK_DIV(1))
+-- 
+1.8.1.4
+

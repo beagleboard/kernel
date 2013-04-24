@@ -1,0 +1,33 @@
+From 17403e55bb9f8e5e66ae6e8c8708674c30cd239a Mon Sep 17 00:00:00 2001
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Date: Tue, 12 Feb 2013 16:22:20 -0300
+Subject: [PATCH 05/37] ARM: omap2: gpmc-nand: Print something useful on CS
+ request failure
+
+If CS request fails the current error message is rather unhelpful.
+Fix it by printing the failing chip select and the error code.
+
+Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Reviewed-by: Jon Hunter <jon-hunter@ti.com>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/gpmc-nand.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index db969a5..6027dd0 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -121,7 +121,8 @@ int __init gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ 	err = gpmc_cs_request(gpmc_nand_data->cs, NAND_IO_SIZE,
+ 				(unsigned long *)&gpmc_nand_resource[0].start);
+ 	if (err < 0) {
+-		dev_err(dev, "Cannot request GPMC CS\n");
++		dev_err(dev, "Cannot request GPMC CS %d, error %d\n",
++			gpmc_nand_data->cs, err);
+ 		return err;
+ 	}
+ 
+-- 
+1.8.1.4
+

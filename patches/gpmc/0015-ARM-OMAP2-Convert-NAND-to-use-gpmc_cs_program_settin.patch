@@ -1,0 +1,89 @@
+From 0c81dc6b59b5c3c472d9588684113e55099c5368 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jon-hunter@ti.com>
+Date: Thu, 21 Feb 2013 15:43:08 -0600
+Subject: [PATCH 15/37] ARM: OMAP2+: Convert NAND to use
+ gpmc_cs_program_settings()
+
+Convert the OMAP2+ NAND code to use the gpmc_cs_program_settings()
+function for configuring the various GPMC options instead of directly
+programming the CONFIG1 register.
+
+This moves the configuration of some GPMC options outside the
+nand_gpmc_retime() because these options should only need to be set once
+regardless of whether the gpmc timing is changing dynamically at runtime.
+The programming of where the wait-pin is also moved slightly, but this
+will not have any impact to existing devices as no boards are currently
+setting the dev_ready variable.
+
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+ arch/arm/mach-omap2/gpmc-nand.c | 35 +++++++++++++++++++++++------------
+ 1 file changed, 23 insertions(+), 12 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index 6027dd0..d8ad997 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -74,14 +74,6 @@ static int omap2_nand_gpmc_retime(
+ 	t.cs_wr_off = gpmc_t->cs_wr_off;
+ 	t.wr_cycle = gpmc_t->wr_cycle;
+ 
+-	/* Configure GPMC */
+-	if (gpmc_nand_data->devsize == NAND_BUSWIDTH_16)
+-		gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_DEV_SIZE, 1);
+-	else
+-		gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_DEV_SIZE, 0);
+-	gpmc_cs_configure(gpmc_nand_data->cs,
+-			GPMC_CONFIG_DEV_TYPE, GPMC_DEVICETYPE_NAND);
+-	gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_WP, 0);
+ 	err = gpmc_cs_set_timings(gpmc_nand_data->cs, &t);
+ 	if (err)
+ 		return err;
+@@ -114,8 +106,11 @@ int __init gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ 			  struct gpmc_timings *gpmc_t)
+ {
+ 	int err	= 0;
++	struct gpmc_settings s;
+ 	struct device *dev = &gpmc_nand_device.dev;
+ 
++	memset(&s, 0, sizeof(struct gpmc_settings));
++
+ 	gpmc_nand_device.dev.platform_data = gpmc_nand_data;
+ 
+ 	err = gpmc_cs_request(gpmc_nand_data->cs, NAND_IO_SIZE,
+@@ -140,11 +135,27 @@ int __init gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ 			dev_err(dev, "Unable to set gpmc timings: %d\n", err);
+ 			return err;
+ 		}
+-	}
+ 
+-	/* Enable RD PIN Monitoring Reg */
+-	if (gpmc_nand_data->dev_ready) {
+-		gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_RDY_BSY, 1);
++		s.device_nand = true;
++
++		/* Enable RD PIN Monitoring Reg */
++		if (gpmc_nand_data->dev_ready) {
++			s.wait_on_read = true;
++			s.wait_on_write = true;
++		}
++
++		if (gpmc_nand_data->devsize == NAND_BUSWIDTH_16)
++			s.device_width = GPMC_DEVWIDTH_16BIT;
++		else
++			s.device_width = GPMC_DEVWIDTH_8BIT;
++
++		err = gpmc_cs_program_settings(gpmc_nand_data->cs, &s);
++		if (err < 0)
++			goto out_free_cs;
++
++		err = gpmc_cs_configure(gpmc_nand_data->cs, GPMC_CONFIG_WP, 0);
++		if (err < 0)
++			goto out_free_cs;
+ 	}
+ 
+ 	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
+-- 
+1.8.1.4
+
