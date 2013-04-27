@@ -17,12 +17,12 @@ RECIPENAME="linux-mainline_3.8.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.8.8"
+TAG="v3.8.10"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git"
 EXTERNAL_BRANCH="linux-3.8.y"
-EXTERNAL_SHA="2396403a0402caf7b9decbc5d206fa63ba62b6b7"
+EXTERNAL_SHA="bb8dd670874b0a460a472582ac9e91acf0293d11"
 
 PATCHSET="dma rtc pinctrl cpufreq adc i2c da8xx-fb pwm mmc crypto 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net drm not-capebus pru usb PG2 reboot iio w1 gpmc mxt ssd130x build hdmi resetctrl"
 
@@ -86,7 +86,7 @@ for patchset in ${PATCHSET} ; do
 	mkdir -p ${EXPORTPATH}/$patchset
 	for patch in $(ls -1 ${PATCHPATH}/$patchset/*.patch | sort -n) ; do
 		$ECHO -n "$patch: "
-		git am -3 -q $patch && echo applied || exit 1
+		git am -q $patch && echo applied || exit 1
 	done
 
 	NEWCOMMIT="$(git log --oneline --no-abbrev -1 | awk '{print $1}')"
