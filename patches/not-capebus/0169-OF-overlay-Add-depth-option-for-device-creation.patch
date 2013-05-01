@@ -1,0 +1,87 @@
+From b34f64530b15c3d33e24fe7aaa9aaf00e3cf1644 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 1 May 2013 16:43:05 +0300
+Subject: [PATCH 169/173] OF-overlay: Add depth option for device creation.
+
+Add a depth option for device creation. Normally all nodes that
+represent devices are created, but some devices like gpmc for instance,
+perform their own device creation.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/of/overlay.c | 25 +++++++++++++++++++++++++
+ include/linux/of.h   |  1 +
+ 2 files changed, 26 insertions(+)
+
+diff --git a/drivers/of/overlay.c b/drivers/of/overlay.c
+index 29078c7..f09fe56 100644
+--- a/drivers/of/overlay.c
++++ b/drivers/of/overlay.c
+@@ -271,6 +271,8 @@ static int of_overlay_notify(struct notifier_block *nb,
+ 	struct of_prop_reconfig *pr;
+ 	struct platform_device *pdev;
+ 	struct i2c_client *client;
++	struct device_node *tnode;
++	int depth;
+ 	int prevstate, state;
+ 	int err = 0;
+ 
+@@ -359,6 +361,21 @@ static int of_overlay_notify(struct notifier_block *nb,
+ 		return notifier_from_errno(0);
+ 	}
+ 
++	/* find depth */
++	depth = 1;
++	tnode = node;
++	while (tnode != NULL && tnode != ovinfo->target) {
++		tnode = tnode->parent;
++		depth++;
++	}
++
++	/* respect overlay's maximum depth */
++	if (ovinfo->device_depth != 0 && depth > ovinfo->device_depth) {
++		pr_debug("OF: skipping device creation for node=%s depth=%d\n",
++				node->name, depth);
++		goto out;
++	}
++
+ 	if (state == 0) {
+ 		pdev = of_find_device_by_node(node);
+ 		client = of_find_i2c_device_by_node(node);
+@@ -366,6 +383,7 @@ static int of_overlay_notify(struct notifier_block *nb,
+ 
+ 	of_overlay_device_entry_entry_add(ovinfo, node, pdev, client,
+ 			prevstate, state);
++out:
+ 
+ 	return notifier_from_errno(err);
+ }
+@@ -749,6 +767,13 @@ int of_fill_overlay_info(struct device_node *info_node,
+ 	if (ovinfo->overlay == NULL)
+ 		goto err_fail;
+ 
++	ret = of_property_read_u32(info_node, "depth", &val);
++	if (ret == 0)
++		ovinfo->device_depth = val;
++	else
++		ovinfo->device_depth = 0;
++
++
+ 	return 0;
+ 
+ err_fail:
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 73cfde5..6c72d94 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -735,6 +735,7 @@ struct of_overlay_info {
+ 	struct list_head le_list;
+ 	struct list_head de_list;
+ 	struct notifier_block notifier;
++	int device_depth;
+ };
+ 
+ #ifdef CONFIG_OF_OVERLAY
+-- 
+1.8.1.4
+

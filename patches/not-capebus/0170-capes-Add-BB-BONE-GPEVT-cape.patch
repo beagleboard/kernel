@@ -1,0 +1,76 @@
+From a780359ba684ae2c7be0c24b1569d0a14da946ac Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 1 May 2013 16:52:20 +0300
+Subject: [PATCH 170/173] capes: Add BB-BONE-GPEVT cape
+
+Add a virtual cape for the GPEVT dma test driver.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ firmware/Makefile                     |  1 +
+ firmware/capes/BB-BONE-GPEVT-00A0.dts | 41 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 42 insertions(+)
+ create mode 100644 firmware/capes/BB-BONE-GPEVT-00A0.dts
+
+diff --git a/firmware/Makefile b/firmware/Makefile
+index 1c8c844..d122aa1 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -154,6 +154,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	BB-BONE-LCD7-01-00A3.dtbo \
+ 	BB-BONE-LCD7-01-00A4.dtbo \
+ 	BB-BONE-eMMC1-01-00A0.dtbo \
++	BB-BONE-GPEVT-00A0.dtbo \
+ 	cape-bone-iio-00A0.dtbo \
+ 	cape-bone-pinmux-test-00A0.dtbo \
+ 	cape-bone-exptest-00A0.dtbo \
+diff --git a/firmware/capes/BB-BONE-GPEVT-00A0.dts b/firmware/capes/BB-BONE-GPEVT-00A0.dts
+new file mode 100644
+index 0000000..80f9016
+--- /dev/null
++++ b/firmware/capes/BB-BONE-GPEVT-00A0.dts
+@@ -0,0 +1,41 @@
++/*
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone";
++
++	/* identification */
++	part-number = "BB-BONE-GPEVT";
++	version = "00A0";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			gpevt_pins_s0: pinmux_gpevt_pins_s0 {
++				pinctrl-single,pins = <
++					0x090 0x37	/* gpmc_advn_ale.gpio2_2, INPUT_PULLUP | MODE7 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&ocp>;
++		__overlay__ {
++			gpevt {
++				compatible = "gpevt";
++				pinctrl-names = "default";
++				pinctrl-0 = <&gpevt_pins_s0>;
++
++				dmas = <&edma 12>;
++				dma-names = "gpioevt";
++				gpio-evt = <&gpio3 2 0>;
++			};
++		};
++	};
++};
+-- 
+1.8.1.4
+

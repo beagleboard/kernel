@@ -1,0 +1,46 @@
+From 831dd7d6c5b87b36efc68dbdf0c7977b3c605a63 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 1 May 2013 16:45:10 +0300
+Subject: [PATCH 35/35] gpevnt: Remove __devinit
+
+__devinit is gone now; remove it.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/misc/gpevt.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/misc/gpevt.c b/drivers/misc/gpevt.c
+index 4fe256c..aabcd48c 100644
+--- a/drivers/misc/gpevt.c
++++ b/drivers/misc/gpevt.c
+@@ -41,7 +41,7 @@ static void gpevt_callback(void *data)
+ 		dev_info(dev, "*** DMA transfer failed ***\n");
+ }
+ 
+-static int __devinit gpevt_probe (struct platform_device *pdev)
++static int gpevt_probe (struct platform_device *pdev)
+ {
+ 	struct device_node *np = pdev->dev.of_node;
+ 	struct pinctrl *pinctrl;
+@@ -132,7 +132,7 @@ static int __devinit gpevt_probe (struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static int __devexit gpevt_remove(struct platform_device *pdev)
++static int gpevt_remove(struct platform_device *pdev)
+ {
+ 	return 0;
+ }
+@@ -149,7 +149,7 @@ static struct platform_driver gpevt_driver = {
+ 		.of_match_table = gpevt_dt_ids,
+ 	},
+ 	.probe  = gpevt_probe,
+-	.remove = __devexit_p(gpevt_remove),
++	.remove = gpevt_remove,
+ };
+ 
+ static int __init gpevt_init(void)
+-- 
+1.8.1.4
+

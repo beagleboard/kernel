@@ -1,0 +1,51 @@
+From fe4640f81e2798865ddcf02586a748ca2f28c6ff Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 1 May 2013 18:19:26 +0300
+Subject: [PATCH 171/173] clock: Export __clock_set_parent
+
+We need this exported for the manipulation of the clkout2 external
+clock. As part of clock rate selection, the parent must change.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/clk/clk.c            | 3 ++-
+ include/linux/clk-provider.h | 2 ++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index 251e45d..8cb8b08 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -1077,7 +1077,7 @@ out:
+ 	__clk_recalc_rates(clk, POST_RATE_CHANGE);
+ }
+ 
+-static int __clk_set_parent(struct clk *clk, struct clk *parent)
++int __clk_set_parent(struct clk *clk, struct clk *parent)
+ {
+ 	struct clk *old_parent;
+ 	unsigned long flags;
+@@ -1136,6 +1136,7 @@ static int __clk_set_parent(struct clk *clk, struct clk *parent)
+ out:
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(__clk_set_parent);
+ 
+ /**
+  * clk_set_parent - switch the parent of a mux clk
+diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+index 1c09481..8c6dadc 100644
+--- a/include/linux/clk-provider.h
++++ b/include/linux/clk-provider.h
+@@ -369,6 +369,8 @@ void __clk_unprepare(struct clk *clk);
+ void __clk_reparent(struct clk *clk, struct clk *new_parent);
+ unsigned long __clk_round_rate(struct clk *clk, unsigned long rate);
+ 
++int __clk_set_parent(struct clk *clk, struct clk *parent);
++
+ struct of_device_id;
+ 
+ typedef void (*of_clk_init_cb_t)(struct device_node *);
+-- 
+1.8.1.4
+

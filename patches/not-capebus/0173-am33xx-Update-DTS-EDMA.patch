@@ -1,0 +1,52 @@
+From 5c082f67be7c43805046d80ef529ed09f455d06f Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 1 May 2013 18:36:32 +0300
+Subject: [PATCH 173/173] am33xx: Update DTS EDMA
+
+Update EDMA bindings to work the same way as on the 3.2 kernel
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 3 ++-
+ arch/arm/boot/dts/am33xx.dtsi             | 4 ++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 1c91d7d..92e3fb6 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -447,7 +447,8 @@
+ };
+ 
+ &edma {
+-	ti,edma-xbar-event-map = <32 12>;
++	ti,edma-xbar-event-map = <32 12>,	/* gpevt2 -> 12 */
++				 <30 20>;	/* xdma_event_intr2 -> 20 */
+ };
+ 
+ &sham {
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 797f421..9bf0d2c 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -95,7 +95,7 @@
+ 			compatible = "ti,edma3";
+ 			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
+ 			reg =	<0x49000000 0x10000>,
+-				<0x44e10f90 0x10>;
++				<0x44e10f90 0x40>;
+ 			interrupt-parent = <&intc>;
+ 			interrupts = <12 13 14>;
+ 			#dma-cells = <1>;
+@@ -108,7 +108,7 @@
+ 			ti,edma-queue-priority-map = <0 0
+ 						      1 1
+ 						      2 2>;
+-			ti,edma-default-queue = <0>;
++			ti,edma-default-queue = <1>;
+ 		};
+ 
+ 		gpio1: gpio@44e07000 {
+-- 
+1.8.1.4
+

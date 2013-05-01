@@ -1,0 +1,39 @@
+From 6bd23f99869df974460176c81c5a067dc959967d Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 1 May 2013 18:38:25 +0300
+Subject: [PATCH 39/39] gpmc: Add DT node for gpmc on am33xx
+
+Add am33xx gpmc device.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 6c24c9b..76fa03b 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -399,6 +399,19 @@
+ 
+ 		};
+ 
++		gpmc: gpmc@50000000 {
++			compatible = "ti,am3352-gpmc";
++			ti,hwmods = "gpmc";
++			reg = <0x50000000 0x01000000>;
++			interrupts = <100>;
++			gpmc,num-cs = <7>;
++			gpmc,num-waitpins = <2>;
++			#address-cells = <2>;
++			#size-cells = <1>;
++
++			status = "disabled";
++		};
++
+ 		nop-phy@0 {
+ 			compatible = "nop-xceiv-usb";
+ 		};
+-- 
+1.8.1.4
+
