@@ -1,0 +1,244 @@
+From 92ff3444d61651534736c2da7da5719eb8abe587 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 3 May 2013 16:11:53 +0300
+Subject: [PATCH 4/4] tilcdc: Prune modes that can't support audio.
+
+If the connector supports audio, prune all the display modes that
+don't support it.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c   | 73 ++++++++++++++++++++--------------
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c    |  9 ++++-
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h    |  3 +-
+ drivers/gpu/drm/tilcdc/tilcdc_panel.c  |  2 +-
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c  |  6 ++-
+ drivers/gpu/drm/tilcdc/tilcdc_tfp410.c |  2 +-
+ 6 files changed, 59 insertions(+), 36 deletions(-)
+
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+index 98c3c3c..38b2d20 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+@@ -241,7 +241,7 @@ static int tilcdc_crtc_mode_set(struct drm_crtc *crtc,
+ 	uint32_t reg, hbp, hfp, hsw, vbp, vfp, vsw;
+ 	int ret;
+ 
+-	ret = tilcdc_crtc_mode_valid(crtc, mode, 0);
++	ret = tilcdc_crtc_mode_valid(crtc, mode, 0, 0, NULL);
+ 	if (WARN_ON(ret))
+ 		return ret;
+ 
+@@ -426,11 +426,12 @@ int tilcdc_crtc_max_width(struct drm_crtc *crtc)
+ }
+ 
+ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+-		int rb_check)
++		int rb_check, int audio, struct edid *edid)
+ {
+   	struct tilcdc_drm_private *priv = crtc->dev->dev_private;
+ 	unsigned int bandwidth;
+ 	uint32_t hbp, hfp, hsw, vbp, vfp, vsw;
++	int has_audio, is_cea_mode;
+ 
+ 	int rb;
+ 
+@@ -446,10 +447,22 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+ 	if (mode->vdisplay > 2048)
+ 		return MODE_VIRTUAL_Y;
+ 
++	/* set if there's audio capability */
++	has_audio = edid && drm_detect_monitor_audio(edid);
+ 
+-	DBG("Processing mode %dx%d@%d with pixel clock %d", 
+-	       mode->hdisplay, mode->vdisplay, drm_mode_vrefresh(mode), mode->clock);
++	/* set if it's a cea mode */
++	is_cea_mode = drm_match_cea_mode(mode) > 0;
+ 
++	DBG("mode %dx%d@%d pixel-clock %d audio %s cea %s",
++		mode->hdisplay, mode->vdisplay, drm_mode_vrefresh(mode),
++		mode->clock,
++		has_audio ? "true" : "false",
++		is_cea_mode ? "true" : "false");
++
++	if (audio && has_audio && !is_cea_mode) {
++		DBG("Pruning mode : Does not support audio\n");
++		return MODE_BAD;
++	}
+ 
+ 	hbp = mode->htotal - mode->hsync_end;
+ 	hfp = mode->hsync_start - mode->hdisplay;
+@@ -458,56 +471,56 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+ 	vfp = mode->vsync_start - mode->vdisplay;
+ 	vsw = mode->vsync_end - mode->vsync_start;
+ 
+-	if(hbp & ~0x3ff) {
+-	  DBG("Pruning mode : Horizontal Back Porch out of range\n");
+-	  return MODE_BAD;
++	if (hbp & ~0x3ff) {
++		DBG("Pruning mode : Horizontal Back Porch out of range\n");
++		return MODE_BAD;
+ 	}
+ 
+-	if(hfp & ~0x3ff) {
+-	  DBG("Pruning mode : Horizontal Front Porch out of range\n");
+-	  return MODE_BAD;
++	if (hfp & ~0x3ff) {
++		DBG("Pruning mode : Horizontal Front Porch out of range\n");
++		return MODE_BAD;
+ 	}
+ 
+-	if(hsw & ~0x3ff) {
+-	  DBG("Pruning mode : Horizontal Sync Width out of range\n");
+-	  return MODE_BAD;
++	if (hsw & ~0x3ff) {
++		DBG("Pruning mode : Horizontal Sync Width out of range\n");
++		return MODE_BAD;
+ 	}
+ 
+-	if(vbp & ~0xff) {
+-	  DBG("Pruning mode : Vertical Back Porch out of range\n");
+-	  return MODE_BAD;
++	if (vbp & ~0xff) {
++		DBG("Pruning mode : Vertical Back Porch out of range\n");
++		return MODE_BAD;
+ 	}
+ 
+-	if(vfp & ~0xff) {
+-	  DBG("Pruning mode : Vertical Front Porch out of range\n");
+-	  return MODE_BAD;
++	if (vfp & ~0xff) {
++		DBG("Pruning mode : Vertical Front Porch out of range\n");
++		return MODE_BAD;
+ 	}
+ 
+-	if(vsw & ~0x3f) {
+-	  DBG("Pruning mode : Vertical Sync Width out of range\n");
+-	  return MODE_BAD;
++	if (vsw & ~0x3f) {
++		DBG("Pruning mode : Vertical Sync Width out of range\n");
++		return MODE_BAD;
+ 	}
+ 
+ 	/* some devices have a maximum allowed pixel clock */
+ 	/* configured from the DT */
+-	if(mode->clock > priv->max_pixelclock) {
+-	  DBG("Pruning mode, pixel clock too high");
+-	  return MODE_BAD;
++	if (mode->clock > priv->max_pixelclock) {
++		DBG("Pruning mode, pixel clock too high");
++		return MODE_BAD;
+ 	}
+ 
+ 	/* some devices further limit the max horizontal resolution */
+ 	/* configured from the DT */
+-	if(mode->hdisplay > priv->max_width) {
+-	  DBG("Pruning mode, above max width of %d supported by device", priv->max_width);
+-	  return MODE_BAD;
++	if (mode->hdisplay > priv->max_width) {
++		DBG("Pruning mode, above max width of %d supported by device", priv->max_width);
++		return MODE_BAD;
+ 	}
+ 
+ 	/* filter out modes that would require too much memory bandwidth: */
+ 	/* configured from the DT */
+ 	bandwidth = mode->hdisplay * mode->vdisplay * drm_mode_vrefresh(mode);
+ 	if (bandwidth > priv->max_bandwidth) {
+-	  DBG("Pruning mode, exceeds defined bandwidth limit");
+-	  return MODE_BAD;
++		DBG("Pruning mode, exceeds defined bandwidth limit");
++		return MODE_BAD;
+ 	}
+ 
+ 	if (rb_check) {
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+index fca4f16..31e039e 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+@@ -250,12 +250,17 @@ static int tilcdc_load(struct drm_device *dev, unsigned long flags)
+ 
+ 	DBG("Maximum Pixel Clock Value %dKHz", priv->max_pixelclock);
+ 
+-
+ 	priv->allow_non_rblank = of_property_read_bool(node,
+ 			"ti,allow-non-reduced-blanking-modes");
+ 
++	DBG("Allowing Standard Monitor Modes: %s",
++			priv->allow_non_rblank ? "true" : "false");
++
++	priv->allow_non_audio = of_property_read_bool(node,
++			"ti,allow-non-audio-modes");
+ 
+-	DBG("Allowing Standard Monitor Modes: %s", priv->allow_non_rblank?"true":"false");
++	DBG("Allowing Non Audio Monitor Modes: %s",
++			priv->allow_non_audio ? "true" : "false");
+ 
+ 	pm_runtime_enable(dev->dev);
+ 
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.h b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+index 48d744c..db3c468 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.h
++++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+@@ -58,6 +58,7 @@ struct tilcdc_drm_private {
+ 	uint32_t max_width;
+ 
+ 	int allow_non_rblank;	/* ATM we don't support non reduced blank modes */
++	int allow_non_audio;	/* allow modes that don't have working audio */
+ 
+ 	/* register contents saved across suspend/resume: */
+ 	u32 saved_register[12];
+@@ -160,7 +161,7 @@ void tilcdc_crtc_update_clk(struct drm_crtc *crtc);
+ void tilcdc_crtc_set_panel_info(struct drm_crtc *crtc,
+ 		const struct tilcdc_panel_info *info);
+ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+-		int rb_check);
++		int rb_check, int audio, struct edid *edid);
+ int tilcdc_crtc_max_width(struct drm_crtc *crtc);
+ 
+ #endif /* __TILCDC_DRV_H__ */
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_panel.c b/drivers/gpu/drm/tilcdc/tilcdc_panel.c
+index 361c569..90bc0e3 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_panel.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_panel.c
+@@ -199,7 +199,7 @@ static int panel_connector_mode_valid(struct drm_connector *connector,
+ {
+ 	struct tilcdc_drm_private *priv = connector->dev->dev_private;
+ 	/* our only constraints are what the crtc can generate: */
+-	return tilcdc_crtc_mode_valid(priv->crtc, mode, 0);
++	return tilcdc_crtc_mode_valid(priv->crtc, mode, 0, 0, NULL);
+ }
+ 
+ static struct drm_encoder *panel_connector_best_encoder(
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+index 17252ef..e454874 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+@@ -170,7 +170,11 @@ static int slave_connector_mode_valid(struct drm_connector *connector,
+ 	int ret;
+ 
+ 	ret = tilcdc_crtc_mode_valid(priv->crtc, mode,
+-			priv->allow_non_rblank ? 0 : 1);
++			priv->allow_non_rblank ? 0 : 1,
++			priv->allow_non_audio ? 0 : 1,
++			connector->edid_blob_ptr ?
++				(struct edid *)connector->edid_blob_ptr->data :
++				NULL);
+ 	if (ret != MODE_OK)
+ 		return ret;
+ 
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c b/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+index 9d9796f..c71f955 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+@@ -216,7 +216,7 @@ static int tfp410_connector_mode_valid(struct drm_connector *connector,
+ 	struct tilcdc_drm_private *priv = connector->dev->dev_private;
+ 	/* our only constraints are what the crtc can generate: */
+ 	return tilcdc_crtc_mode_valid(priv->crtc, mode,
+-			priv->allow_non_rblank ? 0 : 1);
++			priv->allow_non_rblank ? 0 : 1, 0, NULL);
+ }
+ 
+ static struct drm_encoder *tfp410_connector_best_encoder(
+-- 
+1.8.1.4
+

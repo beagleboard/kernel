@@ -1,0 +1,57 @@
+From 29c600dd26f294beea2983a5abbf4c0ecccb8e9a Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 2 May 2013 14:16:40 +0300
+Subject: [PATCH 6/6] cssp_camera: Use flip if available.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/media/platform/soc_camera/cssp_camera.c | 19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/cssp_camera.c b/drivers/media/platform/soc_camera/cssp_camera.c
+index 0a0cd8f..788acc4 100644
+--- a/drivers/media/platform/soc_camera/cssp_camera.c
++++ b/drivers/media/platform/soc_camera/cssp_camera.c
+@@ -16,7 +16,7 @@
+  *
+  */
+ 
+-
++#define DEBUG
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/gpio.h>
+@@ -1345,15 +1345,12 @@ of_get_cssp_platform_data(struct platform_device *pdev)
+ 
+ 		/* set orientation flag */
+ 
+-		/*
+-		 * But the driver in mainline doesn't support flip
+-		 * Commented out for now...
+-		 *
+-		 *	if (ret)
+-		 *		val |= MT9T112_FLAG_VFLIP;
+-		 *	else
+-		 *		val &= ~MT9T112_FLAG_VFLIP
+-		 */
++#ifdef MT9T112_FLAG_VFLIP
++	 	if (ret)
++	 		val |= MT9T112_FLAG_VFLIP;
++	 	else
++	 		val &= ~MT9T112_FLAG_VFLIP;
++#endif
+ 	}
+ 	pstore->mt9t111_cam_info.flags = val;
+ 
+@@ -1376,7 +1373,7 @@ err_fail:
+ 	if (adap != NULL)
+ 		put_device(&adap->dev);
+ 
+-	/* free memory (even if it will be automatically freed it's good practice) */
++	/* free memory (even if automatically freed it's good practice) */
+ 	if (pstore != NULL)
+ 		devm_kfree(dev, pstore);
+ 
+-- 
+1.8.1.4
+
