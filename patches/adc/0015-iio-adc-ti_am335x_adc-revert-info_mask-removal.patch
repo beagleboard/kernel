@@ -1,0 +1,29 @@
+From c3f1c56f8acaa096a2e5f712ff993747c80188c6 Mon Sep 17 00:00:00 2001
+From: Jan Luebbe <jlu@pengutronix.de>
+Date: Mon, 6 May 2013 12:48:58 +0200
+Subject: [PATCH 15/16] iio: adc: ti_am335x_adc: revert info_mask removal
+
+Commit "ti_tscadc: Update with IIO map interface & deal with partial activation"
+by Pantelis Antoniou <panto@antoniou-consulting.com> removed this line.
+Without it, the in_voltage?_raw entries are missing from sysfs.
+
+Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+---
+ drivers/iio/adc/ti_am335x_adc.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index ee20c0c..620cc0c 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -107,6 +107,7 @@ static int tiadc_channel_init(struct iio_dev *indio_dev,
+ 		chan->type = IIO_VOLTAGE;
+ 		chan->indexed = 1;
+ 		chan->channel = i;
++		chan->info_mask = IIO_CHAN_INFO_RAW_SEPARATE_BIT;
+ 		chan->datasheet_name = s;
+ 		chan->scan_type.sign = 'u';
+ 		chan->scan_type.realbits = 12;
+-- 
+1.8.1.4
+

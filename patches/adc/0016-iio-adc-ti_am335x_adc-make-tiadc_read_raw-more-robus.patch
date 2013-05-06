@@ -1,0 +1,93 @@
+From 44f464973dfd72dbf2aa0172bff46ebd2b555236 Mon Sep 17 00:00:00 2001
+From: Jan Luebbe <jlu@pengutronix.de>
+Date: Mon, 6 May 2013 12:48:59 +0200
+Subject: [PATCH 16/16] iio: adc: ti_am335x_adc: make tiadc_read_raw() more
+ robust
+
+Check that mask is actually IIO_CHAN_INFO_RAW.
+
+Also handle the case where not enough data is in the fifo.
+
+Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+---
+ drivers/iio/adc/ti_am335x_adc.c | 48 ++++++++++++++++++++++++-----------------
+ 1 file changed, 28 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index 620cc0c..4b764a9 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -157,26 +157,34 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+ 	int i;
+ 	unsigned int fifo1count, readx1;
+ 
+-	/*
+-	 * When the sub-system is first enabled,
+-	 * the sequencer will always start with the
+-	 * lowest step (1) and continue until step (16).
+-	 * For ex: If we have enabled 4 ADC channels and
+-	 * currently use only 1 out of them, the
+-	 * sequencer still configures all the 4 steps,
+-	 * leading to 3 unwanted data.
+-	 * Hence we need to flush out this data.
+-	 */
++	switch (mask) {
++	case IIO_CHAN_INFO_RAW:
++		/*
++		 * When the sub-system is first enabled,
++		 * the sequencer will always start with the
++		 * lowest step (1) and continue until step (16).
++		 * For ex: If we have enabled 4 ADC channels and
++		 * currently use only 1 out of them, the
++		 * sequencer still configures all the 4 steps,
++		 * leading to 3 unwanted data.
++		 * Hence we need to flush out this data.
++		 */
++
++		fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
++		for (i = 0; i < fifo1count; i++) {
++			readx1 = tiadc_readl(adc_dev, REG_FIFO1);
++			if (i == chan->channel)
++				*val = readx1 & 0xfff;
++		}
++		tiadc_writel(adc_dev, REG_SE, STPENB_STEPENB);
+ 
+-	fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
+-	for (i = 0; i < fifo1count; i++) {
+-		readx1 = tiadc_readl(adc_dev, REG_FIFO1);
+-		if (i == chan->channel)
+-			*val = readx1 & 0xfff;
+-	}
+-	tiadc_writel(adc_dev, REG_SE, STPENB_STEPENB);
++		if (fifo1count <= chan->channel)
++			return -EINVAL;
+ 
+-	return IIO_VAL_INT;
++		return IIO_VAL_INT;
++	default:
++		return -EINVAL;
++	}
+ }
+ 
+ static const struct iio_info tiadc_info = {
+@@ -213,7 +221,7 @@ static int tiadc_probe(struct platform_device *pdev)
+ 	else {
+ 		node = of_get_child_by_name(node, "adc");
+ 		if (!node)
+-			return  -EINVAL;
++			return	-EINVAL;
+ 		else {
+ 			err = of_property_read_u32(node,
+ 					"ti,adc-channels", &val32);
+@@ -310,7 +318,7 @@ static const struct dev_pm_ops tiadc_pm_ops = {
+ 
+ static struct platform_driver tiadc_driver = {
+ 	.driver = {
+-		.name   = "tiadc",
++		.name	= "tiadc",
+ 		.owner	= THIS_MODULE,
+ 		.pm	= TIADC_PM_OPS,
+ 	},
+-- 
+1.8.1.4
+
