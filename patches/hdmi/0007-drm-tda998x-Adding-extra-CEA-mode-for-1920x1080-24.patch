@@ -1,0 +1,35 @@
+From 0f991879f9b41c06cb3fb6c0277aa48584f675d4 Mon Sep 17 00:00:00 2001
+From: Darren Etheridge <detheridge@ti.com>
+Date: Wed, 8 May 2013 16:39:28 -0500
+Subject: [PATCH 7/7] drm: tda998x Adding extra CEA mode for 1920x1080@24
+
+---
+ drivers/gpu/drm/i2c/tda998x_drv.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
+index 7c64696..412ba4f 100644
+--- a/drivers/gpu/drm/i2c/tda998x_drv.c
++++ b/drivers/gpu/drm/i2c/tda998x_drv.c
+@@ -598,14 +598,14 @@ tda998x_avi_infoframe_enable(struct drm_encoder *encoder,
+ 	reg_set(encoder, REG_DIP_IF_FLAGS, DIP_IF_FLAGS_IF2);
+ }
+ 
+-/* loopup table for CEA values to VIDFORMAT values taken from NXP datasheet */
+-static char cea_to_nxp_mode[32] = {-1, 0, 1, 1, 2, 3, 4, 4, 5, 5, -1, -1, 
++/* lookup table for CEA values to VIDFORMAT values taken from NXP datasheet */
++static char cea_to_nxp_mode[34] = {-1, 0, 1, 1, 2, 3, 4, 4, 5, 5, -1, -1, 
+ 		-1, -1, -1, -1, 6, 7, 7, 8, 9, 10, 10,
+-		11, 11, -1, -1, -1, -1, -1, -1, 12};
++		11, 11, -1, -1, -1, -1, -1, -1, 12, 13};
+ 
+ static char tda998x_cea_to_vidformat(unsigned char cea_mode)
+ {
+-	if(cea_mode > 31) {
++	if(cea_mode > (sizeof(cea_to_nxp_mode) -1) ) {
+ 		return -1;
+ 	}
+ 	return cea_to_nxp_mode[cea_mode];
+-- 
+1.8.1.4
+

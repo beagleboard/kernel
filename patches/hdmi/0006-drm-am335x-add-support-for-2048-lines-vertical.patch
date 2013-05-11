@@ -1,0 +1,90 @@
+From c6677005484c822aac0b23c866074ffd251ae628 Mon Sep 17 00:00:00 2001
+From: Darren Etheridge <detheridge@ti.com>
+Date: Wed, 8 May 2013 16:15:40 -0500
+Subject: [PATCH 6/7] drm: am335x: add support for 2048 lines vertical
+
+Add extra mode that enables 1920x1080@24, this now works
+with 2048 lines vertical support and EMIF setting of
+INT_CONFIG optimized.
+---
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c | 15 ++++++++++++---
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h  | 10 +++++++---
+ drivers/gpu/drm/tilcdc/tilcdc_regs.h |  1 +
+ 3 files changed, 20 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+index 38b2d20..966b59b 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+@@ -308,6 +308,7 @@ static int tilcdc_crtc_mode_set(struct drm_crtc *crtc,
+ 	    (((hsw-1) & 0x3f) << 10);
+ 	if (priv->rev == 2)
+ 	    reg |= (((mode->hdisplay >> 4) - 1) & 0x40) >> 3;
++
+ 	tilcdc_write(dev, LCDC_RASTER_TIMING_0_REG, reg);
+ 	
+ 	/* only the vertical sync width maps 0 as 1 so only subtract 1 from vsw */
+@@ -317,6 +318,14 @@ static int tilcdc_crtc_mode_set(struct drm_crtc *crtc,
+ 	    (((vsw-1) & 0x3f) << 10);
+ 	tilcdc_write(dev, LCDC_RASTER_TIMING_1_REG, reg);
+ 
++        if (priv->rev == 2) {
++            if((mode->vdisplay - 1) & 0x400) {
++              tilcdc_set(dev, LCDC_RASTER_TIMING_2_REG, LCDC_LPP_B10);
++            } else {
++              tilcdc_clear(dev, LCDC_RASTER_TIMING_2_REG, LCDC_LPP_B10);
++            }
++        }
++
+ 	/* Configure display type: */
+ 	reg = tilcdc_read(dev, LCDC_RASTER_CTRL_REG) &
+ 	    ~(LCDC_TFT_MODE | LCDC_MONO_8BIT_MODE | LCDC_MONOCHROME_MODE |
+@@ -526,9 +535,9 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+ 	if (rb_check) {
+ 		/* we only support reduced blanking modes */
+ 		rb = (mode->htotal - mode->hdisplay == 160) &&
+-		       (mode->hsync_end - mode->hdisplay == 80) &&
+-		       (mode->hsync_end - mode->hsync_start == 32) &&
+-		       (mode->vsync_start - mode->vdisplay == 3);
++			(mode->hsync_end - mode->hdisplay == 80) &&
++			(mode->hsync_end - mode->hsync_start == 32) &&
++			(mode->vsync_start - mode->vdisplay == 3);
+ 		if (!rb) {
+ 			DBG("Pruning mode, only support reduced blanking modes");
+ 			return MODE_BAD;
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.h b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+index db3c468..6b2c7ea 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.h
++++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+@@ -37,9 +37,13 @@
+ /* Defaulting to pixel clock defined on AM335x */
+ #define TILCDC_DEFAULT_MAX_PIXELCLOCK  126000
+ /* Defaulting to max width as defined on AM335x */
+-#define TILCDC_DEFAULT_MAX_WIDTH  1366
+-/* This may need some tweaking, but want to allow at least 1280x1024@60 */
+-#define TILCDC_DEFAULT_MAX_BANDWIDTH  (1366*1024*60)
++#define TILCDC_DEFAULT_MAX_WIDTH  2048
++/* 
++ * This may need some tweaking, but want to allow at least 1280x1024@60 
++ * with optimized DDR & EMIF settings tweaked 1920x1080@24 appears to 
++ * be supportable 
++ */
++#define TILCDC_DEFAULT_MAX_BANDWIDTH  (1920*1080*25)
+ 
+ struct tilcdc_drm_private {
+ 	void __iomem *mmio;
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_regs.h b/drivers/gpu/drm/tilcdc/tilcdc_regs.h
+index 17fd1b4..1bf5e25 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_regs.h
++++ b/drivers/gpu/drm/tilcdc/tilcdc_regs.h
+@@ -80,6 +80,7 @@
+ #define LCDC_INVERT_PIXEL_CLOCK                  BIT(22)
+ #define LCDC_INVERT_HSYNC                        BIT(21)
+ #define LCDC_INVERT_VSYNC                        BIT(20)
++#define LCDC_LPP_B10                             BIT(26)
+ 
+ /* LCDC Block */
+ #define LCDC_PID_REG                             0x0
+-- 
+1.8.1.4
+
