@@ -1,5 +1,5 @@
 #!/bin/bash
-# (c) 2009 - 2012 Koen Kooi <koen@dominion.thruhere.net>
+# (c) 2009 - 2013 Koen Kooi <koen@dominion.thruhere.net>
 # (c) 2012 Robert Nelson <robertcnelson@gmail.com>
 # This script will take a set of directories with patches and make a git tree out of it
 # After all the patches are applied it will output a SRC_URI fragment you can copy/paste into a recipe
@@ -17,12 +17,12 @@ RECIPENAME="linux-mainline_3.8.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.8.12"
+TAG="v3.8.13"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git"
 EXTERNAL_BRANCH="linux-3.8.y"
-EXTERNAL_SHA="9c9ab76c48ffc48648c8e5da40d57965fc65c030"
+EXTERNAL_SHA="dbf932a9b316d5b29b3e220e5a30e7a165ad2992"
 
 PATCHSET="dma rtc pinctrl cpufreq adc i2c da8xx-fb pwm mmc crypto 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net drm not-capebus pru usb PG2 reboot iio w1 gpmc mxt ssd130x build hdmi resetctrl camera"
 
@@ -71,8 +71,8 @@ fi
 git describe
 
 # newer gits will run 'git gc' after every patch if you don't prune
-git gc
-git prune
+#git gc
+#git prune
 
 if [ -d ${EXPORTPATH} ] ; then
 	rm -rf ${EXPORTPATH} || true
