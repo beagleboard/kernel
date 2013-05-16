@@ -1,0 +1,26 @@
+From 4de32a99f5129e5e1caef7ac74652ee8074f1388 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Sat, 13 Apr 2013 20:10:05 +0200
+Subject: [PATCH 5/5] SSD1307fb: 1Hz -> 8Hz defio updates
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ drivers/video/ssd1307fb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/video/ssd1307fb.c b/drivers/video/ssd1307fb.c
+index 6594458..f47b59b 100644
+--- a/drivers/video/ssd1307fb.c
++++ b/drivers/video/ssd1307fb.c
+@@ -245,7 +245,7 @@ static void ssd1307fb_deferred_io(struct fb_info *info,
+ }
+ 
+ static struct fb_deferred_io ssd1307fb_defio = {
+-	.delay		= HZ,
++	.delay		= HZ/8,
+ 	.deferred_io	= ssd1307fb_deferred_io,
+ };
+ 
+-- 
+1.8.1.4
+

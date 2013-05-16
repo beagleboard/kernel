@@ -1,0 +1,83 @@
+From 64b76daeaf50fb9826eec641b59a2148b327f03d Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 15 May 2013 20:44:34 +0300
+Subject: [PATCH 5/7] pruss: Make sure it works when no child nodes are present
+
+Pruss shouldn't fail when no child nodes are present.
+---
+ drivers/uio/uio_pruss.c | 58 ++++++++++++++++++++++---------------------------
+ 1 file changed, 26 insertions(+), 32 deletions(-)
+
+diff --git a/drivers/uio/uio_pruss.c b/drivers/uio/uio_pruss.c
+index 6f49ea1..5de4f11 100644
+--- a/drivers/uio/uio_pruss.c
++++ b/drivers/uio/uio_pruss.c
+@@ -180,39 +180,33 @@ static int pruss_probe(struct platform_device *dev)
+ 	if (IS_ERR(pinctrl))
+ 		dev_warn(&dev->dev,
+ 			"pins are not configured from the driver\n");
+-	else{
+-		count = of_get_child_count(dev->dev.of_node);
+-		if (!count){
+-			dev_info(&dev->dev, "No children\n");
+-			return -ENODEV;
++
++	// Run through all children. They have lables for easy reference.
++	for_each_child_of_node(dev->dev.of_node, child) {
++		enum of_gpio_flags flags;
++		unsigned gpio;
++
++		count = of_gpio_count(child);
++
++		ret = of_property_count_strings(child, "pin-names");
++		if (ret < 0) {
++			dev_err(&dev->dev, "Failed to get pin-names\n");
++			continue;
++		}
++		if(count != ret){
++			dev_err(&dev->dev, "The number of gpios (%d) does not match"\
++				" the number of pin names (%d)\n", count, ret);
++			continue;
+ 		}
+-		// Run through all children. They have lables for easy reference.
+-		for_each_child_of_node(dev->dev.of_node, child){
+-			enum of_gpio_flags flags;
+-			unsigned gpio;
+-
+-			count = of_gpio_count(child);
+-
+-			ret = of_property_count_strings(child, "pin-names");
+-			if (ret < 0) {
+-				dev_err(&dev->dev, "Failed to get pin-names\n");
+-				continue;
+-			}
+-			if(count != ret){
+-				dev_err(&dev->dev, "The number of gpios (%d) does not match"\
+-					" the number of pin names (%d)\n", count, ret);
+-				continue;
+-			}
+-
+-			dev_dbg(&dev->dev, "Child has %u gpios\n", count);
+-			for(cnt=0; cnt<count; cnt++){
+-				ret = of_property_read_string_index(child,
+-					"pin-names", cnt, &pin_name);
+-				if (ret != 0)
+-					dev_err(&dev->dev, "Error on pin-name #%d\n", cnt);
+-				gpio = of_get_gpio_flags(child, cnt, &flags);
+-				ret = devm_gpio_request_one(&dev->dev, gpio, flags, pin_name);
+-			}
++
++		dev_dbg(&dev->dev, "Child has %u gpios\n", count);
++		for(cnt=0; cnt<count; cnt++){
++			ret = of_property_read_string_index(child,
++				"pin-names", cnt, &pin_name);
++			if (ret != 0)
++				dev_err(&dev->dev, "Error on pin-name #%d\n", cnt);
++			gpio = of_get_gpio_flags(child, cnt, &flags);
++			ret = devm_gpio_request_one(&dev->dev, gpio, flags, pin_name);
+ 		}
+ 	}
+ 
+-- 
+1.8.1.4
+

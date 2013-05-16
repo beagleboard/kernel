@@ -1,0 +1,709 @@
+From 5ee861e31e4841403d6fe4599197f63248e952ea Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 16 May 2013 18:13:19 +0300
+Subject: [PATCH 2/2] capes: Add resources to capes.
+
+Start adding the resource list of each cape.
+---
+ firmware/capes/BB-BONE-AUDI-01-00A0.dts     | 15 +++++++++-
+ firmware/capes/BB-BONE-CAM3-01-00A2.dts     | 45 +++++++++++++++++++++++++++--
+ firmware/capes/BB-BONE-GPEVT-00A0.dts       |  2 +-
+ firmware/capes/BB-BONE-PRU-01-00A0.dts      |  7 +++++
+ firmware/capes/BB-BONE-PRU-02-00A0.dts      |  7 +++++
+ firmware/capes/BB-BONE-PWMT-00A0.dts        |  2 +-
+ firmware/capes/BB-BONE-RST-00A0.dts         |  2 +-
+ firmware/capes/BB-BONE-RST2-00A0.dts        |  2 +-
+ firmware/capes/BB-BONE-eMMC1-01-00A0.dts    |  2 +-
+ firmware/capes/am33xx_pwm-00A0.dts          |  2 +-
+ firmware/capes/bone_pwm_P8_13-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P8_19-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P8_34-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P8_36-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P8_45-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P8_46-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_14-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_16-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_21-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_22-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_28-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_29-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_31-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_42-00A0.dts      |  2 +-
+ firmware/capes/cape-bone-2g-emmc1.dts       | 18 ++++++++++++
+ firmware/capes/cape-bone-dvi-00A1.dts       |  2 +-
+ firmware/capes/cape-bone-dvi-00A2.dts       |  2 +-
+ firmware/capes/cape-bone-lcd3-00A0.dts      | 41 ++++++++++++++++++++++++++
+ firmware/capes/cape-bone-lcd3-00A2.dts      | 39 +++++++++++++++++++++++++
+ firmware/capes/cape-bone-tester-00A0.dts    |  2 +-
+ firmware/capes/cape-bone-weather-00A0.dts   | 19 ++++++------
+ firmware/capes/cape-boneblack-hdmi-00A0.dts | 34 +++++++++++++++++++++-
+ 32 files changed, 235 insertions(+), 36 deletions(-)
+
+diff --git a/firmware/capes/BB-BONE-AUDI-01-00A0.dts b/firmware/capes/BB-BONE-AUDI-01-00A0.dts
+index 8e1256e..5e145b9 100644
+--- a/firmware/capes/BB-BONE-AUDI-01-00A0.dts
++++ b/firmware/capes/BB-BONE-AUDI-01-00A0.dts
+@@ -9,12 +9,25 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "BB-BONE-AUDI-01";
+ 	version = "00A0", "A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.14",	/* leds:   gpio1_18 */
++		"P9.16",	/* leds:   gpio1_19 */
++		"P9.31",	/* mcasp0: mcasp0_aclkx */
++		"P9.29",	/* mcasp0: mcasp0_fsx */
++		"P9.28",	/* mcasp0: mcasp0_axr2 */
++		"P9.25",	/* mcasp0: mcasp0_ahclkx */
++		/* the hardware ip uses */
++		"gpio1_18", "gpio1_19",
++		"mcasp0";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/BB-BONE-CAM3-01-00A2.dts b/firmware/capes/BB-BONE-CAM3-01-00A2.dts
+index e546f08..2470a76 100644
+--- a/firmware/capes/BB-BONE-CAM3-01-00A2.dts
++++ b/firmware/capes/BB-BONE-CAM3-01-00A2.dts
+@@ -9,12 +9,53 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "BB-BONE-CAM3-01";
+ 	version = "00A2", "A2";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.25",	/* gpmc: gpmc_ad0 */
++		"P8.24",	/* gpmc: gpmc_ad1 */
++		"P8.5",		/* gpmc: gpmc_ad2 */
++		"P8.6",		/* gpmc: gpmc_ad3 */
++		"P8.23",	/* gpmc: gpmc_ad4 */
++		"P8.22",	/* gpmc: gpmc_ad5 */
++		"P8.3",		/* gpmc: gpmc_ad6 */
++		"P8.4",		/* gpmc: gpmc_ad7 */
++		"P8.19",	/* gpmc: gpmc_ad8 */
++		"P8.13",	/* gpmc: gpmc_ad9 */
++		"P8.14",	/* gpmc: gpmc_ad10 */
++		"P8.17",	/* gpmc: gpmc_ad11 */
++		"P8.12",	/* gpmc: gpmc_ad12 */
++		"P8.11",	/* gpmc: gpmc_ad13 */
++		"P8.16",	/* gpmc: gpmc_ad14 */
++		"P8.15",	/* gpmc: gpmc_ad15 */
++		"P9.13",	/* gpmc: gpmc_wpn */
++		"P8.21",	/* gpmc: gpmc_csn1 */
++		"P8.18",	/* gpmc: gpmc_clk */
++		"P8.7",		/* gpmc: gpmc_advn_ale */
++		"P8.8",		/* gpmc: gpmc_oen_ren */
++		"P8.10",	/* gpmc: gpmc_wen */
++		"P8.9",		/* gpmc: gpmc_ben0_cle */
++		"P9.41",	/* cssp: clkout2 */
++		"P9.42",	/* cssp: xdma_event_intr2 */
++		"P9.18",	/* cssp: gpio0_4 */
++		"P9.17",	/* cssp: gpio0_5 */
++		"P9.11",	/* cssp: gpio0_30 */
++
++		/* the hardware IP uses */
++		"gpio0_4",
++		"gpio0_5",
++		"gpio0_30",
++		"gpmc",
++		"clkout2",
++		/* the reset pin */
++		"eMMC_RSTn";
++
+ 	#address-cells = <1>;
+ 	#size-cells = <1>;
+ 
+@@ -41,7 +82,7 @@
+ 					0x038 0x30	/* gpmc_ad14.gpmc_ad14 MODE0 | INPUT | PULLUP */
+ 					0x03C 0x30	/* gpmc_ad15.gpmc_ad15 MODE0 | INPUT | PULLUP */
+ 					0x074 0x30	/* gpmc_wpn.gpmc_wpn MODE0 | INPUT | PULLUP */ /* WAS MODE 7 */
+-					0x080 0x08	/* gpmc_wait0.gpmc_cscn1 MODE0 | OUTPUT */
++					0x080 0x08	/* gpmc_cscn1.gpmc_cscn1 MODE0 | OUTPUT */
+ 					0x08C 0x28	/* gpmc_clk.gpmc_clk MODE0 | INPUT */
+ 					0x090 0x08	/* gpmc_advn_ale.gpmc_advn_ale MODE0 | OUTPUT */
+ 					0x094 0x08	/* gpmc_oen_ren.gpmc_oen_ren MODE0 | OUTPUT */
+diff --git a/firmware/capes/BB-BONE-GPEVT-00A0.dts b/firmware/capes/BB-BONE-GPEVT-00A0.dts
+index 80f9016..112a6d1 100644
+--- a/firmware/capes/BB-BONE-GPEVT-00A0.dts
++++ b/firmware/capes/BB-BONE-GPEVT-00A0.dts
+@@ -7,7 +7,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "BB-BONE-GPEVT";
+diff --git a/firmware/capes/BB-BONE-PRU-01-00A0.dts b/firmware/capes/BB-BONE-PRU-01-00A0.dts
+index 29ab671..9bf2c7a 100644
+--- a/firmware/capes/BB-BONE-PRU-01-00A0.dts
++++ b/firmware/capes/BB-BONE-PRU-01-00A0.dts
+@@ -15,6 +15,13 @@
+ 	part-number = "BB-BONE-PRU-01";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.27",	/* pru0: pr1_pru0_pru_r30_5 */
++		/* the hardware IP uses */
++		"pru0";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/BB-BONE-PRU-02-00A0.dts b/firmware/capes/BB-BONE-PRU-02-00A0.dts
+index ddb63f7..13389c7 100644
+--- a/firmware/capes/BB-BONE-PRU-02-00A0.dts
++++ b/firmware/capes/BB-BONE-PRU-02-00A0.dts
+@@ -15,6 +15,13 @@
+ 	part-number = "BB-BONE-PRU-01";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.27",	/* pru0: pr1_pru0_pru_r30_5 */
++		/* the hardware IP uses */
++		"pru0";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/BB-BONE-PWMT-00A0.dts b/firmware/capes/BB-BONE-PWMT-00A0.dts
+index fb2b8b1..02c2c0e 100644
+--- a/firmware/capes/BB-BONE-PWMT-00A0.dts
++++ b/firmware/capes/BB-BONE-PWMT-00A0.dts
+@@ -9,7 +9,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "BB-BONE-PWMT";
+diff --git a/firmware/capes/BB-BONE-RST-00A0.dts b/firmware/capes/BB-BONE-RST-00A0.dts
+index acdcda4..12c696f 100644
+--- a/firmware/capes/BB-BONE-RST-00A0.dts
++++ b/firmware/capes/BB-BONE-RST-00A0.dts
+@@ -7,7 +7,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "BB-BONE-RST";
+diff --git a/firmware/capes/BB-BONE-RST2-00A0.dts b/firmware/capes/BB-BONE-RST2-00A0.dts
+index 6904cc5..50b3a60 100644
+--- a/firmware/capes/BB-BONE-RST2-00A0.dts
++++ b/firmware/capes/BB-BONE-RST2-00A0.dts
+@@ -7,7 +7,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "BB-BONE-RST2";
+diff --git a/firmware/capes/BB-BONE-eMMC1-01-00A0.dts b/firmware/capes/BB-BONE-eMMC1-01-00A0.dts
+index 0776bee..ac3c0c3 100644
+--- a/firmware/capes/BB-BONE-eMMC1-01-00A0.dts
++++ b/firmware/capes/BB-BONE-eMMC1-01-00A0.dts
+@@ -9,7 +9,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "BB-BONE-eMMC1-01";
+diff --git a/firmware/capes/am33xx_pwm-00A0.dts b/firmware/capes/am33xx_pwm-00A0.dts
+index 609c1db..fa8d770 100644
+--- a/firmware/capes/am33xx_pwm-00A0.dts
++++ b/firmware/capes/am33xx_pwm-00A0.dts
+@@ -10,7 +10,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "test1";
+diff --git a/firmware/capes/bone_pwm_P8_13-00A0.dts b/firmware/capes/bone_pwm_P8_13-00A0.dts
+index 6c2168a..d7a22f8 100644
+--- a/firmware/capes/bone_pwm_P8_13-00A0.dts
++++ b/firmware/capes/bone_pwm_P8_13-00A0.dts
+@@ -10,7 +10,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "bone_pwm_P8_13";
+diff --git a/firmware/capes/bone_pwm_P8_19-00A0.dts b/firmware/capes/bone_pwm_P8_19-00A0.dts
+index f5f7454..c8071766 100644
+--- a/firmware/capes/bone_pwm_P8_19-00A0.dts
++++ b/firmware/capes/bone_pwm_P8_19-00A0.dts
+@@ -10,7 +10,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "bone_pwm_P8_19";
+diff --git a/firmware/capes/bone_pwm_P8_34-00A0.dts b/firmware/capes/bone_pwm_P8_34-00A0.dts
+index be227bf..44e4ff7 100644
+--- a/firmware/capes/bone_pwm_P8_34-00A0.dts
++++ b/firmware/capes/bone_pwm_P8_34-00A0.dts
+@@ -10,7 +10,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "bone_pwm_P8_34";
+diff --git a/firmware/capes/bone_pwm_P8_36-00A0.dts b/firmware/capes/bone_pwm_P8_36-00A0.dts
+index 7ca8694..12fe6ef 100644
+--- a/firmware/capes/bone_pwm_P8_36-00A0.dts
++++ b/firmware/capes/bone_pwm_P8_36-00A0.dts
+@@ -10,7 +10,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "bone_pwm_P8_36";
+diff --git a/firmware/capes/bone_pwm_P8_45-00A0.dts b/firmware/capes/bone_pwm_P8_45-00A0.dts
+index 3bc8103..07c8457 100644
+--- a/firmware/capes/bone_pwm_P8_45-00A0.dts
++++ b/firmware/capes/bone_pwm_P8_45-00A0.dts
+@@ -10,7 +10,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "bone_pwm_P8_45";
+diff --git a/firmware/capes/bone_pwm_P8_46-00A0.dts b/firmware/capes/bone_pwm_P8_46-00A0.dts
+index 4cc6170..147a3c6 100644
+--- a/firmware/capes/bone_pwm_P8_46-00A0.dts
++++ b/firmware/capes/bone_pwm_P8_46-00A0.dts
+@@ -10,7 +10,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "bone_pwm_P8_46";
+diff --git a/firmware/capes/bone_pwm_P9_14-00A0.dts b/firmware/capes/bone_pwm_P9_14-00A0.dts
+index 6a6c01a..0c6c784 100644
+--- a/firmware/capes/bone_pwm_P9_14-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_14-00A0.dts
+@@ -10,7 +10,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "bone_pwm_P9_14";
+diff --git a/firmware/capes/bone_pwm_P9_16-00A0.dts b/firmware/capes/bone_pwm_P9_16-00A0.dts
+index a1ee9d8..252ee8c 100644
+--- a/firmware/capes/bone_pwm_P9_16-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_16-00A0.dts
+@@ -10,7 +10,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "bone_pwm_P9_16";
+diff --git a/firmware/capes/bone_pwm_P9_21-00A0.dts b/firmware/capes/bone_pwm_P9_21-00A0.dts
+index e667f81..f2d540a 100644
+--- a/firmware/capes/bone_pwm_P9_21-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_21-00A0.dts
+@@ -10,7 +10,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "bone_pwm_P9_21";
+diff --git a/firmware/capes/bone_pwm_P9_22-00A0.dts b/firmware/capes/bone_pwm_P9_22-00A0.dts
+index f7c5ed2..df338f7 100644
+--- a/firmware/capes/bone_pwm_P9_22-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_22-00A0.dts
+@@ -10,7 +10,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "bone_pwm_P9_22";
+diff --git a/firmware/capes/bone_pwm_P9_28-00A0.dts b/firmware/capes/bone_pwm_P9_28-00A0.dts
+index 96df33d..ace91df 100644
+--- a/firmware/capes/bone_pwm_P9_28-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_28-00A0.dts
+@@ -10,7 +10,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "bone_pwm_P9_28";
+diff --git a/firmware/capes/bone_pwm_P9_29-00A0.dts b/firmware/capes/bone_pwm_P9_29-00A0.dts
+index 5cff5a8..33ae722 100644
+--- a/firmware/capes/bone_pwm_P9_29-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_29-00A0.dts
+@@ -10,7 +10,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "bone_pwm_P9_29";
+diff --git a/firmware/capes/bone_pwm_P9_31-00A0.dts b/firmware/capes/bone_pwm_P9_31-00A0.dts
+index 8126597..8096f62 100644
+--- a/firmware/capes/bone_pwm_P9_31-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_31-00A0.dts
+@@ -10,7 +10,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "bone_pwm_P9_31";
+diff --git a/firmware/capes/bone_pwm_P9_42-00A0.dts b/firmware/capes/bone_pwm_P9_42-00A0.dts
+index 7ffcb9b..5ba487f 100644
+--- a/firmware/capes/bone_pwm_P9_42-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_42-00A0.dts
+@@ -10,7 +10,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "bone_pwm_P9_42";
+diff --git a/firmware/capes/cape-bone-2g-emmc1.dts b/firmware/capes/cape-bone-2g-emmc1.dts
+index bf26ae1..90067d5 100644
+--- a/firmware/capes/cape-bone-2g-emmc1.dts
++++ b/firmware/capes/cape-bone-2g-emmc1.dts
+@@ -16,6 +16,24 @@
+ 	part-number = "*";	/* any part number */
+ 	version = "*";		/* any version */
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.21",	/* mmc1: mmc1_clk */
++		"P8.20",	/* mmc1: mmc1_cmd */
++		"P8.25",	/* mmc1: mmc1_dat0 */
++		"P8.24",	/* mmc1: mmc1_dat1 */
++		"P8.5",		/* mmc1: mmc1_dat2 */
++		"P8.6",		/* mmc1: mmc1_dat3 */
++		"P8.23",	/* mmc1: mmc1_dat4 */
++		"P8.22",	/* mmc1: mmc1_dat5 */
++		"P8.3",		/* mmc1: mmc1_dat6 */
++		"P8.4",		/* mmc1: mmc1_dat7 */
++		/* the hardware IP uses */
++		"mmc1",
++		/* the reset pin */
++		"eMMC_RSTn";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/cape-bone-dvi-00A1.dts b/firmware/capes/cape-bone-dvi-00A1.dts
+index ed9099c..b320d4f 100644
+--- a/firmware/capes/cape-bone-dvi-00A1.dts
++++ b/firmware/capes/cape-bone-dvi-00A1.dts
+@@ -9,7 +9,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "BB-BONE-DVID-01";
+diff --git a/firmware/capes/cape-bone-dvi-00A2.dts b/firmware/capes/cape-bone-dvi-00A2.dts
+index a3cd39d..d5c49bb 100644
+--- a/firmware/capes/cape-bone-dvi-00A2.dts
++++ b/firmware/capes/cape-bone-dvi-00A2.dts
+@@ -9,7 +9,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+ 	/* identification */
+ 	part-number = "BB-BONE-DVID-01";
+diff --git a/firmware/capes/cape-bone-lcd3-00A0.dts b/firmware/capes/cape-bone-lcd3-00A0.dts
+index c62e4a9..1074b81 100644
+--- a/firmware/capes/cape-bone-lcd3-00A0.dts
++++ b/firmware/capes/cape-bone-lcd3-00A0.dts
+@@ -15,6 +15,47 @@
+ 	part-number = "BB-BONE-LCD3-01";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.45",	/* lcd: lcd_data0 */
++		"P8.46",	/* lcd: lcd_data1 */
++		"P8.43",	/* lcd: lcd_data2 */
++		"P8.44",	/* lcd: lcd_data3 */
++		"P8.41",	/* lcd: lcd_data4 */
++		"P8.42",	/* lcd: lcd_data5 */
++		"P8.39",	/* lcd: lcd_data6 */
++		"P8.40",	/* lcd: lcd_data7 */
++		"P8.37",	/* lcd: lcd_data8 */
++		"P8.38",	/* lcd: lcd_data9 */
++		"P8.36",	/* lcd: lcd_data10 */
++		"P8.34",	/* lcd: lcd_data11 */
++		"P8.35",	/* lcd: lcd_data12 */
++		"P8.33",	/* lcd: lcd_data13 */
++		"P8.31",	/* lcd: lcd_data14 */
++		"P8.32",	/* lcd: lcd_data15 */
++		"P8.27",	/* lcd: lcd_vsync */
++		"P8.29",	/* lcd: lcd_hsync */
++		"P8.28",	/* lcd: lcd_pclk */
++		"P8.30",	/* lcd: lcd_ac_bias_en */
++		"P9.14",	/* led: gpio1_18 */
++		"P9.16",	/* led: gpio1_19 */
++		"P9.15",	/* keys: gpio1_16 */
++		"P9.23",	/* keys: gpio1_17 */
++		"P9.27",	/* keys: gpio3_19 */
++		"P9.12",	/* keys: gpio1_28 */
++		"P9.42",	/* keys: gpio0_7 */
++		/* the hardware IP uses */
++		"gpio1_18",
++		"gpio1_19",
++		"gpio1_16",
++		"gpio1_17",
++		"gpio3_19",
++		"gpio0_7",
++		"lcd",
++		"tps-bl",
++		"tscadc";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/cape-bone-lcd3-00A2.dts b/firmware/capes/cape-bone-lcd3-00A2.dts
+index ef91376..b68e491 100644
+--- a/firmware/capes/cape-bone-lcd3-00A2.dts
++++ b/firmware/capes/cape-bone-lcd3-00A2.dts
+@@ -15,6 +15,45 @@
+ 	part-number = "BB-BONE-LCD3-01";
+ 	version = "00A2";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.45",	/* lcd: lcd_data0 */
++		"P8.46",	/* lcd: lcd_data1 */
++		"P8.43",	/* lcd: lcd_data2 */
++		"P8.44",	/* lcd: lcd_data3 */
++		"P8.41",	/* lcd: lcd_data4 */
++		"P8.42",	/* lcd: lcd_data5 */
++		"P8.39",	/* lcd: lcd_data6 */
++		"P8.40",	/* lcd: lcd_data7 */
++		"P8.37",	/* lcd: lcd_data8 */
++		"P8.38",	/* lcd: lcd_data9 */
++		"P8.36",	/* lcd: lcd_data10 */
++		"P8.34",	/* lcd: lcd_data11 */
++		"P8.35",	/* lcd: lcd_data12 */
++		"P8.33",	/* lcd: lcd_data13 */
++		"P8.31",	/* lcd: lcd_data14 */
++		"P8.32",	/* lcd: lcd_data15 */
++		"P8.27",	/* lcd: lcd_vsync */
++		"P8.29",	/* lcd: lcd_hsync */
++		"P8.28",	/* lcd: lcd_pclk */
++		"P8.30",	/* lcd: lcd_ac_bias_en */
++		"P9.27",	/* led: gpio3_19 */
++		"P9.14",	/* bl: ehrpwm1a*/
++		"P9.15",	/* keys: gpio1_16*/
++		"P9.23",	/* keys: gpio1_17*/
++		"P9.16",	/* keys: gpio1_19*/
++		"P9.21",	/* keys: gpio0_3*/
++		/* the hardware IP uses */
++		"gpio3_19",
++		"gpio1_16",
++		"gpio1_17",
++		"gpio1_19",
++		"gpio0_3",
++		"lcd",
++		"ehrpwm1a",
++		"tscadc";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/cape-bone-tester-00A0.dts b/firmware/capes/cape-bone-tester-00A0.dts
+index 46f39bc..1aee7af9 100644
+--- a/firmware/capes/cape-bone-tester-00A0.dts
++++ b/firmware/capes/cape-bone-tester-00A0.dts
+@@ -9,7 +9,7 @@
+ /plugin/;
+ 
+ / {
+-	compatible = "ti,beaglebone", "ti,beaglebone-black";
++	compatible = "ti,beaglebone";
+ 
+ 	/* identification */
+ 	part-number = "BB-BONE-TESTER";
+diff --git a/firmware/capes/cape-bone-weather-00A0.dts b/firmware/capes/cape-bone-weather-00A0.dts
+index 76284d6..7cb479a 100644
+--- a/firmware/capes/cape-bone-weather-00A0.dts
++++ b/firmware/capes/cape-bone-weather-00A0.dts
+@@ -9,11 +9,12 @@
+ /plugin/;
+ 
+ / {
+-       compatible = "ti,beaglebone";
+-       part-number = "BB-BONE-WTHR-01";
+-       version = "00A0";
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
+ 
+-       fragment@0 {
++	part-number = "BB-BONE-WTHR-01";
++	version = "00A0";
++
++	fragment@0 {
+                target = <&am33xx_pinmux>;
+                __overlay__ {
+ 			weather_cape_w1_pins: pinmux_weather_cape_w1_pins {
+@@ -22,9 +23,9 @@
+ 				>;
+ 			};
+                };
+-       };
++	};
+ 
+-       fragment@1 {
++	fragment@1 {
+                target = <&i2c2>;
+ 
+                __overlay__ {
+@@ -50,9 +51,9 @@
+ 			       reg = <0x77>;
+ 		       };
+                };
+-       };
++	};
+ 
+-       fragment@2 {
++	fragment@2 {
+                target = <&ocp>;
+                __overlay__ {
+ 		       onewire@0 {
+@@ -64,5 +65,5 @@
+ 			       gpios = <&gpio2 3 0>;
+ 		       };
+                };
+-       };
++	};
+ };
+diff --git a/firmware/capes/cape-boneblack-hdmi-00A0.dts b/firmware/capes/cape-boneblack-hdmi-00A0.dts
+index e5f714a..5fdbd9e 100644
+--- a/firmware/capes/cape-boneblack-hdmi-00A0.dts
++++ b/firmware/capes/cape-boneblack-hdmi-00A0.dts
+@@ -9,10 +9,42 @@
+ /plugin/;
+ 
+ / {
+-  	compatible = "ti,beaglebone";
++  	compatible = "ti,beaglebone-black";
+ 	part-number = "BB-BONELT-HDMI";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.25",	/* mcasp0: mcasp0_ahclkx */
++		"P9.28",	/* mcasp0: mcasp0_axr2 */
++		"P9.29",	/* mcasp0: mcasp0_fsx */
++		"P9.31",	/* mcasp0: mcasp0_aclkx */
++		"P8.45",	/* lcd: lcd_data0 */
++		"P8.46",	/* lcd: lcd_data1 */
++		"P8.43",	/* lcd: lcd_data2 */
++		"P8.44",	/* lcd: lcd_data3 */
++		"P8.41",	/* lcd: lcd_data4 */
++		"P8.42",	/* lcd: lcd_data5 */
++		"P8.39",	/* lcd: lcd_data6 */
++		"P8.40",	/* lcd: lcd_data7 */
++		"P8.37",	/* lcd: lcd_data8 */
++		"P8.38",	/* lcd: lcd_data9 */
++		"P8.36",	/* lcd: lcd_data10 */
++		"P8.34",	/* lcd: lcd_data11 */
++		"P8.35",	/* lcd: lcd_data12 */
++		"P8.33",	/* lcd: lcd_data13 */
++		"P8.31",	/* lcd: lcd_data14 */
++		"P8.32",	/* lcd: lcd_data15 */
++		"P8.27",	/* lcd: lcd_vsync */
++		"P8.29",	/* lcd: lcd_hsync */
++		"P8.28",	/* lcd: lcd_pclk */
++		"P8.30",	/* lcd: lcd_ac_bias_en */
++		/* the hardware IP uses */
++		"gpio1_27",
++		"mcasp0",
++		"lcd";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+-- 
+1.8.1.4
+
