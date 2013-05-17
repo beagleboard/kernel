@@ -1,0 +1,1104 @@
+From 703406b175e977aac8d2f6a63f4ef71141ffdc51 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 17 May 2013 18:38:30 +0300
+Subject: [PATCH 3/3] capes: Update most of the capes with resource definitions
+
+Updated all the standard capes with their resource definitions.
+---
+ firmware/capes/BB-BONE-GPEVT-00A0.dts          |  7 ++++
+ firmware/capes/BB-BONE-LCD4-01-00A0.dts        | 31 +++++++++++++++++
+ firmware/capes/BB-BONE-LCD4-01-00A1.dts        | 46 ++++++++++++++++++++++--
+ firmware/capes/BB-BONE-LCD7-01-00A2.dts        | 46 ++++++++++++++++++++++--
+ firmware/capes/BB-BONE-LCD7-01-00A3.dts        | 48 ++++++++++++++++++++++++--
+ firmware/capes/BB-BONE-LCD7-01-00A4.dts        | 47 +++++++++++++++++++++++--
+ firmware/capes/BB-BONE-PWMT-00A0.dts           |  9 ++++-
+ firmware/capes/BB-BONE-eMMC1-01-00A0.dts       | 16 +++++++++
+ firmware/capes/BB-BONELT-BT-00A0.dts           |  7 ++++
+ firmware/capes/bone_pwm_P8_13-00A0.dts         | 13 +++++--
+ firmware/capes/bone_pwm_P8_19-00A0.dts         | 13 +++++--
+ firmware/capes/bone_pwm_P8_34-00A0.dts         |  7 ++++
+ firmware/capes/bone_pwm_P8_36-00A0.dts         |  7 ++++
+ firmware/capes/bone_pwm_P8_45-00A0.dts         |  7 ++++
+ firmware/capes/bone_pwm_P8_46-00A0.dts         |  7 ++++
+ firmware/capes/bone_pwm_P9_14-00A0.dts         |  7 ++++
+ firmware/capes/bone_pwm_P9_16-00A0.dts         |  7 ++++
+ firmware/capes/bone_pwm_P9_21-00A0.dts         |  7 ++++
+ firmware/capes/bone_pwm_P9_22-00A0.dts         |  7 ++++
+ firmware/capes/bone_pwm_P9_28-00A0.dts         |  7 ++++
+ firmware/capes/bone_pwm_P9_29-00A0.dts         |  7 ++++
+ firmware/capes/bone_pwm_P9_31-00A0.dts         |  7 ++++
+ firmware/capes/bone_pwm_P9_42-00A0.dts         |  7 ++++
+ firmware/capes/cape-bone-adafruit-lcd-00A0.dts | 31 ++++++++++++-----
+ firmware/capes/cape-bone-adafruit-rtc-00A0.dts | 15 ++++++++
+ firmware/capes/cape-bone-dvi-00A0.dts          | 32 +++++++++++++++++
+ firmware/capes/cape-bone-dvi-00A1.dts          | 37 ++++++++++++++++++++
+ firmware/capes/cape-bone-dvi-00A2.dts          | 32 +++++++++++++++++
+ firmware/capes/cape-bone-geiger-00A0.dts       | 15 ++++++++
+ firmware/capes/cape-bone-iio-00A0.dts          | 13 +++++++
+ firmware/capes/cape-bone-mrf24j40-00A0.dts     | 16 +++++++++
+ firmware/capes/cape-bone-nixie-00A0.dts        | 18 ++++++++--
+ firmware/capes/cape-bone-tester-00A0.dts       |  2 ++
+ firmware/capes/cape-bone-weather-00A0.dts      |  7 ++++
+ 34 files changed, 559 insertions(+), 26 deletions(-)
+
+diff --git a/firmware/capes/BB-BONE-GPEVT-00A0.dts b/firmware/capes/BB-BONE-GPEVT-00A0.dts
+index 112a6d1..e773dee 100644
+--- a/firmware/capes/BB-BONE-GPEVT-00A0.dts
++++ b/firmware/capes/BB-BONE-GPEVT-00A0.dts
+@@ -13,6 +13,13 @@
+ 	part-number = "BB-BONE-GPEVT";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.7",
++		/* the hardware IP uses */
++		"gpio2_2";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/BB-BONE-LCD4-01-00A0.dts b/firmware/capes/BB-BONE-LCD4-01-00A0.dts
+index 6f2e78f..c34e151 100644
+--- a/firmware/capes/BB-BONE-LCD4-01-00A0.dts
++++ b/firmware/capes/BB-BONE-LCD4-01-00A0.dts
+@@ -15,6 +15,37 @@
+ 	part-number = "BB-BONE-LCD4-01";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.45",	/* lcd: lcd_data0 */
++		"P8.46",	/* lcd: lcd_data1 */
++		"P8.43",	/* lcd: lcd_data2 */
++		"P8.44",	/* lcd: lcd_data3 */
++		"P8.41",	/* lcd: lcd_data4 */
++		"P8.42",	/* lcd: lcd_data5 */
++		"P8.39",	/* lcd: lcd_data6 */
++		"P8.40",	/* lcd: lcd_data7 */
++		"P8.37",	/* lcd: lcd_data8 */
++		"P8.38",	/* lcd: lcd_data9 */
++		"P8.36",	/* lcd: lcd_data10 */
++		"P8.34",	/* lcd: lcd_data11 */
++		"P8.35",	/* lcd: lcd_data12 */
++		"P8.33",	/* lcd: lcd_data13 */
++		"P8.31",	/* lcd: lcd_data14 */
++		"P8.32",	/* lcd: lcd_data15 */
++		"P8.27",	/* lcd: lcd_vsync */
++		"P8.29",	/* lcd: lcd_hsync */
++		"P8.28",	/* lcd: lcd_pclk */
++		"P8.30",	/* lcd: lcd_ac_bias_en */
++		"P9.16",	/* tsc: gpio1_19 */
++		"P9.14",	/* led: gpio1_18 */
++		/* the hardware IP uses */
++		"gpio1_19",
++		"gpio1_18",
++		"lcd",
++		"tps-bl";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/BB-BONE-LCD4-01-00A1.dts b/firmware/capes/BB-BONE-LCD4-01-00A1.dts
+index 9e65a22..c841ff9 100644
+--- a/firmware/capes/BB-BONE-LCD4-01-00A1.dts
++++ b/firmware/capes/BB-BONE-LCD4-01-00A1.dts
+@@ -15,13 +15,53 @@
+ 	part-number = "BB-BONE-LCD4-01";
+ 	version = "00A1";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.45",	/* lcd: lcd_data0 */
++		"P8.46",	/* lcd: lcd_data1 */
++		"P8.43",	/* lcd: lcd_data2 */
++		"P8.44",	/* lcd: lcd_data3 */
++		"P8.41",	/* lcd: lcd_data4 */
++		"P8.42",	/* lcd: lcd_data5 */
++		"P8.39",	/* lcd: lcd_data6 */
++		"P8.40",	/* lcd: lcd_data7 */
++		"P8.37",	/* lcd: lcd_data8 */
++		"P8.38",	/* lcd: lcd_data9 */
++		"P8.36",	/* lcd: lcd_data10 */
++		"P8.34",	/* lcd: lcd_data11 */
++		"P8.35",	/* lcd: lcd_data12 */
++		"P8.33",	/* lcd: lcd_data13 */
++		"P8.31",	/* lcd: lcd_data14 */
++		"P8.32",	/* lcd: lcd_data15 */
++		"P8.27",	/* lcd: lcd_vsync */
++		"P8.29",	/* lcd: lcd_hsync */
++		"P8.28",	/* lcd: lcd_pclk */
++		"P8.30",	/* lcd: lcd_ac_bias_en */
++		"P9.27",	/* lcd: gpio3_19 */
++		"P9.12",	/* led: gpio1_28 */
++		"P9.14",	/* pwm: ehrpwm1a */
++		"P9.15",	/* keys: gpio1_16 */
++		"P9.23",	/* keys: gpio1_17 */
++		"P9.16",	/* keys: gpio1_19 */
++		"P9.21",	/* keys: gpio0_3 */
++		/* the hardware IP uses */
++		"gpio3_19",
++		"gpio1_28",
++		"gpio1_16",
++		"gpio1_17",
++		"gpio1_19",
++		"gpio0_3",
++		"lcd",
++		"ehrpwm1a";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+ 
+-			bone_lcd4_cape_led_00A2_pins: pinmux_bone_lcd4_cape_led_00A2_pins {
++			bone_lcd4_cape_led_00A1_pins: pinmux_bone_lcd4_cape_led_00A1_pins {
+ 				pinctrl-single,pins = <
+-					0x078 0x2f      /* gpmc_ben1.gpio1_28, INPUT | PULLDIS | MODE7 */
++					0x078 0x2f      /* gpmc_be1n.gpio1_28, INPUT | PULLDIS | MODE7 */
+ 				>;
+ 			};
+ 
+@@ -129,7 +169,7 @@
+ 				compatible = "gpio-leds";
+ 				pinctrl-names = "default";
+ 
+-				pinctrl-0 = <&bone_lcd4_cape_led_00A2_pins>;
++				pinctrl-0 = <&bone_lcd4_cape_led_00A1_pins>;
+ 
+ 				lcd4-led0 {
+ 					label = "lcd4:green:usr0";
+diff --git a/firmware/capes/BB-BONE-LCD7-01-00A2.dts b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
+index 32d6f9d..285de0d 100644
+--- a/firmware/capes/BB-BONE-LCD7-01-00A2.dts
++++ b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
+@@ -15,13 +15,53 @@
+ 	part-number = "BB-BONE-LCD7-01";
+ 	version = "00A2";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.45",	/* lcd: lcd_data0 */
++		"P8.46",	/* lcd: lcd_data1 */
++		"P8.43",	/* lcd: lcd_data2 */
++		"P8.44",	/* lcd: lcd_data3 */
++		"P8.41",	/* lcd: lcd_data4 */
++		"P8.42",	/* lcd: lcd_data5 */
++		"P8.39",	/* lcd: lcd_data6 */
++		"P8.40",	/* lcd: lcd_data7 */
++		"P8.37",	/* lcd: lcd_data8 */
++		"P8.38",	/* lcd: lcd_data9 */
++		"P8.36",	/* lcd: lcd_data10 */
++		"P8.34",	/* lcd: lcd_data11 */
++		"P8.35",	/* lcd: lcd_data12 */
++		"P8.33",	/* lcd: lcd_data13 */
++		"P8.31",	/* lcd: lcd_data14 */
++		"P8.32",	/* lcd: lcd_data15 */
++		"P8.27",	/* lcd: lcd_vsync */
++		"P8.29",	/* lcd: lcd_hsync */
++		"P8.28",	/* lcd: lcd_pclk */
++		"P8.30",	/* lcd: lcd_ac_bias_en */
++		"P8.20",	/* lcd: gpio1_31 */
++		"P9.12",	/* led: gpio1_28 */
++		"P9.14",	/* pwm: ehrpwm1a */
++		"P9.15",	/* keys: gpio1_16 */
++		"P9.23",	/* keys: gpio1_17 */
++		"P9.16",	/* keys: gpio1_19 */
++		"P9.27",	/* keys: gpio3_19 */
++		/* the hardware IP uses */
++		"gpio1_31",
++		"gpio1_28",
++		"gpio1_16",
++		"gpio1_17",
++		"gpio1_19",
++		"gpio3_19",
++		"lcd",
++		"ehrpwm1a";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+ 
+ 			bone_lcd7_cape_led_00A2_pins: pinmux_bone_lcd7_cape_led_00A2_pins {
+ 				pinctrl-single,pins = <
+-					0x078 0x2f	/* gpmc_ben1.gpio1_28, INPUT | PULLDIS | MODE7 */
++					0x078 0x2f	/* gpmc_be1n.gpio1_28, INPUT | PULLDIS | MODE7 */
+ 				>;
+ 			};
+ 
+@@ -33,7 +73,7 @@
+ 
+ 			bone_lcd7_cape_lcd_pins: pinmux_bone_lcd7_cape_lcd_pins {
+ 				pinctrl-single,pins = <
+-					//0x84 0x07	/* gpmc_csn2.gpio1_31, OUTPUT | MODE7 - AVDD_EN */
++					0x84 0x07	/* gpmc_csn2.gpio1_31, OUTPUT | MODE7 - AVDD_EN */
+ 					0xa0 0x08	/* lcd_data0.lcd_data0, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+ 					0xa4 0x08	/* lcd_data1.lcd_data1, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+ 					0xa8 0x08	/* lcd_data2.lcd_data2, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+@@ -62,8 +102,8 @@
+ 					0x040 0x2f	/* KEY_LEFT gpmc_a0.gpio1_16, INPUT | PULLDIS | MODE7 */
+ 					0x044 0x2f	/* KEY_RIGHT gpmc_a1.gpio1_17, INPUT | PULLDIS | MODE7 */
+ 					0x04c 0x2f 	/* KEY_UP gpmc_a3.gpio1_19, INPUT | PULLDIS | MODE7 */
++					0x198 0x2f	/* KEY_DOWN mcasp0_axr0.gpio3_16, INPUT | PULLDIS | MODE7 */
+ 					0x1a4 0x2f	/* KEY_ENTER mcasp0_fsr.gpio3_19, INPUT | PULLDIS | MODE7 */
+-					// gpio3_16 KEY_DOWN
+ 				>;
+ 			};
+ 
+diff --git a/firmware/capes/BB-BONE-LCD7-01-00A3.dts b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
+index 2a4c13c..d6df4f4 100644
+--- a/firmware/capes/BB-BONE-LCD7-01-00A3.dts
++++ b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
+@@ -15,6 +15,48 @@
+ 	part-number = "BB-BONE-LCD7-01";
+ 	version = "00A3";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.45",	/* lcd: lcd_data0 */
++		"P8.46",	/* lcd: lcd_data1 */
++		"P8.43",	/* lcd: lcd_data2 */
++		"P8.44",	/* lcd: lcd_data3 */
++		"P8.41",	/* lcd: lcd_data4 */
++		"P8.42",	/* lcd: lcd_data5 */
++		"P8.39",	/* lcd: lcd_data6 */
++		"P8.40",	/* lcd: lcd_data7 */
++		"P8.37",	/* lcd: lcd_data8 */
++		"P8.38",	/* lcd: lcd_data9 */
++		"P8.36",	/* lcd: lcd_data10 */
++		"P8.34",	/* lcd: lcd_data11 */
++		"P8.35",	/* lcd: lcd_data12 */
++		"P8.33",	/* lcd: lcd_data13 */
++		"P8.31",	/* lcd: lcd_data14 */
++		"P8.32",	/* lcd: lcd_data15 */
++		"P8.27",	/* lcd: lcd_vsync */
++		"P8.29",	/* lcd: lcd_hsync */
++		"P8.28",	/* lcd: lcd_pclk */
++		"P8.30",	/* lcd: lcd_ac_bias_en */
++		"P8.20",	/* lcd: gpio1_31 */
++		"P9.12",	/* led: gpio1_28 */
++		"P9.14",	/* pwm: ehrpwm1a */
++		"P9.15",	/* keys: gpio1_16 */
++		"P9.23",	/* keys: gpio1_17 */
++		"P9.16",	/* keys: gpio1_19 */
++		"P9.30",	/* keys: gpio3_16 */
++		"P9.21",	/* keys: gpio0_3 */
++		/* the hardware IP uses */
++		"gpio1_31",
++		"gpio1_28",
++		"gpio1_16",
++		"gpio1_17",
++		"gpio1_19",
++		"gpio3_16",
++		"gpio0_3",
++		"lcd",
++		"ehrpwm1a";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+@@ -33,7 +75,7 @@
+ 
+ 			bone_lcd7_cape_lcd_pins: pinmux_bone_lcd7_cape_lcd_pins {
+ 				pinctrl-single,pins = <
+-					//0x84 0x07	/* gpmc_csn2.gpio1_31, OUTPUT | MODE7 - AVDD_EN */
++					0x84 0x07	/* gpmc_csn2.gpio1_31, OUTPUT | MODE7 - AVDD_EN */
+ 					0xa0 0x08	/* lcd_data0.lcd_data0, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+ 					0xa3 0x08	/* lcd_data1.lcd_data1, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+ 					0xa8 0x08	/* lcd_data2.lcd_data2, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+@@ -62,8 +104,8 @@
+ 					0x040 0x2f	/* KEY_LEFT gpmc_a0.gpio1_16, INPUT | PULLDIS | MODE7 */
+ 					0x044 0x2f	/* KEY_RIGHT gpmc_a1.gpio1_17, INPUT | PULLDIS | MODE7 */
+ 					0x04c 0x2f 	/* KEY_UP gpmc_a3.gpio1_19, INPUT | PULLDIS | MODE7 */
+-					0x1a3 0x2f	/* TSC_INTn mcasp0_fsr.gpio3_19, INPUT | PULLDIS | MODE7 */
+-					// gpio3_16 KEY_DOWN
++					0x198 0x2f	/* KEY_DOWN mcasp0_axr0.gpio3_16, INPUT | PULLDIS | MODE7 */
++					0x070 0x2f	/* KEY_ENTER gpmc_wait0.gpio0_3, INPUT | PULLDIS | MODE7 */
+ 				>;
+ 			};
+ 
+diff --git a/firmware/capes/BB-BONE-LCD7-01-00A4.dts b/firmware/capes/BB-BONE-LCD7-01-00A4.dts
+index e0a0677..11ac9e7 100644
+--- a/firmware/capes/BB-BONE-LCD7-01-00A4.dts
++++ b/firmware/capes/BB-BONE-LCD7-01-00A4.dts
+@@ -15,6 +15,48 @@
+ 	part-number = "BB-BONE-LCD7-01";
+ 	version = "00A4";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.45",	/* lcd: lcd_data0 */
++		"P8.46",	/* lcd: lcd_data1 */
++		"P8.43",	/* lcd: lcd_data2 */
++		"P8.44",	/* lcd: lcd_data3 */
++		"P8.41",	/* lcd: lcd_data4 */
++		"P8.42",	/* lcd: lcd_data5 */
++		"P8.39",	/* lcd: lcd_data6 */
++		"P8.40",	/* lcd: lcd_data7 */
++		"P8.37",	/* lcd: lcd_data8 */
++		"P8.38",	/* lcd: lcd_data9 */
++		"P8.36",	/* lcd: lcd_data10 */
++		"P8.34",	/* lcd: lcd_data11 */
++		"P8.35",	/* lcd: lcd_data12 */
++		"P8.33",	/* lcd: lcd_data13 */
++		"P8.31",	/* lcd: lcd_data14 */
++		"P8.32",	/* lcd: lcd_data15 */
++		"P8.27",	/* lcd: lcd_vsync */
++		"P8.29",	/* lcd: lcd_hsync */
++		"P8.28",	/* lcd: lcd_pclk */
++		"P8.30",	/* lcd: lcd_ac_bias_en */
++		"P8.20",	/* lcd: gpio1_31 */
++		"P9.12",	/* led: gpio1_28 */
++		"P9.14",	/* pwm: ehrpwm1a */
++		"P9.15",	/* keys: gpio1_16 */
++		"P9.23",	/* keys: gpio1_17 */
++		"P9.16",	/* keys: gpio1_19 */
++		"P9.30",	/* keys: gpio3_16 */
++		"P9.21",	/* keys: gpio0_3 */
++		/* the hardware IP uses */
++		"gpio1_31",
++		"gpio1_28",
++		"gpio1_16",
++		"gpio1_17",
++		"gpio1_19",
++		"gpio3_16",
++		"gpio0_3",
++		"lcd",
++		"ehrpwm1a";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+@@ -33,7 +75,7 @@
+ 
+ 			bone_lcd7_cape_lcd_pins: pinmux_bone_lcd7_cape_lcd_pins {
+ 				pinctrl-single,pins = <
+-					//0x84 0x07	/* gpmc_csn2.gpio1_31, OUTPUT | MODE7 - AVDD_EN */
++					0x84 0x07	/* gpmc_csn2.gpio1_31, OUTPUT | MODE7 - AVDD_EN */
+ 					0xa0 0x08	/* lcd_data0.lcd_data0, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+ 					0xa4 0x08	/* lcd_data1.lcd_data1, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+ 					0xa8 0x08	/* lcd_data2.lcd_data2, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+@@ -62,8 +104,9 @@
+ 					0x040 0x2f	/* KEY_LEFT gpmc_a0.gpio1_16, INPUT | PULLDIS | MODE7 */
+ 					0x044 0x2f	/* KEY_RIGHT gpmc_a1.gpio1_17, INPUT | PULLDIS | MODE7 */
+ 					0x04c 0x2f 	/* KEY_UP gpmc_a3.gpio1_19, INPUT | PULLDIS | MODE7 */
++					0x198 0x2f	/* KEY_DOWN mcasp0_axr0.gpio3_16, INPUT | PULLDIS | MODE7 */
++					0x070 0x2f	/* KEY_ENTER gpmc_wait0.gpio0_3, INPUT | PULLDIS | MODE7 */
+ 					0x1a4 0x2f	/* TSC_INTn mcasp0_fsr.gpio3_19, INPUT | PULLDIS | MODE7 */
+-					// gpio3_16 KEY_DOWN
+ 				>;
+ 			};
+ 
+diff --git a/firmware/capes/BB-BONE-PWMT-00A0.dts b/firmware/capes/BB-BONE-PWMT-00A0.dts
+index 02c2c0e..49747c9 100644
+--- a/firmware/capes/BB-BONE-PWMT-00A0.dts
++++ b/firmware/capes/BB-BONE-PWMT-00A0.dts
+@@ -15,11 +15,18 @@
+ 	part-number = "BB-BONE-PWMT";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.22",	/* pwm: ehrpwm0a */
++		/* the hardware ip uses */
++		"ehrpwm0a";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+ 			pwm_test_pins: pinmux_pwm_test_pins {
+-				pinctrl-single,pins = <0x150  0x3>; /* spi0_sclk = ehrpwm0A = P9_14 = Heater_HBP  | MODE 3 */
++				pinctrl-single,pins = <0x150  0x3>; /* spi0_sclk = ehrpwm0A = P9_14 | MODE 3 */
+ 			};
+ 		};
+ 	};
+diff --git a/firmware/capes/BB-BONE-eMMC1-01-00A0.dts b/firmware/capes/BB-BONE-eMMC1-01-00A0.dts
+index ac3c0c3..44c01fe 100644
+--- a/firmware/capes/BB-BONE-eMMC1-01-00A0.dts
++++ b/firmware/capes/BB-BONE-eMMC1-01-00A0.dts
+@@ -15,6 +15,22 @@
+ 	part-number = "BB-BONE-eMMC1-01";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.21",	/* mmc1: mmc1_clk */
++		"P8.20",	/* mmc1: mmc1_cmd */
++		"P8.25",	/* mmc1: mmc1_dat0 */
++		"P8.24",	/* mmc1: mmc1_dat1 */
++		"P8.5",		/* mmc1: mmc1_dat2 */
++		"P8.6",		/* mmc1: mmc1_dat3 */
++		"P8.23",	/* mmc1: mmc1_dat4 */
++		"P8.22",	/* mmc1: mmc1_dat5 */
++		"P8.3",		/* mmc1: mmc1_dat6 */
++		"P8.4",		/* mmc1: mmc1_dat7 */
++		/* the hardware IP uses */
++		"mmc1";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/BB-BONELT-BT-00A0.dts b/firmware/capes/BB-BONELT-BT-00A0.dts
+index 94b9a12..dc3b386 100644
+--- a/firmware/capes/BB-BONELT-BT-00A0.dts
++++ b/firmware/capes/BB-BONELT-BT-00A0.dts
+@@ -15,6 +15,13 @@
+ 	part-number = "BB-BONELT-BT";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.43",		/* bt: gpio2_8 */
++		/* the hardware IP uses */
++		"gpio2_8";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/bone_pwm_P8_13-00A0.dts b/firmware/capes/bone_pwm_P8_13-00A0.dts
+index d7a22f8..dde034e 100644
+--- a/firmware/capes/bone_pwm_P8_13-00A0.dts
++++ b/firmware/capes/bone_pwm_P8_13-00A0.dts
+@@ -16,6 +16,13 @@
+ 	part-number = "bone_pwm_P8_13";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.13",		/* pwm: ehrpwm2B */
++		/* the hardware IP uses */
++		"ehrpwm2B";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+@@ -32,8 +39,10 @@
+ 				compatible	= "pwm_test";
+ 				pwms 		= <&ehrpwm2 1 500000 1>;
+ 				pwm-names 	= "PWM_P8_13";
+-			    pinctrl-names	= "default";
+-			    pinctrl-0	= <&pwm_P8_13>;
++
++				pinctrl-names	= "default";
++				pinctrl-0	= <&pwm_P8_13>;
++
+ 				enabled		= <1>;
+ 				duty		= <0>;
+ 				status 		= "okay";
+diff --git a/firmware/capes/bone_pwm_P8_19-00A0.dts b/firmware/capes/bone_pwm_P8_19-00A0.dts
+index c8071766..ea52f65 100644
+--- a/firmware/capes/bone_pwm_P8_19-00A0.dts
++++ b/firmware/capes/bone_pwm_P8_19-00A0.dts
+@@ -16,6 +16,13 @@
+ 	part-number = "bone_pwm_P8_19";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.19",		/* pwm: ehrpwm2A */
++		/* the hardware IP uses */
++		"ehrpwm2A";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+@@ -32,8 +39,10 @@
+ 				compatible	= "pwm_test";
+ 				pwms 		= <&ehrpwm2 0 500000 1>;
+ 				pwm-names 	= "PWM_P8_19";
+-			    pinctrl-names	= "default";
+-			    pinctrl-0	= <&pwm_P8_19>;
++
++				pinctrl-names	= "default";
++				pinctrl-0	= <&pwm_P8_19>;
++
+ 				enabled		= <1>;
+ 				duty		= <0>;
+ 				status 		= "okay";
+diff --git a/firmware/capes/bone_pwm_P8_34-00A0.dts b/firmware/capes/bone_pwm_P8_34-00A0.dts
+index 44e4ff7..d7b22bd 100644
+--- a/firmware/capes/bone_pwm_P8_34-00A0.dts
++++ b/firmware/capes/bone_pwm_P8_34-00A0.dts
+@@ -16,6 +16,13 @@
+ 	part-number = "bone_pwm_P8_34";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.34",		/* pwm: ehrpwm1B */
++		/* the hardware IP uses */
++		"ehrpwm1B";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/bone_pwm_P8_36-00A0.dts b/firmware/capes/bone_pwm_P8_36-00A0.dts
+index 12fe6ef..ab1f436 100644
+--- a/firmware/capes/bone_pwm_P8_36-00A0.dts
++++ b/firmware/capes/bone_pwm_P8_36-00A0.dts
+@@ -16,6 +16,13 @@
+ 	part-number = "bone_pwm_P8_36";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.36",		/* pwm: ehrpwm1A */
++		/* the hardware IP uses */
++		"ehrpwm1A";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/bone_pwm_P8_45-00A0.dts b/firmware/capes/bone_pwm_P8_45-00A0.dts
+index 07c8457..a612209 100644
+--- a/firmware/capes/bone_pwm_P8_45-00A0.dts
++++ b/firmware/capes/bone_pwm_P8_45-00A0.dts
+@@ -16,6 +16,13 @@
+ 	part-number = "bone_pwm_P8_45";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.45",		/* pwm: ehrpwm2A */
++		/* the hardware IP uses */
++		"ehrpwm2A";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/bone_pwm_P8_46-00A0.dts b/firmware/capes/bone_pwm_P8_46-00A0.dts
+index 147a3c6..45e4432 100644
+--- a/firmware/capes/bone_pwm_P8_46-00A0.dts
++++ b/firmware/capes/bone_pwm_P8_46-00A0.dts
+@@ -16,6 +16,13 @@
+ 	part-number = "bone_pwm_P8_46";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.46",		/* pwm: ehrpwm2B */
++		/* the hardware IP uses */
++		"ehrpwm2B";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/bone_pwm_P9_14-00A0.dts b/firmware/capes/bone_pwm_P9_14-00A0.dts
+index 0c6c784..23c3c89 100644
+--- a/firmware/capes/bone_pwm_P9_14-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_14-00A0.dts
+@@ -16,6 +16,13 @@
+ 	part-number = "bone_pwm_P9_14";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.14",		/* pwm: ehrpwm1A */
++		/* the hardware IP uses */
++		"ehrpwm1A";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/bone_pwm_P9_16-00A0.dts b/firmware/capes/bone_pwm_P9_16-00A0.dts
+index 252ee8c..fdb7258 100644
+--- a/firmware/capes/bone_pwm_P9_16-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_16-00A0.dts
+@@ -16,6 +16,13 @@
+ 	part-number = "bone_pwm_P9_16";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.16",		/* pwm: ehrpwm1B */
++		/* the hardware IP uses */
++		"ehrpwm1B";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/bone_pwm_P9_21-00A0.dts b/firmware/capes/bone_pwm_P9_21-00A0.dts
+index f2d540a..485ffd7 100644
+--- a/firmware/capes/bone_pwm_P9_21-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_21-00A0.dts
+@@ -16,6 +16,13 @@
+ 	part-number = "bone_pwm_P9_21";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.21",		/* pwm: ehrpwm0B */
++		/* the hardware IP uses */
++		"ehrpwm0B";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/bone_pwm_P9_22-00A0.dts b/firmware/capes/bone_pwm_P9_22-00A0.dts
+index df338f7..111e6e4 100644
+--- a/firmware/capes/bone_pwm_P9_22-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_22-00A0.dts
+@@ -16,6 +16,13 @@
+ 	part-number = "bone_pwm_P9_22";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.22",		/* pwm: ehrpwm0A */
++		/* the hardware IP uses */
++		"ehrpwm0A";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/bone_pwm_P9_28-00A0.dts b/firmware/capes/bone_pwm_P9_28-00A0.dts
+index ace91df..73c59c9 100644
+--- a/firmware/capes/bone_pwm_P9_28-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_28-00A0.dts
+@@ -16,6 +16,13 @@
+ 	part-number = "bone_pwm_P9_28";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.28",		/* pwm: eCAP2_in_PWM2_out */
++		/* the hardware IP uses */
++		"eCAP2_in_PWM2_out";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/bone_pwm_P9_29-00A0.dts b/firmware/capes/bone_pwm_P9_29-00A0.dts
+index 33ae722..16a3533 100644
+--- a/firmware/capes/bone_pwm_P9_29-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_29-00A0.dts
+@@ -16,6 +16,13 @@
+ 	part-number = "bone_pwm_P9_29";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.29",		/* pwm: ehrpwm0B */
++		/* the hardware IP uses */
++		"ehrpwm0B";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/bone_pwm_P9_31-00A0.dts b/firmware/capes/bone_pwm_P9_31-00A0.dts
+index 8096f62..467c993 100644
+--- a/firmware/capes/bone_pwm_P9_31-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_31-00A0.dts
+@@ -16,6 +16,13 @@
+ 	part-number = "bone_pwm_P9_31";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.31",		/* pwm: ehrpwm0A */
++		/* the hardware IP uses */
++		"ehrpwm0A";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/bone_pwm_P9_42-00A0.dts b/firmware/capes/bone_pwm_P9_42-00A0.dts
+index 5ba487f..90e1df8 100644
+--- a/firmware/capes/bone_pwm_P9_42-00A0.dts
++++ b/firmware/capes/bone_pwm_P9_42-00A0.dts
+@@ -16,6 +16,13 @@
+ 	part-number = "bone_pwm_P9_42";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.42",		/* pwm: eCAP0_in_PWM0_out */
++		/* the hardware IP uses */
++		"eCAP0_in_PWM0_out";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/cape-bone-adafruit-lcd-00A0.dts b/firmware/capes/cape-bone-adafruit-lcd-00A0.dts
+index 6fe5dcf..8c0343b 100644
+--- a/firmware/capes/cape-bone-adafruit-lcd-00A0.dts
++++ b/firmware/capes/cape-bone-adafruit-lcd-00A0.dts
+@@ -24,13 +24,29 @@
+  */
+ 
+ / {
+-       compatible = "ti,beaglebone", "ti,beaglebone-black";
+-       part-number = "BB-BONE-TFT-01";
+-       version = "00A0";
+-
+-       fragment@0 {
+-               target = <&am33xx_pinmux>;
+-               __overlay__ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++	part-number = "BB-BONE-TFT-01";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.19",	/* bl: ehrpwm2A */
++		"P9.27",	/* lcd: gpio3_19 */
++		"P9.25",	/* lcd: gpio3_21 */
++		"P9.31",	/* spi: spi1_sclk */
++		"P9.29",	/* spi: spi1_d0 */
++		"P9.30",	/* spi: spi1_d1 */
++		"P9.28",	/* spi: spi1_cs0 */
++		/* the hardware IP uses */
++		"gpio3_19",
++		"gpio3_21",
++		"ehrpwm2A",
++		"spi1";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
+ 			pwm_backlight_pins: pinmux_pwm_backlight_pins {
+ 				pinctrl-single,pins = <
+ 					0x020  0x4      /* gpmc_ad8.gpio0_22 | MODE4 */
+@@ -122,5 +138,4 @@
+ 			};
+ 		};
+ 	};
+-
+ };
+diff --git a/firmware/capes/cape-bone-adafruit-rtc-00A0.dts b/firmware/capes/cape-bone-adafruit-rtc-00A0.dts
+index 9436fd4..35344fd 100644
+--- a/firmware/capes/cape-bone-adafruit-rtc-00A0.dts
++++ b/firmware/capes/cape-bone-adafruit-rtc-00A0.dts
+@@ -23,6 +23,21 @@
+ 	part-number = "BB-BONE-RTC-01";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.19",	/* bl: ehrpwm2A */
++		"P9.27",	/* lcd: gpio3_19 */
++		"P9.25",	/* lcd: gpio3_21 */
++		"P9.31",	/* spi: spi1_sclk */
++		"P9.29",	/* spi: spi1_d0 */
++		"P9.30",	/* spi: spi1_d1 */
++		"P9.28",	/* spi: spi1_cs0 */
++		/* the hardware IP uses */
++		"gpio3_19",
++		"gpio3_21",
++		"ehrpwm2A",
++		"spi1";
+ 
+ 	fragment@0 {
+ 		target = <&i2c2>;
+diff --git a/firmware/capes/cape-bone-dvi-00A0.dts b/firmware/capes/cape-bone-dvi-00A0.dts
+index 92fc6be..577a474 100644
+--- a/firmware/capes/cape-bone-dvi-00A0.dts
++++ b/firmware/capes/cape-bone-dvi-00A0.dts
+@@ -15,6 +15,38 @@
+ 	part-number = "BB-BONE-DVID-01";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.14",	/* led: gpio1_18 */
++		"P9.16",	/* led: gpio1_19 */
++		"P8.4",		/* lcd: gpio1_7 */
++		"P8.45",	/* lcd: lcd_data0 */
++		"P8.46",	/* lcd: lcd_data1 */
++		"P8.43",	/* lcd: lcd_data2 */
++		"P8.44",	/* lcd: lcd_data3 */
++		"P8.41",	/* lcd: lcd_data4 */
++		"P8.42",	/* lcd: lcd_data5 */
++		"P8.39",	/* lcd: lcd_data6 */
++		"P8.40",	/* lcd: lcd_data7 */
++		"P8.37",	/* lcd: lcd_data8 */
++		"P8.38",	/* lcd: lcd_data9 */
++		"P8.36",	/* lcd: lcd_data10 */
++		"P8.34",	/* lcd: lcd_data11 */
++		"P8.35",	/* lcd: lcd_data12 */
++		"P8.33",	/* lcd: lcd_data13 */
++		"P8.31",	/* lcd: lcd_data14 */
++		"P8.32",	/* lcd: lcd_data15 */
++		"P8.27",	/* lcd: lcd_vsync */
++		"P8.29",	/* lcd: lcd_hsync */
++		"P8.28",	/* lcd: lcd_pclk */
++		"P8.30",	/* lcd: lcd_ac_bias_en */
++		/* the hardware IP uses */
++		"gpio1_18",
++		"gpio1_19",
++		"gpio1_7",
++		"lcd";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/cape-bone-dvi-00A1.dts b/firmware/capes/cape-bone-dvi-00A1.dts
+index b320d4f..ac8b4c5 100644
+--- a/firmware/capes/cape-bone-dvi-00A1.dts
++++ b/firmware/capes/cape-bone-dvi-00A1.dts
+@@ -15,6 +15,43 @@
+ 	part-number = "BB-BONE-DVID-01";
+ 	version = "00A1", "A1";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.14",	/* led: gpio1_18 */
++		"P9.16",	/* led: gpio1_19 */
++		"P9.25",	/* mcasp0: mcasp0_ahclkx */
++		"P9.28",	/* mcasp0: mcasp0_axr2 */
++		"P9.29",	/* mcasp0: mcasp0_fsx */
++		"P9.31",	/* mcasp0: mcasp0_aclkx */
++		"P8.4",		/* lcd: gpio1_7 */
++		"P8.45",	/* lcd: lcd_data0 */
++		"P8.46",	/* lcd: lcd_data1 */
++		"P8.43",	/* lcd: lcd_data2 */
++		"P8.44",	/* lcd: lcd_data3 */
++		"P8.41",	/* lcd: lcd_data4 */
++		"P8.42",	/* lcd: lcd_data5 */
++		"P8.39",	/* lcd: lcd_data6 */
++		"P8.40",	/* lcd: lcd_data7 */
++		"P8.37",	/* lcd: lcd_data8 */
++		"P8.38",	/* lcd: lcd_data9 */
++		"P8.36",	/* lcd: lcd_data10 */
++		"P8.34",	/* lcd: lcd_data11 */
++		"P8.35",	/* lcd: lcd_data12 */
++		"P8.33",	/* lcd: lcd_data13 */
++		"P8.31",	/* lcd: lcd_data14 */
++		"P8.32",	/* lcd: lcd_data15 */
++		"P8.27",	/* lcd: lcd_vsync */
++		"P8.29",	/* lcd: lcd_hsync */
++		"P8.28",	/* lcd: lcd_pclk */
++		"P8.30",	/* lcd: lcd_ac_bias_en */
++		/* the hardware IP uses */
++		"gpio1_18",
++		"gpio1_19",
++		"gpio1_7",
++		"mcasp0",
++		"lcd";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/cape-bone-dvi-00A2.dts b/firmware/capes/cape-bone-dvi-00A2.dts
+index d5c49bb..4c54804 100644
+--- a/firmware/capes/cape-bone-dvi-00A2.dts
++++ b/firmware/capes/cape-bone-dvi-00A2.dts
+@@ -15,6 +15,38 @@
+ 	part-number = "BB-BONE-DVID-01";
+ 	version = "00A3", "00A2", "A2";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.14",	/* led: gpio1_18 */
++		"P9.16",	/* led: gpio1_19 */
++		"P8.4",		/* lcd: gpio1_7 */
++		"P8.45",	/* lcd: lcd_data0 */
++		"P8.46",	/* lcd: lcd_data1 */
++		"P8.43",	/* lcd: lcd_data2 */
++		"P8.44",	/* lcd: lcd_data3 */
++		"P8.41",	/* lcd: lcd_data4 */
++		"P8.42",	/* lcd: lcd_data5 */
++		"P8.39",	/* lcd: lcd_data6 */
++		"P8.40",	/* lcd: lcd_data7 */
++		"P8.37",	/* lcd: lcd_data8 */
++		"P8.38",	/* lcd: lcd_data9 */
++		"P8.36",	/* lcd: lcd_data10 */
++		"P8.34",	/* lcd: lcd_data11 */
++		"P8.35",	/* lcd: lcd_data12 */
++		"P8.33",	/* lcd: lcd_data13 */
++		"P8.31",	/* lcd: lcd_data14 */
++		"P8.32",	/* lcd: lcd_data15 */
++		"P8.27",	/* lcd: lcd_vsync */
++		"P8.29",	/* lcd: lcd_hsync */
++		"P8.28",	/* lcd: lcd_pclk */
++		"P8.30",	/* lcd: lcd_ac_bias_en */
++		/* the hardware IP uses */
++		"gpio1_18",
++		"gpio1_19",
++		"gpio1_7",
++		"lcd";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/cape-bone-geiger-00A0.dts b/firmware/capes/cape-bone-geiger-00A0.dts
+index 309dbca..d3ea92a 100644
+--- a/firmware/capes/cape-bone-geiger-00A0.dts
++++ b/firmware/capes/cape-bone-geiger-00A0.dts
+@@ -15,6 +15,21 @@
+ 	part-number = "BB-BONE-GEIGER";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.29",	/* led: gpio2_23 */
++		"P8.30",	/* led: gpio2_25 */
++		"P9.14",	/* geiger: ehrpwm1A */
++		"P9.28",	/* geiger: gpio3_17 */
++		"P9.36",	/* geiger: AIN5 */
++		/* the hardware IP uses */
++		"gpio2_23",
++		"gpio2_25",
++		"gpio3_17",
++		"ehrpwm1A",
++		"tscadc";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/cape-bone-iio-00A0.dts b/firmware/capes/cape-bone-iio-00A0.dts
+index 4fa02ef..edff883 100644
+--- a/firmware/capes/cape-bone-iio-00A0.dts
++++ b/firmware/capes/cape-bone-iio-00A0.dts
+@@ -14,6 +14,19 @@
+ 	/* identification */
+ 	part-number = "iio-test";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.39",	/* AIN0 */
++		"P9.40",	/* AIN1 */
++		"P9.37",	/* AIN2 */
++		"P9.38",	/* AIN3 */
++		"P9.33",	/* AIN4 */
++		"P9.36",	/* AIN5 */
++		"P9.35",	/* AIN6 */
++		/* the hardware IP uses */
++		"tscadc";
++
+ 	fragment@0 {
+ 		target = <&ocp>;
+ 		__overlay__ {
+diff --git a/firmware/capes/cape-bone-mrf24j40-00A0.dts b/firmware/capes/cape-bone-mrf24j40-00A0.dts
+index 0fc2aea..7e7b6b8 100644
+--- a/firmware/capes/cape-bone-mrf24j40-00A0.dts
++++ b/firmware/capes/cape-bone-mrf24j40-00A0.dts
+@@ -16,6 +16,22 @@
+ 	part-number = "BB-BONE-MRF24J40";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.11",	/* gpio1_13 */
++		"P8.16",	/* gpio1_14 */
++		"P8.26",	/* gpio1_29 */
++		"P9.31",	/* spi1_sclk */
++		"P9.29",	/* spi1_d0 */
++		"P9.30",	/* spi1_d1 */
++		"P9.28",	/* spi1_cs0 */
++		/* the hardware IP uses */
++		"gpio1_13",
++		"gpio1_14",
++		"gpio1_29",
++		"spi1";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/cape-bone-nixie-00A0.dts b/firmware/capes/cape-bone-nixie-00A0.dts
+index 7ec2c46..e4ff3ab 100644
+--- a/firmware/capes/cape-bone-nixie-00A0.dts
++++ b/firmware/capes/cape-bone-nixie-00A0.dts
+@@ -15,6 +15,20 @@
+ 	part-number = "BB-BONE-NIXIE";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.25",	/* gpio3_21 */
++		"P8.45",	/* ehrpwm2A */
++		"P8.46",	/* ehrpwm2B */
++		"P9.31",	/* pr1_pru0_pru_r30_0 */
++		"P9.29",	/* pr1_pru0_pru_r30_1 */
++		"P9.27",	/* pr1_pru0_pru_r30_5 */
++		/* the hardware IP uses */
++		"gpio3_21",
++		"ehrpwm2A", "ehrpwm2B",
++		"pru";
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+@@ -28,7 +42,7 @@
+ 			bone_nixie_cape_pins: pinmux_bone_nixie_cape_pins {
+ 				pinctrl-single,pins = <
+ 					0x0a0 0x03      /* lcd_data0.gpio2_6 | MODE3 */
+-					0x0a4 0x03      /* lcd_data1.gpio2_7 | MODE3 */ 
++					0x0a4 0x03      /* lcd_data1.gpio2_7 | MODE3 */
+ 				>;
+ 		        };
+ 
+@@ -39,7 +53,7 @@
+ 					0x1a4 0x05	/* mcasp0_fsr.pr1_pru1_pru_r30_5, MODE5 | CLK */
+ 				>;
+ 			};
+-		};	
++		};
+ 	};
+ 
+ 	fragment@2 {
+diff --git a/firmware/capes/cape-bone-tester-00A0.dts b/firmware/capes/cape-bone-tester-00A0.dts
+index 1aee7af9..4cb94cc 100644
+--- a/firmware/capes/cape-bone-tester-00A0.dts
++++ b/firmware/capes/cape-bone-tester-00A0.dts
+@@ -15,6 +15,8 @@
+ 	part-number = "BB-BONE-TESTER";
+ 	version = "00A0";
+ 
++	/* NOTE: we don't use resources for the tester - it's not a normal cape */
++
+ 	fragment@0 {
+ 		target = <&am33xx_pinmux>;
+ 		__overlay__ {
+diff --git a/firmware/capes/cape-bone-weather-00A0.dts b/firmware/capes/cape-bone-weather-00A0.dts
+index 7cb479a..c017cdb 100644
+--- a/firmware/capes/cape-bone-weather-00A0.dts
++++ b/firmware/capes/cape-bone-weather-00A0.dts
+@@ -14,6 +14,13 @@
+ 	part-number = "BB-BONE-WTHR-01";
+ 	version = "00A0";
+ 
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.6",		/* gpio1_3 */
++		/* the hardware IP uses */
++		"gpio1_3";
++
+ 	fragment@0 {
+                target = <&am33xx_pinmux>;
+                __overlay__ {
+-- 
+1.8.1.4
+
