@@ -1,0 +1,68 @@
+From a0a844cf215f8fd851552f041e1fa1fae90fd482 Mon Sep 17 00:00:00 2001
+From: Chris Micali <chrismicali@gmail.com>
+Date: Mon, 20 May 2013 13:10:58 -0400
+Subject: [PATCH] Add sysfs entry for DDR sync
+
+---
+ drivers/uio/uio_pruss.c |   31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+diff --git a/drivers/uio/uio_pruss.c b/drivers/uio/uio_pruss.c
+index 5de4f11..54f4781 100644
+--- a/drivers/uio/uio_pruss.c
++++ b/drivers/uio/uio_pruss.c
+@@ -78,6 +78,32 @@ struct uio_pruss_dev {
+ 	struct gen_pool *sram_pool;
+ };
+ 
++static ssize_t store_sync_ddr(struct device *dev, struct device_attribute *attr,  char *buf, size_t count) {
++	struct uio_pruss_dev *gdev;
++	gdev = dev_get_drvdata(dev);
++	dma_sync_single_for_cpu(dev, gdev->ddr_paddr, extram_pool_sz, DMA_FROM_DEVICE);
++	return count;
++}
++static DEVICE_ATTR(sync_ddr, S_IWUSR, NULL, store_sync_ddr);
++
++static const struct attribute *uio_sysfs_attrs[] = {
++	&dev_attr_sync_ddr.attr,
++	NULL
++};
++
++static int uio_sysfs_init(struct platform_device *pdev) {
++	int error;
++	error = sysfs_create_files(&pdev->dev.kobj, uio_sysfs_attrs);
++	if (error) {
++		dev_err(&pdev->dev, "Failed to create sysfs entries");
++	}
++	return error;
++}
++
++static void uio_sysfs_cleanup(struct platform_device *pdev) {
++	sysfs_remove_files(&pdev->dev.kobj, uio_sysfs_attrs);
++}
++
+ static irqreturn_t pruss_handler(int irq, struct uio_info *info)
+ {
+ 	struct uio_pruss_dev *gdev = info->priv;
+@@ -103,6 +129,8 @@ static void pruss_cleanup(struct platform_device *dev,
+ 	int cnt;
+ 	struct uio_info *p = gdev->info;
+ 
++	uio_sysfs_cleanup(dev);
++
+ 	for (cnt = 0; cnt < MAX_PRUSS_EVT; cnt++, p++) {
+ 		uio_unregister_device(p);
+ 		kfree(p->name);
+@@ -295,6 +323,9 @@ static int pruss_probe(struct platform_device *dev)
+ 			goto out_free;
+ 	}
+ 
++	if (uio_sysfs_init(dev))
++		goto out_free;
++
+ 	platform_set_drvdata(dev, gdev);
+ 	return 0;
+ 
+-- 
+1.7.10.4
+
