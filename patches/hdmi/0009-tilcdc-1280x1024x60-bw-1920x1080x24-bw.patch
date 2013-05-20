@@ -1,0 +1,47 @@
+From 166a5e83b56f5e1d99b64835b29fd872ceff42ab Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Mon, 20 May 2013 15:16:55 +0300
+Subject: [PATCH 09/10] tilcdc: 1280x1024x60 bw > 1920x1080x24 bw
+
+The lower resolution modes do infact need more bandwidth.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c | 2 +-
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h  | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+index 900c710..c86da03 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+@@ -468,7 +468,7 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+ 		has_audio ? "true" : "false",
+ 		is_cea_mode ? "true" : "false");
+ 
+-	if (audio && has_audio && !is_cea_mode) {
++	if (edid && audio && has_audio && !is_cea_mode) {
+ 		DBG("Pruning mode : Does not support audio");
+ 		return MODE_BAD;
+ 	}
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.h b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+index 6b2c7ea..f3861e4 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.h
++++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+@@ -40,10 +40,11 @@
+ #define TILCDC_DEFAULT_MAX_WIDTH  2048
+ /* 
+  * This may need some tweaking, but want to allow at least 1280x1024@60 
+- * with optimized DDR & EMIF settings tweaked 1920x1080@24 appears to 
++ * with optimized DDR & EMIF settings tweaked 1920x1080@25 appears to 
+  * be supportable 
++ * Note: 1920x1080x25=49766400 < 1280x1024x60=78643200
+  */
+-#define TILCDC_DEFAULT_MAX_BANDWIDTH  (1920*1080*25)
++#define TILCDC_DEFAULT_MAX_BANDWIDTH  (1280*1024*60)
+ 
+ struct tilcdc_drm_private {
+ 	void __iomem *mmio;
+-- 
+1.8.1.4
+
