@@ -1,0 +1,34 @@
+From e3fcd861191fde505ead0d578f6f27d12c4b8785 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 3 Jul 2009 08:44:30 -0500
+Subject: [PATCH 114/291] timers: mov printk_tick to soft interrupt
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+---
+ kernel/timer.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/timer.c b/kernel/timer.c
+index 9b51abd..f4b3b68 100644
+--- a/kernel/timer.c
++++ b/kernel/timer.c
+@@ -1389,7 +1389,6 @@ void update_process_times(int user_tick)
+ 	account_process_tick(p, user_tick);
+ 	run_local_timers();
+ 	rcu_check_callbacks(cpu, user_tick);
+-	printk_tick();
+ #ifdef CONFIG_IRQ_WORK
+ 	if (in_irq())
+ 		irq_work_run();
+@@ -1405,6 +1404,7 @@ static void run_timer_softirq(struct softirq_action *h)
+ {
+ 	struct tvec_base *base = __this_cpu_read(tvec_bases);
+ 
++	printk_tick();
+ 	hrtimer_run_pending();
+ 
+ 	if (time_after_eq(jiffies, base->timer_jiffies))
+-- 
+1.8.1.4
+

@@ -1,0 +1,72 @@
+From 0a81d1ebc0f9411d72df374591b2e935bb321078 Mon Sep 17 00:00:00 2001
+From: Mike Galbraith <efault@gmx.de>
+Date: Wed, 7 Dec 2011 12:48:42 +0100
+Subject: [PATCH 008/291] intel_idle: Convert i7300_idle_lock to raw spinlock
+
+24 core Intel box's first exposure to 3.0.12-rt30-rc3 didn't go well.
+
+[   27.104159] i7300_idle: loaded v1.55
+[   27.104192] BUG: scheduling while atomic: swapper/2/0/0x00000002
+[   27.104309] Pid: 0, comm: swapper/2 Tainted: G           N  3.0.12-rt30-rc3-rt #1
+[   27.104317] Call Trace:
+[   27.104338]  [<ffffffff810046a5>] dump_trace+0x85/0x2e0
+[   27.104372]  [<ffffffff8144eb00>] thread_return+0x12b/0x30b
+[   27.104381]  [<ffffffff8144f1b9>] schedule+0x29/0xb0
+[   27.104389]  [<ffffffff814506e5>] rt_spin_lock_slowlock+0xc5/0x240
+[   27.104401]  [<ffffffffa01f818f>] i7300_idle_notifier+0x3f/0x360 [i7300_idle]
+[   27.104415]  [<ffffffff814546c7>] notifier_call_chain+0x37/0x70
+[   27.104426]  [<ffffffff81454748>] __atomic_notifier_call_chain+0x48/0x70
+[   27.104439]  [<ffffffff81001a39>] cpu_idle+0x89/0xb0
+[   27.104449] bad: scheduling from the idle thread!
+
+Signed-off-by: Mike Galbraith <efault@gmx.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: http://lkml.kernel.org/r/1323258522.5057.73.camel@marge.simson.net
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ drivers/idle/i7300_idle.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/idle/i7300_idle.c b/drivers/idle/i7300_idle.c
+index fa080eb..ffeebc7 100644
+--- a/drivers/idle/i7300_idle.c
++++ b/drivers/idle/i7300_idle.c
+@@ -75,7 +75,7 @@ static unsigned long past_skip;
+ 
+ static struct pci_dev *fbd_dev;
+ 
+-static spinlock_t i7300_idle_lock;
++static raw_spinlock_t i7300_idle_lock;
+ static int i7300_idle_active;
+ 
+ static u8 i7300_idle_thrtctl_saved;
+@@ -457,7 +457,7 @@ static int i7300_idle_notifier(struct notifier_block *nb, unsigned long val,
+ 		idle_begin_time = ktime_get();
+ 	}
+ 
+-	spin_lock_irqsave(&i7300_idle_lock, flags);
++	raw_spin_lock_irqsave(&i7300_idle_lock, flags);
+ 	if (val == IDLE_START) {
+ 
+ 		cpumask_set_cpu(smp_processor_id(), idle_cpumask);
+@@ -506,7 +506,7 @@ static int i7300_idle_notifier(struct notifier_block *nb, unsigned long val,
+ 		}
+ 	}
+ end:
+-	spin_unlock_irqrestore(&i7300_idle_lock, flags);
++	raw_spin_unlock_irqrestore(&i7300_idle_lock, flags);
+ 	return 0;
+ }
+ 
+@@ -548,7 +548,7 @@ struct debugfs_file_info {
+ 
+ static int __init i7300_idle_init(void)
+ {
+-	spin_lock_init(&i7300_idle_lock);
++	raw_spin_lock_init(&i7300_idle_lock);
+ 	total_us = 0;
+ 
+ 	if (i7300_idle_platform_probe(&fbd_dev, &ioat_dev, forceload))
+-- 
+1.8.1.4
+

@@ -1,0 +1,39 @@
+From 520f0fbeb683367ea8965599d802d0221d3af3e5 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sat, 16 Feb 2013 00:06:18 +0100
+Subject: [PATCH 028/291] timekeeping: Delay update of clock->cycle_last
+
+For calculating the new timekeeper values store the new cycle_last
+value in the timekeeper and update the clock->cycle_last just when we
+actually update the new values.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/time/timekeeping.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
+index e5a468e..d4231f2 100644
+--- a/kernel/time/timekeeping.c
++++ b/kernel/time/timekeeping.c
+@@ -1095,7 +1095,7 @@ static cycle_t logarithmic_accumulation(struct timekeeper *tk, cycle_t offset,
+ 
+ 	/* Accumulate one shifted interval */
+ 	offset -= interval;
+-	tk->clock->cycle_last += interval;
++	tk->cycle_last += interval;
+ 
+ 	tk->xtime_nsec += tk->xtime_interval << shift;
+ 	accumulate_nsecs_to_secs(tk);
+@@ -1210,6 +1210,8 @@ static void update_wall_time(void)
+ 	 */
+ 	accumulate_nsecs_to_secs(tk);
+ 
++	/* Update clock->cycle_last with the new value */
++	clock->cycle_last = tk->cycle_last;
+ 	timekeeping_update(tk, false);
+ 
+ out:
+-- 
+1.8.1.4
+

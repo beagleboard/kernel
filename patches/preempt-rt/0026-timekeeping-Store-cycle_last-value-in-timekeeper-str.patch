@@ -1,0 +1,56 @@
+From 47c0231211b001467c3d564320fd6f29f33f8120 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 15 Feb 2013 17:15:49 +0100
+Subject: [PATCH 026/291] timekeeping: Store cycle_last value in timekeeper
+ struct as well
+
+For implementing a shadow timekeeper and a split calculation/update
+region we need to store the cycle_last value in the timekeeper and
+update the value in the clocksource struct only in the update region.
+
+Add the extra storage to the timekeeper.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/timekeeper_internal.h | 2 ++
+ kernel/time/timekeeping.c           | 4 ++--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/timekeeper_internal.h b/include/linux/timekeeper_internal.h
+index 851bc43..2adf9c3 100644
+--- a/include/linux/timekeeper_internal.h
++++ b/include/linux/timekeeper_internal.h
+@@ -20,6 +20,8 @@ struct timekeeper {
+ 	u32			shift;
+ 	/* Number of clock cycles in one NTP interval. */
+ 	cycle_t			cycle_interval;
++	/* Last cycle value (also stored in clock->cycle_last) */
++	cycle_t			cycle_last;
+ 	/* Number of clock shifted nano seconds in one NTP interval. */
+ 	u64			xtime_interval;
+ 	/* shifted nano seconds left over when rounding cycle_interval */
+diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
+index bb62b9f..c59c9c6 100644
+--- a/kernel/time/timekeeping.c
++++ b/kernel/time/timekeeping.c
+@@ -96,7 +96,7 @@ static void tk_setup_internals(struct timekeeper *tk, struct clocksource *clock)
+ 
+ 	old_clock = tk->clock;
+ 	tk->clock = clock;
+-	clock->cycle_last = clock->read(clock);
++	tk->cycle_last = clock->cycle_last = clock->read(clock);
+ 
+ 	/* Do the ns -> cycle conversion first, using original mult */
+ 	tmp = NTP_INTERVAL_LENGTH;
+@@ -247,7 +247,7 @@ static void timekeeping_forward_now(struct timekeeper *tk)
+ 	clock = tk->clock;
+ 	cycle_now = clock->read(clock);
+ 	cycle_delta = (cycle_now - clock->cycle_last) & clock->mask;
+-	clock->cycle_last = cycle_now;
++	tk->cycle_last = clock->cycle_last = cycle_now;
+ 
+ 	tk->xtime_nsec += cycle_delta * tk->mult;
+ 
+-- 
+1.8.1.4
+

@@ -1,0 +1,40 @@
+From daf624096864b243c5ecd4bb700b409b77007636 Mon Sep 17 00:00:00 2001
+From: Christoph Lameter <cl@linux.com>
+Date: Wed, 23 Jan 2013 21:45:47 +0000
+Subject: [PATCH 001/291] FIX [1/2] slub: Do not dereference NULL pointer in
+ node_match
+
+The variables accessed in slab_alloc are volatile and therefore
+the page pointer passed to node_match can be NULL. The processing
+of data in slab_alloc is tentative until either the cmpxhchg
+succeeds or the __slab_alloc slowpath is invoked. Both are
+able to perform the same allocation from the freelist.
+
+Check for the NULL pointer in node_match.
+
+A false positive will lead to a retry of the loop in __slab_alloc.
+
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ mm/slub.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mm/slub.c b/mm/slub.c
+index ba2ca53..0f270db 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -2041,7 +2041,7 @@ static void flush_all(struct kmem_cache *s)
+ static inline int node_match(struct page *page, int node)
+ {
+ #ifdef CONFIG_NUMA
+-	if (node != NUMA_NO_NODE && page_to_nid(page) != node)
++	if (!page || (node != NUMA_NO_NODE && page_to_nid(page) != node))
+ 		return 0;
+ #endif
+ 	return 1;
+-- 
+1.8.1.4
+

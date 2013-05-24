@@ -1,0 +1,149 @@
+From 576b4ee54620726702d2d6bdca76644bf760d265 Mon Sep 17 00:00:00 2001
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Fri, 3 Jul 2009 08:44:54 -0500
+Subject: [PATCH 104/291] mm: shrink the page frame to !-rt size
+
+He below is a boot-tested hack to shrink the page frame size back to
+normal.
+
+Should be a net win since there should be many less PTE-pages than
+page-frames.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/mm.h       | 46 +++++++++++++++++++++++++++++++++++++++-------
+ include/linux/mm_types.h |  4 ++++
+ mm/memory.c              | 32 ++++++++++++++++++++++++++++++++
+ 3 files changed, 75 insertions(+), 7 deletions(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 9568b90..e3b3a15 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1259,27 +1259,59 @@ static inline pmd_t *pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long a
+  * overflow into the next struct page (as it might with DEBUG_SPINLOCK).
+  * When freeing, reset page->mapping so free_pages_check won't complain.
+  */
++#ifndef CONFIG_PREEMPT_RT_FULL
++
+ #define __pte_lockptr(page)	&((page)->ptl)
+-#define pte_lock_init(_page)	do {					\
+-	spin_lock_init(__pte_lockptr(_page));				\
+-} while (0)
++
++static inline struct page *pte_lock_init(struct page *page)
++{
++	spin_lock_init(__pte_lockptr(page));
++	return page;
++}
++
+ #define pte_lock_deinit(page)	((page)->mapping = NULL)
++
++#else /* !PREEMPT_RT_FULL */
++
++/*
++ * On PREEMPT_RT_FULL the spinlock_t's are too large to embed in the
++ * page frame, hence it only has a pointer and we need to dynamically
++ * allocate the lock when we allocate PTE-pages.
++ *
++ * This is an overall win, since only a small fraction of the pages
++ * will be PTE pages under normal circumstances.
++ */
++
++#define __pte_lockptr(page)	((page)->ptl)
++
++extern struct page *pte_lock_init(struct page *page);
++extern void pte_lock_deinit(struct page *page);
++
++#endif /* PREEMPT_RT_FULL */
++
+ #define pte_lockptr(mm, pmd)	({(void)(mm); __pte_lockptr(pmd_page(*(pmd)));})
+ #else	/* !USE_SPLIT_PTLOCKS */
+ /*
+  * We use mm->page_table_lock to guard all pagetable pages of the mm.
+  */
+-#define pte_lock_init(page)	do {} while (0)
++static inline struct page *pte_lock_init(struct page *page) { return page; }
+ #define pte_lock_deinit(page)	do {} while (0)
+ #define pte_lockptr(mm, pmd)	({(void)(pmd); &(mm)->page_table_lock;})
+ #endif /* USE_SPLIT_PTLOCKS */
+ 
+-static inline void pgtable_page_ctor(struct page *page)
++static inline struct page *__pgtable_page_ctor(struct page *page)
+ {
+-	pte_lock_init(page);
+-	inc_zone_page_state(page, NR_PAGETABLE);
++	page = pte_lock_init(page);
++	if (page)
++		inc_zone_page_state(page, NR_PAGETABLE);
++	return page;
+ }
+ 
++#define pgtable_page_ctor(page)				\
++do {							\
++	page = __pgtable_page_ctor(page);		\
++} while (0)
++
+ static inline void pgtable_page_dtor(struct page *page)
+ {
+ 	pte_lock_deinit(page);
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index f8f5162..8b53bdf 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -141,7 +141,11 @@ struct page {
+ 						 * system if PG_buddy is set.
+ 						 */
+ #if USE_SPLIT_PTLOCKS
++# ifndef CONFIG_PREEMPT_RT_FULL
+ 		spinlock_t ptl;
++# else
++		spinlock_t *ptl;
++# endif
+ #endif
+ 		struct kmem_cache *slab_cache;	/* SL[AU]B: Pointer to slab */
+ 		struct page *first_page;	/* Compound tail pages */
+diff --git a/mm/memory.c b/mm/memory.c
+index cb7094f..7417ebc 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -4312,3 +4312,35 @@ void copy_user_huge_page(struct page *dst, struct page *src,
+ 	}
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_HUGETLBFS */
++
++#if defined(CONFIG_PREEMPT_RT_FULL) && (USE_SPLIT_PTLOCKS > 0)
++/*
++ * Heinous hack, relies on the caller doing something like:
++ *
++ *   pte = alloc_pages(PGALLOC_GFP, 0);
++ *   if (pte)
++ *     pgtable_page_ctor(pte);
++ *   return pte;
++ *
++ * This ensures we release the page and return NULL when the
++ * lock allocation fails.
++ */
++struct page *pte_lock_init(struct page *page)
++{
++	page->ptl = kmalloc(sizeof(spinlock_t), GFP_KERNEL);
++	if (page->ptl) {
++		spin_lock_init(__pte_lockptr(page));
++	} else {
++		__free_page(page);
++		page = NULL;
++	}
++	return page;
++}
++
++void pte_lock_deinit(struct page *page)
++{
++	kfree(page->ptl);
++	page->mapping = NULL;
++}
++
++#endif
+-- 
+1.8.1.4
+

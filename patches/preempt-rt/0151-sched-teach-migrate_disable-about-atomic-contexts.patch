@@ -1,0 +1,92 @@
+From 5c8b578ca655a25eeb339456956b5c5996a16dc5 Mon Sep 17 00:00:00 2001
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Date: Fri, 2 Sep 2011 14:29:27 +0200
+Subject: [PATCH 151/291] sched: teach migrate_disable about atomic contexts
+
+ <NMI>  [<ffffffff812dafd8>] spin_bug+0x94/0xa8
+ [<ffffffff812db07f>] do_raw_spin_lock+0x43/0xea
+ [<ffffffff814fa9be>] _raw_spin_lock_irqsave+0x6b/0x85
+ [<ffffffff8106ff9e>] ? migrate_disable+0x75/0x12d
+ [<ffffffff81078aaf>] ? pin_current_cpu+0x36/0xb0
+ [<ffffffff8106ff9e>] migrate_disable+0x75/0x12d
+ [<ffffffff81115b9d>] pagefault_disable+0xe/0x1f
+ [<ffffffff81047027>] copy_from_user_nmi+0x74/0xe6
+ [<ffffffff810489d7>] perf_callchain_user+0xf3/0x135
+
+Now clearly we can't go around taking locks from NMI context, cure
+this by short-circuiting migrate_disable() when we're in an atomic
+context already.
+
+Add some extra debugging to avoid things like:
+
+  preempt_disable()
+  migrate_disable();
+
+  preempt_enable();
+  migrate_enable();
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Link: http://lkml.kernel.org/r/1314967297.1301.14.camel@twins
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/n/tip-wbot4vsmwhi8vmbf83hsclk6@git.kernel.org
+---
+ include/linux/sched.h |  3 +++
+ kernel/sched/core.c   | 21 +++++++++++++++++++++
+ 2 files changed, 24 insertions(+)
+
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index 580395f..55b4661 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1282,6 +1282,9 @@ struct task_struct {
+ 	unsigned int policy;
+ #ifdef CONFIG_PREEMPT_RT_FULL
+ 	int migrate_disable;
++# ifdef CONFIG_SCHED_DEBUG
++	int migrate_disable_atomic;
++# endif
+ #endif
+ 	int nr_cpus_allowed;
+ 	cpumask_t cpus_allowed;
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index ce0db2d..80882bf 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -4821,6 +4821,17 @@ void migrate_disable(void)
+ 	unsigned long flags;
+ 	struct rq *rq;
+ 
++	if (in_atomic()) {
++#ifdef CONFIG_SCHED_DEBUG
++		p->migrate_disable_atomic++;
++#endif
++		return;
++	}
++
++#ifdef CONFIG_SCHED_DEBUG
++	WARN_ON_ONCE(p->migrate_disable_atomic);
++#endif
++
+ 	preempt_disable();
+ 	if (p->migrate_disable) {
+ 		p->migrate_disable++;
+@@ -4869,6 +4880,16 @@ void migrate_enable(void)
+ 	unsigned long flags;
+ 	struct rq *rq;
+ 
++	if (in_atomic()) {
++#ifdef CONFIG_SCHED_DEBUG
++		p->migrate_disable_atomic--;
++#endif
++		return;
++	}
++
++#ifdef CONFIG_SCHED_DEBUG
++	WARN_ON_ONCE(p->migrate_disable_atomic);
++#endif
+ 	WARN_ON_ONCE(p->migrate_disable <= 0);
+ 
+ 	preempt_disable();
+-- 
+1.8.1.4
+

@@ -1,0 +1,50 @@
+From 550a4527fe2f445b9635123fe4c67b3b94d86c10 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sat, 16 Jul 2011 18:38:22 +0200
+Subject: [PATCH 010/291] seqlock: Remove unused functions
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/seqlock.h | 21 ---------------------
+ 1 file changed, 21 deletions(-)
+
+diff --git a/include/linux/seqlock.h b/include/linux/seqlock.h
+index 600060e2..cb0599c 100644
+--- a/include/linux/seqlock.h
++++ b/include/linux/seqlock.h
+@@ -69,17 +69,6 @@ static inline void write_sequnlock(seqlock_t *sl)
+ 	spin_unlock(&sl->lock);
+ }
+ 
+-static inline int write_tryseqlock(seqlock_t *sl)
+-{
+-	int ret = spin_trylock(&sl->lock);
+-
+-	if (ret) {
+-		++sl->sequence;
+-		smp_wmb();
+-	}
+-	return ret;
+-}
+-
+ /* Start of read calculation -- fetch last complete writer token */
+ static __always_inline unsigned read_seqbegin(const seqlock_t *sl)
+ {
+@@ -269,14 +258,4 @@ static inline void write_seqcount_barrier(seqcount_t *s)
+ #define write_sequnlock_bh(lock)					\
+ 	do { write_sequnlock(lock); local_bh_enable(); } while(0)
+ 
+-#define read_seqbegin_irqsave(lock, flags)				\
+-	({ local_irq_save(flags);   read_seqbegin(lock); })
+-
+-#define read_seqretry_irqrestore(lock, iv, flags)			\
+-	({								\
+-		int ret = read_seqretry(lock, iv);			\
+-		local_irq_restore(flags);				\
+-		ret;							\
+-	})
+-
+ #endif /* __LINUX_SEQLOCK_H */
+-- 
+1.8.1.4
+

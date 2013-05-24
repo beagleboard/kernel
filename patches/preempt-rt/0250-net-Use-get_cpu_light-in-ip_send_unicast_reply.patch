@@ -1,0 +1,36 @@
+From d4413c1ac17b91ce8583c3c2ccb4dd430d8b90a8 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Mon, 1 Oct 2012 17:12:35 +0100
+Subject: [PATCH 250/291] net: Use get_cpu_light() in ip_send_unicast_reply()
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ net/ipv4/ip_output.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
+index 3e98ed2..253692b 100644
+--- a/net/ipv4/ip_output.c
++++ b/net/ipv4/ip_output.c
+@@ -1508,7 +1508,8 @@ void ip_send_unicast_reply(struct net *net, struct sk_buff *skb, __be32 daddr,
+ 	if (IS_ERR(rt))
+ 		return;
+ 
+-	inet = &get_cpu_var(unicast_sock);
++	get_cpu_light();
++	inet = &__get_cpu_var(unicast_sock);
+ 
+ 	inet->tos = arg->tos;
+ 	sk = &inet->sk;
+@@ -1532,7 +1533,7 @@ void ip_send_unicast_reply(struct net *net, struct sk_buff *skb, __be32 daddr,
+ 		ip_push_pending_frames(sk, &fl4);
+ 	}
+ 
+-	put_cpu_var(unicast_sock);
++	put_cpu_light();
+ 
+ 	ip_rt_put(rt);
+ }
+-- 
+1.8.1.4
+

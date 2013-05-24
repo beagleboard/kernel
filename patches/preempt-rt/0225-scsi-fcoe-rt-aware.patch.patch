@@ -1,0 +1,121 @@
+From fcabba039ae6eec1669d88d46d711af213d92f9b Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sat, 12 Nov 2011 14:00:48 +0100
+Subject: [PATCH 225/291] scsi-fcoe-rt-aware.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ drivers/scsi/fcoe/fcoe.c      | 18 +++++++++---------
+ drivers/scsi/fcoe/fcoe_ctlr.c |  4 ++--
+ drivers/scsi/libfc/fc_exch.c  |  4 ++--
+ 3 files changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/scsi/fcoe/fcoe.c b/drivers/scsi/fcoe/fcoe.c
+index 666b7ac..61c1d2a 100644
+--- a/drivers/scsi/fcoe/fcoe.c
++++ b/drivers/scsi/fcoe/fcoe.c
+@@ -1272,7 +1272,7 @@ static void fcoe_percpu_thread_destroy(unsigned int cpu)
+ 	struct sk_buff *skb;
+ #ifdef CONFIG_SMP
+ 	struct fcoe_percpu_s *p0;
+-	unsigned targ_cpu = get_cpu();
++	unsigned targ_cpu = get_cpu_light();
+ #endif /* CONFIG_SMP */
+ 
+ 	FCOE_DBG("Destroying receive thread for CPU %d\n", cpu);
+@@ -1328,7 +1328,7 @@ static void fcoe_percpu_thread_destroy(unsigned int cpu)
+ 			kfree_skb(skb);
+ 		spin_unlock_bh(&p->fcoe_rx_list.lock);
+ 	}
+-	put_cpu();
++	put_cpu_light();
+ #else
+ 	/*
+ 	 * This a non-SMP scenario where the singular Rx thread is
+@@ -1546,11 +1546,11 @@ err2:
+ static int fcoe_alloc_paged_crc_eof(struct sk_buff *skb, int tlen)
+ {
+ 	struct fcoe_percpu_s *fps;
+-	int rc;
++	int rc, cpu = get_cpu_light();
+ 
+-	fps = &get_cpu_var(fcoe_percpu);
++	fps = &per_cpu(fcoe_percpu, cpu);
+ 	rc = fcoe_get_paged_crc_eof(skb, tlen, fps);
+-	put_cpu_var(fcoe_percpu);
++	put_cpu_light();
+ 
+ 	return rc;
+ }
+@@ -1745,11 +1745,11 @@ static inline int fcoe_filter_frames(struct fc_lport *lport,
+ 		return 0;
+ 	}
+ 
+-	stats = per_cpu_ptr(lport->stats, get_cpu());
++	stats = per_cpu_ptr(lport->stats, get_cpu_light());
+ 	stats->InvalidCRCCount++;
+ 	if (stats->InvalidCRCCount < 5)
+ 		printk(KERN_WARNING "fcoe: dropping frame with CRC error\n");
+-	put_cpu();
++	put_cpu_light();
+ 	return -EINVAL;
+ }
+ 
+@@ -1825,13 +1825,13 @@ static void fcoe_recv_frame(struct sk_buff *skb)
+ 		goto drop;
+ 
+ 	if (!fcoe_filter_frames(lport, fp)) {
+-		put_cpu();
++		put_cpu_light();
+ 		fc_exch_recv(lport, fp);
+ 		return;
+ 	}
+ drop:
+ 	stats->ErrorFrames++;
+-	put_cpu();
++	put_cpu_light();
+ 	kfree_skb(skb);
+ }
+ 
+diff --git a/drivers/scsi/fcoe/fcoe_ctlr.c b/drivers/scsi/fcoe/fcoe_ctlr.c
+index 4a909d7..69d36cc 100644
+--- a/drivers/scsi/fcoe/fcoe_ctlr.c
++++ b/drivers/scsi/fcoe/fcoe_ctlr.c
+@@ -792,7 +792,7 @@ static unsigned long fcoe_ctlr_age_fcfs(struct fcoe_ctlr *fip)
+ 
+ 	INIT_LIST_HEAD(&del_list);
+ 
+-	stats = per_cpu_ptr(fip->lp->stats, get_cpu());
++	stats = per_cpu_ptr(fip->lp->stats, get_cpu_light());
+ 
+ 	list_for_each_entry_safe(fcf, next, &fip->fcfs, list) {
+ 		deadline = fcf->time + fcf->fka_period + fcf->fka_period / 2;
+@@ -828,7 +828,7 @@ static unsigned long fcoe_ctlr_age_fcfs(struct fcoe_ctlr *fip)
+ 				sel_time = fcf->time;
+ 		}
+ 	}
+-	put_cpu();
++	put_cpu_light();
+ 
+ 	list_for_each_entry_safe(fcf, next, &del_list, list) {
+ 		/* Removes fcf from current list */
+diff --git a/drivers/scsi/libfc/fc_exch.c b/drivers/scsi/libfc/fc_exch.c
+index c772d8d..67ca13a 100644
+--- a/drivers/scsi/libfc/fc_exch.c
++++ b/drivers/scsi/libfc/fc_exch.c
+@@ -730,10 +730,10 @@ static struct fc_exch *fc_exch_em_alloc(struct fc_lport *lport,
+ 	}
+ 	memset(ep, 0, sizeof(*ep));
+ 
+-	cpu = get_cpu();
++	cpu = get_cpu_light();
+ 	pool = per_cpu_ptr(mp->pool, cpu);
+ 	spin_lock_bh(&pool->lock);
+-	put_cpu();
++	put_cpu_light();
+ 
+ 	/* peek cache of free slot */
+ 	if (pool->left != FC_XID_UNKNOWN) {
+-- 
+1.8.1.4
+

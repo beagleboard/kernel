@@ -1,0 +1,55 @@
+From 3a45b2619f60a58c1250bea7e930282e469877c4 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Thu, 14 Jul 2011 09:56:44 +0200
+Subject: [PATCH 130/291] cond-resched-softirq-fix.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/sched.h | 4 ++++
+ kernel/sched/core.c   | 2 ++
+ 2 files changed, 6 insertions(+)
+
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index ad49c3b..30c688c 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -2721,12 +2721,16 @@ extern int __cond_resched_lock(spinlock_t *lock);
+ 	__cond_resched_lock(lock);				\
+ })
+ 
++#ifndef CONFIG_PREEMPT_RT_FULL
+ extern int __cond_resched_softirq(void);
+ 
+ #define cond_resched_softirq() ({					\
+ 	__might_sleep(__FILE__, __LINE__, SOFTIRQ_DISABLE_OFFSET);	\
+ 	__cond_resched_softirq();					\
+ })
++#else
++# define cond_resched_softirq()		cond_resched()
++#endif
+ 
+ /*
+  * Does a critical section need to be broken due to another
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index aba0f8b..bebd66f 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -4368,6 +4368,7 @@ int __cond_resched_lock(spinlock_t *lock)
+ }
+ EXPORT_SYMBOL(__cond_resched_lock);
+ 
++#ifndef CONFIG_PREEMPT_RT_FULL
+ int __sched __cond_resched_softirq(void)
+ {
+ 	BUG_ON(!in_softirq());
+@@ -4381,6 +4382,7 @@ int __sched __cond_resched_softirq(void)
+ 	return 0;
+ }
+ EXPORT_SYMBOL(__cond_resched_softirq);
++#endif
+ 
+ /**
+  * yield - yield the current processor to other threads.
+-- 
+1.8.1.4
+

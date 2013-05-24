@@ -1,0 +1,29 @@
+From 87b30a1e3c2343f32df0637f0934905f9ce056df Mon Sep 17 00:00:00 2001
+From: Ingo Molnar <mingo@elte.hu>
+Date: Fri, 3 Jul 2009 08:30:18 -0500
+Subject: [PATCH 044/291] drivers/net: tulip_remove_one needs to call
+ pci_disable_device()
+
+Otherwise the device is not completely shut down.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ drivers/net/ethernet/dec/tulip/tulip_core.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/net/ethernet/dec/tulip/tulip_core.c b/drivers/net/ethernet/dec/tulip/tulip_core.c
+index 1e9443d..d25961b 100644
+--- a/drivers/net/ethernet/dec/tulip/tulip_core.c
++++ b/drivers/net/ethernet/dec/tulip/tulip_core.c
+@@ -1943,6 +1943,7 @@ static void tulip_remove_one(struct pci_dev *pdev)
+ 	pci_iounmap(pdev, tp->base_addr);
+ 	free_netdev (dev);
+ 	pci_release_regions (pdev);
++	pci_disable_device (pdev);
+ 	pci_set_drvdata (pdev, NULL);
+ 
+ 	/* pci_power_off (pdev, -1); */
+-- 
+1.8.1.4
+

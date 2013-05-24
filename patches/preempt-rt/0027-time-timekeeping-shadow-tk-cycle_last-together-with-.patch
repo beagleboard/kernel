@@ -1,0 +1,32 @@
+From 17ba256d5caef144a67871e9b5aeef8883871a7a Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Tue, 30 Apr 2013 18:53:55 +0200
+Subject: [PATCH 027/291] time/timekeeping: shadow tk->cycle_last together with
+ clock->cycle_last
+
+Commit ("timekeeping: Store cycle_last value in timekeeper struct as
+well") introduced a tk-> based cycle_last values which needs to be reset
+on resume path as well or else ktime_get() will think that time
+increased.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ kernel/time/timekeeping.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
+index c59c9c6..e5a468e 100644
+--- a/kernel/time/timekeeping.c
++++ b/kernel/time/timekeeping.c
+@@ -770,7 +770,7 @@ static void timekeeping_resume(void)
+ 		__timekeeping_inject_sleeptime(tk, &ts);
+ 	}
+ 	/* re-base the last cycle value */
+-	tk->clock->cycle_last = tk->clock->read(tk->clock);
++	tk->cycle_last = tk->clock->cycle_last = tk->clock->read(tk->clock);
+ 	tk->ntp_error = 0;
+ 	timekeeping_suspended = 0;
+ 	timekeeping_update(tk, false);
+-- 
+1.8.1.4
+

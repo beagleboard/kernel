@@ -1,0 +1,85 @@
+From 88430a06c7385838049979d13dabdaf4eddac067 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Mon, 3 Dec 2012 16:25:21 +0100
+Subject: [PATCH 276/291] rcutiny: Use simple waitqueue
+
+Simple waitqueues can be handled from interrupt disabled contexts.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/rcutiny_plugin.h | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/kernel/rcutiny_plugin.h b/kernel/rcutiny_plugin.h
+index ec3446e..14cae12 100644
+--- a/kernel/rcutiny_plugin.h
++++ b/kernel/rcutiny_plugin.h
+@@ -26,6 +26,7 @@
+ #include <linux/module.h>
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
++#include <linux/wait-simple.h>
+ 
+ /* Global control variables for rcupdate callback mechanism. */
+ struct rcu_ctrlblk {
+@@ -260,7 +261,7 @@ static void show_tiny_preempt_stats(struct seq_file *m)
+ 
+ /* Controls for rcu_kthread() kthread. */
+ static struct task_struct *rcu_kthread_task;
+-static DECLARE_WAIT_QUEUE_HEAD(rcu_kthread_wq);
++static DEFINE_SWAIT_HEAD(rcu_kthread_wq);
+ static unsigned long have_rcu_kthread_work;
+ 
+ /*
+@@ -713,7 +714,7 @@ void synchronize_rcu(void)
+ }
+ EXPORT_SYMBOL_GPL(synchronize_rcu);
+ 
+-static DECLARE_WAIT_QUEUE_HEAD(sync_rcu_preempt_exp_wq);
++static DEFINE_SWAIT_HEAD(sync_rcu_preempt_exp_wq);
+ static unsigned long sync_rcu_preempt_exp_count;
+ static DEFINE_MUTEX(sync_rcu_preempt_exp_mutex);
+ 
+@@ -735,7 +736,7 @@ static int rcu_preempted_readers_exp(void)
+  */
+ static void rcu_report_exp_done(void)
+ {
+-	wake_up(&sync_rcu_preempt_exp_wq);
++	swait_wake(&sync_rcu_preempt_exp_wq);
+ }
+ 
+ /*
+@@ -787,8 +788,8 @@ void synchronize_rcu_expedited(void)
+ 	} else {
+ 		rcu_initiate_boost();
+ 		local_irq_restore(flags);
+-		wait_event(sync_rcu_preempt_exp_wq,
+-			   !rcu_preempted_readers_exp());
++		swait_event(sync_rcu_preempt_exp_wq,
++			    !rcu_preempted_readers_exp());
+ 	}
+ 
+ 	/* Clean up and exit. */
+@@ -858,7 +859,7 @@ static void invoke_rcu_callbacks(void)
+ {
+ 	have_rcu_kthread_work = 1;
+ 	if (rcu_kthread_task != NULL)
+-		wake_up(&rcu_kthread_wq);
++		swait_wake(&rcu_kthread_wq);
+ }
+ 
+ #ifdef CONFIG_RCU_TRACE
+@@ -888,8 +889,8 @@ static int rcu_kthread(void *arg)
+ 	unsigned long flags;
+ 
+ 	for (;;) {
+-		wait_event_interruptible(rcu_kthread_wq,
+-					 have_rcu_kthread_work != 0);
++		swait_event_interruptible(rcu_kthread_wq,
++					  have_rcu_kthread_work != 0);
+ 		morework = rcu_boost();
+ 		local_irq_save(flags);
+ 		work = have_rcu_kthread_work;
+-- 
+1.8.1.4
+

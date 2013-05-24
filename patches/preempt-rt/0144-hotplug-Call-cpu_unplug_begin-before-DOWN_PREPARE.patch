@@ -1,0 +1,65 @@
+From e0ae2036b8013a396d49770b88caccb7a4bd5a59 Mon Sep 17 00:00:00 2001
+From: Yong Zhang <yong.zhang0@gmail.com>
+Date: Sun, 16 Oct 2011 18:56:44 +0800
+Subject: [PATCH 144/291] hotplug: Call cpu_unplug_begin() before DOWN_PREPARE
+
+cpu_unplug_begin() should be called before CPU_DOWN_PREPARE, because
+at CPU_DOWN_PREPARE cpu_active is cleared and sched_domain is
+rebuilt. Otherwise the 'sync_unplug' thread will be running on the cpu
+on which it's created and not bound on the cpu which is about to go
+down.
+
+I found that by an incorrect warning on smp_processor_id() called by
+sync_unplug/1, and trace shows below:
+(echo 1 > /sys/device/system/cpu/cpu1/online)
+  bash-1664  [000]    83.136620: _cpu_down: Bind sync_unplug to cpu 1
+  bash-1664  [000]    83.136623: sched_wait_task: comm=sync_unplug/1 pid=1724 prio=120
+  bash-1664  [000]    83.136624: _cpu_down: Wake sync_unplug
+  bash-1664  [000]    83.136629: sched_wakeup: comm=sync_unplug/1 pid=1724 prio=120 success=1 target_cpu=000
+
+Wants to be folded back....
+
+Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
+Link: http://lkml.kernel.org/r/1318762607-2261-3-git-send-email-yong.zhang0@gmail.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/cpu.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
+
+diff --git a/kernel/cpu.c b/kernel/cpu.c
+index 3a931bb..7b5f4cb 100644
+--- a/kernel/cpu.c
++++ b/kernel/cpu.c
+@@ -387,22 +387,20 @@ static int __ref _cpu_down(unsigned int cpu, int tasks_frozen)
+ 		return -EBUSY;
+ 	}
+ 
+-	err = __cpu_notify(CPU_DOWN_PREPARE | mod, hcpu, -1, &nr_calls);
++	cpu_hotplug_begin();
++	err = cpu_unplug_begin(cpu);
+ 	if (err) {
+-		nr_calls--;
+-		__cpu_notify(CPU_DOWN_FAILED | mod, hcpu, nr_calls, NULL);
+-		printk("%s: attempt to take down CPU %u failed\n",
+-				__func__, cpu);
++		printk("cpu_unplug_begin(%d) failed\n", cpu);
+ 		goto out_cancel;
+ 	}
+ 
+-	cpu_hotplug_begin();
+-	err = cpu_unplug_begin(cpu);
++	err = __cpu_notify(CPU_DOWN_PREPARE | mod, hcpu, -1, &nr_calls);
+ 	if (err) {
+ 		nr_calls--;
+ 		__cpu_notify(CPU_DOWN_FAILED | mod, hcpu, nr_calls, NULL);
+-		printk("cpu_unplug_begin(%d) failed\n", cpu);
+-		goto out_cancel;
++		printk("%s: attempt to take down CPU %u failed\n",
++				__func__, cpu);
++		goto out_release;
+ 	}
+ 	smpboot_park_threads(cpu);
+ 
+-- 
+1.8.1.4
+

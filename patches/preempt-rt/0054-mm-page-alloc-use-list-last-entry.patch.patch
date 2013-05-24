@@ -1,0 +1,26 @@
+From b4f7a7c094839ba7e4a3fb769ebb885501224c68 Mon Sep 17 00:00:00 2001
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Tue, 21 Jun 2011 11:24:35 +0200
+Subject: [PATCH 054/291] mm-page-alloc-use-list-last-entry.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ mm/page_alloc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 6a83cd3..f61bc0f 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -658,7 +658,7 @@ static void free_pcppages_bulk(struct zone *zone, int count,
+ 		do {
+ 			int mt;	/* migratetype of the to-be-freed page */
+ 
+-			page = list_entry(list->prev, struct page, lru);
++			page = list_last_entry(list, struct page, lru);
+ 			/* must delete as __free_one_page list manipulates */
+ 			list_del(&page->lru);
+ 			mt = get_freepage_migratetype(page);
+-- 
+1.8.1.4
+

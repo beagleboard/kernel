@@ -1,0 +1,159 @@
+From 5b426a79ae2fcd38da0307145055154f22eac655 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Wed, 20 Mar 2013 18:06:20 +0100
+Subject: [PATCH 266/291] net: make devnet_rename_seq a mutex
+
+On RT write_seqcount_begin() disables preemption and device_rename()
+allocates memory with GFP_KERNEL and grabs later the sysfs_mutex mutex.
+Since I don't see a reason why this can't be a mutex, make it one. We
+probably don't have that much reads at the same time in the hot path.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ include/linux/netdevice.h |  2 +-
+ net/core/dev.c            | 23 +++++++++++------------
+ net/core/sock.c           |  8 +++-----
+ 3 files changed, 15 insertions(+), 18 deletions(-)
+
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 4edb17e..0b58fd6 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -1579,7 +1579,7 @@ extern int call_netdevice_notifiers(unsigned long val, struct net_device *dev);
+ 
+ extern rwlock_t				dev_base_lock;		/* Device list lock */
+ 
+-extern seqcount_t	devnet_rename_seq;	/* Device rename seq */
++extern struct mutex devnet_rename_mutex;
+ 
+ 
+ #define for_each_netdev(net, d)		\
+diff --git a/net/core/dev.c b/net/core/dev.c
+index b41fb17..2593a48 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -203,7 +203,7 @@ static struct list_head offload_base __read_mostly;
+ DEFINE_RWLOCK(dev_base_lock);
+ EXPORT_SYMBOL(dev_base_lock);
+ 
+-seqcount_t devnet_rename_seq;
++DEFINE_MUTEX(devnet_rename_mutex);
+ 
+ static inline void dev_base_seq_inc(struct net *net)
+ {
+@@ -1093,10 +1093,11 @@ int dev_change_name(struct net_device *dev, const char *newname)
+ 	if (dev->flags & IFF_UP)
+ 		return -EBUSY;
+ 
+-	write_seqcount_begin(&devnet_rename_seq);
++
++	mutex_lock(&devnet_rename_mutex);
+ 
+ 	if (strncmp(newname, dev->name, IFNAMSIZ) == 0) {
+-		write_seqcount_end(&devnet_rename_seq);
++		mutex_unlock(&devnet_rename_mutex);
+ 		return 0;
+ 	}
+ 
+@@ -1104,7 +1105,7 @@ int dev_change_name(struct net_device *dev, const char *newname)
+ 
+ 	err = dev_get_valid_name(net, dev, newname);
+ 	if (err < 0) {
+-		write_seqcount_end(&devnet_rename_seq);
++		mutex_unlock(&devnet_rename_mutex);
+ 		return err;
+ 	}
+ 
+@@ -1112,11 +1113,11 @@ rollback:
+ 	ret = device_rename(&dev->dev, dev->name);
+ 	if (ret) {
+ 		memcpy(dev->name, oldname, IFNAMSIZ);
+-		write_seqcount_end(&devnet_rename_seq);
++		mutex_unlock(&devnet_rename_mutex);
+ 		return ret;
+ 	}
+ 
+-	write_seqcount_end(&devnet_rename_seq);
++	mutex_unlock(&devnet_rename_mutex);
+ 
+ 	write_lock_bh(&dev_base_lock);
+ 	hlist_del_rcu(&dev->name_hlist);
+@@ -1135,7 +1136,7 @@ rollback:
+ 		/* err >= 0 after dev_alloc_name() or stores the first errno */
+ 		if (err >= 0) {
+ 			err = ret;
+-			write_seqcount_begin(&devnet_rename_seq);
++			mutex_lock(&devnet_rename_mutex);
+ 			memcpy(dev->name, oldname, IFNAMSIZ);
+ 			goto rollback;
+ 		} else {
+@@ -4223,7 +4224,6 @@ static int dev_ifname(struct net *net, struct ifreq __user *arg)
+ {
+ 	struct net_device *dev;
+ 	struct ifreq ifr;
+-	unsigned seq;
+ 
+ 	/*
+ 	 *	Fetch the caller's info block.
+@@ -4232,19 +4232,18 @@ static int dev_ifname(struct net *net, struct ifreq __user *arg)
+ 	if (copy_from_user(&ifr, arg, sizeof(struct ifreq)))
+ 		return -EFAULT;
+ 
+-retry:
+-	seq = read_seqcount_begin(&devnet_rename_seq);
++	mutex_lock(&devnet_rename_mutex);
+ 	rcu_read_lock();
+ 	dev = dev_get_by_index_rcu(net, ifr.ifr_ifindex);
+ 	if (!dev) {
+ 		rcu_read_unlock();
++		mutex_unlock(&devnet_rename_mutex);
+ 		return -ENODEV;
+ 	}
+ 
+ 	strcpy(ifr.ifr_name, dev->name);
+ 	rcu_read_unlock();
+-	if (read_seqcount_retry(&devnet_rename_seq, seq))
+-		goto retry;
++	mutex_unlock(&devnet_rename_mutex);
+ 
+ 	if (copy_to_user(arg, &ifr, sizeof(struct ifreq)))
+ 		return -EFAULT;
+diff --git a/net/core/sock.c b/net/core/sock.c
+index 45a50ee..2754c99 100644
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -571,7 +571,6 @@ static int sock_getbindtodevice(struct sock *sk, char __user *optval,
+ 	struct net *net = sock_net(sk);
+ 	struct net_device *dev;
+ 	char devname[IFNAMSIZ];
+-	unsigned seq;
+ 
+ 	if (sk->sk_bound_dev_if == 0) {
+ 		len = 0;
+@@ -582,20 +581,19 @@ static int sock_getbindtodevice(struct sock *sk, char __user *optval,
+ 	if (len < IFNAMSIZ)
+ 		goto out;
+ 
+-retry:
+-	seq = read_seqcount_begin(&devnet_rename_seq);
++	mutex_lock(&devnet_rename_mutex);
+ 	rcu_read_lock();
+ 	dev = dev_get_by_index_rcu(net, sk->sk_bound_dev_if);
+ 	ret = -ENODEV;
+ 	if (!dev) {
+ 		rcu_read_unlock();
++		mutex_unlock(&devnet_rename_mutex);
+ 		goto out;
+ 	}
+ 
+ 	strcpy(devname, dev->name);
+ 	rcu_read_unlock();
+-	if (read_seqcount_retry(&devnet_rename_seq, seq))
+-		goto retry;
++	mutex_unlock(&devnet_rename_mutex);
+ 
+ 	len = strlen(devname) + 1;
+ 
+-- 
+1.8.1.4
+

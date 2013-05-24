@@ -1,0 +1,30 @@
+From 7c481f472bf57975669df696a17a7cbfa297f3c7 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Wed, 24 Apr 2013 18:34:55 -0700
+Subject: [PATCH 014/291] tcp: force a dst refcount when prequeue packet
+
+Before escaping RCU protected section and adding packet into
+prequeue, make sure the dst is refcounted.
+
+Reported-by: Mike Galbraith <bitbucket@online.de>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ include/net/tcp.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/net/tcp.h b/include/net/tcp.h
+index aed42c7..4da2167 100644
+--- a/include/net/tcp.h
++++ b/include/net/tcp.h
+@@ -1045,6 +1045,7 @@ static inline bool tcp_prequeue(struct sock *sk, struct sk_buff *skb)
+ 	if (sysctl_tcp_low_latency || !tp->ucopy.task)
+ 		return false;
+ 
++	skb_dst_force(skb);
+ 	__skb_queue_tail(&tp->ucopy.prequeue, skb);
+ 	tp->ucopy.memory += skb->truesize;
+ 	if (tp->ucopy.memory > sk->sk_rcvbuf) {
+-- 
+1.8.1.4
+

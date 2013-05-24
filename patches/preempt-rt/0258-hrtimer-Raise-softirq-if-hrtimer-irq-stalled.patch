@@ -1,0 +1,43 @@
+From 87e2ed1f722f25063baa2b18e78e7460a3d2f3dc Mon Sep 17 00:00:00 2001
+From: Watanabe <shunsuke.watanabe@tel.com>
+Date: Sun, 28 Oct 2012 11:13:44 +0100
+Subject: [PATCH 258/291] hrtimer: Raise softirq if hrtimer irq stalled
+
+When the hrtimer stall detection hits the softirq is not raised.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: stable-rt@vger.kernel.org
+---
+ kernel/hrtimer.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/kernel/hrtimer.c b/kernel/hrtimer.c
+index ec3f91a..aa5eb4f 100644
+--- a/kernel/hrtimer.c
++++ b/kernel/hrtimer.c
+@@ -1535,11 +1535,7 @@ retry:
+ 	if (expires_next.tv64 == KTIME_MAX ||
+ 	    !tick_program_event(expires_next, 0)) {
+ 		cpu_base->hang_detected = 0;
+-
+-		if (raise)
+-			raise_softirq_irqoff(HRTIMER_SOFTIRQ);
+-
+-		return;
++		goto out;
+ 	}
+ 
+ 	/*
+@@ -1583,6 +1579,9 @@ retry:
+ 	tick_program_event(expires_next, 1);
+ 	printk_once(KERN_WARNING "hrtimer: interrupt took %llu ns\n",
+ 		    ktime_to_ns(delta));
++out:
++	if (raise)
++		raise_softirq_irqoff(HRTIMER_SOFTIRQ);
+ }
+ 
+ /*
+-- 
+1.8.1.4
+

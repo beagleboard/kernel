@@ -1,0 +1,92 @@
+From cd391b8e71ba12e44dde366937fefb42df06024d Mon Sep 17 00:00:00 2001
+From: Ingo Molnar <mingo@elte.hu>
+Date: Fri, 3 Jul 2009 08:44:33 -0500
+Subject: [PATCH 079/291] core: Do not disable interrupts on RT in
+ res_counter.c
+
+Frederic Weisbecker reported this warning:
+
+[   45.228562] BUG: sleeping function called from invalid context at kernel/rtmutex.c:683
+[   45.228571] in_atomic(): 0, irqs_disabled(): 1, pid: 4290, name: ntpdate
+[   45.228576] INFO: lockdep is turned off.
+[   45.228580] irq event stamp: 0
+[   45.228583] hardirqs last  enabled at (0): [<(null)>] (null)
+[   45.228589] hardirqs last disabled at (0): [<ffffffff8025449d>] copy_process+0x68d/0x1500
+[   45.228602] softirqs last  enabled at (0): [<ffffffff8025449d>] copy_process+0x68d/0x1500
+[   45.228609] softirqs last disabled at (0): [<(null)>] (null)
+[   45.228617] Pid: 4290, comm: ntpdate Tainted: G        W  2.6.29-rc4-rt1-tip #1
+[   45.228622] Call Trace:
+[   45.228632]  [<ffffffff8027dfb0>] ? print_irqtrace_events+0xd0/0xe0
+[   45.228639]  [<ffffffff8024cd73>] __might_sleep+0x113/0x130
+[   45.228646]  [<ffffffff8077c811>] rt_spin_lock+0xa1/0xb0
+[   45.228653]  [<ffffffff80296a3d>] res_counter_charge+0x5d/0x130
+[   45.228660]  [<ffffffff802fb67f>] __mem_cgroup_try_charge+0x7f/0x180
+[   45.228667]  [<ffffffff802fc407>] mem_cgroup_charge_common+0x57/0x90
+[   45.228674]  [<ffffffff80212096>] ? ftrace_call+0x5/0x2b
+[   45.228680]  [<ffffffff802fc49d>] mem_cgroup_newpage_charge+0x5d/0x60
+[   45.228688]  [<ffffffff802d94ce>] __do_fault+0x29e/0x4c0
+[   45.228694]  [<ffffffff8077c843>] ? rt_spin_unlock+0x23/0x80
+[   45.228700]  [<ffffffff802db8b5>] handle_mm_fault+0x205/0x890
+[   45.228707]  [<ffffffff80212096>] ? ftrace_call+0x5/0x2b
+[   45.228714]  [<ffffffff8023495e>] do_page_fault+0x11e/0x2a0
+[   45.228720]  [<ffffffff8077e5a5>] page_fault+0x25/0x30
+[   45.228727]  [<ffffffff8043e1ed>] ? __clear_user+0x3d/0x70
+[   45.228733]  [<ffffffff8043e1d1>] ? __clear_user+0x21/0x70
+
+The reason is the raw IRQ flag use of kernel/res_counter.c.
+
+The irq flags tricks there seem a bit pointless: it cannot protect the
+c->parent linkage because local_irq_save() is only per CPU.
+
+So replace it with _nort(). This code needs a second look.
+
+Reported-by: Frederic Weisbecker <fweisbec@gmail.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/res_counter.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/kernel/res_counter.c b/kernel/res_counter.c
+index ff55247..cfecbee 100644
+--- a/kernel/res_counter.c
++++ b/kernel/res_counter.c
+@@ -49,7 +49,7 @@ static int __res_counter_charge(struct res_counter *counter, unsigned long val,
+ 
+ 	r = ret = 0;
+ 	*limit_fail_at = NULL;
+-	local_irq_save(flags);
++	local_irq_save_nort(flags);
+ 	for (c = counter; c != NULL; c = c->parent) {
+ 		spin_lock(&c->lock);
+ 		r = res_counter_charge_locked(c, val, force);
+@@ -69,7 +69,7 @@ static int __res_counter_charge(struct res_counter *counter, unsigned long val,
+ 			spin_unlock(&u->lock);
+ 		}
+ 	}
+-	local_irq_restore(flags);
++	local_irq_restore_nort(flags);
+ 
+ 	return ret;
+ }
+@@ -103,7 +103,7 @@ u64 res_counter_uncharge_until(struct res_counter *counter,
+ 	struct res_counter *c;
+ 	u64 ret = 0;
+ 
+-	local_irq_save(flags);
++	local_irq_save_nort(flags);
+ 	for (c = counter; c != top; c = c->parent) {
+ 		u64 r;
+ 		spin_lock(&c->lock);
+@@ -112,7 +112,7 @@ u64 res_counter_uncharge_until(struct res_counter *counter,
+ 			ret = r;
+ 		spin_unlock(&c->lock);
+ 	}
+-	local_irq_restore(flags);
++	local_irq_restore_nort(flags);
+ 	return ret;
+ }
+ 
+-- 
+1.8.1.4
+

@@ -1,0 +1,115 @@
+From 2b7a17a6d6104d9d04c381dc2fb47eb6d48f163e Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Thu, 15 Jul 2010 10:29:00 +0200
+Subject: [PATCH 052/291] suspend: Prevent might sleep splats
+
+timekeeping suspend/resume calls read_persistant_clock() which takes
+rtc_lock. That results in might sleep warnings because at that point
+we run with interrupts disabled.
+
+We cannot convert rtc_lock to a raw spinlock as that would trigger
+other might sleep warnings.
+
+As a temporary workaround we disable the might sleep warnings by
+setting system_state to SYSTEM_SUSPEND before calling sysdev_suspend()
+and restoring it to SYSTEM_RUNNING afer sysdev_resume().
+
+Needs to be revisited.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/kernel.h   | 1 +
+ kernel/power/hibernate.c | 7 +++++++
+ kernel/power/suspend.c   | 4 ++++
+ 3 files changed, 12 insertions(+)
+
+diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+index c566927..8b3086d 100644
+--- a/include/linux/kernel.h
++++ b/include/linux/kernel.h
+@@ -412,6 +412,7 @@ extern enum system_states {
+ 	SYSTEM_HALT,
+ 	SYSTEM_POWER_OFF,
+ 	SYSTEM_RESTART,
++	SYSTEM_SUSPEND,
+ } system_state;
+ 
+ #define TAINT_PROPRIETARY_MODULE	0
+diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
+index b26f5f1..3321e2b 100644
+--- a/kernel/power/hibernate.c
++++ b/kernel/power/hibernate.c
+@@ -275,6 +275,8 @@ static int create_image(int platform_mode)
+ 
+ 	local_irq_disable();
+ 
++	system_state = SYSTEM_SUSPEND;
++
+ 	error = syscore_suspend();
+ 	if (error) {
+ 		printk(KERN_ERR "PM: Some system devices failed to power down, "
+@@ -302,6 +304,7 @@ static int create_image(int platform_mode)
+ 	syscore_resume();
+ 
+  Enable_irqs:
++	system_state = SYSTEM_RUNNING;
+ 	local_irq_enable();
+ 
+  Enable_cpus:
+@@ -427,6 +430,7 @@ static int resume_target_kernel(bool platform_mode)
+ 		goto Enable_cpus;
+ 
+ 	local_irq_disable();
++	system_state = SYSTEM_SUSPEND;
+ 
+ 	error = syscore_suspend();
+ 	if (error)
+@@ -460,6 +464,7 @@ static int resume_target_kernel(bool platform_mode)
+ 	syscore_resume();
+ 
+  Enable_irqs:
++	system_state = SYSTEM_RUNNING;
+ 	local_irq_enable();
+ 
+  Enable_cpus:
+@@ -542,6 +547,7 @@ int hibernation_platform_enter(void)
+ 		goto Platform_finish;
+ 
+ 	local_irq_disable();
++	system_state = SYSTEM_SUSPEND;
+ 	syscore_suspend();
+ 	if (pm_wakeup_pending()) {
+ 		error = -EAGAIN;
+@@ -554,6 +560,7 @@ int hibernation_platform_enter(void)
+ 
+  Power_up:
+ 	syscore_resume();
++	system_state = SYSTEM_RUNNING;
+ 	local_irq_enable();
+ 	enable_nonboot_cpus();
+ 
+diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
+index c8b7446..ff2dade 100644
+--- a/kernel/power/suspend.c
++++ b/kernel/power/suspend.c
+@@ -165,6 +165,8 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
+ 	arch_suspend_disable_irqs();
+ 	BUG_ON(!irqs_disabled());
+ 
++	system_state = SYSTEM_SUSPEND;
++
+ 	error = syscore_suspend();
+ 	if (!error) {
+ 		*wakeup = pm_wakeup_pending();
+@@ -175,6 +177,8 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
+ 		syscore_resume();
+ 	}
+ 
++	system_state = SYSTEM_RUNNING;
++
+ 	arch_suspend_enable_irqs();
+ 	BUG_ON(irqs_disabled());
+ 
+-- 
+1.8.1.4
+

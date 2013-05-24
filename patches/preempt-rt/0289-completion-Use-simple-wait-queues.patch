@@ -1,0 +1,165 @@
+From 83b18035e1d0f9d9274804307883c18fb2f47684 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 11 Jan 2013 11:23:51 +0100
+Subject: [PATCH 289/291] completion: Use simple wait queues
+
+Completions have no long lasting callbacks and therefor do not need
+the complex waitqueue variant. Use simple waitqueues which reduces the
+contention on the waitqueue lock.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/completion.h |  8 ++++----
+ include/linux/uprobes.h    |  1 +
+ kernel/sched/core.c        | 34 +++++++++++++++++-----------------
+ 3 files changed, 22 insertions(+), 21 deletions(-)
+
+diff --git a/include/linux/completion.h b/include/linux/completion.h
+index 51494e6..ebb6565 100644
+--- a/include/linux/completion.h
++++ b/include/linux/completion.h
+@@ -8,7 +8,7 @@
+  * See kernel/sched.c for details.
+  */
+ 
+-#include <linux/wait.h>
++#include <linux/wait-simple.h>
+ 
+ /*
+  * struct completion - structure used to maintain state for a "completion"
+@@ -24,11 +24,11 @@
+  */
+ struct completion {
+ 	unsigned int done;
+-	wait_queue_head_t wait;
++	struct swait_head wait;
+ };
+ 
+ #define COMPLETION_INITIALIZER(work) \
+-	{ 0, __WAIT_QUEUE_HEAD_INITIALIZER((work).wait) }
++	{ 0, SWAIT_HEAD_INITIALIZER((work).wait) }
+ 
+ #define COMPLETION_INITIALIZER_ONSTACK(work) \
+ 	({ init_completion(&work); work; })
+@@ -73,7 +73,7 @@ struct completion {
+ static inline void init_completion(struct completion *x)
+ {
+ 	x->done = 0;
+-	init_waitqueue_head(&x->wait);
++	init_swait_head(&x->wait);
+ }
+ 
+ extern void wait_for_completion(struct completion *);
+diff --git a/include/linux/uprobes.h b/include/linux/uprobes.h
+index 4f628a6..ef03e33 100644
+--- a/include/linux/uprobes.h
++++ b/include/linux/uprobes.h
+@@ -26,6 +26,7 @@
+ 
+ #include <linux/errno.h>
+ #include <linux/rbtree.h>
++#include <linux/wait.h>
+ 
+ struct vm_area_struct;
+ struct mm_struct;
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index 1478d3b..505e08f 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -3491,10 +3491,10 @@ void complete(struct completion *x)
+ {
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(&x->wait.lock, flags);
++	raw_spin_lock_irqsave(&x->wait.lock, flags);
+ 	x->done++;
+-	__wake_up_common(&x->wait, TASK_NORMAL, 1, 0, NULL);
+-	spin_unlock_irqrestore(&x->wait.lock, flags);
++	__swait_wake_locked(&x->wait, TASK_NORMAL, 1);
++	raw_spin_unlock_irqrestore(&x->wait.lock, flags);
+ }
+ EXPORT_SYMBOL(complete);
+ 
+@@ -3511,10 +3511,10 @@ void complete_all(struct completion *x)
+ {
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(&x->wait.lock, flags);
++	raw_spin_lock_irqsave(&x->wait.lock, flags);
+ 	x->done += UINT_MAX/2;
+-	__wake_up_common(&x->wait, TASK_NORMAL, 0, 0, NULL);
+-	spin_unlock_irqrestore(&x->wait.lock, flags);
++	__swait_wake_locked(&x->wait, TASK_NORMAL, 0);
++	raw_spin_unlock_irqrestore(&x->wait.lock, flags);
+ }
+ EXPORT_SYMBOL(complete_all);
+ 
+@@ -3522,20 +3522,20 @@ static inline long __sched
+ do_wait_for_common(struct completion *x, long timeout, int state)
+ {
+ 	if (!x->done) {
+-		DECLARE_WAITQUEUE(wait, current);
++		DEFINE_SWAITER(wait);
+ 
+-		__add_wait_queue_tail_exclusive(&x->wait, &wait);
++		swait_prepare_locked(&x->wait, &wait);
+ 		do {
+ 			if (signal_pending_state(state, current)) {
+ 				timeout = -ERESTARTSYS;
+ 				break;
+ 			}
+ 			__set_current_state(state);
+-			spin_unlock_irq(&x->wait.lock);
++			raw_spin_unlock_irq(&x->wait.lock);
+ 			timeout = schedule_timeout(timeout);
+-			spin_lock_irq(&x->wait.lock);
++			raw_spin_lock_irq(&x->wait.lock);
+ 		} while (!x->done && timeout);
+-		__remove_wait_queue(&x->wait, &wait);
++		swait_finish_locked(&x->wait, &wait);
+ 		if (!x->done)
+ 			return timeout;
+ 	}
+@@ -3548,9 +3548,9 @@ wait_for_common(struct completion *x, long timeout, int state)
+ {
+ 	might_sleep();
+ 
+-	spin_lock_irq(&x->wait.lock);
++	raw_spin_lock_irq(&x->wait.lock);
+ 	timeout = do_wait_for_common(x, timeout, state);
+-	spin_unlock_irq(&x->wait.lock);
++	raw_spin_unlock_irq(&x->wait.lock);
+ 	return timeout;
+ }
+ 
+@@ -3681,12 +3681,12 @@ bool try_wait_for_completion(struct completion *x)
+ 	unsigned long flags;
+ 	int ret = 1;
+ 
+-	spin_lock_irqsave(&x->wait.lock, flags);
++	raw_spin_lock_irqsave(&x->wait.lock, flags);
+ 	if (!x->done)
+ 		ret = 0;
+ 	else
+ 		x->done--;
+-	spin_unlock_irqrestore(&x->wait.lock, flags);
++	raw_spin_unlock_irqrestore(&x->wait.lock, flags);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(try_wait_for_completion);
+@@ -3704,10 +3704,10 @@ bool completion_done(struct completion *x)
+ 	unsigned long flags;
+ 	int ret = 1;
+ 
+-	spin_lock_irqsave(&x->wait.lock, flags);
++	raw_spin_lock_irqsave(&x->wait.lock, flags);
+ 	if (!x->done)
+ 		ret = 0;
+-	spin_unlock_irqrestore(&x->wait.lock, flags);
++	raw_spin_unlock_irqrestore(&x->wait.lock, flags);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(completion_done);
+-- 
+1.8.1.4
+

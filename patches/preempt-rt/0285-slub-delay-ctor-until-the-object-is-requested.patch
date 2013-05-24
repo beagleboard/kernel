@@ -1,0 +1,42 @@
+From b44e9b430947d3f058cef2d775ccefab1bb26c61 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Fri, 24 May 2013 16:38:57 +0200
+Subject: [PATCH 285/291] slub: delay ctor until the object is requested
+
+It seems that allocation of plenty objects causes latency on ARM since that
+code can not be preempted
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ mm/slub.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/mm/slub.c b/mm/slub.c
+index 85299b8..f6871c5 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -1346,8 +1346,10 @@ static void setup_object(struct kmem_cache *s, struct page *page,
+ 				void *object)
+ {
+ 	setup_object_debug(s, page, object);
++#ifndef CONFIG_PREEMPT_RT_FULL
+ 	if (unlikely(s->ctor))
+ 		s->ctor(object);
++#endif
+ }
+ 
+ static struct page *new_slab(struct kmem_cache *s, gfp_t flags, int node)
+@@ -2437,6 +2439,10 @@ redo:
+ 
+ 	if (unlikely(gfpflags & __GFP_ZERO) && object)
+ 		memset(object, 0, s->object_size);
++#ifdef CONFIG_PREEMPT_RT_FULL
++	if (unlikely(s->ctor) && object)
++		s->ctor(object);
++#endif
+ 
+ 	slab_post_alloc_hook(s, gfpflags, object);
+ 
+-- 
+1.8.1.4
+

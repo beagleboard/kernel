@@ -1,0 +1,41 @@
+From 2283ae19442d594f517a6bee3febe9ac2c46331d Mon Sep 17 00:00:00 2001
+From: "Bu, Yitian" <ybu@qti.qualcomm.com>
+Date: Mon, 18 Feb 2013 12:53:37 +0000
+Subject: [PATCH 003/291] printk: Fix rq->lock vs logbuf_lock unlock lock
+ inversion
+
+commit 07354eb1a74d1 ("locking printk: Annotate logbuf_lock as raw")
+reintroduced a lock inversion problem which was fixed in commit
+0b5e1c5255 ("printk: Release console_sem after logbuf_lock"). This
+happened probably when fixing up patch rejects.
+
+Restore the ordering and unlock logbuf_lock before releasing
+console_sem.
+
+Signed-off-by: ybu <ybu@qti.qualcomm.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: stable@vger.kernel.org
+Link: http://lkml.kernel.org/r/E807E903FE6CBE4D95E420FBFCC273B827413C@nasanexd01h.na.qualcomm.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/printk.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/printk.c b/kernel/printk.c
+index 0ca8ffe..725c85e 100644
+--- a/kernel/printk.c
++++ b/kernel/printk.c
+@@ -1358,9 +1358,9 @@ static int console_trylock_for_printk(unsigned int cpu)
+ 		}
+ 	}
+ 	logbuf_cpu = UINT_MAX;
++	raw_spin_unlock(&logbuf_lock);
+ 	if (wake)
+ 		up(&console_sem);
+-	raw_spin_unlock(&logbuf_lock);
+ 	return retval;
+ }
+ 
+-- 
+1.8.1.4
+

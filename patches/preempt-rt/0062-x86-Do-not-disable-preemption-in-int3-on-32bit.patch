@@ -1,0 +1,118 @@
+From 7e438d5590968a5f1ef9058b82d841ed1bed1c99 Mon Sep 17 00:00:00 2001
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Fri, 24 May 2013 16:36:42 +0200
+Subject: [PATCH 062/291] x86: Do not disable preemption in int3 on 32bit
+
+Preemption must be disabled before enabling interrupts in do_trap
+on x86_64 because the stack in use for int3 and debug is a per CPU
+stack set by th IST. But 32bit does not have an IST and the stack
+still belongs to the current task and there is no problem in scheduling
+out the task.
+
+Keep preemption enabled on X86_32 when enabling interrupts for
+do_trap().
+
+The name of the function is changed from preempt_conditional_sti/cli()
+to conditional_sti/cli_ist(), to annotate that this function is used
+when the stack is on the IST.
+
+Cc: stable-rt@vger.kernel.org
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/x86/kernel/traps.c | 32 +++++++++++++++++++++++---------
+ 1 file changed, 23 insertions(+), 9 deletions(-)
+
+diff --git a/arch/x86/kernel/traps.c b/arch/x86/kernel/traps.c
+index ecffca1..be18ff6 100644
+--- a/arch/x86/kernel/traps.c
++++ b/arch/x86/kernel/traps.c
+@@ -85,9 +85,21 @@ static inline void conditional_sti(struct pt_regs *regs)
+ 		local_irq_enable();
+ }
+ 
+-static inline void preempt_conditional_sti(struct pt_regs *regs)
++static inline void conditional_sti_ist(struct pt_regs *regs)
+ {
++#ifdef CONFIG_X86_64
++	/*
++	 * X86_64 uses a per CPU stack on the IST for certain traps
++	 * like int3. The task can not be preempted when using one
++	 * of these stacks, thus preemption must be disabled, otherwise
++	 * the stack can be corrupted if the task is scheduled out,
++	 * and another task comes in and uses this stack.
++	 *
++	 * On x86_32 the task keeps its own stack and it is OK if the
++	 * task schedules out.
++	 */
+ 	inc_preempt_count();
++#endif
+ 	if (regs->flags & X86_EFLAGS_IF)
+ 		local_irq_enable();
+ }
+@@ -98,11 +110,13 @@ static inline void conditional_cli(struct pt_regs *regs)
+ 		local_irq_disable();
+ }
+ 
+-static inline void preempt_conditional_cli(struct pt_regs *regs)
++static inline void conditional_cli_ist(struct pt_regs *regs)
+ {
+ 	if (regs->flags & X86_EFLAGS_IF)
+ 		local_irq_disable();
++#ifdef CONFIG_X86_64
+ 	dec_preempt_count();
++#endif
+ }
+ 
+ static int __kprobes
+@@ -229,9 +243,9 @@ dotraplinkage void do_stack_segment(struct pt_regs *regs, long error_code)
+ 	exception_enter(regs);
+ 	if (notify_die(DIE_TRAP, "stack segment", regs, error_code,
+ 		       X86_TRAP_SS, SIGBUS) != NOTIFY_STOP) {
+-		preempt_conditional_sti(regs);
++		conditional_sti_ist(regs);
+ 		do_trap(X86_TRAP_SS, SIGBUS, "stack segment", regs, error_code, NULL);
+-		preempt_conditional_cli(regs);
++		conditional_cli_ist(regs);
+ 	}
+ 	exception_exit(regs);
+ }
+@@ -331,9 +345,9 @@ dotraplinkage void __kprobes notrace do_int3(struct pt_regs *regs, long error_co
+ 	 * as we may switch to the interrupt stack.
+ 	 */
+ 	debug_stack_usage_inc();
+-	preempt_conditional_sti(regs);
++	conditional_sti_ist(regs);
+ 	do_trap(X86_TRAP_BP, SIGTRAP, "int3", regs, error_code, NULL);
+-	preempt_conditional_cli(regs);
++	conditional_cli_ist(regs);
+ 	debug_stack_usage_dec();
+ exit:
+ 	exception_exit(regs);
+@@ -438,12 +452,12 @@ dotraplinkage void __kprobes do_debug(struct pt_regs *regs, long error_code)
+ 	debug_stack_usage_inc();
+ 
+ 	/* It's safe to allow irq's after DR6 has been saved */
+-	preempt_conditional_sti(regs);
++	conditional_sti_ist(regs);
+ 
+ 	if (regs->flags & X86_VM_MASK) {
+ 		handle_vm86_trap((struct kernel_vm86_regs *) regs, error_code,
+ 					X86_TRAP_DB);
+-		preempt_conditional_cli(regs);
++		conditional_cli_ist(regs);
+ 		debug_stack_usage_dec();
+ 		goto exit;
+ 	}
+@@ -463,7 +477,7 @@ dotraplinkage void __kprobes do_debug(struct pt_regs *regs, long error_code)
+ 	si_code = get_si_code(tsk->thread.debugreg6);
+ 	if (tsk->thread.debugreg6 & (DR_STEP | DR_TRAP_BITS) || user_icebp)
+ 		send_sigtrap(tsk, regs, error_code, si_code);
+-	preempt_conditional_cli(regs);
++	conditional_cli_ist(regs);
+ 	debug_stack_usage_dec();
+ 
+ exit:
+-- 
+1.8.1.4
+

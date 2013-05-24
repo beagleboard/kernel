@@ -1,0 +1,54 @@
+From 2d4a31326d580222fa7403cc21d108c058beb93d Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sun, 24 Jul 2011 12:11:43 +0200
+Subject: [PATCH 290/291] kconfig-disable-a-few-options-rt.patch
+
+Disable stuff which is known to have issues on RT
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/Kconfig        | 1 +
+ drivers/net/Kconfig | 1 +
+ mm/Kconfig          | 2 +-
+ 3 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/arch/Kconfig b/arch/Kconfig
+index 7f8f281..4a93e44 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -6,6 +6,7 @@ config OPROFILE
+ 	tristate "OProfile system profiling"
+ 	depends on PROFILING
+ 	depends on HAVE_OPROFILE
++	depends on !PREEMPT_RT_FULL
+ 	select RING_BUFFER
+ 	select RING_BUFFER_ALLOW_SWAP
+ 	help
+diff --git a/drivers/net/Kconfig b/drivers/net/Kconfig
+index 6a70184..0052e52 100644
+--- a/drivers/net/Kconfig
++++ b/drivers/net/Kconfig
+@@ -164,6 +164,7 @@ config VXLAN
+ 
+ config NETCONSOLE
+ 	tristate "Network console logging support"
++	depends on !PREEMPT_RT_FULL
+ 	---help---
+ 	If you want to log kernel messages over the network, enable this.
+ 	See <file:Documentation/networking/netconsole.txt> for details.
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 278e3ab..c6ceefc 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -353,7 +353,7 @@ config NOMMU_INITIAL_TRIM_EXCESS
+ 
+ config TRANSPARENT_HUGEPAGE
+ 	bool "Transparent Hugepage Support"
+-	depends on HAVE_ARCH_TRANSPARENT_HUGEPAGE
++	depends on HAVE_ARCH_TRANSPARENT_HUGEPAGE && !PREEMPT_RT_FULL
+ 	select COMPACTION
+ 	help
+ 	  Transparent Hugepages allows the kernel to use huge pages and
+-- 
+1.8.1.4
+

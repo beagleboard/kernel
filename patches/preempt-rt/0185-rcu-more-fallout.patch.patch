@@ -1,0 +1,30 @@
+From ab5bbff825c003bc15730b796da514f83e88c30b Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Mon, 14 Nov 2011 10:57:54 +0100
+Subject: [PATCH 185/291] rcu-more-fallout.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/rcutiny.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/kernel/rcutiny.c b/kernel/rcutiny.c
+index e7dce58..9bc2fe6 100644
+--- a/kernel/rcutiny.c
++++ b/kernel/rcutiny.c
+@@ -371,6 +371,7 @@ void call_rcu_sched(struct rcu_head *head, void (*func)(struct rcu_head *rcu))
+ }
+ EXPORT_SYMBOL_GPL(call_rcu_sched);
+ 
++#ifndef CONFIG_PREEMPT_RT_FULL
+ /*
+  * Post an RCU bottom-half callback to be invoked after any subsequent
+  * quiescent state.
+@@ -380,3 +381,4 @@ void call_rcu_bh(struct rcu_head *head, void (*func)(struct rcu_head *rcu))
+ 	__call_rcu(head, func, &rcu_bh_ctrlblk);
+ }
+ EXPORT_SYMBOL_GPL(call_rcu_bh);
++#endif
+-- 
+1.8.1.4
+

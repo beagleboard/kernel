@@ -1,0 +1,64 @@
+From f47b4a1d171c216d0dc3e4f62bc11eeec2d9610b Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sun, 17 Jul 2011 18:51:23 +0200
+Subject: [PATCH 158/291] lockdep-rt.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/irqflags.h | 10 +++++++---
+ kernel/lockdep.c         |  2 ++
+ 2 files changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/include/linux/irqflags.h b/include/linux/irqflags.h
+index 37b13c4..a52b35d 100644
+--- a/include/linux/irqflags.h
++++ b/include/linux/irqflags.h
+@@ -25,8 +25,6 @@
+ # define trace_softirqs_enabled(p)	((p)->softirqs_enabled)
+ # define trace_hardirq_enter()	do { current->hardirq_context++; } while (0)
+ # define trace_hardirq_exit()	do { current->hardirq_context--; } while (0)
+-# define lockdep_softirq_enter()	do { current->softirq_context++; } while (0)
+-# define lockdep_softirq_exit()	do { current->softirq_context--; } while (0)
+ # define INIT_TRACE_IRQFLAGS	.softirqs_enabled = 1,
+ #else
+ # define trace_hardirqs_on()		do { } while (0)
+@@ -39,9 +37,15 @@
+ # define trace_softirqs_enabled(p)	0
+ # define trace_hardirq_enter()		do { } while (0)
+ # define trace_hardirq_exit()		do { } while (0)
++# define INIT_TRACE_IRQFLAGS
++#endif
++
++#if defined(CONFIG_TRACE_IRQFLAGS) && !defined(CONFIG_PREEMPT_RT_FULL)
++# define lockdep_softirq_enter() do { current->softirq_context++; } while (0)
++# define lockdep_softirq_exit()	 do { current->softirq_context--; } while (0)
++#else
+ # define lockdep_softirq_enter()	do { } while (0)
+ # define lockdep_softirq_exit()		do { } while (0)
+-# define INIT_TRACE_IRQFLAGS
+ #endif
+ 
+ #if defined(CONFIG_IRQSOFF_TRACER) || \
+diff --git a/kernel/lockdep.c b/kernel/lockdep.c
+index 7981e5b..7f03801 100644
+--- a/kernel/lockdep.c
++++ b/kernel/lockdep.c
+@@ -3534,6 +3534,7 @@ static void check_flags(unsigned long flags)
+ 		}
+ 	}
+ 
++#ifndef CONFIG_PREEMPT_RT_FULL
+ 	/*
+ 	 * We dont accurately track softirq state in e.g.
+ 	 * hardirq contexts (such as on 4KSTACKS), so only
+@@ -3548,6 +3549,7 @@ static void check_flags(unsigned long flags)
+ 			DEBUG_LOCKS_WARN_ON(!current->softirqs_enabled);
+ 		}
+ 	}
++#endif
+ 
+ 	if (!debug_locks)
+ 		print_irqtrace_events(current);
+-- 
+1.8.1.4
+

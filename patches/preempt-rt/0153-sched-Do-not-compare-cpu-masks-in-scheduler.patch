@@ -1,0 +1,43 @@
+From 1bc126879c4281ff012c9459c327803f6432c402 Mon Sep 17 00:00:00 2001
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Date: Tue, 27 Sep 2011 08:40:24 -0400
+Subject: [PATCH 153/291] sched: Do not compare cpu masks in scheduler
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Clark Williams <williams@redhat.com>
+Link: http://lkml.kernel.org/r/20110927124423.128129033@goodmis.org
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/sched/core.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
+
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index 91152c4..c5e89ac 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -2878,16 +2878,12 @@ static inline void update_migrate_disable(struct task_struct *p)
+ 	 */
+ 	mask = tsk_cpus_allowed(p);
+ 
+-	WARN_ON(!cpumask_test_cpu(smp_processor_id(), mask));
++	if (p->sched_class->set_cpus_allowed)
++		p->sched_class->set_cpus_allowed(p, mask);
++	p->nr_cpus_allowed = cpumask_weight(mask);
+ 
+-	if (!cpumask_equal(&p->cpus_allowed, mask)) {
+-		if (p->sched_class->set_cpus_allowed)
+-			p->sched_class->set_cpus_allowed(p, mask);
+-		p->nr_cpus_allowed = cpumask_weight(mask);
+-
+-		/* Let migrate_enable know to fix things back up */
+-		p->migrate_disable |= MIGRATE_DISABLE_SET_AFFIN;
+-	}
++	/* Let migrate_enable know to fix things back up */
++	p->migrate_disable |= MIGRATE_DISABLE_SET_AFFIN;
+ }
+ 
+ void migrate_disable(void)
+-- 
+1.8.1.4
+

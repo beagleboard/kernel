@@ -1,0 +1,29 @@
+From b129e94fa5caae733c6265ca93d3461e253fb967 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Wed, 16 Mar 2011 14:45:31 +0100
+Subject: [PATCH 019/291] arm: Mark pmu interupt IRQF_NO_THREAD
+
+PMU interrupts must not be threaded.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/arm/kernel/perf_event_cpu.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/kernel/perf_event_cpu.c b/arch/arm/kernel/perf_event_cpu.c
+index 5f66206..aa1b171 100644
+--- a/arch/arm/kernel/perf_event_cpu.c
++++ b/arch/arm/kernel/perf_event_cpu.c
+@@ -118,7 +118,8 @@ static int cpu_pmu_request_irq(struct arm_pmu *cpu_pmu, irq_handler_t handler)
+ 			continue;
+ 		}
+ 
+-		err = request_irq(irq, handler, IRQF_NOBALANCING, "arm-pmu",
++		err = request_irq(irq, handler,
++				  IRQF_NOBALANCING | IRQF_NO_THREAD, "arm-pmu",
+ 				  cpu_pmu);
+ 		if (err) {
+ 			pr_err("unable to request IRQ%d for ARM PMU counters\n",
+-- 
+1.8.1.4
+

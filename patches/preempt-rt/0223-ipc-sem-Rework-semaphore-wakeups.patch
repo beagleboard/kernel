@@ -1,0 +1,75 @@
+From bb23ff559f4f145c88263cb8ed2eae06101543d0 Mon Sep 17 00:00:00 2001
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Date: Tue, 13 Sep 2011 15:09:40 +0200
+Subject: [PATCH 223/291] ipc/sem: Rework semaphore wakeups
+
+Current sysv sems have a weird ass wakeup scheme that involves keeping
+preemption disabled over a potential O(n^2) loop and busy waiting on
+that on other CPUs.
+
+Kill this and simply wake the task directly from under the sem_lock.
+
+This was discovered by a migrate_disable() debug feature that
+disallows:
+
+  spin_lock();
+  preempt_disable();
+  spin_unlock()
+  preempt_enable();
+
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Suggested-by: Thomas Gleixner <tglx@linutronix.de>
+Reported-by: Mike Galbraith <efault@gmx.de>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Link: http://lkml.kernel.org/r/1315994224.5040.1.camel@twins
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ ipc/sem.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/ipc/sem.c b/ipc/sem.c
+index 58d31f1..d7bdd84 100644
+--- a/ipc/sem.c
++++ b/ipc/sem.c
+@@ -461,6 +461,13 @@ undo:
+ static void wake_up_sem_queue_prepare(struct list_head *pt,
+ 				struct sem_queue *q, int error)
+ {
++#ifdef CONFIG_PREEMPT_RT_BASE
++	struct task_struct *p = q->sleeper;
++	get_task_struct(p);
++	q->status = error;
++	wake_up_process(p);
++	put_task_struct(p);
++#else
+ 	if (list_empty(pt)) {
+ 		/*
+ 		 * Hold preempt off so that we don't get preempted and have the
+@@ -472,6 +479,7 @@ static void wake_up_sem_queue_prepare(struct list_head *pt,
+ 	q->pid = error;
+ 
+ 	list_add_tail(&q->simple_list, pt);
++#endif
+ }
+ 
+ /**
+@@ -485,6 +493,7 @@ static void wake_up_sem_queue_prepare(struct list_head *pt,
+  */
+ static void wake_up_sem_queue_do(struct list_head *pt)
+ {
++#ifndef CONFIG_PREEMPT_RT_BASE
+ 	struct sem_queue *q, *t;
+ 	int did_something;
+ 
+@@ -497,6 +506,7 @@ static void wake_up_sem_queue_do(struct list_head *pt)
+ 	}
+ 	if (did_something)
+ 		preempt_enable();
++#endif
+ }
+ 
+ static void unlink_queue(struct sem_array *sma, struct sem_queue *q)
+-- 
+1.8.1.4
+

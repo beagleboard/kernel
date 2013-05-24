@@ -1,0 +1,86 @@
+From 0348a0d860161b4c1468d7babe76ce62a60f783e Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Tue, 31 May 2011 16:59:16 +0200
+Subject: [PATCH 124/291] sched-delay-put-task.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/sched.h | 13 +++++++++++++
+ kernel/fork.c         | 15 ++++++++++++++-
+ 2 files changed, 27 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index b25f9d7..70baa71 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1624,6 +1624,9 @@ struct task_struct {
+ #ifdef CONFIG_UPROBES
+ 	struct uprobe_task *utask;
+ #endif
++#ifdef CONFIG_PREEMPT_RT_BASE
++	struct rcu_head put_rcu;
++#endif
+ };
+ 
+ /* Future-safe accessor for struct task_struct's cpus_allowed. */
+@@ -1814,6 +1817,15 @@ extern struct pid *cad_pid;
+ extern void free_task(struct task_struct *tsk);
+ #define get_task_struct(tsk) do { atomic_inc(&(tsk)->usage); } while(0)
+ 
++#ifdef CONFIG_PREEMPT_RT_BASE
++extern void __put_task_struct_cb(struct rcu_head *rhp);
++
++static inline void put_task_struct(struct task_struct *t)
++{
++	if (atomic_dec_and_test(&t->usage))
++		call_rcu(&t->put_rcu, __put_task_struct_cb);
++}
++#else
+ extern void __put_task_struct(struct task_struct *t);
+ 
+ static inline void put_task_struct(struct task_struct *t)
+@@ -1821,6 +1833,7 @@ static inline void put_task_struct(struct task_struct *t)
+ 	if (atomic_dec_and_test(&t->usage))
+ 		__put_task_struct(t);
+ }
++#endif
+ 
+ extern void task_cputime_adjusted(struct task_struct *p, cputime_t *ut, cputime_t *st);
+ extern void thread_group_cputime_adjusted(struct task_struct *p, cputime_t *ut, cputime_t *st);
+diff --git a/kernel/fork.c b/kernel/fork.c
+index fae9ab2..c2e0120 100644
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -229,7 +229,9 @@ static inline void put_signal_struct(struct signal_struct *sig)
+ 	if (atomic_dec_and_test(&sig->sigcnt))
+ 		free_signal_struct(sig);
+ }
+-
++#ifdef CONFIG_PREEMPT_RT_BASE
++static
++#endif
+ void __put_task_struct(struct task_struct *tsk)
+ {
+ 	WARN_ON(!tsk->exit_state);
+@@ -244,7 +246,18 @@ void __put_task_struct(struct task_struct *tsk)
+ 	if (!profile_handoff_task(tsk))
+ 		free_task(tsk);
+ }
++#ifndef CONFIG_PREEMPT_RT_BASE
+ EXPORT_SYMBOL_GPL(__put_task_struct);
++#else
++void __put_task_struct_cb(struct rcu_head *rhp)
++{
++	struct task_struct *tsk = container_of(rhp, struct task_struct, put_rcu);
++
++	__put_task_struct(tsk);
++
++}
++EXPORT_SYMBOL_GPL(__put_task_struct_cb);
++#endif
+ 
+ void __init __weak arch_task_cache_init(void) { }
+ 
+-- 
+1.8.1.4
+

@@ -1,0 +1,117 @@
+From beb024b8574cb9a03d1e8f6885fb09945188b259 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Wed, 31 Oct 2012 12:04:11 +0100
+Subject: [PATCH 265/291] arm-preempt-lazy-support.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/arm/Kconfig                   |  1 +
+ arch/arm/include/asm/thread_info.h |  3 +++
+ arch/arm/kernel/asm-offsets.c      |  1 +
+ arch/arm/kernel/entry-armv.S       | 13 +++++++++++--
+ arch/arm/kernel/signal.c           |  3 ++-
+ 5 files changed, 18 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index a31ba89..731c504 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -47,6 +47,7 @@ config ARM
+ 	select HAVE_MEMBLOCK
+ 	select HAVE_OPROFILE if (HAVE_PERF_EVENTS)
+ 	select HAVE_PERF_EVENTS
++	select HAVE_PREEMPT_LAZY
+ 	select HAVE_REGS_AND_STACK_ACCESS_API
+ 	select HAVE_SYSCALL_TRACEPOINTS
+ 	select HAVE_UID16
+diff --git a/arch/arm/include/asm/thread_info.h b/arch/arm/include/asm/thread_info.h
+index cddda1f..4acacb2 100644
+--- a/arch/arm/include/asm/thread_info.h
++++ b/arch/arm/include/asm/thread_info.h
+@@ -50,6 +50,7 @@ struct cpu_context_save {
+ struct thread_info {
+ 	unsigned long		flags;		/* low level flags */
+ 	int			preempt_count;	/* 0 => preemptable, <0 => bug */
++	int			preempt_lazy_count;	/* 0 => preemptable, <0 => bug */
+ 	mm_segment_t		addr_limit;	/* address limit */
+ 	struct task_struct	*task;		/* main task structure */
+ 	struct exec_domain	*exec_domain;	/* execution domain */
+@@ -148,6 +149,7 @@ extern int vfp_restore_user_hwstate(struct user_vfp __user *,
+ #define TIF_SIGPENDING		0
+ #define TIF_NEED_RESCHED	1
+ #define TIF_NOTIFY_RESUME	2	/* callback before returning to user */
++#define TIF_NEED_RESCHED_LAZY	3
+ #define TIF_SYSCALL_TRACE	8
+ #define TIF_SYSCALL_AUDIT	9
+ #define TIF_SYSCALL_TRACEPOINT	10
+@@ -160,6 +162,7 @@ extern int vfp_restore_user_hwstate(struct user_vfp __user *,
+ #define _TIF_SIGPENDING		(1 << TIF_SIGPENDING)
+ #define _TIF_NEED_RESCHED	(1 << TIF_NEED_RESCHED)
+ #define _TIF_NOTIFY_RESUME	(1 << TIF_NOTIFY_RESUME)
++#define _TIF_NEED_RESCHED_LAZY	(1 << TIF_NEED_RESCHED_LAZY)
+ #define _TIF_SYSCALL_TRACE	(1 << TIF_SYSCALL_TRACE)
+ #define _TIF_SYSCALL_AUDIT	(1 << TIF_SYSCALL_AUDIT)
+ #define _TIF_SYSCALL_TRACEPOINT	(1 << TIF_SYSCALL_TRACEPOINT)
+diff --git a/arch/arm/kernel/asm-offsets.c b/arch/arm/kernel/asm-offsets.c
+index cf10d18..8b1d153 100644
+--- a/arch/arm/kernel/asm-offsets.c
++++ b/arch/arm/kernel/asm-offsets.c
+@@ -50,6 +50,7 @@ int main(void)
+   BLANK();
+   DEFINE(TI_FLAGS,		offsetof(struct thread_info, flags));
+   DEFINE(TI_PREEMPT,		offsetof(struct thread_info, preempt_count));
++  DEFINE(TI_PREEMPT_LAZY,	offsetof(struct thread_info, preempt_lazy_count));
+   DEFINE(TI_ADDR_LIMIT,		offsetof(struct thread_info, addr_limit));
+   DEFINE(TI_TASK,		offsetof(struct thread_info, task));
+   DEFINE(TI_EXEC_DOMAIN,	offsetof(struct thread_info, exec_domain));
+diff --git a/arch/arm/kernel/entry-armv.S b/arch/arm/kernel/entry-armv.S
+index 0f82098..afa746c 100644
+--- a/arch/arm/kernel/entry-armv.S
++++ b/arch/arm/kernel/entry-armv.S
+@@ -216,11 +216,18 @@ __irq_svc:
+ #ifdef CONFIG_PREEMPT
+ 	get_thread_info tsk
+ 	ldr	r8, [tsk, #TI_PREEMPT]		@ get preempt count
+-	ldr	r0, [tsk, #TI_FLAGS]		@ get flags
+ 	teq	r8, #0				@ if preempt count != 0
++	bne	1f				@ return from exeption
++	ldr	r0, [tsk, #TI_FLAGS]		@ get flags
++	tst	r0, #_TIF_NEED_RESCHED		@ if NEED_RESCHED is set
++	blne	svc_preempt			@ preempt!
++
++	ldr	r8, [tsk, #TI_PREEMPT_LAZY]	@ get preempt lazy count
++	teq	r8, #0				@ if preempt lazy count != 0
+ 	movne	r0, #0				@ force flags to 0
+-	tst	r0, #_TIF_NEED_RESCHED
++	tst	r0, #_TIF_NEED_RESCHED_LAZY
+ 	blne	svc_preempt
++1:
+ #endif
+ 
+ #ifdef CONFIG_TRACE_IRQFLAGS
+@@ -240,6 +247,8 @@ svc_preempt:
+ 1:	bl	preempt_schedule_irq		@ irq en/disable is done inside
+ 	ldr	r0, [tsk, #TI_FLAGS]		@ get new tasks TI_FLAGS
+ 	tst	r0, #_TIF_NEED_RESCHED
++	bne	1b
++	tst	r0, #_TIF_NEED_RESCHED_LAZY
+ 	moveq	pc, r8				@ go again
+ 	b	1b
+ #endif
+diff --git a/arch/arm/kernel/signal.c b/arch/arm/kernel/signal.c
+index 56f72d2..806416a 100644
+--- a/arch/arm/kernel/signal.c
++++ b/arch/arm/kernel/signal.c
+@@ -638,7 +638,8 @@ asmlinkage int
+ do_work_pending(struct pt_regs *regs, unsigned int thread_flags, int syscall)
+ {
+ 	do {
+-		if (likely(thread_flags & _TIF_NEED_RESCHED)) {
++		if (likely(thread_flags & (_TIF_NEED_RESCHED |
++					   _TIF_NEED_RESCHED_LAZY))) {
+ 			schedule();
+ 		} else {
+ 			if (unlikely(!user_mode(regs)))
+-- 
+1.8.1.4
+

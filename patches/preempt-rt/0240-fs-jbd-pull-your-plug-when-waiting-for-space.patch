@@ -1,0 +1,34 @@
+From d0d75be585edf0faedbc04afc425b4843afb6b45 Mon Sep 17 00:00:00 2001
+From: Mike Galbraith <mgalbraith@suse.de>
+Date: Wed, 11 Jul 2012 22:05:20 +0000
+Subject: [PATCH 240/291] fs, jbd: pull your plug when waiting for space
+
+With an -rt kernel, and a heavy sync IO load, tasks can jam
+up on journal locks without unplugging, which can lead to
+terminal IO starvation.  Unplug and schedule when waiting for space.
+
+Signed-off-by: Mike Galbraith <mgalbraith@suse.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Theodore Tso <tytso@mit.edu>
+Link: http://lkml.kernel.org/r/1341812414.7370.73.camel@marge.simpson.net
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ fs/jbd/checkpoint.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/fs/jbd/checkpoint.c b/fs/jbd/checkpoint.c
+index 08c0304..95debd7 100644
+--- a/fs/jbd/checkpoint.c
++++ b/fs/jbd/checkpoint.c
+@@ -129,6 +129,8 @@ void __log_wait_for_space(journal_t *journal)
+ 		if (journal->j_flags & JFS_ABORT)
+ 			return;
+ 		spin_unlock(&journal->j_state_lock);
++		if (current->plug)
++			io_schedule();
+ 		mutex_lock(&journal->j_checkpoint_mutex);
+ 
+ 		/*
+-- 
+1.8.1.4
+

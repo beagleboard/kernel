@@ -1,0 +1,394 @@
+From 01e53f8bb139fd92ca56120b84dddd1ab163735b Mon Sep 17 00:00:00 2001
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Date: Thu, 11 Aug 2011 15:31:31 +0200
+Subject: [PATCH 048/291] mm: pagefault_disabled()
+
+Wrap the test for pagefault_disabled() into a helper, this allows us
+to remove the need for current->pagefault_disabled on !-rt kernels.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Link: http://lkml.kernel.org/n/tip-3yy517m8zsi9fpsf14xfaqkw@git.kernel.org
+---
+ arch/alpha/mm/fault.c      |  2 +-
+ arch/arm/mm/fault.c        |  2 +-
+ arch/avr32/mm/fault.c      |  3 +--
+ arch/cris/mm/fault.c       |  2 +-
+ arch/frv/mm/fault.c        |  2 +-
+ arch/ia64/mm/fault.c       |  2 +-
+ arch/m32r/mm/fault.c       |  2 +-
+ arch/m68k/mm/fault.c       |  2 +-
+ arch/microblaze/mm/fault.c |  2 +-
+ arch/mips/mm/fault.c       |  2 +-
+ arch/mn10300/mm/fault.c    |  2 +-
+ arch/parisc/mm/fault.c     |  2 +-
+ arch/powerpc/mm/fault.c    |  2 +-
+ arch/s390/mm/fault.c       |  8 ++++----
+ arch/score/mm/fault.c      |  2 +-
+ arch/sh/mm/fault.c         |  2 +-
+ arch/sparc/mm/fault_32.c   |  2 +-
+ arch/sparc/mm/fault_64.c   |  2 +-
+ arch/tile/mm/fault.c       |  2 +-
+ arch/um/kernel/trap.c      |  2 +-
+ arch/x86/mm/fault.c        |  2 +-
+ arch/xtensa/mm/fault.c     |  2 +-
+ include/linux/sched.h      | 14 ++++++++++++++
+ kernel/fork.c              |  2 ++
+ 24 files changed, 41 insertions(+), 26 deletions(-)
+
+diff --git a/arch/alpha/mm/fault.c b/arch/alpha/mm/fault.c
+index f7d6c49..fb9eaa4 100644
+--- a/arch/alpha/mm/fault.c
++++ b/arch/alpha/mm/fault.c
+@@ -108,7 +108,7 @@ do_page_fault(unsigned long address, unsigned long mmcsr,
+ 
+ 	/* If we're in an interrupt context, or have no user context,
+ 	   we must not take the fault.  */
+-	if (!mm || in_atomic() || current->pagefault_disabled)
++	if (!mm || pagefault_disabled())
+ 		goto no_context;
+ 
+ #ifdef CONFIG_ALPHA_LARGE_VMALLOC
+diff --git a/arch/arm/mm/fault.c b/arch/arm/mm/fault.c
+index 56269df..149bab5 100644
+--- a/arch/arm/mm/fault.c
++++ b/arch/arm/mm/fault.c
+@@ -279,7 +279,7 @@ do_page_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
+ 	 * If we're in an interrupt or have no user
+ 	 * context, we must not take the fault..
+ 	 */
+-	if (in_atomic() || !mm || current->pagefault_disabled)
++	if (!mm || pagefault_disabled())
+ 		goto no_context;
+ 
+ 	/*
+diff --git a/arch/avr32/mm/fault.c b/arch/avr32/mm/fault.c
+index 4850f93..9577e69 100644
+--- a/arch/avr32/mm/fault.c
++++ b/arch/avr32/mm/fault.c
+@@ -81,8 +81,7 @@ asmlinkage void do_page_fault(unsigned long ecr, struct pt_regs *regs)
+ 	 * If we're in an interrupt or have no user context, we must
+ 	 * not take the fault...
+ 	 */
+-	if (in_atomic() || !mm || regs->sr & SYSREG_BIT(GM) ||
+-	    current->pagefault_disabled)
++	if (!mm || regs->sr & SYSREG_BIT(GM) || pagefault_disabled())
+ 		goto no_context;
+ 
+ 	local_irq_enable();
+diff --git a/arch/cris/mm/fault.c b/arch/cris/mm/fault.c
+index c82f44c..1a403d9 100644
+--- a/arch/cris/mm/fault.c
++++ b/arch/cris/mm/fault.c
+@@ -114,7 +114,7 @@ do_page_fault(unsigned long address, struct pt_regs *regs,
+ 	 * user context, we must not take the fault.
+ 	 */
+ 
+-	if (in_atomic() || !mm || current->pagefault_disabled)
++	if (!mm || pagefault_disabled())
+ 		goto no_context;
+ 
+ retry:
+diff --git a/arch/frv/mm/fault.c b/arch/frv/mm/fault.c
+index 6372088..e87972c 100644
+--- a/arch/frv/mm/fault.c
++++ b/arch/frv/mm/fault.c
+@@ -78,7 +78,7 @@ asmlinkage void do_page_fault(int datammu, unsigned long esr0, unsigned long ear
+ 	 * If we're in an interrupt or have no user
+ 	 * context, we must not take the fault..
+ 	 */
+-	if (in_atomic() || !mm || current->pagefault_disabled)
++	if (!mm || pagefault_disabled())
+ 		goto no_context;
+ 
+ 	down_read(&mm->mmap_sem);
+diff --git a/arch/ia64/mm/fault.c b/arch/ia64/mm/fault.c
+index ecac819..dd88415 100644
+--- a/arch/ia64/mm/fault.c
++++ b/arch/ia64/mm/fault.c
+@@ -98,7 +98,7 @@ ia64_do_page_fault (unsigned long address, unsigned long isr, struct pt_regs *re
+ 	/*
+ 	 * If we're in an interrupt or have no user context, we must not take the fault..
+ 	 */
+-	if (in_atomic() || !mm || current->pagefault_disabled)
++	if (!mm || pagefault_disabled())
+ 		goto no_context;
+ 
+ #ifdef CONFIG_VIRTUAL_MEM_MAP
+diff --git a/arch/m32r/mm/fault.c b/arch/m32r/mm/fault.c
+index 1eec8af..6945056 100644
+--- a/arch/m32r/mm/fault.c
++++ b/arch/m32r/mm/fault.c
+@@ -114,7 +114,7 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long error_code,
+ 	 * If we're in an interrupt or have no user context or are running in an
+ 	 * atomic region then we must not take the fault..
+ 	 */
+-	if (in_atomic() || !mm || current->pagefault_disabled)
++	if (!mm || pagefault_disabled())
+ 		goto bad_area_nosemaphore;
+ 
+ 	/* When running in the kernel we expect faults to occur only to
+diff --git a/arch/m68k/mm/fault.c b/arch/m68k/mm/fault.c
+index 152361e..9ea40db 100644
+--- a/arch/m68k/mm/fault.c
++++ b/arch/m68k/mm/fault.c
+@@ -85,7 +85,7 @@ int do_page_fault(struct pt_regs *regs, unsigned long address,
+ 	 * If we're in an interrupt or have no user
+ 	 * context, we must not take the fault..
+ 	 */
+-	if (in_atomic() || !mm || current->pagefault_disabled)
++	if (!mm || pagefault_disabled())
+ 		goto no_context;
+ 
+ retry:
+diff --git a/arch/microblaze/mm/fault.c b/arch/microblaze/mm/fault.c
+index fb9add1..dc1d8c1 100644
+--- a/arch/microblaze/mm/fault.c
++++ b/arch/microblaze/mm/fault.c
+@@ -108,7 +108,7 @@ void do_page_fault(struct pt_regs *regs, unsigned long address,
+ 	if ((error_code & 0x13) == 0x13 || (error_code & 0x11) == 0x11)
+ 		is_write = 0;
+ 
+-	if (unlikely(in_atomic() || !mm || current->pagefault_disabled)) {
++	if (unlikely(!mm || pagefault_disabled())) {
+ 		if (kernel_mode(regs))
+ 			goto bad_area_nosemaphore;
+ 
+diff --git a/arch/mips/mm/fault.c b/arch/mips/mm/fault.c
+index 63fec6e..90d193a 100644
+--- a/arch/mips/mm/fault.c
++++ b/arch/mips/mm/fault.c
+@@ -89,7 +89,7 @@ asmlinkage void __kprobes do_page_fault(struct pt_regs *regs, unsigned long writ
+ 	 * If we're in an interrupt or have no user
+ 	 * context, we must not take the fault..
+ 	 */
+-	if (in_atomic() || !mm || current->pagefault_disabled)
++	if (!mm || pagefault_disabled())
+ 		goto bad_area_nosemaphore;
+ 
+ retry:
+diff --git a/arch/mn10300/mm/fault.c b/arch/mn10300/mm/fault.c
+index b245bdf..34a83b9 100644
+--- a/arch/mn10300/mm/fault.c
++++ b/arch/mn10300/mm/fault.c
+@@ -168,7 +168,7 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long fault_code,
+ 	 * If we're in an interrupt or have no user
+ 	 * context, we must not take the fault..
+ 	 */
+-	if (in_atomic() || !mm || current->pagefault_disabled)
++	if (!mm || pagefault_disabled())
+ 		goto no_context;
+ 
+ retry:
+diff --git a/arch/parisc/mm/fault.c b/arch/parisc/mm/fault.c
+index 09ecc8a..df22f39 100644
+--- a/arch/parisc/mm/fault.c
++++ b/arch/parisc/mm/fault.c
+@@ -176,7 +176,7 @@ void do_page_fault(struct pt_regs *regs, unsigned long code,
+ 	unsigned long acc_type;
+ 	int fault;
+ 
+-	if (in_atomic() || !mm || current->pagefault_disabled)
++	if (!mm || pagefault_disabled())
+ 		goto no_context;
+ 
+ 	down_read(&mm->mmap_sem);
+diff --git a/arch/powerpc/mm/fault.c b/arch/powerpc/mm/fault.c
+index feef7a6..66fdd82 100644
+--- a/arch/powerpc/mm/fault.c
++++ b/arch/powerpc/mm/fault.c
+@@ -259,7 +259,7 @@ int __kprobes do_page_fault(struct pt_regs *regs, unsigned long address,
+ 	if (!arch_irq_disabled_regs(regs))
+ 		local_irq_enable();
+ 
+-	if (in_atomic() || mm == NULL || current->pagefault_disabled) {
++	if (!mm || pagefault_disabled()) {
+ 		if (!user_mode(regs))
+ 			return SIGSEGV;
+ 		/* in_atomic() in user mode is really bad,
+diff --git a/arch/s390/mm/fault.c b/arch/s390/mm/fault.c
+index a5fb7bc..62d659d 100644
+--- a/arch/s390/mm/fault.c
++++ b/arch/s390/mm/fault.c
+@@ -296,8 +296,8 @@ static inline int do_exception(struct pt_regs *regs, int access)
+ 	 * user context.
+ 	 */
+ 	fault = VM_FAULT_BADCONTEXT;
+-	if (unlikely(!user_space_fault(trans_exc_code) || in_atomic() || !mm ||
+-		    tsk->pagefault_disabled))
++	if (unlikely(!user_space_fault(trans_exc_code) ||
++		     !mm || pagefault_disabled()))
+ 		goto out;
+ 
+ 	address = trans_exc_code & __FAIL_ADDR_MASK;
+@@ -436,8 +436,8 @@ void __kprobes do_asce_exception(struct pt_regs *regs)
+ 	clear_tsk_thread_flag(current, TIF_PER_TRAP);
+ 
+ 	trans_exc_code = regs->int_parm_long;
+-	if (unlikely(!user_space_fault(trans_exc_code) || in_atomic() || !mm ||
+-		     current->pagefault_disabled()));
++	if (unlikely(!user_space_fault(trans_exc_code) || !mm ||
++		     pagefault_disabled()))
+ 		goto no_context;
+ 
+ 	down_read(&mm->mmap_sem);
+diff --git a/arch/score/mm/fault.c b/arch/score/mm/fault.c
+index 4c12824..59fccbe 100644
+--- a/arch/score/mm/fault.c
++++ b/arch/score/mm/fault.c
+@@ -72,7 +72,7 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long write,
+ 	* If we're in an interrupt or have no user
+ 	* context, we must not take the fault..
+ 	*/
+-	if (in_atomic() || !mm || current->pagefault_disabled)
++	if (!mm || pagefault_disabled())
+ 		goto bad_area_nosemaphore;
+ 
+ 	down_read(&mm->mmap_sem);
+diff --git a/arch/sh/mm/fault.c b/arch/sh/mm/fault.c
+index c89dd12..8ff1613 100644
+--- a/arch/sh/mm/fault.c
++++ b/arch/sh/mm/fault.c
+@@ -440,7 +440,7 @@ asmlinkage void __kprobes do_page_fault(struct pt_regs *regs,
+ 	 * If we're in an interrupt, have no user context or are running
+ 	 * in an atomic region then we must not take the fault:
+ 	 */
+-	if (unlikely(in_atomic() || !mm || current->pagefault_disabled)) {
++	if (unlikely(!mm || pagefault_disabled())) {
+ 		bad_area_nosemaphore(regs, error_code, address);
+ 		return;
+ 	}
+diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
+index ef35d69..18cbe13 100644
+--- a/arch/sparc/mm/fault_32.c
++++ b/arch/sparc/mm/fault_32.c
+@@ -200,7 +200,7 @@ asmlinkage void do_sparc_fault(struct pt_regs *regs, int text_fault, int write,
+ 	 * If we're in an interrupt or have no user
+ 	 * context, we must not take the fault..
+ 	 */
+-	if (in_atomic() || !mm || current->pagefault_disabled)
++	if (!mm || pagefault_disabled())
+ 		goto no_context;
+ 
+ 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
+diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
+index e852238..2764ac6 100644
+--- a/arch/sparc/mm/fault_64.c
++++ b/arch/sparc/mm/fault_64.c
+@@ -321,7 +321,7 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
+ 	 * If we're in an interrupt or have no user
+ 	 * context, we must not take the fault..
+ 	 */
+-	if (in_atomic() || !mm || current->pagefault_enabled)
++	if (!mm || pagefault_disabled())
+ 		goto intr_or_no_mm;
+ 
+ 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
+diff --git a/arch/tile/mm/fault.c b/arch/tile/mm/fault.c
+index a0fba28..1ba0ccc 100644
+--- a/arch/tile/mm/fault.c
++++ b/arch/tile/mm/fault.c
+@@ -360,7 +360,7 @@ static int handle_page_fault(struct pt_regs *regs,
+ 	 * If we're in an interrupt, have no user context or are running in an
+ 	 * atomic region then we must not take the fault.
+ 	 */
+-	if (in_atomic() || !mm || current->pagefault_disabled) {
++	if (!mm || pagefault_disabled()) {
+ 		vma = NULL;  /* happy compiler */
+ 		goto bad_area_nosemaphore;
+ 	}
+diff --git a/arch/um/kernel/trap.c b/arch/um/kernel/trap.c
+index bd897f6..991b33a 100644
+--- a/arch/um/kernel/trap.c
++++ b/arch/um/kernel/trap.c
+@@ -39,7 +39,7 @@ int handle_page_fault(unsigned long address, unsigned long ip,
+ 	 * If the fault was during atomic operation, don't take the fault, just
+ 	 * fail.
+ 	 */
+-	if (in_atomic() || current->pagefault_disabled)
++	if (pagefault_disabled())
+ 		goto out_nosemaphore;
+ 
+ retry:
+diff --git a/arch/x86/mm/fault.c b/arch/x86/mm/fault.c
+index fd0964b..9cc2653 100644
+--- a/arch/x86/mm/fault.c
++++ b/arch/x86/mm/fault.c
+@@ -1110,7 +1110,7 @@ __do_page_fault(struct pt_regs *regs, unsigned long error_code)
+ 	 * If we're in an interrupt, have no user context or are running
+ 	 * in an atomic region then we must not take the fault:
+ 	 */
+-	if (unlikely(in_atomic() || !mm || current->pagefault_disabled)) {
++	if (unlikely(!mm || pagefault_disabled())) {
+ 		bad_area_nosemaphore(regs, error_code, address);
+ 		return;
+ 	}
+diff --git a/arch/xtensa/mm/fault.c b/arch/xtensa/mm/fault.c
+index 0d82503..d57c257 100644
+--- a/arch/xtensa/mm/fault.c
++++ b/arch/xtensa/mm/fault.c
+@@ -57,7 +57,7 @@ void do_page_fault(struct pt_regs *regs)
+ 	/* If we're in an interrupt or have no user
+ 	 * context, we must not take the fault..
+ 	 */
+-	if (in_atomic() || !mm || current->pagefault_disabled) {
++	if (!mm || pagefault_disabled()) {
+ 		bad_page_fault(regs, address, SIGSEGV);
+ 		return;
+ 	}
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index ab84d81..56de9cb 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -51,6 +51,7 @@ struct sched_param {
+ #include <linux/cred.h>
+ #include <linux/llist.h>
+ #include <linux/uidgid.h>
++#include <linux/hardirq.h>
+ 
+ #include <asm/processor.h>
+ 
+@@ -1453,7 +1454,9 @@ struct task_struct {
+ 	/* mutex deadlock detection */
+ 	struct mutex_waiter *blocked_on;
+ #endif
++#ifdef CONFIG_PREEMPT_RT_FULL
+ 	int pagefault_disabled;
++#endif
+ #ifdef CONFIG_TRACE_IRQFLAGS
+ 	unsigned int irq_events;
+ 	unsigned long hardirq_enable_ip;
+@@ -1629,6 +1632,17 @@ static inline void set_numabalancing_state(bool enabled)
+ }
+ #endif
+ 
++#ifdef CONFIG_PREEMPT_RT_FULL
++static inline bool cur_pf_disabled(void) { return current->pagefault_disabled; }
++#else
++static inline bool cur_pf_disabled(void) { return false; }
++#endif
++
++static inline bool pagefault_disabled(void)
++{
++	return in_atomic() || cur_pf_disabled();
++}
++
+ /*
+  * Priority of a process goes from 0..MAX_PRIO-1, valid RT
+  * priority is 0..MAX_RT_PRIO-1, and SCHED_NORMAL/SCHED_BATCH
+diff --git a/kernel/fork.c b/kernel/fork.c
+index 4349b83..6b22be6 100644
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -1285,7 +1285,9 @@ static struct task_struct *copy_process(unsigned long clone_flags,
+ 	p->hardirq_context = 0;
+ 	p->softirq_context = 0;
+ #endif
++#ifdef CONFIG_PREEMPT_RT_FULL
+ 	p->pagefault_disabled = 0;
++#endif
+ #ifdef CONFIG_LOCKDEP
+ 	p->lockdep_depth = 0; /* no locks held yet */
+ 	p->curr_chain_key = 0;
+-- 
+1.8.1.4
+

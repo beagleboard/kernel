@@ -1,0 +1,45 @@
+From 3e9e00db7e0a9d75bed06649fb978ba93e9d8a32 Mon Sep 17 00:00:00 2001
+From: Yong Zhang <yong.zhang0@gmail.com>
+Date: Thu, 13 Oct 2011 17:19:09 +0800
+Subject: [PATCH 162/291] hardirq.h: Define softirq_count() as OUL to kill
+ build warning
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+kernel/lockdep.c: In function ‘print_bad_irq_dependency’:
+kernel/lockdep.c:1476:3: warning: format ‘%lu’ expects type ‘long unsigned int’, but argument 7 has type ‘unsigned int’
+kernel/lockdep.c: In function ‘print_usage_bug’:
+kernel/lockdep.c:2193:3: warning: format ‘%lu’ expects type ‘long unsigned int’, but argument 7 has type ‘unsigned int’
+
+kernel/lockdep.i show this:
+ printk("%s/%d [HC%u[%lu]:SC%u[%lu]:HE%u:SE%u] is trying to acquire:\n",
+  curr->comm, task_pid_nr(curr),
+  curr->hardirq_context, ((current_thread_info()->preempt_count) & (((1UL << (10))-1) << ((0 + 8) + 8))) >> ((0 + 8) + 8),
+  curr->softirq_context, (0U) >> (0 + 8),
+  curr->hardirqs_enabled,
+  curr->softirqs_enabled);
+
+Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
+Link: http://lkml.kernel.org/r/20111013091909.GA32739@zhy
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/hardirq.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/linux/hardirq.h b/include/linux/hardirq.h
+index 2ae0a9d..dfa97de 100644
+--- a/include/linux/hardirq.h
++++ b/include/linux/hardirq.h
+@@ -85,7 +85,7 @@
+ # define softirq_count()	(preempt_count() & SOFTIRQ_MASK)
+ # define in_serving_softirq()	(softirq_count() & SOFTIRQ_OFFSET)
+ #else
+-# define softirq_count()	(0U)
++# define softirq_count()	(0UL)
+ extern int in_serving_softirq(void);
+ #endif
+ 
+-- 
+1.8.1.4
+

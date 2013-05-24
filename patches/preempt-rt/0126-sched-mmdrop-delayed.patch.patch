@@ -1,0 +1,146 @@
+From 364133e762099b2ca84731d1abeb6f5ca57a5f91 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Mon, 6 Jun 2011 12:20:33 +0200
+Subject: [PATCH 126/291] sched-mmdrop-delayed.patch
+
+Needs thread context (pgd_lock) -> ifdeffed. workqueues wont work with
+RT
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/mm_types.h |  4 ++++
+ include/linux/sched.h    | 12 ++++++++++++
+ kernel/fork.c            | 13 +++++++++++++
+ kernel/sched/core.c      | 19 +++++++++++++++++--
+ 4 files changed, 46 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index 8b53bdf..6270199 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -11,6 +11,7 @@
+ #include <linux/completion.h>
+ #include <linux/cpumask.h>
+ #include <linux/page-debug-flags.h>
++#include <linux/rcupdate.h>
+ #include <linux/uprobes.h>
+ #include <asm/page.h>
+ #include <asm/mmu.h>
+@@ -440,6 +441,9 @@ struct mm_struct {
+ 	int first_nid;
+ #endif
+ 	struct uprobes_state uprobes_state;
++#ifdef CONFIG_PREEMPT_RT_BASE
++	struct rcu_head delayed_drop;
++#endif
+ };
+ 
+ /* first nid will either be a valid NID or one of these values */
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index 70baa71..4abb39b 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -2355,12 +2355,24 @@ extern struct mm_struct * mm_alloc(void);
+ 
+ /* mmdrop drops the mm and the page tables */
+ extern void __mmdrop(struct mm_struct *);
++
+ static inline void mmdrop(struct mm_struct * mm)
+ {
+ 	if (unlikely(atomic_dec_and_test(&mm->mm_count)))
+ 		__mmdrop(mm);
+ }
+ 
++#ifdef CONFIG_PREEMPT_RT_BASE
++extern void __mmdrop_delayed(struct rcu_head *rhp);
++static inline void mmdrop_delayed(struct mm_struct *mm)
++{
++	if (atomic_dec_and_test(&mm->mm_count))
++		call_rcu(&mm->delayed_drop, __mmdrop_delayed);
++}
++#else
++# define mmdrop_delayed(mm)	mmdrop(mm)
++#endif
++
+ /* mmput gets rid of the mappings and all user-space */
+ extern void mmput(struct mm_struct *);
+ /* Grab a reference to a task's mm, if it is not already going away */
+diff --git a/kernel/fork.c b/kernel/fork.c
+index c2e0120..591d2bd 100644
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -616,6 +616,19 @@ void __mmdrop(struct mm_struct *mm)
+ }
+ EXPORT_SYMBOL_GPL(__mmdrop);
+ 
++#ifdef CONFIG_PREEMPT_RT_BASE
++/*
++ * RCU callback for delayed mm drop. Not strictly rcu, but we don't
++ * want another facility to make this work.
++ */
++void __mmdrop_delayed(struct rcu_head *rhp)
++{
++	struct mm_struct *mm = container_of(rhp, struct mm_struct, delayed_drop);
++
++	__mmdrop(mm);
++}
++#endif
++
+ /*
+  * Decrement the use count and release all resources for an mm.
+  */
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index b589aa1..f051fde 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -1847,8 +1847,12 @@ static void finish_task_switch(struct rq *rq, struct task_struct *prev)
+ 	finish_arch_post_lock_switch();
+ 
+ 	fire_sched_in_preempt_notifiers(current);
++	/*
++	 * We use mmdrop_delayed() here so we don't have to do the
++	 * full __mmdrop() when we are the last user.
++	 */
+ 	if (mm)
+-		mmdrop(mm);
++		mmdrop_delayed(mm);
+ 	if (unlikely(prev_state == TASK_DEAD)) {
+ 		/*
+ 		 * Remove function-return probe instances associated with this
+@@ -4835,6 +4839,8 @@ static int migration_cpu_stop(void *data)
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+ 
++static DEFINE_PER_CPU(struct mm_struct *, idle_last_mm);
++
+ /*
+  * Ensures that the idle task is using init_mm right before its cpu goes
+  * offline.
+@@ -4847,7 +4853,12 @@ void idle_task_exit(void)
+ 
+ 	if (mm != &init_mm)
+ 		switch_mm(mm, &init_mm, current);
+-	mmdrop(mm);
++
++	/*
++	 * Defer the cleanup to an alive cpu. On RT we can neither
++	 * call mmdrop() nor mmdrop_delayed() from here.
++	 */
++	per_cpu(idle_last_mm, smp_processor_id()) = mm;
+ }
+ 
+ /*
+@@ -5164,6 +5175,10 @@ migration_call(struct notifier_block *nfb, unsigned long action, void *hcpu)
+ 
+ 	case CPU_DEAD:
+ 		calc_load_migrate(rq);
++		if (per_cpu(idle_last_mm, cpu)) {
++			mmdrop(per_cpu(idle_last_mm, cpu));
++			per_cpu(idle_last_mm, cpu) = NULL;
++		}
+ 		break;
+ #endif
+ 	}
+-- 
+1.8.1.4
+

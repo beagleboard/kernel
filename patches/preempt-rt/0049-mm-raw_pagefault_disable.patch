@@ -1,0 +1,154 @@
+From 808a7e9bc4a855e56daef7b9c3dc0ad3f53925bb Mon Sep 17 00:00:00 2001
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Date: Fri, 5 Aug 2011 17:16:58 +0200
+Subject: [PATCH 049/291] mm: raw_pagefault_disable
+
+Adding migrate_disable() to pagefault_disable() to preserve the
+per-cpu thing for kmap_atomic might not have been the best of choices.
+But short of adding preempt_disable/migrate_disable foo all over the
+kmap code it still seems the best way.
+
+It does however yield the below borkage as well as wreck !-rt builds
+since !-rt does rely on pagefault_disable() not preempting. So fix all
+that up by adding raw_pagefault_disable().
+
+ <NMI>  [<ffffffff81076d5c>] warn_slowpath_common+0x85/0x9d
+ [<ffffffff81076e17>] warn_slowpath_fmt+0x46/0x48
+ [<ffffffff814f7fca>] ? _raw_spin_lock+0x6c/0x73
+ [<ffffffff810cac87>] ? watchdog_overflow_callback+0x9b/0xd0
+ [<ffffffff810caca3>] watchdog_overflow_callback+0xb7/0xd0
+ [<ffffffff810f51bb>] __perf_event_overflow+0x11c/0x1fe
+ [<ffffffff810f298f>] ? perf_event_update_userpage+0x149/0x151
+ [<ffffffff810f2846>] ? perf_event_task_disable+0x7c/0x7c
+ [<ffffffff810f5b7c>] perf_event_overflow+0x14/0x16
+ [<ffffffff81046e02>] x86_pmu_handle_irq+0xcb/0x108
+ [<ffffffff814f9a6b>] perf_event_nmi_handler+0x46/0x91
+ [<ffffffff814fb2ba>] notifier_call_chain+0x79/0xa6
+ [<ffffffff814fb34d>] __atomic_notifier_call_chain+0x66/0x98
+ [<ffffffff814fb2e7>] ? notifier_call_chain+0xa6/0xa6
+ [<ffffffff814fb393>] atomic_notifier_call_chain+0x14/0x16
+ [<ffffffff814fb3c3>] notify_die+0x2e/0x30
+ [<ffffffff814f8f75>] do_nmi+0x7e/0x22b
+ [<ffffffff814f8bca>] nmi+0x1a/0x2c
+ [<ffffffff814fb130>] ? sub_preempt_count+0x4b/0xaa
+ <<EOE>>  <IRQ>  [<ffffffff812d44cc>] delay_tsc+0xac/0xd1
+ [<ffffffff812d4399>] __delay+0xf/0x11
+ [<ffffffff812d95d9>] do_raw_spin_lock+0xd2/0x13c
+ [<ffffffff814f813e>] _raw_spin_lock_irqsave+0x6b/0x85
+ [<ffffffff8106772a>] ? task_rq_lock+0x35/0x8d
+ [<ffffffff8106772a>] task_rq_lock+0x35/0x8d
+ [<ffffffff8106fe2f>] migrate_disable+0x65/0x12c
+ [<ffffffff81114e69>] pagefault_disable+0xe/0x1f
+ [<ffffffff81039c73>] dump_trace+0x21f/0x2e2
+ [<ffffffff8103ad79>] show_trace_log_lvl+0x54/0x5d
+ [<ffffffff8103ad97>] show_trace+0x15/0x17
+ [<ffffffff814f4f5f>] dump_stack+0x77/0x80
+ [<ffffffff812d94b0>] spin_bug+0x9c/0xa3
+ [<ffffffff81067745>] ? task_rq_lock+0x50/0x8d
+ [<ffffffff812d954e>] do_raw_spin_lock+0x47/0x13c
+ [<ffffffff814f7fbe>] _raw_spin_lock+0x60/0x73
+ [<ffffffff81067745>] ? task_rq_lock+0x50/0x8d
+ [<ffffffff81067745>] task_rq_lock+0x50/0x8d
+ [<ffffffff8106fe2f>] migrate_disable+0x65/0x12c
+ [<ffffffff81114e69>] pagefault_disable+0xe/0x1f
+ [<ffffffff81039c73>] dump_trace+0x21f/0x2e2
+ [<ffffffff8104369b>] save_stack_trace+0x2f/0x4c
+ [<ffffffff810a7848>] save_trace+0x3f/0xaf
+ [<ffffffff810aa2bd>] mark_lock+0x228/0x530
+ [<ffffffff810aac27>] __lock_acquire+0x662/0x1812
+ [<ffffffff8103dad4>] ? native_sched_clock+0x37/0x6d
+ [<ffffffff810a790e>] ? trace_hardirqs_off_caller+0x1f/0x99
+ [<ffffffff810693f6>] ? sched_rt_period_timer+0xbd/0x218
+ [<ffffffff810ac403>] lock_acquire+0x145/0x18a
+ [<ffffffff810693f6>] ? sched_rt_period_timer+0xbd/0x218
+ [<ffffffff814f7f9e>] _raw_spin_lock+0x40/0x73
+ [<ffffffff810693f6>] ? sched_rt_period_timer+0xbd/0x218
+ [<ffffffff810693f6>] sched_rt_period_timer+0xbd/0x218
+ [<ffffffff8109aa39>] __run_hrtimer+0x1e4/0x347
+ [<ffffffff81069339>] ? can_migrate_task.clone.82+0x14a/0x14a
+ [<ffffffff8109b97c>] hrtimer_interrupt+0xee/0x1d6
+ [<ffffffff814fb23d>] ? add_preempt_count+0xae/0xb2
+ [<ffffffff814ffb38>] smp_apic_timer_interrupt+0x85/0x98
+ [<ffffffff814fef13>] apic_timer_interrupt+0x13/0x20
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Link: http://lkml.kernel.org/n/tip-31keae8mkjiv8esq4rl76cib@git.kernel.org
+---
+ include/linux/uaccess.h | 30 ++++++++++++++++++++++++++++--
+ mm/memory.c             |  2 ++
+ 2 files changed, 30 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/uaccess.h b/include/linux/uaccess.h
+index 9414a1b..44b3751 100644
+--- a/include/linux/uaccess.h
++++ b/include/linux/uaccess.h
+@@ -8,8 +8,34 @@
+  * These routines enable/disable the pagefault handler in that
+  * it will not take any MM locks and go straight to the fixup table.
+  */
++static inline void raw_pagefault_disable(void)
++{
++	inc_preempt_count();
++	barrier();
++}
++
++static inline void raw_pagefault_enable(void)
++{
++	barrier();
++	dec_preempt_count();
++	barrier();
++	preempt_check_resched();
++}
++
++#ifndef CONFIG_PREEMPT_RT_FULL
++static inline void pagefault_disable(void)
++{
++	raw_pagefault_disable();
++}
++
++static inline void pagefault_enable(void)
++{
++	raw_pagefault_enable();
++}
++#else
+ extern void pagefault_disable(void);
+ extern void pagefault_enable(void);
++#endif
+ 
+ #ifndef ARCH_HAS_NOCACHE_UACCESS
+ 
+@@ -50,9 +76,9 @@ static inline unsigned long __copy_from_user_nocache(void *to,
+ 		mm_segment_t old_fs = get_fs();		\
+ 							\
+ 		set_fs(KERNEL_DS);			\
+-		pagefault_disable();			\
++		raw_pagefault_disable();		\
+ 		ret = __copy_from_user_inatomic(&(retval), (__force typeof(retval) __user *)(addr), sizeof(retval));		\
+-		pagefault_enable();			\
++		raw_pagefault_enable();			\
+ 		set_fs(old_fs);				\
+ 		ret;					\
+ 	})
+diff --git a/mm/memory.c b/mm/memory.c
+index 0b1fbfd..f52c023 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3717,6 +3717,7 @@ unlock:
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PREEMPT_RT_FULL
+ void pagefault_disable(void)
+ {
+ 	inc_preempt_count();
+@@ -3745,6 +3746,7 @@ void pagefault_enable(void)
+ 	preempt_check_resched();
+ }
+ EXPORT_SYMBOL(pagefault_enable);
++#endif
+ 
+ /*
+  * By the time we get here, we already hold the mm semaphore
+-- 
+1.8.1.4
+

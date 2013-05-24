@@ -1,0 +1,106 @@
+From cac14db4ea483ec4a20c6a20e762d655112b30d2 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Wed, 7 Mar 2012 21:00:34 +0100
+Subject: [PATCH 236/291] fs: dcache: Use cpu_chill() in trylock loops
+
+Retry loops on RT might loop forever when the modifying side was
+preempted. Use cpu_chill() instead of cpu_relax() to let the system
+make progress.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: stable-rt@vger.kernel.org
+---
+ fs/autofs4/autofs_i.h | 1 +
+ fs/autofs4/expire.c   | 2 +-
+ fs/dcache.c           | 7 ++++---
+ fs/namespace.c        | 3 ++-
+ 4 files changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index b785e77..b0f12d7 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -34,6 +34,7 @@
+ #include <linux/sched.h>
+ #include <linux/mount.h>
+ #include <linux/namei.h>
++#include <linux/delay.h>
+ #include <asm/current.h>
+ #include <asm/uaccess.h>
+ 
+diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
+index 13ddec9..b2f1903 100644
+--- a/fs/autofs4/expire.c
++++ b/fs/autofs4/expire.c
+@@ -157,7 +157,7 @@ again:
+ 			parent = p->d_parent;
+ 			if (!spin_trylock(&parent->d_lock)) {
+ 				spin_unlock(&p->d_lock);
+-				cpu_relax();
++				cpu_chill();
+ 				goto relock;
+ 			}
+ 			spin_unlock(&p->d_lock);
+diff --git a/fs/dcache.c b/fs/dcache.c
+index de73da2..67f4681 100644
+--- a/fs/dcache.c
++++ b/fs/dcache.c
+@@ -37,6 +37,7 @@
+ #include <linux/rculist_bl.h>
+ #include <linux/prefetch.h>
+ #include <linux/ratelimit.h>
++#include <linux/delay.h>
+ #include "internal.h"
+ #include "mount.h"
+ 
+@@ -470,7 +471,7 @@ static inline struct dentry *dentry_kill(struct dentry *dentry, int ref)
+ 	if (inode && !spin_trylock(&inode->i_lock)) {
+ relock:
+ 		spin_unlock(&dentry->d_lock);
+-		cpu_relax();
++		cpu_chill();
+ 		return dentry; /* try again with same dentry */
+ 	}
+ 	if (IS_ROOT(dentry))
+@@ -852,7 +853,7 @@ relock:
+ 
+ 		if (!spin_trylock(&dentry->d_lock)) {
+ 			spin_unlock(&dcache_lru_lock);
+-			cpu_relax();
++			cpu_chill();
+ 			goto relock;
+ 		}
+ 
+@@ -2086,7 +2087,7 @@ again:
+ 	if (dentry->d_count == 1) {
+ 		if (!spin_trylock(&inode->i_lock)) {
+ 			spin_unlock(&dentry->d_lock);
+-			cpu_relax();
++			cpu_chill();
+ 			goto again;
+ 		}
+ 		dentry->d_flags &= ~DCACHE_CANT_MOUNT;
+diff --git a/fs/namespace.c b/fs/namespace.c
+index c03d460..859a026 100644
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -22,6 +22,7 @@
+ #include <linux/fsnotify.h>	/* fsnotify_vfsmount_delete */
+ #include <linux/uaccess.h>
+ #include <linux/proc_fs.h>
++#include <linux/delay.h>
+ #include "pnode.h"
+ #include "internal.h"
+ 
+@@ -315,7 +316,7 @@ int __mnt_want_write(struct vfsmount *m)
+ 	smp_mb();
+ 	while (ACCESS_ONCE(mnt->mnt.mnt_flags) & MNT_WRITE_HOLD) {
+ 		preempt_enable();
+-		cpu_relax();
++		cpu_chill();
+ 		preempt_disable();
+ 	}
+ 	/*
+-- 
+1.8.1.4
+

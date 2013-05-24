@@ -1,0 +1,70 @@
+From bf4e0a8149ec12a80ee0205c1ce170cc5540d7f5 Mon Sep 17 00:00:00 2001
+From: Mike Galbraith <efault@gmx.de>
+Date: Tue, 23 Aug 2011 16:12:43 +0200
+Subject: [PATCH 150/291] sched, rt: Fix migrate_enable() thinko
+
+Assigning mask = tsk_cpus_allowed(p) after p->migrate_disable = 0 ensures
+that we won't see a mask change.. no push/pull, we stack tasks on one CPU.
+
+Also add a couple fields to sched_debug for the next guy.
+
+[ Build fix from Stratos Psomadakis <psomas@gentoo.org> ]
+
+Signed-off-by: Mike Galbraith <efault@gmx.de>
+Cc: Paul E. McKenney <paulmck@us.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Link: http://lkml.kernel.org/r/1314108763.6689.4.camel@marge.simson.net
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/sched/core.c  | 4 +++-
+ kernel/sched/debug.c | 7 +++++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index a55c51d..ce0db2d 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -4890,12 +4890,14 @@ void migrate_enable(void)
+ 	 */
+ 	rq = this_rq();
+ 	raw_spin_lock_irqsave(&rq->lock, flags);
+-	p->migrate_disable = 0;
+ 	mask = tsk_cpus_allowed(p);
++	p->migrate_disable = 0;
+ 
+ 	WARN_ON(!cpumask_test_cpu(smp_processor_id(), mask));
+ 
+ 	if (!cpumask_equal(&p->cpus_allowed, mask)) {
++		/* Get the mask now that migration is enabled */
++		mask = tsk_cpus_allowed(p);
+ 		if (p->sched_class->set_cpus_allowed)
+ 			p->sched_class->set_cpus_allowed(p, mask);
+ 		p->nr_cpus_allowed = cpumask_weight(mask);
+diff --git a/kernel/sched/debug.c b/kernel/sched/debug.c
+index 7ae4c4c..2cac500 100644
+--- a/kernel/sched/debug.c
++++ b/kernel/sched/debug.c
+@@ -253,6 +253,9 @@ void print_rt_rq(struct seq_file *m, int cpu, struct rt_rq *rt_rq)
+ 	P(rt_throttled);
+ 	PN(rt_time);
+ 	PN(rt_runtime);
++#ifdef CONFIG_SMP
++	P(rt_nr_migratory);
++#endif
+ 
+ #undef PN
+ #undef P
+@@ -507,6 +510,10 @@ void proc_sched_show_task(struct task_struct *p, struct seq_file *m)
+ 	P(se.load.weight);
+ 	P(policy);
+ 	P(prio);
++#ifdef CONFIG_PREEMPT_RT_FULL
++	P(migrate_disable);
++#endif
++	P(nr_cpus_allowed);
+ #undef PN
+ #undef __PN
+ #undef P
+-- 
+1.8.1.4
+

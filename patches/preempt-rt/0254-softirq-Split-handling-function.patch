@@ -1,0 +1,74 @@
+From 3cb8f57418419c60d297da7acc8cda2a96738faa Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Thu, 4 Oct 2012 15:33:53 +0100
+Subject: [PATCH 254/291] softirq: Split handling function
+
+Split out the inner handling function, so RT can reuse it.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/softirq.c | 43 +++++++++++++++++++++++--------------------
+ 1 file changed, 23 insertions(+), 20 deletions(-)
+
+diff --git a/kernel/softirq.c b/kernel/softirq.c
+index 0a810e4..e9167de 100644
+--- a/kernel/softirq.c
++++ b/kernel/softirq.c
+@@ -142,31 +142,34 @@ static void wakeup_softirqd(void)
+ 		wake_up_process(tsk);
+ }
+ 
+-static void handle_pending_softirqs(u32 pending, int cpu, int need_rcu_bh_qs)
++static void handle_softirq(unsigned int vec_nr, int cpu, int need_rcu_bh_qs)
+ {
+-	struct softirq_action *h = softirq_vec;
++	struct softirq_action *h = softirq_vec + vec_nr;
+ 	unsigned int prev_count = preempt_count();
+ 
+-	local_irq_enable();
+-	for ( ; pending; h++, pending >>= 1) {
+-		unsigned int vec_nr = h - softirq_vec;
++	kstat_incr_softirqs_this_cpu(vec_nr);
++	trace_softirq_entry(vec_nr);
++	h->action(h);
++	trace_softirq_exit(vec_nr);
+ 
+-		if (!(pending & 1))
+-			continue;
++	if (unlikely(prev_count != preempt_count())) {
++		pr_err("softirq %u %s %p preempt count leak: %08x -> %08x\n",
++		       vec_nr, softirq_to_name[vec_nr], h->action,
++		       prev_count, (unsigned int) preempt_count());
++		preempt_count() = prev_count;
++	}
++	if (need_rcu_bh_qs)
++		rcu_bh_qs(cpu);
++}
+ 
+-		kstat_incr_softirqs_this_cpu(vec_nr);
+-		trace_softirq_entry(vec_nr);
+-		h->action(h);
+-		trace_softirq_exit(vec_nr);
+-		if (unlikely(prev_count != preempt_count())) {
+-			printk(KERN_ERR
+- "huh, entered softirq %u %s %p with preempt_count %08x exited with %08x?\n",
+-			       vec_nr, softirq_to_name[vec_nr], h->action,
+-			       prev_count, (unsigned int) preempt_count());
+-			preempt_count() = prev_count;
+-		}
+-		if (need_rcu_bh_qs)
+-			rcu_bh_qs(cpu);
++static void handle_pending_softirqs(u32 pending, int cpu, int need_rcu_bh_qs)
++{
++	unsigned int vec_nr;
++
++	local_irq_enable();
++	for (vec_nr = 0; pending; vec_nr++, pending >>= 1) {
++		if (pending & 1)
++			handle_softirq(vec_nr, cpu, need_rcu_bh_qs);
+ 	}
+ 	local_irq_disable();
+ }
+-- 
+1.8.1.4
+

@@ -1,0 +1,143 @@
+From f938142e0bbf75a7da2e50b66ed878fe5022834f Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sat, 20 Jun 2009 11:36:54 +0200
+Subject: [PATCH 090/291] drivers/net: fix livelock issues
+
+Preempt-RT runs into a live lock issue with the NETDEV_TX_LOCKED micro
+optimization. The reason is that the softirq thread is rescheduling
+itself on that return value. Depending on priorities it starts to
+monoplize the CPU and livelock on UP systems.
+
+Remove it.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ drivers/net/ethernet/atheros/atl1c/atl1c_main.c      | 6 +-----
+ drivers/net/ethernet/atheros/atl1e/atl1e_main.c      | 3 +--
+ drivers/net/ethernet/chelsio/cxgb/sge.c              | 3 +--
+ drivers/net/ethernet/neterion/s2io.c                 | 7 +------
+ drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c | 6 ++----
+ drivers/net/ethernet/tehuti/tehuti.c                 | 9 ++-------
+ drivers/net/rionet.c                                 | 6 +-----
+ 7 files changed, 9 insertions(+), 31 deletions(-)
+
+diff --git a/drivers/net/ethernet/atheros/atl1c/atl1c_main.c b/drivers/net/ethernet/atheros/atl1c/atl1c_main.c
+index bfcb8bc..dbe44ba 100644
+--- a/drivers/net/ethernet/atheros/atl1c/atl1c_main.c
++++ b/drivers/net/ethernet/atheros/atl1c/atl1c_main.c
+@@ -2171,11 +2171,7 @@ static netdev_tx_t atl1c_xmit_frame(struct sk_buff *skb,
+ 	}
+ 
+ 	tpd_req = atl1c_cal_tpd_req(skb);
+-	if (!spin_trylock_irqsave(&adapter->tx_lock, flags)) {
+-		if (netif_msg_pktdata(adapter))
+-			dev_info(&adapter->pdev->dev, "tx locked\n");
+-		return NETDEV_TX_LOCKED;
+-	}
++	spin_lock_irqsave(&adapter->tx_lock, flags);
+ 
+ 	if (atl1c_tpd_avail(adapter, type) < tpd_req) {
+ 		/* no enough descriptor, just stop queue */
+diff --git a/drivers/net/ethernet/atheros/atl1e/atl1e_main.c b/drivers/net/ethernet/atheros/atl1e/atl1e_main.c
+index ca33b28..7569f68 100644
+--- a/drivers/net/ethernet/atheros/atl1e/atl1e_main.c
++++ b/drivers/net/ethernet/atheros/atl1e/atl1e_main.c
+@@ -1803,8 +1803,7 @@ static netdev_tx_t atl1e_xmit_frame(struct sk_buff *skb,
+ 		return NETDEV_TX_OK;
+ 	}
+ 	tpd_req = atl1e_cal_tdp_req(skb);
+-	if (!spin_trylock_irqsave(&adapter->tx_lock, flags))
+-		return NETDEV_TX_LOCKED;
++	spin_lock_irqsave(&adapter->tx_lock, flags);
+ 
+ 	if (atl1e_tpd_avail(adapter) < tpd_req) {
+ 		/* no enough descriptor, just stop queue */
+diff --git a/drivers/net/ethernet/chelsio/cxgb/sge.c b/drivers/net/ethernet/chelsio/cxgb/sge.c
+index d84872e..1420ea8 100644
+--- a/drivers/net/ethernet/chelsio/cxgb/sge.c
++++ b/drivers/net/ethernet/chelsio/cxgb/sge.c
+@@ -1666,8 +1666,7 @@ static int t1_sge_tx(struct sk_buff *skb, struct adapter *adapter,
+ 	struct cmdQ *q = &sge->cmdQ[qid];
+ 	unsigned int credits, pidx, genbit, count, use_sched_skb = 0;
+ 
+-	if (!spin_trylock(&q->lock))
+-		return NETDEV_TX_LOCKED;
++	spin_lock(&q->lock);
+ 
+ 	reclaim_completed_tx(sge, q);
+ 
+diff --git a/drivers/net/ethernet/neterion/s2io.c b/drivers/net/ethernet/neterion/s2io.c
+index 7c94c08..8757a2c 100644
+--- a/drivers/net/ethernet/neterion/s2io.c
++++ b/drivers/net/ethernet/neterion/s2io.c
+@@ -4088,12 +4088,7 @@ static netdev_tx_t s2io_xmit(struct sk_buff *skb, struct net_device *dev)
+ 			[skb->priority & (MAX_TX_FIFOS - 1)];
+ 	fifo = &mac_control->fifos[queue];
+ 
+-	if (do_spin_lock)
+-		spin_lock_irqsave(&fifo->tx_lock, flags);
+-	else {
+-		if (unlikely(!spin_trylock_irqsave(&fifo->tx_lock, flags)))
+-			return NETDEV_TX_LOCKED;
+-	}
++	spin_lock_irqsave(&fifo->tx_lock, flags);
+ 
+ 	if (sp->config.multiq) {
+ 		if (__netif_subqueue_stopped(dev, fifo->fifo_no)) {
+diff --git a/drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c b/drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
+index 73ce7dd..b3ba6fe 100644
+--- a/drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
++++ b/drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
+@@ -2114,10 +2114,8 @@ static int pch_gbe_xmit_frame(struct sk_buff *skb, struct net_device *netdev)
+ 	struct pch_gbe_tx_ring *tx_ring = adapter->tx_ring;
+ 	unsigned long flags;
+ 
+-	if (!spin_trylock_irqsave(&tx_ring->tx_lock, flags)) {
+-		/* Collision - tell upper layer to requeue */
+-		return NETDEV_TX_LOCKED;
+-	}
++	spin_lock_irqsave(&tx_ring->tx_lock, flags);
++
+ 	if (unlikely(!PCH_GBE_DESC_UNUSED(tx_ring))) {
+ 		netif_stop_queue(netdev);
+ 		spin_unlock_irqrestore(&tx_ring->tx_lock, flags);
+diff --git a/drivers/net/ethernet/tehuti/tehuti.c b/drivers/net/ethernet/tehuti/tehuti.c
+index 1e4d743..9dfd4f5 100644
+--- a/drivers/net/ethernet/tehuti/tehuti.c
++++ b/drivers/net/ethernet/tehuti/tehuti.c
+@@ -1630,13 +1630,8 @@ static netdev_tx_t bdx_tx_transmit(struct sk_buff *skb,
+ 	unsigned long flags;
+ 
+ 	ENTER;
+-	local_irq_save(flags);
+-	if (!spin_trylock(&priv->tx_lock)) {
+-		local_irq_restore(flags);
+-		DBG("%s[%s]: TX locked, returning NETDEV_TX_LOCKED\n",
+-		    BDX_DRV_NAME, ndev->name);
+-		return NETDEV_TX_LOCKED;
+-	}
++
++	spin_lock_irqsave(&priv->tx_lock, flags);
+ 
+ 	/* build tx descriptor */
+ 	BDX_ASSERT(f->m.wptr >= f->m.memsz);	/* started with valid wptr */
+diff --git a/drivers/net/rionet.c b/drivers/net/rionet.c
+index d8b9b1e..7ae06a7 100644
+--- a/drivers/net/rionet.c
++++ b/drivers/net/rionet.c
+@@ -174,11 +174,7 @@ static int rionet_start_xmit(struct sk_buff *skb, struct net_device *ndev)
+ 	unsigned long flags;
+ 	int add_num = 1;
+ 
+-	local_irq_save(flags);
+-	if (!spin_trylock(&rnet->tx_lock)) {
+-		local_irq_restore(flags);
+-		return NETDEV_TX_LOCKED;
+-	}
++	spin_lock_irqsave(&rnet->tx_lock, flags);
+ 
+ 	if (is_multicast_ether_addr(eth->h_dest))
+ 		add_num = nets[rnet->mport->id].nact;
+-- 
+1.8.1.4
+

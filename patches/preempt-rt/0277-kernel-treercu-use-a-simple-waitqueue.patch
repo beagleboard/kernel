@@ -1,0 +1,86 @@
+From 4b7f25107efffb94cb1f8b47a5bee5722a5c04db Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Mon, 8 Apr 2013 16:09:57 +0200
+Subject: [PATCH 277/291] kernel/treercu: use a simple waitqueue
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ kernel/rcutree.c | 13 +++++++------
+ kernel/rcutree.h |  2 +-
+ 2 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/kernel/rcutree.c b/kernel/rcutree.c
+index 85fd9a7..7ec834d 100644
+--- a/kernel/rcutree.c
++++ b/kernel/rcutree.c
+@@ -1319,7 +1319,7 @@ static int __noreturn rcu_gp_kthread(void *arg)
+ 
+ 		/* Handle grace-period start. */
+ 		for (;;) {
+-			wait_event_interruptible(rsp->gp_wq,
++			swait_event_interruptible(rsp->gp_wq,
+ 						 rsp->gp_flags &
+ 						 RCU_GP_FLAG_INIT);
+ 			if ((rsp->gp_flags & RCU_GP_FLAG_INIT) &&
+@@ -1338,7 +1338,7 @@ static int __noreturn rcu_gp_kthread(void *arg)
+ 		}
+ 		for (;;) {
+ 			rsp->jiffies_force_qs = jiffies + j;
+-			ret = wait_event_interruptible_timeout(rsp->gp_wq,
++			ret = swait_event_interruptible_timeout(rsp->gp_wq,
+ 					(rsp->gp_flags & RCU_GP_FLAG_FQS) ||
+ 					(!ACCESS_ONCE(rnp->qsmask) &&
+ 					 !rcu_preempt_blocked_readers_cgp(rnp)),
+@@ -1423,7 +1423,7 @@ rcu_start_gp(struct rcu_state *rsp, unsigned long flags)
+ 	local_irq_restore(flags);
+ 
+ 	/* Wake up rcu_gp_kthread() to start the grace period. */
+-	wake_up(&rsp->gp_wq);
++	swait_wake(&rsp->gp_wq);
+ }
+ 
+ /*
+@@ -1438,7 +1438,7 @@ static void rcu_report_qs_rsp(struct rcu_state *rsp, unsigned long flags)
+ {
+ 	WARN_ON_ONCE(!rcu_gp_in_progress(rsp));
+ 	raw_spin_unlock_irqrestore(&rcu_get_root(rsp)->lock, flags);
+-	wake_up(&rsp->gp_wq);  /* Memory barrier implied by wake_up() path. */
++	swait_wake(&rsp->gp_wq);  /* Memory barrier implied by wake_up() path. */
+ }
+ 
+ /*
+@@ -2003,7 +2003,8 @@ static void force_quiescent_state(struct rcu_state *rsp)
+ 	}
+ 	rsp->gp_flags |= RCU_GP_FLAG_FQS;
+ 	raw_spin_unlock_irqrestore(&rnp_old->lock, flags);
+-	wake_up(&rsp->gp_wq);  /* Memory barrier implied by wake_up() path. */
++	/* Memory barrier implied by wake_up() path. */
++	swait_wake(&rsp->gp_wq);
+ }
+ 
+ /*
+@@ -2999,7 +3000,7 @@ static void __init rcu_init_one(struct rcu_state *rsp,
+ 	}
+ 
+ 	rsp->rda = rda;
+-	init_waitqueue_head(&rsp->gp_wq);
++	init_swait_head(&rsp->gp_wq);
+ 	rnp = rsp->level[rcu_num_lvls - 1];
+ 	for_each_possible_cpu(i) {
+ 		while (i > rnp->grphi)
+diff --git a/kernel/rcutree.h b/kernel/rcutree.h
+index 4b69291..5cfdff9 100644
+--- a/kernel/rcutree.h
++++ b/kernel/rcutree.h
+@@ -397,7 +397,7 @@ struct rcu_state {
+ 	unsigned long gpnum;			/* Current gp number. */
+ 	unsigned long completed;		/* # of last completed gp. */
+ 	struct task_struct *gp_kthread;		/* Task for grace periods. */
+-	wait_queue_head_t gp_wq;		/* Where GP task waits. */
++	struct swait_head gp_wq;		/* Where GP task waits. */
+ 	int gp_flags;				/* Commands for GP task. */
+ 
+ 	/* End of fields guarded by root rcu_node's lock. */
+-- 
+1.8.1.4
+

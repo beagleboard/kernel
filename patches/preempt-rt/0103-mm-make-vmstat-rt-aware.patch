@@ -1,0 +1,91 @@
+From c8b28776a2f96a3a8bf8e05d76559571ee4ead7d Mon Sep 17 00:00:00 2001
+From: Ingo Molnar <mingo@elte.hu>
+Date: Fri, 3 Jul 2009 08:30:13 -0500
+Subject: [PATCH 103/291] mm: make vmstat -rt aware
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/vmstat.h | 4 ++++
+ mm/vmstat.c            | 6 ++++++
+ 2 files changed, 10 insertions(+)
+
+diff --git a/include/linux/vmstat.h b/include/linux/vmstat.h
+index a13291f..839806b 100644
+--- a/include/linux/vmstat.h
++++ b/include/linux/vmstat.h
+@@ -29,7 +29,9 @@ DECLARE_PER_CPU(struct vm_event_state, vm_event_states);
+ 
+ static inline void __count_vm_event(enum vm_event_item item)
+ {
++	preempt_disable_rt();
+ 	__this_cpu_inc(vm_event_states.event[item]);
++	preempt_enable_rt();
+ }
+ 
+ static inline void count_vm_event(enum vm_event_item item)
+@@ -39,7 +41,9 @@ static inline void count_vm_event(enum vm_event_item item)
+ 
+ static inline void __count_vm_events(enum vm_event_item item, long delta)
+ {
++	preempt_disable_rt();
+ 	__this_cpu_add(vm_event_states.event[item], delta);
++	preempt_enable_rt();
+ }
+ 
+ static inline void count_vm_events(enum vm_event_item item, long delta)
+diff --git a/mm/vmstat.c b/mm/vmstat.c
+index 9800306..a4dbd77 100644
+--- a/mm/vmstat.c
++++ b/mm/vmstat.c
+@@ -216,6 +216,7 @@ void __mod_zone_page_state(struct zone *zone, enum zone_stat_item item,
+ 	long x;
+ 	long t;
+ 
++	preempt_disable_rt();
+ 	x = delta + __this_cpu_read(*p);
+ 
+ 	t = __this_cpu_read(pcp->stat_threshold);
+@@ -225,6 +226,7 @@ void __mod_zone_page_state(struct zone *zone, enum zone_stat_item item,
+ 		x = 0;
+ 	}
+ 	__this_cpu_write(*p, x);
++	preempt_enable_rt();
+ }
+ EXPORT_SYMBOL(__mod_zone_page_state);
+ 
+@@ -257,6 +259,7 @@ void __inc_zone_state(struct zone *zone, enum zone_stat_item item)
+ 	s8 __percpu *p = pcp->vm_stat_diff + item;
+ 	s8 v, t;
+ 
++	preempt_disable_rt();
+ 	v = __this_cpu_inc_return(*p);
+ 	t = __this_cpu_read(pcp->stat_threshold);
+ 	if (unlikely(v > t)) {
+@@ -265,6 +268,7 @@ void __inc_zone_state(struct zone *zone, enum zone_stat_item item)
+ 		zone_page_state_add(v + overstep, zone, item);
+ 		__this_cpu_write(*p, -overstep);
+ 	}
++	preempt_enable_rt();
+ }
+ 
+ void __inc_zone_page_state(struct page *page, enum zone_stat_item item)
+@@ -279,6 +283,7 @@ void __dec_zone_state(struct zone *zone, enum zone_stat_item item)
+ 	s8 __percpu *p = pcp->vm_stat_diff + item;
+ 	s8 v, t;
+ 
++	preempt_disable_rt();
+ 	v = __this_cpu_dec_return(*p);
+ 	t = __this_cpu_read(pcp->stat_threshold);
+ 	if (unlikely(v < - t)) {
+@@ -287,6 +292,7 @@ void __dec_zone_state(struct zone *zone, enum zone_stat_item item)
+ 		zone_page_state_add(v - overstep, zone, item);
+ 		__this_cpu_write(*p, overstep);
+ 	}
++	preempt_enable_rt();
+ }
+ 
+ void __dec_zone_page_state(struct page *page, enum zone_stat_item item)
+-- 
+1.8.1.4
+

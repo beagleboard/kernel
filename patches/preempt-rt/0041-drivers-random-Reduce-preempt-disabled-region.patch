@@ -1,0 +1,44 @@
+From c34064e00923333f3e125091f2df8f8fe499ab88 Mon Sep 17 00:00:00 2001
+From: Ingo Molnar <mingo@elte.hu>
+Date: Fri, 3 Jul 2009 08:29:30 -0500
+Subject: [PATCH 041/291] drivers: random: Reduce preempt disabled region
+
+No need to keep preemption disabled across the whole function.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ drivers/char/random.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/char/random.c b/drivers/char/random.c
+index 32a6c57..50007e1 100644
+--- a/drivers/char/random.c
++++ b/drivers/char/random.c
+@@ -676,9 +676,12 @@ static void add_timer_randomness(struct timer_rand_state *state, unsigned num)
+ 	preempt_disable();
+ 	/* if over the trickle threshold, use only 1 in 4096 samples */
+ 	if (input_pool.entropy_count > trickle_thresh &&
+-	    ((__this_cpu_inc_return(trickle_count) - 1) & 0xfff))
+-		goto out;
++	    ((__this_cpu_inc_return(trickle_count) - 1) & 0xfff)) {
++		preempt_enable();
++		return;
++	}
+ 
++	preempt_enable();
+ 	sample.jiffies = jiffies;
+ 	sample.cycles = get_cycles();
+ 	sample.num = num;
+@@ -719,8 +722,6 @@ static void add_timer_randomness(struct timer_rand_state *state, unsigned num)
+ 		credit_entropy_bits(&input_pool,
+ 				    min_t(int, fls(delta>>1), 11));
+ 	}
+-out:
+-	preempt_enable();
+ }
+ 
+ void add_input_randomness(unsigned int type, unsigned int code,
+-- 
+1.8.1.4
+

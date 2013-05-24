@@ -1,0 +1,70 @@
+From 288797bf0210619781a615b70d0f3dc0b7e11a9d Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 30 Sep 2011 20:03:37 +0200
+Subject: [PATCH 015/291] x86: hpet: Disable MSI on Lenovo W510
+
+MSI based per cpu timers lose interrupts when intel_idle() is enabled
+- independent of the c-state. With idle=poll the problem cannot be
+observed. We have no idea yet, whether this is a W510 specific issue
+or a general chipset oddity. Blacklist the known problem machine.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/x86/kernel/hpet.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+
+diff --git a/arch/x86/kernel/hpet.c b/arch/x86/kernel/hpet.c
+index e28670f..5ce3c25 100644
+--- a/arch/x86/kernel/hpet.c
++++ b/arch/x86/kernel/hpet.c
+@@ -8,6 +8,7 @@
+ #include <linux/slab.h>
+ #include <linux/hpet.h>
+ #include <linux/init.h>
++#include <linux/dmi.h>
+ #include <linux/cpu.h>
+ #include <linux/pm.h>
+ #include <linux/io.h>
+@@ -573,6 +574,30 @@ static void init_one_hpet_msi_clockevent(struct hpet_dev *hdev, int cpu)
+ #define RESERVE_TIMERS 0
+ #endif
+ 
++static int __init dmi_disable_hpet_msi(const struct dmi_system_id *d)
++{
++	hpet_msi_disable = 1;
++	return 0;
++}
++
++static struct dmi_system_id __initdata dmi_hpet_table[] = {
++	/*
++	 * MSI based per cpu timers lose interrupts when intel_idle()
++	 * is enabled - independent of the c-state. With idle=poll the
++	 * problem cannot be observed. We have no idea yet, whether
++	 * this is a W510 specific issue or a general chipset oddity.
++	 */
++	{
++	 .callback = dmi_disable_hpet_msi,
++	 .ident = "Lenovo W510",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad W510"),
++		     },
++	 },
++	{}
++};
++
+ static void hpet_msi_capability_lookup(unsigned int start_timer)
+ {
+ 	unsigned int id;
+@@ -580,6 +605,8 @@ static void hpet_msi_capability_lookup(unsigned int start_timer)
+ 	unsigned int num_timers_used = 0;
+ 	int i;
+ 
++	dmi_check_system(dmi_hpet_table);
++
+ 	if (hpet_msi_disable)
+ 		return;
+ 
+-- 
+1.8.1.4
+

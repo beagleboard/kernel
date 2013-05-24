@@ -1,0 +1,40 @@
+From 3170833175aa2433a0f92f09d5ec6c09d18ca10b Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sat, 16 Feb 2013 00:12:36 +0100
+Subject: [PATCH 022/291] timekeeping: Calc stuff once
+
+Calculate the cycle interval shifted value once. No functional change,
+just makes the code more readable.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/time/timekeeping.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
+index cbc6acb..06dc034 100644
+--- a/kernel/time/timekeeping.c
++++ b/kernel/time/timekeeping.c
+@@ -1077,15 +1077,16 @@ static inline void accumulate_nsecs_to_secs(struct timekeeper *tk)
+ static cycle_t logarithmic_accumulation(struct timekeeper *tk, cycle_t offset,
+ 						u32 shift)
+ {
++	cycle_t interval = tk->cycle_interval << shift;
+ 	u64 raw_nsecs;
+ 
+ 	/* If the offset is smaller then a shifted interval, do nothing */
+-	if (offset < tk->cycle_interval<<shift)
++	if (offset < interval)
+ 		return offset;
+ 
+ 	/* Accumulate one shifted interval */
+-	offset -= tk->cycle_interval << shift;
+-	tk->clock->cycle_last += tk->cycle_interval << shift;
++	offset -= interval;
++	tk->clock->cycle_last += interval;
+ 
+ 	tk->xtime_nsec += tk->xtime_interval << shift;
+ 	accumulate_nsecs_to_secs(tk);
+-- 
+1.8.1.4
+

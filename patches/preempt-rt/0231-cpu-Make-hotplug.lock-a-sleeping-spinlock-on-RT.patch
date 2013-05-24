@@ -1,0 +1,131 @@
+From 94448bddc3ed270c1a42232b8d6ee35ad9b77555 Mon Sep 17 00:00:00 2001
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Fri, 2 Mar 2012 10:36:57 -0500
+Subject: [PATCH 231/291] cpu: Make hotplug.lock a "sleeping" spinlock on RT
+
+Tasks can block on hotplug.lock in pin_current_cpu(), but their state
+might be != RUNNING. So the mutex wakeup will set the state
+unconditionally to RUNNING. That might cause spurious unexpected
+wakeups. We could provide a state preserving mutex_lock() function,
+but this is semantically backwards. So instead we convert the
+hotplug.lock() to a spinlock for RT, which has the state preserving
+semantics already.
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Carsten Emde <C.Emde@osadl.org>
+Cc: John Kacur <jkacur@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Clark Williams <clark.williams@gmail.com>
+Cc: stable-rt@vger.kernel.org
+Link: http://lkml.kernel.org/r/1330702617.25686.265.camel@gandalf.stny.rr.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/cpu.c | 35 ++++++++++++++++++++++++++---------
+ 1 file changed, 26 insertions(+), 9 deletions(-)
+
+diff --git a/kernel/cpu.c b/kernel/cpu.c
+index 7b5f4cb..2942f54 100644
+--- a/kernel/cpu.c
++++ b/kernel/cpu.c
+@@ -51,7 +51,12 @@ static int cpu_hotplug_disabled;
+ 
+ static struct {
+ 	struct task_struct *active_writer;
++#ifdef CONFIG_PREEMPT_RT_FULL
++	/* Makes the lock keep the task's state */
++	spinlock_t lock;
++#else
+ 	struct mutex lock; /* Synchronizes accesses to refcount, */
++#endif
+ 	/*
+ 	 * Also blocks the new readers during
+ 	 * an ongoing cpu hotplug operation.
+@@ -59,10 +64,22 @@ static struct {
+ 	int refcount;
+ } cpu_hotplug = {
+ 	.active_writer = NULL,
++#ifdef CONFIG_PREEMPT_RT_FULL
++	.lock = __SPIN_LOCK_UNLOCKED(cpu_hotplug.lock),
++#else
+ 	.lock = __MUTEX_INITIALIZER(cpu_hotplug.lock),
++#endif
+ 	.refcount = 0,
+ };
+ 
++#ifdef CONFIG_PREEMPT_RT_FULL
++# define hotplug_lock() rt_spin_lock(&cpu_hotplug.lock)
++# define hotplug_unlock() rt_spin_unlock(&cpu_hotplug.lock)
++#else
++# define hotplug_lock() mutex_lock(&cpu_hotplug.lock)
++# define hotplug_unlock() mutex_unlock(&cpu_hotplug.lock)
++#endif
++
+ struct hotplug_pcp {
+ 	struct task_struct *unplug;
+ 	int refcount;
+@@ -92,8 +109,8 @@ retry:
+ 		return;
+ 	}
+ 	preempt_enable();
+-	mutex_lock(&cpu_hotplug.lock);
+-	mutex_unlock(&cpu_hotplug.lock);
++	hotplug_lock();
++	hotplug_unlock();
+ 	preempt_disable();
+ 	goto retry;
+ }
+@@ -166,9 +183,9 @@ void get_online_cpus(void)
+ 	might_sleep();
+ 	if (cpu_hotplug.active_writer == current)
+ 		return;
+-	mutex_lock(&cpu_hotplug.lock);
++	hotplug_lock();
+ 	cpu_hotplug.refcount++;
+-	mutex_unlock(&cpu_hotplug.lock);
++	hotplug_unlock();
+ 
+ }
+ EXPORT_SYMBOL_GPL(get_online_cpus);
+@@ -177,14 +194,14 @@ void put_online_cpus(void)
+ {
+ 	if (cpu_hotplug.active_writer == current)
+ 		return;
+-	mutex_lock(&cpu_hotplug.lock);
+ 
++	hotplug_lock();
+ 	if (WARN_ON(!cpu_hotplug.refcount))
+ 		cpu_hotplug.refcount++; /* try to fix things up */
+ 
+ 	if (!--cpu_hotplug.refcount && unlikely(cpu_hotplug.active_writer))
+ 		wake_up_process(cpu_hotplug.active_writer);
+-	mutex_unlock(&cpu_hotplug.lock);
++	hotplug_unlock();
+ 
+ }
+ EXPORT_SYMBOL_GPL(put_online_cpus);
+@@ -216,11 +233,11 @@ static void cpu_hotplug_begin(void)
+ 	cpu_hotplug.active_writer = current;
+ 
+ 	for (;;) {
+-		mutex_lock(&cpu_hotplug.lock);
++		hotplug_lock();
+ 		if (likely(!cpu_hotplug.refcount))
+ 			break;
+ 		__set_current_state(TASK_UNINTERRUPTIBLE);
+-		mutex_unlock(&cpu_hotplug.lock);
++		hotplug_unlock();
+ 		schedule();
+ 	}
+ }
+@@ -228,7 +245,7 @@ static void cpu_hotplug_begin(void)
+ static void cpu_hotplug_done(void)
+ {
+ 	cpu_hotplug.active_writer = NULL;
+-	mutex_unlock(&cpu_hotplug.lock);
++	hotplug_unlock();
+ }
+ 
+ #else /* #if CONFIG_HOTPLUG_CPU */
+-- 
+1.8.1.4
+

@@ -1,0 +1,32 @@
+From 33da6d32f484e79691e5b33519181505e59945df Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Mon, 8 Apr 2013 16:08:46 +0200
+Subject: [PATCH 180/291] percpu-rwsem: compile fix
+
+The shortcut on mainline skip lockdep. No idea why this is a good thing.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ lib/percpu-rwsem.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/lib/percpu-rwsem.c b/lib/percpu-rwsem.c
+index 652a8ee..2db0f42 100644
+--- a/lib/percpu-rwsem.c
++++ b/lib/percpu-rwsem.c
+@@ -84,8 +84,12 @@ void percpu_down_read(struct percpu_rw_semaphore *brw)
+ 
+ 	down_read(&brw->rw_sem);
+ 	atomic_inc(&brw->slow_read_ctr);
++#ifdef CONFIG_PREEMPT_RT_FULL
++	up_read(&brw->rw_sem);
++#else
+ 	/* avoid up_read()->rwsem_release() */
+ 	__up_read(&brw->rw_sem);
++#endif
+ }
+ 
+ void percpu_up_read(struct percpu_rw_semaphore *brw)
+-- 
+1.8.1.4
+

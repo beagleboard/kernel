@@ -1,0 +1,68 @@
+From ae9c24b9a425b8bb0d1de05afa65ab4c8383e649 Mon Sep 17 00:00:00 2001
+From: John Kacur <jkacur@redhat.com>
+Date: Mon, 19 Sep 2011 11:09:27 +0200
+Subject: [PATCH 181/291] rwlocks: Fix section mismatch
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This fixes the following build error for the preempt-rt kernel.
+
+make kernel/fork.o
+  CC      kernel/fork.o
+kernel/fork.c:90: error: section of ¡tasklist_lock¢ conflicts with previous declaration
+make[2]: *** [kernel/fork.o] Error 1
+make[1]: *** [kernel/fork.o] Error 2
+
+The rt kernel cache aligns the RWLOCK in DEFINE_RWLOCK by default.
+The non-rt kernels explicitly cache align only the tasklist_lock in
+kernel/fork.c
+That can create a build conflict. This fixes the build problem by making the
+non-rt kernels cache align RWLOCKs by default. The side effect is that
+the other RWLOCKs are also cache aligned for non-rt.
+
+This is a short term solution for rt only.
+The longer term solution would be to push the cache aligned DEFINE_RWLOCK
+to mainline. If there are objections, then we could create a
+DEFINE_RWLOCK_CACHE_ALIGNED or something of that nature.
+
+Comments? Objections?
+
+Signed-off-by: John Kacur <jkacur@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Link: http://lkml.kernel.org/r/alpine.LFD.2.00.1109191104010.23118@localhost6.localdomain6
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/rwlock_types.h | 3 ++-
+ kernel/fork.c                | 2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/rwlock_types.h b/include/linux/rwlock_types.h
+index 5317cd9..d0da966 100644
+--- a/include/linux/rwlock_types.h
++++ b/include/linux/rwlock_types.h
+@@ -47,6 +47,7 @@ typedef struct {
+ 				RW_DEP_MAP_INIT(lockname) }
+ #endif
+ 
+-#define DEFINE_RWLOCK(x)	rwlock_t x = __RW_LOCK_UNLOCKED(x)
++#define DEFINE_RWLOCK(name) \
++	rwlock_t name __cacheline_aligned_in_smp = __RW_LOCK_UNLOCKED(name)
+ 
+ #endif /* __LINUX_RWLOCK_TYPES_H */
+diff --git a/kernel/fork.c b/kernel/fork.c
+index 591d2bd..b814a02 100644
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -93,7 +93,7 @@ int max_threads;		/* tunable limit on nr_threads */
+ 
+ DEFINE_PER_CPU(unsigned long, process_counts) = 0;
+ 
+-__cacheline_aligned DEFINE_RWLOCK(tasklist_lock);  /* outer */
++DEFINE_RWLOCK(tasklist_lock);  /* outer */
+ 
+ #ifdef CONFIG_PROVE_RCU
+ int lockdep_tasklist_lock_is_held(void)
+-- 
+1.8.1.4
+

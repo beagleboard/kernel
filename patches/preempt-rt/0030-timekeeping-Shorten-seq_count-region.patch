@@ -1,0 +1,50 @@
+From bd1626088ddca1634e3a231ffb40745ad0ed1a47 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sat, 16 Feb 2013 00:39:49 +0100
+Subject: [PATCH 030/291] timekeeping: Shorten seq_count region
+
+Shorten the seqcount write hold region to the actual update of the
+timekeeper and the related data (e.g vsyscall).
+
+On a contemporary x86 system this reduces the maximum latencies on
+Preempt-RT from 8us to 4us on the non-timekeeping cores.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/time/timekeeping.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
+index 6b805d3..d24906b 100644
+--- a/kernel/time/timekeeping.c
++++ b/kernel/time/timekeeping.c
+@@ -1165,7 +1165,6 @@ static void update_wall_time(void)
+ 	unsigned long flags;
+ 
+ 	raw_spin_lock_irqsave(&timekeeper_lock, flags);
+-	write_seqcount_begin(&timekeeper_seq);
+ 
+ 	/* Make sure we're fully resumed: */
+ 	if (unlikely(timekeeping_suspended))
+@@ -1217,6 +1216,7 @@ static void update_wall_time(void)
+ 	 */
+ 	accumulate_nsecs_to_secs(tk);
+ 
++	write_seqcount_begin(&timekeeper_seq);
+ 	/* Update clock->cycle_last with the new value */
+ 	clock->cycle_last = tk->cycle_last;
+ 	/*
+@@ -1231,9 +1231,8 @@ static void update_wall_time(void)
+ 	 */
+ 	memcpy(real_tk, tk, sizeof(*tk));
+ 	timekeeping_update(real_tk, false, false);
+-
+-out:
+ 	write_seqcount_end(&timekeeper_seq);
++out:
+ 	raw_spin_unlock_irqrestore(&timekeeper_lock, flags);
+ }
+ 
+-- 
+1.8.1.4
+

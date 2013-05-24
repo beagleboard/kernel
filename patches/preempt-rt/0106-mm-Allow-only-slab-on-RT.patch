@@ -1,0 +1,34 @@
+From b9d97a4ca17ed79e0663a4236e68631292419c15 Mon Sep 17 00:00:00 2001
+From: Ingo Molnar <mingo@elte.hu>
+Date: Fri, 3 Jul 2009 08:44:03 -0500
+Subject: [PATCH 106/291] mm: Allow only slab on RT
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ init/Kconfig | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/init/Kconfig b/init/Kconfig
+index be8b7f5..fbc0785 100644
+--- a/init/Kconfig
++++ b/init/Kconfig
+@@ -1493,6 +1493,7 @@ config SLAB
+ 
+ config SLUB
+ 	bool "SLUB (Unqueued Allocator)"
++	depends on !PREEMPT_RT_FULL
+ 	help
+ 	   SLUB is a slab allocator that minimizes cache line usage
+ 	   instead of managing queues of cached objects (SLAB approach).
+@@ -1504,6 +1505,7 @@ config SLUB
+ config SLOB
+ 	depends on EXPERT
+ 	bool "SLOB (Simple Allocator)"
++	depends on !PREEMPT_RT_FULL
+ 	help
+ 	   SLOB replaces the stock allocator with a drastically simpler
+ 	   allocator. SLOB is generally more space efficient but
+-- 
+1.8.1.4
+

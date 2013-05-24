@@ -1,0 +1,29 @@
+From 8972cf40625e29574766126481ee46f70857fc41 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 24 Jun 2011 18:40:37 +0200
+Subject: [PATCH 094/291] local-var.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/percpu.h | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/include/linux/percpu.h b/include/linux/percpu.h
+index cc88172..bf69fd1 100644
+--- a/include/linux/percpu.h
++++ b/include/linux/percpu.h
+@@ -48,6 +48,11 @@
+ 	preempt_enable();				\
+ } while (0)
+ 
++#define get_local_var(var)	get_cpu_var(var)
++#define put_local_var(var)	put_cpu_var(var)
++#define get_local_ptr(var)	get_cpu_ptr(var)
++#define put_local_ptr(var)	put_cpu_ptr(var)
++
+ /* minimum unit size, also is the maximum supported allocation size */
+ #define PCPU_MIN_UNIT_SIZE		PFN_ALIGN(32 << 10)
+ 
+-- 
+1.8.1.4
+

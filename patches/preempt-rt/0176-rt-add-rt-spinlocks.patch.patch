@@ -1,0 +1,134 @@
+From 762ade8d3e5b34068ac2d4490ae28b58c1347d81 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Wed, 29 Jun 2011 19:43:35 +0200
+Subject: [PATCH 176/291] rt-add-rt-spinlocks.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/rwlock_types_rt.h   | 33 +++++++++++++++++++++++++
+ include/linux/spinlock_types.h    | 11 ++++++---
+ include/linux/spinlock_types_rt.h | 51 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 92 insertions(+), 3 deletions(-)
+ create mode 100644 include/linux/rwlock_types_rt.h
+ create mode 100644 include/linux/spinlock_types_rt.h
+
+diff --git a/include/linux/rwlock_types_rt.h b/include/linux/rwlock_types_rt.h
+new file mode 100644
+index 0000000..b138321
+--- /dev/null
++++ b/include/linux/rwlock_types_rt.h
+@@ -0,0 +1,33 @@
++#ifndef __LINUX_RWLOCK_TYPES_RT_H
++#define __LINUX_RWLOCK_TYPES_RT_H
++
++#ifndef __LINUX_SPINLOCK_TYPES_H
++#error "Do not include directly. Include spinlock_types.h instead"
++#endif
++
++/*
++ * rwlocks - rtmutex which allows single reader recursion
++ */
++typedef struct {
++	struct rt_mutex		lock;
++	int			read_depth;
++	unsigned int		break_lock;
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++	struct lockdep_map	dep_map;
++#endif
++} rwlock_t;
++
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++# define RW_DEP_MAP_INIT(lockname)	.dep_map = { .name = #lockname }
++#else
++# define RW_DEP_MAP_INIT(lockname)
++#endif
++
++#define __RW_LOCK_UNLOCKED(name) \
++	{ .lock = __RT_MUTEX_INITIALIZER_SAVE_STATE(name.lock),	\
++	  RW_DEP_MAP_INIT(name) }
++
++#define DEFINE_RWLOCK(name) \
++	rwlock_t name __cacheline_aligned_in_smp = __RW_LOCK_UNLOCKED(name)
++
++#endif
+diff --git a/include/linux/spinlock_types.h b/include/linux/spinlock_types.h
+index 5c8664d..10bac71 100644
+--- a/include/linux/spinlock_types.h
++++ b/include/linux/spinlock_types.h
+@@ -11,8 +11,13 @@
+ 
+ #include <linux/spinlock_types_raw.h>
+ 
+-#include <linux/spinlock_types_nort.h>
+-
+-#include <linux/rwlock_types.h>
++#ifndef CONFIG_PREEMPT_RT_FULL
++# include <linux/spinlock_types_nort.h>
++# include <linux/rwlock_types.h>
++#else
++# include <linux/rtmutex.h>
++# include <linux/spinlock_types_rt.h>
++# include <linux/rwlock_types_rt.h>
++#endif
+ 
+ #endif /* __LINUX_SPINLOCK_TYPES_H */
+diff --git a/include/linux/spinlock_types_rt.h b/include/linux/spinlock_types_rt.h
+new file mode 100644
+index 0000000..9fd4319
+--- /dev/null
++++ b/include/linux/spinlock_types_rt.h
+@@ -0,0 +1,51 @@
++#ifndef __LINUX_SPINLOCK_TYPES_RT_H
++#define __LINUX_SPINLOCK_TYPES_RT_H
++
++#ifndef __LINUX_SPINLOCK_TYPES_H
++#error "Do not include directly. Include spinlock_types.h instead"
++#endif
++
++#include <linux/cache.h>
++
++/*
++ * PREEMPT_RT: spinlocks - an RT mutex plus lock-break field:
++ */
++typedef struct spinlock {
++	struct rt_mutex		lock;
++	unsigned int		break_lock;
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++	struct lockdep_map	dep_map;
++#endif
++} spinlock_t;
++
++#ifdef CONFIG_DEBUG_RT_MUTEXES
++# define __RT_SPIN_INITIALIZER(name) \
++	{ \
++	.wait_lock = __RAW_SPIN_LOCK_UNLOCKED(name.wait_lock), \
++	.save_state = 1, \
++	.file = __FILE__, \
++	.line = __LINE__ , \
++	}
++#else
++# define __RT_SPIN_INITIALIZER(name) \
++	{								\
++	.wait_lock = __RAW_SPIN_LOCK_UNLOCKED(name.wait_lock),		\
++	.save_state = 1, \
++	}
++#endif
++
++/*
++.wait_list = PLIST_HEAD_INIT_RAW((name).lock.wait_list, (name).lock.wait_lock)
++*/
++
++#define __SPIN_LOCK_UNLOCKED(name)			\
++	{ .lock = __RT_SPIN_INITIALIZER(name.lock),		\
++	  SPIN_DEP_MAP_INIT(name) }
++
++#define __DEFINE_SPINLOCK(name) \
++	spinlock_t name = __SPIN_LOCK_UNLOCKED(name)
++
++#define DEFINE_SPINLOCK(name) \
++	spinlock_t name __cacheline_aligned_in_smp = __SPIN_LOCK_UNLOCKED(name)
++
++#endif
+-- 
+1.8.1.4
+

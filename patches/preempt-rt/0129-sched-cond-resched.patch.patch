@@ -1,0 +1,38 @@
+From 78f0227817e14a11071bc0108116fa641678bc9c Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Tue, 7 Jun 2011 11:25:03 +0200
+Subject: [PATCH 129/291] sched-cond-resched.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/sched/core.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index f5bf3e8..aba0f8b 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -4317,9 +4317,17 @@ static inline int should_resched(void)
+ 
+ static void __cond_resched(void)
+ {
+-	add_preempt_count(PREEMPT_ACTIVE);
+-	__schedule();
+-	sub_preempt_count(PREEMPT_ACTIVE);
++	do {
++		add_preempt_count(PREEMPT_ACTIVE);
++		__schedule();
++		sub_preempt_count(PREEMPT_ACTIVE);
++		/*
++		 * Check again in case we missed a preemption
++		 * opportunity between schedule and now.
++		 */
++		barrier();
++
++	} while (need_resched());
+ }
+ 
+ int __sched _cond_resched(void)
+-- 
+1.8.1.4
+

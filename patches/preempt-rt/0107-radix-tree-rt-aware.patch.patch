@@ -1,0 +1,76 @@
+From 4d56f8c0397855a74013e52e34a54c8fd6102dc0 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sun, 17 Jul 2011 21:33:18 +0200
+Subject: [PATCH 107/291] radix-tree-rt-aware.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/radix-tree.h | 8 +++++++-
+ lib/radix-tree.c           | 5 ++++-
+ 2 files changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/radix-tree.h b/include/linux/radix-tree.h
+index ffc444c..7ddfbf9 100644
+--- a/include/linux/radix-tree.h
++++ b/include/linux/radix-tree.h
+@@ -230,7 +230,13 @@ unsigned long radix_tree_next_hole(struct radix_tree_root *root,
+ 				unsigned long index, unsigned long max_scan);
+ unsigned long radix_tree_prev_hole(struct radix_tree_root *root,
+ 				unsigned long index, unsigned long max_scan);
++
++#ifndef CONFIG_PREEMPT_RT_FULL
+ int radix_tree_preload(gfp_t gfp_mask);
++#else
++static inline int radix_tree_preload(gfp_t gm) { return 0; }
++#endif
++
+ void radix_tree_init(void);
+ void *radix_tree_tag_set(struct radix_tree_root *root,
+ 			unsigned long index, unsigned int tag);
+@@ -255,7 +261,7 @@ unsigned long radix_tree_locate_item(struct radix_tree_root *root, void *item);
+ 
+ static inline void radix_tree_preload_end(void)
+ {
+-	preempt_enable();
++	preempt_enable_nort();
+ }
+ 
+ /**
+diff --git a/lib/radix-tree.c b/lib/radix-tree.c
+index e796429..63bac7d 100644
+--- a/lib/radix-tree.c
++++ b/lib/radix-tree.c
+@@ -215,12 +215,13 @@ radix_tree_node_alloc(struct radix_tree_root *root)
+ 		 * succeed in getting a node here (and never reach
+ 		 * kmem_cache_alloc)
+ 		 */
+-		rtp = &__get_cpu_var(radix_tree_preloads);
++		rtp = &get_cpu_var(radix_tree_preloads);
+ 		if (rtp->nr) {
+ 			ret = rtp->nodes[rtp->nr - 1];
+ 			rtp->nodes[rtp->nr - 1] = NULL;
+ 			rtp->nr--;
+ 		}
++		put_cpu_var(radix_tree_preloads);
+ 	}
+ 	if (ret == NULL)
+ 		ret = kmem_cache_alloc(radix_tree_node_cachep, gfp_mask);
+@@ -255,6 +256,7 @@ radix_tree_node_free(struct radix_tree_node *node)
+ 	call_rcu(&node->rcu_head, radix_tree_node_rcu_free);
+ }
+ 
++#ifndef CONFIG_PREEMPT_RT_FULL
+ /*
+  * Load up this CPU's radix_tree_node buffer with sufficient objects to
+  * ensure that the addition of a single element in the tree cannot fail.  On
+@@ -289,6 +291,7 @@ out:
+ 	return ret;
+ }
+ EXPORT_SYMBOL(radix_tree_preload);
++#endif
+ 
+ /*
+  *	Return the maximum key which can be store into a
+-- 
+1.8.1.4
+

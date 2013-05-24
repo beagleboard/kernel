@@ -1,0 +1,62 @@
+From d8cec065cc7c3c83dbcf6b655d4134ee29da2bbb Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 3 Jul 2009 08:44:44 -0500
+Subject: [PATCH 123/291] posix-timers: Avoid wakeups when no timers are active
+
+Waking the thread even when no timers are scheduled is useless.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/posix-cpu-timers.c | 21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
+
+diff --git a/kernel/posix-cpu-timers.c b/kernel/posix-cpu-timers.c
+index 578189a..06692e8 100644
+--- a/kernel/posix-cpu-timers.c
++++ b/kernel/posix-cpu-timers.c
+@@ -1387,6 +1387,21 @@ wait_to_die:
+ 	return 0;
+ }
+ 
++static inline int __fastpath_timer_check(struct task_struct *tsk)
++{
++	/* tsk == current, ensure it is safe to use ->signal/sighand */
++	if (unlikely(tsk->exit_state))
++		return 0;
++
++	if (!task_cputime_zero(&tsk->cputime_expires))
++			return 1;
++
++	if (!task_cputime_zero(&tsk->signal->cputime_expires))
++			return 1;
++
++	return 0;
++}
++
+ void run_posix_cpu_timers(struct task_struct *tsk)
+ {
+ 	unsigned long cpu = smp_processor_id();
+@@ -1399,7 +1414,7 @@ void run_posix_cpu_timers(struct task_struct *tsk)
+ 	tasklist = per_cpu(posix_timer_tasklist, cpu);
+ 
+ 	/* check to see if we're already queued */
+-	if (!tsk->posix_timer_list) {
++	if (!tsk->posix_timer_list && __fastpath_timer_check(tsk)) {
+ 		get_task_struct(tsk);
+ 		if (tasklist) {
+ 			tsk->posix_timer_list = tasklist;
+@@ -1411,9 +1426,9 @@ void run_posix_cpu_timers(struct task_struct *tsk)
+ 			tsk->posix_timer_list = tsk;
+ 		}
+ 		per_cpu(posix_timer_tasklist, cpu) = tsk;
++
++		wake_up_process(per_cpu(posix_timer_task, cpu));
+ 	}
+-	/* XXX signal the thread somehow */
+-	wake_up_process(per_cpu(posix_timer_task, cpu));
+ }
+ 
+ /*
+-- 
+1.8.1.4
+

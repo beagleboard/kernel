@@ -1,0 +1,41 @@
+From 286e273c85e6265a05ca46c7d4aeb25f5cb618d4 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Tue, 19 Mar 2013 14:41:04 +0100
+Subject: [PATCH 017/291] kernel/srcu: merge common code into a macro
+
+DEFINE_SRCU() and DEFINE_STATIC_SRCU() does the same thing except for
+the "static" attribute. This patch moves the common pieces into
+_DEFINE_SRCU() which is used by the the former macros either adding the
+static attribute or not.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ include/linux/srcu.h | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/include/linux/srcu.h b/include/linux/srcu.h
+index 6eb691b..d04acb8 100644
+--- a/include/linux/srcu.h
++++ b/include/linux/srcu.h
+@@ -102,13 +102,13 @@ void process_srcu(struct work_struct *work);
+  * define and init a srcu struct at build time.
+  * dont't call init_srcu_struct() nor cleanup_srcu_struct() on it.
+  */
+-#define DEFINE_SRCU(name)						\
++#define _DEFINE_SRCU(name, mod)						\
+ 	static DEFINE_PER_CPU(struct srcu_struct_array, name##_srcu_array);\
+-	struct srcu_struct name = __SRCU_STRUCT_INIT(name);
++	mod struct srcu_struct name =					\
++				__SRCU_STRUCT_INIT(name);
+ 
+-#define DEFINE_STATIC_SRCU(name)					\
+-	static DEFINE_PER_CPU(struct srcu_struct_array, name##_srcu_array);\
+-	static struct srcu_struct name = __SRCU_STRUCT_INIT(name);
++#define DEFINE_SRCU(name)		_DEFINE_SRCU(name, )
++#define DEFINE_STATIC_SRCU(name)	_DEFINE_SRCU(name, static)
+ 
+ /**
+  * call_srcu() - Queue a callback for invocation after an SRCU grace period
+-- 
+1.8.1.4
+

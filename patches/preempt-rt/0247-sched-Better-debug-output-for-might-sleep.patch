@@ -1,0 +1,79 @@
+From d0e9f03868a2a9bb2a334adb7f500dfd190fd9fe Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 5 Oct 2012 08:56:15 +0100
+Subject: [PATCH 247/291] sched: Better debug output for might sleep
+
+might sleep can tell us where interrupts have been disabled, but we
+have no idea what disabled preemption. Add some debug infrastructure.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/sched.h |  3 +++
+ kernel/sched/core.c   | 23 +++++++++++++++++++++--
+ 2 files changed, 24 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index 0e1b4b9..aab87b7 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1643,6 +1643,9 @@ struct task_struct {
+ 	pte_t kmap_pte[KM_TYPE_NR];
+ # endif
+ #endif
++#ifdef CONFIG_DEBUG_PREEMPT
++	unsigned long preempt_disable_ip;
++#endif
+ };
+ 
+ #ifdef CONFIG_NUMA_BALANCING
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index 90af179..a2ef28f 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -2791,8 +2791,13 @@ void __kprobes add_preempt_count(int val)
+ 	DEBUG_LOCKS_WARN_ON((preempt_count() & PREEMPT_MASK) >=
+ 				PREEMPT_MASK - 10);
+ #endif
+-	if (preempt_count() == val)
+-		trace_preempt_off(CALLER_ADDR0, get_parent_ip(CALLER_ADDR1));
++	if (preempt_count() == val) {
++		unsigned long ip = get_parent_ip(CALLER_ADDR1);
++#ifdef CONFIG_DEBUG_PREEMPT
++		current->preempt_disable_ip = ip;
++#endif
++		trace_preempt_off(CALLER_ADDR0, ip);
++	}
+ }
+ EXPORT_SYMBOL(add_preempt_count);
+ 
+@@ -2835,6 +2840,13 @@ static noinline void __schedule_bug(struct task_struct *prev)
+ 	print_modules();
+ 	if (irqs_disabled())
+ 		print_irqtrace_events(prev);
++#ifdef CONFIG_DEBUG_PREEMPT
++	if (in_atomic_preempt_off()) {
++		pr_err("Preemption disabled at:");
++		print_ip_sym(current->preempt_disable_ip);
++		pr_cont("\n");
++	}
++#endif
+ 	dump_stack();
+ 	add_taint(TAINT_WARN);
+ }
+@@ -7312,6 +7324,13 @@ void __might_sleep(const char *file, int line, int preempt_offset)
+ 	debug_show_held_locks(current);
+ 	if (irqs_disabled())
+ 		print_irqtrace_events(current);
++#ifdef CONFIG_DEBUG_PREEMPT
++	if (!preempt_count_equals(preempt_offset)) {
++		pr_err("Preemption disabled at:");
++		print_ip_sym(current->preempt_disable_ip);
++		pr_cont("\n");
++	}
++#endif
+ 	dump_stack();
+ }
+ EXPORT_SYMBOL(__might_sleep);
+-- 
+1.8.1.4
+

@@ -1,0 +1,43 @@
+From 2fffa80bd73b74a41dbb5627e05f344c20fe108d Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Mon, 20 Jun 2011 10:42:04 +0200
+Subject: [PATCH 055/291] mm-slab-move-debug-out.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ mm/slab.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/mm/slab.c b/mm/slab.c
+index e7667a3..2aa9fd4 100644
+--- a/mm/slab.c
++++ b/mm/slab.c
+@@ -3895,10 +3895,10 @@ void kmem_cache_free(struct kmem_cache *cachep, void *objp)
+ 	if (!cachep)
+ 		return;
+ 
+-	local_irq_save(flags);
+ 	debug_check_no_locks_freed(objp, cachep->object_size);
+ 	if (!(cachep->flags & SLAB_DEBUG_OBJECTS))
+ 		debug_check_no_obj_freed(objp, cachep->object_size);
++	local_irq_save(flags);
+ 	__cache_free(cachep, objp, _RET_IP_);
+ 	local_irq_restore(flags);
+ 
+@@ -3924,12 +3924,12 @@ void kfree(const void *objp)
+ 
+ 	if (unlikely(ZERO_OR_NULL_PTR(objp)))
+ 		return;
+-	local_irq_save(flags);
+ 	kfree_debugcheck(objp);
+ 	c = virt_to_cache(objp);
+ 	debug_check_no_locks_freed(objp, c->object_size);
+ 
+ 	debug_check_no_obj_freed(objp, c->object_size);
++	local_irq_save(flags);
+ 	__cache_free(c, (void *)objp, _RET_IP_);
+ 	local_irq_restore(flags);
+ }
+-- 
+1.8.1.4
+

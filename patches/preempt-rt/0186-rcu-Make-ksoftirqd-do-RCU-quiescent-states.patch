@@ -1,0 +1,184 @@
+From b5cd03ca2b3a03bcd4c14c8c439812aefe5768bb Mon Sep 17 00:00:00 2001
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Date: Wed, 5 Oct 2011 11:45:18 -0700
+Subject: [PATCH 186/291] rcu: Make ksoftirqd do RCU quiescent states
+
+Implementing RCU-bh in terms of RCU-preempt makes the system vulnerable
+to network-based denial-of-service attacks.  This patch therefore
+makes __do_softirq() invoke rcu_bh_qs(), but only when __do_softirq()
+is running in ksoftirqd context.  A wrapper layer in interposed so that
+other calls to __do_softirq() avoid invoking rcu_bh_qs().  The underlying
+function __do_softirq_common() does the actual work.
+
+The reason that rcu_bh_qs() is bad in these non-ksoftirqd contexts is
+that there might be a local_bh_enable() inside an RCU-preempt read-side
+critical section.  This local_bh_enable() can invoke __do_softirq()
+directly, so if __do_softirq() were to invoke rcu_bh_qs() (which just
+calls rcu_preempt_qs() in the PREEMPT_RT_FULL case), there would be
+an illegal RCU-preempt quiescent state in the middle of an RCU-preempt
+read-side critical section.  Therefore, quiescent states can only happen
+in cases where __do_softirq() is invoked directly from ksoftirqd.
+
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/20111005184518.GA21601@linux.vnet.ibm.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/rcupdate.h |  6 ------
+ kernel/rcutree.c         |  9 ++++++++-
+ kernel/rcutree_plugin.h  |  7 ++++++-
+ kernel/softirq.c         | 20 +++++++++++++-------
+ 4 files changed, 27 insertions(+), 15 deletions(-)
+
+diff --git a/include/linux/rcupdate.h b/include/linux/rcupdate.h
+index 76ba53a..33e1d2e 100644
+--- a/include/linux/rcupdate.h
++++ b/include/linux/rcupdate.h
+@@ -220,13 +220,7 @@ static inline int rcu_preempt_depth(void)
+ 
+ /* Internal to kernel */
+ extern void rcu_sched_qs(int cpu);
+-
+-#ifndef CONFIG_PREEMPT_RT_FULL
+ extern void rcu_bh_qs(int cpu);
+-#else
+-static inline void rcu_bh_qs(int cpu) { }
+-#endif
+-
+ extern void rcu_check_callbacks(int cpu, int user);
+ struct notifier_block;
+ extern void rcu_idle_enter(void);
+diff --git a/kernel/rcutree.c b/kernel/rcutree.c
+index e6fae48..85fd9a7 100644
+--- a/kernel/rcutree.c
++++ b/kernel/rcutree.c
+@@ -181,7 +181,14 @@ void rcu_sched_qs(int cpu)
+ 	rdp->passed_quiesce = 1;
+ }
+ 
+-#ifndef CONFIG_PREEMPT_RT_FULL
++#ifdef CONFIG_PREEMPT_RT_FULL
++static void rcu_preempt_qs(int cpu);
++
++void rcu_bh_qs(int cpu)
++{
++	rcu_preempt_qs(cpu);
++}
++#else
+ void rcu_bh_qs(int cpu)
+ {
+ 	struct rcu_data *rdp = &per_cpu(rcu_bh_data, cpu);
+diff --git a/kernel/rcutree_plugin.h b/kernel/rcutree_plugin.h
+index 68cdd0a..778f138 100644
+--- a/kernel/rcutree_plugin.h
++++ b/kernel/rcutree_plugin.h
+@@ -1519,7 +1519,7 @@ static void __cpuinit rcu_prepare_kthreads(int cpu)
+ 
+ #endif /* #else #ifdef CONFIG_RCU_BOOST */
+ 
+-#if !defined(CONFIG_RCU_FAST_NO_HZ)
++#if !defined(CONFIG_RCU_FAST_NO_HZ) || defined(CONFIG_PREEMPT_RT_FULL)
+ 
+ /*
+  * Check to see if any future RCU-related work will need to be done
+@@ -1535,6 +1535,9 @@ int rcu_needs_cpu(int cpu, unsigned long *delta_jiffies)
+ 	*delta_jiffies = ULONG_MAX;
+ 	return rcu_cpu_has_callbacks(cpu);
+ }
++#endif	/* !defined(CONFIG_RCU_FAST_NO_HZ) || defined(CONFIG_PREEMPT_RT_FULL) */
++
++#if !defined(CONFIG_RCU_FAST_NO_HZ)
+ 
+ /*
+  * Because we do not have RCU_FAST_NO_HZ, don't bother initializing for it.
+@@ -1651,6 +1654,7 @@ static bool rcu_cpu_has_nonlazy_callbacks(int cpu)
+ 	       rcu_preempt_cpu_has_nonlazy_callbacks(cpu);
+ }
+ 
++#ifndef CONFIG_PREEMPT_RT_FULL
+ /*
+  * Allow the CPU to enter dyntick-idle mode if either: (1) There are no
+  * callbacks on this CPU, (2) this CPU has not yet attempted to enter
+@@ -1694,6 +1698,7 @@ int rcu_needs_cpu(int cpu, unsigned long *delta_jiffies)
+ 	}
+ 	return 0;
+ }
++#endif	/* #ifndef CONFIG_PREEMPT_RT_FULL */
+ 
+ /*
+  * Handler for smp_call_function_single().  The only point of this
+diff --git a/kernel/softirq.c b/kernel/softirq.c
+index f69c069..f52cdbc 100644
+--- a/kernel/softirq.c
++++ b/kernel/softirq.c
+@@ -142,7 +142,7 @@ static void wakeup_softirqd(void)
+ 		wake_up_process(tsk);
+ }
+ 
+-static void handle_pending_softirqs(u32 pending, int cpu)
++static void handle_pending_softirqs(u32 pending, int cpu, int need_rcu_bh_qs)
+ {
+ 	struct softirq_action *h = softirq_vec;
+ 	unsigned int prev_count = preempt_count();
+@@ -165,7 +165,8 @@ static void handle_pending_softirqs(u32 pending, int cpu)
+ 			       prev_count, (unsigned int) preempt_count());
+ 			preempt_count() = prev_count;
+ 		}
+-		rcu_bh_qs(cpu);
++		if (need_rcu_bh_qs)
++			rcu_bh_qs(cpu);
+ 	}
+ 	local_irq_disable();
+ }
+@@ -325,7 +326,7 @@ restart:
+ 	/* Reset the pending bitmask before enabling irqs */
+ 	set_softirq_pending(0);
+ 
+-	handle_pending_softirqs(pending, cpu);
++	handle_pending_softirqs(pending, cpu, 1);
+ 
+ 	pending = local_softirq_pending();
+ 	if (pending && --max_restart)
+@@ -376,7 +377,12 @@ static void ksoftirqd_clr_sched_params(unsigned int cpu, bool online) { }
+ static DEFINE_LOCAL_IRQ_LOCK(local_softirq_lock);
+ static DEFINE_PER_CPU(struct task_struct *, local_softirq_runner);
+ 
+-static void __do_softirq(void);
++static void __do_softirq_common(int need_rcu_bh_qs);
++
++void __do_softirq(void)
++{
++	__do_softirq_common(0);
++}
+ 
+ void __init softirq_early_init(void)
+ {
+@@ -447,7 +453,7 @@ EXPORT_SYMBOL(in_serving_softirq);
+  * Called with bh and local interrupts disabled. For full RT cpu must
+  * be pinned.
+  */
+-static void __do_softirq(void)
++static void __do_softirq_common(int need_rcu_bh_qs)
+ {
+ 	u32 pending = local_softirq_pending();
+ 	int cpu = smp_processor_id();
+@@ -461,7 +467,7 @@ static void __do_softirq(void)
+ 
+ 	lockdep_softirq_enter();
+ 
+-	handle_pending_softirqs(pending, cpu);
++	handle_pending_softirqs(pending, cpu, need_rcu_bh_qs);
+ 
+ 	pending = local_softirq_pending();
+ 	if (pending)
+@@ -500,7 +506,7 @@ static int __thread_do_softirq(int cpu)
+ 	 * schedule!
+ 	 */
+ 	if (local_softirq_pending())
+-		__do_softirq();
++		__do_softirq_common(cpu >= 0);
+ 	local_unlock(local_softirq_lock);
+ 	unpin_current_cpu();
+ 	preempt_disable();
+-- 
+1.8.1.4
+

@@ -1,0 +1,162 @@
+From b307a7515979138e27ff7c7fbefc3be34dc9b83f Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 15 Feb 2013 15:47:13 +0100
+Subject: [PATCH 029/291] timekeeping: Implement a shadow timekeeper
+
+Use the shadow timekeeper to do the update_wall_time() adjustments and
+then copy it over to the real timekeeper.
+
+Keep the shadow timekeeper in sync when updating stuff outside of
+update_wall_time().
+
+This allows us to limit the timekeeper_seq hold time to the update of
+the real timekeeper and the vsyscall data in the next patch.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/time/timekeeping.c | 41 +++++++++++++++++++++++++++++------------
+ 1 file changed, 29 insertions(+), 12 deletions(-)
+
+diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
+index d4231f2..6b805d3 100644
+--- a/kernel/time/timekeeping.c
++++ b/kernel/time/timekeeping.c
+@@ -28,6 +28,7 @@
+ static struct timekeeper timekeeper;
+ static DEFINE_RAW_SPINLOCK(timekeeper_lock);
+ static seqcount_t timekeeper_seq;
++static struct timekeeper shadow_timekeeper;
+ 
+ /* flag for if timekeeping is suspended */
+ int __read_mostly timekeeping_suspended;
+@@ -221,7 +222,7 @@ int pvclock_gtod_unregister_notifier(struct notifier_block *nb)
+ EXPORT_SYMBOL_GPL(pvclock_gtod_unregister_notifier);
+ 
+ /* must hold timekeeper_lock */
+-static void timekeeping_update(struct timekeeper *tk, bool clearntp)
++static void timekeeping_update(struct timekeeper *tk, bool clearntp, bool mirror)
+ {
+ 	if (clearntp) {
+ 		tk->ntp_error = 0;
+@@ -229,6 +230,9 @@ static void timekeeping_update(struct timekeeper *tk, bool clearntp)
+ 	}
+ 	update_vsyscall(tk);
+ 	update_pvclock_gtod(tk);
++
++	if (mirror)
++		memcpy(&shadow_timekeeper, &timekeeper, sizeof(timekeeper));
+ }
+ 
+ /**
+@@ -422,7 +426,7 @@ int do_settimeofday(const struct timespec *tv)
+ 
+ 	tk_set_xtime(tk, tv);
+ 
+-	timekeeping_update(tk, true);
++	timekeeping_update(tk, true, true);
+ 
+ 	write_seqcount_end(&timekeeper_seq);
+ 	raw_spin_unlock_irqrestore(&timekeeper_lock, flags);
+@@ -466,7 +470,7 @@ int timekeeping_inject_offset(struct timespec *ts)
+ 	tk_set_wall_to_mono(tk, timespec_sub(tk->wall_to_monotonic, *ts));
+ 
+ error: /* even if we error out, we forwarded the time, so call update */
+-	timekeeping_update(tk, true);
++	timekeeping_update(tk, true, true);
+ 
+ 	write_seqcount_end(&timekeeper_seq);
+ 	raw_spin_unlock_irqrestore(&timekeeper_lock, flags);
+@@ -501,7 +505,7 @@ static int change_clocksource(void *data)
+ 		if (old->disable)
+ 			old->disable(old);
+ 	}
+-	timekeeping_update(tk, true);
++	timekeeping_update(tk, true, true);
+ 
+ 	write_seqcount_end(&timekeeper_seq);
+ 	raw_spin_unlock_irqrestore(&timekeeper_lock, flags);
+@@ -680,6 +684,8 @@ void __init timekeeping_init(void)
+ 	tmp.tv_nsec = 0;
+ 	tk_set_sleep_time(tk, tmp);
+ 
++	memcpy(&shadow_timekeeper, &timekeeper, sizeof(timekeeper));
++
+ 	write_seqcount_end(&timekeeper_seq);
+ 	raw_spin_unlock_irqrestore(&timekeeper_lock, flags);
+ }
+@@ -735,7 +741,7 @@ void timekeeping_inject_sleeptime(struct timespec *delta)
+ 
+ 	__timekeeping_inject_sleeptime(tk, delta);
+ 
+-	timekeeping_update(tk, true);
++	timekeeping_update(tk, true, true);
+ 
+ 	write_seqcount_end(&timekeeper_seq);
+ 	raw_spin_unlock_irqrestore(&timekeeper_lock, flags);
+@@ -773,7 +779,7 @@ static void timekeeping_resume(void)
+ 	tk->cycle_last = tk->clock->cycle_last = tk->clock->read(tk->clock);
+ 	tk->ntp_error = 0;
+ 	timekeeping_suspended = 0;
+-	timekeeping_update(tk, false);
++	timekeeping_update(tk, false, true);
+ 	write_seqcount_end(&timekeeper_seq);
+ 	raw_spin_unlock_irqrestore(&timekeeper_lock, flags);
+ 
+@@ -1152,7 +1158,8 @@ static inline void old_vsyscall_fixup(struct timekeeper *tk)
+ static void update_wall_time(void)
+ {
+ 	struct clocksource *clock;
+-	struct timekeeper *tk = &timekeeper;
++	struct timekeeper *real_tk = &timekeeper;
++	struct timekeeper *tk = &shadow_timekeeper;
+ 	cycle_t offset;
+ 	int shift = 0, maxshift;
+ 	unsigned long flags;
+@@ -1164,16 +1171,16 @@ static void update_wall_time(void)
+ 	if (unlikely(timekeeping_suspended))
+ 		goto out;
+ 
+-	clock = tk->clock;
++	clock = real_tk->clock;
+ 
+ #ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
+-	offset = tk->cycle_interval;
++	offset = real_tk->cycle_interval;
+ #else
+ 	offset = (clock->read(clock) - clock->cycle_last) & clock->mask;
+ #endif
+ 
+ 	/* Check if there's really nothing to do */
+-	if (offset < tk->cycle_interval)
++	if (offset < real_tk->cycle_interval)
+ 		goto out;
+ 
+ 	/*
+@@ -1212,12 +1219,22 @@ static void update_wall_time(void)
+ 
+ 	/* Update clock->cycle_last with the new value */
+ 	clock->cycle_last = tk->cycle_last;
+-	timekeeping_update(tk, false);
++	/*
++	 * Update the real timekeeper.
++	 *
++	 * We could avoid this memcpy by switching pointers, but that
++	 * requires changes to all other timekeeper usage sites as
++	 * well, i.e. move the timekeeper pointer getter into the
++	 * spinlocked/seqcount protected sections. And we trade this
++	 * memcpy under the timekeeper_seq against one before we start
++	 * updating.
++	 */
++	memcpy(real_tk, tk, sizeof(*tk));
++	timekeeping_update(real_tk, false, false);
+ 
+ out:
+ 	write_seqcount_end(&timekeeper_seq);
+ 	raw_spin_unlock_irqrestore(&timekeeper_lock, flags);
+-
+ }
+ 
+ /**
+-- 
+1.8.1.4
+

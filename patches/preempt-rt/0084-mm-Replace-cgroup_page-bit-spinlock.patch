@@ -1,0 +1,98 @@
+From 4a4113080ff856d42d52843ec5fc79bb8d2ca0c2 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Wed, 19 Aug 2009 09:56:42 +0200
+Subject: [PATCH 084/291] mm: Replace cgroup_page bit spinlock
+
+Bit spinlocks are not working on RT. Replace them.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/page_cgroup.h | 15 +++++++++++++++
+ mm/page_cgroup.c            | 11 +++++++++++
+ 2 files changed, 26 insertions(+)
+
+diff --git a/include/linux/page_cgroup.h b/include/linux/page_cgroup.h
+index 777a524..ca67e80 100644
+--- a/include/linux/page_cgroup.h
++++ b/include/linux/page_cgroup.h
+@@ -24,6 +24,9 @@ enum {
+  */
+ struct page_cgroup {
+ 	unsigned long flags;
++#ifdef CONFIG_PREEMPT_RT_BASE
++	spinlock_t pcg_lock;
++#endif
+ 	struct mem_cgroup *mem_cgroup;
+ };
+ 
+@@ -74,12 +77,20 @@ static inline void lock_page_cgroup(struct page_cgroup *pc)
+ 	 * Don't take this lock in IRQ context.
+ 	 * This lock is for pc->mem_cgroup, USED, MIGRATION
+ 	 */
++#ifndef CONFIG_PREEMPT_RT_BASE
+ 	bit_spin_lock(PCG_LOCK, &pc->flags);
++#else
++	spin_lock(&pc->pcg_lock);
++#endif
+ }
+ 
+ static inline void unlock_page_cgroup(struct page_cgroup *pc)
+ {
++#ifndef CONFIG_PREEMPT_RT_BASE
+ 	bit_spin_unlock(PCG_LOCK, &pc->flags);
++#else
++	spin_unlock(&pc->pcg_lock);
++#endif
+ }
+ 
+ #else /* CONFIG_MEMCG */
+@@ -102,6 +113,10 @@ static inline void __init page_cgroup_init_flatmem(void)
+ {
+ }
+ 
++static inline void page_cgroup_lock_init(struct page_cgroup *pc)
++{
++}
++
+ #endif /* CONFIG_MEMCG */
+ 
+ #include <linux/swap.h>
+diff --git a/mm/page_cgroup.c b/mm/page_cgroup.c
+index 6d757e3..98caeee 100644
+--- a/mm/page_cgroup.c
++++ b/mm/page_cgroup.c
+@@ -13,6 +13,14 @@
+ 
+ static unsigned long total_usage;
+ 
++static void page_cgroup_lock_init(struct page_cgroup *pc, int nr_pages)
++{
++#ifdef CONFIG_PREEMPT_RT_BASE
++	for (; nr_pages; nr_pages--, pc++)
++		spin_lock_init(&pc->pcg_lock);
++#endif
++}
++
+ #if !defined(CONFIG_SPARSEMEM)
+ 
+ 
+@@ -60,6 +68,7 @@ static int __init alloc_node_page_cgroup(int nid)
+ 		return -ENOMEM;
+ 	NODE_DATA(nid)->node_page_cgroup = base;
+ 	total_usage += table_size;
++	page_cgroup_lock_init(base, nr_pages);
+ 	return 0;
+ }
+ 
+@@ -150,6 +159,8 @@ static int __meminit init_section_page_cgroup(unsigned long pfn, int nid)
+ 		return -ENOMEM;
+ 	}
+ 
++	page_cgroup_lock_init(base, PAGES_PER_SECTION);
++
+ 	/*
+ 	 * The passed "pfn" may not be aligned to SECTION.  For the calculation
+ 	 * we need to apply a mask.
+-- 
+1.8.1.4
+

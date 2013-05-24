@@ -1,0 +1,52 @@
+From f43c8cc125a6b99bff0a5e3e03394ea4313f78de Mon Sep 17 00:00:00 2001
+From: Yong Zhang <yong.zhang0@gmail.com>
+Date: Sun, 16 Oct 2011 18:56:45 +0800
+Subject: [PATCH 117/291] printk: Don't call printk_tick in printk_needs_cpu()
+ on RT
+
+printk_tick() can't be called in atomic context when RT is enabled,
+otherwise below warning will show:
+
+[  117.597095] BUG: sleeping function called from invalid context at kernel/rtmutex.c:645
+[  117.597102] in_atomic(): 1, irqs_disabled(): 1, pid: 0, name: kworker/0:0
+[  117.597111] Pid: 0, comm: kworker/0:0 Not tainted 3.0.6-rt17-00284-gb76d419-dirty #7
+[  117.597116] Call Trace:
+[  117.597131]  [<c06e3b61>] ? printk+0x1d/0x24
+[  117.597142]  [<c01390b6>] __might_sleep+0xe6/0x110
+[  117.597151]  [<c06e634c>] rt_spin_lock+0x1c/0x30
+[  117.597158]  [<c0142f26>] __wake_up+0x26/0x60
+[  117.597166]  [<c014c78e>] printk_tick+0x3e/0x40
+[  117.597173]  [<c014c7b4>] printk_needs_cpu+0x24/0x30
+[  117.597181]  [<c017ecc8>] tick_nohz_stop_sched_tick+0x2e8/0x410
+[  117.597191]  [<c017305a>] ? sched_clock_idle_wakeup_event+0x1a/0x20
+[  117.597201]  [<c010182a>] cpu_idle+0x4a/0xb0
+[  117.597209]  [<c06e0b97>] start_secondary+0xd3/0xd7
+
+Now this is a really rare case and it's very unlikely that we starve
+an logbuf waiter that way.
+
+Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
+Link: http://lkml.kernel.org/r/1318762607-2261-4-git-send-email-yong.zhang0@gmail.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/printk.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/kernel/printk.c b/kernel/printk.c
+index 283b346..380a2ee 100644
+--- a/kernel/printk.c
++++ b/kernel/printk.c
+@@ -2037,8 +2037,8 @@ void printk_tick(void)
+ 
+ int printk_needs_cpu(int cpu)
+ {
+-	if (cpu_is_offline(cpu))
+-		printk_tick();
++	if (unlikely(cpu_is_offline(cpu)))
++		__this_cpu_write(printk_pending, 0);
+ 	return __this_cpu_read(printk_pending);
+ }
+ 
+-- 
+1.8.1.4
+

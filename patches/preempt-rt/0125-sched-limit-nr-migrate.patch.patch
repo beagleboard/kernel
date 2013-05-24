@@ -1,0 +1,29 @@
+From 7b8cb5247ee9e2e8353934ad34e21ce0c4942b0f Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Mon, 6 Jun 2011 12:12:51 +0200
+Subject: [PATCH 125/291] sched-limit-nr-migrate.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/sched/core.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index 3485672..b589aa1 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -272,7 +272,11 @@ late_initcall(sched_init_debug);
+  * Number of tasks to iterate in a single balance run.
+  * Limited because this is done with IRQs disabled.
+  */
++#ifndef CONFIG_PREEMPT_RT_FULL
+ const_debug unsigned int sysctl_sched_nr_migrate = 32;
++#else
++const_debug unsigned int sysctl_sched_nr_migrate = 8;
++#endif
+ 
+ /*
+  * period over which we average the RT time consumption, measured
+-- 
+1.8.1.4
+

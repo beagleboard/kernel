@@ -1,0 +1,46 @@
+From 9021be6f87c651dfb42dbb70cdae394f2be025ab Mon Sep 17 00:00:00 2001
+From: Ingo Molnar <mingo@elte.hu>
+Date: Wed, 14 Dec 2011 13:05:54 +0100
+Subject: [PATCH 192/291] rt: Improve the serial console PASS_LIMIT
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Beyond the warning:
+
+ drivers/tty/serial/8250/8250.c:1613:6: warning: unused variable ‘pass_counter’ [-Wunused-variable]
+
+the solution of just looping infinitely was ugly - up it to 1 million to
+give it a chance to continue in some really ugly situation.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ drivers/tty/serial/8250/8250.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/tty/serial/8250/8250.c b/drivers/tty/serial/8250/8250.c
+index c6cb88c..25a5451 100644
+--- a/drivers/tty/serial/8250/8250.c
++++ b/drivers/tty/serial/8250/8250.c
+@@ -80,7 +80,16 @@ static unsigned int skip_txen_test; /* force skip of txen test at init time */
+ #define DEBUG_INTR(fmt...)	do { } while (0)
+ #endif
+ 
+-#define PASS_LIMIT	512
++/*
++ * On -rt we can have a more delays, and legitimately
++ * so - so don't drop work spuriously and spam the
++ * syslog:
++ */
++#ifdef CONFIG_PREEMPT_RT_FULL
++# define PASS_LIMIT	1000000
++#else
++# define PASS_LIMIT	512
++#endif
+ 
+ #define BOTH_EMPTY 	(UART_LSR_TEMT | UART_LSR_THRE)
+ 
+-- 
+1.8.1.4
+

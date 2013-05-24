@@ -1,0 +1,40 @@
+From 5559447bb0afa3b1eef32ec8c59ead3a0471d801 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Thu, 21 Mar 2013 10:00:28 +0100
+Subject: [PATCH 267/291] powerpc/fsl-msi: use a different locklcass for the
+ cascade interrupt
+
+lockdep thinks that it might deadlock because it grabs a lock of the
+same class while calling the generic_irq_handler(). This annotation will
+inform lockdep that it will not.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ arch/powerpc/sysdev/fsl_msi.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/arch/powerpc/sysdev/fsl_msi.c b/arch/powerpc/sysdev/fsl_msi.c
+index 6e53d97..b94b478 100644
+--- a/arch/powerpc/sysdev/fsl_msi.c
++++ b/arch/powerpc/sysdev/fsl_msi.c
+@@ -333,6 +333,8 @@ static int fsl_of_msi_remove(struct platform_device *ofdev)
+ 	return 0;
+ }
+ 
++static struct lock_class_key fsl_msi_irq_class;
++
+ static int fsl_msi_setup_hwirq(struct fsl_msi *msi, struct platform_device *dev,
+ 			       int offset, int irq_index)
+ {
+@@ -351,7 +353,7 @@ static int fsl_msi_setup_hwirq(struct fsl_msi *msi, struct platform_device *dev,
+ 		dev_err(&dev->dev, "No memory for MSI cascade data\n");
+ 		return -ENOMEM;
+ 	}
+-
++	irq_set_lockdep_class(virt_msir, &fsl_msi_irq_class);
+ 	msi->msi_virqs[irq_index] = virt_msir;
+ 	cascade_data->index = offset;
+ 	cascade_data->msi_data = msi;
+-- 
+1.8.1.4
+

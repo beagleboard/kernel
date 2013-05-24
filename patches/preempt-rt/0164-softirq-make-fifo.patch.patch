@@ -1,0 +1,56 @@
+From 1effd38c0d6d973322e9e6a0d0d6417654be200e Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Thu, 21 Jul 2011 21:06:43 +0200
+Subject: [PATCH 164/291] softirq-make-fifo.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/softirq.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/kernel/softirq.c b/kernel/softirq.c
+index bca3e64..7a19af0 100644
+--- a/kernel/softirq.c
++++ b/kernel/softirq.c
+@@ -364,6 +364,8 @@ asmlinkage void do_softirq(void)
+ 
+ static inline void local_bh_disable_nort(void) { local_bh_disable(); }
+ static inline void _local_bh_enable_nort(void) { _local_bh_enable(); }
++static void ksoftirqd_set_sched_params(unsigned int cpu) { }
++static void ksoftirqd_clr_sched_params(unsigned int cpu, bool online) { }
+ 
+ #else /* !PREEMPT_RT_FULL */
+ 
+@@ -518,6 +520,20 @@ static int ksoftirqd_do_softirq(int cpu)
+ static inline void local_bh_disable_nort(void) { }
+ static inline void _local_bh_enable_nort(void) { }
+ 
++static inline void ksoftirqd_set_sched_params(unsigned int cpu)
++{
++	struct sched_param param = { .sched_priority = 1 };
++
++	sched_setscheduler(current, SCHED_FIFO, &param);
++}
++
++static inline void ksoftirqd_clr_sched_params(unsigned int cpu, bool online)
++{
++	struct sched_param param = { .sched_priority = 0 };
++
++	sched_setscheduler(current, SCHED_NORMAL, &param);
++}
++
+ #endif /* PREEMPT_RT_FULL */
+ /*
+  * Enter an interrupt context.
+@@ -1065,6 +1081,8 @@ static struct notifier_block __cpuinitdata cpu_nfb = {
+ 
+ static struct smp_hotplug_thread softirq_threads = {
+ 	.store			= &ksoftirqd,
++	.setup			= ksoftirqd_set_sched_params,
++	.cleanup		= ksoftirqd_clr_sched_params,
+ 	.thread_should_run	= ksoftirqd_should_run,
+ 	.thread_fn		= run_ksoftirqd,
+ 	.thread_comm		= "ksoftirqd/%u",
+-- 
+1.8.1.4
+

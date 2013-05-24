@@ -1,0 +1,33 @@
+From 5a8610f1a94cf036eceb0f2e14ce72af4f43f82d Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Tue, 13 Sep 2011 16:42:35 +0200
+Subject: [PATCH 132/291] sched-disable-ttwu-queue.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/sched/features.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/kernel/sched/features.h b/kernel/sched/features.h
+index 1ad1d2b..e5de4db 100644
+--- a/kernel/sched/features.h
++++ b/kernel/sched/features.h
+@@ -57,11 +57,15 @@ SCHED_FEAT(OWNER_SPIN, true)
+  */
+ SCHED_FEAT(NONTASK_POWER, true)
+ 
++#ifndef CONFIG_PREEMPT_RT_FULL
+ /*
+  * Queue remote wakeups on the target CPU and process them
+  * using the scheduler IPI. Reduces rq->lock contention/bounces.
+  */
+ SCHED_FEAT(TTWU_QUEUE, true)
++#else
++SCHED_FEAT(TTWU_QUEUE, false)
++#endif
+ 
+ SCHED_FEAT(FORCE_SD_OVERLAP, false)
+ SCHED_FEAT(RT_RUNTIME_SHARE, true)
+-- 
+1.8.1.4
+

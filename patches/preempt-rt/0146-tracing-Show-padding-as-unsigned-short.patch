@@ -1,0 +1,50 @@
+From b49289cc43c5d74349c194f1b57a75b4efdd5290 Mon Sep 17 00:00:00 2001
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Wed, 16 Nov 2011 13:19:35 -0500
+Subject: [PATCH 146/291] tracing: Show padding as unsigned short
+
+RT added two bytes to trace migrate disable counting to the trace events
+and used two bytes of the padding to make the change. The structures and
+all were updated correctly, but the display in the event formats was
+not:
+
+cat /debug/tracing/events/sched/sched_switch/format
+
+name: sched_switch
+ID: 51
+format:
+	field:unsigned short common_type;	offset:0;	size:2;	signed:0;
+	field:unsigned char common_flags;	offset:2;	size:1;	signed:0;
+	field:unsigned char common_preempt_count;	offset:3;	size:1;	signed:0;
+	field:int common_pid;	offset:4;	size:4;	signed:1;
+	field:unsigned short common_migrate_disable;	offset:8;	size:2;	signed:0;
+	field:int common_padding;	offset:10;	size:2;	signed:0;
+
+The field for common_padding has the correct size and offset, but the
+use of "int" might confuse some parsers (and people that are reading
+it). This needs to be changed to "unsigned short".
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Link: http://lkml.kernel.org/r/1321467575.4181.36.camel@frodo
+Cc: stable-rt@vger.kernel.org
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/trace/trace_events.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/trace/trace_events.c b/kernel/trace/trace_events.c
+index dbd6ae1..a45a22d 100644
+--- a/kernel/trace/trace_events.c
++++ b/kernel/trace/trace_events.c
+@@ -117,7 +117,7 @@ static int trace_define_common_fields(void)
+ 	__common_field(unsigned char, preempt_count);
+ 	__common_field(int, pid);
+ 	__common_field(unsigned short, migrate_disable);
+-	__common_field(int, padding);
++	__common_field(unsigned short, padding);
+ 
+ 	return ret;
+ }
+-- 
+1.8.1.4
+

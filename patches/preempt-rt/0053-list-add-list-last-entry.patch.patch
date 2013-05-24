@@ -1,0 +1,35 @@
+From ad242e7994a05eaf0c3b9ad833bea45e4923caee Mon Sep 17 00:00:00 2001
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Tue, 21 Jun 2011 11:22:36 +0200
+Subject: [PATCH 053/291] list-add-list-last-entry.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/list.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/include/linux/list.h b/include/linux/list.h
+index cc6d2aa..7a9851b 100644
+--- a/include/linux/list.h
++++ b/include/linux/list.h
+@@ -362,6 +362,17 @@ static inline void list_splice_tail_init(struct list_head *list,
+ 	list_entry((ptr)->next, type, member)
+ 
+ /**
++ * list_last_entry - get the last element from a list
++ * @ptr:	the list head to take the element from.
++ * @type:	the type of the struct this is embedded in.
++ * @member:	the name of the list_struct within the struct.
++ *
++ * Note, that list is expected to be not empty.
++ */
++#define list_last_entry(ptr, type, member) \
++	list_entry((ptr)->prev, type, member)
++
++/**
+  * list_for_each	-	iterate over a list
+  * @pos:	the &struct list_head to use as a loop cursor.
+  * @head:	the head for your list.
+-- 
+1.8.1.4
+

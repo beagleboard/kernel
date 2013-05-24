@@ -1,0 +1,88 @@
+From 578fe9708bd77c491c97b899cddbc96c96e347e2 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sun, 17 Jul 2011 22:08:38 +0200
+Subject: [PATCH 182/291] timer-handle-idle-trylock-in-get-next-timer-irq.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/spinlock_rt.h | 12 +++++++++++-
+ kernel/rtmutex.c            |  7 +------
+ kernel/timer.c              |  9 +++++++--
+ 3 files changed, 19 insertions(+), 9 deletions(-)
+
+diff --git a/include/linux/spinlock_rt.h b/include/linux/spinlock_rt.h
+index a9ea392..0618387 100644
+--- a/include/linux/spinlock_rt.h
++++ b/include/linux/spinlock_rt.h
+@@ -53,7 +53,17 @@ extern void __lockfunc __rt_spin_unlock(struct rt_mutex *lock);
+ 
+ #define spin_lock_irq(lock)		spin_lock(lock)
+ 
+-#define spin_trylock(lock)		__cond_lock(lock, rt_spin_trylock(lock))
++#define spin_do_trylock(lock)		__cond_lock(lock, rt_spin_trylock(lock))
++
++#define spin_trylock(lock)			\
++({						\
++	int __locked;				\
++	migrate_disable();			\
++	__locked = spin_do_trylock(lock);	\
++	if (!__locked)				\
++		migrate_enable();		\
++	__locked;				\
++})
+ 
+ #ifdef CONFIG_LOCKDEP
+ # define spin_lock_nested(lock, subclass)		\
+diff --git a/kernel/rtmutex.c b/kernel/rtmutex.c
+index b562de3..3bff726 100644
+--- a/kernel/rtmutex.c
++++ b/kernel/rtmutex.c
+@@ -861,15 +861,10 @@ EXPORT_SYMBOL(rt_spin_unlock_wait);
+ 
+ int __lockfunc rt_spin_trylock(spinlock_t *lock)
+ {
+-	int ret;
++	int ret = rt_mutex_trylock(&lock->lock);
+ 
+-	migrate_disable();
+-	ret = rt_mutex_trylock(&lock->lock);
+ 	if (ret)
+ 		spin_acquire(&lock->dep_map, 0, 1, _RET_IP_);
+-	else
+-		migrate_enable();
+-
+ 	return ret;
+ }
+ EXPORT_SYMBOL(rt_spin_trylock);
+diff --git a/kernel/timer.c b/kernel/timer.c
+index 5470c3e..8af44de 100644
+--- a/kernel/timer.c
++++ b/kernel/timer.c
+@@ -1380,9 +1380,10 @@ unsigned long get_next_timer_interrupt(unsigned long now)
+ 	/*
+ 	 * On PREEMPT_RT we cannot sleep here. If the trylock does not
+ 	 * succeed then we return the worst-case 'expires in 1 tick'
+-	 * value:
++	 * value.  We use the rt functions here directly to avoid a
++	 * migrate_disable() call.
+ 	 */
+-	if (!spin_trylock(&base->lock))
++	if (!spin_do_trylock(&base->lock))
+ 		return  now + 1;
+ #else
+ 	spin_lock(&base->lock);
+@@ -1392,7 +1393,11 @@ unsigned long get_next_timer_interrupt(unsigned long now)
+ 			base->next_timer = __next_timer_interrupt(base);
+ 		expires = base->next_timer;
+ 	}
++#ifdef CONFIG_PREEMPT_RT_FULL
++	rt_spin_unlock(&base->lock);
++#else
+ 	spin_unlock(&base->lock);
++#endif
+ 
+ 	if (time_before_eq(expires, now))
+ 		return now;
+-- 
+1.8.1.4
+

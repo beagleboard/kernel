@@ -1,0 +1,47 @@
+From d8e1966dd6b581b2fa5b4604a5caa6760ffaeede Mon Sep 17 00:00:00 2001
+From: Ingo Molnar <mingo@elte.hu>
+Date: Fri, 3 Jul 2009 08:30:01 -0500
+Subject: [PATCH 188/291] serial: 8250: Clean up the locking for -rt
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ drivers/tty/serial/8250/8250.c | 15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/tty/serial/8250/8250.c b/drivers/tty/serial/8250/8250.c
+index 733f22c..c6cb88c 100644
+--- a/drivers/tty/serial/8250/8250.c
++++ b/drivers/tty/serial/8250/8250.c
+@@ -2900,14 +2900,10 @@ serial8250_console_write(struct console *co, const char *s, unsigned int count)
+ 
+ 	touch_nmi_watchdog();
+ 
+-	local_irq_save(flags);
+-	if (port->sysrq) {
+-		/* serial8250_handle_irq() already took the lock */
+-		locked = 0;
+-	} else if (oops_in_progress) {
+-		locked = spin_trylock(&port->lock);
+-	} else
+-		spin_lock(&port->lock);
++	if (port->sysrq || oops_in_progress)
++		locked = spin_trylock_irqsave(&port->lock, flags);
++	else
++		spin_lock_irqsave(&port->lock, flags);
+ 
+ 	/*
+ 	 *	First save the IER then disable the interrupts
+@@ -2939,8 +2935,7 @@ serial8250_console_write(struct console *co, const char *s, unsigned int count)
+ 		serial8250_modem_status(up);
+ 
+ 	if (locked)
+-		spin_unlock(&port->lock);
+-	local_irq_restore(flags);
++		spin_unlock_irqrestore(&port->lock, flags);
+ }
+ 
+ static int __init serial8250_console_setup(struct console *co, char *options)
+-- 
+1.8.1.4
+

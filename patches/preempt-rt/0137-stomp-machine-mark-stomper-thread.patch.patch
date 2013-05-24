@@ -1,0 +1,38 @@
+From 8e8c630f67bb26ceffe9284dba7f2e59a7d92da7 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sun, 17 Jul 2011 19:53:19 +0200
+Subject: [PATCH 137/291] stomp-machine-mark-stomper-thread.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/sched.h | 1 +
+ kernel/stop_machine.c | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index 2935155..2d52ca5 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1860,6 +1860,7 @@ extern void thread_group_cputime_adjusted(struct task_struct *p, cputime_t *ut,
+ #define PF_FROZEN	0x00010000	/* frozen for system suspend */
+ #define PF_FSTRANS	0x00020000	/* inside a filesystem transaction */
+ #define PF_KSWAPD	0x00040000	/* I am kswapd */
++#define PF_STOMPER	0x00080000	/* I am a stomp machine thread */
+ #define PF_LESS_THROTTLE 0x00100000	/* Throttle me less: I clean memory */
+ #define PF_KTHREAD	0x00200000	/* I am a kernel thread */
+ #define PF_RANDOMIZE	0x00400000	/* randomize virtual address space */
+diff --git a/kernel/stop_machine.c b/kernel/stop_machine.c
+index 61779f8..484a335 100644
+--- a/kernel/stop_machine.c
++++ b/kernel/stop_machine.c
+@@ -327,6 +327,7 @@ static int __cpuinit cpu_stop_cpu_callback(struct notifier_block *nfb,
+ 		if (IS_ERR(p))
+ 			return notifier_from_errno(PTR_ERR(p));
+ 		get_task_struct(p);
++		p->flags |= PF_STOMPER;
+ 		kthread_bind(p, cpu);
+ 		sched_set_stop_task(cpu, p);
+ 		stopper->thread = p;
+-- 
+1.8.1.4
+

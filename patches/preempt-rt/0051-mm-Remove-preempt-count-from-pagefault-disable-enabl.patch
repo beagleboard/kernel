@@ -1,0 +1,41 @@
+From 71f736f545809ffc431c272a83a6e53364dc7e26 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sat, 25 Jul 2009 22:06:27 +0200
+Subject: [PATCH 051/291] mm: Remove preempt count from pagefault
+ disable/enable
+
+Now that all users are cleaned up, we can remove the preemption count.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ mm/memory.c | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/mm/memory.c b/mm/memory.c
+index f52c023..cb7094f 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3720,7 +3720,6 @@ unlock:
+ #ifdef CONFIG_PREEMPT_RT_FULL
+ void pagefault_disable(void)
+ {
+-	inc_preempt_count();
+ 	current->pagefault_disabled++;
+ 	/*
+ 	 * make sure to have issued the store before a pagefault
+@@ -3738,12 +3737,6 @@ void pagefault_enable(void)
+ 	 */
+ 	barrier();
+ 	current->pagefault_disabled--;
+-	dec_preempt_count();
+-	/*
+-	 * make sure we do..
+-	 */
+-	barrier();
+-	preempt_check_resched();
+ }
+ EXPORT_SYMBOL(pagefault_enable);
+ #endif
+-- 
+1.8.1.4
+

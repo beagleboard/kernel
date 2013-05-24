@@ -1,0 +1,33 @@
+From 008709a6ca197e84918e6544c6098db90c94113a Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sun, 17 Jul 2011 19:48:20 +0200
+Subject: [PATCH 147/291] migrate-disable-rt-variant.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/preempt.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/include/linux/preempt.h b/include/linux/preempt.h
+index 9cde8c3..6446e22 100644
+--- a/include/linux/preempt.h
++++ b/include/linux/preempt.h
+@@ -127,11 +127,15 @@ extern void migrate_enable(void);
+ # define preempt_enable_rt()		preempt_enable()
+ # define preempt_disable_nort()		barrier()
+ # define preempt_enable_nort()		barrier()
++# define migrate_disable_rt()		migrate_disable()
++# define migrate_enable_rt()		migrate_enable()
+ #else
+ # define preempt_disable_rt()		barrier()
+ # define preempt_enable_rt()		barrier()
+ # define preempt_disable_nort()		preempt_disable()
+ # define preempt_enable_nort()		preempt_enable()
++# define migrate_disable_rt()		barrier()
++# define migrate_enable_rt()		barrier()
+ #endif
+ 
+ #ifdef CONFIG_PREEMPT_NOTIFIERS
+-- 
+1.8.1.4
+

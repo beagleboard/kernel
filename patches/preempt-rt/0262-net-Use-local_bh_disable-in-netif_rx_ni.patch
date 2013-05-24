@@ -1,0 +1,37 @@
+From 2437f5b61470aff93b112b22e8744905a7bbb0a9 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sun, 28 Oct 2012 15:12:49 +0000
+Subject: [PATCH 262/291] net: Use local_bh_disable in netif_rx_ni()
+
+This code triggers the new WARN in __raise_softirq_irqsoff() though it
+actually looks at the softirq pending bit and calls into the softirq
+code, but that fits not well with the context related softirq model of
+RT. It's correct on mainline though, but going through
+local_bh_disable/enable here is not going to hurt badly.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ net/core/dev.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 7c4ba7d..b41fb17 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -3121,11 +3121,9 @@ int netif_rx_ni(struct sk_buff *skb)
+ {
+ 	int err;
+ 
+-	migrate_disable();
++	local_bh_disable();
+ 	err = netif_rx(skb);
+-	if (local_softirq_pending())
+-		thread_do_softirq();
+-	migrate_enable();
++	local_bh_enable();
+ 
+ 	return err;
+ }
+-- 
+1.8.1.4
+

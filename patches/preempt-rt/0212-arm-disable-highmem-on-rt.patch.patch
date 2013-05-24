@@ -1,0 +1,26 @@
+From f7161a4f515609b684d170c8e2a1ea36cec7d0bc Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Mon, 18 Jul 2011 17:09:28 +0200
+Subject: [PATCH 212/291] arm-disable-highmem-on-rt.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/arm/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index a31ba89..09d0661 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1753,7 +1753,7 @@ config HAVE_ARCH_PFN_VALID
+ 
+ config HIGHMEM
+ 	bool "High Memory Support"
+-	depends on MMU
++	depends on MMU && !PREEMPT_RT_FULL
+ 	help
+ 	  The address space of ARM processors is only 4 Gigabytes large
+ 	  and it has to accommodate user address space, kernel address
+-- 
+1.8.1.4
+

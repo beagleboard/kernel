@@ -1,0 +1,30 @@
+From 5598d0d2cacde856838c8a2c3e7e6bf54827b58c Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 4 Nov 2011 20:48:36 +0100
+Subject: [PATCH 155/291] sched-clear-pf-thread-bound-on-fallback-rq.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/sched/core.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index d65af78..ae86556 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -1192,6 +1192,12 @@ out:
+ 		}
+ 	}
+ 
++	/*
++	 * Clear PF_THREAD_BOUND, otherwise we wreckage
++	 * migrate_disable/enable. See optimization for
++	 * PF_THREAD_BOUND tasks there.
++	 */
++	p->flags &= ~PF_THREAD_BOUND;
+ 	return dest_cpu;
+ }
+ 
+-- 
+1.8.1.4
+

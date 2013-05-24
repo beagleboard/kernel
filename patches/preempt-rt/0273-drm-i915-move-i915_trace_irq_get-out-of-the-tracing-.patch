@@ -1,0 +1,68 @@
+From ade65bcd756bdbbf5ef19d1d933f8590634b0d0a Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Thu, 25 Apr 2013 18:12:52 +0200
+Subject: [PATCH 273/291] drm/i915: move i915_trace_irq_get() out of the
+ tracing macro
+
+Reported-by: Joakim Hernberg <jbh@alchemy.lu>
+[C.Emde@osadl.org: pull out seqno and define it so it compiled]
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/gpu/drm/i915/i915_gem_execbuffer.c | 5 ++++-
+ drivers/gpu/drm/i915/i915_trace.h          | 1 -
+ drivers/gpu/drm/i915/intel_ringbuffer.h    | 2 ++
+ 3 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_gem_execbuffer.c b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+index ba8805a..eabd3dd 100644
+--- a/drivers/gpu/drm/i915/i915_gem_execbuffer.c
++++ b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+@@ -814,6 +814,7 @@ i915_gem_do_execbuffer(struct drm_device *dev, void *data,
+ 	struct intel_ring_buffer *ring;
+ 	u32 ctx_id = i915_execbuffer2_get_context_id(*args);
+ 	u32 exec_start, exec_len;
++	u32 seqno;
+ 	u32 mask;
+ 	u32 flags;
+ 	int ret, mode, i;
+@@ -1068,7 +1069,9 @@ i915_gem_do_execbuffer(struct drm_device *dev, void *data,
+ 			goto err;
+ 	}
+ 
+-	trace_i915_gem_ring_dispatch(ring, intel_ring_get_seqno(ring), flags);
++	seqno = intel_ring_get_seqno(ring);
++	trace_i915_gem_ring_dispatch(ring, seqno, flags);
++	i915_trace_irq_get(ring, seqno);
+ 
+ 	i915_gem_execbuffer_move_to_active(&objects, ring);
+ 	i915_gem_execbuffer_retire_commands(dev, file, ring);
+diff --git a/drivers/gpu/drm/i915/i915_trace.h b/drivers/gpu/drm/i915/i915_trace.h
+index 3db4a68..29217db 100644
+--- a/drivers/gpu/drm/i915/i915_trace.h
++++ b/drivers/gpu/drm/i915/i915_trace.h
+@@ -244,7 +244,6 @@ TRACE_EVENT(i915_gem_ring_dispatch,
+ 			   __entry->ring = ring->id;
+ 			   __entry->seqno = seqno;
+ 			   __entry->flags = flags;
+-			   i915_trace_irq_get(ring, seqno);
+ 			   ),
+ 
+ 	    TP_printk("dev=%u, ring=%u, seqno=%u, flags=%x",
+diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.h b/drivers/gpu/drm/i915/intel_ringbuffer.h
+index 6af87cd..8b5e4ae 100644
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.h
++++ b/drivers/gpu/drm/i915/intel_ringbuffer.h
+@@ -232,8 +232,10 @@ static inline u32 intel_ring_get_seqno(struct intel_ring_buffer *ring)
+ 
+ static inline void i915_trace_irq_get(struct intel_ring_buffer *ring, u32 seqno)
+ {
++#ifdef CONFIG_TRACEPOINTS
+ 	if (ring->trace_irq_seqno == 0 && ring->irq_get(ring))
+ 		ring->trace_irq_seqno = seqno;
++#endif
+ }
+ 
+ /* DRI warts */
+-- 
+1.8.1.4
+

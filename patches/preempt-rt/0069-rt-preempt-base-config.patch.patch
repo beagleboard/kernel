@@ -1,0 +1,55 @@
+From 58c9835bec751bbf50dadf4ff17e84ed5c929b14 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 17 Jun 2011 12:39:57 +0200
+Subject: [PATCH 069/291] rt-preempt-base-config.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/Kconfig.preempt | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
+
+diff --git a/kernel/Kconfig.preempt b/kernel/Kconfig.preempt
+index 3f9c974..885efbd 100644
+--- a/kernel/Kconfig.preempt
++++ b/kernel/Kconfig.preempt
+@@ -1,3 +1,10 @@
++config PREEMPT
++	bool
++	select PREEMPT_COUNT
++
++config PREEMPT_RT_BASE
++	bool
++	select PREEMPT
+ 
+ choice
+ 	prompt "Preemption Model"
+@@ -33,9 +40,9 @@ config PREEMPT_VOLUNTARY
+ 
+ 	  Select this if you are building a kernel for a desktop system.
+ 
+-config PREEMPT
++config PREEMPT__LL
+ 	bool "Preemptible Kernel (Low-Latency Desktop)"
+-	select PREEMPT_COUNT
++	select PREEMPT
+ 	select UNINLINE_SPIN_UNLOCK if !ARCH_INLINE_SPIN_UNLOCK
+ 	help
+ 	  This option reduces the latency of the kernel by making
+@@ -52,6 +59,14 @@ config PREEMPT
+ 	  embedded system with latency requirements in the milliseconds
+ 	  range.
+ 
++config PREEMPT_RTB
++	bool "Preemptible Kernel (Basic RT)"
++	select PREEMPT_RT_BASE
++	help
++	  This option is basically the same as (Low-Latency Desktop) but
++	  enables changes which are preliminary for the full preemptiple
++	  RT kernel.
++
+ endchoice
+ 
+ config PREEMPT_COUNT
+-- 
+1.8.1.4
+

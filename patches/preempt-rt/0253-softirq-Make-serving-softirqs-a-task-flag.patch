@@ -1,0 +1,82 @@
+From 52cb3d8fe35c942ee6313994b058caa1d5066e77 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Thu, 4 Oct 2012 14:30:25 +0100
+Subject: [PATCH 253/291] softirq: Make serving softirqs a task flag
+
+Avoid the percpu softirq_runner pointer magic by using a task flag.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/sched.h |  1 +
+ kernel/softirq.c      | 20 +++-----------------
+ 2 files changed, 4 insertions(+), 17 deletions(-)
+
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index aab87b7..5789130 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1857,6 +1857,7 @@ extern void thread_group_cputime_adjusted(struct task_struct *p, cputime_t *ut,
+ /*
+  * Per process flags
+  */
++#define PF_IN_SOFTIRQ	0x00000001	/* Task is serving softirq */
+ #define PF_EXITING	0x00000004	/* getting shut down */
+ #define PF_EXITPIDONE	0x00000008	/* pi exit done on shut down */
+ #define PF_VCPU		0x00000010	/* I'm a virtual CPU */
+diff --git a/kernel/softirq.c b/kernel/softirq.c
+index f52cdbc..0a810e4 100644
+--- a/kernel/softirq.c
++++ b/kernel/softirq.c
+@@ -375,7 +375,6 @@ static void ksoftirqd_clr_sched_params(unsigned int cpu, bool online) { }
+  * On RT we serialize softirq execution with a cpu local lock
+  */
+ static DEFINE_LOCAL_IRQ_LOCK(local_softirq_lock);
+-static DEFINE_PER_CPU(struct task_struct *, local_softirq_runner);
+ 
+ static void __do_softirq_common(int need_rcu_bh_qs);
+ 
+@@ -430,22 +429,9 @@ void _local_bh_enable(void)
+ }
+ EXPORT_SYMBOL(_local_bh_enable);
+ 
+-/* For tracing */
+-int notrace __in_softirq(void)
+-{
+-	if (__get_cpu_var(local_softirq_lock).owner == current)
+-		return __get_cpu_var(local_softirq_lock).nestcnt;
+-	return 0;
+-}
+-
+ int in_serving_softirq(void)
+ {
+-	int res;
+-
+-	preempt_disable();
+-	res = __get_cpu_var(local_softirq_runner) == current;
+-	preempt_enable();
+-	return res;
++	return current->flags & PF_IN_SOFTIRQ;
+ }
+ EXPORT_SYMBOL(in_serving_softirq);
+ 
+@@ -463,7 +449,7 @@ static void __do_softirq_common(int need_rcu_bh_qs)
+ 	/* Reset the pending bitmask before enabling irqs */
+ 	set_softirq_pending(0);
+ 
+-	__get_cpu_var(local_softirq_runner) = current;
++	current->flags |= PF_IN_SOFTIRQ;
+ 
+ 	lockdep_softirq_enter();
+ 
+@@ -474,7 +460,7 @@ static void __do_softirq_common(int need_rcu_bh_qs)
+ 		wakeup_softirqd();
+ 
+ 	lockdep_softirq_exit();
+-	__get_cpu_var(local_softirq_runner) = NULL;
++	current->flags &= ~PF_IN_SOFTIRQ;
+ 
+ 	current->softirq_nestcnt--;
+ }
+-- 
+1.8.1.4
+

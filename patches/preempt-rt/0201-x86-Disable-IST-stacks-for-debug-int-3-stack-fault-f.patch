@@ -1,0 +1,113 @@
+From 9be41509efdc42e3f4aacccc6b7a92a4dabe0121 Mon Sep 17 00:00:00 2001
+From: Andi Kleen <ak@suse.de>
+Date: Fri, 3 Jul 2009 08:44:10 -0500
+Subject: [PATCH 201/291] x86: Disable IST stacks for debug/int 3/stack fault
+ for PREEMPT_RT
+
+Normally the x86-64 trap handlers for debug/int 3/stack fault run
+on a special interrupt stack to make them more robust
+when dealing with kernel code.
+
+The PREEMPT_RT kernel can sleep in locks even while allocating
+GFP_ATOMIC memory. When one of these trap handlers needs to send
+real time signals for ptrace it allocates memory and could then
+try to to schedule.  But it is not allowed to schedule on a
+IST stack. This can cause warnings and hangs.
+
+This patch disables the IST stacks for these handlers for PREEMPT_RT
+kernel. Instead let them run on the normal process stack.
+
+The kernel only really needs the ISTs here to make kernel debuggers more
+robust in case someone sets a break point somewhere where the stack is
+invalid. But there are no kernel debuggers in the standard kernel
+that do this.
+
+It also means kprobes cannot be set in situations with invalid stack;
+but that sounds like a reasonable restriction.
+
+The stack fault change could minimally impact oops quality, but not very
+much because stack faults are fairly rare.
+
+A better solution would be to use similar logic as the NMI "paranoid"
+path: check if signal is for user space, if yes go back to entry.S, switch stack,
+call sync_regs, then do the signal sending etc.
+
+But this patch is much simpler and should work too with minimal impact.
+
+Signed-off-by: Andi Kleen <ak@suse.de>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/x86/include/asm/page_64_types.h | 21 +++++++++++++++------
+ arch/x86/kernel/cpu/common.c         |  2 ++
+ arch/x86/kernel/dumpstack_64.c       |  4 ++++
+ 3 files changed, 21 insertions(+), 6 deletions(-)
+
+diff --git a/arch/x86/include/asm/page_64_types.h b/arch/x86/include/asm/page_64_types.h
+index 320f7bb..65b85f4 100644
+--- a/arch/x86/include/asm/page_64_types.h
++++ b/arch/x86/include/asm/page_64_types.h
+@@ -14,12 +14,21 @@
+ #define IRQ_STACK_ORDER 2
+ #define IRQ_STACK_SIZE (PAGE_SIZE << IRQ_STACK_ORDER)
+ 
+-#define STACKFAULT_STACK 1
+-#define DOUBLEFAULT_STACK 2
+-#define NMI_STACK 3
+-#define DEBUG_STACK 4
+-#define MCE_STACK 5
+-#define N_EXCEPTION_STACKS 5  /* hw limit: 7 */
++#ifdef CONFIG_PREEMPT_RT_FULL
++# define STACKFAULT_STACK 0
++# define DOUBLEFAULT_STACK 1
++# define NMI_STACK 2
++# define DEBUG_STACK 0
++# define MCE_STACK 3
++# define N_EXCEPTION_STACKS 3  /* hw limit: 7 */
++#else
++# define STACKFAULT_STACK 1
++# define DOUBLEFAULT_STACK 2
++# define NMI_STACK 3
++# define DEBUG_STACK 4
++# define MCE_STACK 5
++# define N_EXCEPTION_STACKS 5  /* hw limit: 7 */
++#endif
+ 
+ #define PUD_PAGE_SIZE		(_AC(1, UL) << PUD_SHIFT)
+ #define PUD_PAGE_MASK		(~(PUD_PAGE_SIZE-1))
+diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
+index 9c3ab43..2636e0f 100644
+--- a/arch/x86/kernel/cpu/common.c
++++ b/arch/x86/kernel/cpu/common.c
+@@ -1103,7 +1103,9 @@ DEFINE_PER_CPU(struct task_struct *, fpu_owner_task);
+  */
+ static const unsigned int exception_stack_sizes[N_EXCEPTION_STACKS] = {
+ 	  [0 ... N_EXCEPTION_STACKS - 1]	= EXCEPTION_STKSZ,
++#if DEBUG_STACK > 0
+ 	  [DEBUG_STACK - 1]			= DEBUG_STKSZ
++#endif
+ };
+ 
+ static DEFINE_PER_CPU_PAGE_ALIGNED(char, exception_stacks
+diff --git a/arch/x86/kernel/dumpstack_64.c b/arch/x86/kernel/dumpstack_64.c
+index b653675..f16c07b 100644
+--- a/arch/x86/kernel/dumpstack_64.c
++++ b/arch/x86/kernel/dumpstack_64.c
+@@ -21,10 +21,14 @@
+ 		(N_EXCEPTION_STACKS + DEBUG_STKSZ/EXCEPTION_STKSZ - 2)
+ 
+ static char x86_stack_ids[][8] = {
++#if DEBUG_STACK > 0
+ 		[ DEBUG_STACK-1			]	= "#DB",
++#endif
+ 		[ NMI_STACK-1			]	= "NMI",
+ 		[ DOUBLEFAULT_STACK-1		]	= "#DF",
++#if STACKFAULT_STACK > 0
+ 		[ STACKFAULT_STACK-1		]	= "#SS",
++#endif
+ 		[ MCE_STACK-1			]	= "#MC",
+ #if DEBUG_STKSZ > EXCEPTION_STKSZ
+ 		[ N_EXCEPTION_STACKS ...
+-- 
+1.8.1.4
+

@@ -1,0 +1,70 @@
+From 804be0766410d80bf41b3c811bf87bee349685c0 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Tue, 12 Jul 2011 11:39:36 +0200
+Subject: [PATCH 203/291] mm-vmalloc.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ mm/vmalloc.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index 5123a16..f4b4fee 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -782,7 +782,7 @@ static struct vmap_block *new_vmap_block(gfp_t gfp_mask)
+ 	struct vmap_block *vb;
+ 	struct vmap_area *va;
+ 	unsigned long vb_idx;
+-	int node, err;
++	int node, err, cpu;
+ 
+ 	node = numa_node_id();
+ 
+@@ -821,12 +821,13 @@ static struct vmap_block *new_vmap_block(gfp_t gfp_mask)
+ 	BUG_ON(err);
+ 	radix_tree_preload_end();
+ 
+-	vbq = &get_cpu_var(vmap_block_queue);
++	cpu = get_cpu_light();
++	vbq = &__get_cpu_var(vmap_block_queue);
+ 	vb->vbq = vbq;
+ 	spin_lock(&vbq->lock);
+ 	list_add_rcu(&vb->free_list, &vbq->free);
+ 	spin_unlock(&vbq->lock);
+-	put_cpu_var(vmap_block_queue);
++	put_cpu_light();
+ 
+ 	return vb;
+ }
+@@ -900,7 +901,7 @@ static void *vb_alloc(unsigned long size, gfp_t gfp_mask)
+ 	struct vmap_block *vb;
+ 	unsigned long addr = 0;
+ 	unsigned int order;
+-	int purge = 0;
++	int purge = 0, cpu;
+ 
+ 	BUG_ON(size & ~PAGE_MASK);
+ 	BUG_ON(size > PAGE_SIZE*VMAP_MAX_ALLOC);
+@@ -916,7 +917,8 @@ static void *vb_alloc(unsigned long size, gfp_t gfp_mask)
+ 
+ again:
+ 	rcu_read_lock();
+-	vbq = &get_cpu_var(vmap_block_queue);
++	cpu = get_cpu_light();
++	vbq = &__get_cpu_var(vmap_block_queue);
+ 	list_for_each_entry_rcu(vb, &vbq->free, free_list) {
+ 		int i;
+ 
+@@ -953,7 +955,7 @@ next:
+ 	if (purge)
+ 		purge_fragmented_blocks_thiscpu();
+ 
+-	put_cpu_var(vmap_block_queue);
++	put_cpu_light();
+ 	rcu_read_unlock();
+ 
+ 	if (!addr) {
+-- 
+1.8.1.4
+

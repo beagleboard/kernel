@@ -1,0 +1,30 @@
+From 834d84a74b2216dd7af8014243e70ddca48ca2e8 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Tue, 21 Jul 2009 22:54:51 +0200
+Subject: [PATCH 077/291] acpi: Do not disable interrupts on PREEMPT_RT
+
+Use the local_irq_*_nort() variants.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/x86/include/asm/acpi.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+index 0c44630..1785dd7 100644
+--- a/arch/x86/include/asm/acpi.h
++++ b/arch/x86/include/asm/acpi.h
+@@ -51,8 +51,8 @@
+ 
+ #define ACPI_ASM_MACROS
+ #define BREAKPOINT3
+-#define ACPI_DISABLE_IRQS() local_irq_disable()
+-#define ACPI_ENABLE_IRQS()  local_irq_enable()
++#define ACPI_DISABLE_IRQS() local_irq_disable_nort()
++#define ACPI_ENABLE_IRQS()  local_irq_enable_nort()
+ #define ACPI_FLUSH_CPU_CACHE()	wbinvd()
+ 
+ int __acpi_acquire_global_lock(unsigned int *lock);
+-- 
+1.8.1.4
+

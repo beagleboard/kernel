@@ -1,0 +1,135 @@
+From 7f586d44c892b3c9dbf700b79700e2048c68f190 Mon Sep 17 00:00:00 2001
+From: Ingo Molnar <mingo@elte.hu>
+Date: Fri, 3 Jul 2009 08:29:34 -0500
+Subject: [PATCH 112/291] timers: prepare for full preemption
+
+When softirqs can be preempted we need to make sure that cancelling
+the timer from the active thread can not deadlock vs. a running timer
+callback. Add a waitqueue to resolve that.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/timer.h |  2 +-
+ kernel/timer.c        | 36 +++++++++++++++++++++++++++++++++---
+ 2 files changed, 34 insertions(+), 4 deletions(-)
+
+diff --git a/include/linux/timer.h b/include/linux/timer.h
+index 8c5a197..5fcd72c 100644
+--- a/include/linux/timer.h
++++ b/include/linux/timer.h
+@@ -241,7 +241,7 @@ extern void add_timer(struct timer_list *timer);
+ 
+ extern int try_to_del_timer_sync(struct timer_list *timer);
+ 
+-#ifdef CONFIG_SMP
++#if defined(CONFIG_SMP) || defined(CONFIG_PREEMPT_RT_FULL)
+   extern int del_timer_sync(struct timer_list *timer);
+ #else
+ # define del_timer_sync(t)		del_timer(t)
+diff --git a/kernel/timer.c b/kernel/timer.c
+index 367d008..10fcbae 100644
+--- a/kernel/timer.c
++++ b/kernel/timer.c
+@@ -76,6 +76,7 @@ struct tvec_root {
+ struct tvec_base {
+ 	spinlock_t lock;
+ 	struct timer_list *running_timer;
++	wait_queue_head_t wait_for_running_timer;
+ 	unsigned long timer_jiffies;
+ 	unsigned long next_timer;
+ 	unsigned long active_timers;
+@@ -735,12 +736,15 @@ __mod_timer(struct timer_list *timer, unsigned long expires,
+ 
+ 	debug_activate(timer, expires);
+ 
++	preempt_disable_rt();
+ 	cpu = smp_processor_id();
+ 
+ #if defined(CONFIG_NO_HZ) && defined(CONFIG_SMP)
+ 	if (!pinned && get_sysctl_timer_migration() && idle_cpu(cpu))
+ 		cpu = get_nohz_timer_target();
+ #endif
++	preempt_enable_rt();
++
+ 	new_base = per_cpu(tvec_bases, cpu);
+ 
+ 	if (base != new_base) {
+@@ -941,6 +945,29 @@ void add_timer_on(struct timer_list *timer, int cpu)
+ }
+ EXPORT_SYMBOL_GPL(add_timer_on);
+ 
++#ifdef CONFIG_PREEMPT_RT_FULL
++/*
++ * Wait for a running timer
++ */
++static void wait_for_running_timer(struct timer_list *timer)
++{
++	struct tvec_base *base = timer->base;
++
++	if (base->running_timer == timer)
++		wait_event(base->wait_for_running_timer,
++			   base->running_timer != timer);
++}
++
++# define wakeup_timer_waiters(b)	wake_up(&(b)->wait_for_tunning_timer)
++#else
++static inline void wait_for_running_timer(struct timer_list *timer)
++{
++	cpu_relax();
++}
++
++# define wakeup_timer_waiters(b)	do { } while (0)
++#endif
++
+ /**
+  * del_timer - deactive a timer.
+  * @timer: the timer to be deactivated
+@@ -998,7 +1025,7 @@ int try_to_del_timer_sync(struct timer_list *timer)
+ }
+ EXPORT_SYMBOL(try_to_del_timer_sync);
+ 
+-#ifdef CONFIG_SMP
++#if defined(CONFIG_SMP) || defined(CONFIG_PREEMPT_RT_FULL)
+ /**
+  * del_timer_sync - deactivate a timer and wait for the handler to finish.
+  * @timer: the timer to be deactivated
+@@ -1058,7 +1085,7 @@ int del_timer_sync(struct timer_list *timer)
+ 		int ret = try_to_del_timer_sync(timer);
+ 		if (ret >= 0)
+ 			return ret;
+-		cpu_relax();
++		wait_for_running_timer(timer);
+ 	}
+ }
+ EXPORT_SYMBOL(del_timer_sync);
+@@ -1175,15 +1202,17 @@ static inline void __run_timers(struct tvec_base *base)
+ 			if (irqsafe) {
+ 				spin_unlock(&base->lock);
+ 				call_timer_fn(timer, fn, data);
++				base->running_timer = NULL;
+ 				spin_lock(&base->lock);
+ 			} else {
+ 				spin_unlock_irq(&base->lock);
+ 				call_timer_fn(timer, fn, data);
++				base->running_timer = NULL;
+ 				spin_lock_irq(&base->lock);
+ 			}
+ 		}
+ 	}
+-	base->running_timer = NULL;
++	wake_up(&base->wait_for_running_timer);
+ 	spin_unlock_irq(&base->lock);
+ }
+ 
+@@ -1684,6 +1713,7 @@ static int __cpuinit init_timers_cpu(int cpu)
+ 	}
+ 
+ 	spin_lock_init(&base->lock);
++	init_waitqueue_head(&base->wait_for_running_timer);
+ 
+ 	for (j = 0; j < TVN_SIZE; j++) {
+ 		INIT_LIST_HEAD(base->tv5.vec + j);
+-- 
+1.8.1.4
+

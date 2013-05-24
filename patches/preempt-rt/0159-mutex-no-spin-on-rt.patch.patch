@@ -1,0 +1,23 @@
+From e92ea66df67dd486bd825b2a54a902be8018424c Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sun, 17 Jul 2011 21:51:45 +0200
+Subject: [PATCH 159/291] mutex-no-spin-on-rt.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/Kconfig.locks | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/Kconfig.locks b/kernel/Kconfig.locks
+index 44511d1..f60af90 100644
+--- a/kernel/Kconfig.locks
++++ b/kernel/Kconfig.locks
+@@ -222,4 +222,4 @@ endif
+ 
+ config MUTEX_SPIN_ON_OWNER
+ 	def_bool y
+-	depends on SMP && !DEBUG_MUTEXES
++	depends on SMP && !DEBUG_MUTEXES && !PREEMPT_RT_FULL
+-- 
+1.8.1.4
+

@@ -1,0 +1,60 @@
+From c626afc1275be9d8ba1304ee8b9bdae39c057b93 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Thu, 1 Apr 2010 20:20:57 +0200
+Subject: [PATCH 092/291] drivers: net: gianfar: Make RT aware
+
+The adjust_link() disables interrupts before taking the queue
+locks. On RT those locks are converted to "sleeping" locks and
+therefor the local_irq_save/restore must be converted to
+local_irq_save/restore_nort.
+
+Reported-by: Xianghua Xiao <xiaoxianghua@gmail.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Tested-by: Xianghua Xiao <xiaoxianghua@gmail.com>
+---
+ drivers/net/ethernet/freescale/gianfar.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/ethernet/freescale/gianfar.c b/drivers/net/ethernet/freescale/gianfar.c
+index bffb2ed..5c53535 100644
+--- a/drivers/net/ethernet/freescale/gianfar.c
++++ b/drivers/net/ethernet/freescale/gianfar.c
+@@ -1663,7 +1663,7 @@ void stop_gfar(struct net_device *dev)
+ 
+ 
+ 	/* Lock it down */
+-	local_irq_save(flags);
++	local_irq_save_nort(flags);
+ 	lock_tx_qs(priv);
+ 	lock_rx_qs(priv);
+ 
+@@ -1671,7 +1671,7 @@ void stop_gfar(struct net_device *dev)
+ 
+ 	unlock_rx_qs(priv);
+ 	unlock_tx_qs(priv);
+-	local_irq_restore(flags);
++	local_irq_restore_nort(flags);
+ 
+ 	/* Free the IRQs */
+ 	if (priv->device_flags & FSL_GIANFAR_DEV_HAS_MULTI_INTR) {
+@@ -2951,7 +2951,7 @@ static void adjust_link(struct net_device *dev)
+ 	struct phy_device *phydev = priv->phydev;
+ 	int new_state = 0;
+ 
+-	local_irq_save(flags);
++	local_irq_save_nort(flags);
+ 	lock_tx_qs(priv);
+ 
+ 	if (phydev->link) {
+@@ -3020,7 +3020,7 @@ static void adjust_link(struct net_device *dev)
+ 	if (new_state && netif_msg_link(priv))
+ 		phy_print_status(phydev);
+ 	unlock_tx_qs(priv);
+-	local_irq_restore(flags);
++	local_irq_restore_nort(flags);
+ }
+ 
+ /* Update the hash table based on the current list of multicast
+-- 
+1.8.1.4
+

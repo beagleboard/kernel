@@ -1,0 +1,62 @@
+From 9bc314e26d0cd1f969a7cb1c8910fd0703e359d1 Mon Sep 17 00:00:00 2001
+From: Benedikt Spranger <b.spranger@linutronix.de>
+Date: Sat, 6 Mar 2010 17:47:10 +0100
+Subject: [PATCH 042/291] ARM: AT91: PIT: Remove irq handler when clock event
+ is unused
+
+Setup and remove the interrupt handler in clock event mode selection.
+This avoids calling the (shared) interrupt handler when the device is
+not used.
+
+Signed-off-by: Benedikt Spranger <b.spranger@linutronix.de>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/arm/mach-at91/at91rm9200_time.c  | 1 +
+ arch/arm/mach-at91/at91sam926x_time.c | 5 ++++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-at91/at91rm9200_time.c b/arch/arm/mach-at91/at91rm9200_time.c
+index cafe988..0c36dcd 100644
+--- a/arch/arm/mach-at91/at91rm9200_time.c
++++ b/arch/arm/mach-at91/at91rm9200_time.c
+@@ -134,6 +134,7 @@ clkevt32k_mode(enum clock_event_mode mode, struct clock_event_device *dev)
+ 		break;
+ 	case CLOCK_EVT_MODE_SHUTDOWN:
+ 	case CLOCK_EVT_MODE_UNUSED:
++		remove_irq(AT91_ID_SYS, &at91rm9200_timer_irq);
+ 	case CLOCK_EVT_MODE_RESUME:
+ 		irqmask = 0;
+ 		break;
+diff --git a/arch/arm/mach-at91/at91sam926x_time.c b/arch/arm/mach-at91/at91sam926x_time.c
+index 358412f..a6f9751 100644
+--- a/arch/arm/mach-at91/at91sam926x_time.c
++++ b/arch/arm/mach-at91/at91sam926x_time.c
+@@ -77,7 +77,7 @@ static struct clocksource pit_clk = {
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+-
++static struct irqaction at91sam926x_pit_irq;
+ /*
+  * Clockevent device:  interrupts every 1/HZ (== pit_cycles * MCK/16)
+  */
+@@ -86,6 +86,8 @@ pit_clkevt_mode(enum clock_event_mode mode, struct clock_event_device *dev)
+ {
+ 	switch (mode) {
+ 	case CLOCK_EVT_MODE_PERIODIC:
++		/* Set up irq handler */
++		setup_irq(AT91_ID_SYS, &at91sam926x_pit_irq);
+ 		/* update clocksource counter */
+ 		pit_cnt += pit_cycle * PIT_PICNT(pit_read(AT91_PIT_PIVR));
+ 		pit_write(AT91_PIT_MR, (pit_cycle - 1) | AT91_PIT_PITEN
+@@ -98,6 +100,7 @@ pit_clkevt_mode(enum clock_event_mode mode, struct clock_event_device *dev)
+ 	case CLOCK_EVT_MODE_UNUSED:
+ 		/* disable irq, leaving the clocksource active */
+ 		pit_write(AT91_PIT_MR, (pit_cycle - 1) | AT91_PIT_PITEN);
++		remove_irq(AT91_ID_SYS, &at91sam926x_pit_irq);
+ 		break;
+ 	case CLOCK_EVT_MODE_RESUME:
+ 		break;
+-- 
+1.8.1.4
+

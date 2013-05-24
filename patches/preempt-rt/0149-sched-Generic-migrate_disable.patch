@@ -1,0 +1,190 @@
+From fa45e5e37b47359814c5ee43f0f5fb792945d9ba Mon Sep 17 00:00:00 2001
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Date: Thu, 11 Aug 2011 15:14:58 +0200
+Subject: [PATCH 149/291] sched: Generic migrate_disable
+
+Make migrate_disable() be a preempt_disable() for !rt kernels. This
+allows generic code to use it but still enforces that these code
+sections stay relatively small.
+
+A preemptible migrate_disable() accessible for general use would allow
+people growing arbitrary per-cpu crap instead of clean these things
+up.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Link: http://lkml.kernel.org/n/tip-275i87sl8e1jcamtchmehonm@git.kernel.org
+---
+ include/linux/preempt.h | 21 +++++++++------------
+ include/linux/sched.h   | 13 +++++++++++++
+ include/linux/smp.h     |  9 ++-------
+ kernel/sched/core.c     |  6 ++++--
+ kernel/trace/trace.c    |  2 +-
+ lib/smp_processor_id.c  |  2 +-
+ 6 files changed, 30 insertions(+), 23 deletions(-)
+
+diff --git a/include/linux/preempt.h b/include/linux/preempt.h
+index 6446e22..c28f5d6 100644
+--- a/include/linux/preempt.h
++++ b/include/linux/preempt.h
+@@ -114,28 +114,25 @@ do { \
+ 
+ #endif /* CONFIG_PREEMPT_COUNT */
+ 
+-#ifdef CONFIG_SMP
+-extern void migrate_disable(void);
+-extern void migrate_enable(void);
+-#else
+-# define migrate_disable()		barrier()
+-# define migrate_enable()		barrier()
+-#endif
+-
+ #ifdef CONFIG_PREEMPT_RT_FULL
+ # define preempt_disable_rt()		preempt_disable()
+ # define preempt_enable_rt()		preempt_enable()
+ # define preempt_disable_nort()		barrier()
+ # define preempt_enable_nort()		barrier()
+-# define migrate_disable_rt()		migrate_disable()
+-# define migrate_enable_rt()		migrate_enable()
++# ifdef CONFIG_SMP
++   extern void migrate_disable(void);
++   extern void migrate_enable(void);
++# else /* CONFIG_SMP */
++#  define migrate_disable()		barrier()
++#  define migrate_enable()		barrier()
++# endif /* CONFIG_SMP */
+ #else
+ # define preempt_disable_rt()		barrier()
+ # define preempt_enable_rt()		barrier()
+ # define preempt_disable_nort()		preempt_disable()
+ # define preempt_enable_nort()		preempt_enable()
+-# define migrate_disable_rt()		barrier()
+-# define migrate_enable_rt()		barrier()
++# define migrate_disable()		preempt_disable()
++# define migrate_enable()		preempt_enable()
+ #endif
+ 
+ #ifdef CONFIG_PREEMPT_NOTIFIERS
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index 71f41e4..580395f 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1280,7 +1280,9 @@ struct task_struct {
+ #endif
+ 
+ 	unsigned int policy;
++#ifdef CONFIG_PREEMPT_RT_FULL
+ 	int migrate_disable;
++#endif
+ 	int nr_cpus_allowed;
+ 	cpumask_t cpus_allowed;
+ 
+@@ -2801,11 +2803,22 @@ static inline void set_task_cpu(struct task_struct *p, unsigned int cpu)
+ 
+ #endif /* CONFIG_SMP */
+ 
++static inline int __migrate_disabled(struct task_struct *p)
++{
++#ifdef CONFIG_PREEMPT_RT_FULL
++	return p->migrate_disable;
++#else
++	return 0;
++#endif
++}
++
+ /* Future-safe accessor for struct task_struct's cpus_allowed. */
+ static inline const struct cpumask *tsk_cpus_allowed(struct task_struct *p)
+ {
++#ifdef CONFIG_PREEMPT_RT_FULL
+ 	if (p->migrate_disable)
+ 		return cpumask_of(task_cpu(p));
++#endif
+ 
+ 	return &p->cpus_allowed;
+ }
+diff --git a/include/linux/smp.h b/include/linux/smp.h
+index 8624321..9e3255b 100644
+--- a/include/linux/smp.h
++++ b/include/linux/smp.h
+@@ -218,13 +218,8 @@ static inline void kick_all_cpus_sync(void) {  }
+ #define get_cpu()		({ preempt_disable(); smp_processor_id(); })
+ #define put_cpu()		preempt_enable()
+ 
+-#ifndef CONFIG_PREEMPT_RT_FULL
+-# define get_cpu_light()	get_cpu()
+-# define put_cpu_light()	put_cpu()
+-#else
+-# define get_cpu_light()	({ migrate_disable(); smp_processor_id(); })
+-# define put_cpu_light()	migrate_enable()
+-#endif
++#define get_cpu_light()		({ migrate_disable(); smp_processor_id(); })
++#define put_cpu_light()		migrate_enable()
+ 
+ /*
+  * Callback to arch code if there's nosmp or maxcpus=0 on the
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index b68ae1c..a55c51d 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -4738,7 +4738,7 @@ void __cpuinit init_idle(struct task_struct *idle, int cpu)
+ #ifdef CONFIG_SMP
+ void do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask)
+ {
+-	if (!p->migrate_disable) {
++	if (!__migrate_disabled(p)) {
+ 		if (p->sched_class && p->sched_class->set_cpus_allowed)
+ 			p->sched_class->set_cpus_allowed(p, new_mask);
+ 		p->nr_cpus_allowed = cpumask_weight(new_mask);
+@@ -4794,7 +4794,7 @@ int set_cpus_allowed_ptr(struct task_struct *p, const struct cpumask *new_mask)
+ 	do_set_cpus_allowed(p, new_mask);
+ 
+ 	/* Can the task run on the task's current CPU? If so, we're done */
+-	if (cpumask_test_cpu(task_cpu(p), new_mask) || p->migrate_disable)
++	if (cpumask_test_cpu(task_cpu(p), new_mask) || __migrate_disabled(p))
+ 		goto out;
+ 
+ 	dest_cpu = cpumask_any_and(cpu_active_mask, new_mask);
+@@ -4813,6 +4813,7 @@ out:
+ }
+ EXPORT_SYMBOL_GPL(set_cpus_allowed_ptr);
+ 
++#ifdef CONFIG_PREEMPT_RT_FULL
+ void migrate_disable(void)
+ {
+ 	struct task_struct *p = current;
+@@ -4905,6 +4906,7 @@ void migrate_enable(void)
+ 	preempt_enable();
+ }
+ EXPORT_SYMBOL(migrate_enable);
++#endif /* CONFIG_PREEMPT_RT_FULL */
+ 
+ /*
+  * Move (not current) task off this cpu, onto dest cpu. We're doing
+diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
+index a3c1bf3..0b58873 100644
+--- a/kernel/trace/trace.c
++++ b/kernel/trace/trace.c
+@@ -1179,7 +1179,7 @@ tracing_generic_entry_update(struct trace_entry *entry, unsigned long flags,
+ 		((pc & SOFTIRQ_MASK) ? TRACE_FLAG_SOFTIRQ : 0) |
+ 		(need_resched() ? TRACE_FLAG_NEED_RESCHED : 0);
+ 
+-	entry->migrate_disable	= (tsk) ? tsk->migrate_disable & 0xFF : 0;
++	entry->migrate_disable	= (tsk) ? __migrate_disabled(tsk) & 0xFF : 0;
+ }
+ EXPORT_SYMBOL_GPL(tracing_generic_entry_update);
+ 
+diff --git a/lib/smp_processor_id.c b/lib/smp_processor_id.c
+index 0a846e7..dbb1570 100644
+--- a/lib/smp_processor_id.c
++++ b/lib/smp_processor_id.c
+@@ -41,7 +41,7 @@ notrace unsigned int debug_smp_processor_id(void)
+ 
+ 	printk(KERN_ERR "BUG: using smp_processor_id() in preemptible [%08x %08x] "
+ 	       "code: %s/%d\n", preempt_count() - 1,
+-	       current->migrate_disable, current->comm, current->pid);
++	       __migrate_disabled(current), current->comm, current->pid);
+ 	print_symbol("caller is %s\n", (long)__builtin_return_address(0));
+ 	dump_stack();
+ 
+-- 
+1.8.1.4
+

@@ -1,0 +1,25 @@
+From fe38e9b4a611f0cd9ea108e2441f92488c9ddd32 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 15 Jul 2011 21:24:27 +0200
+Subject: [PATCH 056/291] rwsem-inlcude-fix.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/pid.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/linux/pid.h b/include/linux/pid.h
+index 2381c97..3b67343 100644
+--- a/include/linux/pid.h
++++ b/include/linux/pid.h
+@@ -2,6 +2,7 @@
+ #define _LINUX_PID_H
+ 
+ #include <linux/rcupdate.h>
++#include <linux/atomic.h>
+ 
+ enum pid_type
+ {
+-- 
+1.8.1.4
+

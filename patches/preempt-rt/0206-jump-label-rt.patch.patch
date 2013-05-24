@@ -1,0 +1,27 @@
+From 51b22748e1588f725c8b84ce5ae035ebf0dadd6f Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Wed, 13 Jul 2011 11:03:16 +0200
+Subject: [PATCH 206/291] jump-label-rt.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/jump_label.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/jump_label.h b/include/linux/jump_label.h
+index 0976fc4..40c876b 100644
+--- a/include/linux/jump_label.h
++++ b/include/linux/jump_label.h
+@@ -50,7 +50,8 @@
+ #include <linux/compiler.h>
+ #include <linux/workqueue.h>
+ 
+-#if defined(CC_HAVE_ASM_GOTO) && defined(CONFIG_JUMP_LABEL)
++#if defined(CC_HAVE_ASM_GOTO) && defined(CONFIG_JUMP_LABEL) && \
++	!defined(CONFIG_PREEMPT_BASE)
+ 
+ struct static_key {
+ 	atomic_t enabled;
+-- 
+1.8.1.4
+

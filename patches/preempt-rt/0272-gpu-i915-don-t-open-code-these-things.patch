@@ -1,0 +1,62 @@
+From a48a15e96c44f994d572774f9abd1444fb569524 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Fri, 24 May 2013 16:38:53 +0200
+Subject: [PATCH 272/291] gpu/i915: don't open code these things
+
+The opencode part is gone in 1f83fee0 ("drm/i915: clear up wedged transitions")
+the owner check is still there.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/gpu/drm/i915/i915_gem.c | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index 3b9d18b..339540d 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -91,7 +91,6 @@ i915_gem_wait_for_error(struct drm_device *dev)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	struct completion *x = &dev_priv->error_completion;
+-	unsigned long flags;
+ 	int ret;
+ 
+ 	if (!atomic_read(&dev_priv->mm.wedged))
+@@ -116,9 +115,7 @@ i915_gem_wait_for_error(struct drm_device *dev)
+ 		 * end up waiting upon a subsequent completion event that
+ 		 * will never happen.
+ 		 */
+-		spin_lock_irqsave(&x->wait.lock, flags);
+-		x->done++;
+-		spin_unlock_irqrestore(&x->wait.lock, flags);
++		complete(x);
+ 	}
+ 	return 0;
+ }
+@@ -946,12 +943,9 @@ i915_gem_check_wedge(struct drm_i915_private *dev_priv,
+ 	if (atomic_read(&dev_priv->mm.wedged)) {
+ 		struct completion *x = &dev_priv->error_completion;
+ 		bool recovery_complete;
+-		unsigned long flags;
+ 
+ 		/* Give the error handler a chance to run. */
+-		spin_lock_irqsave(&x->wait.lock, flags);
+-		recovery_complete = x->done > 0;
+-		spin_unlock_irqrestore(&x->wait.lock, flags);
++		recovery_complete = completion_done(x);
+ 
+ 		/* Non-interruptible callers can't handle -EAGAIN, hence return
+ 		 * -EIO unconditionally for these. */
+@@ -4384,7 +4378,7 @@ static bool mutex_is_locked_by(struct mutex *mutex, struct task_struct *task)
+ 	if (!mutex_is_locked(mutex))
+ 		return false;
+ 
+-#if defined(CONFIG_SMP) || defined(CONFIG_DEBUG_MUTEXES)
++#if (defined(CONFIG_SMP) || defined(CONFIG_DEBUG_MUTEXES)) && !defined(CONFIG_PREEMPT_RT_BASE)
+ 	return mutex->owner == task;
+ #else
+ 	/* Since UP may be pre-empted, we cannot assume that we own the lock */
+-- 
+1.8.1.4
+

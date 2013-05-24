@@ -1,0 +1,29 @@
+From 5ddd14cce09117bcbc66cca38d54f42167cf2f99 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Wed, 9 Jan 2013 23:34:08 +0100
+Subject: [PATCH 287/291] sched: Check for idle task in might_sleep()
+
+Idle is not allowed to call sleeping functions ever!
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/sched/core.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index acb69dc..1478d3b 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -7395,7 +7395,8 @@ void __might_sleep(const char *file, int line, int preempt_offset)
+ 	static unsigned long prev_jiffy;	/* ratelimiting */
+ 
+ 	rcu_sleep_check(); /* WARN_ON_ONCE() by default, no rate limit reqd. */
+-	if ((preempt_count_equals(preempt_offset) && !irqs_disabled()) ||
++	if ((preempt_count_equals(preempt_offset) && !irqs_disabled() &&
++	     !is_idle_task(current)) ||
+ 	    system_state != SYSTEM_RUNNING || oops_in_progress)
+ 		return;
+ 	if (time_before(jiffies, prev_jiffy + HZ) && prev_jiffy)
+-- 
+1.8.1.4
+

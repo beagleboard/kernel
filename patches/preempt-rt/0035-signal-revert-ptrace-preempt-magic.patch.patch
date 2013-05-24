@@ -1,0 +1,33 @@
+From 215df7601758b2e0ab105696d875d94b04670778 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Wed, 21 Sep 2011 19:57:12 +0200
+Subject: [PATCH 035/291] signal-revert-ptrace-preempt-magic.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/signal.c | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/kernel/signal.c b/kernel/signal.c
+index 50e425c..fee4a3e 100644
+--- a/kernel/signal.c
++++ b/kernel/signal.c
+@@ -1902,15 +1902,7 @@ static void ptrace_stop(int exit_code, int why, int clear_code, siginfo_t *info)
+ 		if (gstop_done && ptrace_reparented(current))
+ 			do_notify_parent_cldstop(current, false, why);
+ 
+-		/*
+-		 * Don't want to allow preemption here, because
+-		 * sys_ptrace() needs this task to be inactive.
+-		 *
+-		 * XXX: implement read_unlock_no_resched().
+-		 */
+-		preempt_disable();
+ 		read_unlock(&tasklist_lock);
+-		preempt_enable_no_resched();
+ 		freezable_schedule();
+ 	} else {
+ 		/*
+-- 
+1.8.1.4
+

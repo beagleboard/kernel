@@ -1,0 +1,70 @@
+From 03786e79df5b39f77b2f84bdb34e66dcb50e8a22 Mon Sep 17 00:00:00 2001
+From: KOBAYASHI Yoshitake <yoshitake.kobayashi@toshiba.co.jp>
+Date: Sat, 23 Jul 2011 11:57:36 +0900
+Subject: [PATCH 110/291] ipc/mqueue: Add a critical section to avoid a
+ deadlock
+
+(Repost for v3.0-rt1 and changed the distination addreses)
+I have tested the following patch on v3.0-rt1 with PREEMPT_RT_FULL.
+In POSIX message queue, if a sender process uses SCHED_FIFO and
+has a higher priority than a receiver process, the sender will
+be stuck at ipc/mqueue.c:452
+
+  452                 while (ewp->state == STATE_PENDING)
+  453                         cpu_relax();
+
+Description of the problem
+ (receiver process)
+   1. receiver changes sender's state to STATE_PENDING (mqueue.c:846)
+   2. wake up sender process and "switch to sender" (mqueue.c:847)
+      Note: This context switch only happens in PREEMPT_RT_FULL kernel.
+ (sender process)
+   3. sender check the own state in above loop (mqueue.c:452-453)
+   *. receiver will never wake up and cannot change sender's state to
+      STATE_READY because sender has higher priority
+
+Signed-off-by: Yoshitake Kobayashi <yoshitake.kobayashi@toshiba.co.jp>
+Cc: viro@zeniv.linux.org.uk
+Cc: dchinner@redhat.com
+Cc: npiggin@kernel.dk
+Cc: hch@lst.de
+Cc: arnd@arndb.de
+Link: http://lkml.kernel.org/r/4E2A38A0.1090601@toshiba.co.jp
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ ipc/mqueue.c | 19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
+
+diff --git a/ipc/mqueue.c b/ipc/mqueue.c
+index 94f5c9e..4f7d959 100644
+--- a/ipc/mqueue.c
++++ b/ipc/mqueue.c
+@@ -945,13 +945,18 @@ static inline void pipelined_receive(struct mqueue_inode_info *info)
+ 		wake_up_interruptible(&info->wait_q);
+ 		return;
+ 	}
+-	if (msg_insert(sender->msg, info))
+-		return;
+-	list_del(&sender->list);
+-	sender->state = STATE_PENDING;
+-	wake_up_process(sender->task);
+-	smp_wmb();
+-	sender->state = STATE_READY;
++	/*
++	 * Keep them in one critical section for PREEMPT_RT:
++	 */
++	preempt_disable_rt();
++	if (!msg_insert(sender->msg, info)) {
++		list_del(&sender->list);
++		sender->state = STATE_PENDING;
++		wake_up_process(sender->task);
++		smp_wmb();
++		sender->state = STATE_READY;
++	}
++	preempt_enable_rt();
+ }
+ 
+ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqdes, const char __user *, u_msg_ptr,
+-- 
+1.8.1.4
+

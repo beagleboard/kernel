@@ -1,0 +1,42 @@
+From 758e1e18be749b5d792a16f5e7cbda6ae2197fa8 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Mon, 18 Jun 2012 19:53:17 +0200
+Subject: [PATCH 021/291] powerpc: Mark low level irq handlers NO_THREAD
+
+These low level handlers cannot be threaded. Mark them NO_THREAD
+
+Reported-by: leroy christophe <christophe.leroy@c-s.fr>
+Tested-by: leroy christophe <christophe.leroy@c-s.fr>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/powerpc/platforms/8xx/m8xx_setup.c | 1 +
+ arch/powerpc/sysdev/cpm1.c              | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/arch/powerpc/platforms/8xx/m8xx_setup.c b/arch/powerpc/platforms/8xx/m8xx_setup.c
+index 1e12108..806cbbd 100644
+--- a/arch/powerpc/platforms/8xx/m8xx_setup.c
++++ b/arch/powerpc/platforms/8xx/m8xx_setup.c
+@@ -43,6 +43,7 @@ static irqreturn_t timebase_interrupt(int irq, void *dev)
+ 
+ static struct irqaction tbint_irqaction = {
+ 	.handler = timebase_interrupt,
++	.flags = IRQF_NO_THREAD,
+ 	.name = "tbint",
+ };
+ 
+diff --git a/arch/powerpc/sysdev/cpm1.c b/arch/powerpc/sysdev/cpm1.c
+index d4fa03f..5e6ff38 100644
+--- a/arch/powerpc/sysdev/cpm1.c
++++ b/arch/powerpc/sysdev/cpm1.c
+@@ -120,6 +120,7 @@ static irqreturn_t cpm_error_interrupt(int irq, void *dev)
+ 
+ static struct irqaction cpm_error_irqaction = {
+ 	.handler = cpm_error_interrupt,
++	.flags = IRQF_NO_THREAD,
+ 	.name = "error",
+ };
+ 
+-- 
+1.8.1.4
+

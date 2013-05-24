@@ -1,0 +1,29 @@
+From 684cfabe2ea86d4dc0813da8d05b826a130ee315 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 24 May 2013 16:36:55 +0200
+Subject: [PATCH 108/291] panic: skip get_random_bytes for RT_FULL in
+ init_oops_id
+
+---
+ kernel/panic.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/kernel/panic.c b/kernel/panic.c
+index e1b2822..5dc4381 100644
+--- a/kernel/panic.c
++++ b/kernel/panic.c
+@@ -371,9 +371,11 @@ static u64 oops_id;
+ 
+ static int init_oops_id(void)
+ {
++#ifndef CONFIG_PREEMPT_RT_FULL
+ 	if (!oops_id)
+ 		get_random_bytes(&oops_id, sizeof(oops_id));
+ 	else
++#endif
+ 		oops_id++;
+ 
+ 	return 0;
+-- 
+1.8.1.4
+

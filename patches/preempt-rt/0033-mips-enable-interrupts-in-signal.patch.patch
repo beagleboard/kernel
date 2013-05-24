@@ -1,0 +1,25 @@
+From 4c21ae94b8189898187de8c54b874716c47dc278 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Mon, 18 Jul 2011 21:32:10 +0200
+Subject: [PATCH 033/291] mips-enable-interrupts-in-signal.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/mips/kernel/signal.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/mips/kernel/signal.c b/arch/mips/kernel/signal.c
+index b6aa770..bfcaea6 100644
+--- a/arch/mips/kernel/signal.c
++++ b/arch/mips/kernel/signal.c
+@@ -601,6 +601,7 @@ asmlinkage void do_notify_resume(struct pt_regs *regs, void *unused,
+ 	__u32 thread_info_flags)
+ {
+ 	local_irq_enable();
++	preempt_check_resched();
+ 
+ 	/* deal with pending signal delivery */
+ 	if (thread_info_flags & _TIF_SIGPENDING)
+-- 
+1.8.1.4
+

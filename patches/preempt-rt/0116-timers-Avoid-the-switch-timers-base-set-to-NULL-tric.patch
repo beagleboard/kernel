@@ -1,0 +1,75 @@
+From 94971831e4ceb6ed68d82dbc3581c15ee8f84fd6 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Thu, 21 Jul 2011 15:23:39 +0200
+Subject: [PATCH 116/291] timers: Avoid the switch timers base set to NULL
+ trick on RT
+
+On RT that code is preemptible, so we cannot assign NULL to timers
+base as a preempter would spin forever in lock_timer_base().
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ kernel/timer.c | 40 ++++++++++++++++++++++++++++++++--------
+ 1 file changed, 32 insertions(+), 8 deletions(-)
+
+diff --git a/kernel/timer.c b/kernel/timer.c
+index 828ed8f..5470c3e 100644
+--- a/kernel/timer.c
++++ b/kernel/timer.c
+@@ -717,6 +717,36 @@ static struct tvec_base *lock_timer_base(struct timer_list *timer,
+ 	}
+ }
+ 
++#ifndef CONFIG_PREEMPT_RT_FULL
++static inline struct tvec_base *switch_timer_base(struct timer_list *timer,
++						  struct tvec_base *old,
++						  struct tvec_base *new)
++{
++	/* See the comment in lock_timer_base() */
++	timer_set_base(timer, NULL);
++	spin_unlock(&old->lock);
++	spin_lock(&new->lock);
++	timer_set_base(timer, new);
++	return new;
++}
++#else
++static inline struct tvec_base *switch_timer_base(struct timer_list *timer,
++						  struct tvec_base *old,
++						  struct tvec_base *new)
++{
++	/*
++	 * We cannot do the above because we might be preempted and
++	 * then the preempter would see NULL and loop forever.
++	 */
++	if (spin_trylock(&new->lock)) {
++		timer_set_base(timer, new);
++		spin_unlock(&old->lock);
++		return new;
++	}
++	return old;
++}
++#endif
++
+ static inline int
+ __mod_timer(struct timer_list *timer, unsigned long expires,
+ 						bool pending_only, int pinned)
+@@ -755,14 +785,8 @@ __mod_timer(struct timer_list *timer, unsigned long expires,
+ 		 * handler yet has not finished. This also guarantees that
+ 		 * the timer is serialized wrt itself.
+ 		 */
+-		if (likely(base->running_timer != timer)) {
+-			/* See the comment in lock_timer_base() */
+-			timer_set_base(timer, NULL);
+-			spin_unlock(&base->lock);
+-			base = new_base;
+-			spin_lock(&base->lock);
+-			timer_set_base(timer, base);
+-		}
++		if (likely(base->running_timer != timer))
++			base = switch_timer_base(timer, base, new_base);
+ 	}
+ 
+ 	timer->expires = expires;
+-- 
+1.8.1.4
+

@@ -1,0 +1,80 @@
+From e98f70a00c7c3880b7e091359c6c6334b29df2ff Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Thu, 4 Oct 2012 13:32:46 +0100
+Subject: [PATCH 252/291] x86: perf: Deal with kfree from atomic contexts
+
+The x86 perf code allocates memory upfront because it might need
+it. The detection that it is not needed happens in atomic context and
+calls kfree from there. RT cant do that. Use kfree_rcu instead.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/x86/kernel/cpu/perf_event.h              | 1 +
+ arch/x86/kernel/cpu/perf_event_intel.c        | 2 +-
+ arch/x86/kernel/cpu/perf_event_intel_uncore.c | 5 +++--
+ arch/x86/kernel/cpu/perf_event_intel_uncore.h | 1 +
+ 4 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/arch/x86/kernel/cpu/perf_event.h b/arch/x86/kernel/cpu/perf_event.h
+index 115c1ea..f50cca1 100644
+--- a/arch/x86/kernel/cpu/perf_event.h
++++ b/arch/x86/kernel/cpu/perf_event.h
+@@ -108,6 +108,7 @@ struct intel_shared_regs {
+ 	struct er_account       regs[EXTRA_REG_MAX];
+ 	int                     refcnt;		/* per-core: #HT threads */
+ 	unsigned                core_id;	/* per-core: core id */
++	struct rcu_head		rcu;
+ };
+ 
+ #define MAX_LBR_ENTRIES		16
+diff --git a/arch/x86/kernel/cpu/perf_event_intel.c b/arch/x86/kernel/cpu/perf_event_intel.c
+index 70602f8..0632237 100644
+--- a/arch/x86/kernel/cpu/perf_event_intel.c
++++ b/arch/x86/kernel/cpu/perf_event_intel.c
+@@ -1721,7 +1721,7 @@ static void intel_pmu_cpu_dying(int cpu)
+ 	pc = cpuc->shared_regs;
+ 	if (pc) {
+ 		if (pc->core_id == -1 || --pc->refcnt == 0)
+-			kfree(pc);
++			kfree_rcu(pc, rcu);
+ 		cpuc->shared_regs = NULL;
+ 	}
+ 
+diff --git a/arch/x86/kernel/cpu/perf_event_intel_uncore.c b/arch/x86/kernel/cpu/perf_event_intel_uncore.c
+index 3e091f0..682355e 100644
+--- a/arch/x86/kernel/cpu/perf_event_intel_uncore.c
++++ b/arch/x86/kernel/cpu/perf_event_intel_uncore.c
+@@ -2636,7 +2636,7 @@ static void __cpuinit uncore_cpu_dying(int cpu)
+ 			box = *per_cpu_ptr(pmu->box, cpu);
+ 			*per_cpu_ptr(pmu->box, cpu) = NULL;
+ 			if (box && atomic_dec_and_test(&box->refcnt))
+-				kfree(box);
++				kfree_rcu(box, rcu);
+ 		}
+ 	}
+ }
+@@ -2666,7 +2666,8 @@ static int __cpuinit uncore_cpu_starting(int cpu)
+ 				if (exist && exist->phys_id == phys_id) {
+ 					atomic_inc(&exist->refcnt);
+ 					*per_cpu_ptr(pmu->box, cpu) = exist;
+-					kfree(box);
++					if (box)
++						kfree_rcu(box, rcu);
+ 					box = NULL;
+ 					break;
+ 				}
+diff --git a/arch/x86/kernel/cpu/perf_event_intel_uncore.h b/arch/x86/kernel/cpu/perf_event_intel_uncore.h
+index e68a455..c4e1028 100644
+--- a/arch/x86/kernel/cpu/perf_event_intel_uncore.h
++++ b/arch/x86/kernel/cpu/perf_event_intel_uncore.h
+@@ -421,6 +421,7 @@ struct intel_uncore_box {
+ 	struct hrtimer hrtimer;
+ 	struct list_head list;
+ 	struct intel_uncore_extra_reg shared_regs[0];
++	struct rcu_head rcu;
+ };
+ 
+ #define UNCORE_BOX_FLAG_INITIATED	0
+-- 
+1.8.1.4
+

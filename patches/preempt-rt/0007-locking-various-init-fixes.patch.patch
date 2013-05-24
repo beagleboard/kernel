@@ -1,0 +1,86 @@
+From 54ad1bfe79f79bfbd8cb97f43a566c38fe77f5e1 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sun, 17 Jul 2011 21:25:03 +0200
+Subject: [PATCH 007/291] locking-various-init-fixes.patch
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ drivers/char/random.c        | 6 +++---
+ drivers/usb/chipidea/debug.c | 2 +-
+ fs/file.c                    | 2 +-
+ include/linux/idr.h          | 2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/char/random.c b/drivers/char/random.c
+index 57d4b15..32a6c57 100644
+--- a/drivers/char/random.c
++++ b/drivers/char/random.c
+@@ -445,7 +445,7 @@ static struct entropy_store input_pool = {
+ 	.poolinfo = &poolinfo_table[0],
+ 	.name = "input",
+ 	.limit = 1,
+-	.lock = __SPIN_LOCK_UNLOCKED(&input_pool.lock),
++	.lock = __SPIN_LOCK_UNLOCKED(input_pool.lock),
+ 	.pool = input_pool_data
+ };
+ 
+@@ -454,7 +454,7 @@ static struct entropy_store blocking_pool = {
+ 	.name = "blocking",
+ 	.limit = 1,
+ 	.pull = &input_pool,
+-	.lock = __SPIN_LOCK_UNLOCKED(&blocking_pool.lock),
++	.lock = __SPIN_LOCK_UNLOCKED(blocking_pool.lock),
+ 	.pool = blocking_pool_data
+ };
+ 
+@@ -462,7 +462,7 @@ static struct entropy_store nonblocking_pool = {
+ 	.poolinfo = &poolinfo_table[1],
+ 	.name = "nonblocking",
+ 	.pull = &input_pool,
+-	.lock = __SPIN_LOCK_UNLOCKED(&nonblocking_pool.lock),
++	.lock = __SPIN_LOCK_UNLOCKED(nonblocking_pool.lock),
+ 	.pool = nonblocking_pool_data
+ };
+ 
+diff --git a/drivers/usb/chipidea/debug.c b/drivers/usb/chipidea/debug.c
+index 3bc244d..a62c4a4 100644
+--- a/drivers/usb/chipidea/debug.c
++++ b/drivers/usb/chipidea/debug.c
+@@ -222,7 +222,7 @@ static struct {
+ } dbg_data = {
+ 	.idx = 0,
+ 	.tty = 0,
+-	.lck = __RW_LOCK_UNLOCKED(lck)
++	.lck = __RW_LOCK_UNLOCKED(dbg_data.lck)
+ };
+ 
+ /**
+diff --git a/fs/file.c b/fs/file.c
+index 2b3570b..3906d95 100644
+--- a/fs/file.c
++++ b/fs/file.c
+@@ -516,7 +516,7 @@ struct files_struct init_files = {
+ 		.close_on_exec	= init_files.close_on_exec_init,
+ 		.open_fds	= init_files.open_fds_init,
+ 	},
+-	.file_lock	= __SPIN_LOCK_UNLOCKED(init_task.file_lock),
++	.file_lock	= __SPIN_LOCK_UNLOCKED(init_files.file_lock),
+ };
+ 
+ /*
+diff --git a/include/linux/idr.h b/include/linux/idr.h
+index de7e190..e5eb125 100644
+--- a/include/linux/idr.h
++++ b/include/linux/idr.h
+@@ -136,7 +136,7 @@ struct ida {
+ 	struct ida_bitmap	*free_bitmap;
+ };
+ 
+-#define IDA_INIT(name)		{ .idr = IDR_INIT(name), .free_bitmap = NULL, }
++#define IDA_INIT(name)		{ .idr = IDR_INIT((name).idr), .free_bitmap = NULL, }
+ #define DEFINE_IDA(name)	struct ida name = IDA_INIT(name)
+ 
+ int ida_pre_get(struct ida *ida, gfp_t gfp_mask);
+-- 
+1.8.1.4
+
