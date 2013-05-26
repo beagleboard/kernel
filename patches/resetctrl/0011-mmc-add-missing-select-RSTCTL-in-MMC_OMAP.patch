@@ -1,0 +1,28 @@
+From 4be1c8e4208d4deb0b7db26c027d7cbc167c2b4c Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Sat, 25 May 2013 20:36:52 +0000
+Subject: [PATCH 11/11] mmc: add missing select RSTCTL in MMC_OMAP
+
+CONFIG_MMC_OMAP requires CONFIG_RSTCTL to compile and
+should be selected
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ drivers/mmc/host/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+index 009dabd..86d81ee 100644
+--- a/drivers/mmc/host/Kconfig
++++ b/drivers/mmc/host/Kconfig
+@@ -245,6 +245,7 @@ config MMC_OMAP
+ 	tristate "TI OMAP Multimedia Card Interface support"
+ 	depends on ARCH_OMAP
+ 	select TPS65010 if MACH_OMAP_H2
++	select RSTCTL
+ 	help
+ 	  This selects the TI OMAP Multimedia card Interface.
+ 	  If you have an OMAP board with a Multimedia Card slot,
+-- 
+1.8.1.4
+
