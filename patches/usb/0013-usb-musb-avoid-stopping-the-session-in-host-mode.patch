@@ -1,0 +1,34 @@
+From 9f20bcf11d775a86b021abea73cc63268770e202 Mon Sep 17 00:00:00 2001
+From: Jan Luebbe <jlu@pengutronix.de>
+Date: Wed, 15 May 2013 16:41:04 +0200
+Subject: [PATCH 13/13] usb: musb: avoid stopping the session in host mode
+
+Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+---
+ drivers/usb/musb/musb_dsps.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 077c1e7..c9946b9 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -230,8 +230,14 @@ static void otg_timer(unsigned long _musb)
+ 	spin_lock_irqsave(&musb->lock, flags);
+ 	switch (musb->xceiv->state) {
+ 	case OTG_STATE_A_WAIT_BCON:
+-		devctl &= ~MUSB_DEVCTL_SESSION;
+-		dsps_writeb(musb->mregs, MUSB_DEVCTL, devctl);
++		/*
++		 * We need to avoid stopping the session in host mode,
++		 * otherwise we don't see any newly connected devices
++		 */
++		if (!is_host_active(musb)) {
++			devctl &= ~MUSB_DEVCTL_SESSION;
++			dsps_writeb(musb->mregs, MUSB_DEVCTL, devctl);
++		}
+ 
+ 		devctl = dsps_readb(musb->mregs, MUSB_DEVCTL);
+ 		if (devctl & MUSB_DEVCTL_BDEVICE) {
+-- 
+1.8.1.4
+
