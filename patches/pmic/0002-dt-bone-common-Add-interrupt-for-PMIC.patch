@@ -1,0 +1,37 @@
+From 930a19ee28f99e5421c4fd181d3cc49533cfd82c Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Mon, 27 May 2013 17:16:35 +0300
+Subject: [PATCH 2/2] dt: bone-common: Add interrupt for PMIC
+
+Add support for the PMIC interrupt, supports power-button presses.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index ae407c3..b4d2f46 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -410,6 +410,9 @@
+ &tps {
+ 	ti,pmic-shutdown-controller;
+ 
++	interrupt-parent = <&intc>;
++	interrupts = <7>;	/* NNMI */
++
+ 	regulators {
+ 		dcdc1_reg: regulator@0 {
+ 			regulator-always-on;
+@@ -451,6 +454,7 @@
+ 			regulator-always-on;
+ 		};
+ 	};
++
+ };
+ 
+ &cpsw_emac0 {
+-- 
+1.8.1.4
+
