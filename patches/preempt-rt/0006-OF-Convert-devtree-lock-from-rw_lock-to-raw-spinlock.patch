@@ -1,4 +1,4 @@
-From 5a7e0bd4ba953b693da120045b77faa18fe1a4df Mon Sep 17 00:00:00 2001
+From a4458d61917641820fdfd1ea2fe625c2fa4b5aa3 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Wed, 6 Feb 2013 15:30:56 -0500
 Subject: [PATCH 006/291] OF: Convert devtree lock from rw_lock to raw spinlock
@@ -53,7 +53,7 @@ index 1303021..9f20566 100644
  
  	/* XXX Upate procfs if necessary... */
 diff --git a/drivers/of/base.c b/drivers/of/base.c
-index 85cd1d9..1c1708a 100644
+index 85cd1d9..1e63701 100644
 --- a/drivers/of/base.c
 +++ b/drivers/of/base.c
 @@ -55,7 +55,7 @@ static DEFINE_MUTEX(of_aliases_mutex);
@@ -399,7 +399,7 @@ index 85cd1d9..1c1708a 100644
  	of_allnodes = np;
  	of_node_clear_flag(np, OF_DETACHED);
 -	write_unlock_irqrestore(&devtree_lock, flags);
-+	pin_unlock_irqrestore(&devtree_lock, flags);
++	raw_spin_unlock_irqrestore(&devtree_lock, flags);
  
  	of_add_proc_dt_entry(np);
  	return 0;

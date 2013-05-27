@@ -12,19 +12,19 @@ DIR="$PWD"
 PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
-RECIPEDIR="linux-mainline-3.8"
-RECIPENAME="linux-mainline_3.8.bb"
+RECIPEDIR="linux-rt-3.8"
+RECIPENAME="linux-rt_3.8.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
 TAG="v3.8.13"
-EXTRATAG=""
+EXTRATAG="-rt"
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git"
 EXTERNAL_BRANCH="linux-3.8.y"
 EXTERNAL_SHA="dbf932a9b316d5b29b3e220e5a30e7a165ad2992"
 
-PATCHSET="dma rtc pinctrl cpufreq adc i2c da8xx-fb pwm mmc crypto 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net drm not-capebus pru usb PG2 reboot iio w1 gpmc mxt ssd130x build hdmi resetctrl camera resources"
+PATCHSET="dma rtc pinctrl cpufreq adc i2c da8xx-fb pwm mmc crypto 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net drm not-capebus pru usb PG2 reboot iio w1 gpmc mxt ssd130x build hdmi resetctrl camera resources preempt-rt"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
@@ -122,7 +122,6 @@ done
 
 echo '	file://defconfig \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 echo '  file://am335x-pm-firmware.bin \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
-echo '  file://db.txt \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 echo "\"" >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 
 mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}
@@ -137,9 +136,4 @@ cp ${DIR}/configs/beagleboard ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}
 
 if [ -e ${DIR}/kernel/am335x-pm-firmware.bin ] ; then
 	cp ${DIR}/kernel/am335x-pm-firmware.bin ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
-fi
-
-if [ -e ${DIR}/db.txt ] ; then
-	cp ${DIR}/db.txt ${DIR}/kernel/net/wireless
-	cp ${DIR}/db.txt ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
 fi
