@@ -120,12 +120,18 @@ for patchset in ${PATCHSET} ; do
 	done
 done
 
+mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}
+
 echo '	file://defconfig \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 echo '  file://am335x-pm-firmware.bin \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
-echo '  file://db.txt \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+
+if [ -e ${DIR}/logo_linux_clut224.ppm ] ; then
+	cp ${DIR}/logo_linux_clut224.ppm ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
+	echo '  file://logo_linux_clut224.ppm \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+fi
+
 echo "\"" >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 
-mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}
 cp -a ${EXPORTPATH}/* ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
 
 mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/beaglebone
@@ -134,12 +140,7 @@ cp ${DIR}/configs/beaglebone ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
 mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/beagleboard
 cp ${DIR}/configs/beagleboard ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/beagleboard/defconfig
 
-
 if [ -e ${DIR}/kernel/am335x-pm-firmware.bin ] ; then
 	cp ${DIR}/kernel/am335x-pm-firmware.bin ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
 fi
 
-if [ -e ${DIR}/db.txt ] ; then
-	cp ${DIR}/db.txt ${DIR}/kernel/net/wireless
-	cp ${DIR}/db.txt ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
-fi
