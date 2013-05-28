@@ -1,0 +1,851 @@
+diff --git a/drivers/base/regmap/regmap.c b/drivers/base/regmap/regmap.c
+index ab3a020..3fe5b49 100644
+--- a/drivers/base/regmap/regmap.c
++++ b/drivers/base/regmap/regmap.c
+@@ -1061,6 +1061,17 @@ int regmap_write(struct regmap *map, unsigned int reg, unsigned int val)
+ }
+ EXPORT_SYMBOL_GPL(regmap_write);
+ 
++int regmap_write_unlocked(struct regmap *map, unsigned int reg, unsigned int val)
++{
++	int ret;
++
++	if (reg % map->reg_stride)
++		return -EINVAL;
++	ret = _regmap_write(map, reg, val);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(regmap_write_unlocked);
++
+ /**
+  * regmap_raw_write(): Write raw values to one or more registers
+  *
+@@ -1264,6 +1275,17 @@ int regmap_read(struct regmap *map, unsigned int reg, unsigned int *val)
+ }
+ EXPORT_SYMBOL_GPL(regmap_read);
+ 
++int regmap_read_unlocked(struct regmap *map, unsigned int reg, unsigned int *val)
++{
++	int ret;
++
++	if (reg % map->reg_stride)
++		return -EINVAL;
++	ret = _regmap_read(map, reg, val);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(regmap_read_unlocked);
++
+ /**
+  * regmap_raw_read(): Read raw data from the device
+  *
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index 4b764a9..39571a9 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -26,6 +26,7 @@
+ #include <linux/iio/machine.h>
+ #include <linux/iio/driver.h>
+ #include <linux/regmap.h>
++#include <linux/delay.h>
+ 
+ #include <linux/io.h>
+ #include <linux/mfd/ti_am335x_tscadc.h>
+@@ -33,11 +34,30 @@
+ 
+ struct tiadc_device {
+ 	struct ti_tscadc_dev *mfd_tscadc;
++	unsigned int		irq;
+ 	int channels;
+ 	char *buf;
+ 	struct iio_map *map;
++	struct mutex lock;
+ };
+ 
++unsigned int channel_data[TOTAL_CHANNELS];
++
++static unsigned int tiadc_readl_unlocked(struct tiadc_device *adc, unsigned int reg)
++{
++	unsigned int val;
++
++	val = (unsigned int)-1;
++	regmap_read_unlocked(adc->mfd_tscadc->regmap_tscadc, reg, &val);
++	return val;
++}
++
++static void tiadc_writel_unlocked(struct tiadc_device *adc, unsigned int reg,
++					unsigned int val)
++{
++	regmap_write_unlocked(adc->mfd_tscadc->regmap_tscadc, reg, val);
++}
++
+ static unsigned int tiadc_readl(struct tiadc_device *adc, unsigned int reg)
+ {
+ 	unsigned int val;
+@@ -55,8 +75,8 @@ static void tiadc_writel(struct tiadc_device *adc, unsigned int reg,
+ 
+ static void tiadc_step_config(struct tiadc_device *adc_dev)
+ {
+-	unsigned int stepconfig;
+-	int i, channels = 0, steps;
++	unsigned int config;
++	int i, chan;
+ 
+ 	/*
+ 	 * There are 16 configurable steps and 8 analog input
+@@ -68,19 +88,15 @@ static void tiadc_step_config(struct tiadc_device *adc_dev)
+ 	 * needs to be given to ADC to digitalize data.
+ 	 */
+ 
+-	steps = TOTAL_STEPS - adc_dev->channels;
+-	channels = TOTAL_CHANNELS - adc_dev->channels;
++	config = STEPCONFIG_AVG_16 | STEPCONFIG_FIFO1;
+ 
+-	stepconfig = STEPCONFIG_AVG_16 | STEPCONFIG_FIFO1;
+-
+-	for (i = (steps + 1); i <= TOTAL_STEPS; i++) {
+-		tiadc_writel(adc_dev, REG_STEPCONFIG(i),
+-				stepconfig | STEPCONFIG_INP(channels));
+-		tiadc_writel(adc_dev, REG_STEPDELAY(i),
+-				STEPCONFIG_OPENDLY);
+-		channels++;
++	chan = TOTAL_CHANNELS-1;
++	for (i = TOTAL_STEPS; i > TOTAL_STEPS-adc_dev->channels; i--) {
++		tiadc_writel(adc_dev, REG_STEPCONFIG(i), config
++			| STEPCONFIG_INP(chan));
++		tiadc_writel(adc_dev, REG_STEPDELAY(i), STEPCONFIG_OPENDLY);
++		chan--;
+ 	}
+-	tiadc_writel(adc_dev, REG_SE, STPENB_STEPENB);
+ }
+ 
+ static int tiadc_channel_init(struct iio_dev *indio_dev,
+@@ -100,14 +116,17 @@ static int tiadc_channel_init(struct iio_dev *indio_dev,
+ 	/* buffer space is after the array */
+ 	s = (char *)(chan_array + channels);
+ 	chan = chan_array;
++
++	// The Touch-screen channels are the first channels,
++	// so it makes sence to place the ADC channels after and name them
++	// accordingly.
+ 	for (i = 0; i < channels; i++, chan++, s += len + 1) {
+ 
+-		len = sprintf(s, "AIN%d", i);
++		len = sprintf(s, "AIN%d", TOTAL_CHANNELS-i-1);
+ 
+ 		chan->type = IIO_VOLTAGE;
+ 		chan->indexed = 1;
+-		chan->channel = i;
+-		chan->info_mask = IIO_CHAN_INFO_RAW_SEPARATE_BIT;
++		chan->channel = TOTAL_CHANNELS-i-1;
+ 		chan->datasheet_name = s;
+ 		chan->scan_type.sign = 'u';
+ 		chan->scan_type.realbits = 12;
+@@ -155,38 +174,70 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+ {
+ 	struct tiadc_device *adc_dev = iio_priv(indio_dev);
+ 	int i;
+-	unsigned int fifo1count, readx1;
+-
+-	switch (mask) {
+-	case IIO_CHAN_INFO_RAW:
+-		/*
+-		 * When the sub-system is first enabled,
+-		 * the sequencer will always start with the
+-		 * lowest step (1) and continue until step (16).
+-		 * For ex: If we have enabled 4 ADC channels and
+-		 * currently use only 1 out of them, the
+-		 * sequencer still configures all the 4 steps,
+-		 * leading to 3 unwanted data.
+-		 * Hence we need to flush out this data.
+-		 */
+-
+-		fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
+-		for (i = 0; i < fifo1count; i++) {
+-			readx1 = tiadc_readl(adc_dev, REG_FIFO1);
+-			if (i == chan->channel)
+-				*val = readx1 & 0xfff;
+-		}
+-		tiadc_writel(adc_dev, REG_SE, STPENB_STEPENB);
++	int se_reg;
++	int channel;
+ 
+-		if (fifo1count <= chan->channel)
+-			return -EINVAL;
++	/* Enable the channel via SW. Preempt should cause this to create a
++	 * reading even if HW is processing. Since we are only enabling one channel,
++	 * the data in FIFO1 must be the one we want. This assumes FIFO1 is dedicated to ADC.  */
++	mutex_lock(&adc_dev->lock);
+ 
+-		return IIO_VAL_INT;
+-	default:
+-		return -EINVAL;
++	channel = TOTAL_STEPS-TOTAL_CHANNELS+chan->channel;
++
++	se_reg = tiadc_readl(adc_dev, REG_SE);
++	se_reg |= 1<<(channel+1);
++	tiadc_writel(adc_dev, REG_SE, se_reg);
++
++	i=10;
++	/* Wait while busy */
++	while((tiadc_readl(adc_dev, REG_ADCFSM) & FSM_BUSY) && --i){
++		msleep(1);
+ 	}
++	*val = channel_data[channel];
++	mutex_unlock(&adc_dev->lock);
++
++	return IIO_VAL_INT;
+ }
+ 
++static irqreturn_t tiadc_irq_thread(int irq, void *dev){
++
++	return IRQ_NONE;
++}
++
++static irqreturn_t tiadc_irq(int irq, void *dev){
++	unsigned int status;
++	unsigned int read;
++	int channel;
++	int i;
++	struct tiadc_device	*adc_dev = (struct tiadc_device *)dev;
++
++	status = tiadc_readl_unlocked(adc_dev, REG_IRQSTATUS);
++
++	/*
++	 * ADC and touchscreen share the IRQ line.
++	 * FIFO1 threshold, FIFO1 Overrun and FIFO1 underflow
++	 * interrupts are used by ADC,
++	 * hence return from touchscreen IRQ handler if FIFO1
++	 * related interrupts occurred.
++	 */
++
++	// These flags are not for us.
++	if ((status & IRQENB_FIFO0OVRRUN) ||
++			(status & IRQENB_FIFO0UNDRFLW) ||
++			(status & IRQENB_FIFO0THRES)) {
++		return IRQ_NONE;
++	}
++
++	// Handle end of sequence interrupt
++	for(i=0; i<tiadc_readl_unlocked(adc_dev, REG_FIFO1CNT); i++){
++		read = tiadc_readl_unlocked(adc_dev, REG_FIFO1);
++		channel = (read & 0xf0000) >> 0x10;
++		channel_data[channel] = read & 0xFFF;
++	}
++	tiadc_writel_unlocked(adc_dev, REG_IRQSTATUS, IRQENB_END_OF_SEQ);
++	return IRQ_HANDLED;
++
++}
+ static const struct iio_info tiadc_info = {
+ 	.read_raw = &tiadc_read_raw,
+ };
+@@ -201,6 +252,8 @@ static int tiadc_probe(struct platform_device *pdev)
+ 	int			err;
+ 	u32			val32;
+ 
++	pr_err("tiadc_probe\n");
++
+ 	if (!pdata && !node) {
+ 		dev_err(&pdev->dev, "Could not find platform data\n");
+ 		return -EINVAL;
+@@ -214,6 +267,8 @@ static int tiadc_probe(struct platform_device *pdev)
+ 	}
+ 	adc_dev = iio_priv(indio_dev);
+ 
++	mutex_init(&adc_dev->lock);
++
+ 	adc_dev->mfd_tscadc = tscadc_dev;
+ 
+ 	if (pdata)
+@@ -221,7 +276,7 @@ static int tiadc_probe(struct platform_device *pdev)
+ 	else {
+ 		node = of_get_child_by_name(node, "adc");
+ 		if (!node)
+-			return	-EINVAL;
++			return  -EINVAL;
+ 		else {
+ 			err = of_property_read_u32(node,
+ 					"ti,adc-channels", &val32);
+@@ -247,8 +302,20 @@ static int tiadc_probe(struct platform_device *pdev)
+ 	if (err)
+ 		goto err_free_channels;
+ 
+-	platform_set_drvdata(pdev, indio_dev);
++	adc_dev->irq = tscadc_dev->irq;
+ 
++	/* IRQ */
++	err = request_irq(adc_dev->irq, tiadc_irq, IRQF_SHARED, "tiadc_irq", adc_dev);
++	if (err) {
++		dev_err(&pdev->dev, "failed to allocate irq.\n");
++	}
++	else{
++		// IRQ Enable: spruh73g p.1033
++		//tiadc_writel(adc_dev, REG_IRQSTATUS, 0xFFF);
++		tiadc_writel(adc_dev, REG_IRQENABLE, IRQENB_END_OF_SEQ);
++	}
++
++	platform_set_drvdata(pdev, indio_dev);
+ 	dev_info(&pdev->dev, "Initialized\n");
+ 
+ 	return 0;
+@@ -318,7 +385,7 @@ static const struct dev_pm_ops tiadc_pm_ops = {
+ 
+ static struct platform_driver tiadc_driver = {
+ 	.driver = {
+-		.name	= "tiadc",
++		.name   = "tiadc",
+ 		.owner	= THIS_MODULE,
+ 		.pm	= TIADC_PM_OPS,
+ 	},
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+index 4fcf72f..b0a2ce0 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -38,6 +38,10 @@
+ #define TSCADC_DELTA_X		15
+ #define TSCADC_DELTA_Y		15
+ 
++int pen = 1;
++unsigned int bckup_x = 0, bckup_y = 0;
++
++
+ /*
+  * Refer to function regbit_map() to
+  * map the values in the matrix.
+@@ -65,6 +69,25 @@ struct titsc {
+ 	int			inp_xp, inp_xn, inp_yp, inp_yn;
+ };
+ 
++
++static unsigned int titsc_readl_irq(struct titsc *ts, unsigned int reg)
++{
++	//return readl(ts->mfd_tscadc->tscadc_base+reg);
++	unsigned int val;
++
++	val = (unsigned int)-1;
++	regmap_read_unlocked(ts->mfd_tscadc->regmap_tscadc, reg, &val);
++	return val;
++}
++
++static void titsc_writel_irq(struct titsc *tsc, unsigned int reg,
++					unsigned int val)
++{
++	//writel(tsc->mfd_tscadc->tscadc_base+reg, val);
++	regmap_write_unlocked(tsc->mfd_tscadc->regmap_tscadc, reg, val);
++}
++
++
+ static unsigned int titsc_readl(struct titsc *ts, unsigned int reg)
+ {
+ 	unsigned int val;
+@@ -183,207 +206,261 @@ ret:
+ 
+ static void titsc_step_config(struct titsc *ts_dev)
+ {
+-	unsigned int	config;
+-	unsigned int	stepenable = 0;
+-	int i, total_steps;
++
++	unsigned int	stepconfigx = 0, stepconfigy = 0;
++	unsigned int	delay, chargeconfig = 0;
++	unsigned int	stepconfigz1 = 0, stepconfigz2 = 0;
++	int		i, total_steps;
+ 
+ 	/* Configure the Step registers */
++
++	delay = STEPCONFIG_SAMPLEDLY | STEPCONFIG_OPENDLY;
++
+ 	total_steps = 2 * ts_dev->steps_to_configure;
++	stepconfigx = STEPCONFIG_MODE_HWSYNC |
++			STEPCONFIG_AVG_16 | STEPCONFIG_XPP;
+ 
+-	config = STEPCONFIG_MODE_HWSYNC |
+-			STEPCONFIG_AVG_16 | ts_dev->bit_xp;
+ 	switch (ts_dev->wires) {
+ 	case 4:
+-		config |= STEPCONFIG_INP(ts_dev->inp_yp) | ts_dev->bit_xn;
++		stepconfigx |= STEPCONFIG_INP_AN2 |
++				STEPCONFIG_XNN;
+ 		break;
+ 	case 5:
+-		config |= ts_dev->bit_yn |
+-				STEPCONFIG_INP_AN4 | ts_dev->bit_xn |
+-				ts_dev->bit_yp;
++		stepconfigx |= STEPCONFIG_YNN |
++				STEPCONFIG_INP_AN4 |
++				STEPCONFIG_XNN |
++				STEPCONFIG_YPP;
+ 		break;
+ 	case 8:
+-		config |= STEPCONFIG_INP(ts_dev->inp_yp) | ts_dev->bit_xn;
++		stepconfigx |= STEPCONFIG_INP_AN2 |
++				STEPCONFIG_XNN;
+ 		break;
+ 	}
+ 
+ 	for (i = 1; i <= ts_dev->steps_to_configure; i++) {
+-		titsc_writel(ts_dev, REG_STEPCONFIG(i), config);
+-		titsc_writel(ts_dev, REG_STEPDELAY(i), STEPCONFIG_OPENDLY);
++		titsc_writel(ts_dev, REG_STEPCONFIG(i), stepconfigx);
++		titsc_writel(ts_dev, REG_STEPDELAY(i), delay);
+ 	}
+ 
+-	config = 0;
+-	config = STEPCONFIG_MODE_HWSYNC |
+-			STEPCONFIG_AVG_16 | ts_dev->bit_yn |
+-			STEPCONFIG_INM_ADCREFM | STEPCONFIG_FIFO1;
++	stepconfigy = STEPCONFIG_MODE_HWSYNC |
++			STEPCONFIG_AVG_16 | STEPCONFIG_YNN |
++			STEPCONFIG_INM_ADCREFM;
+ 	switch (ts_dev->wires) {
+ 	case 4:
+-		config |= ts_dev->bit_yp | STEPCONFIG_INP(ts_dev->inp_xp);
++		stepconfigy |= STEPCONFIG_YPP;
+ 		break;
+ 	case 5:
+-		config |= ts_dev->bit_xp | STEPCONFIG_INP_AN4 |
+-				ts_dev->bit_xn | ts_dev->bit_yp;
++		stepconfigy |= STEPCONFIG_XPP |
++			STEPCONFIG_INP_AN4 | STEPCONFIG_XNP |
++			STEPCONFIG_YPN;
+ 		break;
+ 	case 8:
+-		config |= ts_dev->bit_yp | STEPCONFIG_INP(ts_dev->inp_xp);
++		stepconfigy |= STEPCONFIG_YPP;
+ 		break;
+ 	}
+ 
+ 	for (i = (ts_dev->steps_to_configure + 1); i <= total_steps; i++) {
+-		titsc_writel(ts_dev, REG_STEPCONFIG(i), config);
+-		titsc_writel(ts_dev, REG_STEPDELAY(i), STEPCONFIG_OPENDLY);
++		titsc_writel(ts_dev, REG_STEPCONFIG(i), stepconfigy);
++		titsc_writel(ts_dev, REG_STEPDELAY(i), delay);
+ 	}
+ 
+-	config = 0;
+-	/* Charge step configuration */
+-	config = ts_dev->bit_xp | ts_dev->bit_yn |
+-			STEPCHARGE_RFP_XPUL | STEPCHARGE_RFM_XNUR |
+-			STEPCHARGE_INM_AN1 | STEPCHARGE_INP(ts_dev->inp_yp);
+-
+-	titsc_writel(ts_dev, REG_CHARGECONFIG, config);
++	chargeconfig = STEPCONFIG_XPP | STEPCONFIG_YNN |
++			STEPCHARGE_RFP_XPUL |
++			STEPCHARGE_RFM_XNUR |
++			STEPCHARGE_INM_AN1 | STEPCHARGE_INP_AN1;
++	titsc_writel(ts_dev, REG_CHARGECONFIG, chargeconfig);
+ 	titsc_writel(ts_dev, REG_CHARGEDELAY, CHARGEDLY_OPENDLY);
+ 
+-	config = 0;
+-	/* Configure to calculate pressure */
+-	config = STEPCONFIG_MODE_HWSYNC |
+-			STEPCONFIG_AVG_16 | ts_dev->bit_yp |
+-			ts_dev->bit_xn | STEPCONFIG_INM_ADCREFM |
+-			STEPCONFIG_INP(ts_dev->inp_xp);
+-	titsc_writel(ts_dev, REG_STEPCONFIG(total_steps + 1), config);
+-	titsc_writel(ts_dev, REG_STEPDELAY(total_steps + 1),
+-			STEPCONFIG_OPENDLY);
+-
+-	config |= STEPCONFIG_INP(ts_dev->inp_yn) | STEPCONFIG_FIFO1;
+-	titsc_writel(ts_dev, REG_STEPCONFIG(total_steps + 2), config);
+-	titsc_writel(ts_dev, REG_STEPDELAY(total_steps + 2),
+-			STEPCONFIG_OPENDLY);
+-
+-	for (i = 0; i <= (total_steps + 2); i++)
+-		stepenable |= 1 << i;
+-	ts_dev->enable_bits = stepenable;
+-
+-	titsc_writel(ts_dev, REG_SE, ts_dev->enable_bits);
++	 /* Configure to calculate pressure */
++	stepconfigz1 = STEPCONFIG_MODE_HWSYNC |
++			STEPCONFIG_AVG_16 | STEPCONFIG_XNP |
++			STEPCONFIG_YPN | STEPCONFIG_INM_ADCREFM;
++	stepconfigz2 = stepconfigz1 | STEPCONFIG_INP_AN3;
++	titsc_writel(ts_dev, REG_STEPCONFIG(total_steps + 1),
++						stepconfigz1);
++	titsc_writel(ts_dev, REG_STEPDELAY(total_steps + 1), delay);
++	titsc_writel(ts_dev, REG_STEPCONFIG(total_steps + 2),
++						stepconfigz2);
++	titsc_writel(ts_dev, REG_STEPDELAY(total_steps + 2), delay);
++
++	/*
++	 * ts_dev->steps_to_config holds the number of steps to used to
++	 * read X/Y samples. Hence Multiply by 2, to account for both
++	 * X and Y samples.
++	 * Add 3 to account for pressure values being read.
++	 * Subtract 1 because in the Step enable register the last bit is
++	 * used to set the charge bit.
++	 */
++	titsc_writel(ts_dev, REG_SE, titsc_readl(ts_dev, REG_SE) |
++			((1 << ((ts_dev->steps_to_configure * 2)  + 3)) - 1));
+ }
+ 
+-static void titsc_read_coordinates(struct titsc *ts_dev,
+-				    unsigned int *x, unsigned int *y)
++static irqreturn_t titsc_irq_thread(int irq, void *dev){
++	return IRQ_NONE;
++}
++static irqreturn_t titsc_irq(int irq, void *dev)
+ {
+-	unsigned int fifocount = titsc_readl(ts_dev, REG_FIFO0CNT);
+-	unsigned int prev_val_x = ~0, prev_val_y = ~0;
+-	unsigned int prev_diff_x = ~0, prev_diff_y = ~0;
+-	unsigned int read, diff;
+-	unsigned int i, channel;
+-
++	struct titsc		*ts_dev = (struct titsc *)dev;
++	struct input_dev	*input_dev = ts_dev->input;
++	unsigned int		status, irqclr = 0;
++	int			i;
++	int			fsm = 0, fifo0count = 0;
++	unsigned int		readx1 = 0, ready1 = 0;
++	unsigned int		prev_val_x = ~0, prev_val_y = ~0;
++	unsigned int		prev_diff_x = ~0, prev_diff_y = ~0;
++	unsigned int		cur_diff_x = 0, cur_diff_y = 0;
++	unsigned int		val_x = 0, val_y = 0, diffx = 0, diffy = 0;
++	unsigned int		z1 = 0, z2 = 0, z = 0;
++	unsigned int		channel, config;
++
++	status = titsc_readl_irq(ts_dev, REG_IRQSTATUS);
++	//pr_err("titsc_irq, status = %#x\n", status);
+ 	/*
+-	 * Delta filter is used to remove large variations in sampled
+-	 * values from ADC. The filter tries to predict where the next
+-	 * coordinate could be. This is done by taking a previous
+-	 * coordinate and subtracting it form current one. Further the
+-	 * algorithm compares the difference with that of a present value,
+-	 * if true the value is reported to the sub system.
++	 * ADC and touchscreen share the IRQ line.
++	 * FIFO1 threshold, FIFO1 Overrun and FIFO1 underflow
++	 * interrupts are used by ADC,
++	 * hence return from touchscreen IRQ handler if FIFO1
++	 * related interrupts occurred.
+ 	 */
+-	for (i = 0; i < fifocount - 1; i++) {
+-		read = titsc_readl(ts_dev, REG_FIFO0);
+-		channel = read & 0xf0000;
+-		channel = channel >> 0x10;
+-		if ((channel >= 0) && (channel < ts_dev->steps_to_configure)) {
+-			read &= 0xfff;
+-			diff = abs(read - prev_val_x);
+-			if (diff < prev_diff_x) {
+-				prev_diff_x = diff;
+-				*x = read;
++	if ((status & IRQENB_FIFO1THRES) ||
++			(status & IRQENB_FIFO1OVRRUN) ||
++			(status & IRQENB_FIFO1UNDRFLW))
++		return IRQ_NONE;
++	else if ((status & IRQENB_FIFO0OVRRUN) ||
++			(status & IRQENB_FIFO0UNDRFLW)) {
++		config = titsc_readl_irq(ts_dev, REG_CTRL);
++		config &= ~(CNTRLREG_TSCSSENB);
++		titsc_writel_irq(ts_dev, REG_CTRL, config);
++
++		if (status & IRQENB_FIFO0UNDRFLW)
++			titsc_writel_irq(ts_dev, REG_IRQSTATUS,
++			(status | IRQENB_FIFO0UNDRFLW));
++		else
++			titsc_writel_irq(ts_dev, REG_IRQSTATUS,
++				(status | IRQENB_FIFO0OVRRUN));
++
++		titsc_writel_irq(ts_dev, REG_CTRL,
++			(config | CNTRLREG_TSCSSENB));
++		return IRQ_HANDLED;
++	} else if (status & IRQENB_FIFO0THRES) {
++		for (i = 0; i < ts_dev->steps_to_configure; i++) {
++			readx1 = titsc_readl_irq(ts_dev, REG_FIFO0);
++			channel = readx1 & 0xf0000;
++			channel = channel >> 0x10;
++			if ((channel >= 0) &&
++				(channel < ts_dev->steps_to_configure)) {
++				readx1 = readx1 & 0xfff;
++				if (readx1 > prev_val_x)
++					cur_diff_x = readx1 - prev_val_x;
++				else
++					cur_diff_x = prev_val_x - readx1;
++
++				if (cur_diff_x < prev_diff_x) {
++					prev_diff_x = cur_diff_x;
++					val_x = readx1;
++				}
++				prev_val_x = readx1;
+ 			}
+-			prev_val_x = read;
+ 		}
+-
+-		read = titsc_readl(ts_dev, REG_FIFO1);
+-		channel = read & 0xf0000;
+-		channel = channel >> 0x10;
+-		if ((channel >= ts_dev->steps_to_configure) &&
+-			(channel < (2 * ts_dev->steps_to_configure - 1))) {
+-			read &= 0xfff;
+-			diff = abs(read - prev_val_y);
+-			if (diff < prev_diff_y) {
+-				prev_diff_y = diff;
+-				*y = read;
++		for (i = 0; i < ts_dev->steps_to_configure; i++) {
++			ready1 = titsc_readl_irq(ts_dev, REG_FIFO0);
++			channel = ready1 & 0xf0000;
++			channel = channel >> 0x10;
++			if ((channel >= ts_dev->steps_to_configure) &&
++				(channel < (2 * ts_dev->steps_to_configure - 1))) {
++				ready1 &= 0xfff;
++				if (ready1 > prev_val_y)
++					cur_diff_y = ready1 - prev_val_y;
++				else
++					cur_diff_y = prev_val_y - ready1;
++
++				if (cur_diff_y < prev_diff_y) {
++					prev_diff_y = cur_diff_y;
++					val_y = ready1;
++				}
++				prev_val_y = ready1;
+ 			}
+-			prev_val_y = read;
+ 		}
+-	}
+-}
+ 
+-static irqreturn_t titsc_irq(int irq, void *dev)
+-{
+-	struct titsc *ts_dev = dev;
+-	struct input_dev *input_dev = ts_dev->input;
+-	unsigned int status, irqclr = 0;
+-	unsigned int x = 0, y = 0;
+-	unsigned int z1, z2, z;
+-	unsigned int fsm;
+-	unsigned int diffx = 0, diffy = 0;
+-	int i;
+-
+-	status = titsc_readl(ts_dev, REG_IRQSTATUS);
+-	if (status & IRQENB_FIFO0THRES) {
+-		titsc_read_coordinates(ts_dev, &x, &y);
+-
+-		diffx = abs(x - (ts_dev->bckup_x));
+-		diffy = abs(y - (ts_dev->bckup_y));
+-		ts_dev->bckup_x = x;
+-		ts_dev->bckup_y = y;
+-
+-		z1 = titsc_readl(ts_dev, REG_FIFO0) & 0xfff;
+-		z2 = titsc_readl(ts_dev, REG_FIFO1) & 0xfff;
+-
+-		if (ts_dev->pen_down && z1 != 0 && z2 != 0) {
++		if (val_x > bckup_x) {
++			diffx = val_x - bckup_x;
++			diffy = val_y - bckup_y;
++		} else {
++			diffx = bckup_x - val_x;
++			diffy = bckup_y - val_y;
++		}
++		bckup_x = val_x;
++		bckup_y = val_y;
++
++		z1 = ((titsc_readl_irq(ts_dev, REG_FIFO0)) & 0xfff);
++		z2 = ((titsc_readl_irq(ts_dev, REG_FIFO0)) & 0xfff);
++
++		fifo0count = titsc_readl_irq(ts_dev, REG_FIFO0CNT);
++		for (i = 0; i < fifo0count; i++)
++			titsc_readl_irq(ts_dev, REG_FIFO0);
++
++		if ((z1 != 0) && (z2 != 0)) {
+ 			/*
+-			 * Calculate pressure using formula
++			 * cal pressure using formula
+ 			 * Resistance(touch) = x plate resistance *
+ 			 * x postion/4096 * ((z2 / z1) - 1)
+ 			 */
+ 			z = z2 - z1;
+-			z *= x;
++			z *= val_x;
+ 			z *= ts_dev->x_plate_resistance;
+ 			z /= z1;
+ 			z = (z + 2047) >> 12;
+ 
+-			if ((diffx < TSCADC_DELTA_X) &&
+-			(diffy < TSCADC_DELTA_Y) && (z <= MAX_12BIT)) {
+-				input_report_abs(input_dev, ABS_X, x);
+-				input_report_abs(input_dev, ABS_Y, y);
+-				input_report_abs(input_dev, ABS_PRESSURE, z);
+-				input_report_key(input_dev, BTN_TOUCH, 1);
+-				input_sync(input_dev);
++			/*
++			 * Sample found inconsistent by debouncing
++			 * or pressure is beyond the maximum.
++			 * Don't report it to user space.
++			 */
++			if (pen == 0) {
++				if ((diffx < 15) && (diffy < 15)
++						&& (z <= MAX_12BIT)) {
++					input_report_abs(input_dev, ABS_X,
++							val_x);
++					input_report_abs(input_dev, ABS_Y,
++							val_y);
++					input_report_abs(input_dev, ABS_PRESSURE,
++							z);
++					input_report_key(input_dev, BTN_TOUCH,
++							1);
++					input_sync(input_dev);
++				}
+ 			}
+ 		}
+ 		irqclr |= IRQENB_FIFO0THRES;
++		//pr_err("titsc: the event was FIFO0THRES\n");
+ 	}
+ 
+-	/*
+-	 * Time for sequencer to settle, to read
+-	 * correct state of the sequencer.
+-	 */
+-	udelay(SEQ_SETTLE);
++	udelay(315);
+ 
+-	status = titsc_readl(ts_dev, REG_RAWIRQSTATUS);
++	status = titsc_readl_irq(ts_dev, REG_RAWIRQSTATUS);
+ 	if (status & IRQENB_PENUP) {
+ 		/* Pen up event */
+-		fsm = titsc_readl(ts_dev, REG_ADCFSM);
+-		if (fsm == ADCFSM_STEPID) {
+-			ts_dev->pen_down = false;
+-			ts_dev->bckup_x = 0;
+-			ts_dev->bckup_y = 0;
++		fsm = titsc_readl_irq(ts_dev, REG_ADCFSM);
++		if (fsm == 0x10) {
++			pen = 1;
++			bckup_x = 0;
++			bckup_y = 0;
+ 			input_report_key(input_dev, BTN_TOUCH, 0);
+ 			input_report_abs(input_dev, ABS_PRESSURE, 0);
+ 			input_sync(input_dev);
+ 		} else {
+-			ts_dev->pen_down = true;
++			pen = 0;
+ 		}
+ 		irqclr |= IRQENB_PENUP;
+ 	}
++	irqclr |= IRQENB_HW_PEN;
+ 
+-	titsc_writel(ts_dev, REG_IRQSTATUS, irqclr);
++	titsc_writel_irq(ts_dev, REG_IRQSTATUS, (status | irqclr));
+ 
+-	titsc_writel(ts_dev, REG_SE, ts_dev->enable_bits);
++	titsc_writel_irq(ts_dev, REG_SE,
++			titsc_readl_irq(ts_dev, REG_SE) |
++			((1 << ((ts_dev->steps_to_configure * 2)  + 3)) - 1));
++	//pr_err("titsc: REG_IRQSTATUS = %#x\n", titsc_readl_irq(ts_dev, REG_IRQSTATUS));
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -465,6 +542,9 @@ static int titsc_probe(struct platform_device *pdev)
+ 	struct input_dev *input_dev;
+ 	struct ti_tscadc_dev *tscadc_dev = pdev->dev.platform_data;
+ 	int err;
++	int				irqenable;
++
++	pr_err("titcs IRQ\n");
+ 
+ 	/* Allocate memory for device */
+ 	ts_dev = kzalloc(sizeof(struct titsc), GFP_KERNEL);
+@@ -491,21 +571,26 @@ static int titsc_probe(struct platform_device *pdev)
+ 		goto err_free_mem;
+ 	}
+ 
+-	err = request_irq(ts_dev->irq, titsc_irq,
+-			  0, pdev->dev.driver->name, ts_dev);
++	/* IRQ */
++	err = request_irq(ts_dev->irq, titsc_irq, IRQF_SHARED, "titsc_irq", ts_dev);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "failed to allocate irq.\n");
+ 		goto err_free_mem;
+ 	}
+ 
+-	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_FIFO0THRES);
++	/* IRQ Enable */
++	//titsc_writel(ts_dev, REG_IRQSTATUS, 0xFFF);
++	irqenable = IRQENB_FIFO0THRES | IRQENB_FIFO0OVRRUN |
++		IRQENB_FIFO0UNDRFLW;
++	titsc_writel(ts_dev, REG_IRQENABLE, irqenable);
++
+ 	err = titsc_config_wires(ts_dev);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "wrong i/p wire configuration\n");
+ 		goto err_free_irq;
+ 	}
+ 	titsc_step_config(ts_dev);
+-	titsc_writel(ts_dev, REG_FIFO0THR, ts_dev->steps_to_configure);
++	titsc_writel(ts_dev, REG_FIFO0THR,ts_dev->steps_to_configure * 2 + 1);
+ 
+ 	input_dev->name = "ti-tsc";
+ 	input_dev->dev.parent = &pdev->dev;
+diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+index 50a245f..1fbcfe5 100644
+--- a/include/linux/mfd/ti_am335x_tscadc.h
++++ b/include/linux/mfd/ti_am335x_tscadc.h
+@@ -39,6 +39,11 @@
+ #define REG_FIFO0		0x100
+ #define REG_FIFO1		0x200
+ 
++
++/* Step Configuration */
++/* FSM status*/
++#define FSM_BUSY			BIT(5)
++
+ /*	Register Bitfields	*/
+ /* IRQ wakeup enable */
+ #define IRQWKUP_ENB		BIT(0)
+@@ -53,6 +58,11 @@
+ #define IRQENB_FIFO0THRES	BIT(2)
+ #define IRQENB_FIFO1THRES	BIT(5)
+ #define IRQENB_PENUP		BIT(9)
++#define IRQENB_END_OF_SEQ	BIT(1)
++#define IRQENB_FIFO0OVRRUN	BIT(3)
++#define IRQENB_FIFO0UNDRFLW	BIT(4)
++#define IRQENB_FIFO1OVRRUN  BIT(6)
++#define IRQENB_FIFO1UNDRFLW BIT(7)
+ 
+ /* Step Configuration */
+ #define STEPCONFIG_MODE_MASK	(3 << 0)
+@@ -75,6 +85,9 @@
+ #define STEPCONFIG_INP_AN4	STEPCONFIG_INP(4)
+ #define STEPCONFIG_INP_ADCREFM	STEPCONFIG_INP(8)
+ #define STEPCONFIG_FIFO1	BIT(26)
++#define STEPCONFIG_MODE_SWCNT	STEPCONFIG_MODE(1)
++#define STEPCONFIG_INP_AN2	STEPCONFIG_INP(2)
++#define STEPCONFIG_INP_AN3	STEPCONFIG_INP(3)
+ 
+ /* Delay register */
+ #define STEPDELAY_OPEN_MASK	(0x3FFFF << 0)
+@@ -91,6 +104,7 @@
+ #define STEPCHARGE_INM_MASK	(0xF << 15)
+ #define STEPCHARGE_INM(val)	((val) << 15)
+ #define STEPCHARGE_INM_AN1	STEPCHARGE_INM(1)
++#define STEPCHARGE_INP_AN1	STEPCHARGE_INP(1)
+ #define STEPCHARGE_INP_MASK	(0xF << 19)
+ #define STEPCHARGE_INP(val)	((val) << 19)
+ #define STEPCHARGE_RFM_MASK	(3 << 23)
+@@ -138,6 +152,7 @@ struct ti_tscadc_dev {
+ 	struct regmap *regmap_tscadc;
+ 	void __iomem *tscadc_base;
+ 	int irq;
++	int irq2;
+ 	int used_cells;	/* 0-2 */
+ 	int tsc_cell;	/* -1 if not used */
+ 	int adc_cell;	/* -1 if not used */
+diff --git a/include/linux/regmap.h b/include/linux/regmap.h
+index b7e95bf..04ce3c6 100644
+--- a/include/linux/regmap.h
++++ b/include/linux/regmap.h
+@@ -306,11 +306,15 @@ int regmap_reinit_cache(struct regmap *map,
+ 			const struct regmap_config *config);
+ struct regmap *dev_get_regmap(struct device *dev, const char *name);
+ int regmap_write(struct regmap *map, unsigned int reg, unsigned int val);
++/* Unlocked write */
++int regmap_write_unlocked(struct regmap *map, unsigned int reg, unsigned int val);
+ int regmap_raw_write(struct regmap *map, unsigned int reg,
+ 		     const void *val, size_t val_len);
+ int regmap_bulk_write(struct regmap *map, unsigned int reg, const void *val,
+ 			size_t val_count);
+ int regmap_read(struct regmap *map, unsigned int reg, unsigned int *val);
++/* Unlocked read */
++int regmap_read_unlocked(struct regmap *map, unsigned int reg, unsigned int *val);
+ int regmap_raw_read(struct regmap *map, unsigned int reg,
+ 		    void *val, size_t val_len);
+ int regmap_bulk_read(struct regmap *map, unsigned int reg, void *val,
