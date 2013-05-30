@@ -1,0 +1,26 @@
+From 44f4203e29ac42a8cedd263ef3d220baab1782e3 Mon Sep 17 00:00:00 2001
+From: Jason Kridner <jdk@ti.com>
+Date: Wed, 13 Mar 2013 12:16:15 +0000
+Subject: [PATCH 103/103] board-am335xevm: add A335BNLT board ID
+
+---
+ arch/arm/mach-omap2/board-am335xevm.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-am335xevm.c b/arch/arm/mach-omap2/board-am335xevm.c
+index 81ebd08..bfbe417 100644
+--- a/arch/arm/mach-omap2/board-am335xevm.c
++++ b/arch/arm/mach-omap2/board-am335xevm.c
+@@ -4259,6 +4259,9 @@ static void am335x_evm_setup(struct memory_accessor *mem_acc, void *context)
+ 			setup_beaglebone_old();
+ 		else
+ 			setup_beaglebone();
++	} else if (!strncmp("A335BNLT", config.name, 8)) {
++		daughter_brd_detected = false;
++		setup_beaglebone();
+ 	} else {
+ 		/* only 6 characters of options string used for now */
+ 		snprintf(tmp, 7, "%s", config.opt);
+-- 
+1.7.8.6
+
