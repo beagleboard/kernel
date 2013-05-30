@@ -1,0 +1,680 @@
+From 38e0a655debbdfddeacefa1a6911553785e68a60 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 30 May 2013 15:44:07 +0300
+Subject: [PATCH 176/176] capes: Add virtual capes serving as examples
+
+Example capes for UART/I2C/SPI.
+
+Conflicts:
+	firmware/Makefile
+---
+ firmware/Makefile                 | 19 +++++++++
+ firmware/capes/BB-I2C1-00A0.dts   | 65 +++++++++++++++++++++++++++++++
+ firmware/capes/BB-I2C1A1-00A0.dts | 65 +++++++++++++++++++++++++++++++
+ firmware/capes/BB-SPI0-00A0.dts   | 79 ++++++++++++++++++++++++++++++++++++++
+ firmware/capes/BB-SPI1-00A0.dts   | 79 ++++++++++++++++++++++++++++++++++++++
+ firmware/capes/BB-SPI1A1-00A0.dts | 81 +++++++++++++++++++++++++++++++++++++++
+ firmware/capes/BB-UART1-00A0.dts  | 48 +++++++++++++++++++++++
+ firmware/capes/BB-UART2-00A0.dts  | 48 +++++++++++++++++++++++
+ firmware/capes/BB-UART4-00A0.dts  | 48 +++++++++++++++++++++++
+ firmware/capes/BB-UART5-00A0.dts  | 49 +++++++++++++++++++++++
+ 10 files changed, 581 insertions(+)
+ create mode 100644 firmware/capes/BB-I2C1-00A0.dts
+ create mode 100644 firmware/capes/BB-I2C1A1-00A0.dts
+ create mode 100644 firmware/capes/BB-SPI0-00A0.dts
+ create mode 100644 firmware/capes/BB-SPI1-00A0.dts
+ create mode 100644 firmware/capes/BB-SPI1A1-00A0.dts
+ create mode 100644 firmware/capes/BB-UART1-00A0.dts
+ create mode 100644 firmware/capes/BB-UART2-00A0.dts
+ create mode 100644 firmware/capes/BB-UART4-00A0.dts
+ create mode 100644 firmware/capes/BB-UART5-00A0.dts
+
+diff --git a/firmware/Makefile b/firmware/Makefile
+index 3497631..98c018a 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -196,6 +196,25 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += cape-boneblack-hdmi-00A0.dtbo
+ # the Tester cape (tester-side)
+ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += cape-bone-tester-00A0.dtbo
+ 
++# the virtual peripheral capes for the UARTs
++# UART3 is not routed to the connectors, no cape for it
++fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
++	BB-UART1-00A0.dtbo BB-UART2-00A0.dtbo \
++	BB-UART4-00A0.dtbo BB-UART5-00A0.dtbo
++
++# the virtual peripheral capes for the I2Cs
++# I2C0 & I2C2 are enabled by default, no capes for them
++fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
++	BB-I2C1-00A0.dtbo BB-I2C1A1-00A0.dtbo
++
++# the virtual peripheral capes for the SPIs
++fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
++	BB-SPI0-00A0.dtbo BB-SPI1-00A0.dtbo BB-SPI1A1-00A0.dtbo
++
++# PRU firmware
++fw-shipped-$(CONFIG_PRU_RPROC) += \
++	prutest.bin
++
+ fw-shipped-all := $(fw-shipped-y) $(fw-shipped-m) $(fw-shipped-)
+ 
+ # Directories which we _might_ need to create, so we have a rule for them.
+diff --git a/firmware/capes/BB-I2C1-00A0.dts b/firmware/capes/BB-I2C1-00A0.dts
+new file mode 100644
+index 0000000..9e74f26
+--- /dev/null
++++ b/firmware/capes/BB-I2C1-00A0.dts
+@@ -0,0 +1,65 @@
++/*
++ * Copyright (C) 2013 CircuitCo
++ *
++ * Virtual cape for I2C1 on connector pins P9.17 P9.18
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-I2C1";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.18",	/* i2c1_sda */
++		"P9.17",	/* i2c1_scl */
++		/* the hardware ip uses */
++		"i2c1";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			bb_i2c1_pins: pinmux_bb_i2c1_pins {
++				pinctrl-single,pins = <
++					0x158 0x72	/* spi0_d1.i2c1_sda, SLEWCTRL_SLOW | INPUT_PULLUP | MODE2 */
++					0x15c 0x72	/* spi0_cs0.i2c1_scl, SLEWCTRL_SLOW | INPUT_PULLUP | MODE2 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&i2c1>;	/* i2c1 is numbered correctly */
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bb_i2c1_pins>;
++
++			/* this is the configuration part */
++			clock-frequency = <100000>;	
++
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			/* add any i2c devices on the bus here */
++
++			// commented out example of a touchscreen (taken from BB-BONE-LCD7-01-00A4) */
++			// maxtouch@4a {
++			//	compatible = "mXT224";
++			//	reg = <0x4a>;
++			//	interrupt-parent = <&gpio4>;
++			//	interrupts = <19 0x0>;
++			//	atmel,irq-gpio = <&gpio4 19 0>;
++			// };
++		};
++	};
++};
+diff --git a/firmware/capes/BB-I2C1A1-00A0.dts b/firmware/capes/BB-I2C1A1-00A0.dts
+new file mode 100644
+index 0000000..4a2b1bd
+--- /dev/null
++++ b/firmware/capes/BB-I2C1A1-00A0.dts
+@@ -0,0 +1,65 @@
++/*
++ * Copyright (C) 2013 CircuitCo
++ *
++ * Virtual cape for I2C1 on connector pins P9.26 P9.24 (ALT config #1)
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-I2C1A1";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.26",	/* i2c1_sda */
++		"P9.24",	/* i2c1_scl */
++		/* the hardware ip uses */
++		"i2c1";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			bb_i2c1a1_pins: pinmux_bb_i2c1a1_pins {
++				pinctrl-single,pins = <
++					0x180 0x73	/* uart1_rxd.i2c1_sda, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
++					0x184 0x73	/* uart1_txdi2c1_scl, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&i2c1>;	/* i2c1 is numbered correctly */
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bb_i2c1a1_pins>;
++
++			/* this is the configuration part */
++			clock-frequency = <100000>;	
++
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			/* add any i2c devices on the bus here */
++
++			// commented out example of a touchscreen (taken from BB-BONE-LCD7-01-00A4) */
++			// maxtouch@4a {
++			//	compatible = "mXT224";
++			//	reg = <0x4a>;
++			//	interrupt-parent = <&gpio4>;
++			//	interrupts = <19 0x0>;
++			//	atmel,irq-gpio = <&gpio4 19 0>;
++			// };
++		};
++	};
++};
+diff --git a/firmware/capes/BB-SPI0-00A0.dts b/firmware/capes/BB-SPI0-00A0.dts
+new file mode 100644
+index 0000000..547efce
+--- /dev/null
++++ b/firmware/capes/BB-SPI0-00A0.dts
+@@ -0,0 +1,79 @@
++/*
++ * Copyright (C) 2013 CircuitCo
++ *
++ * Virtual cape for SPI0 on connector pins P9.22 P9.21 P9.18 P9.17
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-SPI0";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.17",	/* spi0_cs0 */
++		"P9.18",	/* spi0_d1 */
++		"P9.21",	/* spi0_d0 */
++		"P9.22",	/* spi0_sclk */
++		/* the hardware ip uses */
++		"spi0";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			/* default state has all gpios released and mode set to uart1 */
++			bb_spi0_pins: pinmux_bb_spi0_pins {
++				pinctrl-single,pins = <
++					0x150 0x30	/* spi0_sclk.spi0_sclk, INPUT_PULLUP | MODE0 */
++					0x154 0x30	/* spi0_d0.spi0_d0, INPUT_PULLUP | MODE0 */
++					0x158 0x10	/* spi0_d1.spi0_d1, OUTPUT_PULLUP | MODE0 */
++					0x15c 0x10	/* spi0_cs0.spi0_cs0, OUTPUT_PULLUP | MODE0 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&spi0>;	/* spi0 is numbered correctly */
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bb_spi0_pins>;
++
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			/* add any spi devices connected here */
++			/* note that you can do direct SPI via spidev now */
++
++			// commented out example of an adafruit 1.8" TFT display
++			// from firmare/capes/cape-bone-adafruit-lcd-00A0.dts
++			// lcd@0 {
++			//	#address-cells = <1>;
++			//	#size-cells = <0>;
++			//
++			//	compatible = "adafruit,tft-lcd-1.8-red", "sitronix,st7735";
++			//	reg = <0>;
++			//
++			//	spi-max-frequency = <8000000>;
++			//	spi-cpol;
++			//	spi-cpha;
++			//
++			//	pinctrl-names = "default";
++			//	pinctrl-0 = <&bone_adafruit_lcd_pins>;
++			//
++			//	st7735-rst = <&gpio4 19 0>;
++			//	st7735-dc = <&gpio4 21 0>;
++			// };
++		};
++	};
++};
+diff --git a/firmware/capes/BB-SPI1-00A0.dts b/firmware/capes/BB-SPI1-00A0.dts
+new file mode 100644
+index 0000000..e26f346
+--- /dev/null
++++ b/firmware/capes/BB-SPI1-00A0.dts
+@@ -0,0 +1,79 @@
++/*
++ * Copyright (C) 2013 CircuitCo
++ *
++ * Virtual cape for SPI1 on connector pins P9.29 P9.31 P9.30 P9.28
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-SPI1";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.31",	/* spi1_sclk */
++		"P9.29",	/* spi1_d0 */
++		"P9.30",	/* spi1_d1 */
++		"P9.28",	/* spi1_cs0 */
++		/* the hardware ip uses */
++		"spi1";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			/* default state has all gpios released and mode set to uart1 */
++			bb_spi1_pins: pinmux_bb_spi1_pins {
++				pinctrl-single,pins = <
++					0x190 0x33	/* mcasp0_aclkx.spi1_sclk, INPUT_PULLUP | MODE3 */
++					0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
++					0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
++					0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&spi1>;	/* spi1 is numbered correctly */
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bb_spi1_pins>;
++
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			/* add any spi devices connected here */
++			/* note that you can do direct SPI via spidev now */
++
++			// commented out example of an adafruit 1.8" TFT display
++			// from firmare/capes/cape-bone-adafruit-lcd-00A0.dts
++			// lcd@0 {
++			//	#address-cells = <1>;
++			//	#size-cells = <0>;
++			//
++			//	compatible = "adafruit,tft-lcd-1.8-red", "sitronix,st7735";
++			//	reg = <0>;
++			//
++			//	spi-max-frequency = <8000000>;
++			//	spi-cpol;
++			//	spi-cpha;
++			//
++			//	pinctrl-names = "default";
++			//	pinctrl-0 = <&bone_adafruit_lcd_pins>;
++			//
++			//	st7735-rst = <&gpio4 19 0>;
++			//	st7735-dc = <&gpio4 21 0>;
++			// };
++		};
++	};
++};
+diff --git a/firmware/capes/BB-SPI1A1-00A0.dts b/firmware/capes/BB-SPI1A1-00A0.dts
+new file mode 100644
+index 0000000..ba98e73
+--- /dev/null
++++ b/firmware/capes/BB-SPI1A1-00A0.dts
+@@ -0,0 +1,81 @@
++/*
++ * Copyright (C) 2013 CircuitCo
++ *
++ * Virtual cape for SPI1 (ALT #1) on connector pins 
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-SPI1";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.42",	/* spi1_sclk */
++		"P9.29",	/* spi1_d0 */
++		"P9.30",	/* spi1_d1 */
++		"P9.20",	/* spi1_cs0 */
++		/* the hardware ip uses */
++		"spi1";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			/* default state has all gpios released and mode set to uart1 */
++			bb_spi1_pins: pinmux_bb_spi1_pins {
++				pinctrl-single,pins = <
++					0x164 0x34	/* eCAP0_in_PWM0_out.spi1_sclk, INPUT_PULLUP | MODE4 */
++							/* NOTE: P9.42 is connected to two pads */
++					// 0x1A0 0x27	/* set the other pad to gpio input */
++					0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
++					0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
++					0x178 0x14	/* uart1_ctsn.spi1_cs0, OUTPUT_PULLUP | MODE4 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&spi1>;	/* spi1 is numbered correctly */
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bb_spi1_pins>;
++
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			/* add any spi devices connected here */
++			/* note that you can do direct SPI via spidev now */
++
++			// commented out example of an adafruit 1.8" TFT display
++			// from firmare/capes/cape-bone-adafruit-lcd-00A0.dts
++			// lcd@0 {
++			//	#address-cells = <1>;
++			//	#size-cells = <0>;
++			//
++			//	compatible = "adafruit,tft-lcd-1.8-red", "sitronix,st7735";
++			//	reg = <0>;
++			//
++			//	spi-max-frequency = <8000000>;
++			//	spi-cpol;
++			//	spi-cpha;
++			//
++			//	pinctrl-names = "default";
++			//	pinctrl-0 = <&bone_adafruit_lcd_pins>;
++			//
++			//	st7735-rst = <&gpio4 19 0>;
++			//	st7735-dc = <&gpio4 21 0>;
++			// };
++		};
++	};
++};
+diff --git a/firmware/capes/BB-UART1-00A0.dts b/firmware/capes/BB-UART1-00A0.dts
+new file mode 100644
+index 0000000..ce2b3d1
+--- /dev/null
++++ b/firmware/capes/BB-UART1-00A0.dts
+@@ -0,0 +1,48 @@
++/*
++ * Copyright (C) 2013 CircuitCo
++ *
++ * Virtual cape for UART1 on connector pins P9.24 P9.26
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-UART1";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.24",	/* uart1_txd */
++		"P9.26",	/* uart1_rxd */
++		/* the hardware ip uses */
++		"uart1";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			bb_uart1_pins: pinmux_bb_uart1_pins {
++				pinctrl-single,pins = <
++					0x184 0x20 /* P9.24 uart1_txd.uart1_txd  OUTPUT  */
++					0x180 0x20 /* P9.26 uart1_rxd.uart1_rxd  INPUT  */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&uart2>;	/* really uart1 */
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bb_uart1_pins>;
++		};
++	};
++};
+diff --git a/firmware/capes/BB-UART2-00A0.dts b/firmware/capes/BB-UART2-00A0.dts
+new file mode 100644
+index 0000000..7534495
+--- /dev/null
++++ b/firmware/capes/BB-UART2-00A0.dts
+@@ -0,0 +1,48 @@
++/*
++ * Copyright (C) 2013 CircuitCo
++ *
++ * Virtual cape for UART2 on connector pins P9.21 P9.22
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-UART2";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.21",	/* uart2_txd */
++		"P9.22",	/* uart2_rxd */
++		/* the hardware ip uses */
++		"uart2";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			bb_uart2_pins: pinmux_bb_uart2_pins {
++				pinctrl-single,pins = <
++					0x150 0x21	/* spi0_sclk.uart2_rxd | MODE1 */
++					0x154 0x01	/* spi0_d0.uart2_txd | MODE1 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&uart3>;	/* really uart2 */
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bb_uart2_pins>;
++		};
++	};
++};
+diff --git a/firmware/capes/BB-UART4-00A0.dts b/firmware/capes/BB-UART4-00A0.dts
+new file mode 100644
+index 0000000..cfd7947
+--- /dev/null
++++ b/firmware/capes/BB-UART4-00A0.dts
+@@ -0,0 +1,48 @@
++/*
++ * Copyright (C) 2013 CircuitCo
++ *
++ * Virtual cape for UART4 on connector pins P9.13 P9.11
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-UART4";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.13",	/* uart4_txd */
++		"P9.11",	/* uart4_rxd */
++		/* the hardware ip uses */
++		"uart4";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			bb_uart4_pins: pinmux_bb_uart4_pins {
++				pinctrl-single,pins = <
++					0x070 0x26	/* gpmc_wait0.uart4_rxd | MODE6 */
++					0x074 0x06	/* gpmc_wpn.uart4_txd | MODE6 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&uart5>;	/* really uart4 */
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bb_uart4_pins>;
++		};
++	};
++};
+diff --git a/firmware/capes/BB-UART5-00A0.dts b/firmware/capes/BB-UART5-00A0.dts
+new file mode 100644
+index 0000000..e067068
+--- /dev/null
++++ b/firmware/capes/BB-UART5-00A0.dts
+@@ -0,0 +1,49 @@
++/*
++ * Copyright (C) 2013 CircuitCo
++ *
++ * Virtual cape for UART5 on connector pins P9.37 P8.38
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-UART5";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.37",	/* uart5_txd */
++		"P8.38",	/* uart5_rxd */
++		/* the hardware ip uses */
++		"uart5";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			bb_uart5_pins: pinmux_bb_uart5_pins {
++				pinctrl-single,pins = <
++					/* the uart pins */
++					0x0C4 0x24	/* lcd_data9.uart5_rxd | MODE4 */
++					0x0C0 0x04	/* lcd_data8.uart5_txd | MODE4 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&uart6>;	/* really uart5 */
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bb_uart5_pins>;
++		};
++	};
++};
+-- 
+1.8.1.4
+
