@@ -1,16 +1,34 @@
- firmware/Makefile                |    3 +-
+From 085dcac8c2f2ec408612f27927a70624cf309c1e Mon Sep 17 00:00:00 2001
+From: Alessandro Zummo <a.zummo@towertech.it>
+Date: Sat, 25 May 2013 19:18:07 +0200
+Subject: [PATCH 177/177] capes: Add TowerTech TT3201 CAN Bus Cape (TT3201-001,
+ 3 channels) Rev 01 and 02
+
+--
+
+firmware/Makefile                |    3 +-
  firmware/capes/TT3201-001-01.dts |  134 ++++++++++++++++++++++++++++++++++++++
  2 files changed, 136 insertions(+), 1 deletion(-)
+---
+ firmware/Makefile                |   8 ++-
+ firmware/capes/TT3201-001-01.dts | 134 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 141 insertions(+), 1 deletion(-)
+ create mode 100644 firmware/capes/TT3201-001-01.dts
 
 diff --git a/firmware/Makefile b/firmware/Makefile
-index 3db923d..9fa28dc 100644
+index b039188..6d896d2 100644
 --- a/firmware/Makefile
 +++ b/firmware/Makefile
-@@ -182,7 +182,8 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
- 	BB-BONE-PRU-02-00A0.dtbo \
- 	BB-BONE-RST-00A0.dtbo \
- 	BB-BONE-RST2-00A0.dtbo \
--	BB-BONE-CAM3-01-00A2.dtbo
+@@ -177,7 +177,13 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	bone_pwm_P9_29-00A0.dtbo \
+ 	bone_pwm_P9_31-00A0.dtbo \
+ 	bone_pwm_P9_42-00A0.dtbo \
+-	BB-BONE-PWMT-00A0.dtbo
++	BB-BONE-PWMT-00A0.dtbo \
++	BB-BONE-PRU-01-00A0.dtbo \
++	BB-BONE-PRU-02-00A0.dtbo \
++	BB-BONE-RST-00A0.dtbo \
++	BB-BONE-RST2-00A0.dtbo \
 +	BB-BONE-CAM3-01-00A2.dtbo \
 +	TT3201-001-01.dtbo
  
@@ -156,3 +174,6 @@ index 0000000..d1f950c
 +	};
 +};
 +
+-- 
+1.8.1.4
+
