@@ -1,0 +1,61 @@
+From 4424a43135acbb8deec2687fdbcdc9d5f007ddad Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Mon, 3 Jun 2013 15:59:04 +0300
+Subject: [PATCH 179/179] cape: LCD4: Correct key active polarity
+
+---
+ firmware/capes/BB-BONE-LCD4-01-00A1.dts | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/firmware/capes/BB-BONE-LCD4-01-00A1.dts b/firmware/capes/BB-BONE-LCD4-01-00A1.dts
+index 9e65a22..7a05f3a 100644
+--- a/firmware/capes/BB-BONE-LCD4-01-00A1.dts
++++ b/firmware/capes/BB-BONE-LCD4-01-00A1.dts
+@@ -152,7 +152,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <105>;
+ 					label = "left";
+-					gpios = <&gpio2 16 0x0>;
++					gpios = <&gpio2 16 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -160,7 +160,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <106>;
+ 					label = "right";
+-					gpios = <&gpio2 17 0x0>;
++					gpios = <&gpio2 17 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -168,7 +168,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <103>;
+ 					label = "up";
+-					gpios = <&gpio2 19 0x0>;
++					gpios = <&gpio2 19 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -176,7 +176,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <108>;
+ 					label = "down";
+-					gpios = <&gpio4 16 0x0>;
++					gpios = <&gpio4 16 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -184,7 +184,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <28>;
+ 					label = "enter";
+-					gpios = <&gpio1 15 0x0>;
++					gpios = <&gpio1 15 0x1>;
+ 					gpio-key,wakeup;
+ 				};
+ 			};
+-- 
+1.8.1.4
+
