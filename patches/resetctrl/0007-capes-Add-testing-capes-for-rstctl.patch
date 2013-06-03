@@ -1,34 +1,18 @@
-From b62b5d8bf77b81db5369b110b672e7e753f43c42 Mon Sep 17 00:00:00 2001
+From e452fd3cf676587c927d9cc1a3de0f9af705d9c1 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Mon, 22 Apr 2013 20:40:07 +0300
-Subject: [PATCH 07/10] capes: Add testing capes for rstctl
+Subject: [PATCH 07/11] capes: Add testing capes for rstctl
 
 Add a couple of reset control capes for testing rstctl
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- firmware/Makefile                    |  4 ++-
  firmware/capes/BB-BONE-RST-00A0.dts  | 62 ++++++++++++++++++++++++++++++++++++
  firmware/capes/BB-BONE-RST2-00A0.dts | 27 ++++++++++++++++
- 3 files changed, 92 insertions(+), 1 deletion(-)
+ 2 files changed, 89 insertions(+)
  create mode 100644 firmware/capes/BB-BONE-RST-00A0.dts
  create mode 100644 firmware/capes/BB-BONE-RST2-00A0.dts
 
-diff --git a/firmware/Makefile b/firmware/Makefile
-index 641e376..f76c4d0 100644
---- a/firmware/Makefile
-+++ b/firmware/Makefile
-@@ -179,7 +179,9 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
- 	bone_pwm_P9_42-00A0.dtbo \
- 	BB-BONE-PWMT-00A0.dtbo \
- 	BB-BONE-PRU-01-00A0.dtbo \
--	BB-BONE-PRU-02-00A0.dtbo
-+	BB-BONE-PRU-02-00A0.dtbo \
-+	BB-BONE-RST-00A0.dtbo \
-+	BB-BONE-RST2-00A0.dtbo
- 
- # the geiger cape
- fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_GEIGER) += \
 diff --git a/firmware/capes/BB-BONE-RST-00A0.dts b/firmware/capes/BB-BONE-RST-00A0.dts
 new file mode 100644
 index 0000000..acdcda4

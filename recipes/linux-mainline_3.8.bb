@@ -21,6 +21,4 @@ do_configure_prepend() {
 	if [ -e ${WORKDIR}/am335x-pm-firmware.bin ] ; then
 		cp ${WORKDIR}/am335x-pm-firmware.bin ${S}/firmware
 	fi
-
-	cp ${WORKDIR}/db.txt ${S}/net/wireless
 }
