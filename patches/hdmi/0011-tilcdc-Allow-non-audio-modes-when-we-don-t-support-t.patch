@@ -1,0 +1,31 @@
+From ed28737a7d10a623db35f4aaac78d72b5b44ed5b Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Tue, 4 Jun 2013 17:53:07 +0300
+Subject: [PATCH 11/11] tilcdc: Allow non-audio modes when we don't support
+ them.
+
+Allow non-audio modes on an audio capable monitor if we explicitly
+disable audio.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+index 14cee74..5f5f464 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+@@ -480,7 +480,8 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+ 		is_cea_mode ? "true" : "false",
+ 		can_output_audio ? "true" : "false" );
+ 
+-	if (edid && has_audio && !can_output_audio) {
++	/* we only prune the mode if we ask for it */
++	if (audio && edid && has_audio && !can_output_audio) {
+ 		DBG("Pruning mode : Does not support audio");
+ 		return MODE_BAD;
+ 	}
+-- 
+1.8.1.4
+
