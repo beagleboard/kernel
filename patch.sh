@@ -1,5 +1,5 @@
 #!/bin/bash
-# (c) 2009 - 2012 Koen Kooi <koen@dominion.thruhere.net>
+# (c) 2009 - 2013 Koen Kooi <koen@dominion.thruhere.net>
 # (c) 2012 Robert Nelson <robertcnelson@gmail.com>
 # This script will take a set of directories with patches and make a git tree out of it
 # After all the patches are applied it will output a SRC_URI fragment you can copy/paste into a recipe
@@ -12,20 +12,19 @@ DIR="$PWD"
 PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
-RECIPEDIR="linux-mainline-3.9"
-RECIPENAME="linux-mainline_3.9.bb"
+RECIPEDIR="linux-mainline-3.11"
+RECIPENAME="linux-mainline_3.11.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.9-rc5"
+TAG="v3.10-rc4"
 EXTRATAG=""
 
-EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
+EXTERNAL_TREE="git://github.com/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="fe6969094214350e586d56fbfa3ef97cdd74b270"
+EXTERNAL_SHA="1612e111e4e565422242727efb59499cce8738e4"
 
-PATCHSET="build arm dma"
-OLD="dma rtc pinctrl cpufreq adc i2c da8xx-fb pwm mmc crypto 6lowpan capebus arm omap omap_sakoman omap_beagle_expansion omap_beagle omap_panda net drm not-capebus pru usb PG2 reboot iio w1 gpmc mxt ssd130x build"
+PATCHSET="arm"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
@@ -72,8 +71,8 @@ fi
 git describe
 
 # newer gits will run 'git gc' after every patch if you don't prune
-git gc
-git prune
+#git gc
+#git prune
 
 if [ -d ${EXPORTPATH} ] ; then
 	rm -rf ${EXPORTPATH} || true
@@ -87,7 +86,7 @@ for patchset in ${PATCHSET} ; do
 	mkdir -p ${EXPORTPATH}/$patchset
 	for patch in $(ls -1 ${PATCHPATH}/$patchset/*.patch | sort -n) ; do
 		$ECHO -n "$patch: "
-		git am -q $patch && echo applied || exit 1
+		git am -3 -q $patch && echo applied || exit 1
 	done
 
 	NEWCOMMIT="$(git log --oneline --no-abbrev -1 | awk '{print $1}')"
@@ -121,12 +120,18 @@ for patchset in ${PATCHSET} ; do
 	done
 done
 
+mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}
+
 echo '	file://defconfig \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 echo '  file://am335x-pm-firmware.bin \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
-echo '  file://db.txt \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+
+if [ -e ${DIR}/logo_linux_clut224.ppm ] ; then
+	cp ${DIR}/logo_linux_clut224.ppm ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
+	echo '  file://logo_linux_clut224.ppm \' >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
+fi
+
 echo "\"" >> ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPENAME}
 
-mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}
 cp -a ${EXPORTPATH}/* ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
 
 mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/beaglebone
@@ -135,7 +140,7 @@ cp ${DIR}/configs/beaglebone ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
 mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/beagleboard
 cp ${DIR}/configs/beagleboard ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/beagleboard/defconfig
 
-if [ -e ${DIR}/db.txt ] ; then
-	cp ${DIR}/db.txt ${DIR}/kernel/net/wireless
-	cp ${DIR}/db.txt ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
+if [ -e ${DIR}/kernel/am335x-pm-firmware.bin ] ; then
+	cp ${DIR}/kernel/am335x-pm-firmware.bin ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
 fi
+
