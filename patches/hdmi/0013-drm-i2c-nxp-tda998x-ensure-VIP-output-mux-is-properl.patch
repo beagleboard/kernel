@@ -1,7 +1,7 @@
-From aa8c27c75c37e0c4cb534df4a797b9b8d9dfeecc Mon Sep 17 00:00:00 2001
+From 69eeb36bc1bf1fd73f8e403745c00c62f5e934fb Mon Sep 17 00:00:00 2001
 From: Russell King <rmk+kernel@arm.linux.org.uk>
 Date: Thu, 16 May 2013 19:26:18 +0000
-Subject: [PATCH 12/18] drm/i2c: nxp-tda998x: ensure VIP output mux is properly
+Subject: [PATCH 13/21] drm/i2c: nxp-tda998x: ensure VIP output mux is properly
  set
 
 When switching between various drivers for this device, it's possible
@@ -19,7 +19,7 @@ Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
-index 412ba4f..cd2b43c 100644
+index 9ac4ed9..37094fd 100644
 --- a/drivers/gpu/drm/i2c/tda998x_drv.c
 +++ b/drivers/gpu/drm/i2c/tda998x_drv.c
 @@ -110,6 +110,7 @@ struct tda998x_priv {
@@ -30,7 +30,7 @@ index 412ba4f..cd2b43c 100644
  
  #define REG_MUX_AP                REG(0x00, 0x26)
  # define MUX_AP_SELECT_I2S        (0x64)
-@@ -492,6 +493,8 @@ tda998x_encoder_dpms(struct drm_encoder *encoder, int mode)
+@@ -494,6 +495,8 @@ tda998x_encoder_dpms(struct drm_encoder *encoder, int mode)
  
  	switch (mode) {
  	case DRM_MODE_DPMS_ON:

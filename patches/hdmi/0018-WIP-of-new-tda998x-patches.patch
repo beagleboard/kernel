@@ -1,7 +1,7 @@
-From ed7d64def620d3e851cf6bf840ecf9b893d36bc2 Mon Sep 17 00:00:00 2001
+From 795d5d4c84cc23f43d9d7fff25f96162c31febf3 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 5 Jun 2013 19:52:25 +0300
-Subject: [PATCH 17/18] WIP of new tda998x patches.
+Subject: [PATCH 18/21] WIP of new tda998x patches.
 
 Video works, but no audio. RMK uses SPDIF so I2S is missing various bits.
 With the tilcdc driver the some non CEC modes are shifted too.
@@ -13,7 +13,7 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  2 files changed, 419 insertions(+), 176 deletions(-)
 
 diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
-index 73d79d0..09cdc19 100644
+index 49e5d98..2049898 100644
 --- a/drivers/gpu/drm/i2c/tda998x_drv.c
 +++ b/drivers/gpu/drm/i2c/tda998x_drv.c
 @@ -25,6 +25,8 @@
@@ -146,7 +146,7 @@ index 73d79d0..09cdc19 100644
  
  /* Page 12h: HDCP and OTP */
  #define REG_TX3                   REG(0x12, 0x9a)     /* read/write */
-@@ -290,9 +308,6 @@ struct tda998x_priv {
+@@ -292,9 +310,6 @@ struct tda998x_priv {
  #define TDA19989N2                0x0202
  #define TDA19988                  0x0301
  
@@ -156,7 +156,7 @@ index 73d79d0..09cdc19 100644
  static void
  cec_write(struct drm_encoder *encoder, uint16_t addr, uint8_t val)
  {
-@@ -475,11 +490,257 @@ tda998x_reset(struct drm_encoder *encoder)
+@@ -477,11 +492,257 @@ tda998x_reset(struct drm_encoder *encoder)
  	reg_write(encoder, REG_PLL_SCG2,     0x10);
  }
  
@@ -414,7 +414,7 @@ index 73d79d0..09cdc19 100644
  }
  
  static void
-@@ -499,7 +760,8 @@ tda998x_encoder_dpms(struct drm_encoder *encoder, int mode)
+@@ -501,7 +762,8 @@ tda998x_encoder_dpms(struct drm_encoder *encoder, int mode)
  		/* Write the default value MUX register */
  		reg_write(encoder, REG_MUX_VP_VIP_OUT, 0x24);
  		/* enable audio and video ports */
@@ -424,7 +424,7 @@ index 73d79d0..09cdc19 100644
  		reg_write(encoder, REG_ENA_VP_0, 0xff);
  		reg_write(encoder, REG_ENA_VP_1, 0xff);
  		reg_write(encoder, REG_ENA_VP_2, 0xff);
-@@ -510,7 +772,7 @@ tda998x_encoder_dpms(struct drm_encoder *encoder, int mode)
+@@ -512,7 +774,7 @@ tda998x_encoder_dpms(struct drm_encoder *encoder, int mode)
  		break;
  	case DRM_MODE_DPMS_OFF:
  		/* disable audio and video ports */
@@ -433,7 +433,7 @@ index 73d79d0..09cdc19 100644
  		reg_write(encoder, REG_ENA_VP_0, 0x00);
  		reg_write(encoder, REG_ENA_VP_1, 0x00);
  		reg_write(encoder, REG_ENA_VP_2, 0x00);
-@@ -535,99 +797,36 @@ tda998x_encoder_restore(struct drm_encoder *encoder)
+@@ -537,99 +799,36 @@ tda998x_encoder_restore(struct drm_encoder *encoder)
  static bool
  tda998x_encoder_mode_fixup(struct drm_encoder *encoder,
  			  const struct drm_display_mode *mode,
@@ -552,7 +552,7 @@ index 73d79d0..09cdc19 100644
  static void
  tda998x_encoder_mode_set(struct drm_encoder *encoder,
  			struct drm_display_mode *mode,
-@@ -674,7 +873,7 @@ tda998x_encoder_mode_set(struct drm_encoder *encoder,
+@@ -676,7 +875,7 @@ tda998x_encoder_mode_set(struct drm_encoder *encoder,
  	/* mute the audio FIFO: */
  	reg_set(encoder, REG_AIP_CNTRL_0, AIP_CNTRL_0_RST_FIFO);
  
@@ -561,7 +561,7 @@ index 73d79d0..09cdc19 100644
  	reg_set(encoder, REG_TBG_CNTRL_1, TBG_CNTRL_1_DWIN_DIS);
  	reg_clear(encoder, REG_TX33, TX33_HDMI);
  
-@@ -742,69 +941,29 @@ tda998x_encoder_mode_set(struct drm_encoder *encoder,
+@@ -744,69 +943,29 @@ tda998x_encoder_mode_set(struct drm_encoder *encoder,
  	reg_write16(encoder, REG_REFPIX_MSB, ref_pix);
  	reg_write16(encoder, REG_REFLINE_MSB, ref_line);
  
@@ -645,7 +645,7 @@ index 73d79d0..09cdc19 100644
  	/* must be last register set: */
  	reg_clear(encoder, REG_TBG_CNTRL_0, TBG_CNTRL_0_SYNC_ONCE);
  
-@@ -923,12 +1082,14 @@ static int
+@@ -935,12 +1094,14 @@ static int
  tda998x_encoder_get_modes(struct drm_encoder *encoder,
  			 struct drm_connector *connector)
  {
@@ -660,7 +660,7 @@ index 73d79d0..09cdc19 100644
  		kfree(edid);
  	}
  
-@@ -990,6 +1151,59 @@ tda998x_remove(struct i2c_client *client)
+@@ -1002,6 +1163,59 @@ tda998x_remove(struct i2c_client *client)
  	return 0;
  }
  
@@ -720,7 +720,7 @@ index 73d79d0..09cdc19 100644
  static int
  tda998x_encoder_init(struct i2c_client *client,
  		    struct drm_device *dev,
-@@ -997,14 +1211,41 @@ tda998x_encoder_init(struct i2c_client *client,
+@@ -1009,14 +1223,41 @@ tda998x_encoder_init(struct i2c_client *client,
  {
  	struct drm_encoder *encoder = &encoder_slave->base;
  	struct tda998x_priv *priv;
@@ -762,7 +762,7 @@ index 73d79d0..09cdc19 100644
  
  	priv->current_page = 0;
  	priv->cec = i2c_new_dummy(client->adapter, 0x34);
-@@ -1103,4 +1344,3 @@ MODULE_LICENSE("GPL");
+@@ -1115,4 +1356,3 @@ MODULE_LICENSE("GPL");
  
  module_init(tda998x_init);
  module_exit(tda998x_exit);
