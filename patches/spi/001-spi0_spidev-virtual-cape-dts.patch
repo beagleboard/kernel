@@ -1,12 +1,12 @@
-commit de6051cedaff468a789c774578a2f4f9594002ab
+commit f14e8865327109fb79245dd56c782a6e6d50ab77
 Author: Ian McMahon <imcmahon@prototechnical.com>
-Date:   Sun Jun 9 01:12:23 2013 -0400
+Date:   Sun Jun 9 02:13:18 2013 -0400
 
-    adding spi0_spidev dts
+    added SPIDEV virtual capes
 
 diff --git a/firmware/capes/BB-SPI0_SPIDEV-00A0.dts b/firmware/capes/BB-SPI0_SPIDEV-00A0.dts
 new file mode 100644
-index 0000000..3b03614
+index 0000000..af0875b
 --- /dev/null
 +++ b/firmware/capes/BB-SPI0_SPIDEV-00A0.dts
 @@ -0,0 +1,68 @@
@@ -67,14 +67,106 @@ index 0000000..3b03614
 +			spi0_0 {
 +				#address-cells 		= <1>;
 +				#size-cells 		= <0>;
-+				compatible 		= "linux,spidev"
++				compatible 		= "linux,spidev";
 +				reg			= <0>; /* CS value for this device (BB has only CS0 broken out for SPI0, so only one device is possible) */
-+				spi_max_frequency	= <16000000>;
++				spi-max-frequency	= <16000000>;
 +
 +				// set cpol and cpha as necessary.  Default is neither, which is mode 0.  
 +				// spi-cpol;
 +				// spi-cpha;
 +			};
++		};
++	};
++};
+diff --git a/firmware/capes/BB-SPI1_SPIDEV-00A0.dts b/firmware/capes/BB-SPI1_SPIDEV-00A0.dts
+new file mode 100644
+index 0000000..f961eea
+--- /dev/null
++++ b/firmware/capes/BB-SPI1_SPIDEV-00A0.dts
+@@ -0,0 +1,86 @@
++/*
++ * Copyright (C) 2013 Ian McMahon <imcmahon@prototechnical.com>
++ *
++ * Virtual cape for SPI1 on connector pins P9.29 P9.31 P9.30 P9.28
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-SPI1";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.31",	/* spi1_sclk */
++		"P9.29",	/* spi1_d0 */
++		"P9.30",	/* spi1_d1 */
++		"P9.28",	/* spi1_cs0 */
++		// "P9.42",	/* spi1_cs1 */
++		/* the hardware ip uses */
++		"spi1";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			/* default state has all gpios released and mode set to uart1 */
++			bb_spi1_pins: pinmux_bb_spi1_pins {
++				pinctrl-single,pins = <
++					0x190 0x33	/* mcasp0_aclkx.spi1_sclk, INPUT_PULLUP | MODE3 */
++					0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
++					0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
++					0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
++					// 0x164 0x12	/* eCAP0_in_PWM0_out.spi1_cs1 OUTPUT_PULLUP | MODE2 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&spi1>;	/* spi1 is numbered correctly */
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bb_spi1_pins>;
++
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			spi1_0 {
++				// this is the CS0 device
++				#address-cells 		= <1>;
++				#size-cells		= <0>;
++				compatible		= "linux,spidev";
++				reg			= <0>; // reg 0 is CS0
++				spi-max-frequency	= <16000000>;
++		
++                                // set cpol and cpha as necessary.  Default is neither, which is mode 0.
++                                // spi-cpol;
++                                // spi-cpha;
++			};
++
++			/* uncomment the cs1 pinmuxing and exclusive-use lines above if enabling spi1_1
++			spi1_1 {
++				// this is the CS1 device
++				#address-cells 		= <1>;
++				#size-cells		= <0>;
++				compatible		= "linux,spidev";
++				reg			= <1>; // reg 1 is CS1
++				spi-max-frequency	= <16000000>;
++		
++                                // set cpol and cpha as necessary.  Default is neither, which is mode 0.
++                                // spi-cpol;
++                                // spi-cpha;
++			};
++			*/
 +		};
 +	};
 +};
