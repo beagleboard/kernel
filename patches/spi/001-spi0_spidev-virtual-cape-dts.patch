@@ -1,0 +1,80 @@
+commit de6051cedaff468a789c774578a2f4f9594002ab
+Author: Ian McMahon <imcmahon@prototechnical.com>
+Date:   Sun Jun 9 01:12:23 2013 -0400
+
+    adding spi0_spidev dts
+
+diff --git a/firmware/capes/BB-SPI0_SPIDEV-00A0.dts b/firmware/capes/BB-SPI0_SPIDEV-00A0.dts
+new file mode 100644
+index 0000000..3b03614
+--- /dev/null
++++ b/firmware/capes/BB-SPI0_SPIDEV-00A0.dts
+@@ -0,0 +1,68 @@
++/*
++ * Copyright (C) 2013 Ian McMahon <imcmahon@prototechnical.com>
++ *
++ * Virtual cape enabling SPIDEV on SPI0 on connector pins P9.22 P9.21 P9.18 P9.17
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-SPI0_SPIDEV";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.17",	/* spi0_cs0 */
++		"P9.18",	/* spi0_d1 */
++		"P9.21",	/* spi0_d0 */
++		"P9.22",	/* spi0_sclk */
++		/* the hardware ip uses */
++		"spi0";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			/* default state has all gpios released and mode set to uart1 */
++			bb_spi0_pins: pinmux_bb_spi0_pins {
++				pinctrl-single,pins = <
++					0x150 0x30	/* spi0_sclk.spi0_sclk, INPUT_PULLUP | MODE0 */
++					0x154 0x30	/* spi0_d0.spi0_d0, INPUT_PULLUP | MODE0 */
++					0x158 0x10	/* spi0_d1.spi0_d1, OUTPUT_PULLUP | MODE0 */
++					0x15c 0x10	/* spi0_cs0.spi0_cs0, OUTPUT_PULLUP | MODE0 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&spi0>;	/* spi0 is numbered correctly */
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bb_spi0_pins>;
++
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			spi0_0 {
++				#address-cells 		= <1>;
++				#size-cells 		= <0>;
++				compatible 		= "linux,spidev"
++				reg			= <0>; /* CS value for this device (BB has only CS0 broken out for SPI0, so only one device is possible) */
++				spi_max_frequency	= <16000000>;
++
++				// set cpol and cpha as necessary.  Default is neither, which is mode 0.  
++				// spi-cpol;
++				// spi-cpha;
++			};
++		};
++	};
++};
