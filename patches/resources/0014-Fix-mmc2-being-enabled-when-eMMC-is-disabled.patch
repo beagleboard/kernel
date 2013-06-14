@@ -1,0 +1,26 @@
+From 111341f6690746f5a6cb27c7f93a46868e1dcb3d Mon Sep 17 00:00:00 2001
+From: Bas Laarhoven <sjml@xs4all.nl>
+Date: Mon, 10 Jun 2013 13:53:35 +0200
+Subject: [PATCH 14/14] Fix mmc2 being enabled when eMMC is disabled.
+
+Signed-off-by: Bas Laarhoven <sjml@xs4all.nl>
+---
+ arch/arm/boot/dts/am335x-boneblack.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 1545cca..a7eb55b 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -46,7 +46,7 @@
+ 	vmmc-supply = <&vmmcsd_fixed>;
+ 	bus-width = <8>;
+ 	ti,non-removable;
+-	status = "okay";
++	status = "disabled";
+ 
+ 	reset = <&rstctl 0 0>;
+ 	reset-names = "eMMC_RSTn-CONSUMER";
+-- 
+1.8.1.4
+
