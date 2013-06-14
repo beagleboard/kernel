@@ -1,0 +1,35 @@
+From 413fbb5ebe0cc97f89b6684b400cd2fa1684f306 Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Mon, 3 Jun 2013 22:38:49 +0000
+Subject: [PATCH 5/5] tsl2550: fix lux1_input error in low light
+
+ADC channel 0 photodiode detects both infrared + visible light,
+but ADC channel 1 just detects infrared. However, the latter is a bit
+more sensitive in that range so complete darkness or low light causes
+a error condition in which the chan0 - chan1 is negative that
+results in a -EAGAIN.
+
+This patch changes the resulting lux1_input sysfs attribute message from
+"Resource temporarily unavailable" to a user-grokable lux value of 0.
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ drivers/misc/tsl2550.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/misc/tsl2550.c b/drivers/misc/tsl2550.c
+index 1e7bc0e..9255074 100644
+--- a/drivers/misc/tsl2550.c
++++ b/drivers/misc/tsl2550.c
+@@ -178,7 +178,7 @@ static int tsl2550_calculate_lux(u8 ch0, u8 ch1)
+ 		} else
+ 			lux = 0;
+ 	else
+-		return -EAGAIN;
++		return 0;
+ 
+ 	/* LUX range check */
+ 	return lux > TSL2550_MAX_LUX ? TSL2550_MAX_LUX : lux;
+-- 
+1.8.1.4
+
