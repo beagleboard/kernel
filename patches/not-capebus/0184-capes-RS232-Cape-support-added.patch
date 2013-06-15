@@ -1,0 +1,85 @@
+From 28bfaa9fa9fcaa0dd7f0ed28bb04bdca66d55609 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 14 Jun 2013 19:06:09 +0300
+Subject: [PATCH 184/184] capes: RS232 Cape support added
+
+Add support for the default configuration of the cape at UART2.
+---
+ firmware/Makefile                       |  3 +-
+ firmware/capes/BB-BONE-SERL-03-00A1.dts | 50 +++++++++++++++++++++++++++++++++
+ 2 files changed, 52 insertions(+), 1 deletion(-)
+ create mode 100644 firmware/capes/BB-BONE-SERL-03-00A1.dts
+
+diff --git a/firmware/Makefile b/firmware/Makefile
+index d82fb9b..0727ec9 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -183,7 +183,8 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	BB-BONE-RST-00A0.dtbo \
+ 	BB-BONE-RST2-00A0.dtbo \
+ 	BB-BONE-CAM3-01-00A2.dtbo \
+-	TT3201-001-01.dtbo
++	TT3201-001-01.dtbo \
++	BB-BONE-SERL-03-00A1.dtbo
+ 
+ # the geiger cape
+ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_GEIGER) += \
+diff --git a/firmware/capes/BB-BONE-SERL-03-00A1.dts b/firmware/capes/BB-BONE-SERL-03-00A1.dts
+new file mode 100644
+index 0000000..47d9890
+--- /dev/null
++++ b/firmware/capes/BB-BONE-SERL-03-00A1.dts
+@@ -0,0 +1,50 @@
++/*
++ * Copyright (C) 2013 CircuitCo
++ *
++ * RS232 cape for the default configuration on UART2
++ * Use one of the BB-UART* examples if you modify the default
++ * configuration.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-BONE-SERL-03";
++	version = "00A1";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.21",	/* uart2_txd */
++		"P9.22",	/* uart2_rxd */
++		/* the hardware ip uses */
++		"uart2";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			bb_uart2_pins: pinmux_bb_uart2_pins {
++				pinctrl-single,pins = <
++					0x150 0x21	/* spi0_sclk.uart2_rxd | MODE1 */
++					0x154 0x01	/* spi0_d0.uart2_txd | MODE1 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&uart3>;	/* really uart2 */
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bb_uart2_pins>;
++		};
++	};
++};
+-- 
+1.8.1.4
+
