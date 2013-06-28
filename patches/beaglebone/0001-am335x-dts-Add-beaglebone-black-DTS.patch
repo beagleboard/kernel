@@ -1,0 +1,183 @@
+From 6c2668e6f2666830bc773f15d9edc9e31d972da9 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Fri, 28 Jun 2013 14:18:08 +0300
+Subject: [PATCH] am335x: dts: Add beaglebone black DTS
+
+Added the beaglebone black's DTS file. Note that at some point in
+time we'll switch to using a common black.dtsi file.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/boot/dts/Makefile             |   3 +-
+ arch/arm/boot/dts/am335x-boneblack.dts | 145 +++++++++++++++++++++++++++++++++
+ 2 files changed, 147 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/boot/dts/am335x-boneblack.dts
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index f0895c5..22d9770 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -152,7 +152,8 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+ 	omap5-evm.dtb \
+ 	am335x-evm.dtb \
+ 	am335x-evmsk.dtb \
+-	am335x-bone.dtb
++	am335x-bone.dtb \
++	am335x-boneblack.dtb
+ dtb-$(CONFIG_ARCH_ORION5X) += orion5x-lacie-ethernet-disk-mini-v2.dtb
+ dtb-$(CONFIG_ARCH_PRIMA2) += prima2-evb.dtb
+ dtb-$(CONFIG_ARCH_U8500) += snowball.dtb \
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+new file mode 100644
+index 0000000..80bff9c
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -0,0 +1,145 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++/include/ "am33xx.dtsi"
++
++/ {
++	model = "TI AM335x BeagleBone";
++	compatible = "ti,am335x-bone", "ti,am33xx";
++
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&dcdc2_reg>;
++		};
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x10000000>; /* 256 MB */
++	};
++
++	am33xx_pinmux: pinmux@44e10800 {
++		pinctrl-names = "default";
++		pinctrl-0 = <&user_leds_s0>;
++
++		user_leds_s0: user_leds_s0 {
++			pinctrl-single,pins = <
++				0x54 0x7	/* gpmc_a5.gpio1_21, OUTPUT | MODE7 */
++				0x58 0x17	/* gpmc_a6.gpio1_22, OUTPUT_PULLUP | MODE7 */
++				0x5c 0x7	/* gpmc_a7.gpio1_23, OUTPUT | MODE7 */
++				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
++			>;
++		};
++	};
++
++	ocp {
++		uart1: serial@44e09000 {
++			status = "okay";
++		};
++
++		i2c0: i2c@44e0b000 {
++			status = "okay";
++			clock-frequency = <400000>;
++
++			tps: tps@24 {
++				reg = <0x24>;
++			};
++
++		};
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		led@2 {
++			label = "beaglebone:green:heartbeat";
++			gpios = <&gpio1 21 0>;
++			linux,default-trigger = "heartbeat";
++			default-state = "off";
++		};
++
++		led@3 {
++			label = "beaglebone:green:mmc0";
++			gpios = <&gpio1 22 0>;
++			linux,default-trigger = "mmc0";
++			default-state = "off";
++		};
++
++		led@4 {
++			label = "beaglebone:green:usr2";
++			gpios = <&gpio1 23 0>;
++			default-state = "off";
++		};
++
++		led@5 {
++			label = "beaglebone:green:usr3";
++			gpios = <&gpio1 24 0>;
++			default-state = "off";
++		};
++	};
++};
++
++/include/ "tps65217.dtsi"
++
++&tps {
++	regulators {
++		dcdc1_reg: regulator@0 {
++			regulator-always-on;
++		};
++
++		dcdc2_reg: regulator@1 {
++			/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
++			regulator-name = "vdd_mpu";
++			regulator-min-microvolt = <925000>;
++			regulator-max-microvolt = <1325000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		dcdc3_reg: regulator@2 {
++			/* VDD_CORE voltage limits 0.95V - 1.1V with +/-4% tolerance */
++			regulator-name = "vdd_core";
++			regulator-min-microvolt = <925000>;
++			regulator-max-microvolt = <1150000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		ldo1_reg: regulator@3 {
++			regulator-always-on;
++		};
++
++		ldo2_reg: regulator@4 {
++			regulator-always-on;
++		};
++
++		ldo3_reg: regulator@5 {
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <3300000>;
++			regulator-always-on;
++		};
++
++		ldo4_reg: regulator@6 {
++			regulator-always-on;
++		};
++	};
++};
++
++&cpsw_emac0 {
++	phy_id = <&davinci_mdio>, <0>;
++};
++
++&cpsw_emac1 {
++	phy_id = <&davinci_mdio>, <1>;
++};
++
++&mmc1 {
++	status = "okay";
++	vmmc-supply = <&ldo3_reg>;
++};
+-- 
+1.8.2.1
+

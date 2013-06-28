@@ -17,14 +17,14 @@ RECIPENAME="linux-mainline_3.11.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.10-rc4"
+TAG="v3.10-rc7"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://github.com/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="1612e111e4e565422242727efb59499cce8738e4"
+EXTERNAL_SHA="98b6ed0f2bf4abfb759206aa70690636372bdee7"
 
-PATCHSET="arm"
+PATCHSET="mainline-fixes mainline-dtc-fixes  mainline-dtc-overlays mainline-of-fixes  mainline-pdev-fixes mainline-dma-devel mmc beaglebone"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true

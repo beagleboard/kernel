@@ -1,0 +1,76 @@
+From bccd73fb5675aa15d62095e0da883a753bd513da Mon Sep 17 00:00:00 2001
+From: Matt Porter <mporter@ti.com>
+Date: Wed, 6 Mar 2013 19:56:06 +0000
+Subject: [PATCH 26/42] dma: edma: add device_slave_sg_limits() support
+
+Implement device_slave_sg_limits().
+
+EDMA has a finite set of PaRAM slots available for linking a
+multi-segment SG transfer. In order to prevent any one channel
+from consuming all PaRAM slots to fulfill a large SG transfer,
+the driver reports a static per-channel max number of SG segments
+it will handle.
+
+The maximum size of an SG segment is limited by the addr_width
+and maxburst of a given transfer request. These values are
+provided by the client driver and used to calculate and return
+the maximum segment length.
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+---
+ drivers/dma/edma.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 5f3e532..e008ed2 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -70,6 +70,7 @@ struct edma_chan {
+ 	bool				alloced;
+ 	int				slot[EDMA_MAX_SLOTS];
+ 	struct dma_slave_config		cfg;
++	struct dma_slave_sg_limits	sg_limits;
+ };
+ 
+ struct edma_cc {
+@@ -462,6 +463,20 @@ static void edma_issue_pending(struct dma_chan *chan)
+ 	spin_unlock_irqrestore(&echan->vchan.lock, flags);
+ }
+ 
++static struct dma_slave_sg_limits
++*edma_get_slave_sg_limits(struct dma_chan *chan,
++			enum dma_slave_buswidth addr_width,
++			u32 maxburst)
++{
++	struct edma_chan *echan;
++
++	echan = to_edma_chan(chan);
++	echan->sg_limits.max_seg_len =
++		(SZ_64K - 1) * addr_width * maxburst;
++
++	return &echan->sg_limits;
++}
++
+ static size_t edma_desc_size(struct edma_desc *edesc)
+ {
+ 	int i;
+@@ -521,6 +536,7 @@ static void __init edma_chan_init(struct edma_cc *ecc,
+ 		echan->ch_num = EDMA_CTLR_CHAN(ecc->ctlr, i);
+ 		echan->ecc = ecc;
+ 		echan->vchan.desc_free = edma_desc_free;
++		echan->sg_limits.max_seg_nr = MAX_NR_SG;
+ 
+ 		vchan_init(&echan->vchan, dma);
+ 
+@@ -537,6 +553,7 @@ static void edma_dma_init(struct edma_cc *ecc, struct dma_device *dma,
+ 	dma->device_alloc_chan_resources = edma_alloc_chan_resources;
+ 	dma->device_free_chan_resources = edma_free_chan_resources;
+ 	dma->device_issue_pending = edma_issue_pending;
++	dma->device_slave_sg_limits = edma_get_slave_sg_limits;
+ 	dma->device_tx_status = edma_tx_status;
+ 	dma->device_control = edma_control;
+ 	dma->dev = dev;
+-- 
+1.8.2.1
+
