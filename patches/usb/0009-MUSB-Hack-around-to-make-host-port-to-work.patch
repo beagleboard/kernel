@@ -1,4 +1,4 @@
-From 40e7043f53489e94a7a824cf1d9b409defe42758 Mon Sep 17 00:00:00 2001
+From 9f9e3de862201e0f5737d4a8c57209b2179aef1c Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 22 Jan 2013 22:25:06 +0200
 Subject: [PATCH 09/13] MUSB: Hack around to make host port to work.
@@ -8,11 +8,11 @@ After removing the device, issue lsusb to cause it to scan the bus again.
 
 Crappy, I know, but at least works.
 ---
- arch/arm/boot/dts/am335x-bone-common.dtsi |  6 ++++
- arch/arm/boot/dts/am33xx.dtsi             |  9 ++++--
- drivers/usb/musb/musb_core.c              | 45 ++++++++++++++++++++++++----
- drivers/usb/musb/musb_dsps.c              | 49 +++++++++++++++++++++++++++++--
- drivers/usb/musb/musb_host.c              |  7 +++--
+ arch/arm/boot/dts/am335x-bone-common.dtsi |    6 ++++
+ arch/arm/boot/dts/am33xx.dtsi             |    9 ++++--
+ drivers/usb/musb/musb_core.c              |   45 +++++++++++++++++++++++---
+ drivers/usb/musb/musb_dsps.c              |   49 +++++++++++++++++++++++++++--
+ drivers/usb/musb/musb_host.c              |    7 +++--
  5 files changed, 105 insertions(+), 11 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
@@ -30,7 +30,7 @@ index d525195..90178e2 100644
 +	status = "okay";
 +};
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 5d4f9133..6b71632 100644
+index 5d4f913..6b71632 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
 @@ -399,11 +399,15 @@
@@ -234,5 +234,5 @@ index e9f0fd9..86442a2 100644
  
  static int musb_bus_resume(struct usb_hcd *hcd)
 -- 
-1.8.1.4
+1.7.9.5
 

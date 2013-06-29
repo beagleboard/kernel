@@ -1,4 +1,4 @@
-From fb542d374135f126be7ea745bf825c3da183f807 Mon Sep 17 00:00:00 2001
+From a554559e0d286ea4389ed8cd871d13d674a5c18b Mon Sep 17 00:00:00 2001
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 Date: Thu, 20 Dec 2012 15:28:23 -0700
 Subject: [PATCH 34/34] crypto: omap-aes - Add CTR algorithm Support
@@ -25,7 +25,7 @@ CC: Greg Turner <gkmturner@gmail.com>
 CC: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
 Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
- drivers/crypto/omap-aes.c | 143 +++++++++++++++++++++++++++++++++++++++++-----
+ drivers/crypto/omap-aes.c |  143 ++++++++++++++++++++++++++++++++++++++++-----
  1 file changed, 128 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
@@ -289,5 +289,5 @@ index bd1ad97..6aa425f 100644
  	tasklet_kill(&dd->done_task);
  	tasklet_kill(&dd->queue_task);
 -- 
-1.8.1.4
+1.7.9.5
 

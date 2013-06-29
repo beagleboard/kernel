@@ -1,15 +1,15 @@
-From 795d5d4c84cc23f43d9d7fff25f96162c31febf3 Mon Sep 17 00:00:00 2001
+From f6f23612ee631242020898f0105b8b0e69da5596 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 5 Jun 2013 19:52:25 +0300
-Subject: [PATCH 18/21] WIP of new tda998x patches.
+Subject: [PATCH 18/22] WIP of new tda998x patches.
 
 Video works, but no audio. RMK uses SPDIF so I2S is missing various bits.
 With the tilcdc driver the some non CEC modes are shifted too.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/gpu/drm/i2c/tda998x_drv.c | 574 +++++++++++++++++++++++++++-----------
- include/drm/i2c/tda998x.h         |  21 +-
+ drivers/gpu/drm/i2c/tda998x_drv.c |  574 ++++++++++++++++++++++++++-----------
+ include/drm/i2c/tda998x.h         |   21 +-
  2 files changed, 419 insertions(+), 176 deletions(-)
 
 diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
@@ -808,5 +808,5 @@ index 41f799f..23736f1 100644
  
  #endif
 -- 
-1.8.1.4
+1.7.9.5
 

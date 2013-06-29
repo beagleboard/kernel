@@ -1,4 +1,4 @@
-From 413fbb5ebe0cc97f89b6684b400cd2fa1684f306 Mon Sep 17 00:00:00 2001
+From 5525d552de4c73c64135253437271987ac30502b Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
 Date: Mon, 3 Jun 2013 22:38:49 +0000
 Subject: [PATCH 5/5] tsl2550: fix lux1_input error in low light
@@ -14,7 +14,7 @@ This patch changes the resulting lux1_input sysfs attribute message from
 
 Signed-off-by: Matt Ranostay <mranostay@gmail.com>
 ---
- drivers/misc/tsl2550.c | 2 +-
+ drivers/misc/tsl2550.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/misc/tsl2550.c b/drivers/misc/tsl2550.c
@@ -31,5 +31,5 @@ index 1e7bc0e..9255074 100644
  	/* LUX range check */
  	return lux > TSL2550_MAX_LUX ? TSL2550_MAX_LUX : lux;
 -- 
-1.8.1.4
+1.7.9.5
 

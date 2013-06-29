@@ -1,7 +1,7 @@
-From 8ebd731768613d0f4ee1207baaf42ebbecf016fd Mon Sep 17 00:00:00 2001
+From 2545bb7f99cbd1dbf723b07166271920485b4d77 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 27 Feb 2013 11:28:19 +0200
-Subject: [PATCH 102/177] OF-overlay: Fix overlay revert failure
+Subject: [PATCH 102/184] OF-overlay: Fix overlay revert failure
 
 Somewhere along the line of changes we dropped the ability to cleanly revert
 overlays. This patchset fixes the bug, and makes it possible to add/remove
@@ -9,8 +9,8 @@ overlays at will.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/of/overlay.c | 136 ++++++++++++++++++++++++++++++++-------------------
- include/linux/of.h   |   5 ++
+ drivers/of/overlay.c |  136 +++++++++++++++++++++++++++++++-------------------
+ include/linux/of.h   |    5 ++
  2 files changed, 91 insertions(+), 50 deletions(-)
 
 diff --git a/drivers/of/overlay.c b/drivers/of/overlay.c
@@ -337,5 +337,5 @@ index 8a908f0..73cfde5 100644
  };
  
 -- 
-1.8.1.4
+1.7.9.5
 

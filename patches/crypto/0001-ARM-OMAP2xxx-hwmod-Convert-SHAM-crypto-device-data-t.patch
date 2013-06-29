@@ -1,4 +1,4 @@
-From 15a4445f14f2a99c17d955b62f25d576f6531c6a Mon Sep 17 00:00:00 2001
+From 4ab3198e5a906d9fd097b12d7c86427b537be8bc Mon Sep 17 00:00:00 2001
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 Date: Mon, 1 Oct 2012 21:03:04 -0700
 Subject: [PATCH 01/34] ARM: OMAP2xxx: hwmod: Convert SHAM crypto device data
@@ -10,13 +10,13 @@ explicit platform_data to hwmod.
 CC: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
- arch/arm/mach-omap2/cclock2430_data.c              |  1 +
- arch/arm/mach-omap2/devices.c                      | 32 +++++++------------
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  1 +
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  1 +
- .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c | 18 +++++++++++
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c | 37 ++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |  2 ++
+ arch/arm/mach-omap2/cclock2430_data.c              |    1 +
+ arch/arm/mach-omap2/devices.c                      |   32 ++++++-----------
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |    1 +
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |    1 +
+ .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |   18 ++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   37 ++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |    2 ++
  7 files changed, 71 insertions(+), 21 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cclock2430_data.c b/arch/arm/mach-omap2/cclock2430_data.c
@@ -211,5 +211,5 @@ index cfcce29..928acd5 100644
  /* Common IP block data */
  extern struct omap_hwmod_dma_info omap2_uart1_sdma_reqs[];
 -- 
-1.8.1.4
+1.7.9.5
 

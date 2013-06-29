@@ -1,4 +1,4 @@
-From f2d8619a9cd8eb857c5e1533e7fe3c6aa7079b2e Mon Sep 17 00:00:00 2001
+From 0ef041382e25ee47857758c99d4d5e97d123f13a Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 9 May 2013 23:01:53 +0300
 Subject: [PATCH 07/10] cssp_camera: Fix it for small resolutions
@@ -7,7 +7,7 @@ This should make it work reliably for resolutions up to 1024x768
 
 1280x960 and higher hang, or crash..
 ---
- drivers/media/platform/soc_camera/cssp_camera.c | 567 +++++++++++++++++-------
+ drivers/media/platform/soc_camera/cssp_camera.c |  567 +++++++++++++++++------
  1 file changed, 415 insertions(+), 152 deletions(-)
 
 diff --git a/drivers/media/platform/soc_camera/cssp_camera.c b/drivers/media/platform/soc_camera/cssp_camera.c
@@ -932,5 +932,5 @@ index 788acc4..62d8702 100644
  MODULE_DESCRIPTION("QuickLogic Camera Interface driver");
  
 -- 
-1.8.1.4
+1.7.9.5
 

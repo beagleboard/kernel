@@ -1,13 +1,13 @@
-From 18f22530660204b50da863230ca9d02c6c017a06 Mon Sep 17 00:00:00 2001
+From bc263e3ae5860e6ba40dea19883c9a30b82d28b7 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 6 Jun 2013 22:25:45 +0300
-Subject: [PATCH 20/21] drm: tda998x: Revert WIP to previous state
+Subject: [PATCH 20/22] drm: tda998x: Revert WIP to previous state
 
 Revert all the changes of the WIP so that audio continues to work.
 We do it with an explicit patch so that we can revisit at a later
 time when things settled down.
 ---
- drivers/gpu/drm/i2c/tda998x_drv.c | 611 +++++++++++---------------------------
+ drivers/gpu/drm/i2c/tda998x_drv.c |  611 +++++++++++--------------------------
  1 file changed, 176 insertions(+), 435 deletions(-)
 
 diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
@@ -838,5 +838,5 @@ index 2049898..412ba4f 100644
  module_exit(tda998x_exit);
 +
 -- 
-1.8.1.4
+1.7.9.5
 

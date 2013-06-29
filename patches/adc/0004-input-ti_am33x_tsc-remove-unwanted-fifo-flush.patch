@@ -1,21 +1,23 @@
-From 1352fe8163f8f34f6aae8c6c88f71665d32e2b63 Mon Sep 17 00:00:00 2001
+From 57583b858fa8b57a3679359280b804b61b58076e Mon Sep 17 00:00:00 2001
 From: "Patil, Rachna" <rachna@ti.com>
-Date: Thu, 24 Jan 2013 03:45:07 +0000
-Subject: [PATCH 03/16] input: touchscreen: ti_tsc: remove unwanted fifo flush
+Date: Wed, 12 Jun 2013 18:58:05 +0200
+Subject: [PATCH 04/20] input: ti_am33x_tsc: remove unwanted fifo flush
 
 When touchscreen and ADC are used together, this
 unwanted fifo flush leads to loss of ADC data.
 
 Signed-off-by: Patil, Rachna <rachna@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/input/touchscreen/ti_am335x_tsc.c | 10 ----------
+ drivers/input/touchscreen/ti_am335x_tsc.c |   10 ----------
  1 file changed, 10 deletions(-)
 
 diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index 0c460f9..064d2b2 100644
+index 2bdd66c..7b7de60 100644
 --- a/drivers/input/touchscreen/ti_am335x_tsc.c
 +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-@@ -308,8 +308,6 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+@@ -252,8 +252,6 @@ static irqreturn_t titsc_irq(int irq, void *dev)
  	unsigned int x = 0, y = 0;
  	unsigned int z1, z2, z;
  	unsigned int fsm;
@@ -24,7 +26,7 @@ index 0c460f9..064d2b2 100644
  
  	status = titsc_readl(ts_dev, REG_IRQSTATUS);
  	if (status & IRQENB_FIFO0THRES) {
-@@ -318,14 +316,6 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+@@ -262,14 +260,6 @@ static irqreturn_t titsc_irq(int irq, void *dev)
  		z1 = titsc_readl(ts_dev, REG_FIFO0) & 0xfff;
  		z2 = titsc_readl(ts_dev, REG_FIFO1) & 0xfff;
  
@@ -40,5 +42,5 @@ index 0c460f9..064d2b2 100644
  			/*
  			 * Calculate pressure using formula
 -- 
-1.8.1.4
+1.7.9.5
 

@@ -1,7 +1,7 @@
-From e57a3c2d2ddf2381985f78c2fc99c24896a378a6 Mon Sep 17 00:00:00 2001
+From 46df4478478156981c1e04c5f7e1118f0671e9f9 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Sun, 16 Dec 2012 19:46:34 +0200
-Subject: [PATCH 007/177] arm: Export cache flush management symbols when
+Subject: [PATCH 007/184] arm: Export cache flush management symbols when
  !MULTI_CACHE
 
 When compiling a kernel without CONFIG_MULTI_CACHE enabled the
@@ -9,7 +9,7 @@ dma access functions end up not being exported. Fix it.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- arch/arm/kernel/setup.c | 9 +++++++++
+ arch/arm/kernel/setup.c |    9 +++++++++
  1 file changed, 9 insertions(+)
 
 diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
@@ -30,5 +30,5 @@ index 3f6cbb2..4540dad 100644
 +
 +#endif
 -- 
-1.8.1.4
+1.7.9.5
 

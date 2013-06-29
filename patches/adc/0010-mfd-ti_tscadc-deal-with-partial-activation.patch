@@ -1,0 +1,114 @@
+From fee40cfe81da10b2fe5b462d0d97783c9605f665 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 12 Jun 2013 18:58:13 +0200
+Subject: [PATCH 10/20] mfd: ti_tscadc: deal with partial activation
+
+Fix the mfd device in the case where a subdevice might not be activated.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/mfd/ti_am335x_tscadc.c       |   38 ++++++++++++++++++++++------------
+ include/linux/mfd/ti_am335x_tscadc.h |    8 +++----
+ 2 files changed, 28 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+index 0fc5867..58f0860 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -118,11 +118,14 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	total_channels = tsc_wires + adc_channels;
+-
+ 	if (total_channels > 8) {
+ 		dev_err(&pdev->dev, "Number of i/p channels more than 8\n");
+ 		return -EINVAL;
+ 	}
++	if (total_channels == 0) {
++		dev_err(&pdev->dev, "Need atleast one channel.\n");
++		return -EINVAL;
++	}
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res) {
+@@ -213,28 +216,37 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 	ctrl |= CNTRLREG_TSCSSENB;
+ 	tscadc_writel(tscadc, REG_CTRL, ctrl);
+ 
++	tscadc->used_cells = 0;
++	tscadc->tsc_cell = -1;
++	tscadc->adc_cell = -1;
++
+ 	/* TSC Cell */
+-	cell = &tscadc->cells[TSC_CELL];
+-	cell->name = "tsc";
+-	cell->of_compatible = "ti,ti-tscadc";
+-	cell->platform_data = &tscadc;
+-	cell->pdata_size = sizeof(tscadc);
++	if (tsc_wires > 0) {
++		tscadc->tsc_cell = tscadc->used_cells;
++		cell = &tscadc->cells[tscadc->used_cells++];
++		cell->name = "tsc";
++		cell->of_compatible = "ti,ti-tscadc";
++		cell->platform_data = &tscadc;
++		cell->pdata_size = sizeof(tscadc);
++	}
+ 
+ 	/* ADC Cell */
+-	cell = &tscadc->cells[ADC_CELL];
+-	cell->name = "tiadc";
+-	cell->of_compatible = "ti,ti-tscadc";
+-	cell->platform_data = &tscadc;
+-	cell->pdata_size = sizeof(tscadc);
++	if (adc_channels > 0) {
++		tscadc->adc_cell = tscadc->used_cells;
++		cell = &tscadc->cells[tscadc->used_cells++];
++		cell->name = "tiadc";
++		cell->of_compatible = "ti,ti-tscadc";
++		cell->platform_data = &tscadc;
++		cell->pdata_size = sizeof(tscadc);
++	}
+ 
+ 	err = mfd_add_devices(&pdev->dev, pdev->id, tscadc->cells,
+-			TSCADC_CELLS, NULL, 0, NULL);
++			tscadc->used_cells, NULL, 0, NULL);
+ 	if (err < 0)
+ 		goto err_disable_clk;
+ 
+ 	device_init_wakeup(&pdev->dev, true);
+ 	platform_set_drvdata(pdev, tscadc);
+-
+ 	return 0;
+ 
+ err_disable_clk:
+diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+index e36ae41..fe54ba4 100644
+--- a/include/linux/mfd/ti_am335x_tscadc.h
++++ b/include/linux/mfd/ti_am335x_tscadc.h
+@@ -120,11 +120,6 @@
+ 
+ #define TSCADC_CELLS		2
+ 
+-enum tscadc_cells {
+-	TSC_CELL,
+-	ADC_CELL,
+-};
+-
+ struct mfd_tscadc_board {
+ 	struct tsc_data *tsc_init;
+ 	struct adc_data *adc_init;
+@@ -135,6 +130,9 @@ struct ti_tscadc_dev {
+ 	struct regmap *regmap_tscadc;
+ 	void __iomem *tscadc_base;
+ 	int irq;
++	int used_cells;	/* 1-2 */
++	int tsc_cell;	/* -1 if not used */
++	int adc_cell;	/* -1 if not used */
+ 	struct mfd_cell cells[TSCADC_CELLS];
+ 	u32 reg_se_cache;
+ 	spinlock_t reg_lock;
+-- 
+1.7.9.5
+

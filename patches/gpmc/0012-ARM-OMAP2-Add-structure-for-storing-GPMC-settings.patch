@@ -1,4 +1,4 @@
-From c7d802e7661e70d4c55cfb5fcf28b273561ec791 Mon Sep 17 00:00:00 2001
+From 509daef9add266db483a57d79d302fe7feeadf9c Mon Sep 17 00:00:00 2001
 From: Jon Hunter <jon-hunter@ti.com>
 Date: Thu, 21 Feb 2013 13:46:22 -0600
 Subject: [PATCH 12/39] ARM: OMAP2+: Add structure for storing GPMC settings
@@ -16,11 +16,11 @@ these options.
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 ---
- arch/arm/mach-omap2/gpmc-onenand.c | 18 ++++++++++-----
- arch/arm/mach-omap2/gpmc-smc91x.c  |  2 +-
- arch/arm/mach-omap2/gpmc.c         | 45 +++++++++++++++++++++++---------------
- arch/arm/mach-omap2/gpmc.h         | 28 ++++++++++++++++++------
- arch/arm/mach-omap2/usb-tusb6010.c | 19 +++++++++-------
+ arch/arm/mach-omap2/gpmc-onenand.c |   18 ++++++++++-----
+ arch/arm/mach-omap2/gpmc-smc91x.c  |    2 +-
+ arch/arm/mach-omap2/gpmc.c         |   45 +++++++++++++++++++++---------------
+ arch/arm/mach-omap2/gpmc.h         |   28 ++++++++++++++++------
+ arch/arm/mach-omap2/usb-tusb6010.c |   19 ++++++++-------
  5 files changed, 72 insertions(+), 40 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
@@ -323,5 +323,5 @@ index c5a3c6f..faaf96d 100644
  	return gpmc_cs_set_timings(sync_cs, &t);
  }
 -- 
-1.8.1.4
+1.7.9.5
 

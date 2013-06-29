@@ -1,17 +1,18 @@
-From 6025c6745fdf9f25dad80d07db6038edfccbe32d Mon Sep 17 00:00:00 2001
+From 9882038ecec85ba2edcdecdc109c36dae9643329 Mon Sep 17 00:00:00 2001
 From: Darren Etheridge <detheridge@ti.com>
 Date: Mon, 25 Mar 2013 16:12:14 -0500
-Subject: [PATCH 144/177] Make sure various timings fit within the bits
- available in the LCD controller, otherwise prune the mode. Also adjust the
- timing values to behave as the TRM indicates with 0 representing 1 in some
+Subject: [PATCH 144/184] Make sure various timings fit within the bits
+ available in the LCD controller, otherwise prune
+ the mode. Also adjust the timing values to behave
+ as the TRM indicates with 0 representing 1 in some
  cases.
 
 ---
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c | 75 ++++++++++++++++++++++++++++--------
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c |   75 +++++++++++++++++++++++++++-------
  1 file changed, 60 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index 78965d1..98c3c3c 100644
+index a98b094..69675e6 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 @@ -289,31 +289,38 @@ static int tilcdc_crtc_mode_set(struct drm_crtc *crtc,
@@ -75,7 +76,7 @@ index 78965d1..98c3c3c 100644
  			/* fallthrough */
  		case 24:
  			reg |= LCDC_V2_TFT_24BPP_MODE;
-@@ -423,6 +430,7 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+@@ -427,6 +434,7 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
  {
    	struct tilcdc_drm_private *priv = crtc->dev->dev_private;
  	unsigned int bandwidth;
@@ -83,7 +84,7 @@ index 78965d1..98c3c3c 100644
  
  	int rb;
  
-@@ -442,6 +450,44 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+@@ -446,6 +454,44 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
  	DBG("Processing mode %dx%d@%d with pixel clock %d", 
  	       mode->hdisplay, mode->vdisplay, drm_mode_vrefresh(mode), mode->clock);
  
@@ -128,7 +129,7 @@ index 78965d1..98c3c3c 100644
  	/* some devices have a maximum allowed pixel clock */
  	/* configured from the DT */
  	if(mode->clock > priv->max_pixelclock) {
-@@ -464,7 +510,6 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+@@ -468,7 +514,6 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
  	  return MODE_BAD;
  	}
  
@@ -137,5 +138,5 @@ index 78965d1..98c3c3c 100644
  		/* we only support reduced blanking modes */
  		rb = (mode->htotal - mode->hdisplay == 160) &&
 -- 
-1.8.1.4
+1.7.9.5
 

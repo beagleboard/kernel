@@ -1,4 +1,4 @@
-From 0197cd0616006ae0a7acb2c11bb8567ebfc97f47 Mon Sep 17 00:00:00 2001
+From 09b49db48e017ce046656a6d62466d4f222272e4 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 20 Sep 2012 08:55:41 -0400
 Subject: [PATCH 21/35] mmc: omap_hsmmc: set max_segs based on dma engine
@@ -14,7 +14,7 @@ appropriately.
 Signed-off-by: Matt Porter <mporter@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/mmc/host/omap_hsmmc.c | 6 ++++++
+ drivers/mmc/host/omap_hsmmc.c |    6 ++++++
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
@@ -42,5 +42,5 @@ index e79b12d..f74bd69 100644
  	ret = request_irq(host->irq, omap_hsmmc_irq, 0,
  			mmc_hostname(mmc), host);
 -- 
-1.8.1.4
+1.7.9.5
 

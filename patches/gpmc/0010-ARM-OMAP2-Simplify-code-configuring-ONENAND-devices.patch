@@ -1,4 +1,4 @@
-From 896ee62353ff80a855894a53f67b0858c1edf582 Mon Sep 17 00:00:00 2001
+From fff282cff1c7d6cf239198261bfd03c588b3ca99 Mon Sep 17 00:00:00 2001
 From: Jon Hunter <jon-hunter@ti.com>
 Date: Thu, 21 Feb 2013 15:20:53 -0600
 Subject: [PATCH 10/39] ARM: OMAP2+: Simplify code configuring ONENAND devices
@@ -15,7 +15,7 @@ member and not the entire structure.
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 ---
- arch/arm/mach-omap2/gpmc-onenand.c | 26 ++++++++++----------------
+ arch/arm/mach-omap2/gpmc-onenand.c |   26 ++++++++++----------------
  1 file changed, 10 insertions(+), 16 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
@@ -103,5 +103,5 @@ index 428cb19..b7f73c5 100644
  	ret = gpmc_set_sync_mode(gpmc_onenand_data->cs, &t);
  	if (IS_ERR_VALUE(ret))
 -- 
-1.8.1.4
+1.7.9.5
 

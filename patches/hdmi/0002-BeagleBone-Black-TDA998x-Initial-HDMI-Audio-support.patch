@@ -1,7 +1,7 @@
-From f238e327959b544ddf1f877ea83e092290cc93fe Mon Sep 17 00:00:00 2001
+From d52835205b22e44910df53edeb6d6fc4413058ee Mon Sep 17 00:00:00 2001
 From: Darren Etheridge <detheridge@ti.com>
 Date: Fri, 19 Apr 2013 12:37:37 -0500
-Subject: [PATCH 02/21] BeagleBone Black TDA998x Initial HDMI Audio support
+Subject: [PATCH 02/22] BeagleBone Black TDA998x Initial HDMI Audio support
 
 commit 5e166deffcfe438f57ec334e288e068e42fb05bb
 Author: Darren Etheridge <detheridge@ti.com>
@@ -114,13 +114,13 @@ Date:   Fri Apr 5 10:44:03 2013 -0500
     that is enabled by setting gpio1_27 high.  Create a new machine in Davinci audio driver for
     BeagleBone Black.
 ---
- drivers/gpu/drm/i2c/Kconfig                 |   1 +
- drivers/gpu/drm/i2c/Makefile                |   2 +-
- drivers/gpu/drm/i2c/tda998x_audio_drv.c     |  76 +++++++++++
- drivers/gpu/drm/i2c/tda998x_drv.c           | 205 +++++++++++++++++++++++++++-
- firmware/capes/cape-boneblack-hdmi-00A0.dts |  52 +++++++
- sound/soc/davinci/davinci-evm.c             |  50 ++++++-
- sound/soc/davinci/davinci-mcasp.c           |  15 +-
+ drivers/gpu/drm/i2c/Kconfig                 |    1 +
+ drivers/gpu/drm/i2c/Makefile                |    2 +-
+ drivers/gpu/drm/i2c/tda998x_audio_drv.c     |   76 ++++++++++
+ drivers/gpu/drm/i2c/tda998x_drv.c           |  205 ++++++++++++++++++++++++++-
+ firmware/capes/cape-boneblack-hdmi-00A0.dts |   52 +++++++
+ sound/soc/davinci/davinci-evm.c             |   50 ++++++-
+ sound/soc/davinci/davinci-mcasp.c           |   15 +-
  7 files changed, 385 insertions(+), 16 deletions(-)
  create mode 100644 drivers/gpu/drm/i2c/tda998x_audio_drv.c
 
@@ -784,5 +784,5 @@ index ea292f6..4c700df 100644
  		/* bit stream is MSB first with no delay */
  		/* DSP_B mode */
 -- 
-1.8.1.4
+1.7.9.5
 

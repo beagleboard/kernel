@@ -1,4 +1,4 @@
-From 37f28a563d58b540ad18ac1a8c3e9fd8c789725f Mon Sep 17 00:00:00 2001
+From 6dffecc40e3da318d945c4e6f82a5b31800eebff Mon Sep 17 00:00:00 2001
 From: Afzal Mohammed <afzal@ti.com>
 Date: Wed, 9 Jan 2013 11:38:11 +0530
 Subject: [PATCH 36/48] ARM: AM33XX: clock: SET_RATE_PARENT in lcd path
@@ -22,11 +22,11 @@ details.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/cclock33xx_data.c | 10 ++++++----
+ arch/arm/mach-omap2/cclock33xx_data.c |   10 ++++++----
  1 file changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
-index a09d6d7e..8dd9ecd 100644
+index a09d6d7..8dd9ecd 100644
 --- a/arch/arm/mach-omap2/cclock33xx_data.c
 +++ b/arch/arm/mach-omap2/cclock33xx_data.c
 @@ -284,9 +284,10 @@ DEFINE_STRUCT_CLK(dpll_disp_ck, dpll_core_ck_parents, dpll_ddr_ck_ops);
@@ -54,5 +54,5 @@ index a09d6d7e..8dd9ecd 100644
  DEFINE_CLK_FIXED_FACTOR(mmc_clk, "dpll_per_m2_ck", &dpll_per_m2_ck, 0x0, 1, 2);
  
 -- 
-1.8.1.4
+1.7.9.5
 

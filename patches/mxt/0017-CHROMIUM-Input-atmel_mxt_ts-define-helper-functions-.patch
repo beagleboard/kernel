@@ -1,8 +1,8 @@
-From cad7bbf05111dae37b9ef9e4eccf60ad992a6001 Mon Sep 17 00:00:00 2001
+From b249e0160598cf64c083d553c0fd4124fb6b993c Mon Sep 17 00:00:00 2001
 From: Daniel Kurtz <djkurtz@chromium.org>
 Date: Mon, 17 Dec 2012 17:22:02 +0800
-Subject: [PATCH 17/57] CHROMIUM: Input: atmel_mxt_ts - define helper functions
- for size and instances
+Subject: [PATCH 17/57] CHROMIUM: Input: atmel_mxt_ts - define helper
+ functions for size and instances
 
 These two object table entry fields are reported 1 less than their value.
 When used, however, we always want the actual size and instances.
@@ -26,7 +26,7 @@ Tested-by: Daniel Kurtz <djkurtz@chromium.org>
 v3.7 rebase:
 Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
 ---
- drivers/input/touchscreen/atmel_mxt_ts.c | 31 +++++++++++++++++++++----------
+ drivers/input/touchscreen/atmel_mxt_ts.c |   31 ++++++++++++++++++++----------
  1 file changed, 21 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
@@ -117,5 +117,5 @@ index b9a0de2..b53e839 100644
  
  			error = __mxt_read_reg(data->client, addr, size, obuf);
 -- 
-1.8.1.4
+1.7.9.5
 

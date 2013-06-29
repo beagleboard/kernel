@@ -1,7 +1,7 @@
-From 178628d17ef158ec0f36b56e62f557e75b56fc4d Mon Sep 17 00:00:00 2001
+From b090335715484ec30d02f4e939f3afba0f0a9c65 Mon Sep 17 00:00:00 2001
 From: Denis Ciocca <denis.ciocca@gmail.com>
 Date: Fri, 25 Jan 2013 23:44:00 +0000
-Subject: [PATCH 1/6] iio:common: Add STMicroelectronics common library
+Subject: [PATCH 1/9] iio:common: Add STMicroelectronics common library
 
 This patch add a generic library for STMicroelectronics 3-axis sensors.
 
@@ -9,18 +9,18 @@ Signed-off-by: Denis Ciocca <denis.ciocca@st.com>
 Reviewed-by: Lars-Peter Clausen <lars@metafoo.de>
 Signed-off-by: Jonathan Cameron <jic23@kernel.org>
 ---
- drivers/iio/common/Kconfig                         |   1 +
- drivers/iio/common/Makefile                        |   1 +
- drivers/iio/common/st_sensors/Kconfig              |  14 +
- drivers/iio/common/st_sensors/Makefile             |  10 +
- drivers/iio/common/st_sensors/st_sensors_buffer.c  | 116 ++++++
- drivers/iio/common/st_sensors/st_sensors_core.c    | 460 +++++++++++++++++++++
- drivers/iio/common/st_sensors/st_sensors_i2c.c     |  81 ++++
- drivers/iio/common/st_sensors/st_sensors_spi.c     | 128 ++++++
- drivers/iio/common/st_sensors/st_sensors_trigger.c |  77 ++++
- include/linux/iio/common/st_sensors.h              | 274 ++++++++++++
- include/linux/iio/common/st_sensors_i2c.h          |  20 +
- include/linux/iio/common/st_sensors_spi.h          |  20 +
+ drivers/iio/common/Kconfig                         |    1 +
+ drivers/iio/common/Makefile                        |    1 +
+ drivers/iio/common/st_sensors/Kconfig              |   14 +
+ drivers/iio/common/st_sensors/Makefile             |   10 +
+ drivers/iio/common/st_sensors/st_sensors_buffer.c  |  116 +++++
+ drivers/iio/common/st_sensors/st_sensors_core.c    |  460 ++++++++++++++++++++
+ drivers/iio/common/st_sensors/st_sensors_i2c.c     |   81 ++++
+ drivers/iio/common/st_sensors/st_sensors_spi.c     |  128 ++++++
+ drivers/iio/common/st_sensors/st_sensors_trigger.c |   77 ++++
+ include/linux/iio/common/st_sensors.h              |  274 ++++++++++++
+ include/linux/iio/common/st_sensors_i2c.h          |   20 +
+ include/linux/iio/common/st_sensors_spi.h          |   20 +
  12 files changed, 1202 insertions(+)
  create mode 100644 drivers/iio/common/st_sensors/Kconfig
  create mode 100644 drivers/iio/common/st_sensors/Makefile
@@ -1312,5 +1312,5 @@ index 0000000..d964a35
 +
 +#endif /* ST_SENSORS_SPI_H */
 -- 
-1.8.1.4
+1.7.9.5
 

@@ -1,7 +1,7 @@
-From 9ac408d5481259d1da764d7b35b11d676d2cdaf3 Mon Sep 17 00:00:00 2001
+From a3edf3853206ab108d23ef29abd63b2737b041ee Mon Sep 17 00:00:00 2001
 From: Denis Ciocca <denis.ciocca@gmail.com>
 Date: Fri, 25 Jan 2013 23:44:00 +0000
-Subject: [PATCH 2/6] iio:accel: Add STMicroelectronics accelerometers driver
+Subject: [PATCH 2/9] iio:accel: Add STMicroelectronics accelerometers driver
 
 This patch adds a generic accelerometer driver for STMicroelectronics
 accelerometers, currently it supports:
@@ -12,13 +12,13 @@ Signed-off-by: Denis Ciocca <denis.ciocca@st.com>
 Reviewed-by: Lars-Peter Clausen <lars@metafoo.de>
 Signed-off-by: Jonathan Cameron <jic23@kernel.org>
 ---
- drivers/iio/accel/Kconfig           |  38 +++
- drivers/iio/accel/Makefile          |   9 +
- drivers/iio/accel/st_accel.h        |  47 ++++
- drivers/iio/accel/st_accel_buffer.c | 114 +++++++++
- drivers/iio/accel/st_accel_core.c   | 495 ++++++++++++++++++++++++++++++++++++
- drivers/iio/accel/st_accel_i2c.c    |  87 +++++++
- drivers/iio/accel/st_accel_spi.c    |  86 +++++++
+ drivers/iio/accel/Kconfig           |   38 +++
+ drivers/iio/accel/Makefile          |    9 +
+ drivers/iio/accel/st_accel.h        |   47 ++++
+ drivers/iio/accel/st_accel_buffer.c |  114 ++++++++
+ drivers/iio/accel/st_accel_core.c   |  495 +++++++++++++++++++++++++++++++++++
+ drivers/iio/accel/st_accel_i2c.c    |   87 ++++++
+ drivers/iio/accel/st_accel_spi.c    |   86 ++++++
  7 files changed, 876 insertions(+)
  create mode 100644 drivers/iio/accel/st_accel.h
  create mode 100644 drivers/iio/accel/st_accel_buffer.c
@@ -265,7 +265,7 @@ index 0000000..6bd82c7
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/iio/accel/st_accel_core.c b/drivers/iio/accel/st_accel_core.c
 new file mode 100644
-index 0000000..a235de25
+index 0000000..a235de2
 --- /dev/null
 +++ b/drivers/iio/accel/st_accel_core.c
 @@ -0,0 +1,495 @@
@@ -950,5 +950,5 @@ index 0000000..dbd45c0
 +MODULE_DESCRIPTION("STMicroelectronics accelerometers spi driver");
 +MODULE_LICENSE("GPL v2");
 -- 
-1.8.1.4
+1.7.9.5
 

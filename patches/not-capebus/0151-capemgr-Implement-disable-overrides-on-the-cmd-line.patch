@@ -1,13 +1,13 @@
-From 001ca21373c39b7ce72451e537074c1b834b0629 Mon Sep 17 00:00:00 2001
+From 1dbe95c25eefd3e92e8257976fd03e1e471e0b09 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Mon, 1 Apr 2013 18:20:35 +0300
-Subject: [PATCH 151/177] capemgr: Implement disable overrides on the cmd line
+Subject: [PATCH 151/184] capemgr: Implement disable overrides on the cmd line
 
 Allow capes to be disabled on the kernel command line.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/misc/cape/beaglebone/capemgr.c | 133 ++++++++++++++++++++++-----------
+ drivers/misc/cape/beaglebone/capemgr.c |  133 +++++++++++++++++++++-----------
  1 file changed, 88 insertions(+), 45 deletions(-)
 
 diff --git a/drivers/misc/cape/beaglebone/capemgr.c b/drivers/misc/cape/beaglebone/capemgr.c
@@ -218,5 +218,5 @@ index 2ee7b11..5d87088 100644
  			slot->loading = 1;
  			slot->loader_thread = kthread_run(bone_capemgr_loader,
 -- 
-1.8.1.4
+1.7.9.5
 

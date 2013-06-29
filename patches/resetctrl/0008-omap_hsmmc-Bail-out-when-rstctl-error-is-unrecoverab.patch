@@ -1,14 +1,15 @@
-From f241d00112333aabd1cc0df818332384971a66d6 Mon Sep 17 00:00:00 2001
+From d7b60c9f41f33b7670b4085b42d370120c78313d Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Mon, 22 Apr 2013 17:05:53 +0300
-Subject: [PATCH 08/11] omap_hsmmc: Bail out when rstctl error is unrecoverable
+Subject: [PATCH 08/11] omap_hsmmc: Bail out when rstctl error is
+ unrecoverable
 
 Make sure that when a rstctl resource is requested, but unavailable
 to fail the device probe.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/mmc/host/omap_hsmmc.c | 10 +++++++---
+ drivers/mmc/host/omap_hsmmc.c |   10 +++++++---
  1 file changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
@@ -35,5 +36,5 @@ index f6f5875..e2b97df 100644
  	} else {
  		dev_info(&pdev->dev, "Got rstctl (%s:#%d name %s) label:%s\n",
 -- 
-1.8.1.4
+1.7.9.5
 

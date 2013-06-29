@@ -1,20 +1,20 @@
-From 262953f07e4a860fc3508e2bddcb123d4efdded5 Mon Sep 17 00:00:00 2001
+From a7d09f8e618f965a067658fb1e515b08087632a3 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 30 Jan 2013 15:38:19 +0200
-Subject: [PATCH 091/177] bone-capes: Update with new tscadc bindings
+Subject: [PATCH 091/184] bone-capes: Update with new tscadc bindings
 
 Update the capes with the new driver bindings.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- firmware/capes/BB-BONE-LCD7-01-00A2.dts  | 11 ++++++-----
- firmware/capes/cape-bone-geiger-00A0.dts |  3 ++-
- firmware/capes/cape-bone-lcd3-00A0.dts   | 11 ++++++-----
- firmware/capes/cape-bone-lcd3-00A2.dts   | 11 ++++++-----
+ firmware/capes/BB-BONE-LCD7-01-00A2.dts  |   11 ++++++-----
+ firmware/capes/cape-bone-geiger-00A0.dts |    3 ++-
+ firmware/capes/cape-bone-lcd3-00A0.dts   |   11 ++++++-----
+ firmware/capes/cape-bone-lcd3-00A2.dts   |   11 ++++++-----
  4 files changed, 20 insertions(+), 16 deletions(-)
 
 diff --git a/firmware/capes/BB-BONE-LCD7-01-00A2.dts b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
-index 09ba0d9..4740fc0 100644
+index 09ba0d9..a911656 100644
 --- a/firmware/capes/BB-BONE-LCD7-01-00A2.dts
 +++ b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
 @@ -97,16 +97,17 @@
@@ -36,12 +36,12 @@ index 09ba0d9..4740fc0 100644
  
  				adc {
 -					adc-channels = <4>;
-+					ti,adc-channels = <4>;
++					ti,adc-channels = <4 5 6 7>;
  				};
  			};
  
 diff --git a/firmware/capes/cape-bone-geiger-00A0.dts b/firmware/capes/cape-bone-geiger-00A0.dts
-index 287d75c..a37d83f 100644
+index 39e7d38..89417fb 100644
 --- a/firmware/capes/cape-bone-geiger-00A0.dts
 +++ b/firmware/capes/cape-bone-geiger-00A0.dts
 @@ -86,9 +86,10 @@
@@ -51,13 +51,13 @@ index 287d75c..a37d83f 100644
 +				status = "okay";
  
  				adc {
--					adc-channels = <8>;
-+					ti,adc-channels = <8>;
+-					adc-channels = <0 1 2 3 4 5 6 7>;
++					ti,adc-channels = <0 1 2 3 4 5 6 7>;
  				};
  			};
  
 diff --git a/firmware/capes/cape-bone-lcd3-00A0.dts b/firmware/capes/cape-bone-lcd3-00A0.dts
-index 4076cf5..c62e4a9 100644
+index 4076cf5..724238e 100644
 --- a/firmware/capes/cape-bone-lcd3-00A0.dts
 +++ b/firmware/capes/cape-bone-lcd3-00A0.dts
 @@ -93,16 +93,17 @@
@@ -79,12 +79,12 @@ index 4076cf5..c62e4a9 100644
  
  				adc {
 -					adc-channels = <4>;
-+					ti,adc-channels = <4>;
++					ti,adc-channels = <4 5 6 7>;
  				};
  			};
  
 diff --git a/firmware/capes/cape-bone-lcd3-00A2.dts b/firmware/capes/cape-bone-lcd3-00A2.dts
-index d8366b4..12739a3 100644
+index d8366b4..bd483ac 100644
 --- a/firmware/capes/cape-bone-lcd3-00A2.dts
 +++ b/firmware/capes/cape-bone-lcd3-00A2.dts
 @@ -99,16 +99,17 @@
@@ -106,10 +106,10 @@ index d8366b4..12739a3 100644
  
  				adc {
 -					adc-channels = <4>;
-+					ti,adc-channels = <4>;
++					ti,adc-channels = <4 5 6 7>;
  				};
  			};
  
 -- 
-1.8.1.4
+1.7.9.5
 

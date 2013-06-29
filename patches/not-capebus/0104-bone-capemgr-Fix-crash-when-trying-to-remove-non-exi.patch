@@ -1,14 +1,14 @@
-From 4ae472317fcd0cbcec80ed444de8300bac7cfd6f Mon Sep 17 00:00:00 2001
+From 38508add067927f5ec4a35833538ab909beeacf9 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 27 Feb 2013 18:35:09 +0200
-Subject: [PATCH 104/177] bone-capemgr: Fix crash when trying to remove
+Subject: [PATCH 104/184] bone-capemgr: Fix crash when trying to remove
  non-existant slot
 
 Wrong test for not-found case lead to crash. Fix.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/misc/cape/beaglebone/capemgr.c | 11 ++++-------
+ drivers/misc/cape/beaglebone/capemgr.c |   11 ++++-------
  1 file changed, 4 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/misc/cape/beaglebone/capemgr.c b/drivers/misc/cape/beaglebone/capemgr.c
@@ -36,5 +36,5 @@ index 2656e3a..9f8da94 100644
  		mutex_unlock(&info->slots_list_mutex);
  
 -- 
-1.8.1.4
+1.7.9.5
 

@@ -1,7 +1,7 @@
-From 46f0ce20d8234053124ccc90c9038412727d447b Mon Sep 17 00:00:00 2001
+From 6d4a57a2853b96e58bd52132ac9ca5179b04de36 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 3 Jan 2013 12:18:25 +0200
-Subject: [PATCH 027/177] OF: Introduce Device Tree resolve support.
+Subject: [PATCH 027/184] OF: Introduce Device Tree resolve support.
 
 Introduce support for dynamic device tree resolution.
 Using it, it is possible to prepare a device tree that's
@@ -10,11 +10,11 @@ live tree.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- .../devicetree/dynamic-resolution-notes.txt        |  25 ++
- drivers/of/Kconfig                                 |   9 +
- drivers/of/Makefile                                |   1 +
- drivers/of/resolver.c                              | 394 +++++++++++++++++++++
- include/linux/of.h                                 |  17 +
+ .../devicetree/dynamic-resolution-notes.txt        |   25 ++
+ drivers/of/Kconfig                                 |    9 +
+ drivers/of/Makefile                                |    1 +
+ drivers/of/resolver.c                              |  394 ++++++++++++++++++++
+ include/linux/of.h                                 |   17 +
  5 files changed, 446 insertions(+)
  create mode 100644 Documentation/devicetree/dynamic-resolution-notes.txt
  create mode 100644 drivers/of/resolver.c
@@ -504,5 +504,5 @@ index c38e41a..ab52243 100644
 +
  #endif /* _LINUX_OF_H */
 -- 
-1.8.1.4
+1.7.9.5
 

@@ -1,4 +1,4 @@
-From 02fd9361b7b03d793c619bec8b59f9c9d37a87c9 Mon Sep 17 00:00:00 2001
+From 58e9361fcb2b4efe4682c937ae38de9a0ae271ab Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Thu, 2 May 2013 12:06:27 +0200
 Subject: [PATCH 05/10] mt9t112: forward port optimizations from Angstrom 3.2
@@ -6,8 +6,8 @@ Subject: [PATCH 05/10] mt9t112: forward port optimizations from Angstrom 3.2
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
- drivers/media/i2c/soc_camera/mt9t112.c | 502 ++++++++++++++++++++++++++++++++-
- include/media/mt9t112.h                |   2 +
+ drivers/media/i2c/soc_camera/mt9t112.c |  502 +++++++++++++++++++++++++++++++-
+ include/media/mt9t112.h                |    2 +
  2 files changed, 502 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/media/i2c/soc_camera/mt9t112.c b/drivers/media/i2c/soc_camera/mt9t112.c
@@ -586,5 +586,5 @@ index a43c74a..bab2746 100644
  struct mt9t112_pll_divider {
  	u8 m, n;
 -- 
-1.8.1.4
+1.7.9.5
 

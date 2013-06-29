@@ -1,14 +1,14 @@
-From 97e6cd0fe8991e6994cf7890cc68d7aa0e4e766f Mon Sep 17 00:00:00 2001
+From 9361b14b1cd315cab7f51a70c2ec811fb649d1b9 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 15 Jan 2013 13:22:00 +0200
-Subject: [PATCH 055/177] omap: Fix bug on partial resource addition.
+Subject: [PATCH 055/184] omap: Fix bug on partial resource addition.
 
 Correctly add all of the resources. Bug was uncovered by missing dma
 resources.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- arch/arm/mach-omap2/omap_device.c | 2 +-
+ arch/arm/mach-omap2/omap_device.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
@@ -25,5 +25,5 @@ index 9f8dba1..0d7b065 100644
  	} else {
  		dev_dbg(&pdev->dev, "%s(): using resources from hwmod %d\n",
 -- 
-1.8.1.4
+1.7.9.5
 

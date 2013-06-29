@@ -1,14 +1,14 @@
-From ba8b5d99a9f532f55150fd51abef114f90c3f49e Mon Sep 17 00:00:00 2001
+From a4109a796f680b565e632bc6e3588ca75ed7c6b6 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 10 Jan 2013 16:22:59 +0200
-Subject: [PATCH 050/177] am33xx.dtsi: Make the MUSB not crash on load
+Subject: [PATCH 050/184] am33xx.dtsi: Make the MUSB not crash on load
 
 Two entries for the same musb instance end up with a crash.
 Remove the duplicate, but it still doesn't work.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi | 67 ++++---------------------------------------
+ arch/arm/boot/dts/am33xx.dtsi |   67 ++++-------------------------------------
  1 file changed, 6 insertions(+), 61 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
@@ -104,5 +104,5 @@ index c9eee93..9142e54 100644
  			ti,hwmods = "usb_otg_hs";
  		};
 -- 
-1.8.1.4
+1.7.9.5
 

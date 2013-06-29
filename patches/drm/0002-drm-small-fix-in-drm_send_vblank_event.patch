@@ -1,7 +1,7 @@
-From 088a2dc6b0eaa515f7ad2a1aa0834ecfd6b6b7a5 Mon Sep 17 00:00:00 2001
+From 839b8273919fa1d19c1b22d0382e9bd13f226a86 Mon Sep 17 00:00:00 2001
 From: Rob Clark <robdclark@gmail.com>
 Date: Mon, 10 Dec 2012 10:49:46 -0600
-Subject: [PATCH 02/11] drm: small fix in drm_send_vblank_event()
+Subject: [PATCH 02/12] drm: small fix in drm_send_vblank_event()
 
 Initialize e->pipe.. some drivers set this themselves, others do not.
 Setting it in drm_send_vblank_event() should help ensure more consistent
@@ -9,7 +9,7 @@ behavior with the different drivers.
 
 Signed-off-by: Rob Clark <robdclark@gmail.com>
 ---
- drivers/gpu/drm/drm_irq.c | 1 +
+ drivers/gpu/drm/drm_irq.c |    1 +
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/gpu/drm/drm_irq.c b/drivers/gpu/drm/drm_irq.c
@@ -25,5 +25,5 @@ index 19c01ca..9bb83a5 100644
  }
  EXPORT_SYMBOL(drm_send_vblank_event);
 -- 
-1.8.1.4
+1.7.9.5
 

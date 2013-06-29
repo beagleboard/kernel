@@ -1,7 +1,7 @@
-From 8e734badd2cb56de1f409aa15c20bda45be9ee6a Mon Sep 17 00:00:00 2001
+From 5306c771de47b7a3efc16dcf11db1648cb3ba6bc Mon Sep 17 00:00:00 2001
 From: Rob Clark <robdclark@gmail.com>
 Date: Tue, 8 Jan 2013 15:04:28 -0600
-Subject: [PATCH 07/11] drm/tilcdc: add TI LCD Controller DRM driver (v4)
+Subject: [PATCH 07/12] drm/tilcdc: add TI LCD Controller DRM driver (v4)
 
 A simple DRM/KMS driver for the TI LCD Controller found in various
 smaller TI parts (AM33xx, OMAPL138, etc).  This driver uses the
@@ -26,16 +26,16 @@ v4: remove some unneeded stuff from panel-info struct, properly
 
 Signed-off-by: Rob Clark <robdclark@gmail.com>
 ---
- drivers/gpu/drm/Kconfig                |   2 +
- drivers/gpu/drm/Makefile               |   1 +
- drivers/gpu/drm/tilcdc/Kconfig         |  10 +
- drivers/gpu/drm/tilcdc/Makefile        |   8 +
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c   | 602 ++++++++++++++++++++++++++++++++
- drivers/gpu/drm/tilcdc/tilcdc_drv.c    | 605 +++++++++++++++++++++++++++++++++
- drivers/gpu/drm/tilcdc/tilcdc_drv.h    | 150 ++++++++
- drivers/gpu/drm/tilcdc/tilcdc_regs.h   | 154 +++++++++
- drivers/gpu/drm/tilcdc/tilcdc_tfp410.c | 419 +++++++++++++++++++++++
- drivers/gpu/drm/tilcdc/tilcdc_tfp410.h |  26 ++
+ drivers/gpu/drm/Kconfig                |    2 +
+ drivers/gpu/drm/Makefile               |    1 +
+ drivers/gpu/drm/tilcdc/Kconfig         |   10 +
+ drivers/gpu/drm/tilcdc/Makefile        |    8 +
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c   |  602 +++++++++++++++++++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c    |  605 ++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h    |  150 ++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_regs.h   |  154 ++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_tfp410.c |  419 ++++++++++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_tfp410.h |   26 ++
  10 files changed, 1977 insertions(+)
  create mode 100644 drivers/gpu/drm/tilcdc/Kconfig
  create mode 100644 drivers/gpu/drm/tilcdc/Makefile
@@ -2089,5 +2089,5 @@ index 0000000..5b800f1
 +
 +#endif /* __TILCDC_TFP410_H__ */
 -- 
-1.8.1.4
+1.7.9.5
 

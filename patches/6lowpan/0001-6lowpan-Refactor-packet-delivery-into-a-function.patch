@@ -1,4 +1,4 @@
-From 7f1a51fffd6885e19678204fbc52c8879ccf85ce Mon Sep 17 00:00:00 2001
+From 830e8527399dbb11bf1df4862f741618b1a3c44b Mon Sep 17 00:00:00 2001
 From: Alan Ott <alan@signal11.us>
 Date: Wed, 16 Jan 2013 19:09:47 +0000
 Subject: [PATCH 01/23] 6lowpan: Refactor packet delivery into a function
@@ -9,7 +9,7 @@ function.
 Signed-off-by: Alan Ott <alan@signal11.us>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- net/ieee802154/6lowpan.c | 38 ++++++++++++++++++++++++--------------
+ net/ieee802154/6lowpan.c |   38 ++++++++++++++++++++++++--------------
  1 file changed, 24 insertions(+), 14 deletions(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
@@ -72,5 +72,5 @@ index 76c3d0a..9d39f5b 100644
  	kfree_skb(new);
  
 -- 
-1.8.1.4
+1.7.9.5
 

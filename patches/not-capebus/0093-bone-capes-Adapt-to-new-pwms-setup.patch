@@ -1,16 +1,16 @@
-From 2626e67ff095ac9911b6bc965c9039f461e7cf7e Mon Sep 17 00:00:00 2001
+From 7911caa1f67ad508fb70632ef3fd578129eb52df Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 30 Jan 2013 16:28:59 +0200
-Subject: [PATCH 093/177] bone-capes: Adapt to new pwms setup
+Subject: [PATCH 093/184] bone-capes: Adapt to new pwms setup
 
 ---
- firmware/capes/BB-BONE-LCD7-01-00A2.dts  |  1 +
- firmware/capes/cape-bone-geiger-00A0.dts |  4 ++--
- firmware/capes/cape-bone-lcd3-00A2.dts   | 19 +++++++++++++++----
+ firmware/capes/BB-BONE-LCD7-01-00A2.dts  |    1 +
+ firmware/capes/cape-bone-geiger-00A0.dts |    4 ++--
+ firmware/capes/cape-bone-lcd3-00A2.dts   |   19 +++++++++++++++----
  3 files changed, 18 insertions(+), 6 deletions(-)
 
 diff --git a/firmware/capes/BB-BONE-LCD7-01-00A2.dts b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
-index 4740fc0..05b2e80 100644
+index a911656..38a39dd 100644
 --- a/firmware/capes/BB-BONE-LCD7-01-00A2.dts
 +++ b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
 @@ -83,6 +83,7 @@
@@ -22,7 +22,7 @@ index 4740fc0..05b2e80 100644
  				pwms = <&ehrpwm1 0 500000 0>;
  				pwm-names = "LCD7";
 diff --git a/firmware/capes/cape-bone-geiger-00A0.dts b/firmware/capes/cape-bone-geiger-00A0.dts
-index a37d83f..0ecb67e 100644
+index 89417fb..4757ce7 100644
 --- a/firmware/capes/cape-bone-geiger-00A0.dts
 +++ b/firmware/capes/cape-bone-geiger-00A0.dts
 @@ -36,14 +36,14 @@
@@ -43,7 +43,7 @@ index a37d83f..0ecb67e 100644
  		__overlay__ {
  			status = "okay";
 diff --git a/firmware/capes/cape-bone-lcd3-00A2.dts b/firmware/capes/cape-bone-lcd3-00A2.dts
-index 12739a3..ef91376 100644
+index bd483ac..996374d 100644
 --- a/firmware/capes/cape-bone-lcd3-00A2.dts
 +++ b/firmware/capes/cape-bone-lcd3-00A2.dts
 @@ -69,6 +69,20 @@
@@ -87,5 +87,5 @@ index 12739a3..ef91376 100644
  
  			tscadc {
 -- 
-1.8.1.4
+1.7.9.5
 

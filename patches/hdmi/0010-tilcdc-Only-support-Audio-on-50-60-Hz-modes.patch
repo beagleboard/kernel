@@ -1,13 +1,13 @@
-From affb066eaa39575b2394f49a1680be18329a6d17 Mon Sep 17 00:00:00 2001
+From 9588ba4e41047b40f81461c7dc2b75d49c34574b Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Mon, 20 May 2013 16:01:07 +0300
-Subject: [PATCH 10/21] tilcdc: Only support Audio on 50 & 60 Hz modes
+Subject: [PATCH 10/22] tilcdc: Only support Audio on 50 & 60 Hz modes
 
 Apparently anything other fails to work (at least for me).
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c | 20 ++++++++++++++------
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c |   20 ++++++++++++++------
  1 file changed, 14 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
@@ -62,5 +62,5 @@ index 7ba2048..14cee74 100644
  		return MODE_BAD;
  	}
 -- 
-1.8.1.4
+1.7.9.5
 

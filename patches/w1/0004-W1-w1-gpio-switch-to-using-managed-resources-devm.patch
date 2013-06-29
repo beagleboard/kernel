@@ -1,4 +1,4 @@
-From 5658d0dba53b8c3cf20bcd692f2b1a9d54293653 Mon Sep 17 00:00:00 2001
+From 86be4759fdde8f1c764be0434babd47ba4ca5840 Mon Sep 17 00:00:00 2001
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Date: Sun, 24 Feb 2013 22:59:37 -0800
 Subject: [PATCH 4/4] W1: w1-gpio - switch to using managed resources (devm)
@@ -7,7 +7,7 @@ This simplifies error unwinding and device teardown.
 
 Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
- drivers/w1/masters/w1-gpio.c | 32 +++++++++++---------------------
+ drivers/w1/masters/w1-gpio.c |   32 +++++++++++---------------------
  1 file changed, 11 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/w1/masters/w1-gpio.c b/drivers/w1/masters/w1-gpio.c
@@ -86,5 +86,5 @@ index 465ce52..464b1a8 100644
  	return 0;
  }
 -- 
-1.8.1.4
+1.7.9.5
 

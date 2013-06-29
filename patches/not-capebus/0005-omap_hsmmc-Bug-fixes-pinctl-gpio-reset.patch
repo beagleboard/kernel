@@ -1,7 +1,7 @@
-From 2a186b5ca5bfa56671ddc6b512e04b011a5988f1 Mon Sep 17 00:00:00 2001
+From b5e2992d9c69e204a70b080b3795053fa1a87bba Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 30 Nov 2012 12:18:16 +0200
-Subject: [PATCH 005/177] omap_hsmmc: Bug fixes, pinctl & gpio-reset
+Subject: [PATCH 005/184] omap_hsmmc: Bug fixes, pinctl & gpio-reset
 
 Cleanup omapmmc & add gpio-reset.
 
@@ -10,8 +10,8 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 Conflicts:
 	drivers/mmc/host/omap_hsmmc.c
 ---
- drivers/mmc/host/omap_hsmmc.c          | 42 +++++++++++++++++++++++++++++++++-
- include/linux/platform_data/mmc-omap.h |  3 +++
+ drivers/mmc/host/omap_hsmmc.c          |   42 +++++++++++++++++++++++++++++++-
+ include/linux/platform_data/mmc-omap.h |    3 +++
  2 files changed, 44 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
@@ -138,5 +138,5 @@ index 2bf1b30..d548994 100644
  		int (*set_bus_mode)(struct device *dev, int slot, int bus_mode);
  		int (*set_power)(struct device *dev, int slot,
 -- 
-1.8.1.4
+1.7.9.5
 

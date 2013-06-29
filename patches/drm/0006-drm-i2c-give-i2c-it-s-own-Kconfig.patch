@@ -1,7 +1,7 @@
-From f6774213de160a34fe5e085eba3978877c3febcc Mon Sep 17 00:00:00 2001
+From 909787c2843507d3e39f4992d00941f337de5dbb Mon Sep 17 00:00:00 2001
 From: Rob Clark <robdclark@gmail.com>
 Date: Thu, 24 Jan 2013 15:39:19 -0600
-Subject: [PATCH 06/11] drm/i2c: give i2c it's own Kconfig
+Subject: [PATCH 06/12] drm/i2c: give i2c it's own Kconfig
 
 Move this out of nouveau directory.  As we start to add more encoder
 slaves used by other drivers, it makes sense to put the Kconfig bits in
@@ -9,9 +9,9 @@ one place.
 
 Signed-off-by: Rob Clark <robdclark@gmail.com>
 ---
- drivers/gpu/drm/Kconfig         |  2 ++
- drivers/gpu/drm/i2c/Kconfig     | 22 ++++++++++++++++++++++
- drivers/gpu/drm/nouveau/Kconfig | 23 -----------------------
+ drivers/gpu/drm/Kconfig         |    2 ++
+ drivers/gpu/drm/i2c/Kconfig     |   22 ++++++++++++++++++++++
+ drivers/gpu/drm/nouveau/Kconfig |   23 -----------------------
  3 files changed, 24 insertions(+), 23 deletions(-)
  create mode 100644 drivers/gpu/drm/i2c/Kconfig
 
@@ -88,5 +88,5 @@ index 8a55bee..47ccc1a 100644
 -
 -endmenu
 -- 
-1.8.1.4
+1.7.9.5
 

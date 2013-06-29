@@ -1,4 +1,4 @@
-From 67fae6aabf1441a5f86080bfd71d5fe215359724 Mon Sep 17 00:00:00 2001
+From 515bac58bee5afeb6189c27cefa1add3067601e0 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Mon, 7 Jan 2013 11:55:00 -0500
 Subject: [PATCH 02/35] ARM: OMAP: Hack AM33xx clock data to allow JTAG use
@@ -8,11 +8,11 @@ in order to prevent an attached JTAG probe from hanging.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- arch/arm/mach-omap2/cclock33xx_data.c | 2 +-
+ arch/arm/mach-omap2/cclock33xx_data.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
-index ea64ad6..a09d6d7e 100644
+index ea64ad6..a09d6d7 100644
 --- a/arch/arm/mach-omap2/cclock33xx_data.c
 +++ b/arch/arm/mach-omap2/cclock33xx_data.c
 @@ -428,7 +428,7 @@ DEFINE_STRUCT_CLK(smartreflex1_fck, dpll_core_ck_parents, clk_ops_null);
@@ -25,5 +25,5 @@ index ea64ad6..a09d6d7e 100644
  		0x0, NULL);
  
 -- 
-1.8.1.4
+1.7.9.5
 

@@ -1,7 +1,8 @@
-From ab844e7ef6c7b25ceb8202313285b234b444116c Mon Sep 17 00:00:00 2001
+From ee49901353e8ce59c36f78fa6e234e6fc5e7e625 Mon Sep 17 00:00:00 2001
 From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
 Date: Tue, 31 Jul 2012 19:10:20 +0530
-Subject: [PATCH 063/177] ARM: OMAP2+: AM33xx: removed invalid McASP HWMOD data
+Subject: [PATCH 063/184] ARM: OMAP2+: AM33xx: removed invalid McASP HWMOD
+ data
 
 McASP Data Address space is used for edma operation. Driver uses this
 address to setup edma dst/src. No Mapping is done on this address and
@@ -9,7 +10,7 @@ hence it is not required to create a new hwmod entry
 
 Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 38 ------------------------------
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   38 ----------------------------
  1 file changed, 38 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
@@ -77,5 +78,5 @@ index a180336..6e80edb 100644
  	&am33xx_l4_ls__mmc1,
  	&am33xx_l3_s__mmc2,
 -- 
-1.8.1.4
+1.7.9.5
 
