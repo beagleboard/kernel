@@ -17,12 +17,12 @@ RECIPENAME="linux-mainline_3.11.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.10-rc7"
+TAG="v3.10"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://github.com/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="98b6ed0f2bf4abfb759206aa70690636372bdee7"
+EXTERNAL_SHA="8bb495e3f02401ee6f76d1b1d77f3ac9f079e376"
 
 PATCHSET="mainline-fixes mainline-dtc-fixes  mainline-dtc-overlays mainline-of-fixes  mainline-pdev-fixes mainline-dma-devel mainline-mmc-fixes mainline-dts-fixes mainline-i2c-fixes  mainline-pinctrl-fixes mainline-capemgr"
 
