@@ -1,7 +1,7 @@
-From f5132e2785b8d262122283e991e30623fc500f20 Mon Sep 17 00:00:00 2001
+From dd70a3292322da07c9b5ae9783aa386a8af08a70 Mon Sep 17 00:00:00 2001
 From: ZubairLK <zubair.lutfullah@gmail.com>
 Date: Thu, 27 Jun 2013 22:47:13 +0100
-Subject: [PATCH 16/20] MFD: ti_tscadc: disable TSC control
+Subject: [PATCH 16/21] MFD: ti_tscadc: disable TSC control
 
 Register bits when TSC not in use
 
@@ -12,7 +12,6 @@ required when only ADC mode is being used, so check for availability of
 TSC driver before accessing control register.
 Original Commit No in Arago tree 2c67698139cceee19d2205ad34d11c74e758b307
 ZubairLK. Forward ported the changes to 3.8
-
 ---
  drivers/mfd/ti_am335x_tscadc.c |   18 +++++++++++-------
  1 file changed, 11 insertions(+), 7 deletions(-)
