@@ -1,4 +1,4 @@
-From afea7fe2bf2250fac6130044385d0b67c15a0897 Mon Sep 17 00:00:00 2001
+From 6f26741ea184e5d92d4bc9523eb429e97b81c022 Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Thu, 25 Apr 2013 09:28:32 +0200
 Subject: [PATCH 168/184] capes: add basic support for LCD4 capes
@@ -29,7 +29,7 @@ index 0ba37c6..1c8c844 100644
  	BB-BONE-LCD7-01-00A4.dtbo \
 diff --git a/firmware/capes/BB-BONE-LCD4-01-00A0.dts b/firmware/capes/BB-BONE-LCD4-01-00A0.dts
 new file mode 100644
-index 0000000..6f2e78f
+index 0000000..b1c7e00
 --- /dev/null
 +++ b/firmware/capes/BB-BONE-LCD4-01-00A0.dts
 @@ -0,0 +1,161 @@
@@ -123,7 +123,7 @@ index 0000000..6f2e78f
 +				tsc {
 +					ti,wires = <4>;
 +					ti,x-plate-resistance = <200>;
-+					ti,steps-to-configure = <5>;
++					ti,coordinate-readouts = <5>;
 +					ti,wire-config = <0x00 0x11 0x22 0x33>;
 +				};
 +
@@ -196,7 +196,7 @@ index 0000000..6f2e78f
 +};
 diff --git a/firmware/capes/BB-BONE-LCD4-01-00A1.dts b/firmware/capes/BB-BONE-LCD4-01-00A1.dts
 new file mode 100644
-index 0000000..9e65a22
+index 0000000..2744c27
 --- /dev/null
 +++ b/firmware/capes/BB-BONE-LCD4-01-00A1.dts
 @@ -0,0 +1,239 @@
@@ -318,7 +318,7 @@ index 0000000..9e65a22
 +				tsc {
 +					ti,wires = <4>;
 +					ti,x-plate-resistance = <200>;
-+					ti,steps-to-configure = <5>;
++					ti,coordinate-readouts = <5>;
 +					ti,wire-config = <0x00 0x11 0x22 0x33>;
 +				};
 +
