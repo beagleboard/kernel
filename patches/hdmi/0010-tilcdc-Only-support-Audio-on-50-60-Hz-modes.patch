@@ -1,7 +1,7 @@
-From 3fba6f82ab1199810396411070928d47a89b2cab Mon Sep 17 00:00:00 2001
+From affb066eaa39575b2394f49a1680be18329a6d17 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Mon, 20 May 2013 16:01:07 +0300
-Subject: [PATCH 10/10] tilcdc: Only support Audio on 50 & 60 Hz modes
+Subject: [PATCH 10/21] tilcdc: Only support Audio on 50 & 60 Hz modes
 
 Apparently anything other fails to work (at least for me).
 
@@ -11,7 +11,7 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  1 file changed, 14 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index c86da03..779f31f 100644
+index 7ba2048..14cee74 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 @@ -310,7 +310,7 @@ static int tilcdc_crtc_mode_set(struct drm_crtc *crtc,
@@ -23,7 +23,7 @@ index c86da03..779f31f 100644
  	/* only the vertical sync width maps 0 as 1 so only subtract 1 from vsw */
  	reg = ((mode->vdisplay - 1) & 0x3ff) |
  	    ((vbp & 0xff) << 24) |
-@@ -440,7 +440,7 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+@@ -444,7 +444,7 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
    	struct tilcdc_drm_private *priv = crtc->dev->dev_private;
  	unsigned int bandwidth;
  	uint32_t hbp, hfp, hsw, vbp, vfp, vsw;
@@ -32,7 +32,7 @@ index c86da03..779f31f 100644
  
  	int rb;
  
-@@ -459,16 +459,24 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+@@ -463,16 +463,24 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
  	/* set if there's audio capability */
  	has_audio = edid && drm_detect_monitor_audio(edid);
  

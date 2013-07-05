@@ -1,7 +1,7 @@
-From d63b3c6baa7602412be178f0207ac6c55c59fea5 Mon Sep 17 00:00:00 2001
+From d55a5f9dcca1a4940cf49826e5369a4e330caffe Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Mon, 20 May 2013 15:16:55 +0300
-Subject: [PATCH 09/10] tilcdc: 1280x1024x60 bw > 1920x1080x24 bw
+Subject: [PATCH 09/21] tilcdc: 1280x1024x60 bw > 1920x1080x24 bw
 
 The lower resolution modes do infact need more bandwidth.
 
@@ -12,10 +12,10 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  2 files changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index 900c710..c86da03 100644
+index c39503b..7ba2048 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-@@ -468,7 +468,7 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+@@ -472,7 +472,7 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
  		has_audio ? "true" : "false",
  		is_cea_mode ? "true" : "false");
  

@@ -1,0 +1,187 @@
+From e63b2d223f2e9fa02eb2814a3d6a1e04a139fa09 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 13 Jun 2013 12:24:42 +0300
+Subject: [PATCH 13/13] capes: LCD capes updated with timing fixes
+
+---
+ firmware/capes/BB-BONE-LCD4-01-00A0.dts |  8 ++++----
+ firmware/capes/BB-BONE-LCD4-01-00A1.dts |  8 ++++----
+ firmware/capes/BB-BONE-LCD7-01-00A2.dts |  8 ++++----
+ firmware/capes/BB-BONE-LCD7-01-00A3.dts |  8 ++++----
+ firmware/capes/BB-BONE-LCD7-01-00A4.dts |  9 +++++----
+ firmware/capes/cape-bone-lcd3-00A0.dts  | 13 ++++++++-----
+ firmware/capes/cape-bone-lcd3-00A2.dts  |  5 ++++-
+ 7 files changed, 33 insertions(+), 26 deletions(-)
+
+diff --git a/firmware/capes/BB-BONE-LCD4-01-00A0.dts b/firmware/capes/BB-BONE-LCD4-01-00A0.dts
+index c34e151..4fcce55 100644
+--- a/firmware/capes/BB-BONE-LCD4-01-00A0.dts
++++ b/firmware/capes/BB-BONE-LCD4-01-00A0.dts
+@@ -166,10 +166,10 @@
+ 					timing0: 480x272 {
+ 						hactive         = <480>;
+ 						vactive         = <272>;
+-						hback-porch     = <43>;
+-						hfront-porch    = <8>;
+-						hsync-len       = <4>;
+-						vback-porch     = <12>;
++						hback-porch     = <44>;
++						hfront-porch    = <9>;
++						hsync-len       = <5>;
++						vback-porch     = <13>;
+ 						vfront-porch    = <4>;
+ 						vsync-len       = <10>;
+ 						clock-frequency = <9000000>;
+diff --git a/firmware/capes/BB-BONE-LCD4-01-00A1.dts b/firmware/capes/BB-BONE-LCD4-01-00A1.dts
+index b466f70..a27a7b8 100644
+--- a/firmware/capes/BB-BONE-LCD4-01-00A1.dts
++++ b/firmware/capes/BB-BONE-LCD4-01-00A1.dts
+@@ -253,10 +253,10 @@
+ 					timing0: 480x272 {
+ 						hactive         = <480>;
+ 						vactive         = <272>;
+-						hback-porch     = <43>;
+-						hfront-porch    = <8>;
+-						hsync-len       = <4>;
+-						vback-porch     = <12>;
++						hback-porch     = <44>;
++						hfront-porch    = <9>;
++						hsync-len       = <5>;
++						vback-porch     = <13>;
+ 						vfront-porch    = <4>;
+ 						vsync-len       = <10>;
+ 						clock-frequency = <9000000>;
+diff --git a/firmware/capes/BB-BONE-LCD7-01-00A2.dts b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
+index 0f2df54..0c823d2 100644
+--- a/firmware/capes/BB-BONE-LCD7-01-00A2.dts
++++ b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
+@@ -254,10 +254,10 @@
+ 					timing0: 800x480 {
+ 						hactive         = <800>;
+ 						vactive         = <480>;
+-						hback-porch     = <39>;
+-						hfront-porch    = <39>;
+-						hsync-len       = <47>;
+-						vback-porch     = <29>;
++						hback-porch     = <40>;
++						hfront-porch    = <40>;
++						hsync-len       = <48>;
++						vback-porch     = <30>;
+ 						vfront-porch    = <13>;
+ 						vsync-len       = <2>;
+ 						clock-frequency = <30000000>;
+diff --git a/firmware/capes/BB-BONE-LCD7-01-00A3.dts b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
+index a123152..a22a0f6 100644
+--- a/firmware/capes/BB-BONE-LCD7-01-00A3.dts
++++ b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
+@@ -256,10 +256,10 @@
+ 					timing0: 800x480 {
+ 						hactive         = <800>;
+ 						vactive         = <480>;
+-						hback-porch     = <39>;
+-						hfront-porch    = <39>;
+-						hsync-len       = <47>;
+-						vback-porch     = <29>;
++						hback-porch     = <40>;
++						hfront-porch    = <40>;
++						hsync-len       = <48>;
++						vback-porch     = <30>;
+ 						vfront-porch    = <13>;
+ 						vsync-len       = <2>;
+ 						clock-frequency = <30000000>;
+diff --git a/firmware/capes/BB-BONE-LCD7-01-00A4.dts b/firmware/capes/BB-BONE-LCD7-01-00A4.dts
+index a23a809..ae4941e 100644
+--- a/firmware/capes/BB-BONE-LCD7-01-00A4.dts
++++ b/firmware/capes/BB-BONE-LCD7-01-00A4.dts
+@@ -234,16 +234,17 @@
+ 					sync-ctrl         = <1>;
+ 					raster-order      = <0>;
+ 					fifo-th           = <0>;
++					invert-pxl-clk;
+ 				};
+ 				display-timings {
+ 					native-mode = <&timing0>;
+ 					timing0: 800x480 {
+ 						hactive         = <800>;
+ 						vactive         = <480>;
+-						hback-porch     = <39>;
+-						hfront-porch    = <39>;
+-						hsync-len       = <47>;
+-						vback-porch     = <29>;
++						hback-porch     = <40>;
++						hfront-porch    = <40>;
++						hsync-len       = <48>;
++						vback-porch     = <30>;
+ 						vfront-porch    = <13>;
+ 						vsync-len       = <2>;
+ 						clock-frequency = <30000000>;
+diff --git a/firmware/capes/cape-bone-lcd3-00A0.dts b/firmware/capes/cape-bone-lcd3-00A0.dts
+index 616ae46..d75768f 100644
+--- a/firmware/capes/cape-bone-lcd3-00A0.dts
++++ b/firmware/capes/cape-bone-lcd3-00A0.dts
+@@ -88,7 +88,8 @@
+ 					0xe0 0x00	/* lcd_vsync.lcd_vsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+ 					0xe4 0x00	/* lcd_hsync.lcd_hsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+ 					0xe8 0x00	/* lcd_pclk.lcd_pclk, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+-					0xec 0x00	/* lcd_ac_bias_en.lcd_ac_bias_en, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++					// 0xec 0x00	/* lcd_ac_bias_en.lcd_ac_bias_en, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++					0xec 0x07	/* lcd_ac_bias_en.gpio2_25 OMAP_MUX_MODE7 | AM33XX_PIN_OUTPUT */
+ 				>;
+ 			};
+ 
+@@ -236,16 +237,17 @@
+ 					sync-ctrl         = <1>;
+ 					raster-order      = <0>;
+ 					fifo-th           = <0>;
++					invert-pxl-clk;
+ 				};
+ 				display-timings {
+ 					native-mode = <&timing0>;
+ 					timing0: 320x240 {
+ 						hactive         = <320>;
+ 						vactive         = <240>;
+-						hback-porch     = <21>;
+-						hfront-porch    = <58>;
+-						hsync-len       = <47>;
+-						vback-porch     = <11>;
++						hback-porch     = <22>;
++						hfront-porch    = <59>;
++						hsync-len       = <48>;
++						vback-porch     = <12>;
+ 						vfront-porch    = <23>;
+ 						vsync-len       = <2>;
+ 						clock-frequency = <8000000>;
+@@ -261,6 +263,7 @@
+ 				interrupt-parent = <&intc>;
+ 				interrupts = <36>;
+ 				ti,hwmods = "lcdc";
++				ti,power-gpio = <&gpio3 25 0>;
+ 			};
+ 
+ 		};
+diff --git a/firmware/capes/cape-bone-lcd3-00A2.dts b/firmware/capes/cape-bone-lcd3-00A2.dts
+index 42fb692..b8eff4f 100644
+--- a/firmware/capes/cape-bone-lcd3-00A2.dts
++++ b/firmware/capes/cape-bone-lcd3-00A2.dts
+@@ -91,7 +91,9 @@
+ 					0xe0 0x00	/* lcd_vsync.lcd_vsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+ 					0xe4 0x00	/* lcd_hsync.lcd_hsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+ 					0xe8 0x00	/* lcd_pclk.lcd_pclk, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+-					0xec 0x00	/* lcd_ac_bias_en.lcd_ac_bias_en, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++					// 0xec 0x00    /* lcd_ac_bias_en.lcd_ac_bias_en, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++					0xec 0x07       /* lcd_ac_bias_en.gpio2_25 OMAP_MUX_MODE7 | AM33XX_PIN_OUTPUT */
++
+ 				>;
+ 			};
+ 
+@@ -271,6 +273,7 @@
+ 				interrupt-parent = <&intc>;
+ 				interrupts = <36>;
+ 				ti,hwmods = "lcdc";
++				ti,power-gpio = <&gpio3 25 0>;
+ 			};
+ 
+ 		};
+-- 
+1.8.1.4
+

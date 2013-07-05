@@ -1,7 +1,7 @@
-From 0a5fa22e4778217d33a00d4769f81e6881cdc0a3 Mon Sep 17 00:00:00 2001
+From 20787879a38b2c7d54106b2202991511097c3751 Mon Sep 17 00:00:00 2001
 From: Darren Etheridge <detheridge@ti.com>
 Date: Wed, 8 May 2013 16:15:40 -0500
-Subject: [PATCH 06/10] drm: am335x: add support for 2048 lines vertical
+Subject: [PATCH 06/21] drm: am335x: add support for 2048 lines vertical
 
 Add extra mode that enables 1920x1080@24, this now works
 with 2048 lines vertical support and EMIF setting of
@@ -13,7 +13,7 @@ INT_CONFIG optimized.
  3 files changed, 20 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index 38b2d20..966b59b 100644
+index afbaa6f..1dbd927 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 @@ -308,6 +308,7 @@ static int tilcdc_crtc_mode_set(struct drm_crtc *crtc,
@@ -39,7 +39,7 @@ index 38b2d20..966b59b 100644
  	/* Configure display type: */
  	reg = tilcdc_read(dev, LCDC_RASTER_CTRL_REG) &
  	    ~(LCDC_TFT_MODE | LCDC_MONO_8BIT_MODE | LCDC_MONOCHROME_MODE |
-@@ -526,9 +535,9 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+@@ -530,9 +539,9 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
  	if (rb_check) {
  		/* we only support reduced blanking modes */
  		rb = (mode->htotal - mode->hdisplay == 160) &&

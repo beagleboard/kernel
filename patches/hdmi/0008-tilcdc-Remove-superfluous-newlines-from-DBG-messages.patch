@@ -1,7 +1,7 @@
-From 1326c3e1726ff53efb4c6f99266c29f1b91181ba Mon Sep 17 00:00:00 2001
+From d8dca2b6f1294ab50dcb54cc5bd49a7a7a17a980 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Mon, 20 May 2013 13:54:21 +0300
-Subject: [PATCH 08/10] tilcdc: Remove superfluous newlines from DBG messages
+Subject: [PATCH 08/21] tilcdc: Remove superfluous newlines from DBG messages
 
 DBGs supply their own newlines, don't add them.
 
@@ -11,10 +11,10 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  1 file changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index 966b59b..900c710 100644
+index 1dbd927..c39503b 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-@@ -469,7 +469,7 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+@@ -473,7 +473,7 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
  		is_cea_mode ? "true" : "false");
  
  	if (audio && has_audio && !is_cea_mode) {
@@ -23,7 +23,7 @@ index 966b59b..900c710 100644
  		return MODE_BAD;
  	}
  
-@@ -481,32 +481,32 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+@@ -485,32 +485,32 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
  	vsw = mode->vsync_end - mode->vsync_start;
  
  	if (hbp & ~0x3ff) {

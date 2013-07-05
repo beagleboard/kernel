@@ -1,0 +1,45 @@
+From bd7633cd1ab8ff1737bbca145f1d4a2b50463681 Mon Sep 17 00:00:00 2001
+From: David Anders <danders@circuitco.com>
+Date: Thu, 13 Jun 2013 08:37:19 +0200
+Subject: [PATCH 12/12] Fix timings for LCD3 cape
+
+In the 3.2 kernel using the da8xx lcdc fb, the HSW, HFP, and HBP are written to the lcdc registers directly as entered. i.e. if HSW=47 , then 47 is written to the register and the value that is generated is the register value plus one (total of 48 clocks).
+
+with the 3.8 kernel using the DRM driver, the code subtracts one from the set value before writing it to the register, i.e. if HSW=47, then 46 is written to the register and the value that is generated is the register value plus one (total of 47 clocks).
+
+specifically with the LCD3 board, the lcd panel does not use data enable as a timing signal. it specifically counts the number of vertical clocks and horizontal clocks to determine data start points. the lcd panel expects for the sum of the HSW and HBP to be 70 pixel clocks. currently it is 68. this is the root cause of the color shift and poor image quality....
+
+the HSW, HFP, and HBP for all three lcd panels needs to be incremented by one.
+---
+ firmware/capes/cape-bone-lcd3-00A2.dts | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/firmware/capes/cape-bone-lcd3-00A2.dts b/firmware/capes/cape-bone-lcd3-00A2.dts
+index 6728466..42fb692 100644
+--- a/firmware/capes/cape-bone-lcd3-00A2.dts
++++ b/firmware/capes/cape-bone-lcd3-00A2.dts
+@@ -245,16 +245,17 @@
+ 					sync-ctrl         = <1>;
+ 					raster-order      = <0>;
+ 					fifo-th           = <0>;
++					invert-pxl-clk;
+ 				};
+ 				display-timings {
+ 					native-mode = <&timing0>;
+ 					timing0: 320x240 {
+ 						hactive         = <320>;
+ 						vactive         = <240>;
+-						hback-porch     = <21>;
+-						hfront-porch    = <58>;
+-						hsync-len       = <47>;
+-						vback-porch     = <11>;
++						hback-porch     = <22>;
++						hfront-porch    = <59>;
++						hsync-len       = <48>;
++						vback-porch     = <12>;
+ 						vfront-porch    = <23>;
+ 						vsync-len       = <2>;
+ 						clock-frequency = <8000000>;
+-- 
+1.8.1.4
+

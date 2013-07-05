@@ -1,7 +1,7 @@
-From 9989e8bb686e6b6b9ab9aa4ba31bfb1e6bc34e46 Mon Sep 17 00:00:00 2001
+From 6beae212e23af0b23494ea1ec4197e4578315284 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 3 May 2013 16:11:53 +0300
-Subject: [PATCH 04/10] tilcdc: Prune modes that can't support audio.
+Subject: [PATCH 04/21] tilcdc: Prune modes that can't support audio.
 
 If the connector supports audio, prune all the display modes that
 don't support it.
@@ -17,7 +17,7 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  6 files changed, 59 insertions(+), 36 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index 98c3c3c..38b2d20 100644
+index 69675e6..afbaa6f 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 @@ -241,7 +241,7 @@ static int tilcdc_crtc_mode_set(struct drm_crtc *crtc,
@@ -29,7 +29,7 @@ index 98c3c3c..38b2d20 100644
  	if (WARN_ON(ret))
  		return ret;
  
-@@ -426,11 +426,12 @@ int tilcdc_crtc_max_width(struct drm_crtc *crtc)
+@@ -430,11 +430,12 @@ int tilcdc_crtc_max_width(struct drm_crtc *crtc)
  }
  
  int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
@@ -43,7 +43,7 @@ index 98c3c3c..38b2d20 100644
  
  	int rb;
  
-@@ -446,10 +447,22 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+@@ -450,10 +451,22 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
  	if (mode->vdisplay > 2048)
  		return MODE_VIRTUAL_Y;
  
@@ -68,7 +68,7 @@ index 98c3c3c..38b2d20 100644
  
  	hbp = mode->htotal - mode->hsync_end;
  	hfp = mode->hsync_start - mode->hdisplay;
-@@ -458,56 +471,56 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+@@ -462,56 +475,56 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
  	vfp = mode->vsync_start - mode->vdisplay;
  	vsw = mode->vsync_end - mode->vsync_start;
  

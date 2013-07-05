@@ -1,0 +1,25 @@
+From 822d96e01b29e110404ac4f1f92675fbd7ec6fa3 Mon Sep 17 00:00:00 2001
+From: Phil Eichinger <phil@zankapfel.net>
+Date: Wed, 5 Jun 2013 15:32:04 +0200
+Subject: [PATCH 4/4] Make single .dtb targets also with DTC_FLAGS
+
+---
+ arch/arm/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/Makefile b/arch/arm/Makefile
+index e9729a4..d5935c0 100644
+--- a/arch/arm/Makefile
++++ b/arch/arm/Makefile
+@@ -299,7 +299,7 @@ uImage-dtb.%: scripts
+ 	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
+ 
+ %.dtb: scripts
+-	$(Q)$(MAKE) $(build)=$(boot)/dts MACHINE=$(MACHINE) $(boot)/dts/$@
++	$(Q)$(MAKE) $(build)=$(boot)/dts MACHINE=$(MACHINE) DTC_FLAGS=$(DTC_FLAGS) $(boot)/dts/$@
+ 
+ dtbs: scripts
+ 	$(Q)$(MAKE) $(build)=$(boot)/dts MACHINE=$(MACHINE) DTC_FLAGS=$(DTC_FLAGS) dtbs
+-- 
+1.7.10.4
+

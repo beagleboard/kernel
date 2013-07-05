@@ -1,4 +1,4 @@
-From 58e8eb6eae7cdfbd54de4c5d1fa46a3e52173e52 Mon Sep 17 00:00:00 2001
+From d2584ee9fca4cb20758662952120fcf7036fad78 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 16 May 2013 10:37:39 +0300
 Subject: [PATCH 7/8] PRU remote proc wip
@@ -7,9 +7,8 @@ Subject: [PATCH 7/8] PRU remote proc wip
  drivers/remoteproc/Kconfig             |  11 ++
  drivers/remoteproc/Makefile            |   1 +
  drivers/remoteproc/pru_rproc.c         | 240 +++++++++++++++++++++++++++++++++
- firmware/Makefile                      |   3 +-
  firmware/capes/BB-BONE-PRU-02-00A0.dts |  61 +++++++++
- 5 files changed, 314 insertions(+), 2 deletions(-)
+ 4 files changed, 313 insertions(+)
  create mode 100644 drivers/remoteproc/pru_rproc.c
  create mode 100644 firmware/capes/BB-BONE-PRU-02-00A0.dts
 
@@ -288,20 +287,6 @@ index 0000000..113ad80
 +MODULE_LICENSE("GPL v2");
 +MODULE_DESCRIPTION("PRU Remote Processor control driver");
 +MODULE_AUTHOR("Pantelis Antoniou <panto@antoniou-consulting.com>");
-diff --git a/firmware/Makefile b/firmware/Makefile
-index e196d46..6d896d2 100644
---- a/firmware/Makefile
-+++ b/firmware/Makefile
-@@ -183,8 +183,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
- 	BB-BONE-RST-00A0.dtbo \
- 	BB-BONE-RST2-00A0.dtbo \
- 	BB-BONE-CAM3-01-00A2.dtbo \
--	TT3201-001-01.dtbo \
--	BB-BONE-PRU-01-00A0.dtbo
-+	TT3201-001-01.dtbo
- 
- # the geiger cape
- fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_GEIGER) += \
 diff --git a/firmware/capes/BB-BONE-PRU-02-00A0.dts b/firmware/capes/BB-BONE-PRU-02-00A0.dts
 new file mode 100644
 index 0000000..ddb63f7

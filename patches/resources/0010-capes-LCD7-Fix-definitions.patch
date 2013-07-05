@@ -1,0 +1,110 @@
+From b5bb1fd3ec41b03e223601e4f9b6fc3ee2e40f99 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 12 Jun 2013 21:02:20 +0300
+Subject: [PATCH 10/12] capes: LCD7: Fix definitions
+
+LCD7 rev A3/A4 had some pins wrong
+---
+ firmware/capes/BB-BONE-LCD7-01-00A3.dts |  8 ++++----
+ firmware/capes/BB-BONE-LCD7-01-00A4.dts | 11 ++++++-----
+ 2 files changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/firmware/capes/BB-BONE-LCD7-01-00A3.dts b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
+index abdcf3b..1ea4908 100644
+--- a/firmware/capes/BB-BONE-LCD7-01-00A3.dts
++++ b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
+@@ -38,7 +38,7 @@
+ 		"P8.29",	/* lcd: lcd_hsync */
+ 		"P8.28",	/* lcd: lcd_pclk */
+ 		"P8.30",	/* lcd: lcd_ac_bias_en */
+-		"P8.20",	/* lcd: gpio1_31 */
++		"P9.22",	/* lcd: gpio0_2 */
+ 		"P9.12",	/* led: gpio1_28 */
+ 		"P9.14",	/* pwm: ehrpwm1a */
+ 		"P9.15",	/* keys: gpio1_16 */
+@@ -47,7 +47,7 @@
+ 		"P9.30",	/* keys: gpio3_16 */
+ 		"P9.21",	/* keys: gpio0_3 */
+ 		/* the hardware IP uses */
+-		"gpio1_31",
++		"gpio0_2",
+ 		"gpio1_28",
+ 		"gpio1_16",
+ 		"gpio1_17",
+@@ -75,7 +75,7 @@
+ 
+ 			bone_lcd7_cape_lcd_pins: pinmux_bone_lcd7_cape_lcd_pins {
+ 				pinctrl-single,pins = <
+-					0x84 0x07	/* gpmc_csn2.gpio1_31, OUTPUT | MODE7 - AVDD_EN */
++					0x150 0x07	/* spi0_sclk.gpio0_2, OUTPUT | MODE7 - AVDD_EN */
+ 					0xa0 0x08	/* lcd_data0.lcd_data0, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+ 					0xa3 0x08	/* lcd_data1.lcd_data1, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+ 					0xa8 0x08	/* lcd_data2.lcd_data2, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+@@ -275,7 +275,7 @@
+ 				interrupt-parent = <&intc>;
+ 				interrupts = <36>;
+ 				ti,hwmods = "lcdc";
+-				ti,power-gpio = <&gpio2 31 0x0>;
++				ti,power-gpio = <&gpio1 2 0x0>;
+ 				ti,allow-non-reduced-blanking-modes;
+ 			};
+ 
+diff --git a/firmware/capes/BB-BONE-LCD7-01-00A4.dts b/firmware/capes/BB-BONE-LCD7-01-00A4.dts
+index 81553e6..0c3abff 100644
+--- a/firmware/capes/BB-BONE-LCD7-01-00A4.dts
++++ b/firmware/capes/BB-BONE-LCD7-01-00A4.dts
+@@ -38,7 +38,7 @@
+ 		"P8.29",	/* lcd: lcd_hsync */
+ 		"P8.28",	/* lcd: lcd_pclk */
+ 		"P8.30",	/* lcd: lcd_ac_bias_en */
+-		"P8.20",	/* lcd: gpio1_31 */
++		"P9.22",	/* lcd: gpio0_2 */
+ 		"P9.12",	/* led: gpio1_28 */
+ 		"P9.14",	/* pwm: ehrpwm1a */
+ 		"P9.15",	/* keys: gpio1_16 */
+@@ -46,13 +46,15 @@
+ 		"P9.16",	/* keys: gpio1_19 */
+ 		"P9.30",	/* keys: gpio3_16 */
+ 		"P9.21",	/* keys: gpio0_3 */
++		"P9.27",	/* captouch: gpio3_19 */
+ 		/* the hardware IP uses */
+-		"gpio1_31",
++		"gpio0_2",
+ 		"gpio1_28",
+ 		"gpio1_16",
+ 		"gpio1_17",
+ 		"gpio1_19",
+ 		"gpio3_16",
++		"gpio3_19",
+ 		"gpio0_3",
+ 		"lcd",
+ 		"ehrpwm1a";
+@@ -75,7 +77,7 @@
+ 
+ 			bone_lcd7_cape_lcd_pins: pinmux_bone_lcd7_cape_lcd_pins {
+ 				pinctrl-single,pins = <
+-					0x84 0x07	/* gpmc_csn2.gpio1_31, OUTPUT | MODE7 - AVDD_EN */
++					0x150 0x07	/* spi0_sclk.gpio0_2, OUTPUT | MODE7 - AVDD_EN */
+ 					0xa0 0x08	/* lcd_data0.lcd_data0, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+ 					0xa4 0x08	/* lcd_data1.lcd_data1, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+ 					0xa8 0x08	/* lcd_data2.lcd_data2, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+@@ -255,7 +257,7 @@
+ 				interrupt-parent = <&intc>;
+ 				interrupts = <36>;
+ 				ti,hwmods = "lcdc";
+-				ti,power-gpio = <&gpio2 31 0x0>;
++				ti,power-gpio = <&gpio1 2 0x0>;
+ 				ti,allow-non-reduced-blanking-modes;
+ 			};
+ 
+@@ -277,7 +279,6 @@
+ 				interrupts = <19 0x0>;
+ 				atmel,irq-gpio = <&gpio4 19 0>;
+ 			};
+-
+                };
+        };
+ };
+-- 
+1.8.1.4
+

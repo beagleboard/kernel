@@ -1,0 +1,69 @@
+From dcfd3a03e9bfaa33ff635f81a1f06b8d09460024 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 12 Jun 2013 11:12:26 +0300
+Subject: [PATCH 9/9] capes: boneblack HDMI capes have blacklisted modes.
+
+Added a few modes that are known not to work on my end.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ firmware/capes/cape-boneblack-hdmi-00A0.dts  | 13 ++++++++++++-
+ firmware/capes/cape-boneblack-hdmin-00A0.dts | 11 +++++++++++
+ 2 files changed, 23 insertions(+), 1 deletion(-)
+
+diff --git a/firmware/capes/cape-boneblack-hdmi-00A0.dts b/firmware/capes/cape-boneblack-hdmi-00A0.dts
+index a312bc1..04b7b54 100644
+--- a/firmware/capes/cape-boneblack-hdmi-00A0.dts
++++ b/firmware/capes/cape-boneblack-hdmi-00A0.dts
+@@ -83,7 +83,7 @@
+ 				pinctrl-single,pins = <
+ 					0x1ac 0x30      /* mcasp0_ahclkx,       MODE0 | INPUT */
+ 					0x19c 0x02	/* mcasp0_ahclkr, */
+-					0x194 0x10      /* mcasp0_fsx,         MODE0 | OUTPUT  */ 
++					0x194 0x10      /* mcasp0_fsx,         MODE0 | OUTPUT  */
+ 					0x190 0x00      /* mcasp0_aclkr.mcasp0_aclkx,     MODE0 | OUTPUT_PULLDOWN */
+ 					0x1a8 0x1f	/* mcasp0_axr1 GPIO1_27 | OUTPUT | PULLUP */
+ 				>;
+@@ -111,6 +111,17 @@
+ 				pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
+ 				pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
+ 
++				modes-blacklisted =
++					"1920x1080@25",
++					"832x624@75";
++
++				// Enable this when we figure out the modes
++				//
++				// modes-whitelisted =
++				//	"1920x1080@24",
++				//	"1280x720@50", "1280x720@60",
++				//	"720x576@50","720x480@60";
++
+ 				panel-info {
+ 					bpp = <16>;
+ 					ac-bias = <255>;
+diff --git a/firmware/capes/cape-boneblack-hdmin-00A0.dts b/firmware/capes/cape-boneblack-hdmin-00A0.dts
+index e193426..ad55c4d 100644
+--- a/firmware/capes/cape-boneblack-hdmin-00A0.dts
++++ b/firmware/capes/cape-boneblack-hdmin-00A0.dts
+@@ -96,6 +96,17 @@
+ 				pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
+ 				pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
+ 
++				modes-blacklisted =
++					"1920x1080@25",
++					"832x624@75";
++
++				// Enable this when we figure out the modes
++				//
++				// modes-whitelisted =
++				//	"1920x1080@24",
++				//	"1280x720@50", "1280x720@60",
++				//	"720x576@50","720x480@60";
++
+ 				panel-info {
+ 					bpp = <16>;
+ 					ac-bias = <255>;
+-- 
+1.8.1.4
+

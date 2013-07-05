@@ -1,0 +1,161 @@
+From e085f7cdaa21a4350584b87514c381591210c387 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Mon, 3 Jun 2013 18:19:12 +0300
+Subject: [PATCH 181/181] cape: Fix LCD7 keys polarity
+
+---
+ firmware/capes/BB-BONE-LCD7-01-00A2.dts | 10 +++++-----
+ firmware/capes/BB-BONE-LCD7-01-00A3.dts | 10 +++++-----
+ firmware/capes/BB-BONE-LCD7-01-00A4.dts | 10 +++++-----
+ 3 files changed, 15 insertions(+), 15 deletions(-)
+
+diff --git a/firmware/capes/BB-BONE-LCD7-01-00A2.dts b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
+index 32d6f9d..1ba88d9 100644
+--- a/firmware/capes/BB-BONE-LCD7-01-00A2.dts
++++ b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
+@@ -153,7 +153,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <105>;
+ 					label = "left";
+-					gpios = <&gpio2 16 0x0>;
++					gpios = <&gpio2 16 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -161,7 +161,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <106>;
+ 					label = "right";
+-					gpios = <&gpio2 17 0x0>;
++					gpios = <&gpio2 17 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -169,7 +169,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <103>;
+ 					label = "up";
+-					gpios = <&gpio2 19 0x0>;
++					gpios = <&gpio2 19 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -177,7 +177,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <108>;
+ 					label = "down";
+-					gpios = <&gpio4 16 0x0>;
++					gpios = <&gpio4 16 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -185,7 +185,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <28>;
+ 					label = "enter";
+-					gpios = <&gpio4 19 0x0>;
++					gpios = <&gpio4 19 0x1>;
+ 					gpio-key,wakeup;
+ 				};
+ 			};
+diff --git a/firmware/capes/BB-BONE-LCD7-01-00A3.dts b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
+index 2a4c13c..4da050f6 100644
+--- a/firmware/capes/BB-BONE-LCD7-01-00A3.dts
++++ b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
+@@ -153,7 +153,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <105>;
+ 					label = "left";
+-					gpios = <&gpio2 16 0x0>;
++					gpios = <&gpio2 16 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -161,7 +161,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <106>;
+ 					label = "right";
+-					gpios = <&gpio2 17 0x0>;
++					gpios = <&gpio2 17 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -169,7 +169,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <103>;
+ 					label = "up";
+-					gpios = <&gpio2 19 0x0>;
++					gpios = <&gpio2 19 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -177,7 +177,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <108>;
+ 					label = "down";
+-					gpios = <&gpio4 16 0x0>;
++					gpios = <&gpio4 16 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -185,7 +185,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <28>;
+ 					label = "enter";
+-					gpios = <&gpio1 3 0x0>;
++					gpios = <&gpio1 3 0x1>;
+ 					gpio-key,wakeup;
+ 				};
+ 			};
+diff --git a/firmware/capes/BB-BONE-LCD7-01-00A4.dts b/firmware/capes/BB-BONE-LCD7-01-00A4.dts
+index e0a0677..6f34b79 100644
+--- a/firmware/capes/BB-BONE-LCD7-01-00A4.dts
++++ b/firmware/capes/BB-BONE-LCD7-01-00A4.dts
+@@ -132,7 +132,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <105>;
+ 					label = "left";
+-					gpios = <&gpio2 16 0x0>;
++					gpios = <&gpio2 16 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -140,7 +140,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <106>;
+ 					label = "right";
+-					gpios = <&gpio2 17 0x0>;
++					gpios = <&gpio2 17 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -148,7 +148,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <103>;
+ 					label = "up";
+-					gpios = <&gpio2 19 0x0>;
++					gpios = <&gpio2 19 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -156,7 +156,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <108>;
+ 					label = "down";
+-					gpios = <&gpio4 16 0x0>;
++					gpios = <&gpio4 16 0x1>;
+ 					gpio-key,wakeup;
+ 					autorepeat;
+ 				};
+@@ -164,7 +164,7 @@
+ 					debounce_interval = <50>;
+ 					linux,code = <28>;
+ 					label = "enter";
+-					gpios = <&gpio1 3 0x0>;
++					gpios = <&gpio1 3 0x1>;
+ 					gpio-key,wakeup;
+ 				};
+ 			};
+-- 
+1.8.1.4
+

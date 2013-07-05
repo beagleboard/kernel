@@ -1,0 +1,46 @@
+From 39674aa07a824390f14b5185f1221f47040c6e26 Mon Sep 17 00:00:00 2001
+From: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Date: Sat, 18 May 2013 17:12:19 +0000
+Subject: [PATCH 16/21] DRM: tda998x: add missing include
+
+The RFC sent by Russell King was missing an include for tda998x. This
+is just a compatible clone to remember Russell to add that later.
+
+Signed-off-by: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+---
+ include/drm/i2c/tda998x.h | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+ create mode 100644 include/drm/i2c/tda998x.h
+
+diff --git a/include/drm/i2c/tda998x.h b/include/drm/i2c/tda998x.h
+new file mode 100644
+index 0000000..41f799f
+--- /dev/null
++++ b/include/drm/i2c/tda998x.h
+@@ -0,0 +1,23 @@
++#ifndef __TDA998X_H__
++#define __TDA998X_H__
++
++enum tda998x_audio_format {
++	AFMT_I2S,
++	AFMT_SPDIF,
++};
++
++struct tda998x_encoder_params {
++	int audio_cfg;
++	int audio_clk_cfg;
++	enum tda998x_audio_format audio_format;
++	int audio_sample_rate;
++	char audio_frame[6];
++	int swap_a, mirr_a;
++	int swap_b, mirr_b;
++	int swap_c, mirr_c;
++	int swap_d, mirr_d;
++	int swap_e, mirr_e;
++	int swap_f, mirr_f;
++};
++
++#endif
+-- 
+1.8.1.4
+

@@ -1,0 +1,32 @@
+From 30929cfcecfb768daaa6478f05b22216506d2bd7 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 30 May 2013 16:38:42 +0300
+Subject: [PATCH 178/179] capes: Add commented out example of use of spi1_cs1
+
+---
+ firmware/capes/BB-SPI1-00A0.dts | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/firmware/capes/BB-SPI1-00A0.dts b/firmware/capes/BB-SPI1-00A0.dts
+index e26f346..1ead983 100644
+--- a/firmware/capes/BB-SPI1-00A0.dts
++++ b/firmware/capes/BB-SPI1-00A0.dts
+@@ -24,6 +24,7 @@
+ 		"P9.29",	/* spi1_d0 */
+ 		"P9.30",	/* spi1_d1 */
+ 		"P9.28",	/* spi1_cs0 */
++		// "P9.42",	/* spi1_cs1 */
+ 		/* the hardware ip uses */
+ 		"spi1";
+ 
+@@ -37,6 +38,7 @@
+ 					0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
+ 					0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
+ 					0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
++					// 0x164 0x12	/* eCAP0_in_PWM0_out.spi1_cs1 OUTPUT_PULLUP | MODE2 */
+ 				>;
+ 			};
+ 		};
+-- 
+1.8.1.4
+

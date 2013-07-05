@@ -1,0 +1,53 @@
+From 30242f187e732153f7e1ce42f231073633d13042 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 13 Jun 2013 18:43:27 +0300
+Subject: [PATCH 15/15] capes: LCD7: fix vsync-len off by one
+
+---
+ firmware/capes/BB-BONE-LCD7-01-00A2.dts | 2 +-
+ firmware/capes/BB-BONE-LCD7-01-00A3.dts | 2 +-
+ firmware/capes/BB-BONE-LCD7-01-00A4.dts | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/firmware/capes/BB-BONE-LCD7-01-00A2.dts b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
+index 0c823d2..1dc761f 100644
+--- a/firmware/capes/BB-BONE-LCD7-01-00A2.dts
++++ b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
+@@ -259,7 +259,7 @@
+ 						hsync-len       = <48>;
+ 						vback-porch     = <30>;
+ 						vfront-porch    = <13>;
+-						vsync-len       = <2>;
++						vsync-len       = <3>;
+ 						clock-frequency = <30000000>;
+ 						hsync-active    = <0>;
+ 						vsync-active    = <0>;
+diff --git a/firmware/capes/BB-BONE-LCD7-01-00A3.dts b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
+index a22a0f6..a98d669 100644
+--- a/firmware/capes/BB-BONE-LCD7-01-00A3.dts
++++ b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
+@@ -261,7 +261,7 @@
+ 						hsync-len       = <48>;
+ 						vback-porch     = <30>;
+ 						vfront-porch    = <13>;
+-						vsync-len       = <2>;
++						vsync-len       = <3>;
+ 						clock-frequency = <30000000>;
+ 						hsync-active    = <0>;
+ 						vsync-active    = <0>;
+diff --git a/firmware/capes/BB-BONE-LCD7-01-00A4.dts b/firmware/capes/BB-BONE-LCD7-01-00A4.dts
+index ae4941e..2d0ed3f 100644
+--- a/firmware/capes/BB-BONE-LCD7-01-00A4.dts
++++ b/firmware/capes/BB-BONE-LCD7-01-00A4.dts
+@@ -246,7 +246,7 @@
+ 						hsync-len       = <48>;
+ 						vback-porch     = <30>;
+ 						vfront-porch    = <13>;
+-						vsync-len       = <2>;
++						vsync-len       = <3>;
+ 						clock-frequency = <30000000>;
+ 						hsync-active    = <0>;
+ 						vsync-active    = <0>;
+-- 
+1.8.1.4
+

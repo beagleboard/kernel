@@ -1,0 +1,440 @@
+From dc11bff0484c650072deb3d0e17ce1804285f95f Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 12 Jun 2013 11:11:12 +0300
+Subject: [PATCH 22/22] drm: tilcdc: Implement whitelist & blacklist mode
+ support
+
+Some modes just don't work; so we need a way to control which ones
+we select. Implement a DT based whitelist & blacklist.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c    |   6 +-
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h    |   2 +-
+ drivers/gpu/drm/tilcdc/tilcdc_panel.c  |   4 +-
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c  | 249 ++++++++++++++++++++++++++++++++-
+ drivers/gpu/drm/tilcdc/tilcdc_tfp410.c |   4 +-
+ 5 files changed, 250 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+index 31e039e..85f972f 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+@@ -140,15 +140,15 @@ static int tilcdc_unload(struct drm_device *dev)
+ 	flush_workqueue(priv->wq);
+ 	destroy_workqueue(priv->wq);
+ 
+-	dev->dev_private = NULL;
+-
+ 	pm_runtime_disable(dev->dev);
+ 
+ 	list_for_each_entry_safe(mod, cur, &module_list, list) {
+ 		DBG("destroying module: %s", mod->name);
+-		mod->funcs->destroy(mod);
++		mod->funcs->destroy(mod, dev);
+ 	}
+ 
++	dev->dev_private = NULL;
++
+ 	kfree(priv);
+ 
+ 	return 0;
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.h b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+index 40ff5d4..d869519 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.h
++++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+@@ -97,7 +97,7 @@ struct tilcdc_module;
+ struct tilcdc_module_ops {
+ 	/* create appropriate encoders/connectors: */
+ 	int (*modeset_init)(struct tilcdc_module *mod, struct drm_device *dev);
+-	void (*destroy)(struct tilcdc_module *mod);
++	void (*destroy)(struct tilcdc_module *mod, struct drm_device *dev);
+ #ifdef CONFIG_DEBUG_FS
+ 	/* create debugfs nodes (can be NULL): */
+ 	int (*debugfs_init)(struct tilcdc_module *mod, struct drm_minor *minor);
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_panel.c b/drivers/gpu/drm/tilcdc/tilcdc_panel.c
+index 2aa4a2e..f690583 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_panel.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_panel.c
+@@ -285,7 +285,7 @@ static int panel_modeset_init(struct tilcdc_module *mod, struct drm_device *dev)
+ 	return 0;
+ }
+ 
+-static void panel_destroy(struct tilcdc_module *mod)
++static void panel_destroy(struct tilcdc_module *mod, struct drm_device *dev)
+ {
+ 	struct panel_module *panel_mod = to_panel_module(mod);
+ 
+@@ -482,7 +482,7 @@ static int panel_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ fail:
+-	panel_destroy(mod);
++	panel_destroy(mod, NULL);
+ 	return ret;
+ }
+ 
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+index 440de4e..641aeee 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+@@ -23,12 +23,25 @@
+ 
+ #include "tilcdc_drv.h"
+ 
++/* keep a list of text modestrings */
++struct slave_modelist {
++	struct list_head node;
++	const char *modestr;		/* the text mode string i.e. 1280x720@50 */
++	struct drm_cmdline_mode clmode;	/* the command line mode */
++	struct drm_display_mode *mode;	/* the display mode (as seen by the device) */
++	unsigned int parsed : 1;	/* parsed (whether good or bad) */
++	unsigned int good : 1;		/* it's ok to use it */
++};
++
+ struct slave_module {
+ 	struct tilcdc_module base;
+ 	struct tilcdc_panel_info *info;
+ 	struct i2c_adapter *i2c;
+ 	struct pinctrl *pinctrl;
+ 	char *selected_state_name;
++
++	struct list_head whitelist;
++	struct list_head blacklist;
+ };
+ #define to_slave_module(x) container_of(x, struct slave_module, base)
+ 
+@@ -152,13 +165,152 @@ static int slave_connector_get_modes(struct drm_connector *connector)
+ 	return get_slave_funcs(encoder)->get_modes(encoder, connector);
+ }
+ 
++static int slave_modelist_match(struct drm_connector *connector,
++		struct slave_modelist *sml, struct drm_display_mode *mode)
++{
++	struct drm_cmdline_mode *clmode = &sml->clmode;
++
++	if (sml->mode == NULL || !sml->good)
++		return 0;
++
++	/* xres, yres valid */
++	if (clmode->specified &&
++		(drm_mode_width(mode) != clmode->xres ||
++			drm_mode_height(mode) != clmode->yres))
++		return 0;
++
++	/* refresh mode specified */
++	if (clmode->refresh_specified &&
++		drm_mode_vrefresh(mode) != clmode->refresh)
++		return 0;
++
++	/* interlace */
++	if (clmode->interlace && (mode->flags & DRM_MODE_FLAG_INTERLACE) == 0)
++		return 0;
++
++	/* match */
++	return 1;
++}
++
++/* returns 0 if mode is listed, -ENOENT otherwise */
++static int slave_connector_mode_match(struct drm_connector *connector,
++		struct drm_display_mode *mode,
++		struct list_head *lh)
++{
++	struct drm_device *dev = connector->dev;
++	struct slave_modelist *sml;
++	bool parse;
++
++	/* ok, we have to find a match */
++	list_for_each_entry(sml, lh, node) {
++
++		/* if the mode is not parsed, do it now */
++		if (!sml->parsed) {
++
++			/* whether good or bad, we're trying only once */
++			sml->parsed = 1;
++			sml->good = 0;
++
++			parse = drm_mode_parse_command_line_for_connector(
++					sml->modestr, connector, &sml->clmode);
++
++			/* report in case something's off */
++			if (!parse) {
++				dev_err(dev->dev, "Failed to parse mode %s\n",
++						sml->modestr);
++				continue;
++			}
++
++			/* need to hold the mutex */
++			mutex_lock(&dev->mode_config.mutex);
++			sml->mode = drm_mode_create_from_cmdline_mode(dev,
++					&sml->clmode);
++			mutex_unlock(&dev->mode_config.mutex);
++
++			if (sml->mode == NULL) {
++				dev_err(dev->dev, "Failed to create mode %s\n",
++						sml->modestr);
++				continue;
++			}
++			sml->good = 1;
++		}
++
++		/* bad mode is skipped */
++		if (!sml->good)
++			continue;
++
++		/* we can't use drm_mode_equal, we use own own comparison */
++		if (slave_modelist_match(connector, sml, mode)) {
++			return 1;
++		}
++
++	}
++
++	return 0;
++}
++
++static int slave_connector_mode_whitelisted(struct drm_connector *connector,
++		struct drm_display_mode *mode)
++{
++	struct slave_connector *slave_connector = to_slave_connector(connector);
++	struct slave_module *slave_mod = slave_connector->mod;
++	int ret;
++
++	/* if the list is empty, everything is whitelisted */
++	if (list_empty(&slave_mod->whitelist))
++		return 1;
++
++	ret = slave_connector_mode_match(connector, mode, &slave_mod->whitelist);
++	if (ret != 0)
++		return 1;
++
++	/* not found */
++	return 0;
++}
++
++static int slave_connector_mode_blacklisted(struct drm_connector *connector,
++		struct drm_display_mode *mode)
++{
++	struct slave_connector *slave_connector = to_slave_connector(connector);
++	struct slave_module *slave_mod = slave_connector->mod;
++	int ret;
++
++	/* if the list is empty, nothing is blacklisted */
++	if (list_empty(&slave_mod->blacklist))
++		return 0;
++
++	ret = slave_connector_mode_match(connector, mode, &slave_mod->blacklist);
++	if (ret != 0)
++		return 1;
++
++	/* not found; all is OK */
++	return 0;
++}
++
+ static int slave_connector_mode_valid(struct drm_connector *connector,
+ 		  struct drm_display_mode *mode)
+ {
+ 	struct drm_encoder *encoder = to_slave_connector(connector)->encoder;
+-	struct tilcdc_drm_private *priv = connector->dev->dev_private;
++	struct drm_device *dev = connector->dev;
++	struct tilcdc_drm_private *priv = dev->dev_private;
+ 	int ret;
+ 
++	/* if there's a whitelist, we must be in it */
++	if (!slave_connector_mode_whitelisted(connector, mode)) {
++		dev_info(dev->dev, "mode %dx%d@%d is not whitelisted\n",
++			drm_mode_width(mode), drm_mode_height(mode),
++			drm_mode_vrefresh(mode));
++		return MODE_BAD;
++	}
++
++	/* if there's a blacklist, we shouldn't be in it */
++	if (slave_connector_mode_blacklisted(connector, mode)) {
++		dev_info(dev->dev, "mode %dx%d@%d is blacklisted\n",
++			drm_mode_width(mode), drm_mode_height(mode),
++			drm_mode_vrefresh(mode));
++		return MODE_BAD;
++	}
++
+ 	ret = tilcdc_crtc_mode_valid(priv->crtc, mode,
+ 			priv->allow_non_rblank ? 0 : 1,
+ 			priv->allow_non_audio ? 0 : 1,
+@@ -254,6 +406,12 @@ static int slave_modeset_init(struct tilcdc_module *mod, struct drm_device *dev)
+ 	struct drm_encoder *encoder;
+ 	struct drm_connector *connector;
+ 
++	if (priv->num_encoders >= ARRAY_SIZE(priv->encoders))
++		return -ENOENT;
++
++	if (priv->num_connectors >= ARRAY_SIZE(priv->connectors))
++		return -ENOENT;
++
+ 	encoder = slave_encoder_create(dev, slave_mod);
+ 	if (!encoder)
+ 		return -ENOMEM;
+@@ -268,18 +426,33 @@ static int slave_modeset_init(struct tilcdc_module *mod, struct drm_device *dev)
+ 	return 0;
+ }
+ 
+-static void slave_destroy(struct tilcdc_module *mod)
++static void slave_destroy(struct tilcdc_module *mod, struct drm_device *dev)
+ {
+ 	struct slave_module *slave_mod = to_slave_module(mod);
++	struct slave_modelist *sml;
+ 
+ 	tilcdc_module_cleanup(mod);
++
++	if (dev != NULL) {
++		/* no need to free sml, it's res tracked */
++		list_for_each_entry(sml, &slave_mod->whitelist, node) {
++			if (sml->mode != NULL)
++				drm_mode_destroy(dev, sml->mode);
++		}
++
++		list_for_each_entry(sml, &slave_mod->whitelist, node) {
++			if (sml->mode != NULL)
++				drm_mode_destroy(dev, sml->mode);
++		}
++	}
++
+ 	kfree(slave_mod->info);
+ 	kfree(slave_mod);
+ }
+ 
+ static const struct tilcdc_module_ops slave_module_ops = {
+-		.modeset_init = slave_modeset_init,
+-		.destroy = slave_destroy,
++	.modeset_init = slave_modeset_init,
++	.destroy = slave_destroy,
+ };
+ 
+ /*
+@@ -355,10 +528,54 @@ static const struct attribute_group pinmux_attr_group = {
+ 	.attrs = pinmux_attributes,
+ };
+ 
++/* fill in the mode list via the string list property */
++static int slave_mode_of_mode_list(struct platform_device *pdev,
++		const char *propname, struct list_head *lh)
++{
++	struct device *dev = &pdev->dev;
++	struct device_node *node = dev->of_node;
++	struct slave_modelist *sml;
++	int ret, i, count;
++
++	/* count the string list property */
++	count = of_property_count_strings(node, propname);
++
++	/* negative or zero, means no mode list */
++	if (count <= 0)
++		return 0;
++
++	for (i = 0; i < count; i++) {
++
++		sml = devm_kzalloc(dev, sizeof(*sml), GFP_KERNEL);
++		if (sml == NULL) {
++			dev_err(dev, "Failed to allocate mode list for %s\n",
++					propname);
++			return -ENOMEM;
++		}
++
++		ret = of_property_read_string_index(node, propname, i,
++				&sml->modestr);
++		if (ret != 0) {
++			dev_err(dev, "Failed to read string #%d for %s \n",
++					i, propname);
++			return ret;
++		}
++
++		/* add it to the tail */
++		list_add_tail(&sml->node, lh);
++
++		dev_info(dev, "%s #%d -> %s\n",
++				propname, i, sml->modestr);
++
++	}
++
++	return 0;
++}
++
+ static int slave_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+-	struct device_node *node = pdev->dev.of_node;
++	struct device_node *node = dev->of_node;
+ 	struct device_node *i2c_node;
+ 	struct slave_module *slave_mod;
+ 	struct tilcdc_module *mod;
+@@ -379,6 +596,9 @@ static int slave_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, slave_mod);
+ 
++	INIT_LIST_HEAD(&slave_mod->whitelist);
++	INIT_LIST_HEAD(&slave_mod->blacklist);
++
+ 	mod = &slave_mod->base;
+ 
+ 	tilcdc_module_init(mod, "slave", &slave_module_ops);
+@@ -395,8 +615,9 @@ static int slave_probe(struct platform_device *pdev)
+ 
+ 	slave_mod->pinctrl = devm_pinctrl_get(dev);
+ 	if (IS_ERR(slave_mod->pinctrl)) {
+-		dev_err(dev, "Failed to get pinctrl\n");
+ 		ret = PTR_RET(slave_mod->pinctrl);
++		if (ret != -EPROBE_DEFER)
++			dev_err(dev, "Failed to get pinctrl\n");
+ 		goto fail;
+ 	}
+ 
+@@ -443,12 +664,26 @@ static int slave_probe(struct platform_device *pdev)
+ 		goto fail;
+ 	}
+ 
++	ret = slave_mode_of_mode_list(pdev, "modes-blacklisted",
++			&slave_mod->blacklist);
++	if (ret != 0) {
++		dev_err(&pdev->dev, "Invalid modes-blacklisted property\n");
++		goto fail;
++	}
++
++	ret = slave_mode_of_mode_list(pdev, "modes-whitelisted",
++			&slave_mod->whitelist);
++	if (ret != 0) {
++		dev_err(&pdev->dev, "Invalid modes-whitelisted property\n");
++		goto fail;
++	}
++
+ 	of_node_put(i2c_node);
+ 
+ 	return 0;
+ 
+ fail:
+-	slave_destroy(mod);
++	slave_destroy(mod, NULL);
+ 	return ret;
+ }
+ 
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c b/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+index c71f955..86fcd1c 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+@@ -305,7 +305,7 @@ static int tfp410_modeset_init(struct tilcdc_module *mod, struct drm_device *dev
+ 	return 0;
+ }
+ 
+-static void tfp410_destroy(struct tilcdc_module *mod)
++static void tfp410_destroy(struct tilcdc_module *mod, struct drm_device *dev)
+ {
+ 	struct tfp410_module *tfp410_mod = to_tfp410_module(mod);
+ 
+@@ -507,7 +507,7 @@ static int tfp410_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ fail:
+-	tfp410_destroy(mod);
++	tfp410_destroy(mod, NULL);	/* meh */
+ 	return ret;
+ }
+ 
+-- 
+1.8.1.4
+
