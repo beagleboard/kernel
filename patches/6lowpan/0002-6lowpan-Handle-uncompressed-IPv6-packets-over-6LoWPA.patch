@@ -1,4 +1,4 @@
-From 86021942d4947445234042c7f7898e51f7774bfd Mon Sep 17 00:00:00 2001
+From 12bc6e4bbbf0384747300924dbd3c7858b0d2c60 Mon Sep 17 00:00:00 2001
 From: Alan Ott <alan@signal11.us>
 Date: Wed, 16 Jan 2013 19:09:48 +0000
 Subject: [PATCH 02/23] 6lowpan: Handle uncompressed IPv6 packets over 6LoWPAN
@@ -8,7 +8,7 @@ Handle the reception of uncompressed packets (dispatch type = IPv6).
 Signed-off-by: Alan Ott <alan@signal11.us>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- net/ieee802154/6lowpan.c | 41 ++++++++++++++++++++++++++++++++---------
+ net/ieee802154/6lowpan.c |   41 ++++++++++++++++++++++++++++++++---------
  1 file changed, 32 insertions(+), 9 deletions(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
@@ -68,5 +68,5 @@ index 9d39f5b..f62c3b9 100644
  
  	return NET_RX_SUCCESS;
 -- 
-1.8.1.4
+1.7.9.5
 

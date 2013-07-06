@@ -1,8 +1,8 @@
-From 42155ca89dbc9ca5fdf51c8959edf79fafcd77ed Mon Sep 17 00:00:00 2001
+From 494126c4db24b99f0768b9b99178267ebdaf9eaa Mon Sep 17 00:00:00 2001
 From: Daniel Kurtz <djkurtz@chromium.org>
 Date: Mon, 19 Mar 2012 09:39:12 +0800
-Subject: [PATCH 27/57] CHROMIUM: Input: atmel_mxt_ts - allow writing to object
- sysfs entry
+Subject: [PATCH 27/57] CHROMIUM: Input: atmel_mxt_ts - allow writing to
+ object sysfs entry
 
 Userspace can write a 32-bit value (encoded as a 8 character hex string)
 to the 'object' sysfs entry to modify a single byte of the object table.
@@ -54,7 +54,7 @@ Tested-by: Daniel Kurtz <djkurtz@chromium.org>
 v3.7 rebase:
 Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
 ---
- drivers/input/touchscreen/atmel_mxt_ts.c | 32 +++++++++++++++++++++++++++++++-
+ drivers/input/touchscreen/atmel_mxt_ts.c |   32 +++++++++++++++++++++++++++++-
  1 file changed, 31 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
@@ -108,5 +108,5 @@ index d07732d..120d766 100644
  
  static struct attribute *mxt_attrs[] = {
 -- 
-1.8.1.4
+1.7.9.5
 

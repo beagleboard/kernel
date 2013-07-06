@@ -1,7 +1,7 @@
-From 76104ba14cd0dd699f04a950d1284f7a6b0df6bd Mon Sep 17 00:00:00 2001
+From 0b16ee59dd8d0df30342de76c700711a30c3b381 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 28 Dec 2012 16:54:51 +0200
-Subject: [PATCH 006/177] tps65217-bl: Locate backlight node correctly.
+Subject: [PATCH 006/184] tps65217-bl: Locate backlight node correctly.
 
 When using overlays find_node doesn't work like it used to, because
 the new nodes are inserted at the head of allnodes.
@@ -10,7 +10,7 @@ Use the correct function to locate the child node.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/video/backlight/tps65217_bl.c | 10 +++++++---
+ drivers/video/backlight/tps65217_bl.c |   10 +++++++---
  1 file changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/video/backlight/tps65217_bl.c b/drivers/video/backlight/tps65217_bl.c
@@ -47,5 +47,5 @@ index 69c1dfe..31a9203 100644
  		if (!pdev->dev.platform_data) {
  			dev_err(&pdev->dev, "no platform data provided\n");
 -- 
-1.8.1.4
+1.7.9.5
 

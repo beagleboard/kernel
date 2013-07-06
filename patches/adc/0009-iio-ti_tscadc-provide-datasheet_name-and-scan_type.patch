@@ -1,0 +1,89 @@
+From 5555ddc6566113ddb840519ae7ad4132e496756d Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 12 Jun 2013 18:58:12 +0200
+Subject: [PATCH 09/21] iio: ti_tscadc: provide datasheet_name and scan_type
+
+This patch provides the members "datasheet_name" and scan_type. This is
+the remaining part of the earlier patch where I (bigeasy) removed iio_map
+because it is now supplied by the device tree. It also static names as
+suggested by Jonathan.
+
+ZubairLK. Channel Info mask tweaked to fit the old IIO usage.
+Tweaked surrounding code to patch the 3.8 tree.
+
+Acked-by: Jonathan Cameron <jic23@kernel.org>
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/iio/adc/ti_am335x_adc.c |   29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index 4f4c82e..25feb62 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -24,6 +24,8 @@
+ #include <linux/iio/iio.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
++#include <linux/iio/machine.h>
++#include <linux/iio/driver.h>
+ 
+ #include <linux/mfd/ti_am335x_tscadc.h>
+ #include <linux/platform_data/ti_am335x_adc.h>
+@@ -85,29 +87,46 @@ static void tiadc_step_config(struct tiadc_device *adc_dev)
+ 	am335x_tsc_se_set(adc_dev->mfd_tscadc, step_en);
+ }
+ 
++static const char * const chan_name_ain[] = {
++	"AIN0",
++	"AIN1",
++	"AIN2",
++	"AIN3",
++	"AIN4",
++	"AIN5",
++	"AIN6",
++	"AIN7",
++};
++
+ static int tiadc_channel_init(struct iio_dev *indio_dev, int channels)
+ {
++	struct tiadc_device *adc_dev = iio_priv(indio_dev);
+ 	struct iio_chan_spec *chan_array;
++	struct iio_chan_spec *chan;
+ 	int i;
+ 
+ 	indio_dev->num_channels = channels;
+-	chan_array = kcalloc(indio_dev->num_channels,
++	chan_array = kcalloc(channels,
+ 			sizeof(struct iio_chan_spec), GFP_KERNEL);
+-
+ 	if (chan_array == NULL)
+ 		return -ENOMEM;
+ 
+-	for (i = 0; i < (indio_dev->num_channels); i++) {
+-		struct iio_chan_spec *chan = chan_array + i;
++	chan = chan_array;
++	for (i = 0; i < channels; i++, chan++) {
++
+ 		chan->type = IIO_VOLTAGE;
+ 		chan->indexed = 1;
+ 		chan->channel = i;
+ 		chan->info_mask = IIO_CHAN_INFO_RAW_SEPARATE_BIT;
++		chan->datasheet_name = chan_name_ain[i];
++		chan->scan_type.sign = 'u';
++		chan->scan_type.realbits = 12;
++		chan->scan_type.storagebits = 32;
+ 	}
+ 
+ 	indio_dev->channels = chan_array;
+ 
+-	return indio_dev->num_channels;
++	return 0;
+ }
+ 
+ static void tiadc_channels_remove(struct iio_dev *indio_dev)
+-- 
+1.7.9.5
+

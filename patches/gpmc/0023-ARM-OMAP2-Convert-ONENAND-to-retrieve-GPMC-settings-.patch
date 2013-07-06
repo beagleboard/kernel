@@ -1,4 +1,4 @@
-From 816c19dfc59ef912603fab3a46da7f9b3469d770 Mon Sep 17 00:00:00 2001
+From 22650c0082fe0c0abcd390e7be43fc712d2d510d Mon Sep 17 00:00:00 2001
 From: Jon Hunter <jon-hunter@ti.com>
 Date: Mon, 25 Feb 2013 11:37:58 -0600
 Subject: [PATCH 23/39] ARM: OMAP2+: Convert ONENAND to retrieve GPMC settings
@@ -25,8 +25,8 @@ wait-monitoring settings described in the device-tree blob.
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 ---
- .../devicetree/bindings/mtd/gpmc-onenand.txt       | 46 ++++++++++++++++++++++
- arch/arm/mach-omap2/gpmc-onenand.c                 | 21 +++++++---
+ .../devicetree/bindings/mtd/gpmc-onenand.txt       |   46 ++++++++++++++++++++
+ arch/arm/mach-omap2/gpmc-onenand.c                 |   21 ++++++---
  2 files changed, 61 insertions(+), 6 deletions(-)
  create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
 
@@ -122,5 +122,5 @@ index dae6e05..1a2b84e 100644
  	omap2_onenand_calc_sync_timings(&t, gpmc_onenand_data->flags, freq);
  
 -- 
-1.8.1.4
+1.7.9.5
 

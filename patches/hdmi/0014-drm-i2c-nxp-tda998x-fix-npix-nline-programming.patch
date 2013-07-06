@@ -1,7 +1,7 @@
-From e14a2cb97cfd3684f85599cce6db61fa4b420e96 Mon Sep 17 00:00:00 2001
+From 288ba01e7854504a3aa11a18407d2c6f8b01e359 Mon Sep 17 00:00:00 2001
 From: Russell King <rmk+kernel@arm.linux.org.uk>
 Date: Thu, 16 May 2013 19:26:38 +0000
-Subject: [PATCH 14/21] drm/i2c: nxp-tda998x: fix npix/nline programming
+Subject: [PATCH 14/22] drm/i2c: nxp-tda998x: fix npix/nline programming
 
 The npix/nline registers are supposed to be programmed with the total
 number of pixels/lines, not the displayed pixels/lines, and not minus
@@ -9,7 +9,7 @@ one either.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/gpu/drm/i2c/tda998x_drv.c | 4 ++--
+ drivers/gpu/drm/i2c/tda998x_drv.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
@@ -28,5 +28,5 @@ index 37094fd..17db51b 100644
  	reg_write16(encoder, REG_VS_LINE_END_1_MSB, line_end);
  	reg_write16(encoder, REG_VS_PIX_STRT_1_MSB, hs_start);
 -- 
-1.8.1.4
+1.7.9.5
 
