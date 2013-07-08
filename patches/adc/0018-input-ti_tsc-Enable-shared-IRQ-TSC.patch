@@ -1,0 +1,65 @@
+From 7755274f5a20b012d9b01ac654e9ff2b4877bc31 Mon Sep 17 00:00:00 2001
+From: ZubairLK <zubairlk@zubairlk-HP-G62-Notebook-PC.(none)>
+Date: Fri, 28 Jun 2013 00:45:20 +0100
+Subject: [PATCH 18/21] input : ti_tsc : Enable shared IRQ TSC
+
+Touchscreen and ADC share the same IRQ line from parent MFD core.
+
+Previously only Touchscreen was interrupt based.
+
+With continuous mode support added in ADC driver, now driver requires
+
+interrupt to process the ADC samples, so enable shared IRQ flag bit for
+
+touchscreen.
+
+Original Commit in Arago tree : 09597d7a244a8e6f5ea79da3c5dced3a5ea620c4
+ZubairLK Forward ported the changes to 3.8
+
+Signed-off-by: Zubair Lutfullah  <zubair.lutfullah@gmail.com>S
+---
+ drivers/input/touchscreen/ti_am335x_tsc.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+index 5f9801c..fd6a7b9 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -261,7 +261,15 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+ 	unsigned int fsm;
+ 
+ 	status = titsc_readl(ts_dev, REG_IRQSTATUS);
+-	if (status & IRQENB_FIFO0THRES) {
++       /*
++	* ADC and touchscreen share the IRQ line.
++	* FIFO1 threshold interrupt is used by ADC,
++	* hence return from touchscreen IRQ handler if FIFO1
++	* threshold interrupt occurred.
++	*/
++	if (status & IRQENB_FIFO1THRES)
++		return IRQ_NONE;
++	else if (status & IRQENB_FIFO0THRES) {
+ 
+ 		titsc_read_coordinates(ts_dev, &x, &y, &z1, &z2);
+ 
+@@ -316,7 +324,7 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+ 	}
+ 
+ 	if (irqclr) {
+-		titsc_writel(ts_dev, REG_IRQSTATUS, irqclr);
++		titsc_writel(ts_dev, REG_IRQSTATUS, (status | irqclr));
+ 		am335x_tsc_se_update(ts_dev->mfd_tscadc);
+ 		return IRQ_HANDLED;
+ 	}
+@@ -412,7 +420,7 @@ static int titsc_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	err = request_irq(ts_dev->irq, titsc_irq,
+-			  0, pdev->dev.driver->name, ts_dev);
++			  IRQF_SHARED, pdev->dev.driver->name, ts_dev);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "failed to allocate irq.\n");
+ 		goto err_free_mem;
+-- 
+1.7.9.5
+

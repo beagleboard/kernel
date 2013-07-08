@@ -1,14 +1,14 @@
-From a319e31117c5003d8aafee9243cba73df1ba232a Mon Sep 17 00:00:00 2001
+From 552c4e9204974db2674b371851b185a924274a75 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 4 Jun 2013 17:54:45 +0300
-Subject: [PATCH 7/8] bbb: Add a fall-back non-audio HDMI cape
+Subject: [PATCH 07/15] bbb: Add a fall-back non-audio HDMI cape
 
 When a user cape hogs the audio, allow booting with a HDMI cape which
 only supports video.
 ---
- arch/arm/boot/dts/am335x-bone-common.dtsi    |  21 +++++
- firmware/Makefile                            |   5 +-
- firmware/capes/cape-boneblack-hdmin-00A0.dts | 112 +++++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone-common.dtsi    |   21 +++++
+ firmware/Makefile                            |    5 +-
+ firmware/capes/cape-boneblack-hdmin-00A0.dts |  112 ++++++++++++++++++++++++++
  3 files changed, 136 insertions(+), 2 deletions(-)
  create mode 100644 firmware/capes/cape-boneblack-hdmin-00A0.dts
 
@@ -52,10 +52,10 @@ index ae407c3..aa95810 100644
  	};
  
 diff --git a/firmware/Makefile b/firmware/Makefile
-index d82fb9b..062cfef 100644
+index 1a353ce..0de40d98 100644
 --- a/firmware/Makefile
 +++ b/firmware/Makefile
-@@ -196,8 +196,9 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_NIXIE) += \
+@@ -198,8 +198,9 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_NIXIE) += \
  # the weather cape
  fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += cape-bone-weather-00A0.dtbo
  
@@ -186,5 +186,5 @@ index 0000000..44ae0ea
 +	};
 +};
 -- 
-1.8.1.4
+1.7.9.5
 

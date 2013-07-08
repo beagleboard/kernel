@@ -1,22 +1,24 @@
-From dd9921f7c5c718bb7c1a5f85913e1e98bda52f38 Mon Sep 17 00:00:00 2001
+From b2ec4d00aa97dbd34ce5c0fe0324045019105ea3 Mon Sep 17 00:00:00 2001
 From: Darren Etheridge <detheridge@ti.com>
 Date: Thu, 21 Mar 2013 16:23:03 -0500
-Subject: [PATCH 136/177] Enhancing to support extra device tree options for
- tilcdc: ti,max_width (maximum width in pixels) ti,max_pixelclock (maximum
- allowable pixel clock for the device) also added some extra debugging enabled
- with drm debug to help understand why modes are being selected or rejected.
+Subject: [PATCH 136/184] Enhancing to support extra device tree options for
+ tilcdc: ti,max_width (maximum width in pixels)
+ ti,max_pixelclock (maximum allowable pixel clock
+ for the device) also added some extra debugging
+ enabled with drm debug to help understand why modes
+ are being selected or rejected.
 
 ---
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c | 36 +++++++++++++++++++++++++++++++-----
- drivers/gpu/drm/tilcdc/tilcdc_drv.c  | 18 +++++++++++++++++-
- drivers/gpu/drm/tilcdc/tilcdc_drv.h  | 14 ++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c |   36 +++++++++++++++++++++++++++++-----
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c  |   18 ++++++++++++++++-
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h  |   14 +++++++++++++
  3 files changed, 62 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index 4d94daa..63aec17 100644
+index fe47255..edafddc 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-@@ -421,12 +421,15 @@ int tilcdc_crtc_max_width(struct drm_crtc *crtc)
+@@ -425,12 +425,15 @@ int tilcdc_crtc_max_width(struct drm_crtc *crtc)
  int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
  		int rb_check)
  {
@@ -34,7 +36,7 @@ index 4d94daa..63aec17 100644
  
  	/* width must be multiple of 16 */
  	if (mode->hdisplay & 0xf)
-@@ -435,10 +438,31 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+@@ -439,10 +442,31 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
  	if (mode->vdisplay > 2048)
  		return MODE_VIRTUAL_Y;
  
@@ -68,7 +70,7 @@ index 4d94daa..63aec17 100644
  
  	if (rb_check) {
  		/* we only support reduced blanking modes */
-@@ -446,8 +470,10 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
+@@ -450,8 +474,10 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
  		       (mode->hsync_end - mode->hdisplay == 80) &&
  		       (mode->hsync_end - mode->hsync_start == 32) &&
  		       (mode->vsync_start - mode->vdisplay == 3);
@@ -146,5 +148,5 @@ index b04f94c..48d744c 100644
  
  	/* register contents saved across suspend/resume: */
 -- 
-1.8.1.4
+1.7.9.5
 

@@ -1,7 +1,7 @@
-From d82d2f913a5e5f2111d34b37fa81bbe354a8fd0d Mon Sep 17 00:00:00 2001
+From 14648388e17519d6feaa626f455c22b508353e9b Mon Sep 17 00:00:00 2001
 From: Denis Ciocca <denis.ciocca@gmail.com>
 Date: Fri, 25 Jan 2013 23:44:00 +0000
-Subject: [PATCH 4/6] iio:magnetometer: Add STMicroelectronics magnetometers
+Subject: [PATCH 4/9] iio:magnetometer: Add STMicroelectronics magnetometers
  driver
 
 This patch adds a generic magnetometer driver for STMicroelectronics
@@ -11,13 +11,13 @@ LSM303DLHC, LSM303DLM, LIS3MDL.
 Signed-off-by: Denis Ciocca <denis.ciocca@st.com>
 Signed-off-by: Jonathan Cameron <jic23@kernel.org>
 ---
- drivers/iio/magnetometer/Kconfig          |  30 +++
- drivers/iio/magnetometer/Makefile         |   7 +
- drivers/iio/magnetometer/st_magn.h        |  45 ++++
- drivers/iio/magnetometer/st_magn_buffer.c |  98 ++++++++
- drivers/iio/magnetometer/st_magn_core.c   | 394 ++++++++++++++++++++++++++++++
- drivers/iio/magnetometer/st_magn_i2c.c    |  81 ++++++
- drivers/iio/magnetometer/st_magn_spi.c    |  80 ++++++
+ drivers/iio/magnetometer/Kconfig          |   30 +++
+ drivers/iio/magnetometer/Makefile         |    7 +
+ drivers/iio/magnetometer/st_magn.h        |   45 ++++
+ drivers/iio/magnetometer/st_magn_buffer.c |   98 +++++++
+ drivers/iio/magnetometer/st_magn_core.c   |  394 +++++++++++++++++++++++++++++
+ drivers/iio/magnetometer/st_magn_i2c.c    |   81 ++++++
+ drivers/iio/magnetometer/st_magn_spi.c    |   80 ++++++
  7 files changed, 735 insertions(+)
  create mode 100644 drivers/iio/magnetometer/st_magn.h
  create mode 100644 drivers/iio/magnetometer/st_magn_buffer.c
@@ -808,5 +808,5 @@ index 0000000..94547e7
 +MODULE_DESCRIPTION("STMicroelectronics magnetometers spi driver");
 +MODULE_LICENSE("GPL v2");
 -- 
-1.8.1.4
+1.7.9.5
 

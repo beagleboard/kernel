@@ -1,7 +1,7 @@
-From c0d0682945a38f93ea1521bdc20b86642a3b0a36 Mon Sep 17 00:00:00 2001
+From c40ed4acca4c63712a6f7c752f8529a63a75f4cf Mon Sep 17 00:00:00 2001
 From: Russell King <rmk+kernel@arm.linux.org.uk>
 Date: Thu, 16 May 2013 19:25:58 +0000
-Subject: [PATCH 11/21] drm/i2c: nxp-tda998x: fix EDID reading on TDA19988
+Subject: [PATCH 11/22] drm/i2c: nxp-tda998x: fix EDID reading on TDA19988
  devices
 
 TDA19988 devices need their RAM enabled in order to read EDID
@@ -9,7 +9,7 @@ information.  Add support for this.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/gpu/drm/i2c/tda998x_drv.c | 14 +++++++++++++-
+ drivers/gpu/drm/i2c/tda998x_drv.c |   14 +++++++++++++-
  1 file changed, 13 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
@@ -69,5 +69,5 @@ index 412ba4f..9ac4ed9 100644
  	kfree(block);
  	return NULL;
 -- 
-1.8.1.4
+1.7.9.5
 

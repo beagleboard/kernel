@@ -1,17 +1,23 @@
-From a7a8824707ea43c6d07ac4e6efe1a7cc1b04aa5c Mon Sep 17 00:00:00 2001
+From c13f7356d0cbc05470cd09f931c041fa4b08b3df Mon Sep 17 00:00:00 2001
 From: "Patil, Rachna" <rachna@ti.com>
-Date: Thu, 24 Jan 2013 03:45:09 +0000
-Subject: [PATCH 05/16] MFD: ti_am335x_tscadc: Add DT support
+Date: Wed, 12 Jun 2013 18:58:10 +0200
+Subject: [PATCH 08/21] mfd: ti_am335x_tscadc: Add DT support
 
-Make changes to add DT support in the MFD core driver.
+Add DT support in the MFD core driver. The node name is "am3359" because
+it was tested on this platform.
 
+Zubair Lutfullah: Reversed the change to am3359-tsc to ti-tscadc to keep from further changes in DT
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 Signed-off-by: Patil, Rachna <rachna@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/mfd/ti_am335x_tscadc.c | 28 +++++++++++++++++++++++-----
- 1 file changed, 23 insertions(+), 5 deletions(-)
+ drivers/mfd/ti_am335x_tscadc.c |   30 +++++++++++++++++++++++++-----
+ 1 file changed, 25 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index e9f3fb5..87b446b 100644
+index cca6a6c..0fc5867 100644
 --- a/drivers/mfd/ti_am335x_tscadc.c
 +++ b/drivers/mfd/ti_am335x_tscadc.c
 @@ -22,6 +22,8 @@
@@ -23,7 +29,7 @@ index e9f3fb5..87b446b 100644
  
  #include <linux/mfd/ti_am335x_tscadc.h>
  #include <linux/input/ti_am335x_tsc.h>
-@@ -64,20 +66,31 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+@@ -90,20 +92,31 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
  	struct resource		*res;
  	struct clk		*clk;
  	struct mfd_tscadc_board	*pdata = pdev->dev.platform_data;
@@ -49,10 +55,10 @@ index e9f3fb5..87b446b 100644
 +		if (pdata->adc_init)
 +			adc_channels = pdata->adc_init->adc_channels;
 +	} else {
-+		node = of_find_node_by_name(pdev->dev.of_node, "tsc");
++		node = of_get_child_by_name(pdev->dev.of_node, "tsc");
 +		of_property_read_u32(node, "ti,wires", &tsc_wires);
 +
-+		node = of_find_node_by_name(pdev->dev.of_node, "adc");
++		node = of_get_child_by_name(pdev->dev.of_node, "adc");
 +		of_property_read_u32(node, "ti,adc-channels", &adc_channels);
 +	}
  
@@ -60,13 +66,15 @@ index e9f3fb5..87b446b 100644
  	total_channels = tsc_wires + adc_channels;
  
  	if (total_channels > 8) {
-@@ -256,11 +269,16 @@ static const struct dev_pm_ops tscadc_pm_ops = {
+@@ -285,11 +298,18 @@ static const struct dev_pm_ops tscadc_pm_ops = {
  #define TSCADC_PM_OPS NULL
  #endif
  
 +static const struct of_device_id ti_tscadc_dt_ids[] = {
 +	{ .compatible = "ti,ti-tscadc", },
++	{ }
 +};
++MODULE_DEVICE_TABLE(of, ti_tscadc_dt_ids);
 +
  static struct platform_driver ti_tscadc_driver = {
  	.driver = {
@@ -78,5 +86,5 @@ index e9f3fb5..87b446b 100644
  	.probe	= ti_tscadc_probe,
  	.remove	= ti_tscadc_remove,
 -- 
-1.8.1.4
+1.7.9.5
 

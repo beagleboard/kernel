@@ -1,8 +1,8 @@
-From 1f6ac778991d2db567d5e3890477998a2e7dde22 Mon Sep 17 00:00:00 2001
+From 304ed4a8763c3d8764d30be56effca8bf6505d8e Mon Sep 17 00:00:00 2001
 From: Daniel Kurtz <djkurtz@chromium.org>
 Date: Mon, 19 Mar 2012 09:42:09 +0800
-Subject: [PATCH 29/57] CHROMIUM: Input: atmel_mxt_ts - read num messages, then
- all messages
+Subject: [PATCH 29/57] CHROMIUM: Input: atmel_mxt_ts - read num messages,
+ then all messages
 
 Implement the MXT DMA method of reading messages.
 On an interrupt, the T44 report always contains the number of messages
@@ -37,7 +37,7 @@ Commit-Ready: Daniel Kurtz <djkurtz@chromium.org>
 v3.7 rebase:
 Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
 ---
- drivers/input/touchscreen/atmel_mxt_ts.c | 138 ++++++++++++++++++++-----------
+ drivers/input/touchscreen/atmel_mxt_ts.c |  138 +++++++++++++++++++-----------
  1 file changed, 90 insertions(+), 48 deletions(-)
 
 diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
@@ -237,5 +237,5 @@ index c2891f2..8c29fb3 100644
  	}
  
 -- 
-1.8.1.4
+1.7.9.5
 

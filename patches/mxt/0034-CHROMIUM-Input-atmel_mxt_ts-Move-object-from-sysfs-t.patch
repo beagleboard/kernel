@@ -1,4 +1,4 @@
-From 87936d296b390bff0e5bfe43bd5e17ac26069a10 Mon Sep 17 00:00:00 2001
+From f3a376bf32c401915b9d5d21c796f06df5b129b9 Mon Sep 17 00:00:00 2001
 From: Yufeng Shen <miletus@chromium.org>
 Date: Thu, 10 May 2012 16:19:04 -0400
 Subject: [PATCH 34/57] CHROMIUM: Input: atmel_mxt_ts - Move object from sysfs
@@ -26,7 +26,7 @@ Tested-by: Yufeng Shen <miletus@chromium.org>
 v3.7 rebase:
 Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
 ---
- drivers/input/touchscreen/atmel_mxt_ts.c | 279 +++++++++++++++++++++++--------
+ drivers/input/touchscreen/atmel_mxt_ts.c |  279 +++++++++++++++++++++++-------
  1 file changed, 212 insertions(+), 67 deletions(-)
 
 diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
@@ -372,5 +372,5 @@ index 0804795..3ea35d1 100644
  	free_irq(data->irq, data);
  	if (data->input_dev)
 -- 
-1.8.1.4
+1.7.9.5
 

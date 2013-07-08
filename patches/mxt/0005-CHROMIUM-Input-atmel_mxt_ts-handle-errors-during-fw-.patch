@@ -1,8 +1,8 @@
-From c3a17e97314631a211f2943d02b1b41119c2fb01 Mon Sep 17 00:00:00 2001
+From 33eebf172ee6252bc9f14e45f955ce8aa16f63fa Mon Sep 17 00:00:00 2001
 From: Daniel Kurtz <djkurtz@chromium.org>
 Date: Thu, 20 Dec 2012 23:16:35 +0800
-Subject: [PATCH 05/57] CHROMIUM: Input: atmel_mxt_ts - handle errors during fw
- update
+Subject: [PATCH 05/57] CHROMIUM: Input: atmel_mxt_ts - handle errors during
+ fw update
 
 If there are any (i2c) errors during fw update, abort the update, but
 leave the i2c address assigned to the bootloader address.
@@ -15,7 +15,7 @@ Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
 
 Change-Id: I2933505115dd55aa4dcf07e333f0e1d56e9e246e
 ---
- drivers/input/touchscreen/atmel_mxt_ts.c | 17 +++++++++++------
+ drivers/input/touchscreen/atmel_mxt_ts.c |   17 +++++++++++------
  1 file changed, 11 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
@@ -74,5 +74,5 @@ index 6c2c712..76a25d3 100644
  	return ret;
  }
 -- 
-1.8.1.4
+1.7.9.5
 

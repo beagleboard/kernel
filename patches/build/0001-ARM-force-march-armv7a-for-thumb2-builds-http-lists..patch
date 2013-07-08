@@ -1,12 +1,12 @@
-From 375866ed4fa4ba44fd8a2f2e5436554ce9ec4715 Mon Sep 17 00:00:00 2001
+From a05c7df583bacd75a6efecbd8b602297c3be7063 Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Wed, 3 Apr 2013 09:36:21 +0200
-Subject: [PATCH 1/2] ARM: force -march=armv7a for thumb2 builds -
+Subject: [PATCH 1/4] ARM: force -march=armv7a for thumb2 builds -
  http://lists.linaro.org/pipermail/linaro-dev/2011-August/006752.html
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
- arch/arm/boot/compressed/Makefile | 2 +-
+ arch/arm/boot/compressed/Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/compressed/Makefile b/arch/arm/boot/compressed/Makefile
@@ -23,5 +23,5 @@ index 5cad8a6..12edc8c 100644
  # Supply kernel BSS size to the decompressor via a linker symbol.
  KBSS_SZ = $(shell $(CROSS_COMPILE)size $(obj)/../../../../vmlinux | \
 -- 
-1.8.1.4
+1.7.9.5
 

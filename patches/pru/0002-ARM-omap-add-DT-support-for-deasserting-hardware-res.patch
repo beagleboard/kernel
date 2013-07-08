@@ -1,4 +1,4 @@
-From 3f2448521861aa261263f791ec1332996f989d8f Mon Sep 17 00:00:00 2001
+From a47f2917d705d4cd4fcb10a2bb430bdf9b9ba56c Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
 Date: Thu, 17 Jan 2013 16:02:48 -0800
 Subject: [PATCH 2/8] ARM: omap: add DT support for deasserting hardware reset
@@ -19,9 +19,9 @@ Subject: [PATCH 2/8] ARM: omap: add DT support for deasserting hardware reset
  Signed-off-by: Matt Porter <mporter@ti.com>
  Signed-off-by: Matt Ranostay <mranostay@gmail.com>
 ---
- .../devicetree/bindings/arm/omap/omap.txt          |  2 ++
- arch/arm/mach-omap2/omap_device.c                  | 25 ++++++++++++++++++++--
- drivers/uio/uio_pruss.c                            |  2 +-
+ .../devicetree/bindings/arm/omap/omap.txt          |    2 ++
+ arch/arm/mach-omap2/omap_device.c                  |   25 ++++++++++++++++++--
+ drivers/uio/uio_pruss.c                            |    2 +-
  3 files changed, 26 insertions(+), 3 deletions(-)
 
 diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
@@ -94,5 +94,5 @@ index 2bb1d7a..563a337 100644
  #ifdef CONFIG_ARCH_DAVINCI_DA850
  		gdev->sram_vaddr =
 -- 
-1.8.1.4
+1.7.9.5
 
