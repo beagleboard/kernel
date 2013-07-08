@@ -1,14 +1,14 @@
-From a1d4d25911186a0e7331aed2b7d9a81cfdadadcb Mon Sep 17 00:00:00 2001
+From ff8972a08e02b3ff1051c8329716412fa786b1dc Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
 Date: Tue, 19 Mar 2013 17:05:44 +0000
-Subject: [PATCH 130/177] cape: vsense-scale division by zero check
+Subject: [PATCH 130/184] cape: vsense-scale division by zero check
 
 Catch corner case of division by zero when passing
 in vsense-scale property from the device tree.
 
 Signed-off-by: Matt Ranostay <mranostay@gmail.com>
 ---
- drivers/misc/cape/beaglebone/cape-bone-geiger.c | 12 +++++++++++-
+ drivers/misc/cape/beaglebone/cape-bone-geiger.c |   12 +++++++++++-
  1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/misc/cape/beaglebone/cape-bone-geiger.c b/drivers/misc/cape/beaglebone/cape-bone-geiger.c
@@ -47,5 +47,5 @@ index 6be383e..fa57be0 100644
  	if (IS_ERR(info->vsense_channel)) {
  		dev_err(&pdev->dev, "Could not get %s analog input\n",
 -- 
-1.8.1.4
+1.7.9.5
 

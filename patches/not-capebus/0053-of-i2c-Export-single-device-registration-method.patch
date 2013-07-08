@@ -1,15 +1,15 @@
-From dedbb8356e3c795fdbb2a47d2761883d0929d01a Mon Sep 17 00:00:00 2001
+From 939135b764a3911167a05532e14422932a3c1072 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 15 Jan 2013 11:26:27 +0200
-Subject: [PATCH 053/177] of-i2c: Export single device registration method
+Subject: [PATCH 053/184] of-i2c: Export single device registration method
 
 Dynamically inserting i2c client device nodes requires the use
 of a single device registration method. Rework and export it.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/of/of_i2c.c    | 104 +++++++++++++++++++++++++++----------------------
- include/linux/of_i2c.h |  11 ++++++
+ drivers/of/of_i2c.c    |  104 ++++++++++++++++++++++++++----------------------
+ include/linux/of_i2c.h |   11 +++++
  2 files changed, 68 insertions(+), 47 deletions(-)
 
 diff --git a/drivers/of/of_i2c.c b/drivers/of/of_i2c.c
@@ -167,5 +167,5 @@ index cfb545c..53fca8f 100644
  {
  	return;
 -- 
-1.8.1.4
+1.7.9.5
 

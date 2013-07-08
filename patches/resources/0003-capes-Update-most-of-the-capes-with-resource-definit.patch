@@ -1,44 +1,45 @@
-From 59e46b010ac35ed47e7f1c9bbbafc7db518ffbdc Mon Sep 17 00:00:00 2001
+From d33c06f35ead1511fca5c98eac554291b320eb8c Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 17 May 2013 18:38:30 +0300
-Subject: [PATCH 3/8] capes: Update most of the capes with resource definitions
+Subject: [PATCH 03/15] capes: Update most of the capes with resource
+ definitions
 
 Updated all the standard capes with their resource definitions.
 ---
- firmware/capes/BB-BONE-GPEVT-00A0.dts          |  7 ++++
- firmware/capes/BB-BONE-LCD4-01-00A0.dts        | 31 +++++++++++++++++
- firmware/capes/BB-BONE-LCD4-01-00A1.dts        | 46 ++++++++++++++++++++++--
- firmware/capes/BB-BONE-LCD7-01-00A2.dts        | 46 ++++++++++++++++++++++--
- firmware/capes/BB-BONE-LCD7-01-00A3.dts        | 48 ++++++++++++++++++++++++--
- firmware/capes/BB-BONE-LCD7-01-00A4.dts        | 47 +++++++++++++++++++++++--
- firmware/capes/BB-BONE-PWMT-00A0.dts           |  9 ++++-
- firmware/capes/BB-BONE-eMMC1-01-00A0.dts       | 16 +++++++++
- firmware/capes/BB-BONELT-BT-00A0.dts           |  7 ++++
- firmware/capes/bone_pwm_P8_13-00A0.dts         | 13 +++++--
- firmware/capes/bone_pwm_P8_19-00A0.dts         | 13 +++++--
- firmware/capes/bone_pwm_P8_34-00A0.dts         |  7 ++++
- firmware/capes/bone_pwm_P8_36-00A0.dts         |  7 ++++
- firmware/capes/bone_pwm_P8_45-00A0.dts         |  7 ++++
- firmware/capes/bone_pwm_P8_46-00A0.dts         |  7 ++++
- firmware/capes/bone_pwm_P9_14-00A0.dts         |  7 ++++
- firmware/capes/bone_pwm_P9_16-00A0.dts         |  7 ++++
- firmware/capes/bone_pwm_P9_21-00A0.dts         |  7 ++++
- firmware/capes/bone_pwm_P9_22-00A0.dts         |  7 ++++
- firmware/capes/bone_pwm_P9_28-00A0.dts         |  7 ++++
- firmware/capes/bone_pwm_P9_29-00A0.dts         |  7 ++++
- firmware/capes/bone_pwm_P9_31-00A0.dts         |  7 ++++
- firmware/capes/bone_pwm_P9_42-00A0.dts         |  7 ++++
- firmware/capes/cape-bone-adafruit-lcd-00A0.dts | 31 ++++++++++++-----
- firmware/capes/cape-bone-adafruit-rtc-00A0.dts | 15 ++++++++
- firmware/capes/cape-bone-dvi-00A0.dts          | 32 +++++++++++++++++
- firmware/capes/cape-bone-dvi-00A1.dts          | 37 ++++++++++++++++++++
- firmware/capes/cape-bone-dvi-00A2.dts          | 32 +++++++++++++++++
- firmware/capes/cape-bone-geiger-00A0.dts       | 15 ++++++++
- firmware/capes/cape-bone-iio-00A0.dts          | 13 +++++++
- firmware/capes/cape-bone-mrf24j40-00A0.dts     | 16 +++++++++
- firmware/capes/cape-bone-nixie-00A0.dts        | 18 ++++++++--
- firmware/capes/cape-bone-tester-00A0.dts       |  2 ++
- firmware/capes/cape-bone-weather-00A0.dts      |  7 ++++
+ firmware/capes/BB-BONE-GPEVT-00A0.dts          |    7 ++++
+ firmware/capes/BB-BONE-LCD4-01-00A0.dts        |   31 +++++++++++++++
+ firmware/capes/BB-BONE-LCD4-01-00A1.dts        |   46 +++++++++++++++++++++--
+ firmware/capes/BB-BONE-LCD7-01-00A2.dts        |   46 +++++++++++++++++++++--
+ firmware/capes/BB-BONE-LCD7-01-00A3.dts        |   48 ++++++++++++++++++++++--
+ firmware/capes/BB-BONE-LCD7-01-00A4.dts        |   47 ++++++++++++++++++++++-
+ firmware/capes/BB-BONE-PWMT-00A0.dts           |    9 ++++-
+ firmware/capes/BB-BONE-eMMC1-01-00A0.dts       |   16 ++++++++
+ firmware/capes/BB-BONELT-BT-00A0.dts           |    7 ++++
+ firmware/capes/bone_pwm_P8_13-00A0.dts         |   13 ++++++-
+ firmware/capes/bone_pwm_P8_19-00A0.dts         |   13 ++++++-
+ firmware/capes/bone_pwm_P8_34-00A0.dts         |    7 ++++
+ firmware/capes/bone_pwm_P8_36-00A0.dts         |    7 ++++
+ firmware/capes/bone_pwm_P8_45-00A0.dts         |    7 ++++
+ firmware/capes/bone_pwm_P8_46-00A0.dts         |    7 ++++
+ firmware/capes/bone_pwm_P9_14-00A0.dts         |    7 ++++
+ firmware/capes/bone_pwm_P9_16-00A0.dts         |    7 ++++
+ firmware/capes/bone_pwm_P9_21-00A0.dts         |    7 ++++
+ firmware/capes/bone_pwm_P9_22-00A0.dts         |    7 ++++
+ firmware/capes/bone_pwm_P9_28-00A0.dts         |    7 ++++
+ firmware/capes/bone_pwm_P9_29-00A0.dts         |    7 ++++
+ firmware/capes/bone_pwm_P9_31-00A0.dts         |    7 ++++
+ firmware/capes/bone_pwm_P9_42-00A0.dts         |    7 ++++
+ firmware/capes/cape-bone-adafruit-lcd-00A0.dts |   31 +++++++++++----
+ firmware/capes/cape-bone-adafruit-rtc-00A0.dts |   15 ++++++++
+ firmware/capes/cape-bone-dvi-00A0.dts          |   32 ++++++++++++++++
+ firmware/capes/cape-bone-dvi-00A1.dts          |   37 ++++++++++++++++++
+ firmware/capes/cape-bone-dvi-00A2.dts          |   32 ++++++++++++++++
+ firmware/capes/cape-bone-geiger-00A0.dts       |   15 ++++++++
+ firmware/capes/cape-bone-iio-00A0.dts          |   13 +++++++
+ firmware/capes/cape-bone-mrf24j40-00A0.dts     |   16 ++++++++
+ firmware/capes/cape-bone-nixie-00A0.dts        |   18 ++++++++-
+ firmware/capes/cape-bone-tester-00A0.dts       |    2 +
+ firmware/capes/cape-bone-weather-00A0.dts      |    7 ++++
  34 files changed, 559 insertions(+), 26 deletions(-)
 
 diff --git a/firmware/capes/BB-BONE-GPEVT-00A0.dts b/firmware/capes/BB-BONE-GPEVT-00A0.dts
@@ -60,7 +61,7 @@ index 112a6d1..e773dee 100644
  		target = <&am33xx_pinmux>;
  		__overlay__ {
 diff --git a/firmware/capes/BB-BONE-LCD4-01-00A0.dts b/firmware/capes/BB-BONE-LCD4-01-00A0.dts
-index 6f2e78f..c34e151 100644
+index b1c7e00..4b6f3cc 100644
 --- a/firmware/capes/BB-BONE-LCD4-01-00A0.dts
 +++ b/firmware/capes/BB-BONE-LCD4-01-00A0.dts
 @@ -15,6 +15,37 @@
@@ -102,7 +103,7 @@ index 6f2e78f..c34e151 100644
  		target = <&am33xx_pinmux>;
  		__overlay__ {
 diff --git a/firmware/capes/BB-BONE-LCD4-01-00A1.dts b/firmware/capes/BB-BONE-LCD4-01-00A1.dts
-index 7a05f3a..b466f70 100644
+index bd3c2a8..b424c09 100644
 --- a/firmware/capes/BB-BONE-LCD4-01-00A1.dts
 +++ b/firmware/capes/BB-BONE-LCD4-01-00A1.dts
 @@ -15,13 +15,53 @@
@@ -171,7 +172,7 @@ index 7a05f3a..b466f70 100644
  				lcd4-led0 {
  					label = "lcd4:green:usr0";
 diff --git a/firmware/capes/BB-BONE-LCD7-01-00A2.dts b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
-index 1ba88d9..0f2df54 100644
+index d1eac3b..77ef5ec 100644
 --- a/firmware/capes/BB-BONE-LCD7-01-00A2.dts
 +++ b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
 @@ -15,13 +15,53 @@
@@ -249,7 +250,7 @@ index 1ba88d9..0f2df54 100644
  			};
  
 diff --git a/firmware/capes/BB-BONE-LCD7-01-00A3.dts b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
-index 4da050f6..abdcf3b 100644
+index 979fd73..f5fab09 100644
 --- a/firmware/capes/BB-BONE-LCD7-01-00A3.dts
 +++ b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
 @@ -15,6 +15,48 @@
@@ -949,7 +950,7 @@ index d5c49bb..4c54804 100644
  		target = <&am33xx_pinmux>;
  		__overlay__ {
 diff --git a/firmware/capes/cape-bone-geiger-00A0.dts b/firmware/capes/cape-bone-geiger-00A0.dts
-index 309dbca..d3ea92a 100644
+index 967e03b..fed2a63 100644
 --- a/firmware/capes/cape-bone-geiger-00A0.dts
 +++ b/firmware/capes/cape-bone-geiger-00A0.dts
 @@ -15,6 +15,21 @@
@@ -975,7 +976,7 @@ index 309dbca..d3ea92a 100644
  		target = <&am33xx_pinmux>;
  		__overlay__ {
 diff --git a/firmware/capes/cape-bone-iio-00A0.dts b/firmware/capes/cape-bone-iio-00A0.dts
-index 4fa02ef..edff883 100644
+index f1cf814..416712b 100644
 --- a/firmware/capes/cape-bone-iio-00A0.dts
 +++ b/firmware/capes/cape-bone-iio-00A0.dts
 @@ -14,6 +14,19 @@
@@ -1069,7 +1070,7 @@ index 7ec2c46..e4ff3ab 100644
  
  	fragment@2 {
 diff --git a/firmware/capes/cape-bone-tester-00A0.dts b/firmware/capes/cape-bone-tester-00A0.dts
-index 1aee7af9..4cb94cc 100644
+index b5b1be8..df04f6d 100644
 --- a/firmware/capes/cape-bone-tester-00A0.dts
 +++ b/firmware/capes/cape-bone-tester-00A0.dts
 @@ -15,6 +15,8 @@
@@ -1100,5 +1101,5 @@ index 7cb479a..c017cdb 100644
                 target = <&am33xx_pinmux>;
                 __overlay__ {
 -- 
-1.8.1.4
+1.7.9.5
 

@@ -1,0 +1,36 @@
+From eab7b943c7c0970e2ca8838723cc5256d7c2ea5c Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Wed, 12 Jun 2013 18:58:19 +0200
+Subject: [PATCH 12/21] input: ti_am335x_tsc: ACK the HW_PEN irq in ISR
+
+The interrupt source IRQENB_HW_PEN is enabled in suspend and suposed to
+be used as a wake up source. Once this interrupt source is unmaksed, the
+devices ends up in ISR and never continues.
+This change ACKs the interrupt and disables it so the system does not
+freeze.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/input/touchscreen/ti_am335x_tsc.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+index 6c333af..2e9a247 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -309,6 +309,12 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+ 		irqclr |= IRQENB_PENUP;
+ 	}
+ 
++	if (status & IRQENB_HW_PEN) {
++
++		titsc_writel(ts_dev, REG_IRQWAKEUP, 0x00);
++		titsc_writel(ts_dev, REG_IRQCLR, IRQENB_HW_PEN);
++	}
++
+ 	titsc_writel(ts_dev, REG_IRQSTATUS, irqclr);
+ 
+ 	am335x_tsc_se_update(ts_dev->mfd_tscadc);
+-- 
+1.7.9.5
+

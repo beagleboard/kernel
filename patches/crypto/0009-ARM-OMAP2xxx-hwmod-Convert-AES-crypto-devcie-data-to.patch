@@ -1,8 +1,8 @@
-From 8a369fea47d2618cc33c828760a1893eabbdde56 Mon Sep 17 00:00:00 2001
+From ee7ea34f2453a0d8a1d2cbeba698b6120cf5ded3 Mon Sep 17 00:00:00 2001
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 Date: Wed, 7 Nov 2012 12:16:49 -0700
-Subject: [PATCH 09/34] ARM: OMAP2xxx: hwmod: Convert AES crypto devcie data to
- hwmod
+Subject: [PATCH 09/34] ARM: OMAP2xxx: hwmod: Convert AES crypto devcie data
+ to hwmod
 
 Convert the device data for the OMAP2 AES crypto IP from
 explicit platform_data to hwmod.
@@ -10,13 +10,13 @@ explicit platform_data to hwmod.
 CC: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
- arch/arm/mach-omap2/cclock2430_data.c              |  3 +-
- arch/arm/mach-omap2/devices.c                      | 36 +++++++-------------
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  1 +
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  1 +
- .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c | 18 ++++++++++
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c | 38 ++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |  2 ++
+ arch/arm/mach-omap2/cclock2430_data.c              |    3 +-
+ arch/arm/mach-omap2/devices.c                      |   36 ++++++-------------
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |    1 +
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |    1 +
+ .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |   18 ++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   38 ++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |    2 ++
  7 files changed, 73 insertions(+), 26 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cclock2430_data.c b/arch/arm/mach-omap2/cclock2430_data.c
@@ -218,5 +218,5 @@ index 928acd5..6e04ff7 100644
  /* Common IP block data */
  extern struct omap_hwmod_dma_info omap2_uart1_sdma_reqs[];
 -- 
-1.8.1.4
+1.7.9.5
 

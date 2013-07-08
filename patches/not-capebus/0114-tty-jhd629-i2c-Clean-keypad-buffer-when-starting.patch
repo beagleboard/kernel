@@ -1,11 +1,11 @@
-From 56ac62feaee6f81bf24686d7e8a31997c6a7b0db Mon Sep 17 00:00:00 2001
+From e673360c33792d5d65dd73c63bc45afdc6e25fa6 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 6 Mar 2013 19:35:57 +0200
-Subject: [PATCH 114/177] tty: jhd629-i2c: Clean keypad buffer when starting
+Subject: [PATCH 114/184] tty: jhd629-i2c: Clean keypad buffer when starting
 
 Make sure we don't pick up key press from when the tty was closed.
 ---
- drivers/tty/jhd629-i2c.c | 5 +++++
+ drivers/tty/jhd629-i2c.c |    5 +++++
  1 file changed, 5 insertions(+)
 
 diff --git a/drivers/tty/jhd629-i2c.c b/drivers/tty/jhd629-i2c.c
@@ -32,5 +32,5 @@ index 8ce7c94..7fd4c88 100644
  		s->poll_timer.expires = jiffies +
  				msecs_to_jiffies(s->poll_period);
 -- 
-1.8.1.4
+1.7.9.5
 

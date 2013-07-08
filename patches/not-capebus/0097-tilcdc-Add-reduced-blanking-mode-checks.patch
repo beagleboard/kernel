@@ -1,7 +1,7 @@
-From d8526b8d60470e34be9bea0ace215ca1dfbb8f89 Mon Sep 17 00:00:00 2001
+From 5fb5872842afc56ad18f055d390e702b5dc7df48 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 30 Jan 2013 20:09:11 +0200
-Subject: [PATCH 097/177] tilcdc: Add reduced blanking mode checks
+Subject: [PATCH 097/184] tilcdc: Add reduced blanking mode checks
 
 The driver doesn't support (yet?) non-reduced blanking mode.
 So by default disable any non-reduced blanking modes, and add a switch
@@ -9,16 +9,16 @@ to enable them in the future.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c | 11 +++++++++++
- drivers/gpu/drm/tilcdc/tilcdc_drv.c  |  5 ++++-
- drivers/gpu/drm/tilcdc/tilcdc_drv.h  |  1 +
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c |   11 +++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c  |    5 ++++-
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h  |    1 +
  3 files changed, 16 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index 5dd3c7d..628d9aa 100644
+index 9f10f05..dcbafad 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-@@ -422,6 +422,7 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode)
+@@ -426,6 +426,7 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode)
  {
  	struct tilcdc_drm_private *priv = crtc->dev->dev_private;
  	unsigned int bandwidth;
@@ -26,7 +26,7 @@ index 5dd3c7d..628d9aa 100644
  
  	if (mode->hdisplay > tilcdc_crtc_max_width(crtc))
  		return MODE_VIRTUAL_X;
-@@ -438,6 +439,16 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode)
+@@ -442,6 +443,16 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode)
  	if (bandwidth > priv->max_bandwidth)
  		return MODE_BAD;
  
@@ -74,5 +74,5 @@ index 8242b5a..c858f73 100644
  	/* register contents saved across suspend/resume: */
  	u32 saved_register[12];
 -- 
-1.8.1.4
+1.7.9.5
 

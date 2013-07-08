@@ -1,0 +1,47 @@
+From 7c40527f7f729814e2e1ad18ac4e5bcfb9df0cf4 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Wed, 12 Jun 2013 18:58:22 +0200
+Subject: [PATCH 15/21] iio: ti_am335x_adc: check if we found the value
+
+Usually we get all the values we wanted but it is possible, that te ADC
+unit is busy performing the conversation for the HW events. In that case
+-EBUSY is returned and the user may re-call the function.
+
+Acked-by: Jonathan Cameron <jic23@kernel.org>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/iio/adc/ti_am335x_adc.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index a2b6ebd..624935c 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -146,6 +146,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+ 	int i;
+ 	unsigned int fifo1count, read;
+ 	u32 step = UINT_MAX;
++	bool found = false;
+ 
+ 	/*
+ 	 * When the sub-system is first enabled,
+@@ -170,11 +171,14 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+ 	fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
+ 	for (i = 0; i < fifo1count; i++) {
+ 		read = tiadc_readl(adc_dev, REG_FIFO1);
+-		if (read >> 16 == step)
++		if (read >> 16 == step) {
+ 			*val = read & 0xfff;
++			found = true;
++		}
+ 	}
+ 	am335x_tsc_se_update(adc_dev->mfd_tscadc);
+-
++	if (found == false)
++		return -EBUSY;
+ 	return IIO_VAL_INT;
+ }
+ 
+-- 
+1.7.9.5
+

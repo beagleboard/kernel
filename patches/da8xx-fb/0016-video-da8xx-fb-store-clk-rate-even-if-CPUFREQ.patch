@@ -1,4 +1,4 @@
-From f5222948601f9bcda0d8a40d0743fea42b63e2f3 Mon Sep 17 00:00:00 2001
+From 37e5aef9d2ed50ace058812c22771f0f6ecff379 Mon Sep 17 00:00:00 2001
 From: Afzal Mohammed <afzal@ti.com>
 Date: Fri, 7 Dec 2012 02:00:23 +0530
 Subject: [PATCH 16/48] video: da8xx-fb: store clk rate even if !CPUFREQ
@@ -9,7 +9,7 @@ enquiring with clock framework with clk handle every time.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/video/da8xx-fb.c | 4 +---
+ drivers/video/da8xx-fb.c |    4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
@@ -37,5 +37,5 @@ index d060f14..f1d88ac 100644
  	if (fb_pdata->panel_power_ctrl) {
  		par->panel_power_ctrl = fb_pdata->panel_power_ctrl;
 -- 
-1.8.1.4
+1.7.9.5
 

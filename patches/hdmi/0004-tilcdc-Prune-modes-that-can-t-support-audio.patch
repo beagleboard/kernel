@@ -1,19 +1,19 @@
-From 6beae212e23af0b23494ea1ec4197e4578315284 Mon Sep 17 00:00:00 2001
+From 5a3954a5e76624817bb9015ea865cdb0dfc32dcf Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 3 May 2013 16:11:53 +0300
-Subject: [PATCH 04/21] tilcdc: Prune modes that can't support audio.
+Subject: [PATCH 04/22] tilcdc: Prune modes that can't support audio.
 
 If the connector supports audio, prune all the display modes that
 don't support it.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c   | 73 ++++++++++++++++++++--------------
- drivers/gpu/drm/tilcdc/tilcdc_drv.c    |  9 ++++-
- drivers/gpu/drm/tilcdc/tilcdc_drv.h    |  3 +-
- drivers/gpu/drm/tilcdc/tilcdc_panel.c  |  2 +-
- drivers/gpu/drm/tilcdc/tilcdc_slave.c  |  6 ++-
- drivers/gpu/drm/tilcdc/tilcdc_tfp410.c |  2 +-
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c   |   73 +++++++++++++++++++-------------
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c    |    9 +++-
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h    |    3 +-
+ drivers/gpu/drm/tilcdc/tilcdc_panel.c  |    2 +-
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c  |    6 ++-
+ drivers/gpu/drm/tilcdc/tilcdc_tfp410.c |    2 +-
  6 files changed, 59 insertions(+), 36 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
@@ -240,5 +240,5 @@ index 9d9796f..c71f955 100644
  
  static struct drm_encoder *tfp410_connector_best_encoder(
 -- 
-1.8.1.4
+1.7.9.5
 

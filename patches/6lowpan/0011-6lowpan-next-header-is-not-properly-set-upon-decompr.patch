@@ -1,4 +1,4 @@
-From 59be413a2f9978a3ad2151306fc3aa990a97264a Mon Sep 17 00:00:00 2001
+From 27c4d894f72a0cb63a3155433c0dbe5cd29c43ea Mon Sep 17 00:00:00 2001
 From: Tony Cheneau <tony.cheneau@amnesiak.org>
 Date: Mon, 25 Mar 2013 23:59:22 -0400
 Subject: [PATCH 11/23] 6lowpan: next header is not properly set upon
@@ -8,7 +8,7 @@ This causes a drop of the UDP packet.
 
 Signed-off-by: Tony Cheneau <tony.cheneau@amnesiak.org>
 ---
- net/ieee802154/6lowpan.c | 4 +++-
+ net/ieee802154/6lowpan.c |    4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/net/ieee802154/6lowpan.c b/net/ieee802154/6lowpan.c
@@ -29,5 +29,5 @@ index 43b95ca..9f53904 100644
  	/* Not fragmented package */
  	hdr.payload_len = htons(skb->len);
 -- 
-1.8.1.4
+1.7.9.5
 

@@ -1,4 +1,4 @@
-From 86a5b264ea8489a004bc6cb046844dd4a9c94a5a Mon Sep 17 00:00:00 2001
+From 5c4bf4ebe1e5e2f426d4bfa3ceab45a2e808c5eb Mon Sep 17 00:00:00 2001
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Date: Sun, 24 Feb 2013 22:59:36 -0800
 Subject: [PATCH 3/4] W1: w1-gpio - rework handling of platform data
@@ -14,7 +14,7 @@ before committing final result to device tree).
 
 Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
- drivers/w1/masters/w1-gpio.c | 44 +++++++++++++++++++++++++-------------------
+ drivers/w1/masters/w1-gpio.c |   44 ++++++++++++++++++++++++------------------
  1 file changed, 25 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/w1/masters/w1-gpio.c b/drivers/w1/masters/w1-gpio.c
@@ -122,5 +122,5 @@ index aa97a96..465ce52 100644
  	if (pdata->enable_external_pullup)
  		pdata->enable_external_pullup(1);
 -- 
-1.8.1.4
+1.7.9.5
 

@@ -1,0 +1,41 @@
+From af74185528c9059665910142681f2d5fd3e72cbc Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Wed, 12 Jun 2013 18:58:20 +0200
+Subject: [PATCH 13/21] input: ti_am335x_tsc: return IRQ_NONE if there was no
+ IRQ for us
+
+The previous patch ("input/ti_am335x_tsc: ACK the HW_PEN irq in ISR")
+acked the interrupt so we don't freeze if we don't handle an enabled
+interrupt source. The interrupt core has a mechanism for this and to get
+it work one should only say that it handled an interrupt if it is
+actually the case.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/input/touchscreen/ti_am335x_tsc.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+index 2e9a247..5f9801c 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -315,10 +315,12 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+ 		titsc_writel(ts_dev, REG_IRQCLR, IRQENB_HW_PEN);
+ 	}
+ 
+-	titsc_writel(ts_dev, REG_IRQSTATUS, irqclr);
+-
+-	am335x_tsc_se_update(ts_dev->mfd_tscadc);
+-	return IRQ_HANDLED;
++	if (irqclr) {
++		titsc_writel(ts_dev, REG_IRQSTATUS, irqclr);
++		am335x_tsc_se_update(ts_dev->mfd_tscadc);
++		return IRQ_HANDLED;
++	}
++	return IRQ_NONE;
+ }
+ 
+ static int titsc_parse_dt(struct platform_device *pdev,
+-- 
+1.7.9.5
+
