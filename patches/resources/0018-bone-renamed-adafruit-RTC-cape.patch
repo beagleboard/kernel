@@ -1,4 +1,4 @@
-From 6d2b8698f030738bb6ebadd2ca88cebe6ac9627a Mon Sep 17 00:00:00 2001
+From c3ac11cff845b1ef9f1482ddfc310fbc93613d24 Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
 Date: Sat, 29 Jun 2013 23:51:36 +0000
 Subject: [PATCH 18/19] bone: renamed adafruit RTC cape
@@ -8,11 +8,12 @@ rename RTC protocape to a more consistent naming
 Signed-off-by: Matt Ranostay <mranostay@gmail.com>
 ---
  arch/arm/boot/dts/am335x-bone-common.dtsi      |  2 +-
- firmware/Makefile                              |  1 +
+ firmware/Makefile                              |  4 +-
  firmware/capes/BB-BONE-RTC-00A0.dts            | 57 ++++++++++++++++++++++++++
  firmware/capes/cape-bone-adafruit-rtc-00A0.dts | 57 --------------------------
- 4 files changed, 59 insertions(+), 58 deletions(-)
+ 4 files changed, 60 insertions(+), 60 deletions(-)
  create mode 100644 firmware/capes/BB-BONE-RTC-00A0.dts
+ delete mode 100644 firmware/capes/cape-bone-adafruit-rtc-00A0.dts
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
 index aa95810..ff4b5d2 100644
@@ -28,7 +29,7 @@ index aa95810..ff4b5d2 100644
  			};
  
 diff --git a/firmware/Makefile b/firmware/Makefile
-index 0de40d98..4531c17 100644
+index 0de40d98..c11bed4 100644
 --- a/firmware/Makefile
 +++ b/firmware/Makefile
 @@ -155,6 +155,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
@@ -39,6 +40,16 @@ index 0de40d98..4531c17 100644
  	BB-BONE-RS232-00A0.dtbo \
  	BB-BONE-SERL-01-00A1.dtbo \
  	cape-bone-iio-00A0.dtbo \
+@@ -184,8 +185,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	BB-BONE-RST2-00A0.dtbo \
+ 	BB-BONE-CAM3-01-00A2.dtbo \
+ 	TT3201-001-01.dtbo \
+-	BB-BONE-SERL-03-00A1.dtbo \
+-	BB-BONE-PRU-01-00A0.dtbo
++	BB-BONE-SERL-03-00A1.dtbo
+ 
+ # the geiger cape
+ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_GEIGER) += \
 diff --git a/firmware/capes/BB-BONE-RTC-00A0.dts b/firmware/capes/BB-BONE-RTC-00A0.dts
 new file mode 100644
 index 0000000..35344fd
@@ -103,9 +114,10 @@ index 0000000..35344fd
 +	};
 +};
 diff --git a/firmware/capes/cape-bone-adafruit-rtc-00A0.dts b/firmware/capes/cape-bone-adafruit-rtc-00A0.dts
-index 35344fd..e69de29 100644
+deleted file mode 100644
+index 35344fd..0000000
 --- a/firmware/capes/cape-bone-adafruit-rtc-00A0.dts
-+++ b/firmware/capes/cape-bone-adafruit-rtc-00A0.dts
++++ /dev/null
 @@ -1,57 +0,0 @@
 -/*
 -* Copyright (C) 2013 Matt Ranostay <mranostay@gmail.com>
