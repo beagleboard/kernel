@@ -1,0 +1,39 @@
+From 05d410f2296c1a90bad86cd9fa6ccf832fedad59 Mon Sep 17 00:00:00 2001
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Date: Fri, 21 Dec 2012 01:44:00 -0800
+Subject: [PATCH 3/6] leds: leds-pwm: Simplify cleanup code
+
+The code looks more nicer if we use:
+
+while (i--)
+
+instead:
+if (i > 0)
+	for (i = i - 1; i >= 0; i--)
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Bryan Wu <cooloney@gmail.com>
+---
+ drivers/leds/leds-pwm.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/leds/leds-pwm.c b/drivers/leds/leds-pwm.c
+index c767837..46f4e44 100644
+--- a/drivers/leds/leds-pwm.c
++++ b/drivers/leds/leds-pwm.c
+@@ -104,10 +104,8 @@ static int led_pwm_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err:
+-	if (i > 0) {
+-		for (i = i - 1; i >= 0; i--)
+-			led_classdev_unregister(&priv->leds[i].cdev);
+-	}
++	while (i--)
++		led_classdev_unregister(&priv->leds[i].cdev);
+ 
+ 	return ret;
+ }
+-- 
+1.8.2.1
+
