@@ -1,0 +1,39 @@
+From 6771216db05a3789fa5b7a8f88ee5f28bb2ee0fa Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 11 Jul 2013 20:03:56 +0300
+Subject: [PATCH 4/4] capes: bacon: Update with new ADC driver method
+
+---
+ firmware/capes/BB-BONE-BACON-00A0.dts  | 2 +-
+ firmware/capes/BB-BONE-BACONE-00A0.dts | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/firmware/capes/BB-BONE-BACON-00A0.dts b/firmware/capes/BB-BONE-BACON-00A0.dts
+index d25c1baa..96a1a36 100644
+--- a/firmware/capes/BB-BONE-BACON-00A0.dts
++++ b/firmware/capes/BB-BONE-BACON-00A0.dts
+@@ -85,7 +85,7 @@
+ 				status = "okay";
+ 
+ 				adc {
+-					ti,adc-channels = <8>;	/* 8 channels (but only 5 is used) */
++					ti,adc-channels = <0 1 2 3 4 5 6 7>; /* 8 channels (but only #5 is used) */
+ 				};
+ 			};
+ 
+diff --git a/firmware/capes/BB-BONE-BACONE-00A0.dts b/firmware/capes/BB-BONE-BACONE-00A0.dts
+index a02173d..07fa753 100644
+--- a/firmware/capes/BB-BONE-BACONE-00A0.dts
++++ b/firmware/capes/BB-BONE-BACONE-00A0.dts
+@@ -80,7 +80,7 @@
+ 				status = "okay";
+ 
+ 				adc {
+-					ti,adc-channels = <8>;	/* 8 channels (but only 5 is used) */
++					ti,adc-channels = <0 1 2 3 4 5 6 7>; /* 8 channels (but only #5 is used) */
+ 				};
+ 			};
+ 
+-- 
+1.8.2.1
+
