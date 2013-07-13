@@ -1,0 +1,34 @@
+From ed79dfe1302bfed9443573b4b21de63307285b98 Mon Sep 17 00:00:00 2001
+From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Date: Thu, 11 Jul 2013 23:53:46 +0100
+Subject: [PATCH 13/19] IIO: ti_adc: Also clear threshold event when clearing
+ overrun event
+
+When an overrun occurs, the FIFO is cleared. If a FIFO threshold event
+
+was pending, the data is now gone. Clear the threshold event when
+
+handling an overrun (or underflow).
+
+Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+---
+ drivers/iio/adc/ti_am335x_adc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index fcd414d..1e48799 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -178,7 +178,8 @@ static irqreturn_t tiadc_irq(int irq, void *private)
+ 
+                 tiadc_writel(adc_dev, REG_IRQSTATUS,
+                                 IRQENB_FIFO1OVRRUN |
+-                                IRQENB_FIFO1UNDRFLW);
++                                IRQENB_FIFO1UNDRFLW |
++                                IRQENB_FIFO1THRES);
+  
+                 tiadc_writel(adc_dev, REG_CTRL,
+                        (config | CNTRLREG_TSCSSENB));
+-- 
+1.7.9.5
+

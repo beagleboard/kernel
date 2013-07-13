@@ -1,0 +1,60 @@
+From 67424c16077483f27e39f32df055361de9210d41 Mon Sep 17 00:00:00 2001
+From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Date: Thu, 11 Jul 2013 23:49:48 +0100
+Subject: [PATCH 12/19] iio: ti_adc: Avoid double threshold event
+
+The threshold event handler is being called before the FIFO has
+
+actually reached the threshold.
+
+The current code receives a FIFO threshold event, masks the interrupt,
+
+clears the event, and schedules a workqueue. The workqueue is run, it
+
+empties the FIFO, and unmasks the interrupt.
+
+In the above sequence, after the event is cleared, it immediately
+
+retriggers since the FIFO remains beyond the threshold. When the IRQ is
+
+unmasked, this triggered event generates another IRQ. However, as the
+
+FIFO has just been emptied, it is likely to not contain enough samples.
+
+The waits to clear the event until the FIFO has actually been emptied,
+
+in the workqueue. The unmasking and masking of the interrupt remains
+
+unchanged.
+
+Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+---
+ drivers/iio/adc/ti_am335x_adc.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index e510da7..fcd414d 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -193,8 +193,7 @@ static irqreturn_t tiadc_irq(int irq, void *private)
+                 } else {
+                         wake_up_interruptible(&adc_dev->wq_data_avail);
+                 }
+-                tiadc_writel(adc_dev, REG_IRQSTATUS,
+-					IRQENB_FIFO1THRES);
++
+                 return IRQ_HANDLED;      
+ 	} else {
+                 return IRQ_NONE;
+@@ -230,6 +229,8 @@ static void tiadc_poll_handler(struct work_struct *work_s)
+         }
+ 
+         buffer->access->store_to(buffer, (u8 *) iBuf);
++	tiadc_writel(adc_dev, REG_IRQSTATUS,
++				IRQENB_FIFO1THRES);
+         tiadc_writel(adc_dev, REG_IRQENABLE, 
+ 				IRQENB_FIFO1THRES);
+ 
+-- 
+1.7.9.5
+

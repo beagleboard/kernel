@@ -1,0 +1,82 @@
+From d9d8cd8ccf2137b21de96d18fa1183f7e26fa218 Mon Sep 17 00:00:00 2001
+From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Date: Thu, 11 Jul 2013 23:34:25 +0100
+Subject: [PATCH 09/19] IIO: ti_adc: Handle set to clear IRQENABLE register
+ properly.
+
+The driver is currently mishandling the IRQENABLE register. The driver
+
+should write a 1 for bits it wishes to set, and a zero for bits it does not
+
+wish to change. The read of the current register contents is not
+
+necessary.
+
+Write 0 = No action.
+
+Read 0 = Interrupt disabled (masked).
+
+Read 1 = Interrupt enabled.
+
+Write 1 = Enable interrupt.
+
+The current read/update/write method is currently not causing any
+
+problems, but could cause confusion in the future.
+
+Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+---
+ drivers/iio/adc/ti_am335x_adc.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index 31665fa..a86830b 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -211,7 +211,7 @@ static void tiadc_poll_handler(struct work_struct *work_s)
+                 container_of(work_s, struct tiadc_device, poll_work);
+         struct iio_dev *idev = iio_priv_to_dev(adc_dev);
+         struct iio_buffer *buffer = idev->buffer;
+-        unsigned int fifo1count, readx1, status;
++        unsigned int fifo1count, readx1;
+         int i;
+         u32 *iBuf;
+ 
+@@ -234,9 +234,8 @@ static void tiadc_poll_handler(struct work_struct *work_s)
+         }
+ 
+         buffer->access->store_to(buffer, (u8 *) iBuf);
+-        status = tiadc_readl(adc_dev, REG_IRQENABLE);
+-        tiadc_writel(adc_dev, REG_IRQENABLE,
+-                        (status | IRQENB_FIFO1THRES));
++        tiadc_writel(adc_dev, REG_IRQENABLE, 
++				IRQENB_FIFO1THRES);
+ 
+         kfree(iBuf);
+ }
+@@ -253,7 +252,7 @@ static int tiadc_buffer_postenable(struct iio_dev *idev)
+ {
+         struct tiadc_device *adc_dev = iio_priv(idev);
+         struct iio_buffer *buffer = idev->buffer;
+-        unsigned int enb, status, fifo1count;
++        unsigned int enb, fifo1count;
+         int stepnum, i;
+         u8 bit;
+ 
+@@ -261,11 +260,10 @@ static int tiadc_buffer_postenable(struct iio_dev *idev)
+                 printk("Data cannot be read continuously in one shot mode\n");
+                 return -EINVAL;
+         } else {
+-                status = tiadc_readl(adc_dev, REG_IRQENABLE);
+                 tiadc_writel(adc_dev, REG_IRQENABLE,
+-                                (status | IRQENB_FIFO1THRES)|
++                                (IRQENB_FIFO1THRES |
+                                  IRQENB_FIFO1OVRRUN |
+-                                 IRQENB_FIFO1UNDRFLW);
++                                 IRQENB_FIFO1UNDRFLW));
+ 
+                 fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
+                 for (i = 0; i < fifo1count; i++)
+-- 
+1.7.9.5
+

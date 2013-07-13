@@ -1,8 +1,8 @@
-From 3d389cbe8c83496030790268dbb7c82e97e93767 Mon Sep 17 00:00:00 2001
+From 3adb4e791fa2f44df147585ed7ea9528abd7cf22 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 20 Jun 2013 16:06:38 -0500
-Subject: [PATCH 06/20] ARM: edma: Add DT and runtime PM support to the private
- EDMA API
+Subject: [PATCH 06/20] ARM: edma: Add DT and runtime PM support to the
+ private EDMA API
 
 Adds support for parsing the TI EDMA DT data into the required EDMA
 private API platform data. Enables runtime PM support to initialize
@@ -22,14 +22,14 @@ edma_setup_info_from_dt() as part of that effort]
 Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
 Acked-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/arm/common/edma.c                    | 186 +++++++++++++++++++++++++++---
- arch/arm/mach-davinci/devices-da8xx.c     |   8 +-
- arch/arm/mach-davinci/devices-tnetv107x.c |   4 +-
- arch/arm/mach-davinci/dm355.c             |   4 +-
- arch/arm/mach-davinci/dm365.c             |   4 +-
- arch/arm/mach-davinci/dm644x.c            |   4 +-
- arch/arm/mach-davinci/dm646x.c            |   4 +-
- include/linux/platform_data/edma.h        |   4 +-
+ arch/arm/common/edma.c                    |  186 +++++++++++++++++++++++++++--
+ arch/arm/mach-davinci/devices-da8xx.c     |    8 +-
+ arch/arm/mach-davinci/devices-tnetv107x.c |    4 +-
+ arch/arm/mach-davinci/dm355.c             |    4 +-
+ arch/arm/mach-davinci/dm365.c             |    4 +-
+ arch/arm/mach-davinci/dm644x.c            |    4 +-
+ arch/arm/mach-davinci/dm646x.c            |    4 +-
+ include/linux/platform_data/edma.h        |    4 +-
  8 files changed, 189 insertions(+), 29 deletions(-)
 
 diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
@@ -445,5 +445,5 @@ index 2344ea2..317f2be 100644
  
  #endif
 -- 
-1.8.2.1
+1.7.9.5
 
