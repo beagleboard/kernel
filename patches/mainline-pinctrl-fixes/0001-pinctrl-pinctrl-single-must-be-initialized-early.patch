@@ -1,4 +1,4 @@
-From bf3fcd64e46f9f079fc5dc8b6a20e03cfc16321d Mon Sep 17 00:00:00 2001
+From ee55ee82156a5e5c81fd1f65a8a494dcab93d23a Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Sat, 15 Sep 2012 12:00:41 +0300
 Subject: [PATCH] pinctrl: pinctrl-single must be initialized early.
@@ -7,7 +7,7 @@ When using pinctrl-single to handle i2c initialization, it has
 to be done early. Whether this is the best way to do so, is an
 exercise left to the reader.
 ---
- drivers/pinctrl/pinctrl-single.c | 12 +++++++++++-
+ drivers/pinctrl/pinctrl-single.c |   12 +++++++++++-
  1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
@@ -34,5 +34,5 @@ index b9fa046..17f7bb5 100644
  MODULE_AUTHOR("Tony Lindgren <tony@atomide.com>");
  MODULE_DESCRIPTION("One-register-per-pin type device tree based pinctrl driver");
 -- 
-1.8.2.1
+1.7.9.5
 

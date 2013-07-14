@@ -1,7 +1,7 @@
-From dec55037c80e16d1abef2dd7c3ab3491a46c4481 Mon Sep 17 00:00:00 2001
+From 3dd5b27fd24176a437f792f8434b1974a381332c Mon Sep 17 00:00:00 2001
 From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
 Date: Thu, 4 Jul 2013 23:14:24 +0100
-Subject: [PATCH] MFD: ti_tscadc: disable TSC control
+Subject: [PATCH 02/22] MFD: ti_tscadc: disable TSC control
 
 Register bits when TSC not in use
 
@@ -18,7 +18,7 @@ by TI. Original author is Patil, Rachna
  1 file changed, 11 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index b003a16..6b87f37 100644
+index b003a16..d72001c 100644
 --- a/drivers/mfd/ti_am335x_tscadc.c
 +++ b/drivers/mfd/ti_am335x_tscadc.c
 @@ -208,13 +208,14 @@ static	int ti_tscadc_probe(struct platform_device *pdev)

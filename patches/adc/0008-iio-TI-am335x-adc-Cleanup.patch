@@ -1,0 +1,89 @@
+From b204a63037419bcf61d1bcf452db6fb3129f1702 Mon Sep 17 00:00:00 2001
+From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Date: Thu, 11 Jul 2013 23:03:09 +0100
+Subject: [PATCH 08/22] iio: TI-am335x-adc: Cleanup
+
+Cleaned up the code a bit. Some formatting.
+Some error handling paths corrected
+---
+ drivers/iio/adc/ti_am335x_adc.c |   33 +++++++++++++++++----------------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index 1f6e800..31665fa 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -311,13 +311,11 @@ static const struct iio_buffer_setup_ops tiadc_buffer_setup_ops = {
+ static int tiadc_config_sw_ring(struct iio_dev *idev)
+ {
+         struct tiadc_device *adc_dev = iio_priv(idev);
+-      //int ret;
+ 
+         idev->buffer = iio_kfifo_allocate(idev);
+         if (!idev->buffer)
+                 return(-ENOMEM);
+ 
+- //     idev->buffer->access = &ring_sw_access_funcs;
+         idev->setup_ops = &tiadc_buffer_setup_ops;
+ 
+         INIT_WORK(&adc_dev->poll_work, &tiadc_poll_handler);
+@@ -506,21 +504,22 @@ static int tiadc_probe(struct platform_device *pdev)
+ 	err = tiadc_channel_init(indio_dev, adc_dev->channels);
+ 	if (err < 0)
+ 		goto err_free_device;
+-    init_waitqueue_head(&adc_dev->wq_data_avail);
+ 
+-    err = request_irq(adc_dev->irq, tiadc_irq, IRQF_SHARED,
+-            indio_dev->name, indio_dev);
+-    if (err)
+-            goto err_free_irq;
++	init_waitqueue_head(&adc_dev->wq_data_avail);
+ 
+-    err = tiadc_config_sw_ring(indio_dev);
+-    if (err < 0)
+-            goto err_unregister;
++	err = request_irq(adc_dev->irq, tiadc_irq, IRQF_SHARED,
++		indio_dev->name, indio_dev);
++	if (err)
++		goto err_free_irq;
++
++	err = tiadc_config_sw_ring(indio_dev);
++	if (err < 0)
++		goto err_unregister;
+  
+-    err = iio_buffer_register(indio_dev,
+-                    indio_dev->channels, indio_dev->num_channels);
+-    if (err < 0)
+-            goto err_unregister;
++	err = iio_buffer_register(indio_dev,
++		indio_dev->channels, indio_dev->num_channels);
++	if (err < 0)
++		goto err_unregister;
+ 
+ 	err = iio_device_register(indio_dev);
+ 	if (err)
+@@ -531,9 +530,9 @@ static int tiadc_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err_unregister:
+-
++	iio_buffer_unregister(indio_dev);
+ err_free_irq:
+-   free_irq(adc_dev->irq, indio_dev);
++	free_irq(adc_dev->irq, indio_dev);
+ err_free_channels:
+ 	tiadc_channels_remove(indio_dev);
+ err_free_device:
+@@ -548,7 +547,9 @@ static int tiadc_remove(struct platform_device *pdev)
+ 	struct tiadc_device *adc_dev = iio_priv(indio_dev);
+ 	u32 step_en;
+ 
++	free_irq(adc_dev->irq, indio_dev);
+ 	iio_device_unregister(indio_dev);
++	iio_buffer_unregister(indio_dev);
+ 	tiadc_channels_remove(indio_dev);
+ 
+ 	step_en = get_adc_step_mask(adc_dev);
+-- 
+1.7.9.5
+

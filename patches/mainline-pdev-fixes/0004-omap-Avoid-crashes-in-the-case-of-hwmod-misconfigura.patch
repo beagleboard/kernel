@@ -1,7 +1,8 @@
-From 3843d7b377f3217674c522bf0e942c02f9b77e3f Mon Sep 17 00:00:00 2001
+From 5a3d4598e9077f3ab39e8da0720877ff474ab744 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 8 Jan 2013 15:19:52 +0200
-Subject: [PATCH 4/4] omap: Avoid crashes in the case of hwmod misconfiguration
+Subject: [PATCH 4/4] omap: Avoid crashes in the case of hwmod
+ misconfiguration
 
 omap hwmod is really sensitive to hwmod misconfiguration.
 Getting a minor clock wrong always ended up in a crash.
@@ -49,7 +50,7 @@ Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b!
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c | 8 ++++++--
+ arch/arm/mach-omap2/omap_hwmod.c |    8 ++++++--
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
@@ -79,5 +80,5 @@ index 7341eff..42cb7d4 100644
  		oc->_clk = c;
  		/*
 -- 
-1.8.2.1
+1.7.9.5
 
