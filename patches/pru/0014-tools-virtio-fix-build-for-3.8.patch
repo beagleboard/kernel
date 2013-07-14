@@ -1,0 +1,91 @@
+From 47b83c78c70c492a309babd6bb1208c41d42e783 Mon Sep 17 00:00:00 2001
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Mon, 18 Mar 2013 13:22:18 +1030
+Subject: [PATCH 14/16] tools/virtio: fix build for 3.8
+
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+---
+ drivers/vhost/test.c        | 4 +++-
+ tools/virtio/Makefile       | 2 +-
+ tools/virtio/linux/virtio.h | 7 ++++++-
+ tools/virtio/virtio_test.c  | 3 ++-
+ 4 files changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/vhost/test.c b/drivers/vhost/test.c
+index 91d6f06..329d302 100644
+--- a/drivers/vhost/test.c
++++ b/drivers/vhost/test.c
+@@ -275,7 +275,9 @@ static long vhost_test_ioctl(struct file *f, unsigned int ioctl,
+ 		return vhost_test_reset_owner(n);
+ 	default:
+ 		mutex_lock(&n->dev.mutex);
+-		r = vhost_dev_ioctl(&n->dev, ioctl, arg);
++		r = vhost_dev_ioctl(&n->dev, ioctl, argp);
++                if (r == -ENOIOCTLCMD)
++                        r = vhost_vring_ioctl(&n->dev, ioctl, argp);
+ 		vhost_test_flush(n);
+ 		mutex_unlock(&n->dev.mutex);
+ 		return r;
+diff --git a/tools/virtio/Makefile b/tools/virtio/Makefile
+index d1d442e..b48c432 100644
+--- a/tools/virtio/Makefile
++++ b/tools/virtio/Makefile
+@@ -1,7 +1,7 @@
+ all: test mod
+ test: virtio_test
+ virtio_test: virtio_ring.o virtio_test.o
+-CFLAGS += -g -O2 -Wall -I. -I ../../usr/include/ -Wno-pointer-sign -fno-strict-overflow  -MMD
++CFLAGS += -g -O2 -Wall -I. -I ../../usr/include/ -Wno-pointer-sign -fno-strict-overflow -fno-strict-aliasing -fno-common -MMD
+ vpath %.c ../../drivers/virtio
+ mod:
+ 	${MAKE} -C `pwd`/../.. M=`pwd`/vhost_test
+diff --git a/tools/virtio/linux/virtio.h b/tools/virtio/linux/virtio.h
+index 81847dd..390c4cb 100644
+--- a/tools/virtio/linux/virtio.h
++++ b/tools/virtio/linux/virtio.h
+@@ -85,6 +85,8 @@ typedef __u16 u16;
+ typedef enum {
+ 	GFP_KERNEL,
+ 	GFP_ATOMIC,
++	__GFP_HIGHMEM,
++	__GFP_HIGH
+ } gfp_t;
+ typedef enum {
+ 	IRQ_NONE,
+@@ -163,6 +165,8 @@ struct virtqueue {
+ 	void (*callback)(struct virtqueue *vq);
+ 	const char *name;
+ 	struct virtio_device *vdev;
++        unsigned int index;
++        unsigned int num_free;
+ 	void *priv;
+ };
+ 
+@@ -206,7 +210,8 @@ bool virtqueue_enable_cb(struct virtqueue *vq);
+ bool virtqueue_enable_cb_delayed(struct virtqueue *vq);
+ 
+ void *virtqueue_detach_unused_buf(struct virtqueue *vq);
+-struct virtqueue *vring_new_virtqueue(unsigned int num,
++struct virtqueue *vring_new_virtqueue(unsigned int index,
++				      unsigned int num,
+ 				      unsigned int vring_align,
+ 				      struct virtio_device *vdev,
+ 				      bool weak_barriers,
+diff --git a/tools/virtio/virtio_test.c b/tools/virtio/virtio_test.c
+index fcc9aa2..faf3f0c 100644
+--- a/tools/virtio/virtio_test.c
++++ b/tools/virtio/virtio_test.c
+@@ -92,7 +92,8 @@ static void vq_info_add(struct vdev_info *dev, int num)
+ 	assert(r >= 0);
+ 	memset(info->ring, 0, vring_size(num, 4096));
+ 	vring_init(&info->vring, num, info->ring, 4096);
+-	info->vq = vring_new_virtqueue(info->vring.num, 4096, &dev->vdev,
++	info->vq = vring_new_virtqueue(info->idx,
++				       info->vring.num, 4096, &dev->vdev,
+ 				       true, info->ring,
+ 				       vq_notify, vq_callback, "test");
+ 	assert(info->vq);
+-- 
+1.8.2.1
+

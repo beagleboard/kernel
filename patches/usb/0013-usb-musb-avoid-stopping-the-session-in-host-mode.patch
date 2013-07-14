@@ -1,11 +1,11 @@
-From f569084f7549f6f5e707771007f31e45c0affaa6 Mon Sep 17 00:00:00 2001
+From 2f9ebc3d5ceff4b1570e0771cc7b643b27eeccd0 Mon Sep 17 00:00:00 2001
 From: Jan Luebbe <jlu@pengutronix.de>
 Date: Wed, 15 May 2013 16:41:04 +0200
 Subject: [PATCH 13/13] usb: musb: avoid stopping the session in host mode
 
 Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
 ---
- drivers/usb/musb/musb_dsps.c | 10 ++++++++--
+ drivers/usb/musb/musb_dsps.c |   10 ++++++++--
  1 file changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
@@ -30,5 +30,5 @@ index 077c1e7..c9946b9 100644
  		devctl = dsps_readb(musb->mregs, MUSB_DEVCTL);
  		if (devctl & MUSB_DEVCTL_BDEVICE) {
 -- 
-1.8.1.4
+1.7.9.5
 

@@ -1,17 +1,17 @@
-From d10bac6dcfdc664ced63e634473f6478608f896d Mon Sep 17 00:00:00 2001
+From bcb31d83395af0eb3d8daddf2ab4d2079857ac5c Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 9 Jan 2013 14:53:59 +0200
-Subject: [PATCH 046/177] geiger-cape: Convert to using the new ADC driver
+Subject: [PATCH 046/184] geiger-cape: Convert to using the new ADC driver
 
 Now that the proper driver has DT binding convert to using it.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- firmware/capes/cape-bone-geiger-00A0.dts | 18 +++++++++++++++---
+ firmware/capes/cape-bone-geiger-00A0.dts |   18 +++++++++++++++---
  1 file changed, 15 insertions(+), 3 deletions(-)
 
 diff --git a/firmware/capes/cape-bone-geiger-00A0.dts b/firmware/capes/cape-bone-geiger-00A0.dts
-index 18bf1f2..287d75c 100644
+index 67ec568..39e7d38 100644
 --- a/firmware/capes/cape-bone-geiger-00A0.dts
 +++ b/firmware/capes/cape-bone-geiger-00A0.dts
 @@ -54,6 +54,10 @@
@@ -31,7 +31,7 @@ index 18bf1f2..287d75c 100644
  
 -			tscadc-cape-geiger {
 -				compatible = "ti-tscadc-dt";
--				adc-channels = <8>;
+-				adc-channels = <0 1 2 3 4 5 6 7>;
 +			tscadc {
 +				compatible = "ti,ti-tscadc";
 +				reg = <0x44e0d000 0x1000>;
@@ -41,11 +41,11 @@ index 18bf1f2..287d75c 100644
 +				ti,hwmods = "adc_tsc";
 +
 +				adc {
-+					adc-channels = <8>;
++					adc-channels = <0 1 2 3 4 5 6 7>;
 +				};
  			};
  
  			bone-cape-geiger {
 -- 
-1.8.1.4
+1.7.9.5
 

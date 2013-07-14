@@ -1,7 +1,8 @@
-From a86cd8a44bbc02145b0b7fcd29b00dfe5581ad40 Mon Sep 17 00:00:00 2001
+From f1bcfad542842d33e4adc45ad7093faa7bfccb1b Mon Sep 17 00:00:00 2001
 From: Jon Hunter <jon-hunter@ti.com>
 Date: Thu, 21 Feb 2013 15:25:23 -0600
-Subject: [PATCH 13/39] ARM: OMAP2+: Add function for configuring GPMC settings
+Subject: [PATCH 13/39] ARM: OMAP2+: Add function for configuring GPMC
+ settings
 
 The GPMC has various different configuration options such as bus-width,
 synchronous or asychronous mode selection, burst mode options etc.
@@ -20,8 +21,8 @@ address-address-data multiplexing mode.
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 ---
- arch/arm/mach-omap2/gpmc.c | 100 +++++++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/gpmc.h |   6 +++
+ arch/arm/mach-omap2/gpmc.c |  100 ++++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/gpmc.h |    6 +++
  2 files changed, 106 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
@@ -176,5 +177,5 @@ index 39e4e04..ce6ae21 100644
  extern void gpmc_cs_free(int cs);
  extern void omap3_gpmc_save_context(void);
 -- 
-1.8.1.4
+1.7.9.5
 

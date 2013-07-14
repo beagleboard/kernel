@@ -1,14 +1,14 @@
-From 5acb297176ea44c8e9bd261aa03cd6b3250436cd Mon Sep 17 00:00:00 2001
+From a7fdd3e76d42856f38ac83739ce7d2d3f7411f4f Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Mon, 14 Jan 2013 19:57:10 +0200
-Subject: [PATCH 067/177] sndsoc: mcasp: Get DMA channels via byname
+Subject: [PATCH 067/184] sndsoc: mcasp: Get DMA channels via byname
 
 Use get resource by name for DMA channels. Note that even for the
 case where we're booting with DT, they still come out of hwmod data.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- sound/soc/davinci/davinci-mcasp.c | 8 ++++----
+ sound/soc/davinci/davinci-mcasp.c |    8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
@@ -40,5 +40,5 @@ index 621ce30..ea292f6 100644
  		goto err_release_clk;
  	}
 -- 
-1.8.1.4
+1.7.9.5
 

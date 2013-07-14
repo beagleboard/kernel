@@ -1,4 +1,4 @@
-From f1a4c828ca8056c8730b07d826cea9746e4a5633 Mon Sep 17 00:00:00 2001
+From 77464497fc94c102e77c0b94be6b2d38a5ef980b Mon Sep 17 00:00:00 2001
 From: Afzal Mohammed <afzal@ti.com>
 Date: Mon, 21 Jan 2013 17:13:37 +0530
 Subject: [PATCH 34/48] ARM: OMAP2+: dpll: am335x - avoid freqsel
@@ -7,11 +7,11 @@ am335x does not have freqsel, avoid it.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/dpll3xxx.c | 5 +++--
+ arch/arm/mach-omap2/dpll3xxx.c |    5 +++--
  1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index 0a02aab5..3aed4b0 100644
+index 0a02aab..3aed4b0 100644
 --- a/arch/arm/mach-omap2/dpll3xxx.c
 +++ b/arch/arm/mach-omap2/dpll3xxx.c
 @@ -500,8 +500,9 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
@@ -27,5 +27,5 @@ index 0a02aab5..3aed4b0 100644
  						dd->last_rounded_n);
  			WARN_ON(!freqsel);
 -- 
-1.8.1.4
+1.7.9.5
 

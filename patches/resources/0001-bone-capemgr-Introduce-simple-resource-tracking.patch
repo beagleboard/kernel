@@ -1,13 +1,13 @@
-From ee06129839a79f59e58d59e2614dd764e604c35e Mon Sep 17 00:00:00 2001
+From 3ff14befeb68fa7a6b6ef0d17d757bfe8dafea8e Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 16 May 2013 18:11:19 +0300
-Subject: [PATCH 1/8] bone: capemgr: Introduce simple resource tracking
+Subject: [PATCH 01/15] bone: capemgr: Introduce simple resource tracking
 
 Now each cape can declare an exclusive-use property which is
 a string list of every resource it requires.
 Attempting to load a cape that uses the same resource will fail.
 ---
- drivers/misc/cape/beaglebone/capemgr.c | 127 ++++++++++++++++++++++++++++++++-
+ drivers/misc/cape/beaglebone/capemgr.c |  127 +++++++++++++++++++++++++++++++-
  1 file changed, 125 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/misc/cape/beaglebone/capemgr.c b/drivers/misc/cape/beaglebone/capemgr.c
@@ -163,5 +163,5 @@ index 820852d..2820e39 100644
  	/* we're done, wake up all */
  	wake_up_interruptible_all(&info->load_wq);
 -- 
-1.8.1.4
+1.7.9.5
 

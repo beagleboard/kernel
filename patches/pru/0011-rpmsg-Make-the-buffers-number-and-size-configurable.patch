@@ -1,0 +1,63 @@
+From d1911e1391dcbcb1c2caf3dc082a16b83f1f0582 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 23 May 2013 20:22:52 +0300
+Subject: [PATCH 11/16] rpmsg: Make the buffers number and size configurable
+
+The defaults are just too much for small devices. Make them
+configurable (by a kernel config option for now).
+---
+ drivers/rpmsg/Kconfig            | 14 ++++++++++++++
+ drivers/rpmsg/virtio_rpmsg_bus.c | 14 ++++++++++++--
+ 2 files changed, 26 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/rpmsg/Kconfig b/drivers/rpmsg/Kconfig
+index 2bd911f..e3d09d2 100644
+--- a/drivers/rpmsg/Kconfig
++++ b/drivers/rpmsg/Kconfig
+@@ -6,4 +6,18 @@ config RPMSG
+ 	select VIRTIO
+ 	depends on EXPERIMENTAL
+ 
++config RPMSG_NUM_BUFS
++	int "RPMSG number of buffers"
++	depends on RPMSG
++	default 512
++	help
++	  Configure rpmsg number of bufs (default is 512)
++
++config RPMSG_BUF_SIZE
++	int "RPMSG size of buffers"
++	depends on RPMSG
++	default 512
++	help
++	  Configure rpmsg buffer size (default is 512)
++
+ endmenu
+diff --git a/drivers/rpmsg/virtio_rpmsg_bus.c b/drivers/rpmsg/virtio_rpmsg_bus.c
+index f1e3239..1ca8700 100644
+--- a/drivers/rpmsg/virtio_rpmsg_bus.c
++++ b/drivers/rpmsg/virtio_rpmsg_bus.c
+@@ -102,8 +102,18 @@ struct rpmsg_channel_info {
+  * can change this without changing anything in the firmware of the remote
+  * processor.
+  */
+-#define RPMSG_NUM_BUFS		(512)
+-#define RPMSG_BUF_SIZE		(512)
++#ifndef CONFIG_RPMSG_NUM_BUFS
++#define RPMSG_NUM_BUFS		512
++#else
++#define RPMSG_NUM_BUFS		CONFIG_RPMSG_NUM_BUFS
++#endif
++
++#ifndef CONFIG_RPMSG_BUF_SIZE
++#define RPMSG_BUF_SIZE		512
++#else
++#define RPMSG_BUF_SIZE		CONFIG_RPMSG_BUF_SIZE
++#endif
++
+ #define RPMSG_TOTAL_BUF_SPACE	(RPMSG_NUM_BUFS * RPMSG_BUF_SIZE)
+ 
+ /*
+-- 
+1.8.2.1
+

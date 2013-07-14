@@ -1,0 +1,83 @@
+From c759ce4bcce57282642c4ff2da60f9cd5a275776 Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Sat, 29 Jun 2013 23:51:37 +0000
+Subject: [PATCH 19/19] bone: add PPS to BB-BONE-RTC cape
+
+Added PPS input from SQW pin on the DS1307
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ firmware/capes/BB-BONE-RTC-00A0.dts | 43 ++++++++++++++++++++++++++-----------
+ 1 file changed, 30 insertions(+), 13 deletions(-)
+
+diff --git a/firmware/capes/BB-BONE-RTC-00A0.dts b/firmware/capes/BB-BONE-RTC-00A0.dts
+index 35344fd..e90c12b 100644
+--- a/firmware/capes/BB-BONE-RTC-00A0.dts
++++ b/firmware/capes/BB-BONE-RTC-00A0.dts
+@@ -14,7 +14,7 @@
+  * Module     Connector
+  * SCL     -> P9.19
+  * SDA     <- P9.20
+- * SQW     <- NC
++ * SQW/PPS <- P9.15
+  *
+  */
+ 
+@@ -26,20 +26,22 @@
+ 	/* state the resources this cape uses */
+ 	exclusive-use =
+ 		/* the pin header uses */
+-		"P8.19",	/* bl: ehrpwm2A */
+-		"P9.27",	/* lcd: gpio3_19 */
+-		"P9.25",	/* lcd: gpio3_21 */
+-		"P9.31",	/* spi: spi1_sclk */
+-		"P9.29",	/* spi: spi1_d0 */
+-		"P9.30",	/* spi: spi1_d1 */
+-		"P9.28",	/* spi: spi1_cs0 */
+-		/* the hardware IP uses */
+-		"gpio3_19",
+-		"gpio3_21",
+-		"ehrpwm2A",
+-		"spi1";
++		"P9.15";	/*gpio1_16 */
++
+ 
+ 	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			pps_pins: pinmux_pps_pins {
++				pinctrl-single,pins = <
++					0x040	0x27	/* gpmc_a0.gpio1_16, INPUT | PULLDIS | MODE7 */
++				>;
++			};
++		};
++	};
++
++
++	fragment@1 {
+ 		target = <&i2c2>;
+ 
+ 		__overlay__ {
+@@ -54,4 +56,19 @@
+ 			};
+ 		};
+ 	};
++
++	fragment@2 {
++		target = <&ocp>;
++		__overlay__ {
++			pps {
++				compatible = "pps-gpio";
++				status = "okay";
++				pinctrl-names = "default";
++				pinctrl-0 = <&pps_pins>;
++
++				gpios = <&gpio2 16 0>;
++				assert-falling-edge;
++			};
++		};
++	};
+ };
+-- 
+1.8.2.1
+

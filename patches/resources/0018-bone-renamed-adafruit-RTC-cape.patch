@@ -1,0 +1,181 @@
+From c3ac11cff845b1ef9f1482ddfc310fbc93613d24 Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Sat, 29 Jun 2013 23:51:36 +0000
+Subject: [PATCH 18/19] bone: renamed adafruit RTC cape
+
+rename RTC protocape to a more consistent naming
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi      |  2 +-
+ firmware/Makefile                              |  4 +-
+ firmware/capes/BB-BONE-RTC-00A0.dts            | 57 ++++++++++++++++++++++++++
+ firmware/capes/cape-bone-adafruit-rtc-00A0.dts | 57 --------------------------
+ 4 files changed, 60 insertions(+), 60 deletions(-)
+ create mode 100644 firmware/capes/BB-BONE-RTC-00A0.dts
+ delete mode 100644 firmware/capes/cape-bone-adafruit-rtc-00A0.dts
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index aa95810..ff4b5d2 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -326,7 +326,7 @@
+ 				part-number = "BB-BONE-RTC-01";
+ 				version@00A0 {
+ 					version = "00A0";
+-					dtbo = "cape-bone-adafruit-rtc-00A0.dtbo";
++					dtbo = "BB-BONE-RTC-00A0.dtbo";
+ 				};
+ 			};
+ 
+diff --git a/firmware/Makefile b/firmware/Makefile
+index 0de40d98..c11bed4 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -155,6 +155,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	BB-BONE-LCD7-01-00A4.dtbo \
+ 	BB-BONE-eMMC1-01-00A0.dtbo \
+ 	BB-BONE-GPEVT-00A0.dtbo \
++	BB-BONE-RTC-00A0.dtbo \
+ 	BB-BONE-RS232-00A0.dtbo \
+ 	BB-BONE-SERL-01-00A1.dtbo \
+ 	cape-bone-iio-00A0.dtbo \
+@@ -184,8 +185,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	BB-BONE-RST2-00A0.dtbo \
+ 	BB-BONE-CAM3-01-00A2.dtbo \
+ 	TT3201-001-01.dtbo \
+-	BB-BONE-SERL-03-00A1.dtbo \
+-	BB-BONE-PRU-01-00A0.dtbo
++	BB-BONE-SERL-03-00A1.dtbo
+ 
+ # the geiger cape
+ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_GEIGER) += \
+diff --git a/firmware/capes/BB-BONE-RTC-00A0.dts b/firmware/capes/BB-BONE-RTC-00A0.dts
+new file mode 100644
+index 0000000..35344fd
+--- /dev/null
++++ b/firmware/capes/BB-BONE-RTC-00A0.dts
+@@ -0,0 +1,57 @@
++/*
++* Copyright (C) 2013 Matt Ranostay <mranostay@gmail.com>
++*
++* This program is free software; you can redistribute it and/or modify
++* it under the terms of the GNU General Public License version 2 as
++* published by the Free Software Foundation.
++*/
++/dts-v1/;
++/plugin/;
++
++/*
++ * Pin assignments
++ *
++ * Module     Connector
++ * SCL     -> P9.19
++ * SDA     <- P9.20
++ * SQW     <- NC
++ *
++ */
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++	part-number = "BB-BONE-RTC-01";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P8.19",	/* bl: ehrpwm2A */
++		"P9.27",	/* lcd: gpio3_19 */
++		"P9.25",	/* lcd: gpio3_21 */
++		"P9.31",	/* spi: spi1_sclk */
++		"P9.29",	/* spi: spi1_d0 */
++		"P9.30",	/* spi: spi1_d1 */
++		"P9.28",	/* spi: spi1_cs0 */
++		/* the hardware IP uses */
++		"gpio3_19",
++		"gpio3_21",
++		"ehrpwm2A",
++		"spi1";
++
++	fragment@0 {
++		target = <&i2c2>;
++
++		__overlay__ {
++			/* shut up DTC warnings */
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			/* DS1307 RTC module */
++			rtc@68 {
++				compatible = "dallas,ds1307";
++				reg = <0x68>;
++			};
++		};
++	};
++};
+diff --git a/firmware/capes/cape-bone-adafruit-rtc-00A0.dts b/firmware/capes/cape-bone-adafruit-rtc-00A0.dts
+deleted file mode 100644
+index 35344fd..0000000
+--- a/firmware/capes/cape-bone-adafruit-rtc-00A0.dts
++++ /dev/null
+@@ -1,57 +0,0 @@
+-/*
+-* Copyright (C) 2013 Matt Ranostay <mranostay@gmail.com>
+-*
+-* This program is free software; you can redistribute it and/or modify
+-* it under the terms of the GNU General Public License version 2 as
+-* published by the Free Software Foundation.
+-*/
+-/dts-v1/;
+-/plugin/;
+-
+-/*
+- * Pin assignments
+- *
+- * Module     Connector
+- * SCL     -> P9.19
+- * SDA     <- P9.20
+- * SQW     <- NC
+- *
+- */
+-
+-/ {
+-	compatible = "ti,beaglebone", "ti,beaglebone-black";
+-	part-number = "BB-BONE-RTC-01";
+-	version = "00A0";
+-
+-	/* state the resources this cape uses */
+-	exclusive-use =
+-		/* the pin header uses */
+-		"P8.19",	/* bl: ehrpwm2A */
+-		"P9.27",	/* lcd: gpio3_19 */
+-		"P9.25",	/* lcd: gpio3_21 */
+-		"P9.31",	/* spi: spi1_sclk */
+-		"P9.29",	/* spi: spi1_d0 */
+-		"P9.30",	/* spi: spi1_d1 */
+-		"P9.28",	/* spi: spi1_cs0 */
+-		/* the hardware IP uses */
+-		"gpio3_19",
+-		"gpio3_21",
+-		"ehrpwm2A",
+-		"spi1";
+-
+-	fragment@0 {
+-		target = <&i2c2>;
+-
+-		__overlay__ {
+-			/* shut up DTC warnings */
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-
+-			/* DS1307 RTC module */
+-			rtc@68 {
+-				compatible = "dallas,ds1307";
+-				reg = <0x68>;
+-			};
+-		};
+-	};
+-};
+-- 
+1.8.2.1
+

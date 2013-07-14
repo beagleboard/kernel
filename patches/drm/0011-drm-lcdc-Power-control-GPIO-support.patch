@@ -1,14 +1,14 @@
-From 177f7ba38627b56b1d225694ecacb87b71c0586c Mon Sep 17 00:00:00 2001
+From 111652685ebd49ad9f8087833777f540971eff06 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 9 Jan 2013 16:31:29 +0200
-Subject: [PATCH 11/11] drm: lcdc: Power control GPIO support
+Subject: [PATCH 11/12] drm: lcdc: Power control GPIO support
 
 A large number of LCDC designs use a GPIO pin for power control.
 Implement it trivialy.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/gpu/drm/tilcdc/tilcdc_drv.c | 25 ++++++++++++++++++++++++-
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c |   25 ++++++++++++++++++++++++-
  1 file changed, 24 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
@@ -62,5 +62,5 @@ index c5b592d..91e8ed2 100644
  	priv->lcd_fck_rate = clk_get_rate(priv->clk);
  	priv->freq_transition.notifier_call = cpufreq_transition;
 -- 
-1.8.1.4
+1.7.9.5
 

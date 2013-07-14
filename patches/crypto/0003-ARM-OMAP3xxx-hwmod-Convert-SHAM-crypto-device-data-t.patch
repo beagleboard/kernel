@@ -1,4 +1,4 @@
-From 4fd0c80251112e5d646d9c74e589272e3c1aa517 Mon Sep 17 00:00:00 2001
+From 8c381cbe4302d82b8dca632482175343f7cc1291 Mon Sep 17 00:00:00 2001
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 Date: Tue, 2 Oct 2012 19:54:00 -0700
 Subject: [PATCH 03/34] ARM: OMAP3xxx: hwmod: Convert SHAM crypto device data
@@ -10,9 +10,9 @@ from explicit platform_data to hwmod.
 CC: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
- arch/arm/mach-omap2/cclock3xxx_data.c      |  1 +
- arch/arm/mach-omap2/devices.c              | 41 +------------------
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 66 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cclock3xxx_data.c      |    1 +
+ arch/arm/mach-omap2/devices.c              |   41 +----------------
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   66 ++++++++++++++++++++++++++++
  3 files changed, 69 insertions(+), 39 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/cclock3xxx_data.c
@@ -92,7 +92,7 @@ index fc93642..3d1693b 100644
  #if defined(CONFIG_CRYPTO_DEV_OMAP_AES) || defined(CONFIG_CRYPTO_DEV_OMAP_AES_MODULE)
  
 diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 8bb2628..122b4dc 100644
+index 8bb2628..122b4dc6 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
 @@ -3540,6 +3540,71 @@ static struct omap_hwmod_ocp_if omap3xxx_l3_main__gpmc = {
@@ -176,5 +176,5 @@ index 8bb2628..122b4dc 100644
  };
  
 -- 
-1.8.1.4
+1.7.9.5
 
