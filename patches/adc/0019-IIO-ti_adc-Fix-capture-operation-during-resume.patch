@@ -1,0 +1,38 @@
+From e04c9bffd8c6abbfcfa373da059487ebd4b6a76d Mon Sep 17 00:00:00 2001
+From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Date: Fri, 12 Jul 2013 23:13:38 +0100
+Subject: [PATCH 19/22] IIO: ti_adc: Fix capture operation during resume
+
+The ADC needs to go through a proper initialization sequence after
+resuming from suspend.
+
+Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+---
+ drivers/iio/adc/ti_am335x_adc.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index 1f42e0a..40eec84 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -588,12 +588,16 @@ static int tiadc_resume(struct device *dev)
+ 	struct tiadc_device *adc_dev = iio_priv(indio_dev);
+ 	unsigned int restore;
+ 
++        restore = tiadc_readl(adc_dev, REG_CTRL);
++        restore &= ~(CNTRLREG_TSCSSENB);
++        tiadc_writel(adc_dev, REG_CTRL, restore);
++
+     tiadc_writel(adc_dev, REG_FIFO1THR, FIFO1_THRESHOLD);
+     tiadc_step_config(adc_dev, adc_dev->is_continuous_mode);
+ 
+ 	/* Make sure ADC is powered up */
+-	restore = tiadc_readl(adc_dev, REG_CTRL);
+ 	restore &= ~(CNTRLREG_POWERDOWN);
++        restore |= CNTRLREG_TSCSSENB;
+ 	tiadc_writel(adc_dev, REG_CTRL, restore);
+ 
+ 	return 0;
+-- 
+1.7.9.5
+

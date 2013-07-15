@@ -1,0 +1,64 @@
+From 0da0bb41a0b72899c5d52f758063cf9a68a5703d Mon Sep 17 00:00:00 2001
+From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Date: Thu, 11 Jul 2013 23:46:59 +0100
+Subject: [PATCH 11/22] IIO: ti_adc: Handle overrun before threshold event
+
+If an overrun occurs, the threshold event is meaningless, handle
+
+the overrun event first.
+
+Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+---
+ drivers/iio/adc/ti_am335x_adc.c |   29 ++++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index 5c95eba..e510da7 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -171,7 +171,19 @@ static irqreturn_t tiadc_irq(int irq, void *private)
+ 	unsigned int status, config;
+ 
+         status = tiadc_readl(adc_dev, REG_IRQSTATUS);
+-        if (status & IRQENB_FIFO1THRES) {
++        if (status & IRQENB_FIFO1OVRRUN) {
++                config = tiadc_readl(adc_dev, REG_CTRL);
++                config &= ~(CNTRLREG_TSCSSENB);
++                tiadc_writel(adc_dev, REG_CTRL, config);
++
++                tiadc_writel(adc_dev, REG_IRQSTATUS,
++                                IRQENB_FIFO1OVRRUN |
++                                IRQENB_FIFO1UNDRFLW);
++ 
++                tiadc_writel(adc_dev, REG_CTRL,
++                       (config | CNTRLREG_TSCSSENB));
++		return IRQ_HANDLED;
++        } else if (status & IRQENB_FIFO1THRES) {
+                 tiadc_writel(adc_dev, REG_IRQCLR,
+                                 IRQENB_FIFO1THRES);
+ 
+@@ -183,20 +195,7 @@ static irqreturn_t tiadc_irq(int irq, void *private)
+                 }
+                 tiadc_writel(adc_dev, REG_IRQSTATUS,
+ 					IRQENB_FIFO1THRES);
+-                return IRQ_HANDLED;
+-        } else if ((status &  IRQENB_FIFO1OVRRUN) ||
+-                        (status &  IRQENB_FIFO1UNDRFLW)) {
+-                config = tiadc_readl(adc_dev,  REG_CTRL);
+-                config &= ~( CNTRLREG_TSCSSENB);
+-                tiadc_writel(adc_dev,  REG_CTRL, config);
+- 
+-                tiadc_writel(adc_dev, REG_IRQSTATUS,
+-                                IRQENB_FIFO1OVRRUN |
+-                                IRQENB_FIFO1UNDRFLW);
+-
+-                tiadc_writel(adc_dev,  REG_CTRL,
+-                        (config |  CNTRLREG_TSCSSENB));
+-                return IRQ_HANDLED;        
++                return IRQ_HANDLED;      
+ 	} else {
+                 return IRQ_NONE;
+         }
+-- 
+1.7.9.5
+

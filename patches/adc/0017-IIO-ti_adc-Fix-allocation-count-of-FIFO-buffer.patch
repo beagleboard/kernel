@@ -1,0 +1,30 @@
+From f2535b020f654f473e3814fe8326210aa78da22d Mon Sep 17 00:00:00 2001
+From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Date: Fri, 12 Jul 2013 23:07:31 +0100
+Subject: [PATCH 17/22] IIO: ti_adc: Fix allocation count of FIFO buffer.
+
+Allocating an extra byte is not necessary here. The driver will check
+
+that the allocation is large enough to satisfy the IIO subsystem.
+
+Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+---
+ drivers/iio/adc/ti_am335x_adc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index c257169..21294f2 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -219,7 +219,7 @@ static void tiadc_poll_handler(struct work_struct *work_s)
+                 goto out;
+         }
+ 
+-        iBuf = kmalloc((fifo1count + 1) * sizeof(u32), GFP_KERNEL);
++        iBuf = kmalloc((fifo1count) * sizeof(u32), GFP_KERNEL);
+         if (iBuf == NULL)
+                 goto out;
+         /*
+-- 
+1.7.9.5
+
