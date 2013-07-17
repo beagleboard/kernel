@@ -1,0 +1,42 @@
+From 1871b4433db25af99c95342f2f627ed543bc1750 Mon Sep 17 00:00:00 2001
+From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Date: Fri, 12 Jul 2013 23:09:08 +0100
+Subject: [PATCH 18/22] Revert "IIO: ti_adc: Correct wrong samples received on
+ 1st read in continuous mode"
+
+With a proper fix to this code, this is no longer neccessary.
+
+Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+---
+ drivers/iio/adc/ti_am335x_adc.c |    8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index 21294f2..1f42e0a 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -36,7 +36,6 @@
+ #include <linux/iio/trigger_consumer.h>
+ #include <linux/iio/kfifo_buf.h>
+ #include <linux/iio/sysfs.h>
+-#include <linux/delay.h>
+ 
+ struct tiadc_device {
+ 	struct ti_tscadc_dev *mfd_tscadc;
+@@ -222,13 +221,6 @@ static void tiadc_poll_handler(struct work_struct *work_s)
+         iBuf = kmalloc((fifo1count) * sizeof(u32), GFP_KERNEL);
+         if (iBuf == NULL)
+                 goto out;
+-        /*
+-         * Wait for ADC sequencer to settle down.
+-         * There could be a scenario where in we
+-         * try to read data from ADC before
+-         * it is available.
+-         */
+-        udelay(500);
+ 
+         for (i = 0; i < fifo1count; i++) {
+                 readx1 = tiadc_readl(adc_dev, REG_FIFO1);
+-- 
+1.7.9.5
+

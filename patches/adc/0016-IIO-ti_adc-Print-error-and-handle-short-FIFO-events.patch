@@ -1,0 +1,43 @@
+From b3aba5bce5c90aab9929931ae24cf281685e923e Mon Sep 17 00:00:00 2001
+From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Date: Fri, 12 Jul 2013 23:05:22 +0100
+Subject: [PATCH 16/22] IIO: ti_adc: Print error and handle short FIFO events
+
+In the case that the FIFO threshold handler gets called when the
+
+FIFO has not actually reached the threshold, the driver will pass
+
+uninitialized memory to the IIO subsystem.
+
+In the past, this would occur due to bugs in the driver, those bugs
+
+have been fixed. However, it is still a good idea to close this just
+
+in case additional bugs in hardware or software exist.
+
+Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+---
+ drivers/iio/adc/ti_am335x_adc.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index 69abde0..c257169 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -212,6 +212,13 @@ static void tiadc_poll_handler(struct work_struct *work_s)
+         u32 *iBuf;
+ 
+         fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
++        if (fifo1count * sizeof(u32) <
++                                buffer->access->get_bytes_per_datum(buffer)) {
++                dev_err(adc_dev->mfd_tscadc->dev, "%s: Short FIFO event\n",
++                                                                __func__);
++                goto out;
++        }
++
+         iBuf = kmalloc((fifo1count + 1) * sizeof(u32), GFP_KERNEL);
+         if (iBuf == NULL)
+                 goto out;
+-- 
+1.7.9.5
+

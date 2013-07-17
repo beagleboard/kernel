@@ -1,0 +1,61 @@
+From 06f887a51c82f83f6e4a24d2ff9e59db28d59b9d Mon Sep 17 00:00:00 2001
+From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Date: Thu, 11 Jul 2013 23:42:38 +0100
+Subject: [PATCH 10/22] IIO: ti_adc: Handle set to clear IRQSTATUS register
+ properly
+
+The driver is currently mishandling the IRQSTATUS register by peforming
+
+a read/update/write cycle. The actual functionality of the register is as follows:
+
+Write 0 = No action.
+
+Read 0 = No (enabled) event pending.
+
+Read 1 = Event pending.
+
+Write 1 = Clear (raw) event.
+
+By reading the status and writing it back, the driver is clearing
+
+all pending events, not just the one indicated in the bitmask.
+
+Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+---
+ drivers/iio/adc/ti_am335x_adc.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index a86830b..5c95eba 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -182,7 +182,7 @@ static irqreturn_t tiadc_irq(int irq, void *private)
+                         wake_up_interruptible(&adc_dev->wq_data_avail);
+                 }
+                 tiadc_writel(adc_dev, REG_IRQSTATUS,
+-                                (status | IRQENB_FIFO1THRES));
++					IRQENB_FIFO1THRES);
+                 return IRQ_HANDLED;
+         } else if ((status &  IRQENB_FIFO1OVRRUN) ||
+                         (status &  IRQENB_FIFO1UNDRFLW)) {
+@@ -190,13 +190,10 @@ static irqreturn_t tiadc_irq(int irq, void *private)
+                 config &= ~( CNTRLREG_TSCSSENB);
+                 tiadc_writel(adc_dev,  REG_CTRL, config);
+  
+-                if (status &  IRQENB_FIFO1UNDRFLW)
+-                        tiadc_writel(adc_dev,  REG_IRQSTATUS,
+-                        (status |  IRQENB_FIFO1UNDRFLW));
+-                else
+-                        tiadc_writel(adc_dev,  REG_IRQSTATUS,
+-                                (status |  IRQENB_FIFO1OVRRUN));
+- 
++                tiadc_writel(adc_dev, REG_IRQSTATUS,
++                                IRQENB_FIFO1OVRRUN |
++                                IRQENB_FIFO1UNDRFLW);
++
+                 tiadc_writel(adc_dev,  REG_CTRL,
+                         (config |  CNTRLREG_TSCSSENB));
+                 return IRQ_HANDLED;        
+-- 
+1.7.9.5
+

@@ -1,0 +1,37 @@
+From 4cdd9b71995fab0caaaec3000f0eb19faf606780 Mon Sep 17 00:00:00 2001
+From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Date: Sun, 14 Jul 2013 12:06:52 +0100
+Subject: [PATCH 22/22] mfd: ti_am335x_tscadc.c fix checkpatch.pl issues
+
+code formatting corrected.
+---
+ drivers/mfd/ti_am335x_tscadc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+index e7314e4..b8d7dfb 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -278,8 +278,8 @@ static int tscadc_suspend(struct device *dev)
+ 	struct ti_tscadc_dev	*tscadc_dev = dev_get_drvdata(dev);
+ 
+ 	tscadc_writel(tscadc_dev, REG_SE, 0x00);
+-        tscadc_dev->irqstat = tscadc_readl(tscadc_dev, REG_IRQENABLE);
+-        tscadc_dev->ctrl = tscadc_readl(tscadc_dev, REG_CTRL);
++	tscadc_dev->irqstat = tscadc_readl(tscadc_dev, REG_IRQENABLE);
++	tscadc_dev->ctrl = tscadc_readl(tscadc_dev, REG_CTRL);
+ 	pm_runtime_put_sync(dev);
+ 
+ 	return 0;
+@@ -297,7 +297,7 @@ static int tscadc_resume(struct device *dev)
+ 	if (tscadc_dev->tsc_cell != -1)
+ 		tscadc_idle_config(tscadc_dev);
+ 	am335x_tsc_se_update(tscadc_dev);
+-        tscadc_writel(tscadc_dev, REG_CTRL, tscadc_dev->ctrl);
++	tscadc_writel(tscadc_dev, REG_CTRL, tscadc_dev->ctrl);
+ 
+ 	return 0;
+ }
+-- 
+1.7.9.5
+
