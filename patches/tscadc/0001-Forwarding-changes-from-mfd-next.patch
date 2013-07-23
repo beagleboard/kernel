@@ -1,0 +1,36 @@
+From 21fba660604cacdafc8349ca6423a6c1c49b7544 Mon Sep 17 00:00:00 2001
+From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Date: Sat, 6 Jul 2013 01:38:30 +0100
+Subject: [PATCH 1/4] Forwarding changes from mfd-next
+
+This patch applies the changes which are present in mfd-next at the moment.
+Its taken directly from the tree as a whole from a merge.
+---
+ arch/arm/boot/dts/am335x-evm.dts | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 3aee1a4..901f211 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -488,3 +488,17 @@
+ 		ti,adc-channels = <4 5 6 7>;
+ 	};
+ };
++
++&tscadc {
++	status = "okay";
++	tsc {
++		ti,wires = <4>;
++		ti,x-plate-resistance = <200>;
++		ti,coordiante-readouts = <5>;
++		ti,wire-config = <0x00 0x11 0x22 0x33>;
++	};
++
++	adc {
++		ti,adc-channels = <4 5 6 7>;
++	};
++};
+-- 
+1.8.2.1
+

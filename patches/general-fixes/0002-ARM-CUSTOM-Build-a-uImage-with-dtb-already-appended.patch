@@ -1,0 +1,58 @@
+From 5c203a0bb75e838ae07d5be147e07c9989ab103a Mon Sep 17 00:00:00 2001
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Tue, 2 Aug 2011 15:30:09 +0100
+Subject: [PATCH 2/3] ARM: CUSTOM: Build a uImage with dtb already appended
+
+Do not commit to mainline; this is a useful hack only for now.
+
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/Makefile      | 5 ++++-
+ arch/arm/boot/Makefile | 7 +++++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/Makefile b/arch/arm/Makefile
+index c0ac0f5..e13f2be 100644
+--- a/arch/arm/Makefile
++++ b/arch/arm/Makefile
+@@ -301,7 +301,10 @@ zImage Image xipImage bootpImage uImage: vmlinux
+ zinstall uinstall install: vmlinux
+ 	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $@
+ 
+-%.dtb: | scripts
++uImage-dtb.%:
++	$(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
++
++%.dtb: scripts
+ 	$(Q)$(MAKE) $(build)=$(boot)/dts MACHINE=$(MACHINE) $(boot)/dts/$@
+ 
+ PHONY += dtbs
+diff --git a/arch/arm/boot/Makefile b/arch/arm/boot/Makefile
+index 84aa2ca..7b03519 100644
+--- a/arch/arm/boot/Makefile
++++ b/arch/arm/boot/Makefile
+@@ -55,6 +55,9 @@ $(obj)/zImage:	$(obj)/compressed/vmlinux FORCE
+ 	$(call if_changed,objcopy)
+ 	@$(kecho) '  Kernel: $@ is ready'
+ 
++$(obj)/zImage-dtb.%:	$(obj)/dts/%.dtb $(obj)/zImage
++	cat $(obj)/zImage $< > $@
++
+ endif
+ 
+ ifneq ($(LOADADDR),)
+@@ -80,6 +83,10 @@ $(obj)/uImage:	$(obj)/zImage FORCE
+ 	$(call if_changed,uimage)
+ 	@$(kecho) '  Image $@ is ready'
+ 
++$(obj)/uImage-dtb.%:	$(obj)/zImage-dtb.% FORCE
++	$(call if_changed,uimage)
++	@echo '  Image $@ is ready'
++
+ $(obj)/bootp/bootp: $(obj)/zImage initrd FORCE
+ 	$(Q)$(MAKE) $(build)=$(obj)/bootp $@
+ 	@:
+-- 
+1.8.2.1
+

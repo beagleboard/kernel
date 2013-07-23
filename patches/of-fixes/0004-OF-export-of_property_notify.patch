@@ -1,0 +1,64 @@
+From c1bf51770173c2242d28d2ebdc389092a54827c9 Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Thu, 3 Jan 2013 11:46:39 +0200
+Subject: [PATCH 4/8] OF: export of_property_notify
+
+of_property_notify can be utilized by other users too, export it.
+
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ drivers/of/base.c  |  8 +-------
+ include/linux/of.h | 11 +++++++++++
+ 2 files changed, 12 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index daafda6..7c59bc6 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -1271,7 +1271,7 @@ int of_count_phandle_with_args(const struct device_node *np, const char *list_na
+ EXPORT_SYMBOL(of_count_phandle_with_args);
+ 
+ #if defined(CONFIG_OF_DYNAMIC)
+-static int of_property_notify(int action, struct device_node *np,
++int of_property_notify(int action, struct device_node *np,
+ 			      struct property *prop)
+ {
+ 	struct of_prop_reconfig pr;
+@@ -1280,12 +1280,6 @@ static int of_property_notify(int action, struct device_node *np,
+ 	pr.prop = prop;
+ 	return of_reconfig_notify(action, &pr);
+ }
+-#else
+-static int of_property_notify(int action, struct device_node *np,
+-			      struct property *prop)
+-{
+-	return 0;
+-}
+ #endif
+ 
+ /**
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 32ad0b0..9c159e6 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -303,6 +303,17 @@ extern int of_parse_phandle_with_args(const struct device_node *np,
+ extern int of_count_phandle_with_args(const struct device_node *np,
+ 	const char *list_name, const char *cells_name);
+ 
++#if defined(CONFIG_OF_DYNAMIC)
++extern int of_property_notify(int action, struct device_node *np,
++			      struct property *prop);
++#else
++static inline int of_property_notify(int action, struct device_node *np,
++			      struct property *prop)
++{
++	return 0;
++}
++#endif
++
+ extern void of_alias_scan(void * (*dt_alloc)(u64 size, u64 align));
+ extern int of_alias_get_id(struct device_node *np, const char *stem);
+ 
+-- 
+1.8.2.1
+

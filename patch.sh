@@ -12,19 +12,19 @@ DIR="$PWD"
 PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
-RECIPEDIR="linux-mainline-3.11"
+RECIPEDIR="linux-3.11"
 RECIPENAME="linux-mainline_3.11.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.10"
+TAG="v3.11-rc2"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://github.com/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="8bb495e3f02401ee6f76d1b1d77f3ac9f079e376"
+EXTERNAL_SHA="b3a3a9c441e2c8f6b6760de9331023a7906a4ac6"
 
-PATCHSET="mainline-fixes mainline-dtc-fixes  mainline-dtc-overlays mainline-of-fixes  mainline-pdev-fixes mainline-dma-devel mainline-mmc-fixes mainline-dts-fixes mainline-i2c-fixes  mainline-pinctrl-fixes mainline-capemgr mainline-reset mainline-capes"
+PATCHSET="general-fixes dtc-fixes  dtc-overlays of-fixes  pdev-fixes dma-devel mmc-fixes dts-fixes i2c-fixes  pinctrl-fixes capemgr reset capes"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true

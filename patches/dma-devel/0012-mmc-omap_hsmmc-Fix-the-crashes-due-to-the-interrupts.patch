@@ -1,0 +1,303 @@
+From 0d0d7cdf131da11c779df47347902946cb81808e Mon Sep 17 00:00:00 2001
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Date: Wed, 17 Jul 2013 20:00:13 +0300
+Subject: [PATCH 12/13] mmc: omap_hsmmc: Fix the crashes due to the interrupts
+ racing
+
+---
+ drivers/mmc/host/omap_hsmmc.c | 120 +++++++++++++++++++++++++++++++-----------
+ 1 file changed, 88 insertions(+), 32 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 1f9ff97..91e2954 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -171,7 +171,7 @@ struct omap_hsmmc_host {
+ 	unsigned char		power_mode;
+ 	int			suspended;
+ 	int			irq;
+-	int			use_dma, dma_ch;
++	int			use_dma;
+ 	struct dma_chan		*tx_chan;
+ 	struct dma_chan		*rx_chan;
+ 	int			slot_id;
+@@ -180,10 +180,15 @@ struct omap_hsmmc_host {
+ 	int			protect_card;
+ 	int			reqs_blocked;
+ 	int			use_reg;
+-	int			req_in_progress;
+ 	struct omap_hsmmc_next	next_data;
+ 
+ 	struct	omap_mmc_platform_data	*pdata;
++
++	unsigned int		req_flags;
++#define RQF_REQ_IN_PROGRESS	(1 << 0)
++#define RQF_DMA_IN_PROGRESS	(1 << 1)
++#define RQF_REQ_DONE		(1 << 2)
++#define RQF_DMA_DONE		(1 << 3)
+ };
+ 
+ static int omap_hsmmc_card_detect(struct device *dev, int slot)
+@@ -803,7 +808,8 @@ omap_hsmmc_start_command(struct omap_hsmmc_host *host, struct mmc_command *cmd,
+ 	if (host->use_dma)
+ 		cmdreg |= DMAE;
+ 
+-	host->req_in_progress = 1;
++	host->req_flags |=  RQF_REQ_IN_PROGRESS;
++	host->req_flags &= ~RQF_REQ_DONE;
+ 
+ 	OMAP_HSMMC_WRITE(host->base, ARG, cmd->arg);
+ 	OMAP_HSMMC_WRITE(host->base, CMD, cmdreg);
+@@ -826,19 +832,34 @@ static struct dma_chan *omap_hsmmc_get_dma_chan(struct omap_hsmmc_host *host,
+ 
+ static void omap_hsmmc_request_done(struct omap_hsmmc_host *host, struct mmc_request *mrq)
+ {
+-	int dma_ch;
++	int completed;
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&host->irq_lock, flags);
+-	host->req_in_progress = 0;
+-	dma_ch = host->dma_ch;
+-	spin_unlock_irqrestore(&host->irq_lock, flags);
++
++	host->req_flags &= ~RQF_REQ_IN_PROGRESS;
++	host->req_flags |=  RQF_REQ_DONE;
++
++	/* completed? */
++	if (mrq->data && host->use_dma)
++		completed = (host->req_flags & RQF_DMA_DONE) == RQF_DMA_DONE;
++	else
++		completed = 1;
+ 
+ 	omap_hsmmc_disable_irq(host);
++
+ 	/* Do not complete the request if DMA is still in progress */
+-	if (mrq->data && host->use_dma && dma_ch != -1)
++	if (!completed) {
++		spin_unlock_irqrestore(&host->irq_lock, flags);
++		pr_debug("%s: not completed!\n", __func__);
+ 		return;
++	}
++
++	/* clear the flags now */
++	host->req_flags &= ~(RQF_REQ_DONE | RQF_DMA_DONE);
+ 	host->mrq = NULL;
++	spin_unlock_irqrestore(&host->irq_lock, flags);
++
+ 	mmc_request_done(host->mmc, mrq);
+ }
+ 
+@@ -855,6 +876,7 @@ omap_hsmmc_xfer_done(struct omap_hsmmc_host *host, struct mmc_data *data)
+ 		if (host->cmd && host->cmd->opcode == 6 &&
+ 		    host->response_busy) {
+ 			host->response_busy = 0;
++			pr_debug("%s: response_busy = 0\n", __func__);
+ 			return;
+ 		}
+ 
+@@ -870,9 +892,11 @@ omap_hsmmc_xfer_done(struct omap_hsmmc_host *host, struct mmc_data *data)
+ 		data->bytes_xfered = 0;
+ 
+ 	if (!data->stop) {
++		pr_debug("%s: calling omap_hsmmc_request_done\n", __func__);
+ 		omap_hsmmc_request_done(host, data->mrq);
+ 		return;
+ 	}
++	pr_debug("%s: calling omap_hsmmc_start_command\n", __func__);
+ 	omap_hsmmc_start_command(host, data->stop, NULL);
+ }
+ 
+@@ -882,6 +906,8 @@ omap_hsmmc_xfer_done(struct omap_hsmmc_host *host, struct mmc_data *data)
+ static void
+ omap_hsmmc_cmd_done(struct omap_hsmmc_host *host, struct mmc_command *cmd)
+ {
++	unsigned long flags;
++
+ 	host->cmd = NULL;
+ 
+ 	if (cmd->flags & MMC_RSP_PRESENT) {
+@@ -898,6 +924,18 @@ omap_hsmmc_cmd_done(struct omap_hsmmc_host *host, struct mmc_command *cmd)
+ 	}
+ 	if ((host->data == NULL && !host->response_busy) || cmd->error)
+ 		omap_hsmmc_request_done(host, cmd->mrq);
++	else {
++		spin_lock_irqsave(&host->irq_lock, flags);
++		/* we use DMA, and DMA is completed - kick the can */
++		if ((host->req_flags & RQF_DMA_DONE) != 0) {
++			host->req_flags &= ~(RQF_REQ_IN_PROGRESS | RQF_REQ_DONE | RQF_DMA_DONE);
++			host->mrq = NULL;
++			mmc_request_done(host->mmc, cmd->mrq);
++		} else {
++			pr_debug("%s: not calling omap_hsmmc_request_done!\n", __func__);
++		}
++		spin_unlock_irqrestore(&host->irq_lock, flags);
++	}
+ }
+ 
+ /*
+@@ -905,17 +943,19 @@ omap_hsmmc_cmd_done(struct omap_hsmmc_host *host, struct mmc_command *cmd)
+  */
+ static void omap_hsmmc_dma_cleanup(struct omap_hsmmc_host *host, int errno)
+ {
+-	int dma_ch;
++	int dma_in_progress;
+ 	unsigned long flags;
+ 
+ 	host->data->error = errno;
+ 
+ 	spin_lock_irqsave(&host->irq_lock, flags);
+-	dma_ch = host->dma_ch;
+-	host->dma_ch = -1;
++	dma_in_progress = host->use_dma &&
++			(host->req_flags & RQF_DMA_IN_PROGRESS) != 0;
++	host->req_flags &= ~RQF_DMA_IN_PROGRESS;
++	host->req_flags |=  RQF_DMA_DONE;
+ 	spin_unlock_irqrestore(&host->irq_lock, flags);
+ 
+-	if (host->use_dma && dma_ch != -1) {
++	if (dma_in_progress) {
+ 		struct dma_chan *chan = omap_hsmmc_get_dma_chan(host, host->data);
+ 
+ 		dmaengine_terminate_all(chan);
+@@ -1005,16 +1045,22 @@ static void hsmmc_command_incomplete(struct omap_hsmmc_host *host,
+ 					int err, int end_cmd)
+ {
+ 	if (end_cmd) {
++		pr_debug("%s end_cmd\n", __func__);
+ 		omap_hsmmc_reset_controller_fsm(host, SRC);
+ 		if (host->cmd)
+ 			host->cmd->error = err;
+ 	}
+ 
+ 	if (host->data) {
++		pr_debug("%s host->data; resetting dma\n", __func__);
+ 		omap_hsmmc_reset_controller_fsm(host, SRD);
+ 		omap_hsmmc_dma_cleanup(host, err);
+-	} else if (host->mrq && host->mrq->cmd)
++	} else if (host->mrq && host->mrq->cmd) {
++		pr_debug("%s error\n", __func__);
+ 		host->mrq->cmd->error = err;
++	} else {
++		pr_debug("%s nothing\n", __func__);
++	}
+ }
+ 
+ static void omap_hsmmc_do_irq(struct omap_hsmmc_host *host, int status)
+@@ -1055,13 +1101,13 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
+ 	struct omap_hsmmc_host *host = dev_id;
+ 	int status;
+ 
+-	status = OMAP_HSMMC_READ(host->base, STAT);
+-	while (status & INT_EN_MASK && host->req_in_progress) {
+-		omap_hsmmc_do_irq(host, status);
++	while ((status = OMAP_HSMMC_READ(host->base, STAT)) & INT_EN_MASK) {
++
++		if (host->req_flags & RQF_REQ_IN_PROGRESS)
++			omap_hsmmc_do_irq(host, status);
+ 
+ 		/* Flush posted write */
+ 		OMAP_HSMMC_WRITE(host->base, STAT, status);
+-		status = OMAP_HSMMC_READ(host->base, STAT);
+ 	}
+ 
+ 	return IRQ_HANDLED;
+@@ -1199,13 +1245,15 @@ static irqreturn_t omap_hsmmc_detect(int irq, void *dev_id)
+ static void omap_hsmmc_dma_callback(void *param)
+ {
+ 	struct omap_hsmmc_host *host = param;
++	struct mmc_request *mrq = host->mrq;
+ 	struct dma_chan *chan;
+ 	struct mmc_data *data;
+-	int req_in_progress;
++	int completed;
+ 
+ 	spin_lock_irq(&host->irq_lock);
+-	if (host->dma_ch < 0) {
++	if ((host->req_flags & RQF_DMA_IN_PROGRESS) == 0) {
+ 		spin_unlock_irq(&host->irq_lock);
++		pr_debug("%s: No DMA in progress!\n", __func__);
+ 		return;
+ 	}
+ 
+@@ -1216,17 +1264,22 @@ static void omap_hsmmc_dma_callback(void *param)
+ 			     data->sg, data->sg_len,
+ 			     omap_hsmmc_get_dma_dir(host, data));
+ 
+-	req_in_progress = host->req_in_progress;
+-	host->dma_ch = -1;
+-	spin_unlock_irq(&host->irq_lock);
++	host->req_flags &= ~RQF_DMA_IN_PROGRESS;
++	host->req_flags |= RQF_DMA_DONE;
+ 
+-	/* If DMA has finished after TC, complete the request */
+-	if (!req_in_progress) {
+-		struct mmc_request *mrq = host->mrq;
++	completed = (host->req_flags & RQF_REQ_DONE) != 0;
+ 
+-		host->mrq = NULL;
+-		mmc_request_done(host->mmc, mrq);
++	if (!completed) {
++		spin_unlock_irq(&host->irq_lock);
++		pr_debug("%s: not completed\n", __func__);
++		return;
+ 	}
++
++	host->req_flags &= ~(RQF_REQ_DONE | RQF_DMA_DONE);
++	host->mrq = NULL;
++	spin_unlock_irq(&host->irq_lock);
++
++	mmc_request_done(host->mmc, mrq);
+ }
+ 
+ static int omap_hsmmc_pre_dma_transfer(struct omap_hsmmc_host *host,
+@@ -1294,7 +1347,7 @@ static int omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host,
+ 		 */
+ 		return -EINVAL;
+ 
+-	BUG_ON(host->dma_ch != -1);
++	BUG_ON((host->req_flags & RQF_DMA_IN_PROGRESS) != 0);
+ 
+ 	chan = omap_hsmmc_get_dma_chan(host, data);
+ 
+@@ -1328,7 +1381,7 @@ static int omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host,
+ 	/* Does not fail */
+ 	dmaengine_submit(tx);
+ 
+-	host->dma_ch = 1;
++	host->req_flags |= RQF_DMA_IN_PROGRESS;
+ 
+ 	dma_async_issue_pending(chan);
+ 
+@@ -1448,8 +1501,11 @@ static void omap_hsmmc_request(struct mmc_host *mmc, struct mmc_request *req)
+ 	struct omap_hsmmc_host *host = mmc_priv(mmc);
+ 	int err;
+ 
+-	BUG_ON(host->req_in_progress);
+-	BUG_ON(host->dma_ch != -1);
++	BUG_ON((host->req_flags & RQF_REQ_IN_PROGRESS) != 0);
++	BUG_ON((host->req_flags & RQF_REQ_DONE) != 0);
++	BUG_ON((host->req_flags & RQF_DMA_IN_PROGRESS) != 0);
++	BUG_ON((host->req_flags & RQF_DMA_DONE) != 0);
++
+ 	if (host->protect_card) {
+ 		if (host->reqs_blocked < 3) {
+ 			/*
+@@ -1826,13 +1882,13 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+ 	host->pdata	= pdata;
+ 	host->dev	= &pdev->dev;
+ 	host->use_dma	= 1;
+-	host->dma_ch	= -1;
+ 	host->irq	= irq;
+ 	host->slot_id	= 0;
+ 	host->mapbase	= res->start + pdata->reg_offset;
+ 	host->base	= ioremap(host->mapbase, SZ_4K);
+ 	host->power_mode = MMC_POWER_OFF;
+ 	host->next_data.cookie = 1;
++	host->req_flags	= 0;
+ 
+ 	platform_set_drvdata(pdev, host);
+ 
+-- 
+1.8.2.1
+
