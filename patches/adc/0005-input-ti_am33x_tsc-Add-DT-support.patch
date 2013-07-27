@@ -1,4 +1,4 @@
-From ebcc25acc1df3e1ebe954395f2839127ab2543b3 Mon Sep 17 00:00:00 2001
+From 06d0af0909c82dc09c34794d19c61e28493e5d72 Mon Sep 17 00:00:00 2001
 From: "Patil, Rachna" <rachna@ti.com>
 Date: Wed, 12 Jun 2013 18:58:06 +0200
 Subject: [PATCH 05/21] input: ti_am33x_tsc: Add DT support
@@ -71,7 +71,7 @@ index 0000000..6a69af6
 +		};
 +	}
 diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index 7b7de60..ae8a1ce 100644
+index 7b7de60..4060f8a 100644
 --- a/drivers/input/touchscreen/ti_am335x_tsc.c
 +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
 @@ -26,6 +26,8 @@
@@ -143,15 +143,15 @@ index 7b7de60..ae8a1ce 100644
  	return IRQ_HANDLED;
  }
  
-+static int titsc_parse_dt(struct platform_device *pdev,
++static int titsc_parse_dt(struct ti_tscadc_dev *tscadc_dev,
 +					struct titsc *ts_dev)
 +{
-+	struct device_node *node = pdev->dev.of_node;
++	struct device_node *node = tscadc_dev->dev->of_node;
 +	int err;
 +
 +	if (!node)
 +		return -EINVAL;
-+
++	node = of_get_child_by_name(node, "tsc");
 +	err = of_property_read_u32(node, "ti,wires", &ts_dev->wires);
 +	if (err < 0)
 +		return err;
@@ -226,10 +226,10 @@ index 7b7de60..ae8a1ce 100644
 -	memcpy(ts_dev->config_inp, pdata->tsc_init->wire_config,
 -			sizeof(pdata->tsc_init->wire_config));
 +
-+	if (tscadc_dev->dev->platform_data)
-+		err = titsc_parse_pdata(tscadc_dev, ts_dev);
-+	else
-+		err = titsc_parse_dt(pdev, ts_dev);
++	//if (tscadc_dev->dev->platform_data)
++	//	err = titsc_parse_pdata(tscadc_dev, ts_dev);
++	//else
++		err = titsc_parse_dt(tscadc_dev, ts_dev);
 +
 +	if (err) {
 +		dev_err(&pdev->dev, "Could not find valid DT data.\n");

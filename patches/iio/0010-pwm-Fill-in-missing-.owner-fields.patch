@@ -1,4 +1,4 @@
-From 87919faf6a84525f1ed4c112a1719c4492d080f0 Mon Sep 17 00:00:00 2001
+From 08e322d2addd8a453160d613de4c57ca739e472b Mon Sep 17 00:00:00 2001
 From: Thierry Reding <thierry.reding@gmail.com>
 Date: Wed, 12 Jun 2013 13:18:29 +0200
 Subject: [PATCH 10/11] pwm: Fill in missing .owner fields
@@ -12,15 +12,15 @@ Conflicts:
 	drivers/pwm/pwm-atmel-tcb.c
 	drivers/pwm/pwm-tegra.c
 ---
- drivers/pwm/pwm-atmel-tcb.c | 447 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/pwm/pwm-bfin.c      |   1 +
- drivers/pwm/pwm-imx.c       |   1 +
- drivers/pwm/pwm-lpc32xx.c   |   1 +
- drivers/pwm/pwm-mxs.c       |   1 +
- drivers/pwm/pwm-pca9685.c   |   1 +
- drivers/pwm/pwm-puv3.c      |   1 +
- drivers/pwm/pwm-spear.c     |   1 +
- drivers/pwm/pwm-tegra.c     |   1 +
+ drivers/pwm/pwm-atmel-tcb.c |  447 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/pwm/pwm-bfin.c      |    1 +
+ drivers/pwm/pwm-imx.c       |    1 +
+ drivers/pwm/pwm-lpc32xx.c   |    1 +
+ drivers/pwm/pwm-mxs.c       |    1 +
+ drivers/pwm/pwm-pca9685.c   |    1 +
+ drivers/pwm/pwm-puv3.c      |    1 +
+ drivers/pwm/pwm-spear.c     |    1 +
+ drivers/pwm/pwm-tegra.c     |    1 +
  9 files changed, 455 insertions(+)
  create mode 100644 drivers/pwm/pwm-atmel-tcb.c
 
@@ -526,7 +526,7 @@ index 7ec345f..c58e2f6 100644
  	},
  	.probe = mxs_pwm_probe,
 diff --git a/drivers/pwm/pwm-pca9685.c b/drivers/pwm/pwm-pca9685.c
-index 2afc904..c9f9e65 100644
+index 9d6903b..2cef2bd 100644
 --- a/drivers/pwm/pwm-pca9685.c
 +++ b/drivers/pwm/pwm-pca9685.c
 @@ -199,6 +199,7 @@ static const struct pwm_ops pca9685_pwm_ops = {
@@ -574,5 +574,5 @@ index 30c0e2b..1ddff7f 100644
  	},
  	.probe = tegra_pwm_probe,
 -- 
-1.8.2.1
+1.7.9.5
 

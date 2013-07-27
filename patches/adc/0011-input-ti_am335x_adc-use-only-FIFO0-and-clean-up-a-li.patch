@@ -1,4 +1,4 @@
-From 767f6f444b73b48defd5c11a24ef1869bede9f26 Mon Sep 17 00:00:00 2001
+From e559a1048c247ed6c194c59bfce0ecabc388f336 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 12 Jun 2013 18:58:18 +0200
 Subject: [PATCH 11/21] input: ti_am335x_adc: use only FIFO0 and clean up a
@@ -54,7 +54,7 @@ index 25feb62..c4682d6 100644
  				stepconfig | STEPCONFIG_INP(channels));
  		tiadc_writel(adc_dev, REG_STEPDELAY(i),
 diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index ae8a1ce..6c333af 100644
+index 4060f8a..ef479f0 100644
 --- a/drivers/input/touchscreen/ti_am335x_tsc.c
 +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
 @@ -121,11 +121,9 @@ static int titsc_config_wires(struct titsc *ts_dev)
