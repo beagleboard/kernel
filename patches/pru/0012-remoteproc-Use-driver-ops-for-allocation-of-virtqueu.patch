@@ -1,15 +1,15 @@
-From 28dc0c057747d22589d833beb8f894e44f0fc10f Mon Sep 17 00:00:00 2001
+From 7ac124313acd0c5476c2cc7d412478a412d356c6 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 24 May 2013 15:01:19 +0300
-Subject: [PATCH 12/16] remoteproc: Use driver ops for allocation of virtqueus
+Subject: [PATCH 12/19] remoteproc: Use driver ops for allocation of virtqueus
 
 Virtqueues can not always be dynamically allocated.
 In many cases they should be placed in driver controlled areas.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/remoteproc/remoteproc_core.c | 64 ++++++++++++++++++++++++++++--------
- include/linux/remoteproc.h           |  9 +++++
+ drivers/remoteproc/remoteproc_core.c |   64 ++++++++++++++++++++++++++--------
+ include/linux/remoteproc.h           |    9 +++++
  2 files changed, 59 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
@@ -133,7 +133,7 @@ index 752b507..7c56d0a 100644
  	for (i = 0; i < rsc->num_of_vrings; i++) {
  		ret = rproc_parse_vring(rvdev, rsc, i);
 diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
-index faf3332..c8573fd1 100644
+index faf3332..c8573fd 100644
 --- a/include/linux/remoteproc.h
 +++ b/include/linux/remoteproc.h
 @@ -335,6 +335,13 @@ struct rproc_ops {
@@ -167,5 +167,5 @@ index faf3332..c8573fd1 100644
  
  struct rproc *rproc_alloc(struct device *dev, const char *name,
 -- 
-1.8.2.1
+1.7.9.5
 
