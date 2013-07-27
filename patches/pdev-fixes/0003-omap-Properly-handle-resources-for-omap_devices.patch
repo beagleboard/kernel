@@ -1,4 +1,4 @@
-From 726cff1ed8dab69f67f0ca117d3d42958dea9a48 Mon Sep 17 00:00:00 2001
+From 7550799468e71d009ce0782faf515d97050febe0 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 28 Dec 2012 11:41:11 +0200
 Subject: [PATCH 3/4] omap: Properly handle resources for omap_devices
@@ -13,7 +13,7 @@ and make sure that no resources that have no parent (which can happen for DMA
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- arch/arm/mach-omap2/omap_device.c | 232 ++++++++++++++++++++++++--------------
+ arch/arm/mach-omap2/omap_device.c |  232 +++++++++++++++++++++++--------------
  1 file changed, 148 insertions(+), 84 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
@@ -290,5 +290,5 @@ index 5cc9287..f33b40c 100644
  
  	for (i = 0; i < oh_cnt; i++) {
 -- 
-1.8.2.1
+1.7.9.5
 

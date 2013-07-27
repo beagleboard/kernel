@@ -1,4 +1,4 @@
-From 468996aeae166371e4121ac7ccb603c2d12cc8a0 Mon Sep 17 00:00:00 2001
+From 3063e38a526a56e81cecd9da268ad88ed307743d Mon Sep 17 00:00:00 2001
 From: Philipp Zabel <p.zabel@pengutronix.de>
 Date: Tue, 28 May 2013 17:06:15 +0200
 Subject: [PATCH] reset: Add driver for gpio-controlled reset pins
@@ -10,10 +10,10 @@ and de-assertion of the reset signal can be configured via device tree.
 Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 Reviewed-by: Stephen Warren <swarren@nvidia.com>
 ---
- .../devicetree/bindings/reset/gpio-reset.txt       |  35 +++++
- drivers/reset/Kconfig                              |  11 ++
- drivers/reset/Makefile                             |   1 +
- drivers/reset/gpio-reset.c                         | 169 +++++++++++++++++++++
+ .../devicetree/bindings/reset/gpio-reset.txt       |   35 ++++
+ drivers/reset/Kconfig                              |   11 ++
+ drivers/reset/Makefile                             |    1 +
+ drivers/reset/gpio-reset.c                         |  169 ++++++++++++++++++++
  4 files changed, 216 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/reset/gpio-reset.txt
  create mode 100644 drivers/reset/gpio-reset.c
@@ -261,5 +261,5 @@ index 0000000..acc1076
 +MODULE_ALIAS("platform:gpio-reset");
 +MODULE_DEVICE_TABLE(of, gpio_reset_dt_ids);
 -- 
-1.8.2.1
+1.7.9.5
 

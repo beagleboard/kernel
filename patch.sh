@@ -24,7 +24,7 @@ EXTERNAL_TREE="git://github.com/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
 EXTERNAL_SHA="b3a3a9c441e2c8f6b6760de9331023a7906a4ac6"
 
-PATCHSET="general-fixes dtc-fixes  dtc-overlays of-fixes  pdev-fixes dma-devel mmc-fixes dts-fixes i2c-fixes  pinctrl-fixes capemgr reset capes"
+PATCHSET="general-fixes dtc-fixes  dtc-overlays of-fixes  pdev-fixes dma-devel mmc-fixes dts-fixes i2c-fixes  pinctrl-fixes capemgr reset capes tscadc"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
