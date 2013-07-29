@@ -1,4 +1,4 @@
-From b5fff65a9b433f7e84628c87100de7db41244be0 Mon Sep 17 00:00:00 2001
+From ebab07045209c0bb30be16fdcd8f4d8b7d11f37b Mon Sep 17 00:00:00 2001
 From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
 Date: Thu, 30 May 2013 09:50:12 +0200
 Subject: [PATCH 09/11] pwm: add pca9685 driver
@@ -13,10 +13,10 @@ Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
 [thierry.reding@gmail.com: style and whitespace cleanups]
 Signed-off-by: Thierry Reding <thierry.reding@gmail.com>
 ---
- .../devicetree/bindings/pwm/nxp,pca9685-pwm.txt    |  27 ++
- drivers/pwm/Kconfig                                |   9 +
- drivers/pwm/Makefile                               |   1 +
- drivers/pwm/pwm-pca9685.c                          | 298 +++++++++++++++++++++
+ .../devicetree/bindings/pwm/nxp,pca9685-pwm.txt    |   27 ++
+ drivers/pwm/Kconfig                                |    9 +
+ drivers/pwm/Makefile                               |    1 +
+ drivers/pwm/pwm-pca9685.c                          |  298 ++++++++++++++++++++
  4 files changed, 335 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/pwm/nxp,pca9685-pwm.txt
  create mode 100644 drivers/pwm/pwm-pca9685.c
@@ -88,7 +88,7 @@ index 8ddb432..92ec413 100644
  obj-$(CONFIG_PWM_SAMSUNG)	+= pwm-samsung.o
 diff --git a/drivers/pwm/pwm-pca9685.c b/drivers/pwm/pwm-pca9685.c
 new file mode 100644
-index 0000000..2afc904
+index 0000000..9d6903b
 --- /dev/null
 +++ b/drivers/pwm/pwm-pca9685.c
 @@ -0,0 +1,298 @@
@@ -391,5 +391,5 @@ index 0000000..2afc904
 +MODULE_DESCRIPTION("PWM driver for PCA9685");
 +MODULE_LICENSE("GPL");
 -- 
-1.8.2.1
+1.7.9.5
 

@@ -1,4 +1,4 @@
-From 9c10a8e3c2ce11d507c5de390510f1199a38c7d2 Mon Sep 17 00:00:00 2001
+From 85575999ccd351004f1452cbf06142eaeefc79b8 Mon Sep 17 00:00:00 2001
 From: Florian Vaussard <florian.vaussard@epfl.ch>
 Date: Mon, 28 Jan 2013 06:00:59 -0800
 Subject: [PATCH 5/6] leds: leds-pwm: Defer led_pwm_set() if PWM can sleep
@@ -11,7 +11,7 @@ Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
 Signed-off-by: Bryan Wu <cooloney@gmail.com>
 ---
- drivers/leds/leds-pwm.c | 50 +++++++++++++++++++++++++++++++++++++++++--------
+ drivers/leds/leds-pwm.c |   50 +++++++++++++++++++++++++++++++++++++++--------
  1 file changed, 42 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/leds/leds-pwm.c b/drivers/leds/leds-pwm.c
@@ -118,5 +118,5 @@ index a1ea5f6..faf52c0 100644
  	return 0;
  }
 -- 
-1.8.2.1
+1.7.9.5
 

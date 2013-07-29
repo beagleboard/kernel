@@ -1,16 +1,16 @@
-From c3ac11cff845b1ef9f1482ddfc310fbc93613d24 Mon Sep 17 00:00:00 2001
+From 20174b008298e393f753efee8f31c751e66c654d Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
 Date: Sat, 29 Jun 2013 23:51:36 +0000
-Subject: [PATCH 18/19] bone: renamed adafruit RTC cape
+Subject: [PATCH 18/21] bone: renamed adafruit RTC cape
 
 rename RTC protocape to a more consistent naming
 
 Signed-off-by: Matt Ranostay <mranostay@gmail.com>
 ---
- arch/arm/boot/dts/am335x-bone-common.dtsi      |  2 +-
- firmware/Makefile                              |  4 +-
- firmware/capes/BB-BONE-RTC-00A0.dts            | 57 ++++++++++++++++++++++++++
- firmware/capes/cape-bone-adafruit-rtc-00A0.dts | 57 --------------------------
+ arch/arm/boot/dts/am335x-bone-common.dtsi      |    2 +-
+ firmware/Makefile                              |    4 +-
+ firmware/capes/BB-BONE-RTC-00A0.dts            |   57 ++++++++++++++++++++++++
+ firmware/capes/cape-bone-adafruit-rtc-00A0.dts |   57 ------------------------
  4 files changed, 60 insertions(+), 60 deletions(-)
  create mode 100644 firmware/capes/BB-BONE-RTC-00A0.dts
  delete mode 100644 firmware/capes/cape-bone-adafruit-rtc-00A0.dts
@@ -29,7 +29,7 @@ index aa95810..ff4b5d2 100644
  			};
  
 diff --git a/firmware/Makefile b/firmware/Makefile
-index 0de40d98..c11bed4 100644
+index 182de29..e6d178e 100644
 --- a/firmware/Makefile
 +++ b/firmware/Makefile
 @@ -155,6 +155,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
@@ -40,7 +40,7 @@ index 0de40d98..c11bed4 100644
  	BB-BONE-RS232-00A0.dtbo \
  	BB-BONE-SERL-01-00A1.dtbo \
  	cape-bone-iio-00A0.dtbo \
-@@ -184,8 +185,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+@@ -186,8 +187,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
  	BB-BONE-RST2-00A0.dtbo \
  	BB-BONE-CAM3-01-00A2.dtbo \
  	TT3201-001-01.dtbo \
@@ -177,5 +177,5 @@ index 35344fd..0000000
 -	};
 -};
 -- 
-1.8.2.1
+1.7.9.5
 

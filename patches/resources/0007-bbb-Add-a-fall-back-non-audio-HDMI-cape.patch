@@ -1,7 +1,7 @@
-From 552c4e9204974db2674b371851b185a924274a75 Mon Sep 17 00:00:00 2001
+From ec9f598f6ffebf5433adfb768d45048045ed7cb0 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 4 Jun 2013 17:54:45 +0300
-Subject: [PATCH 07/15] bbb: Add a fall-back non-audio HDMI cape
+Subject: [PATCH 07/21] bbb: Add a fall-back non-audio HDMI cape
 
 When a user cape hogs the audio, allow booting with a HDMI cape which
 only supports video.
@@ -52,10 +52,10 @@ index ae407c3..aa95810 100644
  	};
  
 diff --git a/firmware/Makefile b/firmware/Makefile
-index 1a353ce..0de40d98 100644
+index 646eea5..182de29 100644
 --- a/firmware/Makefile
 +++ b/firmware/Makefile
-@@ -198,8 +198,9 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_NIXIE) += \
+@@ -200,8 +200,9 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_NIXIE) += \
  # the weather cape
  fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += cape-bone-weather-00A0.dtbo
  
