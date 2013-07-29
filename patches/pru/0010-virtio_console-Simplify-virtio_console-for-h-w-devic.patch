@@ -1,7 +1,7 @@
-From 8aa79bcd9cbb3ce0d54c679856f4690bfd35b590 Mon Sep 17 00:00:00 2001
+From 67618d23e6327205d1227ae55dc00c48750430fe Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 2 Jul 2013 22:15:02 +0300
-Subject: [PATCH 10/16] virtio_console: Simplify virtio_console for h/w
+Subject: [PATCH 10/19] virtio_console: Simplify virtio_console for h/w
  devices.
 
 Now that virtio_ring properly maps the buffers there is no need
@@ -11,7 +11,7 @@ plus sg_phys() on a piece of dma_alloc_coherent memory is bogus.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/char/virtio_console.c | 49 +++++++------------------------------------
+ drivers/char/virtio_console.c |   49 +++++++----------------------------------
  1 file changed, 8 insertions(+), 41 deletions(-)
 
 diff --git a/drivers/char/virtio_console.c b/drivers/char/virtio_console.c
@@ -82,5 +82,5 @@ index a4b7aa0..2e9808b 100644
  	if (!buf->buf)
  		goto free_buf;
 -- 
-1.8.2.1
+1.7.9.5
 

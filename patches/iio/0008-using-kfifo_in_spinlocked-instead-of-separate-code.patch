@@ -1,4 +1,4 @@
-From e4b5a3fc2f57999a85a88f77e368e1be9fc1690b Mon Sep 17 00:00:00 2001
+From a62f916954c84f846ce4a3d43d4de24f62d67f29 Mon Sep 17 00:00:00 2001
 From: Ge Gao <ggao@invensense.com>
 Date: Mon, 4 Mar 2013 23:27:00 +0000
 Subject: [PATCH 08/11] using kfifo_in_spinlocked instead of separate code.
@@ -6,7 +6,7 @@ Subject: [PATCH 08/11] using kfifo_in_spinlocked instead of separate code.
 Signed-off-by: Ge Gao <ggao@invensense.com>
 Signed-off-by: Jonathan Cameron <jic23@kernel.org>
 ---
- drivers/iio/imu/inv_mpu6050/inv_mpu_ring.c | 5 ++---
+ drivers/iio/imu/inv_mpu6050/inv_mpu_ring.c |    5 ++---
  1 file changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_ring.c b/drivers/iio/imu/inv_mpu6050/inv_mpu_ring.c
@@ -26,5 +26,5 @@ index 331781f..7da0832 100644
  	return IRQ_WAKE_THREAD;
  }
 -- 
-1.8.2.1
+1.7.9.5
 

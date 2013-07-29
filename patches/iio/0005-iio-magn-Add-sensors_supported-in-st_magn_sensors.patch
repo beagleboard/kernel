@@ -1,11 +1,11 @@
-From 578f3541e080d78462fa0f5a03aa137fabe48d92 Mon Sep 17 00:00:00 2001
+From d9bc85d975b725d2ef498c2ba69f5082f3cea545 Mon Sep 17 00:00:00 2001
 From: Denis Ciocca <denis.ciocca@st.com>
 Date: Tue, 29 Jan 2013 12:27:30 +0100
 Subject: [PATCH 05/11] iio:magn: Add sensors_supported in st_magn_sensors
 
 This patch add sensors_supported struct to st_magn_sensors. Without this the probe can't match the WhoAmI and sensor name.
 ---
- drivers/iio/magnetometer/st_magn_core.c | 7 +++++++
+ drivers/iio/magnetometer/st_magn_core.c |    7 +++++++
  1 file changed, 7 insertions(+)
 
 diff --git a/drivers/iio/magnetometer/st_magn_core.c b/drivers/iio/magnetometer/st_magn_core.c
@@ -34,5 +34,5 @@ index 1dfcb41..a69fbe1 100644
  		.odr = {
  			.addr = ST_MAGN_2_ODR_ADDR,
 -- 
-1.8.2.1
+1.7.9.5
 
