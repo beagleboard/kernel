@@ -17,14 +17,14 @@ RECIPENAME="linux-mainline_3.11.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.11-rc2"
+TAG="v3.11-rc4"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://github.com/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="b3a3a9c441e2c8f6b6760de9331023a7906a4ac6"
+EXTERNAL_SHA="e4ef108fcde0b97ed38923ba1ea06c7a152bab9e"
 
-PATCHSET="general-fixes dtc-fixes  dtc-overlays of-fixes  pdev-fixes dma-devel mmc-fixes dts-fixes i2c-fixes  pinctrl-fixes capemgr reset capes"
+PATCHSET="general-fixes dtc-fixes dtc-overlays of-fixes pdev-fixes dma-devel mmc-fixes dts-fixes i2c-fixes pinctrl-fixes capemgr reset capes lcdc-fixes"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true

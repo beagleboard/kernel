@@ -1,4 +1,4 @@
-From b89fffb80c8805b75a3ecd86f06459e96f5d6625 Mon Sep 17 00:00:00 2001
+From 782e0baba038729f43adb4b69cb113dfd2f47862 Mon Sep 17 00:00:00 2001
 From: Joel Fernandes <joelf@ti.com>
 Date: Mon, 22 Jul 2013 12:49:17 -0500
 Subject: [PATCH 13/13] ARM: EDMA: Fix clearing of unused list for DT DMA
@@ -19,10 +19,10 @@ Signed-off-by: Joel Fernandes <joelf@ti.com>
  1 file changed, 23 insertions(+), 8 deletions(-)
 
 diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index a432e6c..720f958 100644
+index 39ad030..18159d7 100644
 --- a/arch/arm/common/edma.c
 +++ b/arch/arm/common/edma.c
-@@ -561,14 +561,29 @@ static int reserve_contiguous_slots(int ctlr, unsigned int id,
+@@ -560,14 +560,29 @@ static int reserve_contiguous_slots(int ctlr, unsigned int id,
  static int prepare_unused_channel_list(struct device *dev, void *data)
  {
  	struct platform_device *pdev = to_platform_device(dev);
