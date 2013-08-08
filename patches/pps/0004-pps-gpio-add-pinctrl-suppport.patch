@@ -1,0 +1,51 @@
+From 6c3253babded728c8c621bcd4716b9d4cc2a3964 Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Wed, 7 Aug 2013 14:09:41 +0000
+Subject: [PATCH 4/4] pps-gpio: add pinctrl suppport
+
+Add pincontrol support to pps-gpio driver for selecting the
+repective GPIO muxing if applicable.
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+-
+---
+ drivers/pps/clients/pps-gpio.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/pps/clients/pps-gpio.c b/drivers/pps/clients/pps-gpio.c
+index 9b405b3..06f63b1 100644
+--- a/drivers/pps/clients/pps-gpio.c
++++ b/drivers/pps/clients/pps-gpio.c
+@@ -33,6 +33,9 @@
+ #include <linux/pps-gpio.h>
+ #include <linux/gpio.h>
+ #include <linux/list.h>
++#include <linux/pinctrl/pinctrl.h>
++#include <linux/pinctrl/pinmux.h>
++#include <linux/pinctrl/consumer.h>
+ #include <linux/of_device.h>
+ #include <linux/of_gpio.h>
+ 
+@@ -152,6 +155,7 @@ static int pps_gpio_probe(struct platform_device *pdev)
+ 	int irq;
+ 	int ret;
+ 	int pps_default_params;
++	struct pinctrl *pinctrl;
+ 	struct pps_gpio_platform_data *pdata;
+ 	const struct of_device_id *match;
+ 
+@@ -163,6 +167,11 @@ static int pps_gpio_probe(struct platform_device *pdev)
+ 	if (!pdata)
+ 		return -ENODEV;
+ 
++	/* PINCTL setup */
++	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
++	if (IS_ERR(pinctrl))
++		pr_warn("pins are not configured from the driver\n");
++
+ 	/* GPIO setup */
+ 	ret = pps_gpio_setup(pdev);
+ 	if (ret)
+-- 
+1.8.2.1
+
