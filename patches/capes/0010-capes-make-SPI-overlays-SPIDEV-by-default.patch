@@ -1,0 +1,561 @@
+From 940caa86aa08f8b5dfd81b70f67424ce377242ac Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Fri, 9 Aug 2013 06:06:23 +0000
+Subject: [PATCH 10/10] capes: make SPI overlays SPIDEV by default
+
+Since beaglebone black requires the overlays to be compiled into
+the kernel due to eMMC dependency the SPI should be enabled in the
+most typical use case of SPIDEV.
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ firmware/Makefile                    |  4 +-
+ firmware/capes/BB-SPI0-00A0.dts      | 79 -----------------------------------
+ firmware/capes/BB-SPI1-00A0.dts      | 81 ------------------------------------
+ firmware/capes/BB-SPI1A1-00A0.dts    | 81 ------------------------------------
+ firmware/capes/BB-SPIDEV0-00A0.dts   | 79 +++++++++++++++++++++++++++++++++++
+ firmware/capes/BB-SPIDEV1-00A0.dts   | 80 +++++++++++++++++++++++++++++++++++
+ firmware/capes/BB-SPIDEV1A1-00A0.dts | 80 +++++++++++++++++++++++++++++++++++
+ 7 files changed, 241 insertions(+), 243 deletions(-)
+ delete mode 100644 firmware/capes/BB-SPI0-00A0.dts
+ delete mode 100644 firmware/capes/BB-SPI1-00A0.dts
+ delete mode 100644 firmware/capes/BB-SPI1A1-00A0.dts
+ create mode 100644 firmware/capes/BB-SPIDEV0-00A0.dts
+ create mode 100644 firmware/capes/BB-SPIDEV1-00A0.dts
+ create mode 100644 firmware/capes/BB-SPIDEV1A1-00A0.dts
+
+diff --git a/firmware/Makefile b/firmware/Makefile
+index fa63014..9aabdee 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -223,9 +223,9 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	BB-I2C1-00A0.dtbo BB-I2C1A1-00A0.dtbo
+ 
+-# the virtual peripheral capes for the SPIs
++# the virtual peripheral capes for the SPIDEVs
+ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+-	BB-SPI0-00A0.dtbo BB-SPI1-00A0.dtbo BB-SPI1A1-00A0.dtbo
++	BB-SPIDEV0-00A0.dtbo BB-SPIDEV1-00A0.dtbo BB-SPIDEV1A1-00A0.dtbo
+ 
+ # the virtual peripheral capes for ADC
+ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+diff --git a/firmware/capes/BB-SPI0-00A0.dts b/firmware/capes/BB-SPI0-00A0.dts
+deleted file mode 100644
+index 547efce..0000000
+--- a/firmware/capes/BB-SPI0-00A0.dts
++++ /dev/null
+@@ -1,79 +0,0 @@
+-/*
+- * Copyright (C) 2013 CircuitCo
+- *
+- * Virtual cape for SPI0 on connector pins P9.22 P9.21 P9.18 P9.17
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-/dts-v1/;
+-/plugin/;
+-
+-/ {
+-	compatible = "ti,beaglebone", "ti,beaglebone-black";
+-
+-	/* identification */
+-	part-number = "BB-SPI0";
+-	version = "00A0";
+-
+-	/* state the resources this cape uses */
+-	exclusive-use =
+-		/* the pin header uses */
+-		"P9.17",	/* spi0_cs0 */
+-		"P9.18",	/* spi0_d1 */
+-		"P9.21",	/* spi0_d0 */
+-		"P9.22",	/* spi0_sclk */
+-		/* the hardware ip uses */
+-		"spi0";
+-
+-	fragment@0 {
+-		target = <&am33xx_pinmux>;
+-		__overlay__ {
+-			/* default state has all gpios released and mode set to uart1 */
+-			bb_spi0_pins: pinmux_bb_spi0_pins {
+-				pinctrl-single,pins = <
+-					0x150 0x30	/* spi0_sclk.spi0_sclk, INPUT_PULLUP | MODE0 */
+-					0x154 0x30	/* spi0_d0.spi0_d0, INPUT_PULLUP | MODE0 */
+-					0x158 0x10	/* spi0_d1.spi0_d1, OUTPUT_PULLUP | MODE0 */
+-					0x15c 0x10	/* spi0_cs0.spi0_cs0, OUTPUT_PULLUP | MODE0 */
+-				>;
+-			};
+-		};
+-	};
+-
+-	fragment@1 {
+-		target = <&spi0>;	/* spi0 is numbered correctly */
+-		__overlay__ {
+-			status = "okay";
+-			pinctrl-names = "default";
+-			pinctrl-0 = <&bb_spi0_pins>;
+-
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-
+-			/* add any spi devices connected here */
+-			/* note that you can do direct SPI via spidev now */
+-
+-			// commented out example of an adafruit 1.8" TFT display
+-			// from firmare/capes/cape-bone-adafruit-lcd-00A0.dts
+-			// lcd@0 {
+-			//	#address-cells = <1>;
+-			//	#size-cells = <0>;
+-			//
+-			//	compatible = "adafruit,tft-lcd-1.8-red", "sitronix,st7735";
+-			//	reg = <0>;
+-			//
+-			//	spi-max-frequency = <8000000>;
+-			//	spi-cpol;
+-			//	spi-cpha;
+-			//
+-			//	pinctrl-names = "default";
+-			//	pinctrl-0 = <&bone_adafruit_lcd_pins>;
+-			//
+-			//	st7735-rst = <&gpio4 19 0>;
+-			//	st7735-dc = <&gpio4 21 0>;
+-			// };
+-		};
+-	};
+-};
+diff --git a/firmware/capes/BB-SPI1-00A0.dts b/firmware/capes/BB-SPI1-00A0.dts
+deleted file mode 100644
+index 1ead983..0000000
+--- a/firmware/capes/BB-SPI1-00A0.dts
++++ /dev/null
+@@ -1,81 +0,0 @@
+-/*
+- * Copyright (C) 2013 CircuitCo
+- *
+- * Virtual cape for SPI1 on connector pins P9.29 P9.31 P9.30 P9.28
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-/dts-v1/;
+-/plugin/;
+-
+-/ {
+-	compatible = "ti,beaglebone", "ti,beaglebone-black";
+-
+-	/* identification */
+-	part-number = "BB-SPI1";
+-	version = "00A0";
+-
+-	/* state the resources this cape uses */
+-	exclusive-use =
+-		/* the pin header uses */
+-		"P9.31",	/* spi1_sclk */
+-		"P9.29",	/* spi1_d0 */
+-		"P9.30",	/* spi1_d1 */
+-		"P9.28",	/* spi1_cs0 */
+-		// "P9.42",	/* spi1_cs1 */
+-		/* the hardware ip uses */
+-		"spi1";
+-
+-	fragment@0 {
+-		target = <&am33xx_pinmux>;
+-		__overlay__ {
+-			/* default state has all gpios released and mode set to uart1 */
+-			bb_spi1_pins: pinmux_bb_spi1_pins {
+-				pinctrl-single,pins = <
+-					0x190 0x33	/* mcasp0_aclkx.spi1_sclk, INPUT_PULLUP | MODE3 */
+-					0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
+-					0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
+-					0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
+-					// 0x164 0x12	/* eCAP0_in_PWM0_out.spi1_cs1 OUTPUT_PULLUP | MODE2 */
+-				>;
+-			};
+-		};
+-	};
+-
+-	fragment@1 {
+-		target = <&spi1>;	/* spi1 is numbered correctly */
+-		__overlay__ {
+-			status = "okay";
+-			pinctrl-names = "default";
+-			pinctrl-0 = <&bb_spi1_pins>;
+-
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-
+-			/* add any spi devices connected here */
+-			/* note that you can do direct SPI via spidev now */
+-
+-			// commented out example of an adafruit 1.8" TFT display
+-			// from firmare/capes/cape-bone-adafruit-lcd-00A0.dts
+-			// lcd@0 {
+-			//	#address-cells = <1>;
+-			//	#size-cells = <0>;
+-			//
+-			//	compatible = "adafruit,tft-lcd-1.8-red", "sitronix,st7735";
+-			//	reg = <0>;
+-			//
+-			//	spi-max-frequency = <8000000>;
+-			//	spi-cpol;
+-			//	spi-cpha;
+-			//
+-			//	pinctrl-names = "default";
+-			//	pinctrl-0 = <&bone_adafruit_lcd_pins>;
+-			//
+-			//	st7735-rst = <&gpio4 19 0>;
+-			//	st7735-dc = <&gpio4 21 0>;
+-			// };
+-		};
+-	};
+-};
+diff --git a/firmware/capes/BB-SPI1A1-00A0.dts b/firmware/capes/BB-SPI1A1-00A0.dts
+deleted file mode 100644
+index ba98e73..0000000
+--- a/firmware/capes/BB-SPI1A1-00A0.dts
++++ /dev/null
+@@ -1,81 +0,0 @@
+-/*
+- * Copyright (C) 2013 CircuitCo
+- *
+- * Virtual cape for SPI1 (ALT #1) on connector pins 
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-/dts-v1/;
+-/plugin/;
+-
+-/ {
+-	compatible = "ti,beaglebone", "ti,beaglebone-black";
+-
+-	/* identification */
+-	part-number = "BB-SPI1";
+-	version = "00A0";
+-
+-	/* state the resources this cape uses */
+-	exclusive-use =
+-		/* the pin header uses */
+-		"P9.42",	/* spi1_sclk */
+-		"P9.29",	/* spi1_d0 */
+-		"P9.30",	/* spi1_d1 */
+-		"P9.20",	/* spi1_cs0 */
+-		/* the hardware ip uses */
+-		"spi1";
+-
+-	fragment@0 {
+-		target = <&am33xx_pinmux>;
+-		__overlay__ {
+-			/* default state has all gpios released and mode set to uart1 */
+-			bb_spi1_pins: pinmux_bb_spi1_pins {
+-				pinctrl-single,pins = <
+-					0x164 0x34	/* eCAP0_in_PWM0_out.spi1_sclk, INPUT_PULLUP | MODE4 */
+-							/* NOTE: P9.42 is connected to two pads */
+-					// 0x1A0 0x27	/* set the other pad to gpio input */
+-					0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
+-					0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
+-					0x178 0x14	/* uart1_ctsn.spi1_cs0, OUTPUT_PULLUP | MODE4 */
+-				>;
+-			};
+-		};
+-	};
+-
+-	fragment@1 {
+-		target = <&spi1>;	/* spi1 is numbered correctly */
+-		__overlay__ {
+-			status = "okay";
+-			pinctrl-names = "default";
+-			pinctrl-0 = <&bb_spi1_pins>;
+-
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-
+-			/* add any spi devices connected here */
+-			/* note that you can do direct SPI via spidev now */
+-
+-			// commented out example of an adafruit 1.8" TFT display
+-			// from firmare/capes/cape-bone-adafruit-lcd-00A0.dts
+-			// lcd@0 {
+-			//	#address-cells = <1>;
+-			//	#size-cells = <0>;
+-			//
+-			//	compatible = "adafruit,tft-lcd-1.8-red", "sitronix,st7735";
+-			//	reg = <0>;
+-			//
+-			//	spi-max-frequency = <8000000>;
+-			//	spi-cpol;
+-			//	spi-cpha;
+-			//
+-			//	pinctrl-names = "default";
+-			//	pinctrl-0 = <&bone_adafruit_lcd_pins>;
+-			//
+-			//	st7735-rst = <&gpio4 19 0>;
+-			//	st7735-dc = <&gpio4 21 0>;
+-			// };
+-		};
+-	};
+-};
+diff --git a/firmware/capes/BB-SPIDEV0-00A0.dts b/firmware/capes/BB-SPIDEV0-00A0.dts
+new file mode 100644
+index 0000000..5cc6169
+--- /dev/null
++++ b/firmware/capes/BB-SPIDEV0-00A0.dts
+@@ -0,0 +1,79 @@
++/*
++ * Copyright (C) 2013 CircuitCo
++ *
++ * Virtual cape for SPI0 on connector pins P9.22 P9.21 P9.18 P9.17
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-SPI0";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.17",	/* spi0_cs0 */
++		"P9.18",	/* spi0_d1 */
++		"P9.21",	/* spi0_d0 */
++		"P9.22",	/* spi0_sclk */
++		/* the hardware ip uses */
++		"spi0";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			/* default state has all gpios released and mode set to uart1 */
++			bb_spi0_pins: pinmux_bb_spi0_pins {
++				pinctrl-single,pins = <
++					0x150 0x30	/* spi0_sclk.spi0_sclk, INPUT_PULLUP | MODE0 */
++					0x154 0x30	/* spi0_d0.spi0_d0, INPUT_PULLUP | MODE0 */
++					0x158 0x10	/* spi0_d1.spi0_d1, OUTPUT_PULLUP | MODE0 */
++					0x15c 0x10	/* spi0_cs0.spi0_cs0, OUTPUT_PULLUP | MODE0 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&spi0>;	/* spi0 is numbered correctly */
++		__overlay__ {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bb_spi0_pins>;
++
++
++			channel@0 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				compatible = "spidev";
++
++				reg = <0>;
++				spi-max-frequency = <16000000>;
++				spi-cpha;
++			};
++
++
++			channel@1 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				compatible = "spidev";
++
++				reg = <1>;
++				spi-max-frequency = <16000000>;
++			};
++		};
++	};
++};
+diff --git a/firmware/capes/BB-SPIDEV1-00A0.dts b/firmware/capes/BB-SPIDEV1-00A0.dts
+new file mode 100644
+index 0000000..2164dfe
+--- /dev/null
++++ b/firmware/capes/BB-SPIDEV1-00A0.dts
+@@ -0,0 +1,80 @@
++/*
++ * Copyright (C) 2013 CircuitCo
++ *
++ * Virtual cape for SPI1 on connector pins P9.29 P9.31 P9.30 P9.28
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-SPI1";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.31",	/* spi1_sclk */
++		"P9.29",	/* spi1_d0 */
++		"P9.30",	/* spi1_d1 */
++		"P9.28",	/* spi1_cs0 */
++		// "P9.42",	/* spi1_cs1 */
++		/* the hardware ip uses */
++		"spi1";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			/* default state has all gpios released and mode set to uart1 */
++			bb_spi1_pins: pinmux_bb_spi1_pins {
++				pinctrl-single,pins = <
++					0x190 0x33	/* mcasp0_aclkx.spi1_sclk, INPUT_PULLUP | MODE3 */
++					0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
++					0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
++					0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
++					// 0x164 0x12	/* eCAP0_in_PWM0_out.spi1_cs1 OUTPUT_PULLUP | MODE2 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&spi1>;	/* spi1 is numbered correctly */
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bb_spi1_pins>;
++
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			channel@0 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				compatible = "spidev";
++
++				reg = <0>;
++				spi-max-frequency = <16000000>;
++				spi-cpha;
++			};
++
++
++			channel@1 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				compatible = "spidev";
++
++				reg = <1>;
++				spi-max-frequency = <16000000>;
++			};
++		};
++	};
++};
+diff --git a/firmware/capes/BB-SPIDEV1A1-00A0.dts b/firmware/capes/BB-SPIDEV1A1-00A0.dts
+new file mode 100644
+index 0000000..71da452
+--- /dev/null
++++ b/firmware/capes/BB-SPIDEV1A1-00A0.dts
+@@ -0,0 +1,80 @@
++/*
++ * Copyright (C) 2013 CircuitCo
++ *
++ * Virtual cape for SPI1 (ALT #1) on connector pins
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-SPI1";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.42",	/* spi1_sclk */
++		"P9.29",	/* spi1_d0 */
++		"P9.30",	/* spi1_d1 */
++		"P9.20",	/* spi1_cs0 */
++		/* the hardware ip uses */
++		"spi1";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			/* default state has all gpios released and mode set to uart1 */
++			bb_spi1_pins: pinmux_bb_spi1_pins {
++				pinctrl-single,pins = <
++					0x164 0x34	/* eCAP0_in_PWM0_out.spi1_sclk, INPUT_PULLUP | MODE4 */
++							/* NOTE: P9.42 is connected to two pads */
++					// 0x1A0 0x27	/* set the other pad to gpio input */
++					0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
++					0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
++					0x178 0x14	/* uart1_ctsn.spi1_cs0, OUTPUT_PULLUP | MODE4 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&spi1>;	/* spi1 is numbered correctly */
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bb_spi1_pins>;
++
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			channel@0 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				compatible = "spidev";
++
++				reg = <0>;
++				spi-max-frequency = <16000000>;
++				spi-cpha;
++			};
++
++
++			channel@1 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				compatible = "spidev";
++
++				reg = <1>;
++				spi-max-frequency = <16000000>;
++			};
++		};
++	};
++};
+-- 
+1.8.2.1
+
