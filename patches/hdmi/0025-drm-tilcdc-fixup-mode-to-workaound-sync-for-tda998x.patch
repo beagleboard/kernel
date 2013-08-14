@@ -1,0 +1,55 @@
+From 74723af024c68654af44568ccfbc6af0d825d12b Mon Sep 17 00:00:00 2001
+From: Cody Lacey <clacey@ti.com>
+Date: Fri, 9 Aug 2013 14:07:01 -0500
+Subject: [PATCH 25/27] drm/tilcdc fixup mode to workaound sync for tda998x
+
+Add a fixup function that will flip the hsync priority and
+add a hskew value that is used to shift the tda998x to the
+right by a variable number of pixels depending on the mode.
+This works around an issue with the sync timings that tilcdc
+is outputing.
+Created by: Darren Etheridge <detheridge@ti.com>
+---
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+index 667540c..8d72c4d 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+@@ -65,13 +65,31 @@ static void slave_encoder_prepare(struct drm_encoder *encoder)
+ 	tilcdc_crtc_set_panel_info(encoder->crtc, slave_encoder->mod->info);
+ }
+ 
++static bool slave_encoder_fixup(struct drm_encoder *encoder,
++		const struct drm_display_mode *mode,
++		struct drm_display_mode *adjusted_mode)
++{
++	adjusted_mode->hskew = mode->hsync_end - mode->hsync_start;
++	adjusted_mode->flags |= DRM_MODE_FLAG_HSKEW;
++
++	if (mode->flags & DRM_MODE_FLAG_NHSYNC) {
++		adjusted_mode->flags |= DRM_MODE_FLAG_PHSYNC;
++		adjusted_mode->flags &= ~DRM_MODE_FLAG_NHSYNC;
++	} else {
++		adjusted_mode->flags |= DRM_MODE_FLAG_NHSYNC;
++		adjusted_mode->flags &= ~DRM_MODE_FLAG_PHSYNC;
++	}
++
++	return drm_i2c_encoder_mode_fixup(encoder, mode, adjusted_mode);
++}
++
+ static const struct drm_encoder_funcs slave_encoder_funcs = {
+ 		.destroy        = slave_encoder_destroy,
+ };
+ 
+ static const struct drm_encoder_helper_funcs slave_encoder_helper_funcs = {
+ 		.dpms           = drm_i2c_encoder_dpms,
+-		.mode_fixup     = drm_i2c_encoder_mode_fixup,
++		.mode_fixup     = slave_encoder_fixup,
+ 		.prepare        = slave_encoder_prepare,
+ 		.commit         = drm_i2c_encoder_commit,
+ 		.mode_set       = drm_i2c_encoder_mode_set,
+-- 
+1.7.9.5
+
