@@ -1,0 +1,171 @@
+From 097dac7ddad00f97441c60d6710a0d5c1a76d51b Mon Sep 17 00:00:00 2001
+From: Cody Lacey <clacey@ti.com>
+Date: Fri, 9 Aug 2013 14:10:45 -0500
+Subject: [PATCH 26/27] Documentation for tilcdc Devicetree Bindings
+
+This adds documentation for tilcdc devicetree bindings.
+---
+ .../devicetree/bindings/drm/tilcdc/panel.txt       |   59 ++++++++++++++++++++
+ .../devicetree/bindings/drm/tilcdc/slave.txt       |   18 ++++++
+ .../devicetree/bindings/drm/tilcdc/tfp410.txt      |   21 +++++++
+ .../devicetree/bindings/drm/tilcdc/tilcdc.txt      |   29 ++++++++++
+ 4 files changed, 127 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/drm/tilcdc/panel.txt
+ create mode 100644 Documentation/devicetree/bindings/drm/tilcdc/slave.txt
+ create mode 100644 Documentation/devicetree/bindings/drm/tilcdc/tfp410.txt
+ create mode 100644 Documentation/devicetree/bindings/drm/tilcdc/tilcdc.txt
+
+diff --git a/Documentation/devicetree/bindings/drm/tilcdc/panel.txt b/Documentation/devicetree/bindings/drm/tilcdc/panel.txt
+new file mode 100644
+index 0000000..9301c33
+--- /dev/null
++++ b/Documentation/devicetree/bindings/drm/tilcdc/panel.txt
+@@ -0,0 +1,59 @@
++Device-Tree bindings for tilcdc DRM generic panel output driver
++
++Required properties:
++ - compatible: value should be "ti,tilcdc,panel".
++ - panel-info: configuration info to configure LCDC correctly for the panel
++   - ac-bias: AC Bias Pin Frequency
++   - ac-bias-intrpt: AC Bias Pin Transitions per Interrupt
++   - dma-burst-sz: DMA burst size
++   - bpp: Bits per pixel
++   - fdd: FIFO DMA Request Delay
++   - sync-edge: Horizontal and Vertical Sync Edge: 0=rising 1=falling
++   - sync-ctrl: Horizontal and Vertical Sync: Control: 0=ignore
++   - raster-order: Raster Data Order Select: 1=Most-to-least 0=Least-to-most
++   - fifo-th: DMA FIFO threshold
++ - display-timings: typical videomode of lcd panel.  Multiple video modes
++   can be listed if the panel supports multiple timings, but the 'native-mode'
++   should be the preferred/default resolution.  Refer to
++   Documentation/devicetree/bindings/video/display-timing.txt for display
++   timing binding details.
++
++Recommended properties:
++ - pinctrl-names, pinctrl-0: the pincontrol settings to configure
++   muxing properly for pins that connect to TFP410 device
++
++Example:
++
++	/* Settings for CDTech_S035Q01 / LCD3 cape: */
++	lcd3 {
++		compatible = "ti,tilcdc,panel";
++		pinctrl-names = "default";
++		pinctrl-0 = <&bone_lcd3_cape_lcd_pins>;
++		panel-info {
++			ac-bias           = <255>;
++			ac-bias-intrpt    = <0>;
++			dma-burst-sz      = <16>;
++			bpp               = <16>;
++			fdd               = <0x80>;
++			sync-edge         = <0>;
++			sync-ctrl         = <1>;
++			raster-order      = <0>;
++			fifo-th           = <0>;
++		};
++		display-timings {
++			native-mode = <&timing0>;
++			timing0: 320x240 {
++				hactive         = <320>;
++				vactive         = <240>;
++				hback-porch     = <21>;
++				hfront-porch    = <58>;
++				hsync-len       = <47>;
++				vback-porch     = <11>;
++				vfront-porch    = <23>;
++				vsync-len       = <2>;
++				clock-frequency = <8000000>;
++				hsync-active    = <0>;
++				vsync-active    = <0>;
++			};
++		};
++	};
+diff --git a/Documentation/devicetree/bindings/drm/tilcdc/slave.txt b/Documentation/devicetree/bindings/drm/tilcdc/slave.txt
+new file mode 100644
+index 0000000..3d2c524
+--- /dev/null
++++ b/Documentation/devicetree/bindings/drm/tilcdc/slave.txt
+@@ -0,0 +1,18 @@
++Device-Tree bindings for tilcdc DRM encoder slave output driver
++
++Required properties:
++ - compatible: value should be "ti,tilcdc,slave".
++ - i2c: the phandle for the i2c device the encoder slave is connected to
++
++Recommended properties:
++ - pinctrl-names, pinctrl-0: the pincontrol settings to configure
++   muxing properly for pins that connect to TFP410 device
++
++Example:
++
++	hdmi {
++		compatible = "ti,tilcdc,slave";
++		i2c = <&i2c0>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
++	};
+diff --git a/Documentation/devicetree/bindings/drm/tilcdc/tfp410.txt b/Documentation/devicetree/bindings/drm/tilcdc/tfp410.txt
+new file mode 100644
+index 0000000..a58ae77
+--- /dev/null
++++ b/Documentation/devicetree/bindings/drm/tilcdc/tfp410.txt
+@@ -0,0 +1,21 @@
++Device-Tree bindings for tilcdc DRM TFP410 output driver
++
++Required properties:
++ - compatible: value should be "ti,tilcdc,tfp410".
++ - i2c: the phandle for the i2c device to use for DDC
++
++Recommended properties:
++ - pinctrl-names, pinctrl-0: the pincontrol settings to configure
++   muxing properly for pins that connect to TFP410 device
++ - powerdn-gpio: the powerdown GPIO, pulled low to power down the
++   TFP410 device (for DPMS_OFF)
++
++Example:
++
++	dvicape {
++		compatible = "ti,tilcdc,tfp410";
++		i2c = <&i2c2>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&bone_dvi_cape_dvi_00A1_pins>;
++		powerdn-gpio = <&gpio2 31 0>;
++	};
+diff --git a/Documentation/devicetree/bindings/drm/tilcdc/tilcdc.txt b/Documentation/devicetree/bindings/drm/tilcdc/tilcdc.txt
+new file mode 100644
+index 0000000..fff10da
+--- /dev/null
++++ b/Documentation/devicetree/bindings/drm/tilcdc/tilcdc.txt
+@@ -0,0 +1,29 @@
++Device-Tree bindings for tilcdc DRM driver
++
++Required properties:
++ - compatible: value should be "ti,am33xx-tilcdc".
++ - interrupts: the interrupt number
++ - reg: base address and size of the LCDC device
++
++Recommended properties:
++ - interrupt-parent: the phandle for the interrupt controller that
++   services interrupts for this device.
++ - ti,hwmods: Name of the hwmod associated to the LCDC
++
++Optional properties:
++ - max-bandwidth: The maximum pixels per second that the memory
++   interface / lcd controller combination can sustain
++ - max-width: The maximum horizontal pixel width supported by
++   the lcd controller.
++ - max-pixelclock: The maximum pixel clock that can be supported
++   by the lcd controller in KHz.
++
++Example:
++
++	fb: fb@4830e000 {
++		compatible = "ti,am33xx-tilcdc";
++		reg = <0x4830e000 0x1000>;
++		interrupt-parent = <&intc>;
++		interrupts = <36>;
++		ti,hwmods = "lcdc";
++	};
+-- 
+1.7.9.5
+

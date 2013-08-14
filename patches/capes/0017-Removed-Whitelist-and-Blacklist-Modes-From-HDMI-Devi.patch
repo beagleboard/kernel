@@ -1,0 +1,60 @@
+From e5e09e771f4dde8ad74db788fd042b287e5ecd76 Mon Sep 17 00:00:00 2001
+From: Cody Lacey <clacey@ti.com>
+Date: Thu, 8 Aug 2013 10:11:22 -0500
+Subject: [PATCH 17/17] Removed Whitelist and Blacklist Modes From HDMI
+ Devicetree
+
+Because sync generation was fixed whitelist and blacklist
+devicetree properties are no longer needed for HDMI.
+---
+ firmware/capes/cape-boneblack-hdmi-00A0.dts  |   11 -----------
+ firmware/capes/cape-boneblack-hdmin-00A0.dts |   11 -----------
+ 2 files changed, 22 deletions(-)
+
+diff --git a/firmware/capes/cape-boneblack-hdmi-00A0.dts b/firmware/capes/cape-boneblack-hdmi-00A0.dts
+index 04b7b54..8d1f295 100644
+--- a/firmware/capes/cape-boneblack-hdmi-00A0.dts
++++ b/firmware/capes/cape-boneblack-hdmi-00A0.dts
+@@ -111,17 +111,6 @@
+ 				pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
+ 				pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
+ 
+-				modes-blacklisted =
+-					"1920x1080@25",
+-					"832x624@75";
+-
+-				// Enable this when we figure out the modes
+-				//
+-				// modes-whitelisted =
+-				//	"1920x1080@24",
+-				//	"1280x720@50", "1280x720@60",
+-				//	"720x576@50","720x480@60";
+-
+ 				panel-info {
+ 					bpp = <16>;
+ 					ac-bias = <255>;
+diff --git a/firmware/capes/cape-boneblack-hdmin-00A0.dts b/firmware/capes/cape-boneblack-hdmin-00A0.dts
+index ad55c4d..e193426 100644
+--- a/firmware/capes/cape-boneblack-hdmin-00A0.dts
++++ b/firmware/capes/cape-boneblack-hdmin-00A0.dts
+@@ -96,17 +96,6 @@
+ 				pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
+ 				pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
+ 
+-				modes-blacklisted =
+-					"1920x1080@25",
+-					"832x624@75";
+-
+-				// Enable this when we figure out the modes
+-				//
+-				// modes-whitelisted =
+-				//	"1920x1080@24",
+-				//	"1280x720@50", "1280x720@60",
+-				//	"720x576@50","720x480@60";
+-
+ 				panel-info {
+ 					bpp = <16>;
+ 					ac-bias = <255>;
+-- 
+1.7.9.5
+
