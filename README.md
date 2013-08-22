@@ -20,7 +20,7 @@ To build it:
 ```
 cd kernel
 cp ../configs/beaglebone .config
-make uImage dtbs
+make ARCH=arm CROSS_COMPILE=arm-xxxx-linux-gnueabi- uImage dtbs
 ```
 
 copy over uImage and am335x-bone.dtb to /boot
