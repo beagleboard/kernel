@@ -1,0 +1,34 @@
+From 3e0d789298f285a691fb45487408aebb8966dcd7 Mon Sep 17 00:00:00 2001
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Date: Fri, 30 Aug 2013 15:09:45 +0200
+Subject: [PATCH 5/5] ARM: DTS: AM33XX: Add PMU support
+
+ARM Performance Monitor Units are available on the am33xx, add the support in
+the dtsi.
+
+Tested with perf and oprofile on a regular beaglebone.
+
+Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 6dcd42a..e0394d3 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -48,6 +48,11 @@
+ 		};
+ 	};
+ 
++	pmu {
++		compatible = "arm,cortex-a8-pmu";
++		interrupts = <3>;
++	};
++
+ 	/*
+ 	 * The soc node represents the soc top level view. It is uses for IPs
+ 	 * that are not memory mapped in the MPU view or for the MPU itself.
+-- 
+1.8.2.1
+
