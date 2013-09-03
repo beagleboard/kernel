@@ -1,0 +1,166 @@
+From 448e4371f4b39822e24d6fc3bdcc244d64c86d9e Mon Sep 17 00:00:00 2001
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Date: Tue, 3 Sep 2013 15:52:22 +0200
+Subject: [PATCH 2/2] USB: Fix USB device disconnects on resume.
+
+The TLDR; version:
+
+We've assumed that when a device disconnects after a resume from device
+suspend, it was just a cheap, buggy device.  It turns out that the USB
+core simply wasn't waiting long enough for the devices to transition
+from resume to U0, and it's actually been the USB core's fault all
+along...
+
+ * * Please go test this patch with your "buggy" USB devices. * *
+
+Background
+----------
+
+The USB 2.0 specification, section 7.1.7.7, says that upon device remote
+wakeup signaling, the first active hub (which is often the roothub) must
+rebroadcast the resume signaling for at least 20 ms (TDRSMDN).  After
+that's done, the hub's suspend status change bit will be set, and system
+software must not access the device for at least 10 ms (TRSMRCY).
+
+It turns out that TRSMRCY is a *minimum*, not a *maximum*, according to
+Table 7-14.  That means the port can actually take longer than TRSMRCY
+to resume.  Any attempt to communicate with the device, or reset the
+device, will result in a USB device disconnect.
+
+This discrepancy was found with the Intel xHCI host controller, because
+they handle USB 2.0 resume a little differently than EHCI.  See the xHCI
+spec, Figure 34: USB2 Root Hub Port Enabled Substate Diagram for
+details.
+
+Under EHCI, the host controller driver receives an interrupt when the
+port suspend status change bit is set, and the USB core only has to time
+the 10ms TRSMRCY value.
+
+Under xHCI, the host receives an interrupt when the device remote wake
+is first signaled, and the port goes into the Resume state.  The xHCI
+driver kicks khubd, but doesn't allow the suspend state change to be
+exposed until 20 ms (TDRSMDN) after the port status change event occurs.
+
+Then, when the USB core calls into get port status, it transitions the
+port from the Resume state to the RExit state by changing the port link
+state to U0.  The xHCI driver will get a port status change event when
+that transition is complete, but that port status change event is
+currently ignored.
+
+What actually happens
+---------------------
+
+By busy-waiting with xhci_handshake() after the Lynx Point LP host
+initiates the transition to U0, and printing out how long it took, it
+turns out that roughly 8% of the time, the host takes longer than 10 ms
+to transition from RExit to U0.
+
+Out of 227 remote wakeup events from a USB mouse and keyboard:
+ - 163 transitions from RExit to U0 were immediate ( < 1 microsecond)
+ - 47 transitions from RExit to U0 took under 10 ms
+ - 17 transitions were over 10ms
+
+Those 17 transitions (in microseconds) took:
+
+10140
+10305
+10650
+10659
+10677
+10695
+10819
+10907
+10998
+11030
+11234
+11618
+11656
+11724
+11898
+12060
+12162
+12757
+
+The end result of that is that on 8% of remote wake events, the USB core
+would attempt to communicate with the device before it was fully
+resumed, causing USB disconnects or transfer errors on the next control
+transfer to get the device status.
+
+This bug has been reproduced under ChromeOS, which is very aggressive
+about USB power management.  It enables auto-suspend for all internal
+USB devices (wifi and bluetooth), and the disconnects wreck havoc on
+those devices, causing the ChromeOS GUIs to repeatedly flash the USB
+wifi setup screen on user login.  ChromeOS sets the autosuspend_delay_ms
+to 100 milliseconds, and disables USB device persist.  I can reproduce
+this bug with a vanilla 3.10.7 kernel under ChromeOS.
+
+Possible fixes
+--------------
+
+The USB core obviously needs to be changed to check the port status
+after the TRSMRCY timeout, and continue to wait if the port is still in
+the resuming state.  I will have to study the EHCI port status diagrams
+in detail to figure out how the USB core can do this.  I can easily do
+this without the USB core being involved, by changing the xHCI driver to
+either:
+
+1. Busy wait with xhci_handshake() in the xHCI get port status until
+   the port is in U0.
+
+2. Add a completion per xHCI port.  In xHCI get port status, initiate
+   U0 entry, and wait on the port's completion for up to 20 ms.  In the
+   port status change event code, complete that port's completion when
+   the port is in U0 and the bus_state->resuming_ports bit is set.
+
+In the meantime, simply increasing TRSMRCY from 10 ms to 20 ms solves
+the resume issue on the Intel xHCI host.  Please test this patch under
+other host controllers to see if it helps "fix" your buggy devices.
+
+Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Cc: stable@vger.kernel.org
+---
+ drivers/usb/core/hub.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+index 2a89588..c2eeed5 100644
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -168,6 +168,14 @@ EXPORT_SYMBOL_GPL(ehci_cf_port_reset_rwsem);
+ #define HUB_DEBOUNCE_STEP	  25
+ #define HUB_DEBOUNCE_STABLE	 100
+ 
++/*
++ * TRSMRCY is defined by the USB 2.0 specification to be 10 msec,
++ * but some Intel xHCI hosts take longer to link train.
++ * On Intel Lynx Point LP, U0 transition can take as long as
++ * 12757 microseconds, so wait 20 msec to be on the safe side.
++ */
++#define TRSMRCY			  20
++
+ #define to_usb_port(_dev) \
+ 	container_of(_dev, struct usb_port, dev)
+ 
+@@ -3179,8 +3187,7 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
+ 		 */
+ 		status = hub_port_status(hub, port1, &portstatus, &portchange);
+ 
+-		/* TRSMRCY = 10 msec */
+-		msleep(10);
++		msleep(TRSMRCY);
+ 	}
+ 
+  SuspendCleared:
+@@ -4538,8 +4545,7 @@ static int hub_handle_remote_wakeup(struct usb_hub *hub, unsigned int port,
+ 	}
+ 
+ 	if (udev) {
+-		/* TRSMRCY = 10 msec */
+-		msleep(10);
++		msleep(TRSMRCY);
+ 
+ 		usb_lock_device(udev);
+ 		ret = usb_remote_wakeup(udev);
+-- 
+1.8.2.1
+
