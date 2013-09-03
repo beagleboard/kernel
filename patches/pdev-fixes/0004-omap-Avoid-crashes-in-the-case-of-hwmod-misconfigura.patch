@@ -1,4 +1,4 @@
-From 40026f609a066baad1d223cd4fafcec48407f63b Mon Sep 17 00:00:00 2001
+From 2d8776acd01a119d92aa2a001bfb2258514bdfea Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 8 Jan 2013 15:19:52 +0200
 Subject: [PATCH 4/4] omap: Avoid crashes in the case of hwmod misconfiguration
@@ -53,7 +53,7 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 7341eff..42cb7d4 100644
+index 7f4db12..b887451 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
 @@ -784,7 +784,9 @@ static int _init_interface_clks(struct omap_hwmod *oh)

@@ -1,4 +1,4 @@
-From 742dcafbe470dc563c6150dccd9bb1de0b5ff6dd Mon Sep 17 00:00:00 2001
+From f33661ac4c48c7538ac8b9f6279a486a060cc294 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 28 Dec 2012 11:41:11 +0200
 Subject: [PATCH 3/4] omap: Properly handle resources for omap_devices
@@ -17,10 +17,10 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  1 file changed, 148 insertions(+), 84 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 5cc9287..f33b40c 100644
+index f99f68e..dc7a56d 100644
 --- a/arch/arm/mach-omap2/omap_device.c
 +++ b/arch/arm/mach-omap2/omap_device.c
-@@ -322,30 +322,156 @@ static int omap_device_fill_resources(struct omap_device *od,
+@@ -330,30 +330,156 @@ static int omap_device_fill_resources(struct omap_device *od,
  }
  
  /**
@@ -82,8 +82,8 @@ index 5cc9287..f33b40c 100644
 +	if (!res) {
 +		ret = -ENOMEM;
 +		goto fail_no_res;
- 	}
- 
++	}
++
 +	/* fill all the resources */
 +	ret = omap_device_fill_resources(od, res);
 +	if (ret != 0)
@@ -167,8 +167,8 @@ index 5cc9287..f33b40c 100644
 +	} else {
 +		dev_dbg(&pdev->dev, "%s(): using resources from hwmod %d\n",
 +			__func__, res_count);
-+	}
-+
+ 	}
+ 
 +	ret = platform_device_add_resources(pdev, res, res_count);
 +	kfree(res);
 +
@@ -193,7 +193,7 @@ index 5cc9287..f33b40c 100644
  }
  
  /**
-@@ -365,9 +491,8 @@ struct omap_device *omap_device_alloc(struct platform_device *pdev,
+@@ -373,9 +499,8 @@ struct omap_device *omap_device_alloc(struct platform_device *pdev,
  {
  	int ret = -ENOMEM;
  	struct omap_device *od;
@@ -204,7 +204,7 @@ index 5cc9287..f33b40c 100644
  
  	od = kzalloc(sizeof(struct omap_device), GFP_KERNEL);
  	if (!od) {
-@@ -377,79 +502,18 @@ struct omap_device *omap_device_alloc(struct platform_device *pdev,
+@@ -385,79 +510,18 @@ struct omap_device *omap_device_alloc(struct platform_device *pdev,
  	od->hwmods_cnt = oh_cnt;
  
  	hwmods = kmemdup(ohs, sizeof(struct omap_hwmod *) * oh_cnt, GFP_KERNEL);
