@@ -1,4 +1,4 @@
-From a1f0a4f03147ef84be34c94c76fdd6887c40e9f9 Mon Sep 17 00:00:00 2001
+From c6b6ff28ab3b2ebffbfc15186ea3cc025096eb9c Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 7 Mar 2013 04:16:39 +0000
 Subject: [PATCH 08/13] ARM: dts: add AM33XX MMC support
@@ -22,7 +22,7 @@ Conflicts:
 	arch/arm/boot/dts/am335x-evmsk.dts
 ---
  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      | 26 ++++++++++++++-
- arch/arm/boot/dts/am335x-bone.dts                  |  7 ++++
+ arch/arm/boot/dts/am335x-bone-common.dtsi          |  7 ++++
  arch/arm/boot/dts/am335x-evm.dts                   |  7 ++++
  arch/arm/boot/dts/am335x-evmsk.dts                 |  7 ++++
  arch/arm/boot/dts/am33xx.dtsi                      | 38 ++++++++++++++++++++++
@@ -71,11 +71,11 @@ index ed271fc..8c8908a 100644
 +			&edma 25>;
 +		dma-names = "tx", "rx";
  	};
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index d318987..71e6ce9 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -232,6 +232,8 @@
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 2f66ded..ca2f580 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -229,6 +229,8 @@
  		};
  
  		ldo3_reg: regulator@5 {
@@ -84,7 +84,7 @@ index d318987..71e6ce9 100644
  			regulator-always-on;
  		};
  
-@@ -263,3 +265,8 @@
+@@ -260,3 +262,8 @@
  	pinctrl-0 = <&davinci_mdio_default>;
  	pinctrl-1 = <&davinci_mdio_sleep>;
  };

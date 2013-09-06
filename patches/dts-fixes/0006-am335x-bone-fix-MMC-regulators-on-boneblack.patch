@@ -1,0 +1,50 @@
+From db6f2ab2e3d1b2b5e5b8757048fc2654ff9110bd Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Fri, 6 Sep 2013 10:52:15 +0200
+Subject: [PATCH 6/6] am335x-bone*: fix MMC regulators on boneblack
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 7 +++++++
+ arch/arm/boot/dts/am335x-boneblack.dts    | 7 ++++++-
+ 2 files changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index e76d575..ae90a30 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -362,6 +362,13 @@
+ 			regulator-always-on;
+ 		};
+ 	};
++
++	vmmcsd_fixed: fixedregulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "vmmcsd_fixed";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++	};
+ };
+ 
+ &cpsw_emac0 {
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index b4237fc..e092a61 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -16,7 +16,12 @@
+ 	regulator-always-on;
+ };
+ 
+-&mmc2 {
++&mmc1 { 
++	vmmc-supply = <&vmmcsd_fixed>;
++};
++
++&mmc2 { 
++	vmmc-supply = <&vmmcsd_fixed>;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&emmc_pins>;
+ 	vmmc-supply = <&ldo3_reg>;
+-- 
+1.8.2.1
+
