@@ -12,8 +12,8 @@ DIR="$PWD"
 PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
-RECIPEDIR="linux-3.11"
-RECIPENAME="linux-mainline_3.11.bb"
+RECIPEDIR="linux-3.12"
+RECIPENAME="linux-mainline_3.12.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
@@ -22,7 +22,7 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://github.com/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="6e4664525b1db28f8c4e1130957f70a94c19213e"
+EXTERNAL_SHA="2e032852245b3dcfe5461d7353e34eb6da095ccf"
 
 PATCHSET="general-fixes dtc-fixes dtc-overlays of-fixes pdev-fixes dma-devel mmc-fixes dts-fixes i2c-fixes pinctrl-fixes capemgr reset capes lcdc-fixes net"
 

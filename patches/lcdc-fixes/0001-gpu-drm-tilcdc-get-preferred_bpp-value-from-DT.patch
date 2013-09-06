@@ -1,7 +1,7 @@
-From f1e42d4ba4c8b4347176b7c13badd8c0a19580ed Mon Sep 17 00:00:00 2001
+From 242f4f68717ee7439a74d747cd3c2062c11bed16 Mon Sep 17 00:00:00 2001
 From: Benoit Parrot <bparrot@ti.com>
 Date: Tue, 18 Jun 2013 17:18:31 -0500
-Subject: [PATCH 01/14] gpu:drm:tilcdc: get preferred_bpp value from DT
+Subject: [PATCH 1/5] gpu:drm:tilcdc: get preferred_bpp value from DT
 
 The preferred_bpp value in currently hard-coded to 16.
 This causes color corruption on the am335x-evm lcd panel which
@@ -16,10 +16,10 @@ Signed-off-by: Dave Airlie <airlied@redhat.com>
  1 file changed, 2 insertions(+)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-index dfffaf0..0bf5999 100644
+index 595068b..923c279 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-@@ -313,6 +313,8 @@ static int slave_probe(struct platform_device *pdev)
+@@ -337,6 +337,8 @@ static int slave_probe(struct platform_device *pdev)
  		return ret;
  	}
  

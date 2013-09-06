@@ -1,4 +1,4 @@
-From 651c7dcefaae98b058243551cdd4ab8ec09c8365 Mon Sep 17 00:00:00 2001
+From 5ae30c15604b0bf18195268e1b8169486dbdad85 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 3 Jan 2013 12:23:07 +0200
 Subject: [PATCH 8/8] OF: Introduce DT overlay support.
@@ -211,10 +211,10 @@ index 0000000..5289cbb
 +is nothing stopping someone coming up with his own DTS format and that will
 +end up filling in the fields of the of_overlay_info array. 
 diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
-index 44cb484..9b2ab89 100644
+index 2a00ae5..c2d5596 100644
 --- a/drivers/of/Kconfig
 +++ b/drivers/of/Kconfig
-@@ -89,4 +89,14 @@ config OF_RESOLVE
+@@ -83,4 +83,14 @@ config OF_RESOLVE
  	  Enable OF dynamic resolution support. This allows you to
  	  load Device Tree object fragments are run time.
  
@@ -230,17 +230,17 @@ index 44cb484..9b2ab89 100644
 +
  endmenu # OF
 diff --git a/drivers/of/Makefile b/drivers/of/Makefile
-index cb5e26d..3e2ac81 100644
+index 93da457..ca466e4 100644
 --- a/drivers/of/Makefile
 +++ b/drivers/of/Makefile
-@@ -11,3 +11,4 @@ obj-$(CONFIG_OF_PCI)	+= of_pci.o
+@@ -10,3 +10,4 @@ obj-$(CONFIG_OF_PCI)	+= of_pci.o
  obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
  obj-$(CONFIG_OF_MTD)	+= of_mtd.o
  obj-$(CONFIG_OF_RESOLVE)  += resolver.o
 +obj-$(CONFIG_OF_OVERLAY) += overlay.o
 diff --git a/drivers/of/overlay.c b/drivers/of/overlay.c
 new file mode 100644
-index 0000000..98d31a6
+index 0000000..5d0c531
 --- /dev/null
 +++ b/drivers/of/overlay.c
 @@ -0,0 +1,870 @@
@@ -259,7 +259,7 @@ index 0000000..98d31a6
 +#include <linux/module.h>
 +#include <linux/of.h>
 +#include <linux/of_device.h>
-+#include <linux/of_i2c.h>
++#include <linux/i2c.h>
 +#include <linux/i2c.h>
 +#include <linux/string.h>
 +#include <linux/ctype.h>
@@ -1115,7 +1115,7 @@ index 0000000..98d31a6
 +}
 +
 diff --git a/include/linux/of.h b/include/linux/of.h
-index 6ed844d..7b3e332 100644
+index 04fab46..1394ba9 100644
 --- a/include/linux/of.h
 +++ b/include/linux/of.h
 @@ -23,6 +23,7 @@
@@ -1126,7 +1126,7 @@ index 6ed844d..7b3e332 100644
  
  #include <asm/byteorder.h>
  #include <asm/errno.h>
-@@ -705,4 +706,116 @@ static inline int of_resolve(struct device_node *resolve)
+@@ -719,4 +720,116 @@ static inline int of_resolve(struct device_node *resolve)
  
  #endif
  

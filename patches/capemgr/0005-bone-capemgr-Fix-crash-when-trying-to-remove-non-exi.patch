@@ -1,4 +1,4 @@
-From 94fda4d3e3f83bf91031a9c2c01840dde6cf84ef Mon Sep 17 00:00:00 2001
+From a1022cb3ac6ef3865354b1918fb79c323c60f976 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 27 Feb 2013 18:35:09 +0200
 Subject: [PATCH 05/11] bone-capemgr: Fix crash when trying to remove
@@ -12,7 +12,7 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  1 file changed, 4 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/misc/cape/beaglebone/capemgr.c b/drivers/misc/cape/beaglebone/capemgr.c
-index 2656e3a..9f8da94 100644
+index 0200be2..a0e118c 100644
 --- a/drivers/misc/cape/beaglebone/capemgr.c
 +++ b/drivers/misc/cape/beaglebone/capemgr.c
 @@ -990,15 +990,12 @@ static ssize_t slots_store(struct device *dev, struct device_attribute *attr,

@@ -1,4 +1,4 @@
-From ad2d290d124761e1b001bc362a73ccc13a0dffa3 Mon Sep 17 00:00:00 2001
+From 8612672a6705f35a8db28db04beca3e41e96e931 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 27 Feb 2013 11:32:20 +0200
 Subject: [PATCH 04/11] bone-capemgr: Make sure cape removal works.
@@ -11,7 +11,7 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  1 file changed, 45 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/misc/cape/beaglebone/capemgr.c b/drivers/misc/cape/beaglebone/capemgr.c
-index d828af7..2656e3a 100644
+index 6796063..0200be2 100644
 --- a/drivers/misc/cape/beaglebone/capemgr.c
 +++ b/drivers/misc/cape/beaglebone/capemgr.c
 @@ -154,6 +154,7 @@ static int bone_slot_fill_override(struct bone_cape_slot *slot,

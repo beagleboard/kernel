@@ -1,7 +1,7 @@
-From 8fa501af1596682830f83a10f8a58a7b7716fb64 Mon Sep 17 00:00:00 2001
+From 7204218ba7cd050ecab28aa2fcd78eefdbb37ae9 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Mon, 3 Jun 2013 17:57:18 +0300
-Subject: [PATCH 13/14] drm: tilcdc: Fix scheduling while atomic from irq
+Subject: [PATCH 4/5] drm: tilcdc: Fix scheduling while atomic from irq
  handler.
 
 Fix the crash by not making pm_runtime calls while in the irq.
@@ -12,18 +12,18 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index 8ee2216..bec2f47 100644
+index d36efc1..fec32a6 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-@@ -69,7 +69,6 @@ static void set_scanout(struct drm_crtc *crtc, int n)
- 	struct tilcdc_crtc *tilcdc_crtc = to_tilcdc_crtc(crtc);
+@@ -67,7 +67,6 @@ static void set_scanout(struct drm_crtc *crtc, int n)
  	struct drm_device *dev = crtc->dev;
+ 	struct tilcdc_drm_private *priv = dev->dev_private;
  
 -	pm_runtime_get_sync(dev->dev);
  	tilcdc_write(dev, base_reg[n], tilcdc_crtc->start);
  	tilcdc_write(dev, ceil_reg[n], tilcdc_crtc->end);
  	if (tilcdc_crtc->scanout[n]) {
-@@ -85,7 +84,6 @@ static void set_scanout(struct drm_crtc *crtc, int n)
+@@ -77,7 +76,6 @@ static void set_scanout(struct drm_crtc *crtc, int n)
  	tilcdc_crtc->scanout[n] = crtc->fb;
  	drm_framebuffer_reference(tilcdc_crtc->scanout[n]);
  	tilcdc_crtc->dirty &= ~stat[n];
@@ -31,7 +31,7 @@ index 8ee2216..bec2f47 100644
  }
  
  static void update_scanout(struct drm_crtc *crtc)
-@@ -168,7 +166,9 @@ static int tilcdc_crtc_page_flip(struct drm_crtc *crtc,
+@@ -161,7 +159,9 @@ static int tilcdc_crtc_page_flip(struct drm_crtc *crtc,
  
  	crtc->fb = fb;
  	tilcdc_crtc->event = event;
@@ -41,7 +41,7 @@ index 8ee2216..bec2f47 100644
  
  	return 0;
  }
-@@ -411,7 +411,11 @@ static int tilcdc_crtc_mode_set(struct drm_crtc *crtc,
+@@ -404,7 +404,11 @@ static int tilcdc_crtc_mode_set(struct drm_crtc *crtc,
  static int tilcdc_crtc_mode_set_base(struct drm_crtc *crtc, int x, int y,
  		struct drm_framebuffer *old_fb)
  {

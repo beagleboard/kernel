@@ -8,11 +8,11 @@ COMPATIBLE_MACHINE = "(beaglebone)"
 # The main PR is now using MACHINE_KERNEL_PR, for omap3 see conf/machine/include/omap3.inc
 MACHINE_KERNEL_PR_append = "a"
 
-FILESPATH =. "${FILE_DIRNAME}/linux-mainline-3.11:${FILE_DIRNAME}/linux-mainline-3.11/${MACHINE}:"
+FILESPATH =. "${FILE_DIRNAME}/linux-mainline-3.12:${FILE_DIRNAME}/linux-mainline-3.12/${MACHINE}:"
 
 S = "${WORKDIR}/git"
 
-PV = "3.10"
+PV = "3.12"
 
 SRC_URI = "SEDMEURI"
 SRCREV_pn-${PN} = "SEDMEREV"

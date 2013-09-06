@@ -1,4 +1,4 @@
-From 1aa00b457ea36f6eeb78b66be076e16a2d3fafe0 Mon Sep 17 00:00:00 2001
+From a1f0a4f03147ef84be34c94c76fdd6887c40e9f9 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 7 Mar 2013 04:16:39 +0000
 Subject: [PATCH 08/13] ARM: dts: add AM33XX MMC support
@@ -72,10 +72,10 @@ index ed271fc..8c8908a 100644
 +		dma-names = "tx", "rx";
  	};
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 444b4ed..b8debea 100644
+index d318987..71e6ce9 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -203,6 +203,8 @@
+@@ -232,6 +232,8 @@
  		};
  
  		ldo3_reg: regulator@5 {
@@ -84,7 +84,7 @@ index 444b4ed..b8debea 100644
  			regulator-always-on;
  		};
  
-@@ -234,3 +236,8 @@
+@@ -263,3 +265,8 @@
  	pinctrl-0 = <&davinci_mdio_default>;
  	pinctrl-1 = <&davinci_mdio_sleep>;
  };
@@ -94,10 +94,10 @@ index 444b4ed..b8debea 100644
 +	vmmc-supply = <&ldo3_reg>;
 +};
 diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 3aee1a4..44e69d9 100644
+index e8ec875..bc4a69d 100644
 --- a/arch/arm/boot/dts/am335x-evm.dts
 +++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -448,6 +448,8 @@
+@@ -477,6 +477,8 @@
  		};
  
  		vmmc_reg: regulator@12 {
@@ -106,7 +106,7 @@ index 3aee1a4..44e69d9 100644
  			regulator-always-on;
  		};
  	};
-@@ -488,3 +490,8 @@
+@@ -517,3 +519,8 @@
  		ti,adc-channels = <4 5 6 7>;
  	};
  };
@@ -116,10 +116,10 @@ index 3aee1a4..44e69d9 100644
 +	vmmc-supply = <&vmmc_reg>;
 +};
 diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 0c8ad17..4e355d6 100644
+index 4f339fa..55fd194 100644
 --- a/arch/arm/boot/dts/am335x-evmsk.dts
 +++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -376,6 +376,8 @@
+@@ -393,6 +393,8 @@
  		};
  
  		vmmc_reg: regulator@12 {
@@ -128,7 +128,7 @@ index 0c8ad17..4e355d6 100644
  			regulator-always-on;
  		};
  	};
-@@ -402,3 +404,8 @@
+@@ -419,3 +421,8 @@
  	phy_id = <&davinci_mdio>, <1>;
  	phy-mode = "rgmii-txid";
  };
@@ -138,10 +138,10 @@ index 0c8ad17..4e355d6 100644
 +	vmmc-supply = <&vmmc_reg>;
 +};
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 0fdb949..969c81b 100644
+index 9ce85e5..0a82fca 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -236,6 +236,44 @@
+@@ -240,6 +240,44 @@
  			status = "disabled";
  		};
  

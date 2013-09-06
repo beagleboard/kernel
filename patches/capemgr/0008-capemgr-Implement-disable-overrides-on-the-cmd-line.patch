@@ -1,4 +1,4 @@
-From 2c60428d1b0d039bfd014e084a425c86bf30c206 Mon Sep 17 00:00:00 2001
+From 613376ebb53e7ea51ab351054630ff77cc43afd9 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Mon, 1 Apr 2013 18:20:35 +0300
 Subject: [PATCH 08/11] capemgr: Implement disable overrides on the cmd line
@@ -11,7 +11,7 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  1 file changed, 88 insertions(+), 45 deletions(-)
 
 diff --git a/drivers/misc/cape/beaglebone/capemgr.c b/drivers/misc/cape/beaglebone/capemgr.c
-index 2ee7b11..5d87088 100644
+index b22bf42..f1cedec 100644
 --- a/drivers/misc/cape/beaglebone/capemgr.c
 +++ b/drivers/misc/cape/beaglebone/capemgr.c
 @@ -47,7 +47,14 @@

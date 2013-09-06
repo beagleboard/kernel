@@ -1,4 +1,4 @@
-From 7cc7a8f8529bc8a4df45b2ec25b78b8f3900b68d Mon Sep 17 00:00:00 2001
+From 7ca280ba9bc1a573f870f12a889a2f60e426257a Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 3 Jan 2013 12:18:25 +0200
 Subject: [PATCH 7/8] OF: Introduce Device Tree resolve support.
@@ -51,10 +51,10 @@ index 0000000..0b396c4
 +5. For each fixup in the property locate the node:property:offset location
 +   and replace it with the phandle value.
 diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
-index 80e5c13..44cb484 100644
+index 78cc760..2a00ae5 100644
 --- a/drivers/of/Kconfig
 +++ b/drivers/of/Kconfig
-@@ -80,4 +80,13 @@ config OF_MTD
+@@ -74,4 +74,13 @@ config OF_MTD
  	depends on MTD
  	def_bool y
  
@@ -69,10 +69,10 @@ index 80e5c13..44cb484 100644
 +
  endmenu # OF
 diff --git a/drivers/of/Makefile b/drivers/of/Makefile
-index f10a2a1..cb5e26d 100644
+index 9bc6d8c..93da457 100644
 --- a/drivers/of/Makefile
 +++ b/drivers/of/Makefile
-@@ -10,3 +10,4 @@ obj-$(CONFIG_OF_MDIO)	+= of_mdio.o
+@@ -9,3 +9,4 @@ obj-$(CONFIG_OF_MDIO)	+= of_mdio.o
  obj-$(CONFIG_OF_PCI)	+= of_pci.o
  obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
  obj-$(CONFIG_OF_MTD)	+= of_mtd.o
@@ -479,10 +479,10 @@ index 0000000..da8cd34
 +	return err;
 +}
 diff --git a/include/linux/of.h b/include/linux/of.h
-index 8c2ee71..6ed844d 100644
+index a412a4c..04fab46 100644
 --- a/include/linux/of.h
 +++ b/include/linux/of.h
-@@ -688,4 +688,21 @@ static inline int of_multi_prop_cmp(const struct property *prop, const char *val
+@@ -702,4 +702,21 @@ static inline int of_multi_prop_cmp(const struct property *prop, const char *val
  
  #endif	/* !CONFIG_OF */
  

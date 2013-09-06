@@ -1,7 +1,7 @@
-From 0524538f7befd2805e40e0c65430f2458114d91d Mon Sep 17 00:00:00 2001
+From 9974affb46e5451e56c1943efc19d69ceb655158 Mon Sep 17 00:00:00 2001
 From: Darren Etheridge <detheridge@ti.com>
 Date: Fri, 21 Jun 2013 13:52:27 -0500
-Subject: [PATCH 02/14] drm/tilcdc fixing i2c/slave initialization race
+Subject: [PATCH 2/5] drm/tilcdc fixing i2c/slave initialization race
 
 In certain senarios drm will initialize before i2c this means that i2c
 slave devices like the nxp tda998x will fail to be probed.  This patch
@@ -16,10 +16,10 @@ Signed-off-by: Dave Airlie <airlied@redhat.com>
  1 file changed, 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-index 0bf5999..dfffaf0 100644
+index 923c279..595068b 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-@@ -313,8 +313,6 @@ static int slave_probe(struct platform_device *pdev)
+@@ -337,8 +337,6 @@ static int slave_probe(struct platform_device *pdev)
  		return ret;
  	}
  

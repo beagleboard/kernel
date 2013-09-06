@@ -1,7 +1,7 @@
-From f1457827589d110712e6afb352ba19688ac25b8f Mon Sep 17 00:00:00 2001
+From 44a925bd4bbd64c8dd4f3ef11c6ca92d60a23d9d Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 6 Jun 2013 11:45:28 +0300
-Subject: [PATCH 14/14] tilcdc: Slave panel settings read from DT now
+Subject: [PATCH 5/5] tilcdc: Slave panel settings read from DT now
 
 Turns out that we really need those panel settings.
 
@@ -14,10 +14,10 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  4 files changed, 86 insertions(+), 66 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index bec2f47..2aab53e 100644
+index fec32a6..9d5daa3 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-@@ -695,3 +695,59 @@ fail:
+@@ -687,3 +687,59 @@ fail:
  	tilcdc_crtc_destroy(crtc);
  	return NULL;
  }
@@ -157,10 +157,10 @@ index 86c6732..284c9ee 100644
  		dev_err(&pdev->dev, "could not get panel info\n");
  		goto fail;
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-index c7c9157..4bdc9ba 100644
+index 595068b..6259c56 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-@@ -25,23 +25,11 @@
+@@ -24,23 +24,11 @@
  
  struct slave_module {
  	struct tilcdc_module base;
@@ -185,7 +185,7 @@ index c7c9157..4bdc9ba 100644
  /*
   * Encoder:
   */
-@@ -69,8 +57,10 @@ static void slave_encoder_destroy(struct drm_encoder *encoder)
+@@ -68,8 +56,10 @@ static void slave_encoder_destroy(struct drm_encoder *encoder)
  
  static void slave_encoder_prepare(struct drm_encoder *encoder)
  {
@@ -197,7 +197,7 @@ index c7c9157..4bdc9ba 100644
  }
  
  static bool slave_encoder_fixup(struct drm_encoder *encoder,
-@@ -295,6 +285,7 @@ static void slave_destroy(struct tilcdc_module *mod)
+@@ -300,6 +290,7 @@ static void slave_destroy(struct tilcdc_module *mod)
  	struct slave_module *slave_mod = to_slave_module(mod);
  
  	tilcdc_module_cleanup(mod);
@@ -205,7 +205,7 @@ index c7c9157..4bdc9ba 100644
  	kfree(slave_mod);
  }
  
-@@ -349,13 +340,25 @@ static int slave_probe(struct platform_device *pdev)
+@@ -354,13 +345,25 @@ static int slave_probe(struct platform_device *pdev)
  		return ret;
  	}
  
@@ -235,7 +235,7 @@ index c7c9157..4bdc9ba 100644
  
  	slave_mod->i2c = slavei2c;
  
-@@ -372,6 +375,11 @@ static int slave_probe(struct platform_device *pdev)
+@@ -377,6 +380,11 @@ static int slave_probe(struct platform_device *pdev)
  
  static int slave_remove(struct platform_device *pdev)
  {

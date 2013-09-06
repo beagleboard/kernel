@@ -1,4 +1,4 @@
-From 42e3cd5c4197eff2b1aab22733303e9e505e374f Mon Sep 17 00:00:00 2001
+From 4c22277c89368254f5e9bd48a138da27c0f48199 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 28 Dec 2012 11:34:15 +0200
 Subject: [PATCH 1/4] pdev: Fix platform device resource linking
@@ -26,7 +26,7 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  2 files changed, 87 insertions(+), 39 deletions(-)
 
 diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-index 3c3197a..65c774c 100644
+index 4f8bef3..4f14a79 100644
 --- a/drivers/base/platform.c
 +++ b/drivers/base/platform.c
 @@ -267,6 +267,80 @@ int platform_device_add_data(struct platform_device *pdev, const void *data,
