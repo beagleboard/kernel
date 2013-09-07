@@ -22,7 +22,7 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://github.com/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="2e032852245b3dcfe5461d7353e34eb6da095ccf"
+EXTERNAL_SHA="44598f98b98e54beca34dc836b38eaea40be1abf"
 
 PATCHSET="bone-support general-fixes dtc-fixes dtc-overlays of-fixes pdev-fixes dma-devel mmc-fixes dts-fixes i2c-fixes pinctrl-fixes capemgr reset capes lcdc-fixes net"
 
