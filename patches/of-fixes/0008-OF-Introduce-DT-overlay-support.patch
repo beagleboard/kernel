@@ -1,4 +1,4 @@
-From 3eada9b1d60f76051aecbb1922514421d188f10b Mon Sep 17 00:00:00 2001
+From 76e3b1e354e4740dc54cc7a20c9ca007f2d79f2f Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 3 Jan 2013 12:23:07 +0200
 Subject: [PATCH 8/8] OF: Introduce DT overlay support.
@@ -211,10 +211,10 @@ index 0000000..5289cbb
 +is nothing stopping someone coming up with his own DTS format and that will
 +end up filling in the fields of the of_overlay_info array. 
 diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
-index 2a00ae5..c2d5596 100644
+index 6f9cdc3..96216ec 100644
 --- a/drivers/of/Kconfig
 +++ b/drivers/of/Kconfig
-@@ -83,4 +83,14 @@ config OF_RESOLVE
+@@ -89,4 +89,14 @@ config OF_RESOLVE
  	  Enable OF dynamic resolution support. This allows you to
  	  load Device Tree object fragments are run time.
  
@@ -230,12 +230,12 @@ index 2a00ae5..c2d5596 100644
 +
  endmenu # OF
 diff --git a/drivers/of/Makefile b/drivers/of/Makefile
-index 93da457..ca466e4 100644
+index c241e79..d2a6e0d 100644
 --- a/drivers/of/Makefile
 +++ b/drivers/of/Makefile
-@@ -10,3 +10,4 @@ obj-$(CONFIG_OF_PCI)	+= of_pci.o
- obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
+@@ -11,3 +11,4 @@ obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
  obj-$(CONFIG_OF_MTD)	+= of_mtd.o
+ obj-$(CONFIG_OF_RESERVED_MEM) += of_reserved_mem.o
  obj-$(CONFIG_OF_RESOLVE)  += resolver.o
 +obj-$(CONFIG_OF_OVERLAY) += overlay.o
 diff --git a/drivers/of/overlay.c b/drivers/of/overlay.c

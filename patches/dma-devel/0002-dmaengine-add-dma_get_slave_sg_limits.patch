@@ -1,4 +1,4 @@
-From 31cb4933d17b8e52902f85cfb69c797090491ae0 Mon Sep 17 00:00:00 2001
+From 16b946fcf1e5acb9566491446ed91ad6336aa253 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Wed, 6 Mar 2013 19:56:05 +0000
 Subject: [PATCH 02/12] dmaengine: add dma_get_slave_sg_limits()
@@ -19,10 +19,10 @@ Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
  1 file changed, 39 insertions(+)
 
 diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-index cb286b1a..d71fe5d 100644
+index 0c72b89..140bc08 100644
 --- a/include/linux/dmaengine.h
 +++ b/include/linux/dmaengine.h
-@@ -370,6 +370,18 @@ struct dma_slave_config {
+@@ -373,6 +373,18 @@ struct dma_slave_config {
  	unsigned int slave_id;
  };
  
@@ -41,7 +41,7 @@ index cb286b1a..d71fe5d 100644
  static inline const char *dma_chan_name(struct dma_chan *chan)
  {
  	return dev_name(&chan->dev->device);
-@@ -532,6 +544,7 @@ struct dma_tx_state {
+@@ -535,6 +547,7 @@ struct dma_tx_state {
   *	struct with auxiliary transfer status information, otherwise the call
   *	will just return a simple status code
   * @device_issue_pending: push pending transactions to hardware
@@ -49,7 +49,7 @@ index cb286b1a..d71fe5d 100644
   */
  struct dma_device {
  
-@@ -597,6 +610,9 @@ struct dma_device {
+@@ -600,6 +613,9 @@ struct dma_device {
  					    dma_cookie_t cookie,
  					    struct dma_tx_state *txstate);
  	void (*device_issue_pending)(struct dma_chan *chan);
@@ -59,7 +59,7 @@ index cb286b1a..d71fe5d 100644
  };
  
  static inline int dmaengine_device_control(struct dma_chan *chan,
-@@ -958,6 +974,29 @@ dma_set_tx_state(struct dma_tx_state *st, dma_cookie_t last, dma_cookie_t used,
+@@ -961,6 +977,29 @@ dma_set_tx_state(struct dma_tx_state *st, dma_cookie_t last, dma_cookie_t used,
  	}
  }
  
@@ -86,9 +86,9 @@ index cb286b1a..d71fe5d 100644
 +	return NULL;
 +}
 +
- enum dma_status dma_sync_wait(struct dma_chan *chan, dma_cookie_t cookie);
  #ifdef CONFIG_DMA_ENGINE
- enum dma_status dma_wait_for_async_tx(struct dma_async_tx_descriptor *tx);
+ struct dma_chan *dma_find_channel(enum dma_transaction_type tx_type);
+ enum dma_status dma_sync_wait(struct dma_chan *chan, dma_cookie_t cookie);
 -- 
 1.8.2.1
 
