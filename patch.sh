@@ -22,9 +22,9 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://github.com/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="26b0332e30c7f93e780aaa054bd84e3437f84354"
+EXTERNAL_SHA="bf83e61464803d386d0ec3fc92e5449d7963a409"
 
-PATCHSET="bone-support general-fixes dtc-fixes dtc-overlays of-fixes pdev-fixes dma-devel mmc-fixes dts-fixes i2c-fixes pinctrl-fixes capemgr reset capes lcdc-fixes net"
+PATCHSET="bone-support dma-devel general-fixes dtc-fixes dtc-overlays of-fixes pdev-fixes mmc-fixes dts-fixes i2c-fixes pinctrl-fixes capemgr reset capes lcdc-fixes net"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true

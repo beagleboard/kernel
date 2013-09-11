@@ -1,32 +1,27 @@
-From b5111f3593393ee7dfe39b82e4fb856fb5efb79c Mon Sep 17 00:00:00 2001
+From 2d1565ba42fa2ea672b7fafe3e7a23f29dbcdd6f Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
-Date: Thu, 7 Mar 2013 04:16:39 +0000
-Subject: [PATCH 07/12] ARM: dts: add AM33XX MMC support
+Date: Tue, 10 Sep 2013 14:24:39 -0500
+Subject: [PATCH 5/6] ARM: dts: add AM33XX MMC support and documentation
 
-Adds AM33XX MMC support for am335x-bone, am335x-evm, and
-am335x-evmsk.
+Adds AM33XX MMC support for am335x-bone, am335x-evm and am335x-evmsk boards.
 
-Also added is the DMA binding definitions based on the generic
-DMA request binding.
+Also added is the DMA binding definitions based on the generic DMA request
+binding.
 
-Changes to DTS:
-Interrupt and reg added by: Joel Fernandes <joelf@ti.com>
-Compatible added by Balaji TK <balajitk@ti.com>
-ti,needs-special-hs-handling added by Gururaja Hebbar <gururaja.hebbar@ti.com>
+Additional changes made to DTS:
+* Interrupt, reg and compatible properties added
+* ti,needs-special-hs-handling added
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Joel Fernandes <joelf@ti.com>
-
-Conflicts:
-	arch/arm/boot/dts/am335x-evmsk.dts
 ---
  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      | 26 ++++++++++++++-
- arch/arm/boot/dts/am335x-bone-common.dtsi          |  7 ++++
+ arch/arm/boot/dts/am335x-bone.dts                  | 11 +++++++
  arch/arm/boot/dts/am335x-evm.dts                   |  7 ++++
  arch/arm/boot/dts/am335x-evmsk.dts                 |  7 ++++
  arch/arm/boot/dts/am33xx.dtsi                      | 38 ++++++++++++++++++++++
- 5 files changed, 84 insertions(+), 1 deletion(-)
+ 5 files changed, 88 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
 index ed271fc..8c8908a 100644
@@ -71,23 +66,20 @@ index ed271fc..8c8908a 100644
 +			&edma 25>;
 +		dma-names = "tx", "rx";
  	};
-diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 2f66ded..ca2f580 100644
---- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -229,6 +229,8 @@
- 		};
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 7993c48..d5f43fe 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -9,3 +9,14 @@
  
- 		ldo3_reg: regulator@5 {
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <3300000>;
- 			regulator-always-on;
- 		};
- 
-@@ -260,3 +262,8 @@
- 	pinctrl-0 = <&davinci_mdio_default>;
- 	pinctrl-1 = <&davinci_mdio_sleep>;
- };
+ #include "am33xx.dtsi"
+ #include "am335x-bone-common.dtsi"
++
++&ldo3_reg {
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <3300000>;
++	regulator-always-on;
++};
 +
 +&mmc1 {
 +	status = "okay";

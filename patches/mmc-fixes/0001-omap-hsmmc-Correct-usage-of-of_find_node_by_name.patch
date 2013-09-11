@@ -1,4 +1,4 @@
-From 43b99abd39db36343c354bee2ceac3688c382096 Mon Sep 17 00:00:00 2001
+From 8a7686ed5cacd11a29ceb5190f0c27d1de0475b6 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 26 Oct 2012 15:48:00 +0300
 Subject: [PATCH 1/2] omap-hsmmc: Correct usage of of_find_node_by_name
@@ -9,10 +9,10 @@ of_find_node_by_name expect to have the parent node reference taken.
  1 file changed, 10 insertions(+)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 91e2954..8ab4a93 100644
+index 6ac63df..f5b660c 100644
 --- a/drivers/mmc/host/omap_hsmmc.c
 +++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1949,6 +1949,16 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+@@ -1893,6 +1893,16 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
  	 * as we want. */
  	mmc->max_segs = 1024;
  

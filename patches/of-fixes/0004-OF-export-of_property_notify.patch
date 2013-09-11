@@ -1,4 +1,4 @@
-From 69b58cc438212876d4fb38e662ee71633f70f9fc Mon Sep 17 00:00:00 2001
+From cf08e1d55cb5c8fe96a86c301219eb2843834007 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 3 Jan 2013 11:46:39 +0200
 Subject: [PATCH 4/8] OF: export of_property_notify
@@ -12,10 +12,10 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  2 files changed, 12 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/of/base.c b/drivers/of/base.c
-index 3cedda2..9bea355 100644
+index 381c891..8a90547 100644
 --- a/drivers/of/base.c
 +++ b/drivers/of/base.c
-@@ -1367,7 +1367,7 @@ int of_count_phandle_with_args(const struct device_node *np, const char *list_na
+@@ -1426,7 +1426,7 @@ int of_count_phandle_with_args(const struct device_node *np, const char *list_na
  EXPORT_SYMBOL(of_count_phandle_with_args);
  
  #if defined(CONFIG_OF_DYNAMIC)
@@ -24,7 +24,7 @@ index 3cedda2..9bea355 100644
  			      struct property *prop)
  {
  	struct of_prop_reconfig pr;
-@@ -1376,12 +1376,6 @@ static int of_property_notify(int action, struct device_node *np,
+@@ -1435,12 +1435,6 @@ static int of_property_notify(int action, struct device_node *np,
  	pr.prop = prop;
  	return of_reconfig_notify(action, &pr);
  }
@@ -38,10 +38,10 @@ index 3cedda2..9bea355 100644
  
  /**
 diff --git a/include/linux/of.h b/include/linux/of.h
-index bc7dd6b..88d1cf4 100644
+index 786c4f6..6fec255 100644
 --- a/include/linux/of.h
 +++ b/include/linux/of.h
-@@ -304,6 +304,17 @@ extern int of_parse_phandle_with_args(const struct device_node *np,
+@@ -307,6 +307,17 @@ extern int of_parse_phandle_with_fixed_args(const struct device_node *np,
  extern int of_count_phandle_with_args(const struct device_node *np,
  	const char *list_name, const char *cells_name);
  

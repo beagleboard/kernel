@@ -1,4 +1,4 @@
-From e6583513c37ce1559458fc794e8ada5d4728b302 Mon Sep 17 00:00:00 2001
+From 39d4e4902dfc7966d1a7341edb81f7258925313c Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 30 Nov 2012 12:18:16 +0200
 Subject: [PATCH 2/2] omap_hsmmc: Add reset gpio
@@ -13,10 +13,10 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  2 files changed, 42 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 8ab4a93..1fe7469 100644
+index f5b660c..1bdb90f 100644
 --- a/drivers/mmc/host/omap_hsmmc.c
 +++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -40,6 +40,8 @@
+@@ -41,6 +41,8 @@
  #include <linux/pinctrl/consumer.h>
  #include <linux/pm_runtime.h>
  #include <linux/platform_data/mmc-omap.h>
@@ -25,7 +25,7 @@ index 8ab4a93..1fe7469 100644
  
  /* OMAP HSMMC Host Controller Registers */
  #define OMAP_HSMMC_SYSSTATUS	0x0014
-@@ -396,6 +398,7 @@ static inline int omap_hsmmc_have_reg(void)
+@@ -392,6 +394,7 @@ static inline int omap_hsmmc_have_reg(void)
  static int omap_hsmmc_gpio_init(struct omap_mmc_platform_data *pdata)
  {
  	int ret;
@@ -33,7 +33,7 @@ index 8ab4a93..1fe7469 100644
  
  	if (gpio_is_valid(pdata->slots[0].switch_pin)) {
  		if (pdata->slots[0].cover)
-@@ -425,6 +428,24 @@ static int omap_hsmmc_gpio_init(struct omap_mmc_platform_data *pdata)
+@@ -421,6 +424,24 @@ static int omap_hsmmc_gpio_init(struct omap_mmc_platform_data *pdata)
  	} else
  		pdata->slots[0].gpio_wp = -EINVAL;
  
@@ -58,7 +58,7 @@ index 8ab4a93..1fe7469 100644
  	return 0;
  
  err_free_wp:
-@@ -438,6 +459,8 @@ err_free_sp:
+@@ -434,6 +455,8 @@ err_free_sp:
  
  static void omap_hsmmc_gpio_free(struct omap_mmc_platform_data *pdata)
  {
@@ -67,7 +67,7 @@ index 8ab4a93..1fe7469 100644
  	if (gpio_is_valid(pdata->slots[0].gpio_wp))
  		gpio_free(pdata->slots[0].gpio_wp);
  	if (gpio_is_valid(pdata->slots[0].switch_pin))
-@@ -792,7 +815,7 @@ omap_hsmmc_start_command(struct omap_hsmmc_host *host, struct mmc_command *cmd,
+@@ -788,7 +811,7 @@ omap_hsmmc_start_command(struct omap_hsmmc_host *host, struct mmc_command *cmd,
  	 * ac, bc, adtc, bcr. Only commands ending an open ended transfer need
  	 * a val of 0x3, rest 0x0.
  	 */
@@ -76,16 +76,16 @@ index 8ab4a93..1fe7469 100644
  		cmdtype = 0x3;
  
  	cmdreg = (cmd->opcode << 24) | (resptype << 16) | (cmdtype << 22);
-@@ -835,6 +858,8 @@ static void omap_hsmmc_request_done(struct omap_hsmmc_host *host, struct mmc_req
- 	int completed;
+@@ -830,6 +853,8 @@ static void omap_hsmmc_request_done(struct omap_hsmmc_host *host, struct mmc_req
+ 	int dma_ch;
  	unsigned long flags;
  
 +	BUG_ON(mrq == NULL);
 +
  	spin_lock_irqsave(&host->irq_lock, flags);
- 
- 	host->req_flags &= ~RQF_REQ_IN_PROGRESS;
-@@ -1775,6 +1800,7 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
+ 	host->req_in_progress = 0;
+ 	dma_ch = host->dma_ch;
+@@ -1720,6 +1745,7 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
  	struct device_node *np = dev->of_node;
  	u32 bus_width, max_freq;
  	int cd_gpio, wp_gpio;
@@ -93,7 +93,7 @@ index 8ab4a93..1fe7469 100644
  
  	cd_gpio = of_get_named_gpio(np, "cd-gpios", 0);
  	wp_gpio = of_get_named_gpio(np, "wp-gpios", 0);
-@@ -1792,6 +1818,14 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
+@@ -1737,6 +1763,14 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
  	pdata->nr_slots = 1;
  	pdata->slots[0].switch_pin = cd_gpio;
  	pdata->slots[0].gpio_wp = wp_gpio;
@@ -108,7 +108,7 @@ index 8ab4a93..1fe7469 100644
  
  	if (of_find_property(np, "ti,non-removable", NULL)) {
  		pdata->slots[0].nonremovable = true;
-@@ -1858,6 +1892,10 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+@@ -1802,6 +1836,10 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
  		return -ENXIO;
  	}
  

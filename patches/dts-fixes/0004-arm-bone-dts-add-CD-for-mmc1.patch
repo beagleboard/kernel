@@ -1,4 +1,4 @@
-From 08a1f5ae8951ed67f8f7838d3c5f013d3756a5cd Mon Sep 17 00:00:00 2001
+From e7c26c7db4f40434256a86f1ec1c5c4d9ade4b97 Mon Sep 17 00:00:00 2001
 From: Alexander Holler <holler@ahsoftware.de>
 Date: Fri, 6 Sep 2013 10:42:36 +0200
 Subject: [PATCH 4/7] arm: bone: dts: add CD for mmc1
@@ -7,11 +7,11 @@ This enables the use of MMC cards even when no card was inserted at boot.
 
 Signed-off-by: Alexander Holler <holler@ahsoftware.de>
 ---
- arch/arm/boot/dts/am335x-bone-common.dtsi | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index cb96f67..e76d575 100644
+index 5ecee14..e65f908 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
 @@ -119,6 +119,11 @@
@@ -26,15 +26,19 @@ index cb96f67..e76d575 100644
  	};
  
  	ocp {
-@@ -385,4 +390,8 @@
- &mmc1 {
- 	status = "okay";
- 	vmmc-supply = <&ldo3_reg>;
+@@ -379,3 +384,12 @@
+ 	pinctrl-0 = <&davinci_mdio_default>;
+ 	pinctrl-1 = <&davinci_mdio_sleep>;
+ };
++
++&mmc1 {
++	status = "okay";
++	vmmc-supply = <&ldo3_reg>;
 +	pinctrl-names = "default";
 +	pinctrl-0 = <&mmc1_pins>;
 +	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
 +	cd-inverted;
- };
++};
 -- 
 1.8.2.1
 
