@@ -1,0 +1,27 @@
+From 584b7f66f22b70510ce0a0596f8996e64a622bbe Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Thu, 12 Sep 2013 09:58:31 +0200
+Subject: [PATCH 8/8] ARM: am335x-bone-common: switch mmc1 to 4-bit mode
+
+The micro-SD slot hooks up all four data pins so lets' use them.
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 98abe2b..35299a2 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -449,6 +449,7 @@
+ 
+ &mmc1 {
+ 	status = "okay";
++	bus-width = <0x4>;
+ 	vmmc-supply = <&ldo3_reg>;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mmc1_pins>;
+-- 
+1.8.2.1
+
