@@ -1,0 +1,41 @@
+From 4de077ff36966c76a2a88460c1e96ca47dd7d9e2 Mon Sep 17 00:00:00 2001
+From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Date: Mon, 5 Aug 2013 19:10:31 +0100
+Subject: [PATCH 3/7] mfd: ti_am335x_tscadc: fix spin lock and reg_cache
+
+Reg_cache variable is used to lock step enable register
+from being accessed and written by both TSC and ADC
+at the same time.
+However, it isn't updated anywhere in the code at all.
+
+If both TSC and ADC are used, eventually 1FFFF is always
+written enabling all 16 steps uselessly causing a mess.
+
+Patch fixes it by correcting the locks and updates the
+variable by reading the step enable register
+
+Signed-off-by: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+---
+ drivers/mfd/ti_am335x_tscadc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+index cd74d59..9f3f07a 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -57,10 +57,10 @@ EXPORT_SYMBOL_GPL(am335x_tsc_se_update);
+ void am335x_tsc_se_set(struct ti_tscadc_dev *tsadc, u32 val)
+ {
+ 	spin_lock(&tsadc->reg_lock);
++	tsadc->reg_se_cache = tscadc_readl(tsadc, REG_SE);
+ 	tsadc->reg_se_cache |= val;
+-	spin_unlock(&tsadc->reg_lock);
+-
+ 	am335x_tsc_se_update(tsadc);
++	spin_unlock(&tsadc->reg_lock);
+ }
+ EXPORT_SYMBOL_GPL(am335x_tsc_se_set);
+ 
+-- 
+1.7.9.5
+

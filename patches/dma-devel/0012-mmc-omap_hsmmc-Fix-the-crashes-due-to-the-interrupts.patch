@@ -1,11 +1,11 @@
-From b13c0c62ddf7a3a7d5b96fed8ea80f21f3bb2dad Mon Sep 17 00:00:00 2001
+From 74c50ce48a20084e5466bc0aa325bcc3fc23e511 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 17 Jul 2013 20:00:13 +0300
 Subject: [PATCH 12/13] mmc: omap_hsmmc: Fix the crashes due to the interrupts
  racing
 
 ---
- drivers/mmc/host/omap_hsmmc.c | 120 +++++++++++++++++++++++++++++++-----------
+ drivers/mmc/host/omap_hsmmc.c |  120 ++++++++++++++++++++++++++++++-----------
  1 file changed, 88 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
@@ -299,5 +299,5 @@ index 1f9ff97..91e2954 100644
  	platform_set_drvdata(pdev, host);
  
 -- 
-1.8.2.1
+1.7.9.5
 

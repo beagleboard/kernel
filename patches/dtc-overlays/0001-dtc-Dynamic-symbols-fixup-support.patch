@@ -1,4 +1,4 @@
-From de53af1ec6be2e3437c7b0330ae440aa16db2a5c Mon Sep 17 00:00:00 2001
+From 8590a8e1419273e9eb30783154b8fb1865a56f45 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 6 Dec 2012 13:48:11 +0200
 Subject: [PATCH 1/2] dtc: Dynamic symbols & fixup support
@@ -17,14 +17,14 @@ This is sufficient to implement a dynamic DT object loader.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- Documentation/devicetree/00-INDEX               |   1 +
- Documentation/devicetree/dt-object-internal.txt | 295 ++++++++++++++++++++++++
- scripts/dtc/checks.c                            | 120 +++++++++-
- scripts/dtc/dtc-lexer.l                         |   5 +
- scripts/dtc/dtc-parser.y                        |  23 +-
- scripts/dtc/dtc.c                               |   9 +-
- scripts/dtc/dtc.h                               |  38 +++
- scripts/dtc/flattree.c                          | 139 +++++++++++
+ Documentation/devicetree/00-INDEX               |    1 +
+ Documentation/devicetree/dt-object-internal.txt |  295 +++++++++++++++++++++++
+ scripts/dtc/checks.c                            |  120 ++++++++-
+ scripts/dtc/dtc-lexer.l                         |    5 +
+ scripts/dtc/dtc-parser.y                        |   23 +-
+ scripts/dtc/dtc.c                               |    9 +-
+ scripts/dtc/dtc.h                               |   38 +++
+ scripts/dtc/flattree.c                          |  139 +++++++++++
  8 files changed, 621 insertions(+), 9 deletions(-)
  create mode 100644 Documentation/devicetree/dt-object-internal.txt
 
@@ -839,5 +839,5 @@ index 665dad7..5b2e75e 100644
  }
  
 -- 
-1.8.2.1
+1.7.9.5
 

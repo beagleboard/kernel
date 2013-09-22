@@ -1,0 +1,36 @@
+From a3a0f8d75ea944c7bc90dd1d0108a0a99b656e2a Mon Sep 17 00:00:00 2001
+From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Date: Tue, 13 Aug 2013 17:31:59 +0100
+Subject: [PATCH 4/7] mfd: ti_am335x_tscadc: Update reg_cache variable in clr
+ function
+
+The reg_cache variable should be updated with current
+steps in the reg_se register. Then the mask should
+apply and clear the register. Previously, the reg_cache
+can be an old redundant value that isn't updated.
+
+Signed-off-by: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+---
+ drivers/mfd/ti_am335x_tscadc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+index 9f3f07a..baaf5a8 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -67,10 +67,10 @@ EXPORT_SYMBOL_GPL(am335x_tsc_se_set);
+ void am335x_tsc_se_clr(struct ti_tscadc_dev *tsadc, u32 val)
+ {
+ 	spin_lock(&tsadc->reg_lock);
++	tsadc->reg_se_cache = tscadc_readl(tsadc, REG_SE);
+ 	tsadc->reg_se_cache &= ~val;
+-	spin_unlock(&tsadc->reg_lock);
+-
+ 	am335x_tsc_se_update(tsadc);
++	spin_unlock(&tsadc->reg_lock);
+ }
+ EXPORT_SYMBOL_GPL(am335x_tsc_se_clr);
+ 
+-- 
+1.7.9.5
+

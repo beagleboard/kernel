@@ -1,8 +1,8 @@
-From 5ec900e0de933241708ea4f9ace0ffc44083fef3 Mon Sep 17 00:00:00 2001
+From caad7a06c5ea155fec2f0ed0ef9087dd6c852fb1 Mon Sep 17 00:00:00 2001
 From: Russell King <rmk+kernel@arm.linux.org.uk>
 Date: Thu, 16 May 2013 19:26:18 +0000
-Subject: [PATCH 04/14] drm/i2c: nxp-tda998x: ensure VIP output mux is properly
- set
+Subject: [PATCH 04/14] drm/i2c: nxp-tda998x: ensure VIP output mux is
+ properly set
 
 When switching between various drivers for this device, it's possible
 that some critical registers are left containing values which affect
@@ -16,7 +16,7 @@ default setting.
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Darren Etheridge <detheridge@ti.com>
 ---
- drivers/gpu/drm/i2c/tda998x_drv.c | 3 +++
+ drivers/gpu/drm/i2c/tda998x_drv.c |    3 +++
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
@@ -41,5 +41,5 @@ index d71c408..4b4db95 100644
  		reg_write(encoder, REG_ENA_AP, 0xff);
  		reg_write(encoder, REG_ENA_VP_0, 0xff);
 -- 
-1.8.2.1
+1.7.9.5
 
