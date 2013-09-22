@@ -1,4 +1,4 @@
-From 1d09c6075f8f6f679a01d15a68e34e6c377946fe Mon Sep 17 00:00:00 2001
+From d3f6a963bd3fdea8d74c351190ec26529b839452 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 28 Dec 2012 11:41:11 +0200
 Subject: [PATCH 3/4] omap: Properly handle resources for omap_devices
@@ -17,7 +17,7 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  1 file changed, 148 insertions(+), 84 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index f99f68e..dc7a56d 100644
+index b69dd9a..5f9c8f1 100644
 --- a/arch/arm/mach-omap2/omap_device.c
 +++ b/arch/arm/mach-omap2/omap_device.c
 @@ -330,30 +330,156 @@ static int omap_device_fill_resources(struct omap_device *od,

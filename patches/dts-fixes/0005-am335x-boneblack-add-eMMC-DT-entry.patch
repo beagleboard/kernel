@@ -1,7 +1,7 @@
-From 6a28bcbf25dac3b5cd1a768175234e8db1ec5ebe Mon Sep 17 00:00:00 2001
+From 088c7a44e860ec87f45b28cbc6432f207ef86bd6 Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Fri, 6 Sep 2013 10:43:25 +0200
-Subject: [PATCH 5/8] am335x-boneblack: add eMMC DT entry
+Subject: [PATCH 5/9] am335x-boneblack: add eMMC DT entry
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
@@ -9,13 +9,14 @@ Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
  1 file changed, 12 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-index 68d12aa..b4237fc 100644
+index 197cadf..a55c6e7 100644
 --- a/arch/arm/boot/dts/am335x-boneblack.dts
 +++ b/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -16,3 +16,15 @@
+@@ -15,3 +15,15 @@
+ 	regulator-max-microvolt = <1800000>;
  	regulator-always-on;
  };
- 
++
 +&mmc2 {
 +	pinctrl-names = "default";
 +	pinctrl-0 = <&emmc_pins>;
@@ -27,7 +28,6 @@ index 68d12aa..b4237fc 100644
 +
 +	reset-gpio = <&gpio1 20 GPIO_ACTIVE_HIGH>;
 +};
-+
 -- 
 1.8.2.1
 
