@@ -1,0 +1,53 @@
+From a4fdd2889c7da6a137787314fa271a668013be67 Mon Sep 17 00:00:00 2001
+From: "Patil, Rachna" <rachna@ti.com>
+Date: Sat, 20 Jul 2013 17:27:35 +0100
+Subject: [PATCH 1/7] MFD: ti_tscadc: ADC Clock check not required
+
+ADC is ideally expected to work at a frequency of 3MHz.
+The present code had a check, which returned error if the frequency
+went below the threshold  value. But since AM335x supports various
+working frequencies, this check is not required.
+Now the code just uses the internal ADC clock divider to set the ADC
+frequency w.r.t the sys clock.
+
+Signed-off-by: Patil, Rachna <rachna@ti.com>
+Signed-off-by: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Signed-off-by: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
+---
+ drivers/mfd/ti_am335x_tscadc.c       |    6 +-----
+ include/linux/mfd/ti_am335x_tscadc.h |    1 -
+ 2 files changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+index b003a16..e0852ec 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -197,11 +197,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 	clock_rate = clk_get_rate(clk);
+ 	clk_put(clk);
+ 	clk_value = clock_rate / ADC_CLK;
+-	if (clk_value < MAX_CLK_DIV) {
+-		dev_err(&pdev->dev, "clock input less than min clock requirement\n");
+-		err = -EINVAL;
+-		goto err_disable_clk;
+-	}
++
+ 	/* TSCADC_CLKDIV needs to be configured to the value minus 1 */
+ 	clk_value = clk_value - 1;
+ 	tscadc_writel(tscadc, REG_CLKDIV, clk_value);
+diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+index db1791b..25f2c61 100644
+--- a/include/linux/mfd/ti_am335x_tscadc.h
++++ b/include/linux/mfd/ti_am335x_tscadc.h
+@@ -121,7 +121,6 @@
+ #define SEQ_STATUS BIT(5)
+ 
+ #define ADC_CLK			3000000
+-#define	MAX_CLK_DIV		7
+ #define TOTAL_STEPS		16
+ #define TOTAL_CHANNELS		8
+ 
+-- 
+1.7.9.5
+

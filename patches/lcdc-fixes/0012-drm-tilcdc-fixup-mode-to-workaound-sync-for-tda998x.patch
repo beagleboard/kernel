@@ -1,4 +1,4 @@
-From bbdba1b56828721e5056f6e5ee52612ae30104b3 Mon Sep 17 00:00:00 2001
+From 23ecfdd4aa0a43b3b2f9e208b0f0eb47810ff3c6 Mon Sep 17 00:00:00 2001
 From: Darren Etheridge <detheridge@ti.com>
 Date: Wed, 17 Jul 2013 16:05:24 -0500
 Subject: [PATCH 12/14] drm/tilcdc fixup mode to workaound sync for tda998x
@@ -11,8 +11,8 @@ is outputing.
 
 Signed-off-by: Darren Etheridge <detheridge@ti.com>
 ---
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c  |  7 ++++++-
- drivers/gpu/drm/tilcdc/tilcdc_slave.c | 21 ++++++++++++++++++++-
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c  |    7 ++++++-
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c |   21 ++++++++++++++++++++-
  2 files changed, 26 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
@@ -72,5 +72,5 @@ index dfffaf0..c7c9157 100644
  		.commit         = drm_i2c_encoder_commit,
  		.mode_set       = drm_i2c_encoder_mode_set,
 -- 
-1.8.2.1
+1.7.9.5
 

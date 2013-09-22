@@ -1,4 +1,4 @@
-From 14c120151d8ae2e335dd8728c88d6cd1a52863c8 Mon Sep 17 00:00:00 2001
+From cd2904be84039a31a1c3c7efcfd394fc9639a88b Mon Sep 17 00:00:00 2001
 From: Joel Fernandes <joelf@ti.com>
 Date: Tue, 25 Jun 2013 09:35:33 -0500
 Subject: [PATCH 09/13] DMA: EDMA: Split out PaRAM set calculations into its
@@ -17,7 +17,7 @@ Also added comments clarifying A-sync case calculations.
 
 Signed-off-by: Joel Fernandes <joelf@ti.com>
 ---
- drivers/dma/edma.c | 197 ++++++++++++++++++++++++++++++++++-------------------
+ drivers/dma/edma.c |  197 +++++++++++++++++++++++++++++++++-------------------
  1 file changed, 126 insertions(+), 71 deletions(-)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
@@ -267,5 +267,5 @@ index e008ed2..87b7e2b 100644
  
  	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
 -- 
-1.8.2.1
+1.7.9.5
 

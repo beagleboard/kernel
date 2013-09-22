@@ -1,82 +1,82 @@
-From fc92092fad3eb87bfb68e7377eb288436ed88c00 Mon Sep 17 00:00:00 2001
+From fb04ce35d85295aa68ce63e30b061ba1dc617a3a Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Thu, 1 Aug 2013 12:49:10 +0200
 Subject: [PATCH 2/2] firmare: add cape definitions from 3.8 based tree
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
- firmware/Makefile                              | 104 +++++-
- firmware/capes/2191-R2.dts                     | 417 +++++++++++++++++++++
- firmware/capes/BB-ADC-00A0.dts                 |  59 +++
- firmware/capes/BB-BONE-AUDI-01-00A0.dts        | 138 +++++++
- firmware/capes/BB-BONE-BACON-00A0.dts          | 216 +++++++++++
- firmware/capes/BB-BONE-BACONE-00A0.dts         | 169 +++++++++
- firmware/capes/BB-BONE-BACONE2-00A0.dts        | 204 +++++++++++
- firmware/capes/BB-BONE-CAM3-01-00A2.dts        | 230 ++++++++++++
- firmware/capes/BB-BONE-GPEVT-00A0.dts          |  48 +++
- firmware/capes/BB-BONE-LCD4-01-00A0.dts        | 192 ++++++++++
- firmware/capes/BB-BONE-LCD4-01-00A1.dts        | 279 ++++++++++++++
- firmware/capes/BB-BONE-LCD7-01-00A2.dts        | 282 ++++++++++++++
- firmware/capes/BB-BONE-LCD7-01-00A3.dts        | 284 +++++++++++++++
- firmware/capes/BB-BONE-LCD7-01-00A4.dts        | 287 +++++++++++++++
- firmware/capes/BB-BONE-PRU-01-00A0.dts         |  52 +++
- firmware/capes/BB-BONE-PRU-02-00A0.dts         |  68 ++++
- firmware/capes/BB-BONE-PRU-03-00A0.dts         | 213 +++++++++++
- firmware/capes/BB-BONE-PRU-04-00A0.dts         | 308 ++++++++++++++++
- firmware/capes/BB-BONE-PWMT-00A0.dts           |  63 ++++
- firmware/capes/BB-BONE-RS232-00A0.dts          |  47 +++
- firmware/capes/BB-BONE-RST-00A0.dts            |  62 ++++
- firmware/capes/BB-BONE-RST2-00A0.dts           |  27 ++
- firmware/capes/BB-BONE-RTC-00A0.dts            |  74 ++++
- firmware/capes/BB-BONE-SERL-01-00A1.dts        |  45 +++
- firmware/capes/BB-BONE-SERL-03-00A1.dts        |  50 +++
- firmware/capes/BB-BONE-eMMC1-01-00A0.dts       |  68 ++++
- firmware/capes/BB-BONELT-BT-00A0.dts           |  57 +++
- firmware/capes/BB-GPIOHELP-00A0.dts            |  66 ++++
- firmware/capes/BB-I2C1-00A0.dts                |  65 ++++
- firmware/capes/BB-I2C1A1-00A0.dts              |  65 ++++
- firmware/capes/BB-SPI0-00A0.dts                |  79 ++++
- firmware/capes/BB-SPI1-00A0.dts                |  81 +++++
- firmware/capes/BB-SPI1A1-00A0.dts              |  81 +++++
- firmware/capes/BB-UART1-00A0.dts               |  48 +++
- firmware/capes/BB-UART2-00A0.dts               |  48 +++
- firmware/capes/BB-UART4-00A0.dts               |  48 +++
- firmware/capes/BB-UART5-00A0.dts               |  49 +++
- firmware/capes/DNIL-AMPCAPE-1-00R1.dts         | 142 ++++++++
- firmware/capes/TT3201-001-01.dts               | 134 +++++++
- firmware/capes/am33xx_pwm-00A0.dts             |  74 ++++
- firmware/capes/bone_pwm_P8_13-00A0.dts         |  52 +++
- firmware/capes/bone_pwm_P8_19-00A0.dts         |  52 +++
- firmware/capes/bone_pwm_P8_34-00A0.dts         |  50 +++
- firmware/capes/bone_pwm_P8_36-00A0.dts         |  50 +++
- firmware/capes/bone_pwm_P8_45-00A0.dts         |  50 +++
- firmware/capes/bone_pwm_P8_46-00A0.dts         |  50 +++
- firmware/capes/bone_pwm_P9_14-00A0.dts         |  50 +++
- firmware/capes/bone_pwm_P9_16-00A0.dts         |  50 +++
- firmware/capes/bone_pwm_P9_21-00A0.dts         |  50 +++
- firmware/capes/bone_pwm_P9_22-00A0.dts         |  50 +++
- firmware/capes/bone_pwm_P9_28-00A0.dts         |  50 +++
- firmware/capes/bone_pwm_P9_29-00A0.dts         |  50 +++
- firmware/capes/bone_pwm_P9_31-00A0.dts         |  50 +++
- firmware/capes/bone_pwm_P9_42-00A0.dts         |  50 +++
- firmware/capes/cape-bone-2g-emmc1.dts          |  71 ++++
- firmware/capes/cape-bone-adafruit-lcd-00A0.dts | 141 +++++++
- firmware/capes/cape-bone-dvi-00A0.dts          | 137 +++++++
- firmware/capes/cape-bone-dvi-00A1.dts          | 207 +++++++++++
- firmware/capes/cape-bone-dvi-00A2.dts          | 137 +++++++
- firmware/capes/cape-bone-exptest-00A0.dts      | 140 +++++++
- firmware/capes/cape-bone-geiger-00A0.dts       | 133 +++++++
- firmware/capes/cape-bone-hexy-00A0.dts         | 190 ++++++++++
- firmware/capes/cape-bone-iio-00A0.dts          |  59 +++
- firmware/capes/cape-bone-lcd3-00A0.dts         | 271 ++++++++++++++
- firmware/capes/cape-bone-lcd3-00A2.dts         | 281 ++++++++++++++
- firmware/capes/cape-bone-mrf24j40-00A0.dts     |  89 +++++
- firmware/capes/cape-bone-nixie-00A0.dts        | 121 ++++++
- firmware/capes/cape-bone-pinmux-test-00A0.dts  |  43 +++
- firmware/capes/cape-bone-tester-00A0.dts       | 486 +++++++++++++++++++++++++
- firmware/capes/cape-bone-weather-00A0.dts      |  76 ++++
- firmware/capes/cape-boneblack-hdmi-00A0.dts    | 188 ++++++++++
- firmware/capes/cape-boneblack-hdmin-00A0.dts   | 136 +++++++
+ firmware/Makefile                              |  104 ++++-
+ firmware/capes/2191-R2.dts                     |  417 ++++++++++++++++++++
+ firmware/capes/BB-ADC-00A0.dts                 |   59 +++
+ firmware/capes/BB-BONE-AUDI-01-00A0.dts        |  138 +++++++
+ firmware/capes/BB-BONE-BACON-00A0.dts          |  216 +++++++++++
+ firmware/capes/BB-BONE-BACONE-00A0.dts         |  169 ++++++++
+ firmware/capes/BB-BONE-BACONE2-00A0.dts        |  204 ++++++++++
+ firmware/capes/BB-BONE-CAM3-01-00A2.dts        |  230 +++++++++++
+ firmware/capes/BB-BONE-GPEVT-00A0.dts          |   48 +++
+ firmware/capes/BB-BONE-LCD4-01-00A0.dts        |  192 ++++++++++
+ firmware/capes/BB-BONE-LCD4-01-00A1.dts        |  279 ++++++++++++++
+ firmware/capes/BB-BONE-LCD7-01-00A2.dts        |  282 ++++++++++++++
+ firmware/capes/BB-BONE-LCD7-01-00A3.dts        |  284 ++++++++++++++
+ firmware/capes/BB-BONE-LCD7-01-00A4.dts        |  287 ++++++++++++++
+ firmware/capes/BB-BONE-PRU-01-00A0.dts         |   52 +++
+ firmware/capes/BB-BONE-PRU-02-00A0.dts         |   68 ++++
+ firmware/capes/BB-BONE-PRU-03-00A0.dts         |  213 +++++++++++
+ firmware/capes/BB-BONE-PRU-04-00A0.dts         |  308 +++++++++++++++
+ firmware/capes/BB-BONE-PWMT-00A0.dts           |   63 +++
+ firmware/capes/BB-BONE-RS232-00A0.dts          |   47 +++
+ firmware/capes/BB-BONE-RST-00A0.dts            |   62 +++
+ firmware/capes/BB-BONE-RST2-00A0.dts           |   27 ++
+ firmware/capes/BB-BONE-RTC-00A0.dts            |   74 ++++
+ firmware/capes/BB-BONE-SERL-01-00A1.dts        |   45 +++
+ firmware/capes/BB-BONE-SERL-03-00A1.dts        |   50 +++
+ firmware/capes/BB-BONE-eMMC1-01-00A0.dts       |   68 ++++
+ firmware/capes/BB-BONELT-BT-00A0.dts           |   57 +++
+ firmware/capes/BB-GPIOHELP-00A0.dts            |   66 ++++
+ firmware/capes/BB-I2C1-00A0.dts                |   65 ++++
+ firmware/capes/BB-I2C1A1-00A0.dts              |   65 ++++
+ firmware/capes/BB-SPI0-00A0.dts                |   79 ++++
+ firmware/capes/BB-SPI1-00A0.dts                |   81 ++++
+ firmware/capes/BB-SPI1A1-00A0.dts              |   81 ++++
+ firmware/capes/BB-UART1-00A0.dts               |   48 +++
+ firmware/capes/BB-UART2-00A0.dts               |   48 +++
+ firmware/capes/BB-UART4-00A0.dts               |   48 +++
+ firmware/capes/BB-UART5-00A0.dts               |   49 +++
+ firmware/capes/DNIL-AMPCAPE-1-00R1.dts         |  142 +++++++
+ firmware/capes/TT3201-001-01.dts               |  134 +++++++
+ firmware/capes/am33xx_pwm-00A0.dts             |   74 ++++
+ firmware/capes/bone_pwm_P8_13-00A0.dts         |   52 +++
+ firmware/capes/bone_pwm_P8_19-00A0.dts         |   52 +++
+ firmware/capes/bone_pwm_P8_34-00A0.dts         |   50 +++
+ firmware/capes/bone_pwm_P8_36-00A0.dts         |   50 +++
+ firmware/capes/bone_pwm_P8_45-00A0.dts         |   50 +++
+ firmware/capes/bone_pwm_P8_46-00A0.dts         |   50 +++
+ firmware/capes/bone_pwm_P9_14-00A0.dts         |   50 +++
+ firmware/capes/bone_pwm_P9_16-00A0.dts         |   50 +++
+ firmware/capes/bone_pwm_P9_21-00A0.dts         |   50 +++
+ firmware/capes/bone_pwm_P9_22-00A0.dts         |   50 +++
+ firmware/capes/bone_pwm_P9_28-00A0.dts         |   50 +++
+ firmware/capes/bone_pwm_P9_29-00A0.dts         |   50 +++
+ firmware/capes/bone_pwm_P9_31-00A0.dts         |   50 +++
+ firmware/capes/bone_pwm_P9_42-00A0.dts         |   50 +++
+ firmware/capes/cape-bone-2g-emmc1.dts          |   71 ++++
+ firmware/capes/cape-bone-adafruit-lcd-00A0.dts |  141 +++++++
+ firmware/capes/cape-bone-dvi-00A0.dts          |  137 +++++++
+ firmware/capes/cape-bone-dvi-00A1.dts          |  207 ++++++++++
+ firmware/capes/cape-bone-dvi-00A2.dts          |  137 +++++++
+ firmware/capes/cape-bone-exptest-00A0.dts      |  140 +++++++
+ firmware/capes/cape-bone-geiger-00A0.dts       |  133 +++++++
+ firmware/capes/cape-bone-hexy-00A0.dts         |  190 +++++++++
+ firmware/capes/cape-bone-iio-00A0.dts          |   59 +++
+ firmware/capes/cape-bone-lcd3-00A0.dts         |  271 +++++++++++++
+ firmware/capes/cape-bone-lcd3-00A2.dts         |  281 ++++++++++++++
+ firmware/capes/cape-bone-mrf24j40-00A0.dts     |   89 +++++
+ firmware/capes/cape-bone-nixie-00A0.dts        |  121 ++++++
+ firmware/capes/cape-bone-pinmux-test-00A0.dts  |   43 +++
+ firmware/capes/cape-bone-tester-00A0.dts       |  486 ++++++++++++++++++++++++
+ firmware/capes/cape-bone-weather-00A0.dts      |   76 ++++
+ firmware/capes/cape-boneblack-hdmi-00A0.dts    |  188 +++++++++
+ firmware/capes/cape-boneblack-hdmin-00A0.dts   |  136 +++++++
  72 files changed, 8632 insertions(+), 1 deletion(-)
  create mode 100644 firmware/capes/2191-R2.dts
  create mode 100644 firmware/capes/BB-ADC-00A0.dts
@@ -3891,7 +3891,7 @@ index 0000000..49747c9
 +};
 diff --git a/firmware/capes/BB-BONE-RS232-00A0.dts b/firmware/capes/BB-BONE-RS232-00A0.dts
 new file mode 100644
-index 0000000..ad627c58
+index 0000000..ad627c5
 --- /dev/null
 +++ b/firmware/capes/BB-BONE-RS232-00A0.dts
 @@ -0,0 +1,47 @@
@@ -9228,5 +9228,5 @@ index 0000000..ad55c4d
 +	};
 +};
 -- 
-1.8.2.1
+1.7.9.5
 
