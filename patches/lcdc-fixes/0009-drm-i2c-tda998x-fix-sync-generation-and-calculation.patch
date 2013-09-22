@@ -1,4 +1,4 @@
-From c23698303740d29cb9a4bb5b1c4ccda0649b3068 Mon Sep 17 00:00:00 2001
+From a414ce5a07f6c05e2aba056cbeeeb11a366c838c Mon Sep 17 00:00:00 2001
 From: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
 Date: Thu, 20 Jun 2013 21:46:03 +0200
 Subject: [PATCH 09/14] drm/i2c: tda998x: fix sync generation and calculation
@@ -11,7 +11,7 @@ bunch of modes have also been verified with an oscilloscope near-end
 Signed-off-by: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
 Signed-off-by: Darren Etheridge <detheridge@ti.com>
 ---
- drivers/gpu/drm/i2c/tda998x_drv.c | 179 ++++++++++++++++++++++++--------------
+ drivers/gpu/drm/i2c/tda998x_drv.c |  179 +++++++++++++++++++++++--------------
  1 file changed, 113 insertions(+), 66 deletions(-)
 
 diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
@@ -264,5 +264,5 @@ index 8ffb844..e384b59 100644
  	reg_clear(encoder, REG_TBG_CNTRL_0, TBG_CNTRL_0_SYNC_ONCE);
  
 -- 
-1.8.2.1
+1.7.9.5
 

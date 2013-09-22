@@ -1,4 +1,4 @@
-From 364d4535955f21a8ce13e969aedde946a2d566b8 Mon Sep 17 00:00:00 2001
+From 13b1d8dd97858f152fb3b766e14332ba9cd53690 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 30 Nov 2012 12:18:16 +0200
 Subject: [PATCH 2/2] omap_hsmmc: Add reset gpio
@@ -8,8 +8,8 @@ eMMC on the beaglebone black requires it.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/mmc/host/omap_hsmmc.c          | 40 +++++++++++++++++++++++++++++++++-
- include/linux/platform_data/mmc-omap.h |  3 +++
+ drivers/mmc/host/omap_hsmmc.c          |   40 +++++++++++++++++++++++++++++++-
+ include/linux/platform_data/mmc-omap.h |    3 +++
  2 files changed, 42 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
@@ -134,5 +134,5 @@ index 2bf1b30..d548994 100644
  		int (*set_bus_mode)(struct device *dev, int slot, int bus_mode);
  		int (*set_power)(struct device *dev, int slot,
 -- 
-1.8.2.1
+1.7.9.5
 

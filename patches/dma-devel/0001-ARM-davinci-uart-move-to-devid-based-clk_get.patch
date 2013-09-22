@@ -1,4 +1,4 @@
-From da41a8e42998c4bff8b19ee3d9fdfed6a5951c3f Mon Sep 17 00:00:00 2001
+From 83793bef0522d99e39b2e6fc624b7c60914bca16 Mon Sep 17 00:00:00 2001
 From: "Manjunathappa, Prakash" <prakash.pm@ti.com>
 Date: Wed, 19 Jun 2013 14:45:38 +0530
 Subject: [PATCH 01/13] ARM: davinci: uart: move to devid based clk_get
@@ -12,18 +12,18 @@ platform_device_register for each instance and clk_get on dev_id.
 Signed-off-by: Manjunathappa, Prakash <prakash.pm@ti.com>
 Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- arch/arm/mach-davinci/da830.c                  |  8 ++--
- arch/arm/mach-davinci/da850.c                  |  8 ++--
- arch/arm/mach-davinci/devices-da8xx.c          | 42 +++++++++++++++++----
- arch/arm/mach-davinci/devices-tnetv107x.c      | 37 +++++++++++++++---
- arch/arm/mach-davinci/dm355.c                  | 52 ++++++++++++++++++++------
- arch/arm/mach-davinci/dm365.c                  | 38 +++++++++++++------
- arch/arm/mach-davinci/dm644x.c                 | 52 ++++++++++++++++++++------
- arch/arm/mach-davinci/dm646x.c                 | 52 ++++++++++++++++++++------
- arch/arm/mach-davinci/include/mach/da8xx.h     |  2 +-
- arch/arm/mach-davinci/include/mach/tnetv107x.h |  2 +-
- arch/arm/mach-davinci/serial.c                 | 19 ++++++----
- arch/arm/mach-davinci/tnetv107x.c              |  8 ++--
+ arch/arm/mach-davinci/da830.c                  |    8 ++--
+ arch/arm/mach-davinci/da850.c                  |    8 ++--
+ arch/arm/mach-davinci/devices-da8xx.c          |   42 +++++++++++++++----
+ arch/arm/mach-davinci/devices-tnetv107x.c      |   37 ++++++++++++++---
+ arch/arm/mach-davinci/dm355.c                  |   52 ++++++++++++++++++------
+ arch/arm/mach-davinci/dm365.c                  |   38 ++++++++++++-----
+ arch/arm/mach-davinci/dm644x.c                 |   52 ++++++++++++++++++------
+ arch/arm/mach-davinci/dm646x.c                 |   52 ++++++++++++++++++------
+ arch/arm/mach-davinci/include/mach/da8xx.h     |    2 +-
+ arch/arm/mach-davinci/include/mach/tnetv107x.h |    2 +-
+ arch/arm/mach-davinci/serial.c                 |   19 +++++----
+ arch/arm/mach-davinci/tnetv107x.c              |    8 ++--
  12 files changed, 239 insertions(+), 81 deletions(-)
 
 diff --git a/arch/arm/mach-davinci/da830.c b/arch/arm/mach-davinci/da830.c
@@ -720,5 +720,5 @@ index 4545667..f4d7fbb 100644
  
  void __init tnetv107x_init(void)
 -- 
-1.8.2.1
+1.7.9.5
 

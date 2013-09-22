@@ -1,4 +1,4 @@
-From 8fa501af1596682830f83a10f8a58a7b7716fb64 Mon Sep 17 00:00:00 2001
+From 70c7b5b42d052d4ddeb3189c4781058ff0fdcc69 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Mon, 3 Jun 2013 17:57:18 +0300
 Subject: [PATCH 13/14] drm: tilcdc: Fix scheduling while atomic from irq
@@ -8,7 +8,7 @@ Fix the crash by not making pm_runtime calls while in the irq.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c | 8 ++++++--
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c |    8 ++++++--
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
@@ -54,5 +54,5 @@ index 8ee2216..bec2f47 100644
  }
  
 -- 
-1.8.2.1
+1.7.9.5
 

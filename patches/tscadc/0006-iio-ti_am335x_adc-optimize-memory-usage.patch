@@ -1,0 +1,39 @@
+From 04d787810b0c0674f0d1cdb619ae35812108f077 Mon Sep 17 00:00:00 2001
+From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Date: Thu, 19 Sep 2013 07:24:00 +0100
+Subject: [PATCH 6/7] iio: ti_am335x_adc: optimize memory usage
+
+12 bit ADC data is stored in 32 bits of storage.
+Change from u32 to u16 to reduce wasted memory.
+
+Signed-off-by: Zubair Lutfullah <zubair.lutfullah@gmail.com>
+Signed-off-by: Jonathan Cameron <jic23@kernel.org>
+---
+ drivers/iio/adc/ti_am335x_adc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index 3ceac3e..7f6b42a 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -122,7 +122,7 @@ static int tiadc_channel_init(struct iio_dev *indio_dev, int channels)
+ 		chan->datasheet_name = chan_name_ain[chan->channel];
+ 		chan->scan_type.sign = 'u';
+ 		chan->scan_type.realbits = 12;
+-		chan->scan_type.storagebits = 32;
++		chan->scan_type.storagebits = 16;
+ 	}
+ 
+ 	indio_dev->channels = chan_array;
+@@ -186,7 +186,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+ 		if (stepid == map_val) {
+ 			read = read & FIFOREAD_DATA_MASK;
+ 			found = true;
+-			*val = read;
++			*val = (u16) read;
+ 		}
+ 	}
+ 
+-- 
+1.7.9.5
+
