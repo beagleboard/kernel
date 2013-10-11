@@ -20,28 +20,10 @@ To build it:
 ```
 cd kernel
 cp ../configs/beaglebone .config
-make uImage dtbs
+make ARCH=arm LOADADDR=0x80008000 uImage dtbs
 ```
 
-copy over uImage and am335x-bone.dtb to /boot
-
-uEnv.txt for the angstrom u-boot 2012.10:
-
-```
-devtree=/boot/am335x-bone.dtb
-dtboot=run mmcargs; ext2load mmc ${mmcdev}:2 ${kloadaddr} ${bootfile} ; ext2load mmc ${mmcdev}:2 ${fdtaddr} ${devtree} ; bootm ${kloadaddr} - ${fdtaddr}
-uenvcmd=run dtboot
-optargs=consoleblank=0
-```
-
-uEnv.txt for vanilla u-boot 2012.10:
-
-```
-devtree=/boot/am335x-bone.dtb
-dtboot=run mmcargs; ext2load mmc ${mmcdev}:2 ${loadaddr} ${bootfile} ; ext2load mmc ${mmcdev}:2 ${fdtaddr} ${devtree} ; bootm ${loadaddr} - ${fdtaddr}
-uenvcmd=run dtboot
-optargs=consoleblank=0
-```
+copy over uImage, am335x-bone.dtb, and am335x-boneblack.dtb to /boot (on the large ext4 partition)
 
 Status
 ======
