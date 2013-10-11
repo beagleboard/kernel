@@ -1,0 +1,32 @@
+From 085e4e139ae508aab69c568d6bf2a6860a0bd607 Mon Sep 17 00:00:00 2001
+From: Balaji T K <balajitk@ti.com>
+Date: Fri, 27 Sep 2013 17:05:09 +0530
+Subject: [PATCH 14/15] ARM: dts: am335x-bone-common: correct mux mode for cmd
+ line
+
+Set pinmux_emmc_pins mux mode for cmd line to MODE2 in order
+to detect eMMC on BBB and BBW + eMMC cape.
+
+Signed-off-by: Balaji T K <balajitk@ti.com>
+Tested-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Benoit Cousson <bcousson@baylibre.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index b3e6fcf..e3f27ec 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -160,7 +160,7 @@
+ 	emmc_pins: pinmux_emmc_pins {
+ 		pinctrl-single,pins = <
+ 			0x80 (PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn1.mmc1_clk */
+-			0x84 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_csn2.mmc1_cmd */
++			0x84 (PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn2.mmc1_cmd */
+ 			0x00 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad0.mmc1_dat0 */
+ 			0x04 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad1.mmc1_dat1 */
+ 			0x08 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad2.mmc1_dat2 */
+-- 
+1.8.4.rc3
+

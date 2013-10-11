@@ -1,21 +1,22 @@
-From f9f371c725afaeb71926cd7960e73fa6e29a2a6c Mon Sep 17 00:00:00 2001
+From 62ca70c0e2dfc1a4e9225b801cd769fd92f6de7c Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Tue, 10 Sep 2013 14:24:38 -0500
-Subject: [PATCH 3/5] ARM: dts: add AM33XX SPI DMA support
+Subject: [PATCH 04/15] ARM: dts: AM33XX: Add SPI DMA support
 
 Adds DMA resources to the AM33XX SPI nodes.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+Signed-off-by: Benoit Cousson <bcousson@baylibre.com>
 ---
  arch/arm/boot/dts/am33xx.dtsi | 10 ++++++++++
  1 file changed, 10 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 19a1c1d..9ce85e5 100644
+index 7a53e07..9cd60bf 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -335,6 +335,11 @@
+@@ -340,6 +340,11 @@
  			interrupts = <65>;
  			ti,spi-num-cs = <2>;
  			ti,hwmods = "spi0";
@@ -27,7 +28,7 @@ index 19a1c1d..9ce85e5 100644
  			status = "disabled";
  		};
  
-@@ -346,6 +351,11 @@
+@@ -351,6 +356,11 @@
  			interrupts = <125>;
  			ti,spi-num-cs = <2>;
  			ti,hwmods = "spi1";

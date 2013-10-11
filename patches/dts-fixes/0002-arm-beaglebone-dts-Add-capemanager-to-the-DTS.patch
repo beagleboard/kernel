@@ -1,7 +1,7 @@
-From caadc2cb6ff9490fddd05d800480121f167db634 Mon Sep 17 00:00:00 2001
+From faada294728362781459420954d9921254ea4864 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 28 Jun 2013 18:52:33 +0300
-Subject: [PATCH 2/9] arm: beaglebone: dts: Add capemanager to the DTS
+Subject: [PATCH 2/4] arm: beaglebone: dts: Add capemanager to the DTS
 
 Add the capemanager in the bone/beaglebone DTS.
 
@@ -11,12 +11,12 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  1 file changed, 75 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index bd29d6a..5ecee14 100644
+index 2d12775..0d9fd06 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -236,6 +236,81 @@
- 			default-state = "off";
- 		};
+@@ -62,6 +62,81 @@
+ 		regulator-min-microvolt = <3300000>;
+ 		regulator-max-microvolt = <3300000>;
  	};
 +
 +	bone_capemgr {
@@ -95,7 +95,7 @@ index bd29d6a..5ecee14 100644
 +	};
  };
  
- /include/ "tps65217.dtsi"
+ &am33xx_pinmux {
 -- 
-1.8.2.1
+1.8.4.rc3
 

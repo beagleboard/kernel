@@ -1,7 +1,7 @@
-From 77337ee9a8729678d4f6dd9dfc4dfff28a425f55 Mon Sep 17 00:00:00 2001
+From de80038efb2254fd72e77f848eb867fc193b5a74 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Tue, 10 Sep 2013 14:24:39 -0500
-Subject: [PATCH 4/5] ARM: dts: add AM33XX MMC support and documentation
+Subject: [PATCH 05/15] ARM: dts: AM33XX: Add MMC support and documentation
 
 Adds AM33XX MMC support for am335x-bone, am335x-evm and am335x-evmsk boards.
 
@@ -15,6 +15,7 @@ Additional changes made to DTS:
 Signed-off-by: Matt Porter <mporter@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Joel Fernandes <joelf@ti.com>
+Signed-off-by: Benoit Cousson <bcousson@baylibre.com>
 ---
  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      | 26 ++++++++++++++-
  arch/arm/boot/dts/am335x-bone.dts                  | 11 +++++++
@@ -130,10 +131,10 @@ index 4f339fa..55fd194 100644
 +	vmmc-supply = <&vmmc_reg>;
 +};
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 9ce85e5..0a82fca 100644
+index 9cd60bf..553adc6 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -240,6 +240,44 @@
+@@ -245,6 +245,44 @@
  			status = "disabled";
  		};
  

@@ -1,30 +1,34 @@
-From 70b543cd0232ebc82511420b8c197c0da513435a Mon Sep 17 00:00:00 2001
+From 387d315741b4126f228ee788094f9a00ecf8fde0 Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
-Date: Thu, 12 Sep 2013 11:08:48 +0200
-Subject: [PATCH 9/9] ARM: dts: am335x-bone-common: add cpu0 and mmc1 triggers
+Date: Thu, 12 Sep 2013 20:35:35 +0200
+Subject: [PATCH 09/15] ARM: dts: am335x-bone-common: add cpu0 and mmc1
+ triggers
 
-This matches the vendor 3.8.x configuration that is shipping with the boards.
+This matches the vendor 3.8.x configuration that is shipping
+with the boards.
 
 The LED layout is now:
+ USR0: heartbeat
+ USR1: mmc0 (micro-SD slot)
+ USR2: cpu0
+ USR3: mmc1 (eMMC)
 
-USR0: heartbeat
-USR1: mmc0 (micro-SD slot)
-USR2: cpu0
-USR3: mmc1 (eMMC)
-
-The cpu0 triggers was put inbetween the mmc triggers to make is easier to see
-where the disk activity is.
+The cpu0 triggers was put in between the mmc triggers to make
+is easier to see where the disk activity is.
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+Tested-by: Kevin Hilman <khilman@linaro.org>
+Reviewed-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Benoit Cousson <bcousson@baylibre.com>
 ---
  arch/arm/boot/dts/am335x-bone-common.dtsi | 2 ++
  1 file changed, 2 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 35299a2..a49c74e 100644
+index fbb11dd..56361ce 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -258,12 +258,14 @@
+@@ -204,12 +204,14 @@
  		led@4 {
  			label = "beaglebone:green:usr2";
  			gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
@@ -40,5 +44,5 @@ index 35299a2..a49c74e 100644
  		};
  	};
 -- 
-1.8.2.1
+1.8.4.rc3
 
