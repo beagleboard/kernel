@@ -13,8 +13,6 @@ git checkout origin/3.12 -b 3.12
 ./patch.sh
 ```
 
-Get am335x-pm-firmware.bin from http://arago-project.org/git/projects/?p=am33x-cm3.git;a=tree;f=bin and copy it to kernel/firmware
-
 To build it:
 
 ```
@@ -23,7 +21,7 @@ cp ../configs/beaglebone .config
 make ARCH=arm LOADADDR=0x80008000 uImage dtbs
 ```
 
-copy over uImage, am335x-bone.dtb, and am335x-boneblack.dtb to /boot (on the large ext4 partition)
+copy over zImage, uImage, am335x-bone.dtb, and am335x-boneblack.dtb to /boot (on the large ext4 partition)
 
 Status
 ======
