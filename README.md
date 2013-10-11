@@ -6,10 +6,10 @@ Kernel for the beagleboard.org boards
 usage
 ======
 
-3.8 patchset:
+3.12 patchset:
 
 ```
-git checkout origin/3.8 -b 3.8
+git checkout origin/3.12 -b 3.12
 ./patch.sh
 ```
 
@@ -49,19 +49,20 @@ Status
  * I2C: working
  * SPI: working
  * MMC: mmc1 working, mmc2 working
- * USB host: working, replugging needs 'lsusb' to pick new devices, unless you use a hub in between
- * USB gadget: not working
- * LCDC: not-capebus has support for lcd3, lcd4, lcd7 and dvi capes
- * TS: working
+ * USB host: working
+ * USB gadget: working: usb eth, usb drive
+ * HDMI: working
+ * LCDC: lcd3/lcd4/lcd7/dvi: untested
+ * TS: untested
  * ADC: untested
- * PWM: ehrpwm and ecap working (no sysfs entries)
- * PMIC: working
- * PMIC PWM: working, kills ethernet
- * CPUfreq: working
- * Capes: DVI, LCD3, LCD4, LCD7, geiger and weathercape are functional, but need tweaking
- * AUDIO: working (not working, or even instantiated, on HDMI)
+ * PWM: untested
+ * PMIC: untested
+ * PMIC PWM: untested
+ * CPUfreq: not working
+ * Capes: untested
+ * AUDIO: untested
 
-Bootlog
+Bootlog (needs update)
 ======
 
 ```
