@@ -1,4 +1,4 @@
-From fc842c6958ec8e0c60032593be8d5ad3ed2b9266 Mon Sep 17 00:00:00 2001
+From 58070f11cf5174d31e8884f2e2771a42890886ad Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 3 Jan 2013 12:23:07 +0200
 Subject: [PATCH 8/8] OF: Introduce DT overlay support.
@@ -19,15 +19,15 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  Documentation/devicetree/overlay-notes.txt | 179 ++++++
  drivers/of/Kconfig                         |  10 +
  drivers/of/Makefile                        |   1 +
- drivers/of/overlay.c                       | 870 +++++++++++++++++++++++++++++
+ drivers/of/overlay.c                       | 869 +++++++++++++++++++++++++++++
  include/linux/of.h                         | 113 ++++
- 5 files changed, 1173 insertions(+)
+ 5 files changed, 1172 insertions(+)
  create mode 100644 Documentation/devicetree/overlay-notes.txt
  create mode 100644 drivers/of/overlay.c
 
 diff --git a/Documentation/devicetree/overlay-notes.txt b/Documentation/devicetree/overlay-notes.txt
 new file mode 100644
-index 0000000..5289cbb
+index 0000000..6b43a28
 --- /dev/null
 +++ b/Documentation/devicetree/overlay-notes.txt
 @@ -0,0 +1,179 @@
@@ -209,12 +209,12 @@ index 0000000..5289cbb
 +It should be noted that the DT overlay format described is the one expected
 +by the of_build_overlay_info() function, which is a helper function. There
 +is nothing stopping someone coming up with his own DTS format and that will
-+end up filling in the fields of the of_overlay_info array. 
++end up filling in the fields of the of_overlay_info array.
 diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
-index 6f9cdc3..96216ec 100644
+index 2a00ae5..c2d5596 100644
 --- a/drivers/of/Kconfig
 +++ b/drivers/of/Kconfig
-@@ -89,4 +89,14 @@ config OF_RESOLVE
+@@ -83,4 +83,14 @@ config OF_RESOLVE
  	  Enable OF dynamic resolution support. This allows you to
  	  load Device Tree object fragments are run time.
  
@@ -230,20 +230,20 @@ index 6f9cdc3..96216ec 100644
 +
  endmenu # OF
 diff --git a/drivers/of/Makefile b/drivers/of/Makefile
-index c241e79..d2a6e0d 100644
+index 93da457..ca466e4 100644
 --- a/drivers/of/Makefile
 +++ b/drivers/of/Makefile
-@@ -11,3 +11,4 @@ obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
+@@ -10,3 +10,4 @@ obj-$(CONFIG_OF_PCI)	+= of_pci.o
+ obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
  obj-$(CONFIG_OF_MTD)	+= of_mtd.o
- obj-$(CONFIG_OF_RESERVED_MEM) += of_reserved_mem.o
  obj-$(CONFIG_OF_RESOLVE)  += resolver.o
 +obj-$(CONFIG_OF_OVERLAY) += overlay.o
 diff --git a/drivers/of/overlay.c b/drivers/of/overlay.c
 new file mode 100644
-index 0000000..5d0c531
+index 0000000..61bcfcc
 --- /dev/null
 +++ b/drivers/of/overlay.c
-@@ -0,0 +1,870 @@
+@@ -0,0 +1,869 @@
 +/*
 + * Functions for working with device tree overlays
 + *
@@ -1113,7 +1113,6 @@ index 0000000..5d0c531
 +
 +	return 0;
 +}
-+
 diff --git a/include/linux/of.h b/include/linux/of.h
 index 22d42e5..d9c8130 100644
 --- a/include/linux/of.h
@@ -1244,5 +1243,5 @@ index 22d42e5..d9c8130 100644
 +
  #endif /* _LINUX_OF_H */
 -- 
-1.8.2.1
+1.8.4.rc3
 

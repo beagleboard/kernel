@@ -22,7 +22,7 @@ EXTRATAG=""
 
 EXTERNAL_TREE="git://github.com/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="61e6cfa80de5760bbe406f4e815b7739205754d2"
+EXTERNAL_SHA="04919afb85c8f007b7326c4da5eb61c52e91b9c7"
 
 PATCHSET="omap-next-dt dma-devel general-fixes dtc-fixes dtc-overlays of-fixes pdev-fixes mmc-fixes dts-fixes i2c-fixes pinctrl-fixes capemgr reset capes lcdc-fixes net deassert-hard-reset"
 

@@ -1,4 +1,4 @@
-From 67d9524fc9058819530bd02bdb84bfd75c6cfafe Mon Sep 17 00:00:00 2001
+From f83816a2d6bb73c01eac7219e40e02bba25f344f Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 3 Jan 2013 12:18:25 +0200
 Subject: [PATCH 7/8] OF: Introduce Device Tree resolve support.
@@ -51,12 +51,12 @@ index 0000000..0b396c4
 +5. For each fixup in the property locate the node:property:offset location
 +   and replace it with the phandle value.
 diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
-index 9d2009a..6f9cdc3 100644
+index 78cc760..2a00ae5 100644
 --- a/drivers/of/Kconfig
 +++ b/drivers/of/Kconfig
-@@ -80,4 +80,13 @@ config OF_RESERVED_MEM
- 	help
- 	  Initialization code for DMA reserved memory
+@@ -74,4 +74,13 @@ config OF_MTD
+ 	depends on MTD
+ 	def_bool y
  
 +config OF_RESOLVE
 +	bool "OF Dynamic resolution support"
@@ -69,13 +69,13 @@ index 9d2009a..6f9cdc3 100644
 +
  endmenu # OF
 diff --git a/drivers/of/Makefile b/drivers/of/Makefile
-index 26de2ed..c241e79 100644
+index 9bc6d8c..93da457 100644
 --- a/drivers/of/Makefile
 +++ b/drivers/of/Makefile
-@@ -10,3 +10,4 @@ obj-$(CONFIG_OF_PCI)	+= of_pci.o
+@@ -9,3 +9,4 @@ obj-$(CONFIG_OF_MDIO)	+= of_mdio.o
+ obj-$(CONFIG_OF_PCI)	+= of_pci.o
  obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
  obj-$(CONFIG_OF_MTD)	+= of_mtd.o
- obj-$(CONFIG_OF_RESERVED_MEM) += of_reserved_mem.o
 +obj-$(CONFIG_OF_RESOLVE)  += resolver.o
 diff --git a/drivers/of/resolver.c b/drivers/of/resolver.c
 new file mode 100644
@@ -505,5 +505,5 @@ index 9d69bd2..22d42e5 100644
 +
  #endif /* _LINUX_OF_H */
 -- 
-1.8.2.1
+1.8.4.rc3
 
