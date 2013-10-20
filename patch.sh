@@ -17,12 +17,12 @@ RECIPENAME="linux-mainline_3.12.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.12-rc5"
+TAG="v3.12-rc6"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://github.com/torvalds/linux.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="04919afb85c8f007b7326c4da5eb61c52e91b9c7"
+EXTERNAL_SHA="31d141e3a666269a3b6fcccddb0351caf7454240"
 
 PATCHSET="omap-next-dt dma-devel general-fixes dtc-fixes dtc-overlays of-fixes pdev-fixes mmc-fixes dts-fixes i2c-fixes pinctrl-fixes capemgr reset capes lcdc-fixes net deassert-hard-reset"
 
