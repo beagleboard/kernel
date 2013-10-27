@@ -1,0 +1,119 @@
+From 1fd7b4846b9ad5481607cb72669f0114bcbab88f Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Fri, 11 Oct 2013 16:21:40 -0700
+Subject: [PATCH 19/19] capes: Add midi cape support
+
+Enable UART1 for MIDI cape using DT overlays.
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 19 +++++++++++++
+ firmware/Makefile                         |  1 +
+ firmware/capes/BB-BONE-MIDI-00A0.dts      | 46 +++++++++++++++++++++++++++++++
+ 3 files changed, 66 insertions(+)
+ create mode 100644 firmware/capes/BB-BONE-MIDI-00A0.dts
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 81d95306..28c056f 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -211,6 +211,16 @@
+ 				part-number = "BB-BONE-GPS-01";
+ 			};
+ 
++
++			slot@16 {
++				compatible = "kernel-command-line", "runtime";
++				board-name = "BB-BONE-MIDI";
++				version = "00A0";
++				manufacturer = "Ranostay Industries";
++				part-number = "BB-BONE-MIDI-01";
++			};
++
++
+ 			/* Beaglebone black has it soldered on */
+ 			 slot@100 {
+ 			 	ti,cape-override;
+@@ -402,6 +412,15 @@
+ 				};
+ 			};
+ 
++			cape@16 {
++				part-number = "BB-BONE-MIDI-01";
++				version@00A0 {
++					version = "00A0";
++					dtbo = "BB-BONE-MIDI-00A0.dtbo";
++				};
++
++			};
++
+ 		};
+ 	};
+ 
+diff --git a/firmware/Makefile b/firmware/Makefile
+index bff3bb1..999c193 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -157,6 +157,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	BB-BONE-LCD7-01-00A4.dtbo \
+ 	BB-BONE-eMMC1-01-00A0.dtbo \
+ 	BB-BONE-GPEVT-00A0.dtbo \
++	BB-BONE-MIDI-00A0.dtbo \
+ 	BB-BONE-RTC-00A0.dtbo \
+ 	BB-BONE-GPS-00A0.dtbo \
+ 	BB-BONE-RS232-00A0.dtbo \
+diff --git a/firmware/capes/BB-BONE-MIDI-00A0.dts b/firmware/capes/BB-BONE-MIDI-00A0.dts
+new file mode 100644
+index 0000000..d2c62e4
+--- /dev/null
++++ b/firmware/capes/BB-BONE-MIDI-00A0.dts
+@@ -0,0 +1,46 @@
++/*
++ * Copyright (C) 2013 Matt Ranostay <mranostay@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++	/* identification */
++	part-number = "BB-BONE-MIDI";
++	version = "00A0";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.24",	/* uart1_txd */
++		"P9.26",	/* uart1_rxd */
++		/* the hardware ip uses */
++		"uart1";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			uart_pins: pinmux_uart_pins {
++				pinctrl-single,pins = <
++					0x184 0x20 /* P9.24 uart1_txd.uart1_txd  OUTPUT  */
++					0x180 0x20 /* P9.26 uart1_rxd.uart1_rxd  INPUT  */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&uart2>;
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&uart_pins>;
++		};
++	};
++};
+-- 
+1.8.3.1
+
