@@ -1,0 +1,96 @@
+From 056162ccc9e1ae6d92f7f07de87d4ce30eed9255 Mon Sep 17 00:00:00 2001
+From: Elias Bakken <elias.bakken@gmail.com>
+Date: Sun, 27 Oct 2013 16:44:35 +0100
+Subject: [PATCH 21/21] TI TSC/ADC: fix missing measurements
+
+---
+ drivers/iio/adc/ti_am335x_adc.c      | 25 +++++++++++++++++++------
+ include/linux/mfd/ti_am335x_tscadc.h |  1 +
+ 2 files changed, 20 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index a172dfb..9ed1291 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -115,6 +115,7 @@ static irqreturn_t tiadc_irq(int irq, void *private)
+ 		tiadc_writel(adc_dev, REG_CTRL, config);
+ 		tiadc_writel(adc_dev, REG_IRQSTATUS, IRQENB_FIFO1OVRRUN |
+ 				IRQENB_FIFO1UNDRFLW | IRQENB_FIFO1THRES);
++		while(tiadc_readl(adc_dev, REG_ADCFSM) & SEQ_STATUS); // Wait while busy
+ 		tiadc_writel(adc_dev, REG_CTRL, (config | CNTRLREG_TSCSSENB));
+ 		return IRQ_HANDLED;
+ 	} else if (status & IRQENB_FIFO1THRES) {
+@@ -123,8 +124,13 @@ static irqreturn_t tiadc_irq(int irq, void *private)
+ 		adc_dev->data_avail = 1;
+ 		wake_up_interruptible(&adc_dev->wq_data_avail);
+ 		return IRQ_HANDLED;
+-	} else
+-		return IRQ_NONE;
++
++	} else if(status & IRQENB_END_OF_SEQ){
++		adc_dev->data_avail = 1;
++		tiadc_writel(adc_dev, REG_IRQCLR, IRQENB_END_OF_SEQ);
++		return IRQ_HANDLED;
++	}
++	return IRQ_NONE;
+ }
+ 
+ static irqreturn_t tiadc_trigger_h(int irq, void *p)
+@@ -374,20 +380,24 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+ 	struct tiadc_device *adc_dev = iio_priv(indio_dev);
+ 	int i, map_val;
+ 	unsigned int fifo1count, read, stepid, step_en;
++	bool found = false; 
+ 
+ 	if (iio_buffer_enabled(indio_dev))
+ 		return -EBUSY;
+ 	else {
+ 		unsigned long timeout = jiffies + usecs_to_jiffies
+ 					(IDLE_TIMEOUT * adc_dev->channels);
++		adc_dev->data_avail = 0;
++		// Enable END_OF_SEQUENCE int
++		tiadc_writel(adc_dev, REG_IRQENABLE, IRQENB_END_OF_SEQ); 
+ 		step_en = get_adc_step_mask(adc_dev);
+ 		am335x_tsc_se_set(adc_dev->mfd_tscadc, step_en);
+ 
+ 		/* Wait for ADC sequencer to complete sampling */
+-		while (tiadc_readl(adc_dev, REG_ADCFSM) & SEQ_STATUS) {
++		while (adc_dev->data_avail == 0) {
+ 			if (time_after(jiffies, timeout))
+ 				return -EAGAIN;
+-			}
++		}
+ 		map_val = chan->channel + TOTAL_CHANNELS;
+ 
+ 		/*
+@@ -410,10 +420,13 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+ 			if (stepid == map_val) {
+ 				read = read & FIFOREAD_DATA_MASK;
+ 				*val = read;
+-				return IIO_VAL_INT;
++				found = true; 
+ 			}
+ 		}
+-		return -EAGAIN;
++
++		if(found)
++			return IIO_VAL_INT;
++		return -EBUSY;
+ 	}
+ }
+ 
+diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+index 3a9c00f..b9594a4 100644
+--- a/include/linux/mfd/ti_am335x_tscadc.h
++++ b/include/linux/mfd/ti_am335x_tscadc.h
+@@ -52,6 +52,7 @@
+ 
+ /* IRQ enable */
+ #define IRQENB_HW_PEN		BIT(0)
++#define IRQENB_END_OF_SEQ	BIT(1)
+ #define IRQENB_FIFO0THRES	BIT(2)
+ #define IRQENB_FIFO1THRES	BIT(5)
+ #define IRQENB_PENUP		BIT(9)
+-- 
+1.8.3.1
+
