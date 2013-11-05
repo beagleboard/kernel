@@ -12,8 +12,8 @@ DIR="$PWD"
 PATCHPATH="${DIR}/patches"
 EXPORTPATH="${DIR}/export"
 
-RECIPEDIR="linux-3.12"
-RECIPENAME="linux-mainline_3.12.bb"
+RECIPEDIR="linux-3.13"
+RECIPENAME="linux-mainline_3.13.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
@@ -62,7 +62,7 @@ git tag | grep ${TAG} | grep -v rc >/dev/null || git_pull_torvalds
 git checkout -f ${TAG} -b tmp-patching-branch
 
 if [ "${EXTERNAL_TREE}" ] ; then
-	#we are pulling the  external tree into 1st branch, and checkout the SHA into a 2nd, 
+	#we are pulling the  external tree into 1st branch, and checkout the SHA into a 2nd,
 	#which saves a little pain in cleaning up master, when switching between different beagleboard branches
 	git pull ${EXTERNAL_TREE} ${EXTERNAL_BRANCH}
 	git checkout ${EXTERNAL_SHA} -b tmp-patching-branch-sha
