@@ -8,7 +8,7 @@ COMPATIBLE_MACHINE = "(beaglebone)"
 # The main PR is now using MACHINE_KERNEL_PR, for omap3 see conf/machine/include/omap3.inc
 MACHINE_KERNEL_PR_append = "a"
 
-FILESPATH =. "${FILE_DIRNAME}/linux-mainline-3.12:${FILE_DIRNAME}/linux-mainline-3.12/${MACHINE}:"
+FILESPATH =. "${FILE_DIRNAME}/linux-mainline-3.13:${FILE_DIRNAME}/linux-mainline-3.13/${MACHINE}:"
 
 S = "${WORKDIR}/git"
 
