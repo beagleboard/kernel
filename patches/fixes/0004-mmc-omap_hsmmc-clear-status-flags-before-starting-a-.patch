@@ -1,0 +1,47 @@
+From 38b650a239a6b47a43eaf12123d6885b0cbc596e Mon Sep 17 00:00:00 2001
+From: Francesco Lavra <francescolavra.fl@gmail.com>
+Date: Sat, 29 Jun 2013 06:25:12 +0000
+Subject: [PATCH 4/4] mmc: omap_hsmmc: clear status flags before starting a new
+ command
+
+Commit 1f6b9fa40e76fffaaa0b3bd6a0bfdcf1cdc06efa consolidated writes to
+the STAT register in one location, moving them from omap_hsmmc_do_irq()
+to omap_hsmmc_irq(). This move has the unwanted side effect that the
+controller status flags are potentially cleared after a new command has
+been started as a consequence of reading the previous status flags.
+This means that if the new command changes the status flags before the
+IRQ routine returns, those flags may be cleared without handling the
+event which asserted them, and thus missing the event.
+Move the writing of the STAT register back in omap_hsmmc_do_irq(),
+before handling the status flags which generated the interrupt.
+
+Signed-off-by: Francesco Lavra <francescolavra.fl@gmail.com>
+Reviewed-and-Tested-by: Balaji T K <balajitk@ti.com>
+Signed-off-by: Chris Ball <cjb@laptop.org>
+---
+ drivers/mmc/host/omap_hsmmc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index e2b97df..04daf72 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1070,6 +1070,7 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_host *host, int status)
+ 		}
+ 	}
+ 
++	OMAP_HSMMC_WRITE(host->base, STAT, status);
+ 	if (end_cmd || ((status & CC_EN) && host->cmd))
+ 		omap_hsmmc_cmd_done(host, host->cmd);
+ 	if ((end_trans || (status & TC_EN)) && host->mrq)
+@@ -1089,7 +1090,6 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
+ 		omap_hsmmc_do_irq(host, status);
+ 
+ 		/* Flush posted write */
+-		OMAP_HSMMC_WRITE(host->base, STAT, status);
+ 		status = OMAP_HSMMC_READ(host->base, STAT);
+ 	}
+ 
+-- 
+1.8.4.2
+
