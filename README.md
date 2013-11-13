@@ -19,9 +19,11 @@ To build it:
 cd kernel
 cp ../configs/beaglebone .config
 make ARCH=arm LOADADDR=0x80008000 uImage dtbs
+make ARCH=arm LOADADDR=0x80008000 modules
 ```
 
 copy over zImage, uImage, am335x-bone.dtb, and am335x-boneblack.dtb to /boot (on the large ext4 partition)
+install modules in /lib/modules/ (on the large ext4 partition)
 
 Status
 ======
@@ -30,7 +32,7 @@ Status
  * SPI: working
  * MMC: mmc1 working, mmc2 working
  * USB host: working
- * USB gadget: working: usb eth, usb drive
+ * USB gadget: working: usb eth, usb drive, CDC ACM
  * HDMI: working
  * LCDC: lcd3/lcd4/lcd7/dvi: untested
  * TS: untested
