@@ -1,0 +1,14 @@
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+index 45d51c9..aa180af 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+@@ -624,6 +624,9 @@ void tilcdc_crtc_update_clk(struct drm_crtc *crtc)
+ 	lcd_clk = clk_get_rate(priv->clk);
+ 	div = lcd_clk / (crtc->mode.clock * 1000);
+ 
++	if(div == 1)
++		div = 2;
++
+ 	DBG("lcd_clk=%u, mode clock=%d, div=%u", lcd_clk, crtc->mode.clock, div);
+ 	DBG("fck=%lu, dpll_disp_ck=%lu", clk_get_rate(priv->clk), clk_get_rate(priv->disp_clk));
+ 
