@@ -1,0 +1,49 @@
+From 887cbba2db4a9333db46f325ed12ae37fa658c18 Mon Sep 17 00:00:00 2001
+From: Cody Lacey <clacey@ti.com>
+Date: Fri, 18 Oct 2013 12:31:38 -0500
+Subject: [PATCH 1/2] ASoc: Davinci-EVM: Config 12MHz CLK for AIC3x Codec
+
+The AIC3x Codec needs a 12MHz clock source.  If the
+codec MCLK is connected to McASP AHCLKX or AHCLKR
+then the 24MHz internal clock needs to be divided
+by 2.
+---
+ sound/soc/davinci/davinci-evm.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/davinci/davinci-evm.c
+index 421feb0..1d9e9ce 100644
+--- a/sound/soc/davinci/davinci-evm.c
++++ b/sound/soc/davinci/davinci-evm.c
+@@ -145,7 +145,7 @@ static const struct snd_soc_dapm_route audio_map[] = {
+ 	{"LINE2R", NULL, "Line In"},
+ };
+ 
+-/* Logic for a aic3x as connected on a davinci-evm */
++/* Logic for a tda998x as connected on a davinci-evm */
+ static int evm_tda998x_init(struct snd_soc_pcm_runtime *rtd)
+ {
+ 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
+@@ -175,6 +175,7 @@ static int evm_tda998x_init(struct snd_soc_pcm_runtime *rtd)
+ static int evm_aic3x_init(struct snd_soc_pcm_runtime *rtd)
+ {
+ 	struct snd_soc_codec *codec = rtd->codec;
++	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
+ 	struct snd_soc_dapm_context *dapm = &codec->dapm;
+ 	struct device_node *np = codec->card->dev->of_node;
+ 	int ret;
+@@ -193,6 +194,11 @@ static int evm_aic3x_init(struct snd_soc_pcm_runtime *rtd)
+ 		snd_soc_dapm_add_routes(dapm, audio_map, ARRAY_SIZE(audio_map));
+ 	}
+ 
++	/* Divide McASP MCLK by 2 to provide 12MHz to codec */
++	ret = snd_soc_dai_set_clkdiv(cpu_dai, 0, 2);
++	if (ret < 0)
++		return ret;
++
+ 	/* not connected */
+ 	snd_soc_dapm_disable_pin(dapm, "MONO_LOUT");
+ 	snd_soc_dapm_disable_pin(dapm, "HPLCOM");
+-- 
+1.7.9.5
+
