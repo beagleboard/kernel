@@ -1,0 +1,33 @@
+From 77b6af3afbf95b4aad32e17c8725e6597b7ec507 Mon Sep 17 00:00:00 2001
+From: Jyri Sarha <jsarha@ti.com>
+Date: Mon, 11 Nov 2013 21:10:29 +0200
+Subject: [PATCH 11/15] ASoC: hdmi-codec: Add SNDRV_PCM_FMTBIT_32_LE playback
+ format
+
+The new playback format is needed for tda998x HDMI audio support. At
+the moment the only other user of this codec is omap-hdmi-audio. This
+change should not break anything because omap-hdmi-audio-dai, the
+cpu-dai of omap-hdmi-audio, enforces sufficient constraints to
+available sample formats.
+
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
+---
+ sound/soc/codecs/hdmi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sound/soc/codecs/hdmi.c b/sound/soc/codecs/hdmi.c
+index 6d2fcf1..9cb1c7d 100644
+--- a/sound/soc/codecs/hdmi.c
++++ b/sound/soc/codecs/hdmi.c
+@@ -45,7 +45,7 @@ static struct snd_soc_dai_driver hdmi_codec_dai = {
+ 			SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 |
+ 			SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000,
+ 		.formats = SNDRV_PCM_FMTBIT_S16_LE |
+-			SNDRV_PCM_FMTBIT_S24_LE,
++			SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S32_LE,
+ 	},
+ 	.capture = {
+ 		.stream_name = "Capture",
+-- 
+1.7.9.5
+
