@@ -1,0 +1,75 @@
+From 7c19e9b9b040242dc0284c20302eb85e0ae6c0e1 Mon Sep 17 00:00:00 2001
+From: Nishanth Menon <nm@ti.com>
+Date: Wed, 16 Oct 2013 10:39:08 -0500
+Subject: [PATCH 4/4] ARM: dts: OMAP3: add clock nodes for CPU
+
+OMAP34xx and OMAP36xx platforms use dpll1 clock. Add same to common
+definition.
+
+AM33XX, OMAP443x, OMAP446x and OMAP447x platforms use dpll_mpu clock
+Add same to common definition.
+
+OMAP5, DRA7 platforms use dpll_mpu_ck clock for CPU. Add same to common
+definition.
+
+Cc: Benoit Cousson <bcousson@baylibre.com>
+[nm@ti.com: keep in sync with clock node changes]
+[j-keerthy@ti.com: OMAP5 and DRA7 nodes]
+Signed-off-by: J Keerthy <j-keerthy@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi | 4 ++++
+ arch/arm/boot/dts/omap3.dtsi  | 5 +++++
+ arch/arm/boot/dts/omap4.dtsi  | 5 +++++
+ 3 files changed, 14 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 9f9d1b6..3dd2af6 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -55,6 +55,10 @@
+ 				275000  1125000
+ 			>;
+ 			voltage-tolerance = <2>; /* 2 percentage */
++
++			clocks = <&dpll_mpu_ck>;
++			clock-names = "cpu";
++
+ 			clock-latency = <300000>; /* From omap-cpufreq driver */
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index b41bd57..6a038ef 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -32,6 +32,11 @@
+ 			compatible = "arm,cortex-a8";
+ 			device_type = "cpu";
+ 			reg = <0x0>;
++
++			clocks = <&dpll1_ck>;
++			clock-names = "cpu";
++
++			clock-latency = <300000>; /* From omap-cpufreq driver */
+ 		};
+ 	};
+ 
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 22d9f2b..b0f0aa1 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -32,6 +32,11 @@
+ 			device_type = "cpu";
+ 			next-level-cache = <&L2>;
+ 			reg = <0x0>;
++
++			clocks = <&dpll_mpu_ck>;
++			clock-names = "cpu";
++
++			clock-latency = <300000>; /* From omap-cpufreq driver */
+ 		};
+ 		cpu@1 {
+ 			compatible = "arm,cortex-a9";
+-- 
+1.8.5.1
+
