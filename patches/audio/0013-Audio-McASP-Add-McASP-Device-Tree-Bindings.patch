@@ -1,0 +1,51 @@
+From 4bf80c5801be03ec7b8033591a838fa1887e8585 Mon Sep 17 00:00:00 2001
+From: Cody Lacey <clacey@ti.com>
+Date: Tue, 10 Dec 2013 12:20:29 -0600
+Subject: [PATCH 13/15] Audio-McASP-Add McASP Device Tree Bindings
+
+Add McASP device tree binding for am33xx.
+---
+ arch/arm/boot/dts/am33xx.dtsi |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 8aabaa0..9f9d1b6 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -712,5 +712,33 @@
+ 			#size-cells = <1>;
+ 			status = "disabled";
+ 		};
++
++		mcasp0: mcasp@48038000 {
++			compatible = "ti,omap2-mcasp-audio";
++			ti,hwmods = "mcasp0";
++			reg = <0x48038000 0x2000>,
++			      <0x46000000 0x400000>;
++			reg-names = "mpu", "dma";
++			interrupts = <80 81>;
++			interrupts-names = "tx", "rx";
++			status = "disabled";
++			dmas = <&edma 8
++				&edma 9>;
++			dma-names = "tx", "rx";
++		};
++
++		mcasp1: mcasp@4803C000 {
++			compatible = "ti,omap2-mcasp-audio";
++			ti,hwmods = "mcasp1";
++			reg = <0x4803C000 0x2000>,
++			      <0x46400000 0x400000>;
++			reg-names = "mpu", "dma";
++			interrupts = <82 83>;
++			interrupts-names = "tx", "rx";
++			status = "disabled";
++			dmas = <&edma 10
++				&edma 11>;
++			dma-names = "tx", "rx";
++		};
+ 	};
+ };
+-- 
+1.7.9.5
+
