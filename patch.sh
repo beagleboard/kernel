@@ -150,5 +150,5 @@ echo "Applying patch configs/beaglebone for WL18xx on BBB"
 git apply patches/bbb_wl18xx/0001-beaglebone-defconfig-changes-to-support-wl18xx-on-bbb.patch 
 echo "Applying kernel patches for WL18xx on BBB"
 cd ${DIR}/kernel
-git apply patches/bbb_wl18xx/0002.mmc-dts-changes-to-support-wl18xx-on-bbb.patch
+git apply ${DIR}/patches/bbb_wl18xx/0002.mmc-dts-changes-to-support-wl18xx-on-bbb.patch
 echo "Done applying WL18xx patches" 
