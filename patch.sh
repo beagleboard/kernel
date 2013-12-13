@@ -58,7 +58,8 @@ git branch -D tmp-patching-branch &>/dev/null || true
 git branch -D tmp-patching-branch-sha &>/dev/null || true
 
 #Do we have the tag?
-git tag | grep ${TAG} | grep -v rc >/dev/null || git_pull_torvalds
+#git tag | grep ${TAG} | grep -v rc >/dev/null || git_pull_torvalds
+git tag | grep ${TAG} | grep -v rc >/dev/null
 git checkout -f ${TAG} -b tmp-patching-branch
 
 if [ "${EXTERNAL_TREE}" ] ; then
@@ -144,3 +145,11 @@ if [ -e ${DIR}/kernel/am335x-pm-firmware.bin ] ; then
 	cp ${DIR}/kernel/am335x-pm-firmware.bin ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
 fi
 
+#Added to support in applying the bbb_wl18xx patch files
+cd $DIR
+echo "Applying patch configs/beaglebone for WL18xx on BBB"
+git apply patches/bbb_wl18xx/0001-beaglebone-defconfig-changes-to-support-wl18xx-on-bbb.patch 
+echo "Applying kernel patches for WL18xx on BBB"
+cd ${DIR}/kernel
+git apply patches/bbb_wl18xx/0002.mmc-dts-changes-to-support-wl18xx-on-bbb.patch
+echo "Done applying WL18xx patches" 
