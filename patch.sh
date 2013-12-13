@@ -58,8 +58,7 @@ git branch -D tmp-patching-branch &>/dev/null || true
 git branch -D tmp-patching-branch-sha &>/dev/null || true
 
 #Do we have the tag?
-#git tag | grep ${TAG} | grep -v rc >/dev/null || git_pull_torvalds
-git tag | grep ${TAG} | grep -v rc >/dev/null
+git tag | grep ${TAG} | grep -v rc >/dev/null || git_pull_torvalds
 git checkout -f ${TAG} -b tmp-patching-branch
 
 if [ "${EXTERNAL_TREE}" ] ; then
