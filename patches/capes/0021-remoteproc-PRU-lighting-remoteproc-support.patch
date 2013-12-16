@@ -1,0 +1,364 @@
+From 2ad8aa0e62a81190557cf1788991b4adda61ac9d Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Sun, 15 Dec 2013 00:44:34 -0800
+Subject: [PATCH 21/22] remoteproc: PRU lighting remoteproc support
+
+Multiple downcalls, ioctls, and spidev support to allow driving
+of WS281x LEDS via remoteproc PRU firmware.
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ drivers/remoteproc/pru_rproc.c | 279 ++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 273 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
+index 6e42db6..dcb24ee 100644
+--- a/drivers/remoteproc/pru_rproc.c
++++ b/drivers/remoteproc/pru_rproc.c
+@@ -28,9 +28,13 @@
+ #include <linux/byteorder/generic.h>
+ #include <linux/virtio.h>
+ #include <linux/virtio_ring.h>
++#include <linux/uaccess.h>
+ #include <asm/atomic.h>
+ 
+ #include <linux/pwm.h>
++#include <linux/debugfs.h>
++#include <linux/miscdevice.h>
++#include <linux/spi/spidev.h>
+ 
+ #include "remoteproc_internal.h"
+ 
+@@ -87,6 +91,34 @@ struct pruproc_core;
+ /* maximum PWMs */
+ #define PRU_PWM_MAX	32
+ 
++
++struct pru_led_single_value {
++	__u8 universe;
++	__u8 slot;
++	__u32 data;
++};
++
++#define LED_DATA_PRU	0
++#define LED_DATA_OFFSET	0x1000
++#define MAX_BUFFER	(12*1024)
++#define MAX_SLOTS	170
++#define MAX_UNIVERSES	14
++
++struct pru_led_array {
++	__u8 universe;
++	__u32 data[MAX_SLOTS];
++};
++
++
++/* down call IDs */
++
++#define IOCTL_LED_BLANK		_IOW('L', 0, int)
++#define IOCTL_LED_WRITE		_IOW('L', 1, struct pru_led_single_value)
++#define IOCTL_LED_WRITE_BURST	_IOW('L', 2, struct pru_led_array)
++#define IOCTL_LED_LATCH		 _IO('L', 3)
++
++static struct pruproc *pp_led;
++
+ struct pru_vring_info {
+ 	struct fw_rsc_vdev_vring *rsc;
+ 	struct vring vr;
+@@ -138,6 +170,7 @@ struct pruproc_core {
+ 
+ 	/* downcall lock */
+ 	struct mutex dc_lock;
++	struct mutex io_lock;
+ 	wait_queue_head_t dc_waitq;
+ 	unsigned long dc_flags;
+ #define PRU_DCF_DOWNCALL_REQ	0
+@@ -189,6 +222,11 @@ struct pruproc {
+ 		int controller;
+ 		u32 dc_ids[DC_PWM_MAX];
+ 	} pwm;
++
++	struct {
++		struct pru_led_array array;
++		u8 *buffer;
++	} led;
+ };
+ 
+ /* global memory map (for am33xx) (almost the same as local) */
+@@ -1337,6 +1375,7 @@ static int pruproc_remove(struct platform_device *pdev)
+ 
+ 	device_remove_file(dev, &dev_attr_reset);
+ 	device_remove_file(dev, &dev_attr_load);
++	kfree(pp->led.buffer);
+ 
+ 	/* Unregister as remoteproc device */
+ 	for (i = pp->num_prus - 1; i >= 0; i--) {
+@@ -1641,7 +1680,8 @@ static int pru_downcall(struct pruproc_core *ppc,
+ 		ret = (int)intr;
+ 		dev_err(dev, "PRU#%d error waiting for downcall ready (%d)\n",
+ 				ppc->idx, ret);
+-		goto ret_call_failed;
++		if (pp_led)
++			goto ret_call_failed;
+ 	}
+ 	if (intr == 0) {
+ 		dev_err(dev, "PRU#%d failed to issue downcall ready in 100ms\n",
+@@ -1683,7 +1723,8 @@ static int pru_downcall(struct pruproc_core *ppc,
+ 		ret = (int)intr;
+ 		dev_err(dev, "PRU#%d error waiting for downcall done (%d)\n",
+ 				ppc->idx, ret);
+-		goto ret_call_failed;
++		if (pp_led == NULL)
++			goto ret_call_failed;
+ 	}
+ 	if (intr == 0) {
+ 		dev_err(dev, "PRU#%d failed to issue downcall done in 100ms\n",
+@@ -2334,16 +2375,242 @@ static int pruproc_create_pwm_devices(struct pruproc *pp)
+ 	return 0;
+ }
+ 
+-/* after all is configured create the linux devices */
+-static int pruproc_create_devices(struct pruproc *pp)
++
++static long ioctl_blank(struct pruproc *pp, int uni)
+ {
+-	int ret;
++	pru_downcall_idx(pp, 0, 0, uni, 0, 0, 0, 0);
++
++	return 0;
++}
++
++static long ioctl_write(struct pruproc *pp, int uni, int slot, u32 val)
++{
++	pru_downcall_idx(pp, 0, 1, uni, slot, val, 0, 0);
++
++	return 0;
++}
++
++static long ioctl_write_burst(struct pruproc *pp, void *arg)
++{
++
++	struct pru_led_array *d = (struct pru_led_array *) arg;
++	void __iomem *va;
++
++	if (d->universe > (MAX_UNIVERSES - 1)) {
++		printk(KERN_ERR "over the max universe count");
++		return -EINVAL;
++	}
++
++	va = pru_d_da_to_va(pp->pru_to_pruc[LED_DATA_PRU], LED_DATA_OFFSET, NULL);
++	memset(va, 0, MAX_SLOTS);
++	memcpy(va, (void *)&d->data, sizeof(d->data));
++
++	pru_downcall_idx(pp, 0, 2, d->universe, 0, 0, 0, 0);
++	return 0;
++}
++
++static long ioctl_latch(struct pruproc *pp)
++{
++	pru_downcall_idx(pp, 0, 3, 0, 0, 0, 0, 0);
++
++	return 0;
++}
++
++
++static long get_max_slots(struct pruproc *pp)
++{
++	void __iomem *va;
++	va = pru_d_da_to_va(pp->pru_to_pruc[LED_DATA_PRU], LED_DATA_OFFSET, NULL);
++
++	return *((u32 *)va) & 0xff;
++}
++
++static long ioctl_spiwrite_burst(struct pruproc *pp, struct spi_ioc_transfer *spi)
++{
++	struct pru_led_array *array = &pp->led.array;
++	u8 *d = (u8 *) pp->led.buffer;
++	int i, slot = 0, uni = 0;
++	int max_slots = get_max_slots(pp);
++
++	if (spi->len > MAX_BUFFER)
++		return -ENOMEM;
++
++	memset(d, 0, MAX_BUFFER);
++	if (copy_from_user(d, (const u8 __user *) (uintptr_t) spi->tx_buf, spi->len))
++		return -ENOMEM;
++
++	array->universe = 0;
++	memset(array->data, 0, MAX_SLOTS * 4);
++
++	for (i = 0; i < (spi->len / 3); i++) {
++		u32 val = *(d++) << 0;
++		val |= *(d++) << 8;
++		val |= *(d++) << 16;
++
++		array->data[slot] = val;
++		if (++slot > (max_slots - 1)) {
++			slot = 0;
++			array->universe = uni++;
++
++			ioctl_write_burst(pp, array);
++			memset(array->data, 0, MAX_SLOTS * 4);
++		}
++	}
++
++	if (slot > 0) {
++		array->universe = uni;
++		ioctl_write_burst(pp, array);
++	}
++
++	ioctl_latch(pp);
++
++	return 0;
++}
++
++static int led_pru_open(struct inode *inode, struct file *filp)
++{
++	filp->private_data = pp_led;
++
++	return 0;
++}
++
++
++static long led_pru_ioctl(struct file *filp, unsigned int cmd,
++			  unsigned long arg)
++
++{
++	struct pruproc *pp = filp->private_data;
++	struct pruproc_core *ppc = pp->pru_to_pruc[LED_DATA_PRU];
++	struct spi_ioc_transfer *ioc;
++	unsigned n_ioc;
++	int ret = 0, tmp;
++
++	mutex_lock(&ppc->io_lock);
++
++	switch (cmd) {
++	case IOCTL_LED_BLANK:
++		ioctl_blank(pp, (int) arg);
++		break;
++	case IOCTL_LED_WRITE: {
++		struct pru_led_single_value *d;
++		d = (struct pru_led_single_value *) arg;
++
++		ioctl_write(pp, d->universe, d->slot, d->data);
++		break;
++	}
++	case IOCTL_LED_WRITE_BURST:
++		ioctl_write_burst(pp, (void *) arg);
++		break;
++	case IOCTL_LED_LATCH:
++		ioctl_latch(pp);
++		break;
++
++	case SPI_IOC_RD_MODE:
++	case SPI_IOC_WR_MODE:
++	case SPI_IOC_RD_LSB_FIRST:
++	case SPI_IOC_WR_LSB_FIRST:
++	case SPI_IOC_RD_BITS_PER_WORD:
++	case SPI_IOC_WR_BITS_PER_WORD:
++	case SPI_IOC_RD_MAX_SPEED_HZ:
++	case SPI_IOC_WR_MAX_SPEED_HZ:
++		break;
++	default:
++		/* segmented and/or full-duplex I/O request */
++		if (_IOC_NR(cmd) != _IOC_NR(SPI_IOC_MESSAGE(0))
++				|| _IOC_DIR(cmd) != _IOC_WRITE) {
++			ret = -ENOTTY;
++			break;
++		}
++
++		tmp = _IOC_SIZE(cmd);
++		if ((tmp % sizeof(struct spi_ioc_transfer)) != 0) {
++			ret = -EINVAL;
++			break;
++		}
++		n_ioc = tmp / sizeof(struct spi_ioc_transfer);
++		if (n_ioc == 0)
++			break;
+ 
+-	ret = pruproc_create_pwm_devices(pp);
++		/* copy into scratch area */
++		ioc = kmalloc(tmp, GFP_KERNEL);
++		if (!ioc) {
++			ret = -ENOMEM;
++			break;
++		}
++		if (copy_from_user(ioc, (void __user *)arg, tmp)) {
++			kfree(ioc);
++			ret = -EFAULT;
++			break;
++		}
++
++		ret = ioctl_spiwrite_burst(pp, ioc);
++
++		kfree(ioc);
++	}
++	mutex_unlock(&ppc->io_lock);
+ 
+ 	return ret;
+ }
+ 
++
++static const struct file_operations led_cmd_ops = {
++	.owner = THIS_MODULE,
++	.open = led_pru_open,
++	.unlocked_ioctl = led_pru_ioctl,
++};
++
++static struct miscdevice leds_miscdev = {
++	.minor = MISC_DYNAMIC_MINOR,
++	.name = "pru_leds",
++	.fops = &led_cmd_ops,
++};
++
++static int pruproc_create_leds_devices(struct pruproc *pp)
++{
++	struct platform_device *pdev = pp->pdev;
++	struct pruproc_core *ppc = pp->pru_to_pruc[LED_DATA_PRU];
++	struct device *dev = &pdev->dev;
++	struct device_node *np = dev->of_node;
++	struct property *prop;
++	int err, ret, proplen;
++
++	/* find property */
++	prop = of_find_property(np, "pru-led-enabled", &proplen);
++	if (prop == NULL)
++		return 0;
++
++	err = misc_register(&leds_miscdev);
++	if (err) {
++		dev_err(dev, "cannot register ");
++		ret = -EINVAL;
++		goto quit1;
++	}
++	pp_led = pp;
++	pp_led->led.buffer = devm_kzalloc(dev, MAX_BUFFER, GFP_KERNEL);
++
++	if (pp_led->led.buffer == NULL) {
++		dev_err(dev, "cannot alloc buffer");
++		ret = -EINVAL;
++		goto quit2;
++	}
++
++	mutex_init(&ppc->io_lock);
++
++	return 0;
++
++quit2:
++	misc_deregister(&leds_miscdev);
++quit1:
++	return -EINVAL;
++}
++
++/* after all is configured create the linux devices */
++static void pruproc_create_devices(struct pruproc *pp)
++{
++	pruproc_create_pwm_devices(pp);
++	pruproc_create_leds_devices(pp);
++}
++
+ static int pruproc_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+-- 
+1.8.4.2
+
