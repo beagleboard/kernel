@@ -1,0 +1,31 @@
+From d21aaa5fc6cded1e61a409ebe4093e2b23b9766f Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Tue, 17 Dec 2013 00:57:06 -0800
+Subject: [PATCH 5/5] omap-serial: allow custom buad rate settings
+
+Current custom baud rate settings are broken due a function call from
+serial_core.c that returns -EINVAL from omap-serial.c.
+
+This is important for the upcoming MIDI cape and is placeholder hack.
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ drivers/tty/serial/omap-serial.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 57d6b29..717cf32 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1060,7 +1060,7 @@ serial_omap_verify_port(struct uart_port *port, struct serial_struct *ser)
+ {
+ 	/* we don't want the core code to modify any port params */
+ 	dev_dbg(port->dev, "serial_omap_verify_port+\n");
+-	return -EINVAL;
++	return 0;
+ }
+ 
+ static const char *
+-- 
+1.8.4.2
+
