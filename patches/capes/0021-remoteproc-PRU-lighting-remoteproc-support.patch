@@ -1,18 +1,18 @@
-From 2ad8aa0e62a81190557cf1788991b4adda61ac9d Mon Sep 17 00:00:00 2001
+From fef63a2a8a4afb3959c395b85f6f56d0ab4f937e Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
-Date: Sun, 15 Dec 2013 00:44:34 -0800
-Subject: [PATCH 21/22] remoteproc: PRU lighting remoteproc support
+Date: Sat, 7 Dec 2013 13:29:43 -0800
+Subject: [PATCH 2/2] remoteproc: PRU lighting remoteproc support
 
 Multiple downcalls, ioctls, and spidev support to allow driving
 of WS281x LEDS via remoteproc PRU firmware.
 
 Signed-off-by: Matt Ranostay <mranostay@gmail.com>
 ---
- drivers/remoteproc/pru_rproc.c | 279 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 273 insertions(+), 6 deletions(-)
+ drivers/remoteproc/pru_rproc.c | 283 ++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 277 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
-index 6e42db6..dcb24ee 100644
+index 6e42db6..36d2ad5 100644
 --- a/drivers/remoteproc/pru_rproc.c
 +++ b/drivers/remoteproc/pru_rproc.c
 @@ -28,9 +28,13 @@
@@ -29,7 +29,7 @@ index 6e42db6..dcb24ee 100644
  
  #include "remoteproc_internal.h"
  
-@@ -87,6 +91,34 @@ struct pruproc_core;
+@@ -87,6 +91,35 @@ struct pruproc_core;
  /* maximum PWMs */
  #define PRU_PWM_MAX	32
  
@@ -42,9 +42,10 @@ index 6e42db6..dcb24ee 100644
 +
 +#define LED_DATA_PRU	0
 +#define LED_DATA_OFFSET	0x1000
++#define LED_CONF_OFFSET	0x0800
 +#define MAX_BUFFER	(12*1024)
-+#define MAX_SLOTS	170
-+#define MAX_UNIVERSES	14
++#define MAX_SLOTS	256
++#define MAX_UNIVERSES	12
 +
 +struct pru_led_array {
 +	__u8 universe;
@@ -64,7 +65,7 @@ index 6e42db6..dcb24ee 100644
  struct pru_vring_info {
  	struct fw_rsc_vdev_vring *rsc;
  	struct vring vr;
-@@ -138,6 +170,7 @@ struct pruproc_core {
+@@ -138,6 +171,7 @@ struct pruproc_core {
  
  	/* downcall lock */
  	struct mutex dc_lock;
@@ -72,7 +73,7 @@ index 6e42db6..dcb24ee 100644
  	wait_queue_head_t dc_waitq;
  	unsigned long dc_flags;
  #define PRU_DCF_DOWNCALL_REQ	0
-@@ -189,6 +222,11 @@ struct pruproc {
+@@ -189,6 +223,11 @@ struct pruproc {
  		int controller;
  		u32 dc_ids[DC_PWM_MAX];
  	} pwm;
@@ -84,7 +85,7 @@ index 6e42db6..dcb24ee 100644
  };
  
  /* global memory map (for am33xx) (almost the same as local) */
-@@ -1337,6 +1375,7 @@ static int pruproc_remove(struct platform_device *pdev)
+@@ -1337,6 +1376,7 @@ static int pruproc_remove(struct platform_device *pdev)
  
  	device_remove_file(dev, &dev_attr_reset);
  	device_remove_file(dev, &dev_attr_load);
@@ -92,17 +93,17 @@ index 6e42db6..dcb24ee 100644
  
  	/* Unregister as remoteproc device */
  	for (i = pp->num_prus - 1; i >= 0; i--) {
-@@ -1641,7 +1680,8 @@ static int pru_downcall(struct pruproc_core *ppc,
+@@ -1641,7 +1681,8 @@ static int pru_downcall(struct pruproc_core *ppc,
  		ret = (int)intr;
  		dev_err(dev, "PRU#%d error waiting for downcall ready (%d)\n",
  				ppc->idx, ret);
 -		goto ret_call_failed;
-+		if (pp_led)
++		if (pp_led == NULL)
 +			goto ret_call_failed;
  	}
  	if (intr == 0) {
  		dev_err(dev, "PRU#%d failed to issue downcall ready in 100ms\n",
-@@ -1683,7 +1723,8 @@ static int pru_downcall(struct pruproc_core *ppc,
+@@ -1683,7 +1724,8 @@ static int pru_downcall(struct pruproc_core *ppc,
  		ret = (int)intr;
  		dev_err(dev, "PRU#%d error waiting for downcall done (%d)\n",
  				ppc->idx, ret);
@@ -112,7 +113,7 @@ index 6e42db6..dcb24ee 100644
  	}
  	if (intr == 0) {
  		dev_err(dev, "PRU#%d failed to issue downcall done in 100ms\n",
-@@ -2334,16 +2375,242 @@ static int pruproc_create_pwm_devices(struct pruproc *pp)
+@@ -2334,16 +2376,245 @@ static int pruproc_create_pwm_devices(struct pruproc *pp)
  	return 0;
  }
  
@@ -164,7 +165,7 @@ index 6e42db6..dcb24ee 100644
 +static long get_max_slots(struct pruproc *pp)
 +{
 +	void __iomem *va;
-+	va = pru_d_da_to_va(pp->pru_to_pruc[LED_DATA_PRU], LED_DATA_OFFSET, NULL);
++	va = pru_d_da_to_va(pp->pru_to_pruc[LED_DATA_PRU], LED_CONF_OFFSET, NULL);
 +
 +	return *((u32 *)va) & 0xff;
 +}
@@ -192,9 +193,12 @@ index 6e42db6..dcb24ee 100644
 +		val |= *(d++) << 16;
 +
 +		array->data[slot] = val;
-+		if (++slot > (max_slots - 1)) {
++		if (++slot > max_slots) {
 +			slot = 0;
 +			array->universe = uni++;
++
++			if (array->universe >= MAX_UNIVERSES)
++				break;
 +
 +			ioctl_write_burst(pp, array);
 +			memset(array->data, 0, MAX_SLOTS * 4);
@@ -274,8 +278,7 @@ index 6e42db6..dcb24ee 100644
 +		n_ioc = tmp / sizeof(struct spi_ioc_transfer);
 +		if (n_ioc == 0)
 +			break;
- 
--	ret = pruproc_create_pwm_devices(pp);
++
 +		/* copy into scratch area */
 +		ioc = kmalloc(tmp, GFP_KERNEL);
 +		if (!ioc) {
@@ -289,7 +292,8 @@ index 6e42db6..dcb24ee 100644
 +		}
 +
 +		ret = ioctl_spiwrite_burst(pp, ioc);
-+
+ 
+-	ret = pruproc_create_pwm_devices(pp);
 +		kfree(ioc);
 +	}
 +	mutex_unlock(&ppc->io_lock);
@@ -360,5 +364,5 @@ index 6e42db6..dcb24ee 100644
  {
  	struct device *dev = &pdev->dev;
 -- 
-1.8.4.2
+1.8.1.2
 
