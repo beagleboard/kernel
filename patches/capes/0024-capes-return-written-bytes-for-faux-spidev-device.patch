@@ -1,0 +1,28 @@
+From a0f97817d4da7d36cf6643cfd3d9d17f1cc3eb3a Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Sun, 22 Dec 2013 16:15:51 -0800
+Subject: [PATCH] capes: return written bytes for faux spidev device
+
+To quiet OLA not getting confirmation of written bytes.
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ drivers/remoteproc/pru_rproc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
+index 0f58370..53d1f63 100644
+--- a/drivers/remoteproc/pru_rproc.c
++++ b/drivers/remoteproc/pru_rproc.c
+@@ -2468,7 +2468,7 @@ static long ioctl_spiwrite_burst(struct pruproc *pp, struct spi_ioc_transfer *sp
+ 
+ 	ioctl_latch(pp);
+ 
+-	return 0;
++	return spi->len;
+ }
+ 
+ static int led_pru_open(struct inode *inode, struct file *filp)
+-- 
+1.8.1.2
+
