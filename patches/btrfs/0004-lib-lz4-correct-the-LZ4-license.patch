@@ -1,0 +1,76 @@
+From a515a25075da95eb85f4dc451ae028162513e8bf Mon Sep 17 00:00:00 2001
+From: Richard Laager <rlaager@wiktel.com>
+Date: Thu, 22 Aug 2013 16:35:47 -0700
+Subject: [PATCH 04/11] lib/lz4: correct the LZ4 license
+
+The LZ4 code is listed as using the "BSD 2-Clause License".
+
+Signed-off-by: Richard Laager <rlaager@wiktel.com>
+Acked-by: Kyungsik Lee <kyungsik.lee@lge.com>
+Cc: Chanho Min <chanho.min@lge.com>
+Cc: Richard Yao <ryao@gentoo.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+[ The 2-clause BSD can be just converted into GPL, but that's rude and
+  pointless, so don't do it   - Linus ]
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+---
+ lib/lz4/lz4_compress.c   | 4 ++--
+ lib/lz4/lz4_decompress.c | 6 +++---
+ lib/lz4/lz4hc_compress.c | 4 ++--
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/lib/lz4/lz4_compress.c b/lib/lz4/lz4_compress.c
+index fd94058..28321d8 100644
+--- a/lib/lz4/lz4_compress.c
++++ b/lib/lz4/lz4_compress.c
+@@ -437,7 +437,7 @@ int lz4_compress(const unsigned char *src, size_t src_len,
+ exit:
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(lz4_compress);
++EXPORT_SYMBOL(lz4_compress);
+ 
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_DESCRIPTION("LZ4 compressor");
+diff --git a/lib/lz4/lz4_decompress.c b/lib/lz4/lz4_decompress.c
+index d3414ea..411be80 100644
+--- a/lib/lz4/lz4_decompress.c
++++ b/lib/lz4/lz4_decompress.c
+@@ -299,7 +299,7 @@ exit_0:
+ 	return ret;
+ }
+ #ifndef STATIC
+-EXPORT_SYMBOL_GPL(lz4_decompress);
++EXPORT_SYMBOL(lz4_decompress);
+ #endif
+ 
+ int lz4_decompress_unknownoutputsize(const char *src, size_t src_len,
+@@ -319,8 +319,8 @@ exit_0:
+ 	return ret;
+ }
+ #ifndef STATIC
+-EXPORT_SYMBOL_GPL(lz4_decompress_unknownoutputsize);
++EXPORT_SYMBOL(lz4_decompress_unknownoutputsize);
+ 
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_DESCRIPTION("LZ4 Decompressor");
+ #endif
+diff --git a/lib/lz4/lz4hc_compress.c b/lib/lz4/lz4hc_compress.c
+index eb1a74f..f344f76 100644
+--- a/lib/lz4/lz4hc_compress.c
++++ b/lib/lz4/lz4hc_compress.c
+@@ -533,7 +533,7 @@ int lz4hc_compress(const unsigned char *src, size_t src_len,
+ exit:
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(lz4hc_compress);
++EXPORT_SYMBOL(lz4hc_compress);
+ 
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_DESCRIPTION("LZ4HC compressor");
+-- 
+1.8.4.2
+

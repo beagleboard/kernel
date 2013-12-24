@@ -1,0 +1,1271 @@
+From 7ac189c5e9200c734e8b44fd0dc250ed9c3907cd Mon Sep 17 00:00:00 2001
+From: Chanho Min <chanho.min@lge.com>
+Date: Mon, 8 Jul 2013 16:01:49 -0700
+Subject: [PATCH 03/11] lib: add lz4 compressor module
+
+This patchset is for supporting LZ4 compression and the crypto API using
+it.
+
+As shown below, the size of data is a little bit bigger but compressing
+speed is faster under the enabled unaligned memory access.  We can use
+lz4 de/compression through crypto API as well.  Also, It will be useful
+for another potential user of lz4 compression.
+
+lz4 Compression Benchmark:
+Compiler: ARM gcc 4.6.4
+ARMv7, 1 GHz based board
+   Kernel: linux 3.4
+   Uncompressed data Size: 101 MB
+         Compressed Size  compression Speed
+   LZO   72.1MB		  32.1MB/s, 33.0MB/s(UA)
+   LZ4   75.1MB		  30.4MB/s, 35.9MB/s(UA)
+   LZ4HC 59.8MB		   2.4MB/s,  2.5MB/s(UA)
+- UA: Unaligned memory Access support
+- Latest patch set for LZO applied
+
+This patch:
+
+Add support for LZ4 compression in the Linux Kernel.  LZ4 Compression APIs
+for kernel are based on LZ4 implementation by Yann Collet and were changed
+for kernel coding style.
+
+LZ4 homepage : http://fastcompression.blogspot.com/p/lz4.html
+LZ4 source repository : http://code.google.com/p/lz4/
+svn revision : r90
+
+Two APIs are added:
+
+lz4_compress() support basic lz4 compression whereas lz4hc_compress()
+support high compression or CPU performance get lower but compression
+ratio get higher.  Also, we require the pre-allocated working memory with
+the defined size and destination buffer must be allocated with the size of
+lz4_compressbound.
+
+[akpm@linux-foundation.org: make lz4_compresshcctx() static]
+Signed-off-by: Chanho Min <chanho.min@lge.com>
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Bob Pearson <rpearson@systemfabricworks.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Herbert Xu <herbert@gondor.hengli.com.au>
+Cc: Yann Collet <yann.collet.73@gmail.com>
+Cc: Kyungsik Lee <kyungsik.lee@lge.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+---
+ include/linux/lz4.h      |  36 ++++
+ lib/Kconfig              |   6 +
+ lib/Makefile             |   2 +
+ lib/lz4/Makefile         |   2 +
+ lib/lz4/lz4_compress.c   | 443 ++++++++++++++++++++++++++++++++++++++
+ lib/lz4/lz4defs.h        |  66 +++++-
+ lib/lz4/lz4hc_compress.c | 539 +++++++++++++++++++++++++++++++++++++++++++++++
+ 7 files changed, 1092 insertions(+), 2 deletions(-)
+ create mode 100644 lib/lz4/lz4_compress.c
+ create mode 100644 lib/lz4/lz4hc_compress.c
+
+diff --git a/include/linux/lz4.h b/include/linux/lz4.h
+index 7f6c75a..d21c13f 100644
+--- a/include/linux/lz4.h
++++ b/include/linux/lz4.h
+@@ -9,6 +9,8 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
++#define LZ4_MEM_COMPRESS	(4096 * sizeof(unsigned char *))
++#define LZ4HC_MEM_COMPRESS	(65538 * sizeof(unsigned char *))
+ 
+ /*
+  * lz4_compressbound()
+@@ -21,6 +23,40 @@ static inline size_t lz4_compressbound(size_t isize)
+ }
+ 
+ /*
++ * lz4_compress()
++ *	src     : source address of the original data
++ *	src_len : size of the original data
++ *	dst	: output buffer address of the compressed data
++ *		This requires 'dst' of size LZ4_COMPRESSBOUND.
++ *	dst_len : is the output size, which is returned after compress done
++ *	workmem : address of the working memory.
++ *		This requires 'workmem' of size LZ4_MEM_COMPRESS.
++ *	return  : Success if return 0
++ *		  Error if return (< 0)
++ *	note :  Destination buffer and workmem must be already allocated with
++ *		the defined size.
++ */
++int lz4_compress(const unsigned char *src, size_t src_len,
++		unsigned char *dst, size_t *dst_len, void *wrkmem);
++
++ /*
++  * lz4hc_compress()
++  *	 src	 : source address of the original data
++  *	 src_len : size of the original data
++  *	 dst	 : output buffer address of the compressed data
++  *		This requires 'dst' of size LZ4_COMPRESSBOUND.
++  *	 dst_len : is the output size, which is returned after compress done
++  *	 workmem : address of the working memory.
++  *		This requires 'workmem' of size LZ4HC_MEM_COMPRESS.
++  *	 return  : Success if return 0
++  *		   Error if return (< 0)
++  *	 note :  Destination buffer and workmem must be already allocated with
++  *		 the defined size.
++  */
++int lz4hc_compress(const unsigned char *src, size_t src_len,
++		unsigned char *dst, size_t *dst_len, void *wrkmem);
++
++/*
+  * lz4_decompress()
+  *	src     : source address of the compressed data
+  *	src_len : is the input size, whcih is returned after decompress done
+diff --git a/lib/Kconfig b/lib/Kconfig
+index b108047..b686870 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -189,6 +189,12 @@ config LZO_COMPRESS
+ config LZO_DECOMPRESS
+ 	tristate
+ 
++config LZ4_COMPRESS
++	tristate
++
++config LZ4HC_COMPRESS
++	tristate
++
+ config LZ4_DECOMPRESS
+ 	tristate
+ 
+diff --git a/lib/Makefile b/lib/Makefile
+index c2073bf..0ad3245 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -72,6 +72,8 @@ obj-$(CONFIG_REED_SOLOMON) += reed_solomon/
+ obj-$(CONFIG_BCH) += bch.o
+ obj-$(CONFIG_LZO_COMPRESS) += lzo/
+ obj-$(CONFIG_LZO_DECOMPRESS) += lzo/
++obj-$(CONFIG_LZ4_COMPRESS) += lz4/
++obj-$(CONFIG_LZ4HC_COMPRESS) += lz4/
+ obj-$(CONFIG_LZ4_DECOMPRESS) += lz4/
+ obj-$(CONFIG_XZ_DEC) += xz/
+ obj-$(CONFIG_RAID6_PQ) += raid6/
+diff --git a/lib/lz4/Makefile b/lib/lz4/Makefile
+index 7f548c6..8085d04 100644
+--- a/lib/lz4/Makefile
++++ b/lib/lz4/Makefile
+@@ -1 +1,3 @@
++obj-$(CONFIG_LZ4_COMPRESS) += lz4_compress.o
++obj-$(CONFIG_LZ4HC_COMPRESS) += lz4hc_compress.o
+ obj-$(CONFIG_LZ4_DECOMPRESS) += lz4_decompress.o
+diff --git a/lib/lz4/lz4_compress.c b/lib/lz4/lz4_compress.c
+new file mode 100644
+index 0000000..fd94058
+--- /dev/null
++++ b/lib/lz4/lz4_compress.c
+@@ -0,0 +1,443 @@
++/*
++ * LZ4 - Fast LZ compression algorithm
++ * Copyright (C) 2011-2012, Yann Collet.
++ * BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
++
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *     * Redistributions of source code must retain the above copyright
++ * notice, this list of conditions and the following disclaimer.
++ *     * Redistributions in binary form must reproduce the above
++ * copyright notice, this list of conditions and the following disclaimer
++ * in the documentation and/or other materials provided with the
++ * distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You can contact the author at :
++ * - LZ4 homepage : http://fastcompression.blogspot.com/p/lz4.html
++ * - LZ4 source repository : http://code.google.com/p/lz4/
++ *
++ *  Changed for kernel use by:
++ *  Chanho Min <chanho.min@lge.com>
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/lz4.h>
++#include <asm/unaligned.h>
++#include "lz4defs.h"
++
++/*
++ * LZ4_compressCtx :
++ * -----------------
++ * Compress 'isize' bytes from 'source' into an output buffer 'dest' of
++ * maximum size 'maxOutputSize'.  * If it cannot achieve it, compression
++ * will stop, and result of the function will be zero.
++ * return : the number of bytes written in buffer 'dest', or 0 if the
++ * compression fails
++ */
++static inline int lz4_compressctx(void *ctx,
++		const char *source,
++		char *dest,
++		int isize,
++		int maxoutputsize)
++{
++	HTYPE *hashtable = (HTYPE *)ctx;
++	const u8 *ip = (u8 *)source;
++#if LZ4_ARCH64
++	const BYTE * const base = ip;
++#else
++	const int base = 0;
++#endif
++	const u8 *anchor = ip;
++	const u8 *const iend = ip + isize;
++	const u8 *const mflimit = iend - MFLIMIT;
++	#define MATCHLIMIT (iend - LASTLITERALS)
++
++	u8 *op = (u8 *) dest;
++	u8 *const oend = op + maxoutputsize;
++	int length;
++	const int skipstrength = SKIPSTRENGTH;
++	u32 forwardh;
++	int lastrun;
++
++	/* Init */
++	if (isize < MINLENGTH)
++		goto _last_literals;
++
++	memset((void *)hashtable, 0, LZ4_MEM_COMPRESS);
++
++	/* First Byte */
++	hashtable[LZ4_HASH_VALUE(ip)] = ip - base;
++	ip++;
++	forwardh = LZ4_HASH_VALUE(ip);
++
++	/* Main Loop */
++	for (;;) {
++		int findmatchattempts = (1U << skipstrength) + 3;
++		const u8 *forwardip = ip;
++		const u8 *ref;
++		u8 *token;
++
++		/* Find a match */
++		do {
++			u32 h = forwardh;
++			int step = findmatchattempts++ >> skipstrength;
++			ip = forwardip;
++			forwardip = ip + step;
++
++			if (unlikely(forwardip > mflimit))
++				goto _last_literals;
++
++			forwardh = LZ4_HASH_VALUE(forwardip);
++			ref = base + hashtable[h];
++			hashtable[h] = ip - base;
++		} while ((ref < ip - MAX_DISTANCE) || (A32(ref) != A32(ip)));
++
++		/* Catch up */
++		while ((ip > anchor) && (ref > (u8 *)source) &&
++			unlikely(ip[-1] == ref[-1])) {
++			ip--;
++			ref--;
++		}
++
++		/* Encode Literal length */
++		length = (int)(ip - anchor);
++		token = op++;
++		/* check output limit */
++		if (unlikely(op + length + (2 + 1 + LASTLITERALS) +
++			(length >> 8) > oend))
++			return 0;
++
++		if (length >= (int)RUN_MASK) {
++			int len;
++			*token = (RUN_MASK << ML_BITS);
++			len = length - RUN_MASK;
++			for (; len > 254 ; len -= 255)
++				*op++ = 255;
++			*op++ = (u8)len;
++		} else
++			*token = (length << ML_BITS);
++
++		/* Copy Literals */
++		LZ4_BLINDCOPY(anchor, op, length);
++_next_match:
++		/* Encode Offset */
++		LZ4_WRITE_LITTLEENDIAN_16(op, (u16)(ip - ref));
++
++		/* Start Counting */
++		ip += MINMATCH;
++		/* MinMatch verified */
++		ref += MINMATCH;
++		anchor = ip;
++		while (likely(ip < MATCHLIMIT - (STEPSIZE - 1))) {
++			#if LZ4_ARCH64
++			u64 diff = A64(ref) ^ A64(ip);
++			#else
++			u32 diff = A32(ref) ^ A32(ip);
++			#endif
++			if (!diff) {
++				ip += STEPSIZE;
++				ref += STEPSIZE;
++				continue;
++			}
++			ip += LZ4_NBCOMMONBYTES(diff);
++			goto _endcount;
++		}
++		#if LZ4_ARCH64
++		if ((ip < (MATCHLIMIT - 3)) && (A32(ref) == A32(ip))) {
++			ip += 4;
++			ref += 4;
++		}
++		#endif
++		if ((ip < (MATCHLIMIT - 1)) && (A16(ref) == A16(ip))) {
++			ip += 2;
++			ref += 2;
++		}
++		if ((ip < MATCHLIMIT) && (*ref == *ip))
++			ip++;
++_endcount:
++		/* Encode MatchLength */
++		length = (int)(ip - anchor);
++		/* Check output limit */
++		if (unlikely(op + (1 + LASTLITERALS) + (length >> 8) > oend))
++			return 0;
++		if (length >= (int)ML_MASK) {
++			*token += ML_MASK;
++			length -= ML_MASK;
++			for (; length > 509 ; length -= 510) {
++				*op++ = 255;
++				*op++ = 255;
++			}
++			if (length > 254) {
++				length -= 255;
++				*op++ = 255;
++			}
++			*op++ = (u8)length;
++		} else
++			*token += length;
++
++		/* Test end of chunk */
++		if (ip > mflimit) {
++			anchor = ip;
++			break;
++		}
++
++		/* Fill table */
++		hashtable[LZ4_HASH_VALUE(ip-2)] = ip - 2 - base;
++
++		/* Test next position */
++		ref = base + hashtable[LZ4_HASH_VALUE(ip)];
++		hashtable[LZ4_HASH_VALUE(ip)] = ip - base;
++		if ((ref > ip - (MAX_DISTANCE + 1)) && (A32(ref) == A32(ip))) {
++			token = op++;
++			*token = 0;
++			goto _next_match;
++		}
++
++		/* Prepare next loop */
++		anchor = ip++;
++		forwardh = LZ4_HASH_VALUE(ip);
++	}
++
++_last_literals:
++	/* Encode Last Literals */
++	lastrun = (int)(iend - anchor);
++	if (((char *)op - dest) + lastrun + 1
++		+ ((lastrun + 255 - RUN_MASK) / 255) > (u32)maxoutputsize)
++		return 0;
++
++	if (lastrun >= (int)RUN_MASK) {
++		*op++ = (RUN_MASK << ML_BITS);
++		lastrun -= RUN_MASK;
++		for (; lastrun > 254 ; lastrun -= 255)
++			*op++ = 255;
++		*op++ = (u8)lastrun;
++	} else
++		*op++ = (lastrun << ML_BITS);
++	memcpy(op, anchor, iend - anchor);
++	op += iend - anchor;
++
++	/* End */
++	return (int)(((char *)op) - dest);
++}
++
++static inline int lz4_compress64kctx(void *ctx,
++		const char *source,
++		char *dest,
++		int isize,
++		int maxoutputsize)
++{
++	u16 *hashtable = (u16 *)ctx;
++	const u8 *ip = (u8 *) source;
++	const u8 *anchor = ip;
++	const u8 *const base = ip;
++	const u8 *const iend = ip + isize;
++	const u8 *const mflimit = iend - MFLIMIT;
++	#define MATCHLIMIT (iend - LASTLITERALS)
++
++	u8 *op = (u8 *) dest;
++	u8 *const oend = op + maxoutputsize;
++	int len, length;
++	const int skipstrength = SKIPSTRENGTH;
++	u32 forwardh;
++	int lastrun;
++
++	/* Init */
++	if (isize < MINLENGTH)
++		goto _last_literals;
++
++	memset((void *)hashtable, 0, LZ4_MEM_COMPRESS);
++
++	/* First Byte */
++	ip++;
++	forwardh = LZ4_HASH64K_VALUE(ip);
++
++	/* Main Loop */
++	for (;;) {
++		int findmatchattempts = (1U << skipstrength) + 3;
++		const u8 *forwardip = ip;
++		const u8 *ref;
++		u8 *token;
++
++		/* Find a match */
++		do {
++			u32 h = forwardh;
++			int step = findmatchattempts++ >> skipstrength;
++			ip = forwardip;
++			forwardip = ip + step;
++
++			if (forwardip > mflimit)
++				goto _last_literals;
++
++			forwardh = LZ4_HASH64K_VALUE(forwardip);
++			ref = base + hashtable[h];
++			hashtable[h] = (u16)(ip - base);
++		} while (A32(ref) != A32(ip));
++
++		/* Catch up */
++		while ((ip > anchor) && (ref > (u8 *)source)
++			&& (ip[-1] == ref[-1])) {
++			ip--;
++			ref--;
++		}
++
++		/* Encode Literal length */
++		length = (int)(ip - anchor);
++		token = op++;
++		/* Check output limit */
++		if (unlikely(op + length + (2 + 1 + LASTLITERALS)
++			+ (length >> 8) > oend))
++			return 0;
++		if (length >= (int)RUN_MASK) {
++			*token = (RUN_MASK << ML_BITS);
++			len = length - RUN_MASK;
++			for (; len > 254 ; len -= 255)
++				*op++ = 255;
++			*op++ = (u8)len;
++		} else
++			*token = (length << ML_BITS);
++
++		/* Copy Literals */
++		LZ4_BLINDCOPY(anchor, op, length);
++
++_next_match:
++		/* Encode Offset */
++		LZ4_WRITE_LITTLEENDIAN_16(op, (u16)(ip - ref));
++
++		/* Start Counting */
++		ip += MINMATCH;
++		/* MinMatch verified */
++		ref += MINMATCH;
++		anchor = ip;
++
++		while (ip < MATCHLIMIT - (STEPSIZE - 1)) {
++			#if LZ4_ARCH64
++			u64 diff = A64(ref) ^ A64(ip);
++			#else
++			u32 diff = A32(ref) ^ A32(ip);
++			#endif
++
++			if (!diff) {
++				ip += STEPSIZE;
++				ref += STEPSIZE;
++				continue;
++			}
++			ip += LZ4_NBCOMMONBYTES(diff);
++			goto _endcount;
++		}
++		#if LZ4_ARCH64
++		if ((ip < (MATCHLIMIT - 3)) && (A32(ref) == A32(ip))) {
++			ip += 4;
++			ref += 4;
++		}
++		#endif
++		if ((ip < (MATCHLIMIT - 1)) && (A16(ref) == A16(ip))) {
++			ip += 2;
++			ref += 2;
++		}
++		if ((ip < MATCHLIMIT) && (*ref == *ip))
++			ip++;
++_endcount:
++
++		/* Encode MatchLength */
++		len = (int)(ip - anchor);
++		/* Check output limit */
++		if (unlikely(op + (1 + LASTLITERALS) + (len >> 8) > oend))
++			return 0;
++		if (len >= (int)ML_MASK) {
++			*token += ML_MASK;
++			len -= ML_MASK;
++			for (; len > 509 ; len -= 510) {
++				*op++ = 255;
++				*op++ = 255;
++			}
++			if (len > 254) {
++				len -= 255;
++				*op++ = 255;
++			}
++			*op++ = (u8)len;
++		} else
++			*token += len;
++
++		/* Test end of chunk */
++		if (ip > mflimit) {
++			anchor = ip;
++			break;
++		}
++
++		/* Fill table */
++		hashtable[LZ4_HASH64K_VALUE(ip-2)] = (u16)(ip - 2 - base);
++
++		/* Test next position */
++		ref = base + hashtable[LZ4_HASH64K_VALUE(ip)];
++		hashtable[LZ4_HASH64K_VALUE(ip)] = (u16)(ip - base);
++		if (A32(ref) == A32(ip)) {
++			token = op++;
++			*token = 0;
++			goto _next_match;
++		}
++
++		/* Prepare next loop */
++		anchor = ip++;
++		forwardh = LZ4_HASH64K_VALUE(ip);
++	}
++
++_last_literals:
++	/* Encode Last Literals */
++	lastrun = (int)(iend - anchor);
++	if (op + lastrun + 1 + (lastrun - RUN_MASK + 255) / 255 > oend)
++		return 0;
++	if (lastrun >= (int)RUN_MASK) {
++		*op++ = (RUN_MASK << ML_BITS);
++		lastrun -= RUN_MASK;
++		for (; lastrun > 254 ; lastrun -= 255)
++			*op++ = 255;
++		*op++ = (u8)lastrun;
++	} else
++		*op++ = (lastrun << ML_BITS);
++	memcpy(op, anchor, iend - anchor);
++	op += iend - anchor;
++	/* End */
++	return (int)(((char *)op) - dest);
++}
++
++int lz4_compress(const unsigned char *src, size_t src_len,
++			unsigned char *dst, size_t *dst_len, void *wrkmem)
++{
++	int ret = -1;
++	int out_len = 0;
++
++	if (src_len < LZ4_64KLIMIT)
++		out_len = lz4_compress64kctx(wrkmem, src, dst, src_len,
++				lz4_compressbound(src_len));
++	else
++		out_len = lz4_compressctx(wrkmem, src, dst, src_len,
++				lz4_compressbound(src_len));
++
++	if (out_len < 0)
++		goto exit;
++
++	*dst_len = out_len;
++
++	return 0;
++exit:
++	return ret;
++}
++EXPORT_SYMBOL_GPL(lz4_compress);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("LZ4 compressor");
+diff --git a/lib/lz4/lz4defs.h b/lib/lz4/lz4defs.h
+index 43ac31d..abcecdc 100644
+--- a/lib/lz4/lz4defs.h
++++ b/lib/lz4/lz4defs.h
+@@ -22,23 +22,40 @@
+  * Architecture-specific macros
+  */
+ #define BYTE	u8
++typedef struct _U16_S { u16 v; } U16_S;
++typedef struct _U32_S { u32 v; } U32_S;
++typedef struct _U64_S { u64 v; } U64_S;
+ #if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)		\
+ 	|| defined(CONFIG_ARM) && __LINUX_ARM_ARCH__ >= 6	\
+ 	&& defined(ARM_EFFICIENT_UNALIGNED_ACCESS)
+-typedef struct _U32_S { u32 v; } U32_S;
+-typedef struct _U64_S { u64 v; } U64_S;
+ 
++#define A16(x) (((U16_S *)(x))->v)
+ #define A32(x) (((U32_S *)(x))->v)
+ #define A64(x) (((U64_S *)(x))->v)
+ 
+ #define PUT4(s, d) (A32(d) = A32(s))
+ #define PUT8(s, d) (A64(d) = A64(s))
++#define LZ4_WRITE_LITTLEENDIAN_16(p, v)	\
++	do {	\
++		A16(p) = v; \
++		p += 2; \
++	} while (0)
+ #else /* CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS */
+ 
++#define A64(x) get_unaligned((u64 *)&(((U16_S *)(x))->v))
++#define A32(x) get_unaligned((u32 *)&(((U16_S *)(x))->v))
++#define A16(x) get_unaligned((u16 *)&(((U16_S *)(x))->v))
++
+ #define PUT4(s, d) \
+ 	put_unaligned(get_unaligned((const u32 *) s), (u32 *) d)
+ #define PUT8(s, d) \
+ 	put_unaligned(get_unaligned((const u64 *) s), (u64 *) d)
++
++#define LZ4_WRITE_LITTLEENDIAN_16(p, v)	\
++	do {	\
++		put_unaligned(v, (u16 *)(p)); \
++		p += 2; \
++	} while (0)
+ #endif
+ 
+ #define COPYLENGTH 8
+@@ -46,6 +63,29 @@ typedef struct _U64_S { u64 v; } U64_S;
+ #define ML_MASK  ((1U << ML_BITS) - 1)
+ #define RUN_BITS (8 - ML_BITS)
+ #define RUN_MASK ((1U << RUN_BITS) - 1)
++#define MEMORY_USAGE	14
++#define MINMATCH	4
++#define SKIPSTRENGTH	6
++#define LASTLITERALS	5
++#define MFLIMIT		(COPYLENGTH + MINMATCH)
++#define MINLENGTH	(MFLIMIT + 1)
++#define MAXD_LOG	16
++#define MAXD		(1 << MAXD_LOG)
++#define MAXD_MASK	(u32)(MAXD - 1)
++#define MAX_DISTANCE	(MAXD - 1)
++#define HASH_LOG	(MAXD_LOG - 1)
++#define HASHTABLESIZE	(1 << HASH_LOG)
++#define MAX_NB_ATTEMPTS	256
++#define OPTIMAL_ML	(int)((ML_MASK-1)+MINMATCH)
++#define LZ4_64KLIMIT	((1<<16) + (MFLIMIT - 1))
++#define HASHLOG64K	((MEMORY_USAGE - 2) + 1)
++#define HASH64KTABLESIZE	(1U << HASHLOG64K)
++#define LZ4_HASH_VALUE(p)	(((A32(p)) * 2654435761U) >> \
++				((MINMATCH * 8) - (MEMORY_USAGE-2)))
++#define LZ4_HASH64K_VALUE(p)	(((A32(p)) * 2654435761U) >> \
++				((MINMATCH * 8) - HASHLOG64K))
++#define HASH_VALUE(p)		(((A32(p)) * 2654435761U) >> \
++				((MINMATCH * 8) - HASH_LOG))
+ 
+ #if LZ4_ARCH64/* 64-bit */
+ #define STEPSIZE 8
+@@ -65,6 +105,13 @@ typedef struct _U64_S { u64 v; } U64_S;
+ 			LZ4_WILDCOPY(s, d, e);	\
+ 		}				\
+ 	} while (0)
++#define HTYPE u32
++
++#ifdef __BIG_ENDIAN
++#define LZ4_NBCOMMONBYTES(val) (__builtin_clzll(val) >> 3)
++#else
++#define LZ4_NBCOMMONBYTES(val) (__builtin_ctzll(val) >> 3)
++#endif
+ 
+ #else	/* 32-bit */
+ #define STEPSIZE 4
+@@ -83,6 +130,14 @@ typedef struct _U64_S { u64 v; } U64_S;
+ 	} while (0)
+ 
+ #define LZ4_SECURECOPY	LZ4_WILDCOPY
++#define HTYPE const u8*
++
++#ifdef __BIG_ENDIAN
++#define LZ4_NBCOMMONBYTES(val) (__builtin_clz(val) >> 3)
++#else
++#define LZ4_NBCOMMONBYTES(val) (__builtin_ctz(val) >> 3)
++#endif
++
+ #endif
+ 
+ #define LZ4_READ_LITTLEENDIAN_16(d, s, p) \
+@@ -92,3 +147,10 @@ typedef struct _U64_S { u64 v; } U64_S;
+ 	do {				\
+ 		LZ4_COPYPACKET(s, d);	\
+ 	} while (d < e)
++
++#define LZ4_BLINDCOPY(s, d, l)	\
++	do {	\
++		u8 *e = (d) + l;	\
++		LZ4_WILDCOPY(s, d, e);	\
++		d = e;	\
++	} while (0)
+diff --git a/lib/lz4/lz4hc_compress.c b/lib/lz4/lz4hc_compress.c
+new file mode 100644
+index 0000000..eb1a74f
+--- /dev/null
++++ b/lib/lz4/lz4hc_compress.c
+@@ -0,0 +1,539 @@
++/*
++ * LZ4 HC - High Compression Mode of LZ4
++ * Copyright (C) 2011-2012, Yann Collet.
++ * BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *     * Redistributions of source code must retain the above copyright
++ * notice, this list of conditions and the following disclaimer.
++ *     * Redistributions in binary form must reproduce the above
++ * copyright notice, this list of conditions and the following disclaimer
++ * in the documentation and/or other materials provided with the
++ * distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You can contact the author at :
++ * - LZ4 homepage : http://fastcompression.blogspot.com/p/lz4.html
++ * - LZ4 source repository : http://code.google.com/p/lz4/
++ *
++ *  Changed for kernel use by:
++ *  Chanho Min <chanho.min@lge.com>
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/lz4.h>
++#include <asm/unaligned.h>
++#include "lz4defs.h"
++
++struct lz4hc_data {
++	const u8 *base;
++	HTYPE hashtable[HASHTABLESIZE];
++	u16 chaintable[MAXD];
++	const u8 *nexttoupdate;
++} __attribute__((__packed__));
++
++static inline int lz4hc_init(struct lz4hc_data *hc4, const u8 *base)
++{
++	memset((void *)hc4->hashtable, 0, sizeof(hc4->hashtable));
++	memset(hc4->chaintable, 0xFF, sizeof(hc4->chaintable));
++
++#if LZ4_ARCH64
++	hc4->nexttoupdate = base + 1;
++#else
++	hc4->nexttoupdate = base;
++#endif
++	hc4->base = base;
++	return 1;
++}
++
++/* Update chains up to ip (excluded) */
++static inline void lz4hc_insert(struct lz4hc_data *hc4, const u8 *ip)
++{
++	u16 *chaintable = hc4->chaintable;
++	HTYPE *hashtable  = hc4->hashtable;
++#if LZ4_ARCH64
++	const BYTE * const base = hc4->base;
++#else
++	const int base = 0;
++#endif
++
++	while (hc4->nexttoupdate < ip) {
++		const u8 *p = hc4->nexttoupdate;
++		size_t delta = p - (hashtable[HASH_VALUE(p)] + base);
++		if (delta > MAX_DISTANCE)
++			delta = MAX_DISTANCE;
++		chaintable[(size_t)(p) & MAXD_MASK] = (u16)delta;
++		hashtable[HASH_VALUE(p)] = (p) - base;
++		hc4->nexttoupdate++;
++	}
++}
++
++static inline size_t lz4hc_commonlength(const u8 *p1, const u8 *p2,
++		const u8 *const matchlimit)
++{
++	const u8 *p1t = p1;
++
++	while (p1t < matchlimit - (STEPSIZE - 1)) {
++#if LZ4_ARCH64
++		u64 diff = A64(p2) ^ A64(p1t);
++#else
++		u32 diff = A32(p2) ^ A32(p1t);
++#endif
++		if (!diff) {
++			p1t += STEPSIZE;
++			p2 += STEPSIZE;
++			continue;
++		}
++		p1t += LZ4_NBCOMMONBYTES(diff);
++		return p1t - p1;
++	}
++#if LZ4_ARCH64
++	if ((p1t < (matchlimit-3)) && (A32(p2) == A32(p1t))) {
++		p1t += 4;
++		p2 += 4;
++	}
++#endif
++
++	if ((p1t < (matchlimit - 1)) && (A16(p2) == A16(p1t))) {
++		p1t += 2;
++		p2 += 2;
++	}
++	if ((p1t < matchlimit) && (*p2 == *p1t))
++		p1t++;
++	return p1t - p1;
++}
++
++static inline int lz4hc_insertandfindbestmatch(struct lz4hc_data *hc4,
++		const u8 *ip, const u8 *const matchlimit, const u8 **matchpos)
++{
++	u16 *const chaintable = hc4->chaintable;
++	HTYPE *const hashtable = hc4->hashtable;
++	const u8 *ref;
++#if LZ4_ARCH64
++	const BYTE * const base = hc4->base;
++#else
++	const int base = 0;
++#endif
++	int nbattempts = MAX_NB_ATTEMPTS;
++	size_t repl = 0, ml = 0;
++	u16 delta;
++
++	/* HC4 match finder */
++	lz4hc_insert(hc4, ip);
++	ref = hashtable[HASH_VALUE(ip)] + base;
++
++	/* potential repetition */
++	if (ref >= ip-4) {
++		/* confirmed */
++		if (A32(ref) == A32(ip)) {
++			delta = (u16)(ip-ref);
++			repl = ml  = lz4hc_commonlength(ip + MINMATCH,
++					ref + MINMATCH, matchlimit) + MINMATCH;
++			*matchpos = ref;
++		}
++		ref -= (size_t)chaintable[(size_t)(ref) & MAXD_MASK];
++	}
++
++	while ((ref >= ip - MAX_DISTANCE) && nbattempts) {
++		nbattempts--;
++		if (*(ref + ml) == *(ip + ml)) {
++			if (A32(ref) == A32(ip)) {
++				size_t mlt =
++					lz4hc_commonlength(ip + MINMATCH,
++					ref + MINMATCH, matchlimit) + MINMATCH;
++				if (mlt > ml) {
++					ml = mlt;
++					*matchpos = ref;
++				}
++			}
++		}
++		ref -= (size_t)chaintable[(size_t)(ref) & MAXD_MASK];
++	}
++
++	/* Complete table */
++	if (repl) {
++		const BYTE *ptr = ip;
++		const BYTE *end;
++		end = ip + repl - (MINMATCH-1);
++		/* Pre-Load */
++		while (ptr < end - delta) {
++			chaintable[(size_t)(ptr) & MAXD_MASK] = delta;
++			ptr++;
++		}
++		do {
++			chaintable[(size_t)(ptr) & MAXD_MASK] = delta;
++			/* Head of chain */
++			hashtable[HASH_VALUE(ptr)] = (ptr) - base;
++			ptr++;
++		} while (ptr < end);
++		hc4->nexttoupdate = end;
++	}
++
++	return (int)ml;
++}
++
++static inline int lz4hc_insertandgetwidermatch(struct lz4hc_data *hc4,
++	const u8 *ip, const u8 *startlimit, const u8 *matchlimit, int longest,
++	const u8 **matchpos, const u8 **startpos)
++{
++	u16 *const chaintable = hc4->chaintable;
++	HTYPE *const hashtable = hc4->hashtable;
++#if LZ4_ARCH64
++	const BYTE * const base = hc4->base;
++#else
++	const int base = 0;
++#endif
++	const u8 *ref;
++	int nbattempts = MAX_NB_ATTEMPTS;
++	int delta = (int)(ip - startlimit);
++
++	/* First Match */
++	lz4hc_insert(hc4, ip);
++	ref = hashtable[HASH_VALUE(ip)] + base;
++
++	while ((ref >= ip - MAX_DISTANCE) && (ref >= hc4->base)
++		&& (nbattempts)) {
++		nbattempts--;
++		if (*(startlimit + longest) == *(ref - delta + longest)) {
++			if (A32(ref) == A32(ip)) {
++				const u8 *reft = ref + MINMATCH;
++				const u8 *ipt = ip + MINMATCH;
++				const u8 *startt = ip;
++
++				while (ipt < matchlimit-(STEPSIZE - 1)) {
++					#if LZ4_ARCH64
++					u64 diff = A64(reft) ^ A64(ipt);
++					#else
++					u32 diff = A32(reft) ^ A32(ipt);
++					#endif
++
++					if (!diff) {
++						ipt += STEPSIZE;
++						reft += STEPSIZE;
++						continue;
++					}
++					ipt += LZ4_NBCOMMONBYTES(diff);
++					goto _endcount;
++				}
++				#if LZ4_ARCH64
++				if ((ipt < (matchlimit - 3))
++					&& (A32(reft) == A32(ipt))) {
++					ipt += 4;
++					reft += 4;
++				}
++				ipt += 2;
++				#endif
++				if ((ipt < (matchlimit - 1))
++					&& (A16(reft) == A16(ipt))) {
++					reft += 2;
++				}
++				if ((ipt < matchlimit) && (*reft == *ipt))
++					ipt++;
++_endcount:
++				reft = ref;
++
++				while ((startt > startlimit)
++					&& (reft > hc4->base)
++					&& (startt[-1] == reft[-1])) {
++					startt--;
++					reft--;
++				}
++
++				if ((ipt - startt) > longest) {
++					longest = (int)(ipt - startt);
++					*matchpos = reft;
++					*startpos = startt;
++				}
++			}
++		}
++		ref -= (size_t)chaintable[(size_t)(ref) & MAXD_MASK];
++	}
++	return longest;
++}
++
++static inline int lz4_encodesequence(const u8 **ip, u8 **op, const u8 **anchor,
++		int ml, const u8 *ref)
++{
++	int length, len;
++	u8 *token;
++
++	/* Encode Literal length */
++	length = (int)(*ip - *anchor);
++	token = (*op)++;
++	if (length >= (int)RUN_MASK) {
++		*token = (RUN_MASK << ML_BITS);
++		len = length - RUN_MASK;
++		for (; len > 254 ; len -= 255)
++			*(*op)++ = 255;
++		*(*op)++ = (u8)len;
++	} else
++		*token = (length << ML_BITS);
++
++	/* Copy Literals */
++	LZ4_BLINDCOPY(*anchor, *op, length);
++
++	/* Encode Offset */
++	LZ4_WRITE_LITTLEENDIAN_16(*op, (u16)(*ip - ref));
++
++	/* Encode MatchLength */
++	len = (int)(ml - MINMATCH);
++	if (len >= (int)ML_MASK) {
++		*token += ML_MASK;
++		len -= ML_MASK;
++		for (; len > 509 ; len -= 510) {
++			*(*op)++ = 255;
++			*(*op)++ = 255;
++		}
++		if (len > 254) {
++			len -= 255;
++			*(*op)++ = 255;
++		}
++		*(*op)++ = (u8)len;
++	} else
++		*token += len;
++
++	/* Prepare next loop */
++	*ip += ml;
++	*anchor = *ip;
++
++	return 0;
++}
++
++static int lz4_compresshcctx(struct lz4hc_data *ctx,
++		const char *source,
++		char *dest,
++		int isize)
++{
++	const u8 *ip = (const u8 *)source;
++	const u8 *anchor = ip;
++	const u8 *const iend = ip + isize;
++	const u8 *const mflimit = iend - MFLIMIT;
++	const u8 *const matchlimit = (iend - LASTLITERALS);
++
++	u8 *op = (u8 *)dest;
++
++	int ml, ml2, ml3, ml0;
++	const u8 *ref = NULL;
++	const u8 *start2 = NULL;
++	const u8 *ref2 = NULL;
++	const u8 *start3 = NULL;
++	const u8 *ref3 = NULL;
++	const u8 *start0;
++	const u8 *ref0;
++	int lastrun;
++
++	ip++;
++
++	/* Main Loop */
++	while (ip < mflimit) {
++		ml = lz4hc_insertandfindbestmatch(ctx, ip, matchlimit, (&ref));
++		if (!ml) {
++			ip++;
++			continue;
++		}
++
++		/* saved, in case we would skip too much */
++		start0 = ip;
++		ref0 = ref;
++		ml0 = ml;
++_search2:
++		if (ip+ml < mflimit)
++			ml2 = lz4hc_insertandgetwidermatch(ctx, ip + ml - 2,
++				ip + 1, matchlimit, ml, &ref2, &start2);
++		else
++			ml2 = ml;
++		/* No better match */
++		if (ml2 == ml) {
++			lz4_encodesequence(&ip, &op, &anchor, ml, ref);
++			continue;
++		}
++
++		if (start0 < ip) {
++			/* empirical */
++			if (start2 < ip + ml0) {
++				ip = start0;
++				ref = ref0;
++				ml = ml0;
++			}
++		}
++		/*
++		 * Here, start0==ip
++		 * First Match too small : removed
++		 */
++		if ((start2 - ip) < 3) {
++			ml = ml2;
++			ip = start2;
++			ref = ref2;
++			goto _search2;
++		}
++
++_search3:
++		/*
++		 * Currently we have :
++		 * ml2 > ml1, and
++		 * ip1+3 <= ip2 (usually < ip1+ml1)
++		 */
++		if ((start2 - ip) < OPTIMAL_ML) {
++			int correction;
++			int new_ml = ml;
++			if (new_ml > OPTIMAL_ML)
++				new_ml = OPTIMAL_ML;
++			if (ip + new_ml > start2 + ml2 - MINMATCH)
++				new_ml = (int)(start2 - ip) + ml2 - MINMATCH;
++			correction = new_ml - (int)(start2 - ip);
++			if (correction > 0) {
++				start2 += correction;
++				ref2 += correction;
++				ml2 -= correction;
++			}
++		}
++		/*
++		 * Now, we have start2 = ip+new_ml,
++		 * with new_ml=min(ml, OPTIMAL_ML=18)
++		 */
++		if (start2 + ml2 < mflimit)
++			ml3 = lz4hc_insertandgetwidermatch(ctx,
++				start2 + ml2 - 3, start2, matchlimit,
++				ml2, &ref3, &start3);
++		else
++			ml3 = ml2;
++
++		/* No better match : 2 sequences to encode */
++		if (ml3 == ml2) {
++			/* ip & ref are known; Now for ml */
++			if (start2 < ip+ml)
++				ml = (int)(start2 - ip);
++
++			/* Now, encode 2 sequences */
++			lz4_encodesequence(&ip, &op, &anchor, ml, ref);
++			ip = start2;
++			lz4_encodesequence(&ip, &op, &anchor, ml2, ref2);
++			continue;
++		}
++
++		/* Not enough space for match 2 : remove it */
++		if (start3 < ip + ml + 3) {
++			/*
++			 * can write Seq1 immediately ==> Seq2 is removed,
++			 * so Seq3 becomes Seq1
++			 */
++			if (start3 >= (ip + ml)) {
++				if (start2 < ip + ml) {
++					int correction =
++						(int)(ip + ml - start2);
++					start2 += correction;
++					ref2 += correction;
++					ml2 -= correction;
++					if (ml2 < MINMATCH) {
++						start2 = start3;
++						ref2 = ref3;
++						ml2 = ml3;
++					}
++				}
++
++				lz4_encodesequence(&ip, &op, &anchor, ml, ref);
++				ip  = start3;
++				ref = ref3;
++				ml  = ml3;
++
++				start0 = start2;
++				ref0 = ref2;
++				ml0 = ml2;
++				goto _search2;
++			}
++
++			start2 = start3;
++			ref2 = ref3;
++			ml2 = ml3;
++			goto _search3;
++		}
++
++		/*
++		 * OK, now we have 3 ascending matches; let's write at least
++		 * the first one ip & ref are known; Now for ml
++		 */
++		if (start2 < ip + ml) {
++			if ((start2 - ip) < (int)ML_MASK) {
++				int correction;
++				if (ml > OPTIMAL_ML)
++					ml = OPTIMAL_ML;
++				if (ip + ml > start2 + ml2 - MINMATCH)
++					ml = (int)(start2 - ip) + ml2
++						- MINMATCH;
++				correction = ml - (int)(start2 - ip);
++				if (correction > 0) {
++					start2 += correction;
++					ref2 += correction;
++					ml2 -= correction;
++				}
++			} else
++				ml = (int)(start2 - ip);
++		}
++		lz4_encodesequence(&ip, &op, &anchor, ml, ref);
++
++		ip = start2;
++		ref = ref2;
++		ml = ml2;
++
++		start2 = start3;
++		ref2 = ref3;
++		ml2 = ml3;
++
++		goto _search3;
++	}
++
++	/* Encode Last Literals */
++	lastrun = (int)(iend - anchor);
++	if (lastrun >= (int)RUN_MASK) {
++		*op++ = (RUN_MASK << ML_BITS);
++		lastrun -= RUN_MASK;
++		for (; lastrun > 254 ; lastrun -= 255)
++			*op++ = 255;
++		*op++ = (u8) lastrun;
++	} else
++		*op++ = (lastrun << ML_BITS);
++	memcpy(op, anchor, iend - anchor);
++	op += iend - anchor;
++	/* End */
++	return (int) (((char *)op) - dest);
++}
++
++int lz4hc_compress(const unsigned char *src, size_t src_len,
++			unsigned char *dst, size_t *dst_len, void *wrkmem)
++{
++	int ret = -1;
++	int out_len = 0;
++
++	struct lz4hc_data *hc4 = (struct lz4hc_data *)wrkmem;
++	lz4hc_init(hc4, (const u8 *)src);
++	out_len = lz4_compresshcctx((struct lz4hc_data *)hc4, (const u8 *)src,
++		(char *)dst, (int)src_len);
++
++	if (out_len < 0)
++		goto exit;
++
++	*dst_len = out_len;
++	return 0;
++
++exit:
++	return ret;
++}
++EXPORT_SYMBOL_GPL(lz4hc_compress);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("LZ4HC compressor");
+-- 
+1.8.4.2
+

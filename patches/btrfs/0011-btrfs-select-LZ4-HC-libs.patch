@@ -1,0 +1,28 @@
+From a533432af163a1aa3d01404b9e875456415e7154 Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@dominion.thruhere.net>
+Date: Tue, 24 Dec 2013 21:34:19 +0100
+Subject: [PATCH 11/11] btrfs: select LZ4(HC) libs
+
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ fs/btrfs/Kconfig | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/fs/btrfs/Kconfig b/fs/btrfs/Kconfig
+index d33f01c..2ca44d9 100644
+--- a/fs/btrfs/Kconfig
++++ b/fs/btrfs/Kconfig
+@@ -6,6 +6,10 @@ config BTRFS_FS
+ 	select ZLIB_DEFLATE
+ 	select LZO_COMPRESS
+ 	select LZO_DECOMPRESS
++	select LZ4_COMPRESS
++	select LZ4_DECOMPRESS
++	select LZ4HC_COMPRESS
++	select LZ4HC_DECOMPRESS
+ 	help
+ 	  Btrfs is a new filesystem with extents, writable snapshotting,
+ 	  support for multiple devices and many more features.
+-- 
+1.8.4.2
+
