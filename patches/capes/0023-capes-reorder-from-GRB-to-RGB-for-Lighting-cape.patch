@@ -1,7 +1,7 @@
-From b3644d057fd53e7142034b874ba68c087d3dcc28 Mon Sep 17 00:00:00 2001
+From 85b7e0efd8c101823daff31c5f01da880de1ac11 Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
 Date: Sat, 21 Dec 2013 22:27:48 -0800
-Subject: [PATCH] capes: reorder from GRB to RGB for Lighting cape
+Subject: [PATCH 1/2] capes: reorder from GRB to RGB for Lighting cape
 
 Signed-off-by: Matt Ranostay <mranostay@gmail.com>
 ---
@@ -9,7 +9,7 @@ Signed-off-by: Matt Ranostay <mranostay@gmail.com>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
-index 36d2ad5..0f58370 100644
+index 36d2ad5..bc3900f 100644
 --- a/drivers/remoteproc/pru_rproc.c
 +++ b/drivers/remoteproc/pru_rproc.c
 @@ -2444,9 +2444,9 @@ static long ioctl_spiwrite_burst(struct pruproc *pp, struct spi_ioc_transfer *sp
@@ -20,8 +20,8 @@ index 36d2ad5..0f58370 100644
 -		val |= *(d++) << 8;
 -		val |= *(d++) << 16;
 +		u32 val = *(d++) << 8; /* Red */
-+		val |= *(d++) << 0;    /* Green */
-+		val |= *(d++) << 16;   /* Blue */
++		val |= *(d++) << 16;    /* Green */
++		val |= *(d++) << 0;   /* Blue */
  
  		array->data[slot] = val;
  		if (++slot > max_slots) {
