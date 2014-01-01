@@ -1,0 +1,377 @@
+From 0e14d0ce0cec3b6b317d4fe9044a72084bde016b Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Wed, 18 Dec 2013 14:26:44 -0600
+Subject: [PATCH 6/7] Revert "drm: remove procfs code, take 2"
+
+This reverts commit cb6458f97b53d7f73043206c18014b3ca63ac345.
+---
+ drivers/gpu/drm/Makefile   |   2 +-
+ drivers/gpu/drm/drm_drv.c  |   8 ++
+ drivers/gpu/drm/drm_proc.c | 208 +++++++++++++++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/drm_stub.c |  23 +++--
+ include/drm/drmP.h         |   8 ++
+ 5 files changed, 242 insertions(+), 7 deletions(-)
+ create mode 100644 drivers/gpu/drm/drm_proc.c
+
+diff --git a/drivers/gpu/drm/Makefile b/drivers/gpu/drm/Makefile
+index cc08b84..b13710b 100644
+--- a/drivers/gpu/drm/Makefile
++++ b/drivers/gpu/drm/Makefile
+@@ -7,7 +7,7 @@ ccflags-y := -Iinclude/drm
+ drm-y       :=	drm_auth.o drm_buffer.o drm_bufs.o drm_cache.o \
+ 		drm_context.o drm_dma.o \
+ 		drm_drv.o drm_fops.o drm_gem.o drm_ioctl.o drm_irq.o \
+-		drm_lock.o drm_memory.o drm_stub.o drm_vm.o \
++		drm_lock.o drm_memory.o drm_proc.o drm_stub.o drm_vm.o \
+ 		drm_agpsupport.o drm_scatter.o drm_pci.o \
+ 		drm_platform.o drm_sysfs.o drm_hashtab.o drm_mm.o \
+ 		drm_crtc.o drm_modes.o drm_edid.o \
+diff --git a/drivers/gpu/drm/drm_drv.c b/drivers/gpu/drm/drm_drv.c
+index d9137e4..91de79d 100644
+--- a/drivers/gpu/drm/drm_drv.c
++++ b/drivers/gpu/drm/drm_drv.c
+@@ -196,6 +196,13 @@ static int __init drm_core_init(void)
+ 		goto err_p2;
+ 	}
+ 
++	drm_proc_root = proc_mkdir("dri", NULL);
++	if (!drm_proc_root) {
++		DRM_ERROR("Cannot create /proc/dri\n");
++		ret = -1;
++		goto err_p3;
++	}
++
+ 	drm_debugfs_root = debugfs_create_dir("dri", NULL);
+ 	if (!drm_debugfs_root) {
+ 		DRM_ERROR("Cannot create /sys/kernel/debug/dri\n");
+@@ -218,6 +225,7 @@ err_p1:
+ 
+ static void __exit drm_core_exit(void)
+ {
++	remove_proc_entry("dri", NULL);
+ 	debugfs_remove(drm_debugfs_root);
+ 	drm_sysfs_destroy();
+ 
+diff --git a/drivers/gpu/drm/drm_proc.c b/drivers/gpu/drm/drm_proc.c
+new file mode 100644
+index 0000000..12afa8e
+--- /dev/null
++++ b/drivers/gpu/drm/drm_proc.c
+@@ -0,0 +1,208 @@
++/**
++ * \file drm_proc.c
++ * /proc support for DRM
++ *
++ * \author Rickard E. (Rik) Faith <faith@valinux.com>
++ * \author Gareth Hughes <gareth@valinux.com>
++ *
++ * \par Acknowledgements:
++ *    Matthew J Sottek <matthew.j.sottek@intel.com> sent in a patch to fix
++ *    the problem with the proc files not outputting all their information.
++ */
++
++/*
++ * Created: Mon Jan 11 09:48:47 1999 by faith@valinux.com
++ *
++ * Copyright 1999 Precision Insight, Inc., Cedar Park, Texas.
++ * Copyright 2000 VA Linux Systems, Inc., Sunnyvale, California.
++ * All Rights Reserved.
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a
++ * copy of this software and associated documentation files (the "Software"),
++ * to deal in the Software without restriction, including without limitation
++ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
++ * and/or sell copies of the Software, and to permit persons to whom the
++ * Software is furnished to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice (including the next
++ * paragraph) shall be included in all copies or substantial portions of the
++ * Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
++ * VA LINUX SYSTEMS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
++ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
++ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
++ * OTHER DEALINGS IN THE SOFTWARE.
++ */
++
++#include <linux/seq_file.h>
++#include <linux/slab.h>
++#include <linux/export.h>
++#include <drm/drmP.h>
++
++/***************************************************
++ * Initialization, etc.
++ **************************************************/
++
++/**
++ * Proc file list.
++ */
++static const struct drm_info_list drm_proc_list[] = {
++	{"name", drm_name_info, 0},
++	{"vm", drm_vm_info, 0},
++	{"clients", drm_clients_info, 0},
++	{"bufs", drm_bufs_info, 0},
++	{"gem_names", drm_gem_name_info, DRIVER_GEM},
++#if DRM_DEBUG_CODE
++	{"vma", drm_vma_info, 0},
++#endif
++};
++#define DRM_PROC_ENTRIES ARRAY_SIZE(drm_proc_list)
++
++static int drm_proc_open(struct inode *inode, struct file *file)
++{
++	struct drm_info_node* node = PDE_DATA(inode);
++
++	return single_open(file, node->info_ent->show, node);
++}
++
++static const struct file_operations drm_proc_fops = {
++	.owner = THIS_MODULE,
++	.open = drm_proc_open,
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.release = single_release,
++};
++
++
++/**
++ * Initialize a given set of proc files for a device
++ *
++ * \param files The array of files to create
++ * \param count The number of files given
++ * \param root DRI proc dir entry.
++ * \param minor device minor number
++ * \return Zero on success, non-zero on failure
++ *
++ * Create a given set of proc files represented by an array of
++ * gdm_proc_lists in the given root directory.
++ */
++static int drm_proc_create_files(const struct drm_info_list *files, int count,
++			  struct proc_dir_entry *root, struct drm_minor *minor)
++{
++	struct drm_device *dev = minor->dev;
++	struct proc_dir_entry *ent;
++	struct drm_info_node *tmp;
++	int i;
++
++	for (i = 0; i < count; i++) {
++		u32 features = files[i].driver_features;
++
++		if (features != 0 &&
++		    (dev->driver->driver_features & features) != features)
++			continue;
++
++		tmp = kmalloc(sizeof(struct drm_info_node), GFP_KERNEL);
++		if (!tmp)
++			return -1;
++
++		tmp->minor = minor;
++		tmp->info_ent = &files[i];
++		list_add(&tmp->list, &minor->proc_nodes.list);
++
++		ent = proc_create_data(files[i].name, S_IRUGO, root,
++				       &drm_proc_fops, tmp);
++		if (!ent) {
++			DRM_ERROR("Cannot create /proc/dri/%u/%s\n",
++				  minor->index, files[i].name);
++			list_del(&tmp->list);
++			kfree(tmp);
++			return -1;
++		}
++	}
++	return 0;
++}
++
++/**
++ * Initialize the DRI proc filesystem for a device
++ *
++ * \param dev DRM device
++ * \param root DRI proc dir entry.
++ * \param dev_root resulting DRI device proc dir entry.
++ * \return root entry pointer on success, or NULL on failure.
++ *
++ * Create the DRI proc root entry "/proc/dri", the device proc root entry
++ * "/proc/dri/%minor%/", and each entry in proc_list as
++ * "/proc/dri/%minor%/%name%".
++ */
++int drm_proc_init(struct drm_minor *minor, struct proc_dir_entry *root)
++{
++	char name[12];
++	int ret;
++
++	INIT_LIST_HEAD(&minor->proc_nodes.list);
++	sprintf(name, "%u", minor->index);
++	minor->proc_root = proc_mkdir(name, root);
++	if (!minor->proc_root) {
++		DRM_ERROR("Cannot create /proc/dri/%s\n", name);
++		return -1;
++	}
++
++	ret = drm_proc_create_files(drm_proc_list, DRM_PROC_ENTRIES,
++				    minor->proc_root, minor);
++	if (ret) {
++		remove_proc_subtree(name, root);
++		minor->proc_root = NULL;
++		DRM_ERROR("Failed to create core drm proc files\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static int drm_proc_remove_files(const struct drm_info_list *files, int count,
++			  struct drm_minor *minor)
++{
++	struct list_head *pos, *q;
++	struct drm_info_node *tmp;
++	int i;
++
++	for (i = 0; i < count; i++) {
++		list_for_each_safe(pos, q, &minor->proc_nodes.list) {
++			tmp = list_entry(pos, struct drm_info_node, list);
++			if (tmp->info_ent == &files[i]) {
++				remove_proc_entry(files[i].name,
++						  minor->proc_root);
++				list_del(pos);
++				kfree(tmp);
++			}
++		}
++	}
++	return 0;
++}
++
++/**
++ * Cleanup the proc filesystem resources.
++ *
++ * \param minor device minor number.
++ * \param root DRI proc dir entry.
++ * \param dev_root DRI device proc dir entry.
++ * \return always zero.
++ *
++ * Remove all proc entries created by proc_init().
++ */
++int drm_proc_cleanup(struct drm_minor *minor, struct proc_dir_entry *root)
++{
++	char name[64];
++
++	if (!root || !minor->proc_root)
++		return 0;
++
++	drm_proc_remove_files(drm_proc_list, DRM_PROC_ENTRIES, minor);
++
++	sprintf(name, "%d", minor->index);
++	remove_proc_subtree(name, root);
++	return 0;
++}
+diff --git a/drivers/gpu/drm/drm_stub.c b/drivers/gpu/drm/drm_stub.c
+index 66dd3a0..071acaf 100644
+--- a/drivers/gpu/drm/drm_stub.c
++++ b/drivers/gpu/drm/drm_stub.c
+@@ -73,6 +73,7 @@ module_param_named(timestamp_monotonic, drm_timestamp_monotonic, int, 0600);
+ struct idr drm_minors_idr;
+ 
+ struct class *drm_class;
++struct proc_dir_entry *drm_proc_root;
+ struct dentry *drm_debugfs_root;
+ 
+ int drm_err(const char *func, const char *format, ...)
+@@ -294,11 +295,20 @@ static int drm_get_minor(struct drm_device *dev, struct drm_minor **minor,
+ 
+ 	idr_replace(&drm_minors_idr, new_minor, minor_id);
+ 
++	if (type == DRM_MINOR_LEGACY) {
++		ret = drm_proc_init(new_minor, drm_proc_root);
++		if (ret) {
++			DRM_ERROR("DRM: Failed to initialize /proc/dri.\n");
++			goto err_mem;
++		}
++	} else
++		new_minor->proc_root = NULL;
++
+ #if defined(CONFIG_DEBUG_FS)
+ 	ret = drm_debugfs_init(new_minor, minor_id, drm_debugfs_root);
+ 	if (ret) {
+ 		DRM_ERROR("DRM: Failed to initialize /sys/kernel/debug/dri.\n");
+-		goto err_mem;
++		goto err_g2;
+ 	}
+ #endif
+ 
+@@ -306,7 +316,7 @@ static int drm_get_minor(struct drm_device *dev, struct drm_minor **minor,
+ 	if (ret) {
+ 		printk(KERN_ERR
+ 		       "DRM: Error sysfs_device_add.\n");
+-		goto err_debugfs;
++		goto err_g2;
+ 	}
+ 	*minor = new_minor;
+ 
+@@ -314,11 +324,10 @@ static int drm_get_minor(struct drm_device *dev, struct drm_minor **minor,
+ 	return 0;
+ 
+ 
+-err_debugfs:
+-#if defined(CONFIG_DEBUG_FS)
+-	drm_debugfs_cleanup(new_minor);
++err_g2:
++	if (new_minor->type == DRM_MINOR_LEGACY)
++		drm_proc_cleanup(new_minor, drm_proc_root);
+ err_mem:
+-#endif
+ 	kfree(new_minor);
+ err_idr:
+ 	idr_remove(&drm_minors_idr, minor_id);
+@@ -341,6 +350,8 @@ static void drm_unplug_minor(struct drm_minor *minor)
+ 	if (!minor || !minor->kdev)
+ 		return;
+ 
++	if (minor->type == DRM_MINOR_LEGACY)
++		drm_proc_cleanup(minor, drm_proc_root);
+ #if defined(CONFIG_DEBUG_FS)
+ 	drm_debugfs_cleanup(minor);
+ #endif
+diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+index 1d4a920..80cd08f 100644
+--- a/include/drm/drmP.h
++++ b/include/drm/drmP.h
+@@ -45,6 +45,7 @@
+ #include <linux/kernel.h>
+ #include <linux/miscdevice.h>
+ #include <linux/fs.h>
++#include <linux/proc_fs.h>
+ #include <linux/init.h>
+ #include <linux/file.h>
+ #include <linux/platform_device.h>
+@@ -1035,6 +1036,8 @@ struct drm_minor {
+ 	struct device *kdev;		/**< Linux device */
+ 	struct drm_device *dev;
+ 
++	struct proc_dir_entry *proc_root;  /**< proc directory entry */
++	struct drm_info_node proc_nodes;
+ 	struct dentry *debugfs_root;
+ 
+ 	struct list_head debugfs_list;
+@@ -1445,12 +1448,17 @@ extern unsigned int drm_timestamp_precision;
+ extern unsigned int drm_timestamp_monotonic;
+ 
+ extern struct class *drm_class;
++extern struct proc_dir_entry *drm_proc_root;
+ extern struct dentry *drm_debugfs_root;
+ 
+ extern struct idr drm_minors_idr;
+ 
+ extern struct drm_local_map *drm_getsarea(struct drm_device *dev);
+ 
++				/* Proc support (drm_proc.h) */
++extern int drm_proc_init(struct drm_minor *minor, struct proc_dir_entry *root);
++extern int drm_proc_cleanup(struct drm_minor *minor, struct proc_dir_entry *root);
++
+ 				/* Debugfs support */
+ #if defined(CONFIG_DEBUG_FS)
+ extern int drm_debugfs_init(struct drm_minor *minor, int minor_id,
+-- 
+1.8.5.1
+

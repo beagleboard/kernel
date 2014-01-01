@@ -1,0 +1,117 @@
+From 166f002d6222d901fae6da339fdd4aa81813e519 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Alexander=20R=C3=B6ssler?= <mail.aroessler@gmail.com>
+Date: Fri, 1 Nov 2013 15:35:26 +0100
+Subject: [PATCH 7/7] Changes according to TI for SGX support
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/mach-omap2/Makefile        |  2 +-
+ arch/arm/mach-omap2/board-generic.c |  4 ++++
+ arch/arm/mach-omap2/common.h        |  1 +
+ arch/arm/mach-omap2/gpu.c           | 47 +++++++++++++++++++++++++++++++++++++
+ 4 files changed, 53 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/mach-omap2/gpu.c
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index adcef40..ac1631c 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -8,7 +8,7 @@ ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
+ # Common support
+ obj-y := id.o io.o control.o mux.o devices.o fb.o serial.o gpmc.o timer.o pm.o \
+ 	 common.o gpio.o dma.o wd_timer.o display.o i2c.o hdq1w.o omap_hwmod.o \
+-	 omap_device.o sram.o drm.o
++	 omap_device.o sram.o drm.o gpu.o
+ 
+ omap-2-3-common				= irq.o
+ hwmod-common				= omap_hwmod.o omap_hwmod_reset.o \
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 8d972ff1..d17fece 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -19,6 +19,7 @@
+ #include <asm/mach/arch.h>
+ 
+ #include "common.h"
++#include "soc.h"
+ 
+ #if !(defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3))
+ #define intc_of_init	NULL
+@@ -36,6 +37,9 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
+ static void __init omap_generic_init(void)
+ {
+ 	pdata_quirks_init(omap_dt_match_table);
++
++	if (omap3_has_sgx())
++		omap_sgx_init_of();
+ }
+ 
+ #ifdef CONFIG_SOC_OMAP2420
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index e30ef67..672edc7 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -303,6 +303,7 @@ extern void omap_reserve(void);
+ 
+ struct omap_hwmod;
+ extern int omap_dss_reset(struct omap_hwmod *);
++void __init omap_sgx_init_of(void);
+ 
+ /* SoC specific clock initializer */
+ extern int (*omap_clk_init)(void);
+diff --git a/arch/arm/mach-omap2/gpu.c b/arch/arm/mach-omap2/gpu.c
+new file mode 100644
+index 0000000..eebb1bd
+--- /dev/null
++++ b/arch/arm/mach-omap2/gpu.c
+@@ -0,0 +1,47 @@
++/*
++ * Deassert reset for AM33xx graphics device(SGX) hwmod
++ *
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
++ * Prathap MS <msprathap@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#include <linux/of_platform.h>
++#include "omap_device.h"
++
++void __init omap_sgx_init_of(void)
++{
++       struct device_node *node;
++       struct platform_device *pdev;
++       int ret = 0;
++       node = of_find_compatible_node(NULL, NULL, "ti,sgx");
++       if (!node)
++               return;
++       pdev = of_find_device_by_node(node);
++       if (!pdev) {
++               pr_warn("of_find_device_by_node() failed for sgx\n");
++               return;
++       }
++       ret = omap_device_deassert_hardreset(pdev, "gfx");
++       if (ret != 0)
++               pr_warn("omap_device_deassert_hardreset() failed for sgx(gfx hwmod)\n");
++
++       node = of_find_compatible_node(NULL, NULL, "ti,am335x-timer");
++       if (!node)
++               return;
++       pdev = of_find_device_by_node(node);
++       if (!pdev) {
++               pr_warn("of_find_device_by_node() failed for sgx\n");
++               return;
++       }
++       ret = omap_device_deassert_hardreset(pdev, "timer7");
++       if (ret != 0)
++               pr_warn("omap_device_deassert_hardreset() failed for sgx(gfx hwmod)\n");
++}
+-- 
+1.8.5.1
+

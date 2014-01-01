@@ -1,0 +1,36 @@
+From b5a2528c89fc8049b2a6a750634c14983e33d00f Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Fri, 27 Dec 2013 13:05:09 -0600
+Subject: [PATCH] arm: dts: am335x-boneblack: lcdc add panel-info
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/boot/dts/am335x-boneblack.dts | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 6b71ad9..09ffbd8 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -74,5 +74,18 @@
+ 		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
+ 		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
+ 		status = "okay";
++
++		panel-info {
++			bpp = <16>;
++			ac-bias = <255>;
++			ac-bias-intrpt = <0>;
++			dma-burst-sz = <16>;
++			fdd = <16>;
++			sync-edge = <1>;
++			sync-ctrl = <1>;
++			raster-order = <0>;
++			fifo-th = <0>;
++			invert-pxl-clk;
++		};
+ 	};
+ };
+-- 
+1.8.5.1
+

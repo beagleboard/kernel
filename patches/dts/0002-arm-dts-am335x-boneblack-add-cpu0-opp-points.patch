@@ -1,0 +1,42 @@
+From 1da083a002581520dd358b8b8e097078000d12b9 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Fri, 27 Dec 2013 13:14:19 -0600
+Subject: [PATCH 2/2] arm: dts: am335x-boneblack: add cpu0 opp points
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/boot/dts/am335x-boneblack.dts | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 09ffbd8..f213ccd 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -67,6 +67,24 @@
+ };
+ 
+ / {
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&dcdc2_reg>;
++			/*
++			 * To consider voltage drop between PMIC and SoC,
++			 * tolerance value is reduced to 2% from 4% and
++			 * voltage value is increased as a precaution.
++			 */
++			operating-points = <
++				/* kHz    uV */
++				1000000	1325000
++				800000	1300000
++				600000  1112000
++				300000   969000
++			>;
++		};
++	};
++
+ 	hdmi {
+ 		compatible = "ti,tilcdc,slave";
+ 		i2c = <&i2c0>;
+-- 
+1.8.5.1
+
