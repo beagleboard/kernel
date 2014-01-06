@@ -17,12 +17,12 @@ RECIPENAME="linux-mainline_3.13.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.13-rc6"
+TAG="v3.13-rc7"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git"
 EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="802eee95bde72fd0cd0f3a5b2098375a487d1eda"
+EXTERNAL_SHA="d6e0a2dd12f4067a5bcefb8bbd8ddbeff800afbc"
 
 PATCHSET="dts sgx"
 
