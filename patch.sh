@@ -17,12 +17,12 @@ RECIPENAME="linux-mainline_3.12.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.12.6"
+TAG="v3.12.7"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git"
 EXTERNAL_BRANCH="linux-3.12.y"
-EXTERNAL_SHA="d0266db287d492abe63e19859ad99dd232bc0e89"
+EXTERNAL_SHA="4301b7a8fe14a787fbf0bb9cad16b623f45956f6"
 
 PATCHSET="omap-next-dt dma-devel general-fixes dtc-fixes dtc-overlays of-fixes pdev-fixes mmc-fixes dts-fixes i2c-fixes pinctrl-fixes capemgr reset capes lcdc-fixes net deassert-hard-reset cape-import audio drm cpufreq pru"
 
