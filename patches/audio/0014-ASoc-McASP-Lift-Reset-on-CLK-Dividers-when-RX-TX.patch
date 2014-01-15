@@ -55,11 +55,11 @@ index 69e662e..efbdae7 100644
 +	*  the clock source for another device.
 +	*/
 +	if((pdir & ACLKR) && (rclk_reg & ACLKRE)) {
-+		mcasp_set_ctl_reg(dev->base + DAVINCI_MCASP_GBLCTLX_REG, RXCLKRST);
++		mcasp_set_ctl_reg(dev->base + DAVINCI_MCASP_GBLCTLR_REG, RXCLKRST);
 +	}
 +
 +	if((pdir & AHCLKR) && (rhclk_reg & AHCLKRE)) {
-+		mcasp_set_ctl_reg(dev->base + DAVINCI_MCASP_GBLCTLX_REG, RXHCLKRST);
++		mcasp_set_ctl_reg(dev->base + DAVINCI_MCASP_GBLCTLR_REG, RXHCLKRST);
 +	}
  
  	mcasp_set_ctl_reg(dev->base + DAVINCI_MCASP_GBLCTLX_REG, TXHCLKRST);
