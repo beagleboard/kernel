@@ -1,0 +1,278 @@
+From fd01a713e8ed3dd8253d37d4e0e34538700606d6 Mon Sep 17 00:00:00 2001
+From: Alexander Hiam <hiamalexander@gmail.com>
+Date: Thu, 30 Jan 2014 11:44:05 -0500
+Subject: [PATCH 22/22] beaglebone capes: Added overlays for CBB-Serial cape
+
+Added main overaly for CBB-Serial BeagleBone cape, as well as separate
+overlays to mux the AM335x UART2 and UART4 RTS and CTS pins to the 3.8
+branch.
+
+Signed-off-by: Alexander Hiam <hiamalexander@gmail.com>
+---
+ firmware/Makefile                       |   6 ++
+ firmware/capes/BB-UART2-RTSCTS-00A0.dts |  57 +++++++++++++++++
+ firmware/capes/BB-UART4-RTSCTS-00A0.dts |  57 +++++++++++++++++
+ firmware/capes/cape-CBB-Serial-r01.dts  | 106 ++++++++++++++++++++++++++++++++
+ 4 files changed, 226 insertions(+)
+ create mode 100644 firmware/capes/BB-UART2-RTSCTS-00A0.dts
+ create mode 100644 firmware/capes/BB-UART4-RTSCTS-00A0.dts
+ create mode 100644 firmware/capes/cape-CBB-Serial-r01.dts
+
+diff --git a/firmware/Makefile b/firmware/Makefile
+index ecc54d9..56b0b50 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -222,6 +222,12 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ # the Tester cape (tester-side)
+ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += cape-bone-tester-00A0.dtbo
+ 
++# the CBB-Serial cape (tester-side)
++fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
++	cape-CBB-Serial-r01.dtbo \
++	BB-UART2-RTSCTS-00A0.dtbo \
++	BB-UART4-RTSCTS-00A0.dtbo
++
+ # the virtual peripheral capes for the UARTs
+ # UART3 is not routed to the connectors, no cape for it
+ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+diff --git a/firmware/capes/BB-UART2-RTSCTS-00A0.dts b/firmware/capes/BB-UART2-RTSCTS-00A0.dts
+new file mode 100644
+index 0000000..bef5fff
+--- /dev/null
++++ b/firmware/capes/BB-UART2-RTSCTS-00A0.dts
+@@ -0,0 +1,57 @@
++/* BB-UART2-RTSCTS-00A0.dts
++ * Written by Alexander Hiam <hiamalexander@gmail.com>
++ * for Logic Supply - http://logicsupply.com
++ * Jan 28, 2014
++ *
++ * This overlay enables RTS/CTS flow control for UART2.
++ * HDMI must be disabled before enabling this overlay, see:
++ *  http://www.logicsupply.com/blog/2013/07/18/disabling-the-beaglebone-black-hdmi-cape/
++ *
++ * Copyright (c) 2014 - Logic Supply (http://logicsupply.com)
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/dts-v1/;
++/plugin/;
++
++/{
++  compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++  part-number = "BB-UART2-RTSCTS";
++  version = "00A0";
++
++  exclusive-use =
++  "P8.38", /* uart2 rts */
++  "P8.37"; /* uart2 cts */
++
++  fragment@0 {
++    /* Sets pinmux for flow control pins. */
++    target = <&am33xx_pinmux>;
++    __overlay__ {
++      u2_rtscts_pins: pinmux_u2_rtscts_pins {
++        pinctrl-single,pins = <
++          0x0c4 0x0e /* lcd_data9 - pullup | mode 6 (uart2_rtsn) */
++          0x0c0 0x36 /* lcd_data8 - rx enable | pullup | mode 6 (uart2_ctsn) */
++        >;
++      };
++    };
++  };
++
++  fragment@1 {
++    /* Enable pinmux-helper driver for setting mux configuration. */
++    target = <&ocp>; /* On-Chip Peripherals */
++    __overlay__ {
++      uart2-rtscts-pinmux {
++        compatible = "bone-pinmux-helper"; /* Use the pinmux helper */
++        status="okay";
++        /* Define custom names for indexes in pinctrl array: */
++        pinctrl-names = "default";
++        /* Set the elements of the pinctrl array to the pinmux overlays
++           defined above: */
++        pinctrl-0 = <&u2_rtscts_pins>;
++      };
++    };
++  };
++};
+diff --git a/firmware/capes/BB-UART4-RTSCTS-00A0.dts b/firmware/capes/BB-UART4-RTSCTS-00A0.dts
+new file mode 100644
+index 0000000..a8f8e98
+--- /dev/null
++++ b/firmware/capes/BB-UART4-RTSCTS-00A0.dts
+@@ -0,0 +1,57 @@
++/* BB-UART4-RTSCTS-00A0.dts
++ * Written by Alexander Hiam <hiamalexander@gmail.com>
++ * for Logic Supply - http://logicsupply.com
++ * Jan 28, 2014
++ *
++ * This overlay enables RTS/CTS flow control for UART4.
++ * HDMI must be disabled before enabling this overlay, see:
++ *  http://www.logicsupply.com/blog/2013/07/18/disabling-the-beaglebone-black-hdmi-cape/
++ *
++ * Copyright (c) 2014 - Logic Supply (http://logicsupply.com)
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/dts-v1/;
++/plugin/;
++
++/{
++  compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++  part-number = "BB-UART4-RTSCTS";
++  version = "00A0";
++
++  exclusive-use =
++  "P8.33", /* uart4 rts */
++  "P8.35"; /* uart4 cts */
++
++  fragment@0 {
++    /* Sets pinmux for flow control pins. */
++    target = <&am33xx_pinmux>;
++    __overlay__ {
++      u4_rtscts_pins: pinmux_u4_rtscts_pins {
++        pinctrl-single,pins = <
++          0x0d4 0x0e /* lcd_data13 - pullup | mode 6 (uart4_rtsn) */
++          0x0d0 0x36 /* lcd_data12 - rx enable | pullup | mode 6 (uart4_ctsn) */
++        >;
++      };
++    };
++  };
++
++  fragment@1 {
++    /* Enable pinmux-helper driver for setting mux configuration. */
++    target = <&ocp>; /* On-Chip Peripherals */
++    __overlay__ {
++      uart4-rtscts-pinmux {
++        compatible = "bone-pinmux-helper"; /* Use the pinmux helper */
++        status="okay";
++        /* Define custom names for indexes in pinctrl array: */
++        pinctrl-names = "default";
++        /* Set the elements of the pinctrl array to the pinmux overlays
++           defined above: */
++        pinctrl-0 = <&u4_rtscts_pins>;
++      };
++    };
++  };
++};
+diff --git a/firmware/capes/cape-CBB-Serial-r01.dts b/firmware/capes/cape-CBB-Serial-r01.dts
+new file mode 100644
+index 0000000..0309bd2
+--- /dev/null
++++ b/firmware/capes/cape-CBB-Serial-r01.dts
+@@ -0,0 +1,106 @@
++/* cape-CBB-Serial-r01.dts
++ * Written by Alexander Hiam <hiamalexander@gmail.com>
++ * for Logic Supply - http://logicsupply.com
++ * Jan 28, 2014
++ *
++ * This is the Device Tree overlay for the CBB-Serial BeagleBone and
++ * BeagleBone Black cape. It will enable the UART2, UART4 and DCAN1
++ * interfaces, as well as mux GPIO1_16 for userspace control for
++ * using software control of the RS485 receiver/driver enable.
++ *
++ * Note: the BeagleBone Black has GPIO1_16 tied to GPIO2_0 (which
++ * is not exposed on the header), so this overlay muxes and controls
++ * both pins.
++ *
++ * Copyright (c) 2014 - Logic Supply (http://logicsupply.com)
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/dts-v1/;
++/plugin/;
++
++/{
++  compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++  part-number = "cape-CBB-Serial";
++  version = "r01";
++
++  /* state the resources this cape uses */
++  exclusive-use =
++    /* the pin header uses */
++    "P9.15", /* GPIO1_16 */
++
++    "P9.21", /* uart2_txd */
++    "P9.22", /* uart2_rxd */
++
++    "P9.13", /* uart4_txd */
++    "P9.11", /* uart4_rxd */
++
++    "P9.24", /* dcan1_rx */
++    "P9.26", /* dcan1_tx */
++
++    /* the hardware IP uses */
++    "gpio1_16",
++    "gpio2_0",
++    "uart2",
++    "uart4",
++    "dcan1";
++
++  fragment@0 {
++    target = <&am33xx_pinmux>;
++    __overlay__ {
++
++      cbb_serial_uart2_pins: pinmux_cbb_serial_uart2_pins {
++        pinctrl-single,pins = <
++          0x150 0x21 /* spi0_sclk - RX_ENABLED | MODE6 (UART2 RX) */
++          0x154 0x01 /* spi0_d0 - MODE6 (UART2 TX) */
++        >;
++      };
++
++      cbb_serial_uart4_pins: pinmux_cbb_serial_uart4_pins {
++        pinctrl-single,pins = <
++          0x070 0x26 /* gpmc_wait0 - RX_ENABLED | MODE6 (UART4 RX) */
++          0x074 0x06 /* gpmc_wpn - MODE6 (UART4 TX) */
++          0x040 0x2f /* gpmc_a0 - pull disabled | MODE7 (GPIO1_16) */
++          0x088 0x2f /* gpmc_csn3 - pull disabled | MODE7 (GPIO2_0) */
++        >;
++      };
++
++      cbb_serial_dcan1_pins: pinmux_cbb_serial_dcan1_pins {
++        pinctrl-single,pins = <
++          0x180 0x12 /* uart1_rxd - PULLUP | MODE2 (DCAN TX) */
++          0x184 0x32 /* uart1_txd - RX_ENABLED | PULLUP | MODE2 (DCAN1 RX) */
++        >;
++      };
++    };
++  };
++
++  fragment@1 {
++    target = <&uart3>;
++    __overlay__ {
++      status = "okay";
++      pinctrl-names = "default";
++      pinctrl-0 = <&cbb_serial_uart2_pins>;
++    };
++  };
++
++  fragment@2 {
++    target = <&uart5>;
++    __overlay__ {
++      status = "okay";
++      pinctrl-names = "default";
++      pinctrl-0 = <&cbb_serial_uart4_pins>;
++    };
++  };
++
++  fragment@3 {
++    target = <&dcan1>;
++    __overlay__ {
++      status = "okay";
++      pinctrl-names = "default";
++      pinctrl-0 = <&cbb_serial_dcan1_pins>;
++    };
++  };
++};
+-- 
+1.8.5.3
+
