@@ -17,14 +17,15 @@ RECIPENAME="linux-mainline_3.13.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.13-rc8"
+TAG="v3.13.1"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git"
-EXTERNAL_BRANCH="master"
-EXTERNAL_SHA="7e22e91102c6b9df7c4ae2168910e19d2bb14cd6"
+#EXTERNAL_BRANCH="master"
+EXTERNAL_BRANCH="linux-3.13.y"
+EXTERNAL_SHA="07ecf16297bbec8d94012f2dd9d615f98093fbbe"
 
-PATCHSET="dts fixes sgx"
+PATCHSET="dts fixes sgx usb"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
