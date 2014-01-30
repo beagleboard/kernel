@@ -1,0 +1,44 @@
+From 3d7e5bd097a2d61f2141afd121e4314736797b37 Mon Sep 17 00:00:00 2001
+From: Chanho Min <chanho.min@lge.com>
+Date: Fri, 27 Sep 2013 01:57:40 -0300
+Subject: [PATCH 5/5] uvcvideo: Fix data type for pan/tilt control
+
+The pan/tilt absolute control value is signed value. If minimum value
+is minus, It will be changed to plus by clamp_t() as commit 64ae9958a62.
+([media] uvcvideo: Fix control value clamping for unsigned integer controls).
+It leads to wrong setting of the control values. For example,
+when min and max are -36000 and 36000, the setting value between of this range
+is always 36000. So, its data type should be changed to signed.
+
+Signed-off-by: Chanho Min <chanho.min@lge.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/uvc/uvc_ctrl.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+index d5baab1..da3c300 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -664,7 +664,7 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+ 		.size		= 32,
+ 		.offset		= 0,
+ 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
+-		.data_type	= UVC_CTRL_DATA_TYPE_UNSIGNED,
++		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
+ 	},
+ 	{
+ 		.id		= V4L2_CID_TILT_ABSOLUTE,
+@@ -674,7 +674,7 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+ 		.size		= 32,
+ 		.offset		= 32,
+ 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
+-		.data_type	= UVC_CTRL_DATA_TYPE_UNSIGNED,
++		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
+ 	},
+ 	{
+ 		.id		= V4L2_CID_PRIVACY,
+-- 
+1.8.5.2
+
