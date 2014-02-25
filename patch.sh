@@ -138,9 +138,6 @@ cp -a ${EXPORTPATH}/* ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
 mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/beaglebone
 cp ${DIR}/configs/beaglebone ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/beaglebone/defconfig
 
-mkdir -p ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/beagleboard
-cp ${DIR}/configs/beagleboard ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/beagleboard/defconfig
-
 if [ -e ${DIR}/kernel/am335x-pm-firmware.bin ] ; then
 	cp ${DIR}/kernel/am335x-pm-firmware.bin ${EXPORTPATH}-oe/recipes-kernel/linux/${RECIPEDIR}/
 fi
