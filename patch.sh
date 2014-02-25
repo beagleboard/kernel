@@ -17,13 +17,13 @@ RECIPENAME="linux-mainline_3.13.bb"
 RECIPEFILE="${DIR}/recipes/${RECIPENAME}"
 
 #For TAG, use mainline Kernel tags
-TAG="v3.13.1"
+TAG="v3.13.5"
 EXTRATAG=""
 
 EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git"
 #EXTERNAL_BRANCH="master"
 EXTERNAL_BRANCH="linux-3.13.y"
-EXTERNAL_SHA="07ecf16297bbec8d94012f2dd9d615f98093fbbe"
+EXTERNAL_SHA="dc0ead5dc8682fdd1c1ac10f2bbf567cd8df8e07"
 
 PATCHSET="dts fixes sgx usb"
 
