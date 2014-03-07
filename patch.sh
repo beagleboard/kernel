@@ -25,7 +25,7 @@ EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable
 EXTERNAL_BRANCH="linux-3.13.y"
 EXTERNAL_SHA="dc0ead5dc8682fdd1c1ac10f2bbf567cd8df8e07"
 
-PATCHSET="dts fixes sgx usb"
+PATCHSET="dts fixes sgx usb static_capes"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
