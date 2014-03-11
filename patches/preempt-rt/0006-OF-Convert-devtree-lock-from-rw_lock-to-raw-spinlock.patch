@@ -399,7 +399,7 @@ index 85cd1d9..1c1708a 100644
  	of_allnodes = np;
  	of_node_clear_flag(np, OF_DETACHED);
 -	write_unlock_irqrestore(&devtree_lock, flags);
-+	pin_unlock_irqrestore(&devtree_lock, flags);
++	raw_spin_unlock_irqrestore(&devtree_lock, flags);
  
  	of_add_proc_dt_entry(np);
  	return 0;
