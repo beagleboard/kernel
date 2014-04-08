@@ -1,0 +1,60 @@
+From 9d2e7fecf424e08abdbbb88f1ae0e07c708723e6 Mon Sep 17 00:00:00 2001
+From: Hieu Duong <me@hieuduong.com>
+Date: Thu, 3 Apr 2014 14:49:33 -0500
+Subject: [PATCH 26/26] remove 1-wire gpio in weather cape rev B
+
+Signed-off-by: Hieu Duong <me@hieuduong.com>
+---
+ firmware/capes/cape-bone-weather-00B0.dts | 30 ------------------------------
+ 1 file changed, 30 deletions(-)
+
+diff --git a/firmware/capes/cape-bone-weather-00B0.dts b/firmware/capes/cape-bone-weather-00B0.dts
+index e399cf3..29c5b27 100644
+--- a/firmware/capes/cape-bone-weather-00B0.dts
++++ b/firmware/capes/cape-bone-weather-00B0.dts
+@@ -15,24 +15,7 @@
+ 	version = "00B0";
+ 
+ 	/* state the resources this cape uses */
+-	exclusive-use =
+-		/* the pin header uses */
+-		"P8.6",		/* gpio1_3 */
+-		/* the hardware IP uses */
+-		"gpio1_3";
+-
+ 	fragment@0 {
+-               target = <&am33xx_pinmux>;
+-               __overlay__ {
+-			weather_cape_w1_pins: pinmux_weather_cape_w1_pins {
+-				pinctrl-single,pins = <
+-					0x0c 0x37       /* gpmc_ad3.gpio1_3, OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE7 - w1-gpio */
+-				>;
+-			};
+-               };
+-	};
+-
+-	fragment@1 {
+                target = <&i2c2>;
+ 
+                __overlay__ {
+@@ -60,17 +43,4 @@
+                };
+ 	};
+ 
+-	fragment@2 {
+-               target = <&ocp>;
+-               __overlay__ {
+-		       onewire@0 {
+-			       compatible      = "w1-gpio";
+-			       pinctrl-names   = "default";
+-			       pinctrl-0       = <&weather_cape_w1_pins>;
+-			       status          = "okay";
+-
+-			       gpios = <&gpio2 3 0>;
+-		       };
+-               };
+-	};
+ };
+-- 
+1.9.1
+
