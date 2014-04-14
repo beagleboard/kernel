@@ -1,28 +1,41 @@
-From 9cb85b13ed66f67701865e2cf6e248745ca5af72 Mon Sep 17 00:00:00 2001
+From 87c723e6bbbdff97cd0ede59b4ea0ef612c25cda Mon Sep 17 00:00:00 2001
 From: Dave Lambert <dave@lambsys.com>
 Date: Wed, 5 Mar 2014 23:31:24 -0600
-Subject: [PATCH 3/4] Added Argus UPS cape support.
+Subject: [PATCH 1/2] Added Argus UPS cape support.
 
 Signed-off-by: Dave Lambert <dave@lambsys.com>
 ---
- .../boot/dts/am335x-boneblack-cape-bone-argus.dts  | 399 ++++++++++++++++++++
+ arch/arm/boot/dts/Makefile                         |   1 +
+ .../boot/dts/am335x-boneblack-cape-bone-argus.dts  | 398 ++++++++++++++++++++
  drivers/misc/Kconfig                               |   1 +
  drivers/misc/Makefile                              |   1 +
  drivers/misc/cape_bone_argus/Kconfig               |   7 +
  drivers/misc/cape_bone_argus/Makefile              |   5 +
  drivers/misc/cape_bone_argus/cape_bone_argus.c     | 415 +++++++++++++++++++++
- 6 files changed, 828 insertions(+)
+ 7 files changed, 828 insertions(+)
  create mode 100644 arch/arm/boot/dts/am335x-boneblack-cape-bone-argus.dts
  create mode 100644 drivers/misc/cape_bone_argus/Kconfig
  create mode 100644 drivers/misc/cape_bone_argus/Makefile
  create mode 100644 drivers/misc/cape_bone_argus/cape_bone_argus.c
 
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index a96c269..2286fb6 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -232,6 +232,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+ 	am335x-boneblack-ttyO1.dtb \
+ 	am335x-boneblack-ttyO2.dtb \
+ 	am335x-boneblack-ttyO4.dtb \
++	am335x-boneblack-cape-bone-argus.dtb \
+ 	am335x-nano.dtb \
+ 	am335x-base0033.dtb \
+ 	am3517-evm.dtb \
 diff --git a/arch/arm/boot/dts/am335x-boneblack-cape-bone-argus.dts b/arch/arm/boot/dts/am335x-boneblack-cape-bone-argus.dts
 new file mode 100644
-index 0000000..a036a1b
+index 0000000..c4c7556
 --- /dev/null
 +++ b/arch/arm/boot/dts/am335x-boneblack-cape-bone-argus.dts
-@@ -0,0 +1,399 @@
+@@ -0,0 +1,398 @@
 +/*
 + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
 + *
@@ -201,15 +214,15 @@ index 0000000..a036a1b
 +
 +	argus_ups_pins: pinmux_argus_ups_pins { /* Set up pinmux */
 +		pinctrl-single,pins = <
-+			0x070 0x27 /* gpmc_wait0.gpio0_30,  OMAP_MUX_MODE7 | INPUT_PULLDOWN */
-+			0x15c 0x17 /* spi0_cs0.gpio0_5,   OMAP_MUX_MODE7 | OUTPUT_PULLUP */
-+			0x158 0x17 /* spi0_d1.gpio0_4,   OMAP_MUX_MODE7 | OUTPUT_PULLUP */
-+			0x090 0x17 /* gpmc_advn_ale.gpio_2 , OMAP_MUX_MODE7 | OUTPUT_PULLUP */
-+			0x094 0x17 /* gpmc_oen_ren.gpio2_3 , OMAP_MUX_MODE7 | OUTPUT_PULLUP */
-+			0x09c 0x17 /* gpmc_ben0_cle.gpio2_5 , OMAP_MUX_MODE7 | OUTPUT_PULLUP */
-+			0x098 0x17 /* gpmc_gpmc_wen.gpio2_4 , OMAP_MUX_MODE7 | OUTPUT_PULLUP */
-+			0x1b4 0x17 /* xdma_event_intr1.gpio0_20 , OMAP_MUX_MODE7 | OUTPUT_PULLUP */
-+			0x164 0x17 /* ecap0_in_pwm0_out.gpio0_7 , OMAP_MUX_MODE7 | OUTPUT_PULLUP */
++			0x070 (PIN_INPUT_PULLDOWN | MUX_MODE7) /* gpmc_wait0.gpio0_30 */
++			0x15c (PIN_OUTPUT_PULLUP | MUX_MODE7) /* spi0_cs0.gpio0_5 */
++			0x158 (PIN_OUTPUT_PULLUP | MUX_MODE7) /* spi0_d1.gpio0_4 */
++			0x090 (PIN_OUTPUT_PULLUP | MUX_MODE7) /* gpmc_advn_ale.gpio_2 */
++			0x094 (PIN_OUTPUT_PULLUP | MUX_MODE7) /* gpmc_oen_ren.gpio2_3 */
++			0x09c (PIN_OUTPUT_PULLUP | MUX_MODE7) /* gpmc_ben0_cle.gpio2_5 */
++			0x098 (PIN_OUTPUT_PULLUP | MUX_MODE7) /* gpmc_gpmc_wen.gpio2_4 */
++			0x1b4 (PIN_OUTPUT_PULLUP | MUX_MODE7) /* xdma_event_intr1.gpio0_20 */
++			0x164 (PIN_OUTPUT_PULLUP | MUX_MODE7) /* ecap0_in_pwm0_out.gpio0_7 */
 +		>;
 +	};
 +};
@@ -408,39 +421,40 @@ index 0000000..a036a1b
 +		pinctrl-0 = <&argus_ups_pins>; /* Refer to previous label */
 +		/* This section communicates the gpio numbers to the driver module */
 +		/* Note that gpio controllers appear to be numbered from 1-n here rather than 0-(n-1)????? */
-+		gpios = <&gpio1 30 0>,  /* Request */
-+			<&gpio1 5 0>,  	/* Acknowledge */
-+			<&gpio1 4 0>,   /* Watchdog */
-+			<&gpio3 2 0>, 	/* LED 1 Green */
-+			<&gpio3 3 0>, 	/* LED 1 Red */
-+			<&gpio3 5 0>, 	/* LED 2 Green */
-+			<&gpio3 4 0>, 	/* LED 2 Red */
-+			<&gpio1 20 0>,	/* General Output #1 */
-+			<&gpio1 7 0>;	/* General Output #2 */
-+		debug = <0>;
++		gpios = <&gpio0 30 0>,  /* Request */
++			<&gpio0 5 0>,  	/* Acknowledge */
++			<&gpio0 4 0>,   /* Watchdog */
++			<&gpio2 2 0>, 	/* LED 1 Green */
++			<&gpio2 3 0>, 	/* LED 1 Red */
++			<&gpio2 5 0>, 	/* LED 2 Green */
++			<&gpio2 4 0>, 	/* LED 2 Red */
++			<&gpio0 20 0>,	/* General Output #1 */
++			<&gpio0 7 0>;	/* General Output #2 */
++		debug = <1>;
 +		shutdown = <1>;
 +	};
-+
 +};
 diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index a3e291d..1421194 100644
+index 6cb388e..4a01031 100644
 --- a/drivers/misc/Kconfig
 +++ b/drivers/misc/Kconfig
-@@ -525,4 +525,5 @@ source "drivers/misc/altera-stapl/Kconfig"
+@@ -525,5 +525,6 @@ source "drivers/misc/altera-stapl/Kconfig"
  source "drivers/misc/mei/Kconfig"
  source "drivers/misc/vmw_vmci/Kconfig"
  source "drivers/misc/mic/Kconfig"
 +source "drivers/misc/cape_bone_argus/Kconfig"
+ source "drivers/misc/genwqe/Kconfig"
  endmenu
 diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
-index f45473e..76a7018 100644
+index 99b9424..a9f4040 100644
 --- a/drivers/misc/Makefile
 +++ b/drivers/misc/Makefile
-@@ -53,3 +53,4 @@ obj-$(CONFIG_VMWARE_VMCI)	+= vmw_vmci/
+@@ -53,4 +53,5 @@ obj-$(CONFIG_VMWARE_VMCI)	+= vmw_vmci/
  obj-$(CONFIG_LATTICE_ECP3_CONFIG)	+= lattice-ecp3-config.o
  obj-$(CONFIG_SRAM)		+= sram.o
  obj-y				+= mic/
 +obj-y				+= cape_bone_argus/
+ obj-$(CONFIG_GENWQE)		+= genwqe/
 diff --git a/drivers/misc/cape_bone_argus/Kconfig b/drivers/misc/cape_bone_argus/Kconfig
 new file mode 100644
 index 0000000..1b39661
@@ -887,5 +901,5 @@ index 0000000..c434218
 +MODULE_ALIAS("platform:argus-ups");
 +MODULE_DEVICE_TABLE(of, argus_ups_of_ids);
 -- 
-1.9.0
+1.9.1
 

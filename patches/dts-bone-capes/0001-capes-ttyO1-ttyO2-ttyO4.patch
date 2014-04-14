@@ -1,0 +1,150 @@
+From f71ac5dd99227a8e233dc1443b0bccebc1496469 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Thu, 13 Mar 2014 14:26:18 -0500
+Subject: [PATCH] capes: ttyO1/ttyO2/ttyO4
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/boot/dts/am335x-bone-ttyO1.dts      | 15 +++++++++++++++
+ arch/arm/boot/dts/am335x-bone-ttyO2.dts      | 15 +++++++++++++++
+ arch/arm/boot/dts/am335x-bone-ttyO4.dts      | 15 +++++++++++++++
+ arch/arm/boot/dts/am335x-boneblack-ttyO1.dts | 15 +++++++++++++++
+ arch/arm/boot/dts/am335x-boneblack-ttyO2.dts | 15 +++++++++++++++
+ arch/arm/boot/dts/am335x-boneblack-ttyO4.dts | 15 +++++++++++++++
+ 6 files changed, 90 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-bone-ttyO1.dts
+ create mode 100644 arch/arm/boot/dts/am335x-bone-ttyO2.dts
+ create mode 100644 arch/arm/boot/dts/am335x-bone-ttyO4.dts
+ create mode 100644 arch/arm/boot/dts/am335x-boneblack-ttyO1.dts
+ create mode 100644 arch/arm/boot/dts/am335x-boneblack-ttyO2.dts
+ create mode 100644 arch/arm/boot/dts/am335x-boneblack-ttyO4.dts
+
+diff --git a/arch/arm/boot/dts/am335x-bone-ttyO1.dts b/arch/arm/boot/dts/am335x-bone-ttyO1.dts
+new file mode 100644
+index 0000000..7e6a327
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-bone-ttyO1.dts
+@@ -0,0 +1,15 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include "am335x-bone.dts"
++
++&uart1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart1_pins>;
++
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am335x-bone-ttyO2.dts b/arch/arm/boot/dts/am335x-bone-ttyO2.dts
+new file mode 100644
+index 0000000..3e902ce
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-bone-ttyO2.dts
+@@ -0,0 +1,15 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include "am335x-bone.dts"
++
++&uart2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart2_pins>;
++
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am335x-bone-ttyO4.dts b/arch/arm/boot/dts/am335x-bone-ttyO4.dts
+new file mode 100644
+index 0000000..915ec74
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-bone-ttyO4.dts
+@@ -0,0 +1,15 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include "am335x-bone.dts"
++
++&uart4 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart4_pins>;
++
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am335x-boneblack-ttyO1.dts b/arch/arm/boot/dts/am335x-boneblack-ttyO1.dts
+new file mode 100644
+index 0000000..2d3a801
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-boneblack-ttyO1.dts
+@@ -0,0 +1,15 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include "am335x-boneblack.dts"
++
++&uart1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart1_pins>;
++
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am335x-boneblack-ttyO2.dts b/arch/arm/boot/dts/am335x-boneblack-ttyO2.dts
+new file mode 100644
+index 0000000..78e383b
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-boneblack-ttyO2.dts
+@@ -0,0 +1,15 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include "am335x-boneblack.dts"
++
++&uart2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart2_pins>;
++
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am335x-boneblack-ttyO4.dts b/arch/arm/boot/dts/am335x-boneblack-ttyO4.dts
+new file mode 100644
+index 0000000..5c306af
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-boneblack-ttyO4.dts
+@@ -0,0 +1,15 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include "am335x-boneblack.dts"
++
++&uart4 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart4_pins>;
++
++	status = "okay";
++};
+-- 
+1.9.0
+
