@@ -24,7 +24,7 @@ EXTERNAL_TREE="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable
 EXTERNAL_BRANCH="linux-3.12.y"
 EXTERNAL_SHA="4a5804b8c293b23786b0743fc9c64b64f5099048"
 
-PATCHSET="omap-next-dt dma-devel general-fixes dtc-fixes dtc-overlays of-fixes pdev-fixes mmc-fixes dts-fixes i2c-fixes pinctrl-fixes capemgr reset capes lcdc-fixes net deassert-hard-reset cape-import audio drm cpufreq pru"
+PATCHSET="omap-next-dt dma-devel general-fixes dtc-fixes dtc-overlays of-fixes pdev-fixes mmc-fixes dts-fixes i2c-fixes pinctrl-fixes capemgr reset capes lcdc-fixes net deassert-hard-reset cape-import audio drm cpufreq pru usb"
 
 git_kernel_stable () {
 	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
