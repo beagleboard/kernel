@@ -1,0 +1,226 @@
+From dd2a8e8264b7b3bf519306fe8d2039e397ba3dfa Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Thu, 24 Apr 2014 15:43:04 -0500
+Subject: [PATCH 30/30] capes: add bone_eqep from
+ https://github.com/Teknoman117/beaglebot/tree/master/encoders/dts
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ firmware/Makefile                  |  5 +++-
+ firmware/capes/bone_eqep0-00A0.dts | 58 ++++++++++++++++++++++++++++++++++++++
+ firmware/capes/bone_eqep1-00A0.dts | 57 +++++++++++++++++++++++++++++++++++++
+ firmware/capes/bone_eqep2-00A0.dts | 57 +++++++++++++++++++++++++++++++++++++
+ 4 files changed, 176 insertions(+), 1 deletion(-)
+ create mode 100644 firmware/capes/bone_eqep0-00A0.dts
+ create mode 100644 firmware/capes/bone_eqep1-00A0.dts
+ create mode 100644 firmware/capes/bone_eqep2-00A0.dts
+
+diff --git a/firmware/Makefile b/firmware/Makefile
+index 299b3a5..f399380 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -202,7 +202,10 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	cape-universal-00A0.dtbo \
+ 	cape-universaln-00A0.dtbo \
+ 	cape-bone-ibb-00A0.dtbo \
+-	BB-BONE-CRYPTO-00A0.dtbo
++	BB-BONE-CRYPTO-00A0.dtbo \
++	bone_eqep0-00A0.dtbo \
++	bone_eqep1-00A0.dtbo \
++	bone_eqep2-00A0.dtbo
+ 
+ # the geiger cape
+ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_GEIGER) += \
+diff --git a/firmware/capes/bone_eqep0-00A0.dts b/firmware/capes/bone_eqep0-00A0.dts
+new file mode 100644
+index 0000000..d1b7760
+--- /dev/null
++++ b/firmware/capes/bone_eqep0-00A0.dts
+@@ -0,0 +1,58 @@
++/*
++ * Copyright (C) 2013 Nathaniel R. Lewis - http://teknoman117.wordpress.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Enable eQEP0 on the Beaglebone Black - incompatible with BB White because
++ * most of the eQEP0 pins on Beaglebone white are not broken out.
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++    compatible = "ti,beaglebone-black";
++
++    /* identification */
++    part-number = "bone_eqep0";
++    version     = "00A0";
++
++    fragment@0 {
++        target = <&am33xx_pinmux>;
++        __overlay__ {
++		pinctrl_eqep0: pinctrl_eqep0_pins {
++			pinctrl-single,pins = <
++                        0x1A8 0x21  /* P9_41 = GPIO3_20 = EQEP0_index, MODE1 */
++                        0x1AC 0x21  /* P9_25 = GPIO3_21 = EQEP0_strobe, MODE1 */
++                        0x1A0 0x31  /* P9_42 = GPIO3_18 = EQEP0A_in, MODE1 */
++                        0x1A4 0x31  /* P9_27 = GPIO3_19 = EQEP0B_in, MODE1 */
++			>;
++		};
++        };
++    };
++
++    fragment@1 {
++	target = <&epwmss0>;
++	__overlay__ {
++		status = "okay";
++	};
++    };
++
++    fragment@2 {
++	target = <&eqep0>;
++	__overlay__ {
++            pinctrl-names = "default";
++            pinctrl-0 = <&pinctrl_eqep0>;
++
++            count_mode = <0>;  /* 0 - Quadrature mode, normal 90 phase offset cha & chb.  1 - Direction mode.  cha input = clock, chb input = direction */
++            swap_inputs = <0>; /* Are channel A and channel B swapped? (0 - no, 1 - yes) */
++            invert_qa = <1>;   /* Should we invert the channel A input?  */
++            invert_qb = <1>;   /* Should we invert the channel B input? I invert these because my encoder outputs drive transistors that pull down the pins */
++            invert_qi = <0>;   /* Should we invert the index input? */
++            invert_qs = <0>;   /* Should we invert the strobe input? */
++
++	        status = "okay";
++	};
++    };
++};
+diff --git a/firmware/capes/bone_eqep1-00A0.dts b/firmware/capes/bone_eqep1-00A0.dts
+new file mode 100644
+index 0000000..1760fce
+--- /dev/null
++++ b/firmware/capes/bone_eqep1-00A0.dts
+@@ -0,0 +1,57 @@
++/*
++ * Copyright (C) 2013 Nathaniel R. Lewis - http://teknoman117.wordpress.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Enable eQEP1 on the Beaglebone White and Black
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++    compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++    /* identification */
++    part-number = "bone_eqep1";
++    version     = "00A0";
++
++    fragment@0 {
++        target = <&am33xx_pinmux>;
++        __overlay__ {
++		pinctrl_eqep1: pinctrl_eqep1_pins {
++                pinctrl-single,pins = <
++                        0x0D8 0x22  /* P8_31 = GPIO0_10 = EQEP1_index, MODE2 */
++                        0x0DC 0x22  /* P8_32 = GPIO0_11 = EQEP1_strobe, MODE2 */
++                        0x0D4 0x32  /* P8_33 = GPIO0_9 = EQEP1B_in, MODE2 */
++                        0x0D0 0x32  /* P8_35 = GPIO0_8 = EQEP1A_in, MODE2 */
++                >;
++            };
++        };
++    };
++
++    fragment@1 {
++        target = <&epwmss1>;
++        __overlay__ {
++            status = "okay";
++        };
++    };
++
++    fragment@2 {
++	target = <&eqep1>;
++	__overlay__ {
++            pinctrl-names = "default";
++            pinctrl-0 = <&pinctrl_eqep1>;
++
++            count_mode = <0>;  /* 0 - Quadrature mode, normal 90 phase offset cha & chb.  1 - Direction mode.  cha input = clock, chb input = direction */
++            swap_inputs = <0>; /* Are channel A and channel B swapped? (0 - no, 1 - yes) */
++            invert_qa = <1>;   /* Should we invert the channel A input?  */
++            invert_qb = <1>;   /* Should we invert the channel B input? I invert these because my encoder outputs drive transistors that pull down the pins */
++            invert_qi = <0>;   /* Should we invert the index input? */
++            invert_qs = <0>;   /* Should we invert the strobe input? */
++
++	        status = "okay";
++	};
++    };
++};
+diff --git a/firmware/capes/bone_eqep2-00A0.dts b/firmware/capes/bone_eqep2-00A0.dts
+new file mode 100644
+index 0000000..83f9de7
+--- /dev/null
++++ b/firmware/capes/bone_eqep2-00A0.dts
+@@ -0,0 +1,57 @@
++/*
++ * Copyright (C) 2013 Nathaniel R. Lewis - http://teknoman117.wordpress.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Enable eQEP2 on the Beaglebone White and Black
++ */
++/dts-v1/;
++/plugin/;
++
++/ {
++    compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++    /* identification */
++    part-number = "bone_eqep2";
++    version     = "00A0";
++
++    fragment@0 {
++        target = <&am33xx_pinmux>;
++        __overlay__ {
++            pinctrl_eqep2: pinctrl_eqep2_pins {
++                pinctrl-single,pins = <
++                        0x0B8 0x23  /* P8_39 = GPIO2_12 = EQEP2_index, MODE3 */
++                        0x0BC 0x23  /* P8_40 = GPIO2_13 = EQEP2_strobe, MODE3 */
++                        0x0B0 0x33  /* P8_41 = GPIO2_10 = EQEP2A_in, MODE3 */
++                        0x0B4 0x33  /* P8_42 = GPIO2_11 = EQEP2B_in, MODE3 */
++                >;
++            };
++        };
++    };
++
++    fragment@1 {
++        target = <&epwmss2>;
++        __overlay__ {
++            status = "okay";
++        };
++    };
++
++    fragment@2 {
++	target = <&eqep2>;
++	__overlay__ {
++            pinctrl-names = "default";
++            pinctrl-0 = <&pinctrl_eqep2>;
++
++            count_mode = <0>;  /* 0 - Quadrature mode, normal 90 phase offset cha & chb.  1 - Direction mode.  cha input = clock, chb input = direction */
++            swap_inputs = <0>; /* Are channel A and channel B swapped? (0 - no, 1 - yes) */
++            invert_qa = <1>;   /* Should we invert the channel A input?  */
++            invert_qb = <1>;   /* Should we invert the channel B input? I invert these because my encoder outputs drive transistors that pull down the pins */
++            invert_qi = <0>;   /* Should we invert the index input? */
++            invert_qs = <0>;   /* Should we invert the strobe input? */
++
++	        status = "okay";
++	};
++    };
++};
+-- 
+1.9.2
+
