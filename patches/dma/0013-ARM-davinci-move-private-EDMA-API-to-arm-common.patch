@@ -1,4 +1,4 @@
-From 20df48ea07d97f15b8c191c9e4e77516572e4305 Mon Sep 17 00:00:00 2001
+From e88f06cdeb7bc6d313d156a33e5e2f3856a7b394 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Wed, 22 Aug 2012 09:24:24 -0400
 Subject: [PATCH 13/35] ARM: davinci: move private EDMA API to arm/common
@@ -12,7 +12,7 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  arch/arm/Kconfig                            |    1 +
  arch/arm/common/Kconfig                     |    3 +
  arch/arm/common/Makefile                    |    1 +
- arch/arm/common/edma.c                      | 1591 +++++++++++++++++++++++++++
+ arch/arm/common/edma.c                      | 1590 ++++++++++++++++++++++++++
  arch/arm/mach-davinci/Makefile              |    2 +-
  arch/arm/mach-davinci/board-tnetv107x-evm.c |    2 +-
  arch/arm/mach-davinci/davinci.h             |    2 +-
@@ -35,7 +35,7 @@ Signed-off-by: Matt Porter <mporter@ti.com>
  sound/soc/davinci/davinci-pcm.c             |    1 +
  sound/soc/davinci/davinci-pcm.h             |    2 +-
  sound/soc/davinci/davinci-sffsdr.c          |    6 +-
- 26 files changed, 1802 insertions(+), 1878 deletions(-)
+ 26 files changed, 1801 insertions(+), 1878 deletions(-)
  create mode 100644 arch/arm/common/edma.c
  delete mode 100644 arch/arm/mach-davinci/dma.c
  delete mode 100644 arch/arm/mach-davinci/include/mach/edma.h
@@ -75,10 +75,10 @@ index e8a4e58..d09a39b 100644
 +obj-$(CONFIG_TI_PRIV_EDMA)	+= edma.o
 diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
 new file mode 100644
-index 0000000..36a0676
+index 0000000..87148ab
 --- /dev/null
 +++ b/arch/arm/common/edma.c
-@@ -0,0 +1,1591 @@
+@@ -0,0 +1,1590 @@
 +/*
 + * EDMA3 support for DaVinci
 + *
@@ -1669,7 +1669,6 @@ index 0000000..36a0676
 +	return platform_driver_probe(&edma_driver, edma_probe);
 +}
 +arch_initcall(edma_init);
-+
 diff --git a/arch/arm/mach-davinci/Makefile b/arch/arm/mach-davinci/Makefile
 index fb5c1aa..493a36b 100644
 --- a/arch/arm/mach-davinci/Makefile
@@ -4037,5 +4036,5 @@ index 5be65aa..074fc5d 100644
  
  static struct platform_device *sffsdr_snd_device;
 -- 
-1.7.9.5
+1.7.10.4
 

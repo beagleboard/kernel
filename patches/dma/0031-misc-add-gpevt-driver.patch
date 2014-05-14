@@ -1,4 +1,4 @@
-From 04911881a54c4f5116a46ba1fad213c68fce21ab Mon Sep 17 00:00:00 2001
+From 7c89968b89c9e67603524060f9e27936fda47f80 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Wed, 17 Oct 2012 10:48:22 -0400
 Subject: [PATCH 31/35] misc: add gpevt driver
@@ -41,7 +41,7 @@ index 2129377..661d093 100644
 +obj-$(CONFIG_GPEVT)		+= gpevt.o
 diff --git a/drivers/misc/gpevt.c b/drivers/misc/gpevt.c
 new file mode 100644
-index 0000000..4fe256c
+index 0000000..8a4be45
 --- /dev/null
 +++ b/drivers/misc/gpevt.c
 @@ -0,0 +1,172 @@
@@ -111,7 +111,7 @@ index 0000000..4fe256c
 +		dev_err(&pdev->dev, "failed to allocate dst fifo\n");
 +		return -ENOMEM;
 +	}
-+		
++
 +	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
 +	if (IS_ERR(pinctrl))
 +		dev_warn(&pdev->dev,
@@ -173,7 +173,7 @@ index 0000000..4fe256c
 +	dmaengine_submit(tx);
 +
 +	dma_async_issue_pending(chan);
-+		
++
 +	dev_info(&pdev->dev, "Amazing GPIO DMA Event Test Driver(tm) engaged\n");
 +
 +	return 0;
@@ -218,5 +218,5 @@ index 0000000..4fe256c
 +MODULE_AUTHOR("Matt Porter <mporter@ti.com>");
 +MODULE_LICENSE("GPL");
 -- 
-1.7.9.5
+1.7.10.4
 

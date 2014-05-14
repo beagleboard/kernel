@@ -1,4 +1,4 @@
-From ae180429e562589ee48fa98cdc455dfba912f24e Mon Sep 17 00:00:00 2001
+From d1cb31684d8905cc624bb99b47e2892247509c2e Mon Sep 17 00:00:00 2001
 From: Jack Mitchell <jack@embed.me.uk>
 Date: Tue, 9 Apr 2013 16:47:31 +0200
 Subject: [PATCH 160/184] pwm_test: fix some issues
@@ -8,7 +8,7 @@ Subject: [PATCH 160/184] pwm_test: fix some issues
  1 file changed, 30 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/pwm/pwm_test.c b/drivers/pwm/pwm_test.c
-index d9948db..3da1890 100644
+index d9948db..83e6c22 100644
 --- a/drivers/pwm/pwm_test.c
 +++ b/drivers/pwm/pwm_test.c
 @@ -91,6 +91,11 @@ static ssize_t pwm_test_store_config(struct device *dev,
@@ -44,7 +44,7 @@ index d9948db..3da1890 100644
 -		pwm_free(pwm_test->pwm);
 -		pwm_test->polarity = 0;
 +	} else if (pwm_test->pwm != NULL) {
-+		
++
 +    pwm_test->polarity = 0;
  		pwm_test->run = 0;
  		pwm_test->duty = 0;
@@ -58,7 +58,7 @@ index d9948db..3da1890 100644
 +      pwm_test->period_s);
 +
 +    pwm_disable(pwm_test->pwm);
-+     
++
  		rc = 0;
  	}
 +  else {
@@ -89,5 +89,5 @@ index d9948db..3da1890 100644
  static const struct attribute *pwm_attrs[] = {
  	&dev_attr_duty.attr,
 -- 
-1.7.9.5
+1.7.10.4
 

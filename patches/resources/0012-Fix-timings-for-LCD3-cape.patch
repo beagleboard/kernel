@@ -1,7 +1,7 @@
-From f22a5345ed4c27823059589d98574773a209f796 Mon Sep 17 00:00:00 2001
+From b395246d5b97b5b853b9fca3a534bda6207ff2ee Mon Sep 17 00:00:00 2001
 From: David Anders <danders@circuitco.com>
 Date: Thu, 13 Jun 2013 08:37:19 +0200
-Subject: [PATCH 12/21] Fix timings for LCD3 cape
+Subject: [PATCH 12/23] Fix timings for LCD3 cape
 
 In the 3.2 kernel using the da8xx lcdc fb, the HSW, HFP, and HBP are written to the lcdc registers directly as entered. i.e. if HSW=47 , then 47 is written to the register and the value that is generated is the register value plus one (total of 48 clocks).
 
@@ -15,7 +15,7 @@ the HSW, HFP, and HBP for all three lcd panels needs to be incremented by one.
  1 file changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/firmware/capes/cape-bone-lcd3-00A2.dts b/firmware/capes/cape-bone-lcd3-00A2.dts
-index c2cdedc..85085b9 100644
+index faaed39..1fbef1d 100644
 --- a/firmware/capes/cape-bone-lcd3-00A2.dts
 +++ b/firmware/capes/cape-bone-lcd3-00A2.dts
 @@ -245,16 +245,17 @@
@@ -41,5 +41,5 @@ index c2cdedc..85085b9 100644
  						vsync-len       = <2>;
  						clock-frequency = <8000000>;
 -- 
-1.7.9.5
+1.7.10.4
 

@@ -1,4 +1,4 @@
-From bd931f30721ee16f2fc99e13a256ae1bc4395131 Mon Sep 17 00:00:00 2001
+From c44faa440bec02a9ac95098db1fab05662bba7ff Mon Sep 17 00:00:00 2001
 From: Russell King <rmk+kernel@arm.linux.org.uk>
 Date: Thu, 16 May 2013 19:26:38 +0000
 Subject: [PATCH 14/22] drm/i2c: nxp-tda998x: fix npix/nline programming
@@ -13,7 +13,7 @@ Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
-index 37094fd..17db51b 100644
+index 447a4cd..7bcca0e 100644
 --- a/drivers/gpu/drm/i2c/tda998x_drv.c
 +++ b/drivers/gpu/drm/i2c/tda998x_drv.c
 @@ -723,8 +723,8 @@ tda998x_encoder_mode_set(struct drm_encoder *encoder,
@@ -28,5 +28,5 @@ index 37094fd..17db51b 100644
  	reg_write16(encoder, REG_VS_LINE_END_1_MSB, line_end);
  	reg_write16(encoder, REG_VS_PIX_STRT_1_MSB, hs_start);
 -- 
-1.7.9.5
+1.7.10.4
 

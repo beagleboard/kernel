@@ -1,7 +1,7 @@
-From 4c1bca5d871b13004b207016085cc71c85a1df64 Mon Sep 17 00:00:00 2001
+From 436821626770836c00d28ab656d90c9a73562b03 Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
 Date: Fri, 9 Aug 2013 06:06:23 +0000
-Subject: [PATCH 10/16] capes: make SPI overlays SPIDEV by default
+Subject: [PATCH 10/17] capes: make SPI overlays SPIDEV by default
 
 Since beaglebone black requires the overlays to be compiled into
 the kernel due to eMMC dependency the SPI should be enabled in the
@@ -9,13 +9,13 @@ most typical use case of SPIDEV.
 
 Signed-off-by: Matt Ranostay <mranostay@gmail.com>
 ---
- firmware/Makefile                    |  4 +-
- firmware/capes/BB-SPI0-00A0.dts      | 79 -----------------------------------
- firmware/capes/BB-SPI1-00A0.dts      | 81 ------------------------------------
- firmware/capes/BB-SPI1A1-00A0.dts    | 81 ------------------------------------
- firmware/capes/BB-SPIDEV0-00A0.dts   | 79 +++++++++++++++++++++++++++++++++++
- firmware/capes/BB-SPIDEV1-00A0.dts   | 80 +++++++++++++++++++++++++++++++++++
- firmware/capes/BB-SPIDEV1A1-00A0.dts | 80 +++++++++++++++++++++++++++++++++++
+ firmware/Makefile                    |    4 +-
+ firmware/capes/BB-SPI0-00A0.dts      |   79 ---------------------------------
+ firmware/capes/BB-SPI1-00A0.dts      |   81 ----------------------------------
+ firmware/capes/BB-SPI1A1-00A0.dts    |   81 ----------------------------------
+ firmware/capes/BB-SPIDEV0-00A0.dts   |   79 +++++++++++++++++++++++++++++++++
+ firmware/capes/BB-SPIDEV1-00A0.dts   |   80 +++++++++++++++++++++++++++++++++
+ firmware/capes/BB-SPIDEV1A1-00A0.dts |   80 +++++++++++++++++++++++++++++++++
  7 files changed, 241 insertions(+), 243 deletions(-)
  delete mode 100644 firmware/capes/BB-SPI0-00A0.dts
  delete mode 100644 firmware/capes/BB-SPI1-00A0.dts
@@ -214,14 +214,14 @@ index 1ead983..0000000
 -};
 diff --git a/firmware/capes/BB-SPI1A1-00A0.dts b/firmware/capes/BB-SPI1A1-00A0.dts
 deleted file mode 100644
-index ba98e73..0000000
+index 0deb259..0000000
 --- a/firmware/capes/BB-SPI1A1-00A0.dts
 +++ /dev/null
 @@ -1,81 +0,0 @@
 -/*
 - * Copyright (C) 2013 CircuitCo
 - *
-- * Virtual cape for SPI1 (ALT #1) on connector pins 
+- * Virtual cape for SPI1 (ALT #1) on connector pins
 - *
 - * This program is free software; you can redistribute it and/or modify
 - * it under the terms of the GNU General Public License version 2 as
@@ -557,5 +557,5 @@ index 0000000..71da452
 +	};
 +};
 -- 
-1.8.2.1
+1.7.10.4
 

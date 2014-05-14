@@ -1,4 +1,4 @@
-From 2019e8efeefd07ba669dbdac7b3c3044f8c035b0 Mon Sep 17 00:00:00 2001
+From dfcbf2d8b39605cf19502c7716b23faf67b35bed Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 3 Jan 2013 12:11:31 +0200
 Subject: [PATCH 026/184] OF: Introduce utility helper functions
@@ -17,9 +17,9 @@ having to take locks.
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
  drivers/of/Makefile |    2 +-
- drivers/of/util.c   |  253 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/of/util.c   |  252 +++++++++++++++++++++++++++++++++++++++++++++++++++
  include/linux/of.h  |   59 ++++++++++++
- 3 files changed, 313 insertions(+), 1 deletion(-)
+ 3 files changed, 312 insertions(+), 1 deletion(-)
  create mode 100644 drivers/of/util.c
 
 diff --git a/drivers/of/Makefile b/drivers/of/Makefile
@@ -34,10 +34,10 @@ index eafa107..3e561a2 100644
  obj-$(CONFIG_OF_ADDRESS)  += address.o
 diff --git a/drivers/of/util.c b/drivers/of/util.c
 new file mode 100644
-index 0000000..5117e2b
+index 0000000..4701825
 --- /dev/null
 +++ b/drivers/of/util.c
-@@ -0,0 +1,253 @@
+@@ -0,0 +1,252 @@
 +/*
 + * Utility functions for working with device tree(s)
 + *
@@ -91,7 +91,7 @@ index 0000000..5117e2b
 + * Release the memory of a device tree node and of all it's children.
 + * Also release the properties and the dead properties.
 + * Only call on detached node trees, and you better be sure that
-+ * no pointer exist for any properties. Only safe to do if you 
++ * no pointer exist for any properties. Only safe to do if you
 + * absolutely control the life cycle of the node.
 + * Also note that the node is not removed from the all_nodes list,
 + * neither from the parent's child list; this should be handled before
@@ -229,7 +229,7 @@ index 0000000..5117e2b
 + * @node:	Root of the tree to perform the search
 + * @full_name:	Full name of the node to find.
 + *
-+ * Find a node with the give full name by recursively following any of 
++ * Find a node with the give full name by recursively following any of
 + * the child node links.
 + * Returns the matching node, or NULL if not found.
 + * Note that the devtree lock is not taken, so this function is only
@@ -290,7 +290,6 @@ index 0000000..5117e2b
 +
 +	return -1;
 +}
-+
 diff --git a/include/linux/of.h b/include/linux/of.h
 index 305b087..c38e41a 100644
 --- a/include/linux/of.h
@@ -360,5 +359,5 @@ index 305b087..c38e41a 100644
 +
  #endif /* _LINUX_OF_H */
 -- 
-1.7.9.5
+1.7.10.4
 

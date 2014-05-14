@@ -1,4 +1,4 @@
-From c6ce5b247698955d7579773e7786e2726aeef1b5 Mon Sep 17 00:00:00 2001
+From 6944be9f01772065ed88b8be6cdb9477a0b8456b Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 9 Apr 2013 22:14:29 +0300
 Subject: [PATCH 161/184] pwm_test: Clean-up and make it work on DT correctly
@@ -13,7 +13,7 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  1 file changed, 155 insertions(+), 157 deletions(-)
 
 diff --git a/drivers/pwm/pwm_test.c b/drivers/pwm/pwm_test.c
-index 3da1890..9c07880 100644
+index 83e6c22..9c07880 100644
 --- a/drivers/pwm/pwm_test.c
 +++ b/drivers/pwm/pwm_test.c
 @@ -26,21 +26,23 @@
@@ -287,7 +287,7 @@ index 3da1890..9c07880 100644
 -			rc = -EINVAL;
 -		}
 -	} else if (pwm_test->pwm != NULL) {
--		
+-
 -    pwm_test->polarity = 0;
 -		pwm_test->run = 0;
 -		pwm_test->duty = 0;
@@ -303,7 +303,7 @@ index 3da1890..9c07880 100644
 -      pwm_test->period_s);
 -
 -    pwm_disable(pwm_test->pwm);
--     
+-
 -		rc = 0;
  	}
 -  else {
@@ -367,35 +367,35 @@ index 3da1890..9c07880 100644
 +		dev_err(dev, "Non DT platforms not supported\n");
 +		return -EINVAL;
 +	}
-+
+ 
 +	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
 +	if (IS_ERR(pinctrl))
 +		dev_warn(&pdev->dev, "Unable to select pin group\n");
- 
++
 +	pwm_test = devm_kzalloc(&pdev->dev, sizeof(*pwm_test), GFP_KERNEL);
  	if (!pwm_test) {
  		dev_err(&pdev->dev, "memory error\n");
  		return -ENOMEM;
  	}
 +	platform_set_drvdata(pdev, pwm_test);
- 
--	if (pwm_test_class_init(&pdev->dev)) {
--		dev_err(&pdev->dev, "sysfs creation failed\n");
--		return -EINVAL;
++
 +	/* now do the probe time config */
 +	pwm_test->pwm = devm_pwm_get(&pdev->dev, NULL);
 +	if (IS_ERR(pwm_test->pwm)) {
 +		dev_err(dev, "unable to request PWM\n");
 +		return PTR_ERR(pwm_test->pwm);
- 	}
--	dev_set_drvdata(&pdev->dev, pwm_test);
--	platform_set_drvdata(pdev, pwm_test);
-+
++	}
+ 
+-	if (pwm_test_class_init(&pdev->dev)) {
+-		dev_err(&pdev->dev, "sysfs creation failed\n");
+-		return -EINVAL;
 +	rc = of_parse_phandle_with_args(node, "pwms", "#pwm-cells", 0, &args);
 +	if (rc != 0) {
 +		dev_err(dev, "of_parse_phandle_with_args() failed\n");
 +		return rc;
-+	}
+ 	}
+-	dev_set_drvdata(&pdev->dev, pwm_test);
+-	platform_set_drvdata(pdev, pwm_test);
 +
 +	/* read the period */
 +	pwm_test->period = args.args[1];
@@ -467,5 +467,5 @@ index 3da1890..9c07880 100644
  }
  
 -- 
-1.7.9.5
+1.7.10.4
 

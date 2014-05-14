@@ -1,7 +1,7 @@
-From ec9f598f6ffebf5433adfb768d45048045ed7cb0 Mon Sep 17 00:00:00 2001
+From 1ce0e430e2312413b6152f5be586660251ab75b2 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 4 Jun 2013 17:54:45 +0300
-Subject: [PATCH 07/21] bbb: Add a fall-back non-audio HDMI cape
+Subject: [PATCH 07/23] bbb: Add a fall-back non-audio HDMI cape
 
 When a user cape hogs the audio, allow booting with a HDMI cape which
 only supports video.
@@ -13,7 +13,7 @@ only supports video.
  create mode 100644 firmware/capes/cape-boneblack-hdmin-00A0.dts
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index ae407c3..aa95810 100644
+index 99faf7c..1e3ec7a 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
 @@ -219,6 +219,17 @@
@@ -32,7 +32,7 @@ index ae407c3..aa95810 100644
 +			};
 +
  		};
- 									  
+ 
  		/* mapping between board names and dtb objects */
 @@ -349,6 +360,16 @@
  					dtbo = "BB-BONE-RS232-00A0.dtbo";
@@ -69,7 +69,7 @@ index 646eea5..182de29 100644
  fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += cape-bone-tester-00A0.dtbo
 diff --git a/firmware/capes/cape-boneblack-hdmin-00A0.dts b/firmware/capes/cape-boneblack-hdmin-00A0.dts
 new file mode 100644
-index 0000000..44ae0ea
+index 0000000..e8693da
 --- /dev/null
 +++ b/firmware/capes/cape-boneblack-hdmin-00A0.dts
 @@ -0,0 +1,112 @@
@@ -84,7 +84,7 @@ index 0000000..44ae0ea
 +/plugin/;
 +
 +/ {
-+  	compatible = "ti,beaglebone-black";
++	compatible = "ti,beaglebone-black";
 +	part-number = "BB-BONELT-HDMIN";	/* No audio */
 +	version = "00A0";
 +
@@ -186,5 +186,5 @@ index 0000000..44ae0ea
 +	};
 +};
 -- 
-1.7.9.5
+1.7.10.4
 

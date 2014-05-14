@@ -1,4 +1,4 @@
-From 8871fbdf1590a2deaa2d8f8db323acbdbbeb5661 Mon Sep 17 00:00:00 2001
+From bb5bad6b47c5bb984a32e9ff0129d17d53ca7dc7 Mon Sep 17 00:00:00 2001
 From: Darren Etheridge <detheridge@ti.com>
 Date: Fri, 19 Apr 2013 13:18:14 -0500
 Subject: [PATCH 03/22] Clean up some formating and debug in Davinci MCASP
@@ -9,7 +9,7 @@ Subject: [PATCH 03/22] Clean up some formating and debug in Davinci MCASP
  1 file changed, 5 insertions(+), 10 deletions(-)
 
 diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-index 4c700df..bef4e72 100644
+index 4c700df..a89ece3 100644
 --- a/sound/soc/davinci/davinci-mcasp.c
 +++ b/sound/soc/davinci/davinci-mcasp.c
 @@ -497,11 +497,10 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
@@ -22,9 +22,9 @@ index 4c700df..bef4e72 100644
 -	  mcasp_set_bits(base + DAVINCI_MCASP_AHCLKXCTL_REG,  AHCLKXDIV(0));
 -	  mcasp_clr_bits(base + DAVINCI_MCASP_AHCLKXCTL_REG,  AHCLKXE);
 +		/* codec is clock and frame slave */
-+	  	mcasp_set_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE | ACLKXDIV(7));
-+	  	mcasp_set_bits(base + DAVINCI_MCASP_AHCLKXCTL_REG,  AHCLKXDIV(0));
-+	  	mcasp_clr_bits(base + DAVINCI_MCASP_AHCLKXCTL_REG,  AHCLKXE);
++		mcasp_set_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE | ACLKXDIV(7));
++		mcasp_set_bits(base + DAVINCI_MCASP_AHCLKXCTL_REG,  AHCLKXDIV(0));
++		mcasp_clr_bits(base + DAVINCI_MCASP_AHCLKXCTL_REG,  AHCLKXE);
  		mcasp_set_bits(base + DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
  
  		mcasp_set_bits(base + DAVINCI_MCASP_ACLKRCTL_REG, ACLKRE);
@@ -51,10 +51,10 @@ index 4c700df..bef4e72 100644
  		/* DSP_B mode */
 -	  printk("davinci hw_params _ PLAYBACK modified\n");
 -	  mcasp_clr_bits(dev->base + DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
-+	  	mcasp_clr_bits(dev->base + DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
++		mcasp_clr_bits(dev->base + DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
  		mcasp_set_reg(dev->base + DAVINCI_MCASP_TXTDM_REG, mask);
  		mcasp_set_bits(dev->base + DAVINCI_MCASP_TXFMT_REG, TXORD);
  
 -- 
-1.7.9.5
+1.7.10.4
 

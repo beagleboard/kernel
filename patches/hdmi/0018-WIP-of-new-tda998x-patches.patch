@@ -1,4 +1,4 @@
-From 105dcf66d2508295c8e1efbbbb30e3ec2837bb9f Mon Sep 17 00:00:00 2001
+From 9c3aee4ea2287679d7b77df1ba387500c6f39ccc Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 5 Jun 2013 19:52:25 +0300
 Subject: [PATCH 18/22] WIP of new tda998x patches.
@@ -8,12 +8,12 @@ With the tilcdc driver the some non CEC modes are shifted too.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/gpu/drm/i2c/tda998x_drv.c |  574 ++++++++++++++++++++++++++-----------
+ drivers/gpu/drm/i2c/tda998x_drv.c |  573 ++++++++++++++++++++++++++-----------
  include/drm/i2c/tda998x.h         |   21 +-
- 2 files changed, 419 insertions(+), 176 deletions(-)
+ 2 files changed, 419 insertions(+), 175 deletions(-)
 
 diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
-index 49e5d98..2049898 100644
+index 6f1d7e2..5fb5b59 100644
 --- a/drivers/gpu/drm/i2c/tda998x_drv.c
 +++ b/drivers/gpu/drm/i2c/tda998x_drv.c
 @@ -25,6 +25,8 @@
@@ -438,7 +438,8 @@ index 49e5d98..2049898 100644
  tda998x_encoder_mode_fixup(struct drm_encoder *encoder,
  			  const struct drm_display_mode *mode,
 -			  struct drm_display_mode *adjusted_mode)
--{
++			  struct drm_display_mode *adjusted)
+ {
 -	return true;
 -}
 -
@@ -452,8 +453,7 @@ index 49e5d98..2049898 100644
 -
 -static void
 -tda998x_audio_infoframe_enable(struct drm_encoder *encoder)
-+			  struct drm_display_mode *adjusted)
- {
+-{
 -	uint8_t buffer[20];
 -	struct hdmi_audio_infoframe audio_frame;
 -	size_t len;
@@ -465,29 +465,18 @@ index 49e5d98..2049898 100644
 -	audio_frame.coding_type = HDMI_AUDIO_CODING_TYPE_PCM;
 -	audio_frame.sample_size = HDMI_AUDIO_SAMPLE_SIZE_24;
 -	audio_frame.sample_frequency = HDMI_AUDIO_SAMPLE_FREQUENCY_48000;
-+	DBG("");
- 
+-
 -	len = hdmi_audio_infoframe_pack(&audio_frame, buffer, sizeof(buffer));
 -	WARN(len < 0, "hdmi_avi_infoframe_pack failed\n");
-+	adjusted->flags &= ~(DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_NHSYNC |
-+				DRM_MODE_FLAG_PVSYNC | DRM_MODE_FLAG_NVSYNC |
-+				DRM_MODE_FLAG_PCSYNC | DRM_MODE_FLAG_NCSYNC);
- 
+-
 -	reg_write_range(encoder, REG_AUDIO_IF, buffer, len);
-+	/* The TDA19988 always requires negative VSYNC? */
-+	adjusted->flags |= DRM_MODE_FLAG_NVSYNC;
- 
+-
 -	/* enable Audio Infoframe output in DIP_IF Register */
 -	reg_clear(encoder, REG_DIP_IF_FLAGS, DIP_IF_FLAGS_IF4);
 -	udelay(5);
 -	reg_set(encoder, REG_DIP_IF_FLAGS, DIP_IF_FLAGS_IF4);
 -}
-+	/* The TDA19988 requires positive HSYNC on 1080p or 720p */
-+	if ((adjusted->hdisplay == 1920 && adjusted->vdisplay == 1080) ||
-+		(adjusted->hdisplay == 1280 && adjusted->vdisplay == 720))
-+		adjusted->flags |= DRM_MODE_FLAG_PHSYNC;
-+	else
-+		adjusted->flags |= DRM_MODE_FLAG_NHSYNC;
++	DBG("");
  
 -static void
 -tda998x_avi_infoframe_enable(struct drm_encoder *encoder,
@@ -496,18 +485,29 @@ index 49e5d98..2049898 100644
 -	uint8_t buffer[20];
 -	struct hdmi_avi_infoframe avi_frame;
 -	size_t len;
--
++	adjusted->flags &= ~(DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_NHSYNC |
++				DRM_MODE_FLAG_PVSYNC | DRM_MODE_FLAG_NVSYNC |
++				DRM_MODE_FLAG_PCSYNC | DRM_MODE_FLAG_NCSYNC);
+ 
 -	hdmi_avi_infoframe_init(&avi_frame);
 -	avi_frame.video_code = drm_match_cea_mode(mode);
 -	avi_frame.picture_aspect = HDMI_PICTURE_ASPECT_NONE;
 -	avi_frame.active_aspect = HDMI_ACTIVE_ASPECT_PICTURE;
 -	len = hdmi_avi_infoframe_pack(&avi_frame, buffer, sizeof(buffer));
 -	WARN(len < 0, "hdmi_avi_infoframe_pack failed\n");
--
++	/* The TDA19988 always requires negative VSYNC? */
++	adjusted->flags |= DRM_MODE_FLAG_NVSYNC;
+ 
 -	reg_write_range(encoder, REG_AVI_IF, buffer, len);
--
--	/* 
--	 * enable AVI Infoframe output in DIP_IF Register, but toggle it 
++	/* The TDA19988 requires positive HSYNC on 1080p or 720p */
++	if ((adjusted->hdisplay == 1920 && adjusted->vdisplay == 1080) ||
++		(adjusted->hdisplay == 1280 && adjusted->vdisplay == 720))
++		adjusted->flags |= DRM_MODE_FLAG_PHSYNC;
++	else
++		adjusted->flags |= DRM_MODE_FLAG_NHSYNC;
+ 
+-	/*
+-	 * enable AVI Infoframe output in DIP_IF Register, but toggle it
 -	 * so that the hardware acknowledges that the packet data might have
 -	 * changed
 -	 */
@@ -518,7 +518,7 @@ index 49e5d98..2049898 100644
  }
  
 -/* lookup table for CEA values to VIDFORMAT values taken from NXP datasheet */
--static char cea_to_nxp_mode[34] = {-1, 0, 1, 1, 2, 3, 4, 4, 5, 5, -1, -1, 
+-static char cea_to_nxp_mode[34] = {-1, 0, 1, 1, 2, 3, 4, 4, 5, 5, -1, -1,
 -		-1, -1, -1, -1, 6, 7, 7, 8, 9, 10, 10,
 -		11, 11, -1, -1, -1, -1, -1, -1, 12, 13};
 -
@@ -568,7 +568,7 @@ index 49e5d98..2049898 100644
 -	reg = TBG_CNTRL_1_VHX_EXT_DE |
 -			TBG_CNTRL_1_VHX_EXT_HS |
 -			TBG_CNTRL_1_VHX_EXT_VS |
--	  		TBG_CNTRL_1_DWIN_DIS | /* HDCP off */
+-			TBG_CNTRL_1_DWIN_DIS | /* HDCP off */
 +	reg = TBG_CNTRL_1_DWIN_DIS | /* HDCP off */
  			TBG_CNTRL_1_VH_TGL_2;
 +	/*
@@ -590,7 +590,7 @@ index 49e5d98..2049898 100644
 -			goto out;
 -		}
 -		dev_info(encoder->dev->dev, "Connected to an HDMI monitor with cea mode %d", vidformat);
--			
+-
 -		/* this is an HDMI monitor, so set things up a bit differently */
 -		reg_write(encoder, REG_TBG_CNTRL_1, 0);
 -		reg_write(encoder, REG_VIDFORMAT, vidformat);
@@ -612,15 +612,15 @@ index 49e5d98..2049898 100644
 -		reg_write(encoder, REG_ACR_N_0, 0x0);
 -		reg_write(encoder, REG_ACR_N_1, 0x18);
 -		reg_write(encoder, REG_ACR_N_2, 0x0);
-+		tda998x_write_avi(encoder, adjusted_mode);
- 
+-
 -		reg_set(encoder, REG_DIP_FLAGS, DIP_FLAGS_ACR);
 -
 -		reg_write(encoder, REG_ENC_CNTRL, 0x04);
 -		reg_write(encoder, REG_CTS_N, 0x33);
 -		/* Set 2 channel I2S mode */
 -		reg_write(encoder, REG_ENA_AP, 0x3);
--
++		tda998x_write_avi(encoder, adjusted_mode);
+ 
 -		/* set audio divider in pll settings */
 -		reg_write(encoder, REG_AUDIO_DIV, 0x2);
 -
@@ -762,11 +762,6 @@ index 49e5d98..2049898 100644
  
  	priv->current_page = 0;
  	priv->cec = i2c_new_dummy(client->adapter, 0x34);
-@@ -1115,4 +1356,3 @@ MODULE_LICENSE("GPL");
- 
- module_init(tda998x_init);
- module_exit(tda998x_exit);
--
 diff --git a/include/drm/i2c/tda998x.h b/include/drm/i2c/tda998x.h
 index 41f799f..23736f1 100644
 --- a/include/drm/i2c/tda998x.h
@@ -808,5 +803,5 @@ index 41f799f..23736f1 100644
  
  #endif
 -- 
-1.7.9.5
+1.7.10.4
 

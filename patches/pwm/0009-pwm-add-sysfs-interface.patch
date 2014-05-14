@@ -1,4 +1,4 @@
-From ab415097c1228a6521433abc82711c4ad50d64fb Mon Sep 17 00:00:00 2001
+From 7d7674e2a7e6dbc96afda46e772327470aa3f4ae Mon Sep 17 00:00:00 2001
 From: Lars Poeschel <poeschel@lemonage.de>
 Date: Wed, 3 Apr 2013 15:58:55 +0200
 Subject: [PATCH 9/9] pwm: add sysfs interface
@@ -23,20 +23,20 @@ Signed-off-by: Lars Poeschel <poeschel@lemonage.de>
 
 --
 ---
- Documentation/ABI/testing/sysfs-class-pwm |   37 +++
+ Documentation/ABI/testing/sysfs-class-pwm |   36 +++
  Documentation/pwm.txt                     |   46 +++
  drivers/pwm/Kconfig                       |   12 +
  drivers/pwm/core.c                        |  494 ++++++++++++++++++++++++++++-
  include/linux/pwm.h                       |   27 +-
- 5 files changed, 610 insertions(+), 6 deletions(-)
+ 5 files changed, 609 insertions(+), 6 deletions(-)
  create mode 100644 Documentation/ABI/testing/sysfs-class-pwm
 
 diff --git a/Documentation/ABI/testing/sysfs-class-pwm b/Documentation/ABI/testing/sysfs-class-pwm
 new file mode 100644
-index 0000000..e9be1a3
+index 0000000..8fa1652
 --- /dev/null
 +++ b/Documentation/ABI/testing/sysfs-class-pwm
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,36 @@
 +What:		/sys/class/pwm/
 +Date:		March 2013
 +KernelVersion:	3.11
@@ -73,7 +73,6 @@ index 0000000..e9be1a3
 +		/pwmchipN ... for each pwmchip; #N is its first PWM
 +			/base ... (r/o) same as N
 +			/ngpio ... (r/o) number of PWM; numbered N .. MAX_PWMS
-+
 diff --git a/Documentation/pwm.txt b/Documentation/pwm.txt
 index 7d2b4c9..b349d16 100644
 --- a/Documentation/pwm.txt
@@ -790,5 +789,5 @@ index b21c020..9165922 100644
  
  #if IS_ENABLED(CONFIG_PWM)
 -- 
-1.7.9.5
+1.7.10.4
 

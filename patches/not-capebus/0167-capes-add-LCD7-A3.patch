@@ -1,4 +1,4 @@
-From 218f2d0ab50cb4a20c02791df89a59c147bd58aa Mon Sep 17 00:00:00 2001
+From 36ef05cc5271142dfa9f7221239126a0a029e106 Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Tue, 23 Apr 2013 15:12:00 +0200
 Subject: [PATCH 167/184] capes: add LCD7 A3
@@ -24,7 +24,7 @@ index 88a4e82..0ba37c6 100644
  	cape-bone-iio-00A0.dtbo \
 diff --git a/firmware/capes/BB-BONE-LCD7-01-00A3.dts b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
 new file mode 100644
-index 0000000..805a6c0
+index 0000000..ab748d2
 --- /dev/null
 +++ b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
 @@ -0,0 +1,242 @@
@@ -125,7 +125,7 @@ index 0000000..805a6c0
 +
 +			backlight {
 +				compatible      = "pwm-backlight";
-+ 				pinctrl-names   = "default";
++				pinctrl-names   = "default";
 +				pinctrl-0       = <&pwm_bl_pins>;
 +				status = "okay";
 +
@@ -133,7 +133,7 @@ index 0000000..805a6c0
 +				pwm-names = "LCD7";
 +				brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100>;
 +				default-brightness-level = <50>; /* index to the array above */
-+ 			};
++			};
 +
 +			tscadc {
 +				compatible = "ti,ti-tscadc";
@@ -271,5 +271,5 @@ index 0000000..805a6c0
 +	};
 +};
 -- 
-1.7.9.5
+1.7.10.4
 

@@ -1,4 +1,4 @@
-From 4896c52400a3a009cf8e325e6b092d34252b1e49 Mon Sep 17 00:00:00 2001
+From 720594e1c98af82d88249f52e56d39b90258e512 Mon Sep 17 00:00:00 2001
 From: Darren Etheridge <detheridge@ti.com>
 Date: Fri, 19 Apr 2013 12:37:37 -0500
 Subject: [PATCH 02/22] BeagleBone Black TDA998x Initial HDMI Audio support
@@ -117,11 +117,11 @@ Date:   Fri Apr 5 10:44:03 2013 -0500
  drivers/gpu/drm/i2c/Kconfig                 |    1 +
  drivers/gpu/drm/i2c/Makefile                |    2 +-
  drivers/gpu/drm/i2c/tda998x_audio_drv.c     |   76 ++++++++++
- drivers/gpu/drm/i2c/tda998x_drv.c           |  205 ++++++++++++++++++++++++++-
+ drivers/gpu/drm/i2c/tda998x_drv.c           |  202 ++++++++++++++++++++++++++-
  firmware/capes/cape-boneblack-hdmi-00A0.dts |   52 +++++++
  sound/soc/davinci/davinci-evm.c             |   50 ++++++-
  sound/soc/davinci/davinci-mcasp.c           |   15 +-
- 7 files changed, 385 insertions(+), 16 deletions(-)
+ 7 files changed, 383 insertions(+), 15 deletions(-)
  create mode 100644 drivers/gpu/drm/i2c/tda998x_audio_drv.c
 
 diff --git a/drivers/gpu/drm/i2c/Kconfig b/drivers/gpu/drm/i2c/Kconfig
@@ -230,7 +230,7 @@ index 0000000..c13e25b
 +MODULE_LICENSE("GPL");
 +MODULE_ALIAS("platform:" DRV_NAME);
 diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
-index e68b58a..e3e9101 100644
+index e68b58a..a03bc32 100644
 --- a/drivers/gpu/drm/i2c/tda998x_drv.c
 +++ b/drivers/gpu/drm/i2c/tda998x_drv.c
 @@ -23,7 +23,7 @@
@@ -330,7 +330,7 @@ index e68b58a..e3e9101 100644
 +	}
 +	i2cpacket[0] = REG2ADDR(reg);
 +	memcpy(&i2cpacket[1], buf, cnt);
-+	
++
 +	set_page(encoder, reg);
 +
 +	ret = i2c_master_send(client, i2cpacket, cnt+1);
@@ -406,8 +406,8 @@ index e68b58a..e3e9101 100644
 +
 +	reg_write_range(encoder, REG_AVI_IF, buffer, len);
 +
-+	/* 
-+	 * enable AVI Infoframe output in DIP_IF Register, but toggle it 
++	/*
++	 * enable AVI Infoframe output in DIP_IF Register, but toggle it
 +	 * so that the hardware acknowledges that the packet data might have
 +	 * changed
 +	 */
@@ -417,7 +417,7 @@ index e68b58a..e3e9101 100644
 +}
 +
 +/* loopup table for CEA values to VIDFORMAT values taken from NXP datasheet */
-+static char cea_to_nxp_mode[32] = {-1, 0, 1, 1, 2, 3, 4, 4, 5, 5, -1, -1, 
++static char cea_to_nxp_mode[32] = {-1, 0, 1, 1, 2, 3, 4, 4, 5, 5, -1, -1,
 +		-1, -1, -1, -1, 6, 7, 7, 8, 9, 10, 10,
 +		11, 11, -1, -1, -1, -1, -1, -1, 12};
 +
@@ -455,14 +455,7 @@ index e68b58a..e3e9101 100644
  	reg_set(encoder, REG_TBG_CNTRL_1, TBG_CNTRL_1_DWIN_DIS);
  	reg_clear(encoder, REG_TX33, TX33_HDMI);
  
-@@ -605,14 +742,69 @@ tda998x_encoder_mode_set(struct drm_encoder *encoder,
- 	reg = TBG_CNTRL_1_VHX_EXT_DE |
- 			TBG_CNTRL_1_VHX_EXT_HS |
- 			TBG_CNTRL_1_VHX_EXT_VS |
--			TBG_CNTRL_1_DWIN_DIS | /* HDCP off */
-+	  		TBG_CNTRL_1_DWIN_DIS | /* HDCP off */
- 			TBG_CNTRL_1_VH_TGL_2;
- 	if (mode->flags & (DRM_MODE_FLAG_NVSYNC | DRM_MODE_FLAG_NHSYNC))
+@@ -611,8 +748,63 @@ tda998x_encoder_mode_set(struct drm_encoder *encoder,
  		reg |= TBG_CNTRL_1_VH_TGL_0;
  	reg_set(encoder, REG_TBG_CNTRL_1, reg);
  
@@ -477,7 +470,7 @@ index e68b58a..e3e9101 100644
 +			goto out;
 +		}
 +		dev_info(encoder->dev->dev, "Connected to an HDMI monitor with cea mode %d", vidformat);
-+			
++
 +		/* this is an HDMI monitor, so set things up a bit differently */
 +		reg_write(encoder, REG_TBG_CNTRL_1, 0);
 +		reg_write(encoder, REG_VIDFORMAT, vidformat);
@@ -526,13 +519,8 @@ index e68b58a..e3e9101 100644
  }
  
  static enum drm_connector_status
-@@ -904,3 +1096,4 @@ MODULE_LICENSE("GPL");
- 
- module_init(tda998x_init);
- module_exit(tda998x_exit);
-+
 diff --git a/firmware/capes/cape-boneblack-hdmi-00A0.dts b/firmware/capes/cape-boneblack-hdmi-00A0.dts
-index ee36d0e..e5f714a 100644
+index cb45533..6d5307f 100644
 --- a/firmware/capes/cape-boneblack-hdmi-00A0.dts
 +++ b/firmware/capes/cape-boneblack-hdmi-00A0.dts
 @@ -46,6 +46,16 @@
@@ -544,7 +532,7 @@ index ee36d0e..e5f714a 100644
 +				pinctrl-single,pins = <
 +					0x1ac 0x30      /* mcasp0_ahclkx,       MODE0 | INPUT */
 +					0x19c 0x02	/* mcasp0_ahclkr, */
-+					0x194 0x10      /* mcasp0_fsx,         MODE0 | OUTPUT  */ 
++					0x194 0x10      /* mcasp0_fsx,         MODE0 | OUTPUT  */
 +					0x190 0x00      /* mcasp0_aclkr.mcasp0_aclkx,     MODE0 | OUTPUT_PULLDOWN */
 +					0x1a8 0x1f	/* mcasp0_axr1 GPIO1_27 | OUTPUT | PULLUP */
 +				>;
@@ -607,7 +595,7 @@ index ee36d0e..e5f714a 100644
 +
  };
 diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/davinci/davinci-evm.c
-index 349db80..7a7fc47 100644
+index 349db80..bbae516 100644
 --- a/sound/soc/davinci/davinci-evm.c
 +++ b/sound/soc/davinci/davinci-evm.c
 @@ -30,6 +30,9 @@
@@ -654,7 +642,7 @@ index 349db80..7a7fc47 100644
  	int ret = 0;
  
  	machine_ver = (u32)match->data;
-@@ -363,12 +372,37 @@ static int davinci_evm_probe(struct platform_device *pdev)
+@@ -363,13 +372,38 @@ static int davinci_evm_probe(struct platform_device *pdev)
  		evm_dai.stream_name	= "CQ93";
  		evm_dai.codec_dai_name	= "cq93vc-hifi";
  		break;
@@ -668,10 +656,10 @@ index 349db80..7a7fc47 100644
 +		evm_dai.stream_name	= "HDMI";
 +		evm_dai.codec_dai_name	= "nxp-hdmi-hifi";
 +
-+		/* 
-+		 * Move GPIO handling out of the probe, if probe gets 
++		/*
++		 * Move GPIO handling out of the probe, if probe gets
 +		 * deferred, the gpio will have been claimed on previous
-+		 * probe and will fail on the second and susequent probes 
++		 * probe and will fail on the second and susequent probes
 +		 */
 +		clk_gpio = of_get_named_gpio(np, "mcasp_clock_enable", 0);
 +		if (clk_gpio < 0) {
@@ -687,12 +675,13 @@ index 349db80..7a7fc47 100644
 +		gpio_set_value(clk_gpio, 1);
 +		evm_dai.dai_fmt = SND_SOC_DAIFMT_CBS_CFS | SND_SOC_DAIFMT_DSP_B | SND_SOC_DAIFMT_IB_NF;
 +		break;
-+	  
++
  	}
-+	
  
++
  	evm_dai.codec_of_node = of_parse_phandle(np, "ti,audio-codec", 0);
  	if (!evm_dai.codec_of_node)
+ 		return -EINVAL;
 @@ -387,9 +421,9 @@ static int davinci_evm_probe(struct platform_device *pdev)
  		return ret;
  
@@ -701,7 +690,7 @@ index 349db80..7a7fc47 100644
 +	if (ret) {
  		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", ret);
 -
-+	} 
++	}
  	return ret;
  }
  
@@ -784,5 +773,5 @@ index ea292f6..4c700df 100644
  		/* bit stream is MSB first with no delay */
  		/* DSP_B mode */
 -- 
-1.7.9.5
+1.7.10.4
 

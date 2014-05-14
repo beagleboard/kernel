@@ -1,4 +1,4 @@
-From 9702e1339f8490bbd816e01aaacbc72b41bdaff8 Mon Sep 17 00:00:00 2001
+From 10bdde5ef8772e9f1143a34d8bc9587dcb2fd45c Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 3 May 2013 16:11:53 +0300
 Subject: [PATCH 04/22] tilcdc: Prune modes that can't support audio.
@@ -17,7 +17,7 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  6 files changed, 59 insertions(+), 36 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index 69675e6..afbaa6f 100644
+index 5d24e0a..07e93ce 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 @@ -241,7 +241,7 @@ static int tilcdc_crtc_mode_set(struct drm_crtc *crtc,
@@ -36,7 +36,7 @@ index 69675e6..afbaa6f 100644
 -		int rb_check)
 +		int rb_check, int audio, struct edid *edid)
  {
-   	struct tilcdc_drm_private *priv = crtc->dev->dev_private;
+ 	struct tilcdc_drm_private *priv = crtc->dev->dev_private;
  	unsigned int bandwidth;
  	uint32_t hbp, hfp, hsw, vbp, vfp, vsw;
 +	int has_audio, is_cea_mode;
@@ -50,7 +50,7 @@ index 69675e6..afbaa6f 100644
 +	/* set if there's audio capability */
 +	has_audio = edid && drm_detect_monitor_audio(edid);
  
--	DBG("Processing mode %dx%d@%d with pixel clock %d", 
+-	DBG("Processing mode %dx%d@%d with pixel clock %d",
 -	       mode->hdisplay, mode->vdisplay, drm_mode_vrefresh(mode), mode->clock);
 +	/* set if it's a cea mode */
 +	is_cea_mode = drm_match_cea_mode(mode) > 0;
@@ -240,5 +240,5 @@ index 9d9796f..c71f955 100644
  
  static struct drm_encoder *tfp410_connector_best_encoder(
 -- 
-1.7.9.5
+1.7.10.4
 

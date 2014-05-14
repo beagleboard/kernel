@@ -1,4 +1,4 @@
-From 58ed76c8c2efaba73ec93ede7f2697142c6b9e6f Mon Sep 17 00:00:00 2001
+From 1a0402cabf9aa51cf8c51e67efddfdc87a965986 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 6 Jun 2013 22:25:45 +0300
 Subject: [PATCH 20/22] drm: tda998x: Revert WIP to previous state
@@ -7,11 +7,11 @@ Revert all the changes of the WIP so that audio continues to work.
 We do it with an explicit patch so that we can revisit at a later
 time when things settled down.
 ---
- drivers/gpu/drm/i2c/tda998x_drv.c |  611 +++++++++++--------------------------
- 1 file changed, 176 insertions(+), 435 deletions(-)
+ drivers/gpu/drm/i2c/tda998x_drv.c |  610 +++++++++++--------------------------
+ 1 file changed, 175 insertions(+), 435 deletions(-)
 
 diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
-index 2049898..412ba4f 100644
+index 5fb5b59..4432eea 100644
 --- a/drivers/gpu/drm/i2c/tda998x_drv.c
 +++ b/drivers/gpu/drm/i2c/tda998x_drv.c
 @@ -25,8 +25,6 @@
@@ -527,8 +527,8 @@ index 2049898..412ba4f 100644
 +
 +	reg_write_range(encoder, REG_AVI_IF, buffer, len);
 +
-+	/* 
-+	 * enable AVI Infoframe output in DIP_IF Register, but toggle it 
++	/*
++	 * enable AVI Infoframe output in DIP_IF Register, but toggle it
 +	 * so that the hardware acknowledges that the packet data might have
 +	 * changed
 +	 */
@@ -538,7 +538,7 @@ index 2049898..412ba4f 100644
 +}
 +
 +/* lookup table for CEA values to VIDFORMAT values taken from NXP datasheet */
-+static char cea_to_nxp_mode[34] = {-1, 0, 1, 1, 2, 3, 4, 4, 5, 5, -1, -1, 
++static char cea_to_nxp_mode[34] = {-1, 0, 1, 1, 2, 3, 4, 4, 5, 5, -1, -1,
 +		-1, -1, -1, -1, 6, 7, 7, 8, 9, 10, 10,
 +		11, 11, -1, -1, -1, -1, -1, -1, 12, 13};
 +
@@ -595,7 +595,7 @@ index 2049898..412ba4f 100644
 +	reg = TBG_CNTRL_1_VHX_EXT_DE |
 +			TBG_CNTRL_1_VHX_EXT_HS |
 +			TBG_CNTRL_1_VHX_EXT_VS |
-+	  		TBG_CNTRL_1_DWIN_DIS | /* HDCP off */
++			TBG_CNTRL_1_DWIN_DIS | /* HDCP off */
  			TBG_CNTRL_1_VH_TGL_2;
 -	/*
 -	 * It is questionable whether this is correct - the nxp driver
@@ -621,7 +621,7 @@ index 2049898..412ba4f 100644
 +			goto out;
 +		}
 +		dev_info(encoder->dev->dev, "Connected to an HDMI monitor with cea mode %d", vidformat);
-+			
++
 +		/* this is an HDMI monitor, so set things up a bit differently */
 +		reg_write(encoder, REG_TBG_CNTRL_1, 0);
 +		reg_write(encoder, REG_VIDFORMAT, vidformat);
@@ -642,7 +642,7 @@ index 2049898..412ba4f 100644
 +		reg_write(encoder, REG_ACR_N_0, 0x0);
 +		reg_write(encoder, REG_ACR_N_1, 0x18);
 +		reg_write(encoder, REG_ACR_N_2, 0x0);
-+
+ 
 +		reg_set(encoder, REG_DIP_FLAGS, DIP_FLAGS_ACR);
 +
 +		reg_write(encoder, REG_ENC_CNTRL, 0x04);
@@ -652,7 +652,7 @@ index 2049898..412ba4f 100644
 +
 +		/* set audio divider in pll settings */
 +		reg_write(encoder, REG_AUDIO_DIV, 0x2);
- 
++
 +		/* select the audio input port clock */
 +		reg_write(encoder, REG_AIP_CLKSEL, SEL_AIP_I2S);
 +		reg_write(encoder, REG_MUX_AP, MUX_AP_SELECT_I2S);
@@ -832,11 +832,6 @@ index 2049898..412ba4f 100644
  	priv->current_page = 0;
  	priv->cec = i2c_new_dummy(client->adapter, 0x34);
  	priv->dpms = DRM_MODE_DPMS_OFF;
-@@ -1356,3 +1096,4 @@ MODULE_LICENSE("GPL");
- 
- module_init(tda998x_init);
- module_exit(tda998x_exit);
-+
 -- 
-1.7.9.5
+1.7.10.4
 

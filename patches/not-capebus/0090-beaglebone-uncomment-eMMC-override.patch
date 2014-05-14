@@ -1,4 +1,4 @@
-From 7cd11e4961375aa93caf8c448084c19d45119227 Mon Sep 17 00:00:00 2001
+From 1c7c983acce426cecf04c6df1cb7825fca39945b Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Tue, 29 Jan 2013 15:06:00 +0100
 Subject: [PATCH 090/184] beaglebone: uncomment eMMC override
@@ -9,7 +9,7 @@ Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
  1 file changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 96bce02..23a8b01 100644
+index 96bce02..fc46011 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
 @@ -137,14 +137,14 @@
@@ -25,16 +25,16 @@ index 96bce02..23a8b01 100644
 -			// 	part-number = "BB-BONE-EMMC-2G";
 -			// };
 +			 slot@4 {
-+			 	ti,cape-override;
-+			 	compatible = "ti,beaglebone-black";
-+			 	board-name = "Bone-LT-eMMC-2G";
-+			 	version = "00A0";
-+			 	manufacturer = "Texas Instruments";
-+			 	part-number = "BB-BONE-EMMC-2G";
++				ti,cape-override;
++				compatible = "ti,beaglebone-black";
++				board-name = "Bone-LT-eMMC-2G";
++				version = "00A0";
++				manufacturer = "Texas Instruments";
++				part-number = "BB-BONE-EMMC-2G";
 +			 };
  
  			/* geiger cape version A0 without an EEPROM */
  			slot@5 {
 -- 
-1.7.9.5
+1.7.10.4
 

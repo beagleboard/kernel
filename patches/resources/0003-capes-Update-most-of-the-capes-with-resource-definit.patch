@@ -1,7 +1,7 @@
-From 5c550827cad873fe6d9eafea19843b23fe20b7c8 Mon Sep 17 00:00:00 2001
+From a3828dfb674bcbef5518c7037efd7107484cf289 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 17 May 2013 18:38:30 +0300
-Subject: [PATCH 03/21] capes: Update most of the capes with resource
+Subject: [PATCH 03/23] capes: Update most of the capes with resource
  definitions
 
 Updated all the standard capes with their resource definitions.
@@ -37,10 +37,10 @@ Updated all the standard capes with their resource definitions.
  firmware/capes/cape-bone-geiger-00A0.dts       |   15 ++++++++
  firmware/capes/cape-bone-iio-00A0.dts          |   13 +++++++
  firmware/capes/cape-bone-mrf24j40-00A0.dts     |   16 ++++++++
- firmware/capes/cape-bone-nixie-00A0.dts        |   18 ++++++++-
+ firmware/capes/cape-bone-nixie-00A0.dts        |   14 +++++++
  firmware/capes/cape-bone-tester-00A0.dts       |    2 +
  firmware/capes/cape-bone-weather-00A0.dts      |    7 ++++
- 34 files changed, 559 insertions(+), 26 deletions(-)
+ 34 files changed, 557 insertions(+), 24 deletions(-)
 
 diff --git a/firmware/capes/BB-BONE-GPEVT-00A0.dts b/firmware/capes/BB-BONE-GPEVT-00A0.dts
 index 112a6d1..e773dee 100644
@@ -61,7 +61,7 @@ index 112a6d1..e773dee 100644
  		target = <&am33xx_pinmux>;
  		__overlay__ {
 diff --git a/firmware/capes/BB-BONE-LCD4-01-00A0.dts b/firmware/capes/BB-BONE-LCD4-01-00A0.dts
-index b1c7e00..4b6f3cc 100644
+index 951149c..30187a9 100644
 --- a/firmware/capes/BB-BONE-LCD4-01-00A0.dts
 +++ b/firmware/capes/BB-BONE-LCD4-01-00A0.dts
 @@ -15,6 +15,37 @@
@@ -103,7 +103,7 @@ index b1c7e00..4b6f3cc 100644
  		target = <&am33xx_pinmux>;
  		__overlay__ {
 diff --git a/firmware/capes/BB-BONE-LCD4-01-00A1.dts b/firmware/capes/BB-BONE-LCD4-01-00A1.dts
-index bd3c2a8..b424c09 100644
+index 6782648..3f4c074 100644
 --- a/firmware/capes/BB-BONE-LCD4-01-00A1.dts
 +++ b/firmware/capes/BB-BONE-LCD4-01-00A1.dts
 @@ -15,13 +15,53 @@
@@ -172,7 +172,7 @@ index bd3c2a8..b424c09 100644
  				lcd4-led0 {
  					label = "lcd4:green:usr0";
 diff --git a/firmware/capes/BB-BONE-LCD7-01-00A2.dts b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
-index d1eac3b..77ef5ec 100644
+index 2eb622c..db5fac3 100644
 --- a/firmware/capes/BB-BONE-LCD7-01-00A2.dts
 +++ b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
 @@ -15,13 +15,53 @@
@@ -250,7 +250,7 @@ index d1eac3b..77ef5ec 100644
  			};
  
 diff --git a/firmware/capes/BB-BONE-LCD7-01-00A3.dts b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
-index 979fd73..f5fab09 100644
+index 4fbbe5e..70e1c91 100644
 --- a/firmware/capes/BB-BONE-LCD7-01-00A3.dts
 +++ b/firmware/capes/BB-BONE-LCD7-01-00A3.dts
 @@ -15,6 +15,48 @@
@@ -323,7 +323,7 @@ index 979fd73..f5fab09 100644
  			};
  
 diff --git a/firmware/capes/BB-BONE-LCD7-01-00A4.dts b/firmware/capes/BB-BONE-LCD7-01-00A4.dts
-index 6f34b79..81553e6 100644
+index 366bd3b..33dcf32 100644
 --- a/firmware/capes/BB-BONE-LCD7-01-00A4.dts
 +++ b/firmware/capes/BB-BONE-LCD7-01-00A4.dts
 @@ -15,6 +15,48 @@
@@ -1000,7 +1000,7 @@ index f1cf814..416712b 100644
  		target = <&ocp>;
  		__overlay__ {
 diff --git a/firmware/capes/cape-bone-mrf24j40-00A0.dts b/firmware/capes/cape-bone-mrf24j40-00A0.dts
-index 0fc2aea..7e7b6b8 100644
+index f5f6d7f..1f95d0a 100644
 --- a/firmware/capes/cape-bone-mrf24j40-00A0.dts
 +++ b/firmware/capes/cape-bone-mrf24j40-00A0.dts
 @@ -16,6 +16,22 @@
@@ -1027,7 +1027,7 @@ index 0fc2aea..7e7b6b8 100644
  		target = <&am33xx_pinmux>;
  		__overlay__ {
 diff --git a/firmware/capes/cape-bone-nixie-00A0.dts b/firmware/capes/cape-bone-nixie-00A0.dts
-index 7ec2c46..e4ff3ab 100644
+index a662520..e4ff3ab 100644
 --- a/firmware/capes/cape-bone-nixie-00A0.dts
 +++ b/firmware/capes/cape-bone-nixie-00A0.dts
 @@ -15,6 +15,20 @@
@@ -1051,26 +1051,8 @@ index 7ec2c46..e4ff3ab 100644
  	fragment@0 {
  		target = <&am33xx_pinmux>;
  		__overlay__ {
-@@ -28,7 +42,7 @@
- 			bone_nixie_cape_pins: pinmux_bone_nixie_cape_pins {
- 				pinctrl-single,pins = <
- 					0x0a0 0x03      /* lcd_data0.gpio2_6 | MODE3 */
--					0x0a4 0x03      /* lcd_data1.gpio2_7 | MODE3 */ 
-+					0x0a4 0x03      /* lcd_data1.gpio2_7 | MODE3 */
- 				>;
- 		        };
- 
-@@ -39,7 +53,7 @@
- 					0x1a4 0x05	/* mcasp0_fsr.pr1_pru1_pru_r30_5, MODE5 | CLK */
- 				>;
- 			};
--		};	
-+		};
- 	};
- 
- 	fragment@2 {
 diff --git a/firmware/capes/cape-bone-tester-00A0.dts b/firmware/capes/cape-bone-tester-00A0.dts
-index b5b1be8..df04f6d 100644
+index 49f2a3e..4a983ae 100644
 --- a/firmware/capes/cape-bone-tester-00A0.dts
 +++ b/firmware/capes/cape-bone-tester-00A0.dts
 @@ -15,6 +15,8 @@
@@ -1101,5 +1083,5 @@ index 7cb479a..c017cdb 100644
                 target = <&am33xx_pinmux>;
                 __overlay__ {
 -- 
-1.7.9.5
+1.7.10.4
 

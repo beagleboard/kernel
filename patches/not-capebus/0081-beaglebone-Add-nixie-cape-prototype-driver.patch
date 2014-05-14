@@ -1,4 +1,4 @@
-From 7bb1642753799e446396923698c9cb10510a7629 Mon Sep 17 00:00:00 2001
+From b03f2b963978f52a0200e314a29faee64d01e9f9 Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
 Date: Tue, 22 Jan 2013 10:09:47 -0800
 Subject: [PATCH 081/184] beaglebone: Add nixie cape prototype driver
@@ -7,17 +7,17 @@ Add support for nixie cape breadboard prototype.
 
 Signed-off-by: Matt Ranostay <mranostay@gmail.com>
 ---
- drivers/misc/cape/beaglebone/Kconfig           |    9 +
+ drivers/misc/cape/beaglebone/Kconfig           |    8 +
  drivers/misc/cape/beaglebone/Makefile          |    1 +
  drivers/misc/cape/beaglebone/cape-bone-nixie.c |  401 ++++++++++++++++++++++++
- 3 files changed, 411 insertions(+)
+ 3 files changed, 410 insertions(+)
  create mode 100644 drivers/misc/cape/beaglebone/cape-bone-nixie.c
 
 diff --git a/drivers/misc/cape/beaglebone/Kconfig b/drivers/misc/cape/beaglebone/Kconfig
-index ebeedce..8d4f73e 100644
+index ebeedce..072ccae8 100644
 --- a/drivers/misc/cape/beaglebone/Kconfig
 +++ b/drivers/misc/cape/beaglebone/Kconfig
-@@ -16,3 +16,12 @@ config CAPE_BEAGLEBONE_GEIGER
+@@ -16,3 +16,11 @@ config CAPE_BEAGLEBONE_GEIGER
  	default n
  	help
  	  Say Y here to include support for the Geiger Cape
@@ -29,7 +29,6 @@ index ebeedce..8d4f73e 100644
 +	default n
 +	help
 +	  Say Y here to include support for the Nixie Cape
-+
 diff --git a/drivers/misc/cape/beaglebone/Makefile b/drivers/misc/cape/beaglebone/Makefile
 index b79ace4..808fe14 100644
 --- a/drivers/misc/cape/beaglebone/Makefile
@@ -447,5 +446,5 @@ index 0000000..7adfdc9
 +MODULE_LICENSE("GPL");
 +MODULE_ALIAS("platform:bone-nixie-cape");
 -- 
-1.7.9.5
+1.7.10.4
 

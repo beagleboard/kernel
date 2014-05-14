@@ -1,4 +1,4 @@
-From de87b1fdb65b9b386fae3b037194bcca6b50fe6c Mon Sep 17 00:00:00 2001
+From a1ae0232916b5bfb336685d3516139769fc05b60 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Mon, 22 Apr 2013 17:08:09 +0300
 Subject: [PATCH 09/11] bone: Put priorities in built-in capes
@@ -13,7 +13,7 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  2 files changed, 31 insertions(+), 18 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index e341a08..327e592 100644
+index 256e460..2ceb31d 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
 @@ -25,7 +25,7 @@
@@ -39,14 +39,14 @@ index e341a08..327e592 100644
  		};
 @@ -138,10 +133,10 @@
  			 slot@4 {
- 			 	ti,cape-override;
- 			 	compatible = "ti,beaglebone-black";
--			 	board-name = "Bone-LT-eMMC-2G";
-+			 	board-name = "BB-BONE-RST2";
- 			 	version = "00A0";
- 			 	manufacturer = "Texas Instruments";
--			 	part-number = "BB-BONE-EMMC-2G";
-+			 	part-number = "BB-BONE-RST2";
+ 				ti,cape-override;
+ 				compatible = "ti,beaglebone-black";
+-				board-name = "Bone-LT-eMMC-2G";
++				board-name = "BB-BONE-RST2";
+ 				version = "00A0";
+ 				manufacturer = "Texas Instruments";
+-				part-number = "BB-BONE-EMMC-2G";
++				part-number = "BB-BONE-RST2";
  			 };
  
  			/* geiger cape version A0 without an EEPROM */
@@ -74,13 +74,13 @@ index e341a08..327e592 100644
 +
 +			/* Beaglebone black has it soldered on */
 +			 slot@100 {
-+			 	ti,cape-override;
++				ti,cape-override;
 +				priority = <1>;
-+			 	compatible = "ti,beaglebone-black";
-+			 	board-name = "Bone-LT-eMMC-2G";
-+			 	version = "00A0";
-+			 	manufacturer = "Texas Instruments";
-+			 	part-number = "BB-BONE-EMMC-2G";
++				compatible = "ti,beaglebone-black";
++				board-name = "Bone-LT-eMMC-2G";
++				version = "00A0";
++				manufacturer = "Texas Instruments";
++				part-number = "BB-BONE-EMMC-2G";
 +			 };
 +
 +			/* Beaglebone black has it soldered on */
@@ -95,7 +95,7 @@ index e341a08..327e592 100644
 +			};
 +
  		};
- 									  
+ 
  		/* mapping between board names and dtb objects */
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
 index 76fa03b..eb0d2d4 100644
@@ -114,5 +114,5 @@ index 76fa03b..eb0d2d4 100644
  			compatible = "ti,omap3-uart";
  			ti,hwmods = "uart1";
 -- 
-1.7.9.5
+1.7.10.4
 

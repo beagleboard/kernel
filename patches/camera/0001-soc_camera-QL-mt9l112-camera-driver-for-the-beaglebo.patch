@@ -1,4 +1,4 @@
-From ce75378696601abd9efe9b7a247f81de0c8b6413 Mon Sep 17 00:00:00 2001
+From d6dec0797dca11faee6ba583c4ca8d9fbf89b542 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 1 May 2013 17:43:32 +0300
 Subject: [PATCH 01/10] soc_camera: QL/mt9l112 camera driver for the
@@ -8,17 +8,17 @@ Driver for the Quicklogic camera cape.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/media/platform/soc_camera/Kconfig       |    7 +
+ drivers/media/platform/soc_camera/Kconfig       |    6 +
  drivers/media/platform/soc_camera/Makefile      |    1 +
- drivers/media/platform/soc_camera/cssp_camera.c | 1560 +++++++++++++++++++++++
- 3 files changed, 1568 insertions(+)
+ drivers/media/platform/soc_camera/cssp_camera.c | 1559 +++++++++++++++++++++++
+ 3 files changed, 1566 insertions(+)
  create mode 100644 drivers/media/platform/soc_camera/cssp_camera.c
 
 diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-index cb6791e..06baabf 100644
+index cb6791e..d1e5759 100644
 --- a/drivers/media/platform/soc_camera/Kconfig
 +++ b/drivers/media/platform/soc_camera/Kconfig
-@@ -86,3 +86,10 @@ config VIDEO_ATMEL_ISI
+@@ -86,3 +86,9 @@ config VIDEO_ATMEL_ISI
  	  This module makes the ATMEL Image Sensor Interface available
  	  as a v4l2 device.
  
@@ -28,7 +28,6 @@ index cb6791e..06baabf 100644
 +	select VIDEOBUF2_DMA_CONTIG
 +	---help---
 +	  This is a v4l2 driver for the QuickLogic CAMIF controller.
-+
 diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
 index 136b7f8..d7ba0eb 100644
 --- a/drivers/media/platform/soc_camera/Makefile
@@ -42,10 +41,10 @@ index 136b7f8..d7ba0eb 100644
  ccflags-y += -I$(srctree)/drivers/media/i2c/soc_camera
 diff --git a/drivers/media/platform/soc_camera/cssp_camera.c b/drivers/media/platform/soc_camera/cssp_camera.c
 new file mode 100644
-index 0000000..41de42e
+index 0000000..1a57055
 --- /dev/null
 +++ b/drivers/media/platform/soc_camera/cssp_camera.c
-@@ -0,0 +1,1560 @@
+@@ -0,0 +1,1559 @@
 +/*
 + * cssp-camera driver
 + *
@@ -1605,7 +1604,6 @@ index 0000000..41de42e
 +MODULE_LICENSE("GPLv2");
 +MODULE_AUTHOR("Dan Aizenstros, Damian Eppel, Przemek Szewczyk");
 +MODULE_DESCRIPTION("QuickLogic Camera Interface driver");
-+
 -- 
-1.7.9.5
+1.7.10.4
 

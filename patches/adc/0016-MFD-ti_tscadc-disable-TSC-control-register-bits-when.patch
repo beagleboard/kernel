@@ -1,7 +1,7 @@
-From abfed3273513d854c5e81c5bf18f4c701ba6355a Mon Sep 17 00:00:00 2001
+From 3a24826c1e689723d57f3c53e14a8d9ebe165f1e Mon Sep 17 00:00:00 2001
 From: "Patil, Rachna" <rachna@ti.com>
 Date: Thu, 27 Jun 2013 22:47:13 +0100
-Subject: [PATCH 16/21] MFD: ti_tscadc: disable TSC control register bits when
+Subject: [PATCH 16/20] MFD: ti_tscadc: disable TSC control register bits when
  TSC not in use
 
 AFE Pen Ctrl and TouchScreen transistors enabling is not
@@ -15,7 +15,7 @@ Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
  1 file changed, 11 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index 640fe10..408e859 100644
+index 640fe10..addd23d 100644
 --- a/drivers/mfd/ti_am335x_tscadc.c
 +++ b/drivers/mfd/ti_am335x_tscadc.c
 @@ -220,13 +220,14 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
@@ -26,13 +26,13 @@ index 640fe10..408e859 100644
 -			CNTRLREG_STEPID |
 -			CNTRLREG_4WIRE;
 +			CNTRLREG_STEPID;
-+	if (tsc_wires > 0) 
++	if (tsc_wires > 0)
 +		ctrl |= CNTRLREG_4WIRE | CNTRLREG_TSCENB;
  	tscadc_writel(tscadc, REG_CTRL, ctrl);
  
  	/* Set register bits for Idle Config Mode */
 -	tscadc_idle_config(tscadc);
-+	if (tsc_wires > 0) 	
++	if (tsc_wires > 0)
 +		tscadc_idle_config(tscadc);
  
  	/* Enable the TSC module enable bit */
@@ -49,11 +49,11 @@ index 640fe10..408e859 100644
  	tscadc_writel(tscadc_dev, REG_CTRL, ctrl);
 -	tscadc_idle_config(tscadc_dev);
 +
-+	if (tscadc_dev->tsc_cell != -1) 	
++	if (tscadc_dev->tsc_cell != -1)
 +		tscadc_idle_config(tscadc_dev);
  	am335x_tsc_se_update(tscadc_dev);
  	restore = tscadc_readl(tscadc_dev, REG_CTRL);
  	tscadc_writel(tscadc_dev, REG_CTRL,
 -- 
-1.7.9.5
+1.7.10.4
 

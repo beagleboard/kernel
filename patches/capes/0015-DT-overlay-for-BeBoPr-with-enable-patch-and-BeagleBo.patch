@@ -1,13 +1,14 @@
-From a349b82de999cf6086ff7e7f8d0ea31f610f66dd Mon Sep 17 00:00:00 2001
+From dad7e22195e62435355fc0c9ad74457b365a2640 Mon Sep 17 00:00:00 2001
 From: Bas Laarhoven <sjml@xs4all.nl>
 Date: Sun, 11 Aug 2013 18:04:08 +0200
-Subject: [PATCH 15/16] DT overlay for BeBoPr with enable patch and BeagleBone
- (any colour). Load with manual override after disabling HDMI,HDMIN,EMMC.
+Subject: [PATCH 15/17] DT overlay for BeBoPr with enable patch and BeagleBone
+ (any colour). Load with manual override after
+ disabling HDMI,HDMIN,EMMC.
 
 Signed-off-by: Bas Laarhoven <sjml@xs4all.nl>
 ---
- firmware/Makefile                     |   1 +
- firmware/capes/cape-bebopr-ena-R2.dts | 561 ++++++++++++++++++++++++++++++++++
+ firmware/Makefile                     |    1 +
+ firmware/capes/cape-bebopr-ena-R2.dts |  561 +++++++++++++++++++++++++++++++++
  2 files changed, 562 insertions(+)
  create mode 100644 firmware/capes/cape-bebopr-ena-R2.dts
 
@@ -25,7 +26,7 @@ index b5aec1a..d27408f 100644
  	cape-bone-dvi-00A0.dtbo \
 diff --git a/firmware/capes/cape-bebopr-ena-R2.dts b/firmware/capes/cape-bebopr-ena-R2.dts
 new file mode 100644
-index 0000000..3bb0545
+index 0000000..b553ed9
 --- /dev/null
 +++ b/firmware/capes/cape-bebopr-ena-R2.dts
 @@ -0,0 +1,561 @@
@@ -307,7 +308,7 @@ index 0000000..3bb0545
 +					0xec 5  /* #E_STP, pr1_pru1_pru_r30_11, P8_30, gpio2.25, mode5 out */
 +				>;
 +			};
-+		};  
++		};
 +	};
 +
 +	fragment@22 {
@@ -513,7 +514,7 @@ index 0000000..3bb0545
 +		target = <&am33xx_pinmux>;
 +		__overlay__ {
 +
-+ 			bebopr_led_pins: pinmux_bebopr_led_pins {
++			bebopr_led_pins: pinmux_bebopr_led_pins {
 +				pinctrl-single,pins = <
 +					0x000 0x07    /* P8-25 GPIO1_0    gpmc_ad0 .gpio1[0]     */
 +				>;
@@ -557,33 +558,33 @@ index 0000000..3bb0545
 +				compatible = "ti,ads1015";
 +				status = "okay";
 +
-+		           	#address-cells = <1>;
++				#address-cells = <1>;
 +				#size-cells = <0>;
 +				reg = <0x48>;
 +
 +				hi_res = <1>;
 +
 +				channel@1 {
-+			   	     	  reg = <4>;
-+				     	  ti,gain = <2>;
-+				     	  ti,datarate = <2>;
-+			   	};
++					  reg = <4>;
++					  ti,gain = <2>;
++					  ti,datarate = <2>;
++				};
 +				channel@2 {
-+			   	     	  reg = <5>;
-+				     	  ti,gain = <2>;
-+				     	  ti,datarate = <2>;
-+			   	};
++					  reg = <5>;
++					  ti,gain = <2>;
++					  ti,datarate = <2>;
++				};
 +				channel@3 {
-+			   	     	  reg = <6>;
-+				     	  ti,gain = <2>;
-+				     	  ti,datarate = <2>;
-+			   	};
++					  reg = <6>;
++					  ti,gain = <2>;
++					  ti,datarate = <2>;
++				};
 +				channel@4 {
-+			   	     	  reg = <0>;
-+				     	  ti,gain = <3>;
-+				     	  ti,datarate = <2>;
-+			   	};
-+	        	};
++					  reg = <0>;
++					  ti,gain = <3>;
++					  ti,datarate = <2>;
++				};
++			};
 +		};
 +
 +	};
@@ -591,5 +592,5 @@ index 0000000..3bb0545
 +
 +};
 -- 
-1.8.2.1
+1.7.10.4
 

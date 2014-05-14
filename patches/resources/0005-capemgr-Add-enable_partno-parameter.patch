@@ -1,7 +1,7 @@
-From cba3fd04d64e055d158865ddb856a682a03ce0e4 Mon Sep 17 00:00:00 2001
+From 2accdc81f9dca0a10562cbb539a93de37a37d607 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 4 Jun 2013 19:42:45 +0300
-Subject: [PATCH 05/21] capemgr: Add enable_partno parameter
+Subject: [PATCH 05/23] capemgr: Add enable_partno parameter
 
 Add analogous option to disable_partno; this one doesn't require the presence of
 a base dts override.
@@ -12,7 +12,7 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  1 file changed, 66 insertions(+)
 
 diff --git a/drivers/misc/cape/beaglebone/capemgr.c b/drivers/misc/cape/beaglebone/capemgr.c
-index 2820e39..b1a8b65 100644
+index c50e9da..b82a3d7 100644
 --- a/drivers/misc/cape/beaglebone/capemgr.c
 +++ b/drivers/misc/cape/beaglebone/capemgr.c
 @@ -57,6 +57,13 @@ module_param(disable_partno, charp, 0444);
@@ -81,7 +81,7 @@ index 2820e39..b1a8b65 100644
 +			p = strchr(wbuf, ':');
 +			if (p != NULL)
 +				*p++ = '\0';
-+			
++
 +			part_number = wbuf;
 +			version = p;
 +
@@ -114,5 +114,5 @@ index 2820e39..b1a8b65 100644
  
  		/* if matches the disabled ones skip */
 -- 
-1.7.9.5
+1.7.10.4
 

@@ -1,4 +1,4 @@
-From de5351b3c28fd0de37f763b279bb4d907bdf0f47 Mon Sep 17 00:00:00 2001
+From ed2b99a232c38dea49940793362fac0da74eeab9 Mon Sep 17 00:00:00 2001
 From: Cody Lacey <clacey@ti.com>
 Date: Fri, 9 Aug 2013 13:44:05 -0500
 Subject: [PATCH 24/27] drm/i2c/tda998x fix sync generation and calculation
@@ -16,12 +16,12 @@ the display to the right by a certain number of pixels.  Changes
 only take effect if adjusted_mode is changed in fixup function.
 Created by: Darren Etheridge <detheridge@ti.com>
 ---
- drivers/gpu/drm/i2c/tda998x_drv.c    |  192 ++++++++++++++++++++++------------
+ drivers/gpu/drm/i2c/tda998x_drv.c    |  190 ++++++++++++++++++++++------------
  drivers/gpu/drm/tilcdc/tilcdc_crtc.c |    7 +-
- 2 files changed, 130 insertions(+), 69 deletions(-)
+ 2 files changed, 129 insertions(+), 68 deletions(-)
 
 diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
-index 412ba4f..8e65fff 100644
+index 4432eea..4358804 100644
 --- a/drivers/gpu/drm/i2c/tda998x_drv.c
 +++ b/drivers/gpu/drm/i2c/tda998x_drv.c
 @@ -133,8 +133,12 @@ struct tda998x_priv {
@@ -73,7 +73,7 @@ index 412ba4f..8e65fff 100644
  # define TBG_CNTRL_1_DWIN_DIS     (1 << 6)
  #define REG_ENABLE_SPACE          REG(0x00, 0xd6)     /* write */
  #define REG_HVF_CNTRL_0           REG(0x00, 0xe4)     /* write */
-@@ -631,43 +643,79 @@ tda998x_encoder_mode_set(struct drm_encoder *encoder,
+@@ -631,42 +643,78 @@ tda998x_encoder_mode_set(struct drm_encoder *encoder,
  			struct drm_display_mode *adjusted_mode)
  {
  	struct tda998x_priv *priv = to_tda998x_priv(encoder);
@@ -119,11 +119,15 @@ index 412ba4f..8e65fff 100644
 +	 *
 +	 * So we add +1 to all horizontal and vertical register values,
 +	 * plus an additional +3 for REFPIX as we are using RGB input only.
-+ 	 */
-+
+ 	 */
+-	ref_line = 2;
+ 
+-	/* this might changes for other color formats from the CRTC: */
+-	ref_pix = 3 + hs_start;
 +	n_pix        = mode->htotal;
 +	n_line       = mode->vtotal;
-+
+ 
+-	div = 148500 / mode->clock;
 +	ref_pix      = 3 + mode->hsync_start - mode->hdisplay;
 +
 +	/*
@@ -131,11 +135,7 @@ index 412ba4f..8e65fff 100644
 +	 * non-VESA compliant sync signals the workaround
 +	 * forces us to invert the HSYNC, so need to adjust display to
 +	 * the left by hskew pixels, provided by the tilcdc driver
- 	 */
--	ref_line = 2;
--
--	/* this might changes for other color formats from the CRTC: */
--	ref_pix = 3 + hs_start;
++	 */
 +	if (adjusted_mode->flags & DRM_MODE_FLAG_HSKEW)
 +		ref_pix += adjusted_mode->hskew;
 +
@@ -171,8 +171,6 @@ index 412ba4f..8e65fff 100644
 +				(mode->vsync_end - mode->vsync_start)/2;
 +	}
  
- 	div = 148500 / mode->clock;
- 
 -	DBG("clock=%d, div=%u", mode->clock, div);
 -	DBG("hs_start=%u, hs_end=%u, line_start=%u, line_end=%u",
 -			hs_start, hs_end, line_start, line_end);
@@ -180,10 +178,10 @@ index 412ba4f..8e65fff 100644
 -			vwin_start, vwin_end, de_start, de_end);
 -	DBG("ref_line=%u, ref_pix=%u, pix_start2=%u",
 -			ref_line, ref_pix, pix_start2);
--
++	div = 148500 / mode->clock;
+ 
  	/* mute the audio FIFO: */
  	reg_set(encoder, REG_AIP_CNTRL_0, AIP_CNTRL_0_RST_FIFO);
- 
 @@ -698,9 +746,6 @@ tda998x_encoder_mode_set(struct drm_encoder *encoder,
  	reg_write(encoder, REG_PLL_SERIAL_2, PLL_SERIAL_2_SRL_NOSC(div) |
  			PLL_SERIAL_2_SRL_PR(rep));
@@ -270,7 +268,7 @@ index 412ba4f..8e65fff 100644
 -	reg = TBG_CNTRL_1_VHX_EXT_DE |
 -			TBG_CNTRL_1_VHX_EXT_HS |
 -			TBG_CNTRL_1_VHX_EXT_VS |
--	  		TBG_CNTRL_1_DWIN_DIS | /* HDCP off */
+-			TBG_CNTRL_1_DWIN_DIS | /* HDCP off */
 -			TBG_CNTRL_1_VH_TGL_2;
 -	if (mode->flags & (DRM_MODE_FLAG_NVSYNC | DRM_MODE_FLAG_NHSYNC))
 -		reg |= TBG_CNTRL_1_VH_TGL_0;
@@ -283,7 +281,7 @@ index 412ba4f..8e65fff 100644
  		char vidformat;
  		vidformat = tda998x_cea_to_vidformat(drm_match_cea_mode(mode));
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index 375986e..5495ebc 100644
+index 54023bf..188ac07 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 @@ -371,7 +371,12 @@ static int tilcdc_crtc_mode_set(struct drm_crtc *crtc,
@@ -301,5 +299,5 @@ index 375986e..5495ebc 100644
  	else
  		tilcdc_clear(dev, LCDC_RASTER_TIMING_2_REG, LCDC_INVERT_HSYNC);
 -- 
-1.7.9.5
+1.7.10.4
 

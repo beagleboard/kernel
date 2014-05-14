@@ -1,4 +1,4 @@
-From c7eebd402f1ddd894e9c73f7c32e5ec6be9444bc Mon Sep 17 00:00:00 2001
+From 2572070b88e38e490f5dfe0303de0c0ceefbcdc7 Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
 Date: Tue, 19 Mar 2013 17:04:06 +0000
 Subject: [PATCH 129/184] beaglebone: Add Adafruit RTC prototype cape
@@ -9,14 +9,14 @@ achieves this.
 
 Signed-off-by: Matt Ranostay <mranostay@gmail.com>
 ---
- arch/arm/boot/dts/am335x-bone-common.dtsi      |   21 ++++++++++--
+ arch/arm/boot/dts/am335x-bone-common.dtsi      |   19 ++++++++++-
  firmware/Makefile                              |    1 +
  firmware/capes/cape-bone-adafruit-rtc-00A0.dts |   42 ++++++++++++++++++++++++
- 3 files changed, 62 insertions(+), 2 deletions(-)
+ 3 files changed, 61 insertions(+), 1 deletion(-)
  create mode 100644 firmware/capes/cape-bone-adafruit-rtc-00A0.dts
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index bcd78a6..d3803e0 100644
+index f47a2c0..5acc251 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
 @@ -168,7 +168,7 @@
@@ -45,12 +45,10 @@ index bcd78a6..d3803e0 100644
  		};
  
  		/* mapping between board names and dtb objects */
-@@ -262,7 +272,14 @@
- 					dtbo = "cape-bone-adafruit-lcd-00A0.dtbo";
+@@ -263,6 +273,13 @@
  				};
  			};
-- 
-+
+ 
 +			cape@8 {
 +				part-number = "BB-BONE-RTC-01";
 +				version@00A0 {
@@ -122,5 +120,5 @@ index 0000000..9436fd4
 +	};
 +};
 -- 
-1.7.9.5
+1.7.10.4
 

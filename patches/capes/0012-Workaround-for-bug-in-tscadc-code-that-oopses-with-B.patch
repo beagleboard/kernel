@@ -1,16 +1,16 @@
-From 0efecafe9a4a65d6046a31c83ad339c5e81c5b60 Mon Sep 17 00:00:00 2001
+From 2c0e6284a3632acdc2b3940850de261c76e5fe8d Mon Sep 17 00:00:00 2001
 From: Bas Laarhoven <sjml@xs4all.nl>
 Date: Sun, 11 Aug 2013 17:55:09 +0200
-Subject: [PATCH 12/16] Workaround for bug in tscadc code that oopses with
+Subject: [PATCH 12/17] Workaround for bug in tscadc code that oopses with
  BeagleBone (white) and device tree configuration.
 
 Signed-off-by: Bas Laarhoven <sjml@xs4all.nl>
 ---
- drivers/mfd/ti_am335x_tscadc.c | 4 +---
+ drivers/mfd/ti_am335x_tscadc.c |    4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index 408e859..a38de26 100644
+index addd23d..893ce96 100644
 --- a/drivers/mfd/ti_am335x_tscadc.c
 +++ b/drivers/mfd/ti_am335x_tscadc.c
 @@ -210,9 +210,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
@@ -25,5 +25,5 @@ index 408e859..a38de26 100644
  	/* TSCADC_CLKDIV needs to be configured to the value minus 1 */
  	clk_value = clk_value - 1;
 -- 
-1.8.2.1
+1.7.10.4
 
