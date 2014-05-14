@@ -1,29 +1,29 @@
-From 5db44aeb51721fe43fca7668508adebb9cca899a Mon Sep 17 00:00:00 2001
+From 616716a527a6e9393e0aed38a48ed342bb67e407 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Sat, 27 Jul 2013 13:06:21 +0100
-Subject: [PATCH 20/21] iio: ti_am335x_adc: Add IIO map interface
+Subject: [PATCH 19/19] iio: ti_am335x_adc: Add IIO map interface
 
 Add an IIO map interface that consumers can use.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 Signed-off-by: Zubair Lutfullah <zubair.lutfullah@gmail.com>
 ---
- drivers/iio/adc/ti_am335x_adc.c |   50 +++++++++++++++++++++++++++++++++++----
+ drivers/iio/adc/ti_am335x_adc.c | 50 ++++++++++++++++++++++++++++++++++++-----
  1 file changed, 45 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-index d626508..a172dfb 100644
+index f78d2c1..c380142 100644
 --- a/drivers/iio/adc/ti_am335x_adc.c
 +++ b/drivers/iio/adc/ti_am335x_adc.c
-@@ -38,6 +38,7 @@
+@@ -33,6 +33,7 @@
  struct tiadc_device {
  	struct ti_tscadc_dev *mfd_tscadc;
  	int channels;
 +	struct iio_map *map;
  	u8 channel_line[8];
  	u8 channel_step[8];
- 	struct work_struct poll_work;
-@@ -300,13 +301,16 @@ static int tiadc_channel_init(struct iio_dev *indio_dev, int channels)
+ };
+@@ -105,13 +106,16 @@ static int tiadc_channel_init(struct iio_dev *indio_dev, int channels)
  	struct tiadc_device *adc_dev = iio_priv(indio_dev);
  	struct iio_chan_spec *chan_array;
  	struct iio_chan_spec *chan;
@@ -43,10 +43,10 @@ index d626508..a172dfb 100644
  
  	chan = chan_array;
  	for (i = 0; i < channels; i++, chan++) {
-@@ -323,12 +327,44 @@ static int tiadc_channel_init(struct iio_dev *indio_dev, int channels)
- 	}
+@@ -128,12 +132,44 @@ static int tiadc_channel_init(struct iio_dev *indio_dev, int channels)
  
  	indio_dev->channels = chan_array;
+ 
 +
 +	map = kcalloc(channels + 1, sizeof(struct iio_map), GFP_KERNEL);
 +	if (map == NULL) {
@@ -88,8 +88,8 @@ index d626508..a172dfb 100644
  }
  
  static int tiadc_read_raw(struct iio_dev *indio_dev,
-@@ -436,8 +472,10 @@ static int tiadc_probe(struct platform_device *pdev)
- 	tiadc_writel(adc_dev, REG_FIFO1THR, FIFO1_THRESHOLD);
+@@ -246,12 +282,16 @@ static int tiadc_probe(struct platform_device *pdev)
+ 	tiadc_step_config(adc_dev);
  
  	err = tiadc_channel_init(indio_dev, adc_dev->channels);
 -	if (err < 0)
@@ -97,11 +97,6 @@ index d626508..a172dfb 100644
 +		dev_err(&pdev->dev, "tiadc_channel_init() failed\n");
  		goto err_free_device;
 +	}
- 
- 	INIT_WORK(&adc_dev->poll_work, &tiadc_adc_work);
- 	init_waitqueue_head(&adc_dev->wq_data_avail);
-@@ -453,8 +491,10 @@ static int tiadc_probe(struct platform_device *pdev)
- 		goto err_unregister;
  
  	err = iio_device_register(indio_dev);
 -	if (err)
@@ -113,5 +108,5 @@ index d626508..a172dfb 100644
  	platform_set_drvdata(pdev, indio_dev);
  
 -- 
-1.7.9.5
+1.9.2
 

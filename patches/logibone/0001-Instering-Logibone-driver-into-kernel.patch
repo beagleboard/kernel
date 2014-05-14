@@ -1,0 +1,921 @@
+From 96ca259a184413ae71ed89b91cdb9c8a7c9d5f2b Mon Sep 17 00:00:00 2001
+From: Jonathan Piat <piat.jonathan@gmail.com>
+Date: Mon, 28 Apr 2014 23:13:03 +0200
+Subject: [PATCH 1/3] Instering Logibone driver into kernel
+
+---
+ drivers/misc/cape/beaglebone/Kconfig             |    2 +
+ drivers/misc/cape/beaglebone/Makefile            |    1 +
+ drivers/misc/cape/beaglebone/logibone/Kconfig    |    6 +
+ drivers/misc/cape/beaglebone/logibone/Makefile   |    2 +
+ drivers/misc/cape/beaglebone/logibone/config.c   |  234 +++++++++++
+ drivers/misc/cape/beaglebone/logibone/config.h   |    6 +
+ drivers/misc/cape/beaglebone/logibone/drvr.h     |   35 ++
+ drivers/misc/cape/beaglebone/logibone/generic.h  |   11 +
+ drivers/misc/cape/beaglebone/logibone/ioctl.c    |   20 +
+ drivers/misc/cape/beaglebone/logibone/ioctl.h    |   13 +
+ drivers/misc/cape/beaglebone/logibone/main_dma.c |  490 ++++++++++++++++++++++
+ 11 files changed, 822 insertions(+)
+ create mode 100644 drivers/misc/cape/beaglebone/logibone/Kconfig
+ create mode 100644 drivers/misc/cape/beaglebone/logibone/Makefile
+ create mode 100644 drivers/misc/cape/beaglebone/logibone/config.c
+ create mode 100644 drivers/misc/cape/beaglebone/logibone/config.h
+ create mode 100644 drivers/misc/cape/beaglebone/logibone/drvr.h
+ create mode 100644 drivers/misc/cape/beaglebone/logibone/generic.h
+ create mode 100644 drivers/misc/cape/beaglebone/logibone/ioctl.c
+ create mode 100644 drivers/misc/cape/beaglebone/logibone/ioctl.h
+ create mode 100644 drivers/misc/cape/beaglebone/logibone/main_dma.c
+
+diff --git a/drivers/misc/cape/beaglebone/Kconfig b/drivers/misc/cape/beaglebone/Kconfig
+index ae58216..9569924 100644
+--- a/drivers/misc/cape/beaglebone/Kconfig
++++ b/drivers/misc/cape/beaglebone/Kconfig
+@@ -45,3 +45,5 @@ config CAPE_BEAGLEBONE_NIXIE
+ 	default n
+ 	help
+ 	  Say Y here to include support for the Nixie Cape
++
++source "drivers/misc/cape/beaglebone/logibone/Kconfig"
+diff --git a/drivers/misc/cape/beaglebone/Makefile b/drivers/misc/cape/beaglebone/Makefile
+index 097e25b..e8187b9 100644
+--- a/drivers/misc/cape/beaglebone/Makefile
++++ b/drivers/misc/cape/beaglebone/Makefile
+@@ -9,3 +9,4 @@ obj-$(CONFIG_CAPE_BEAGLEBONE)		+= capemgr.o
+ obj-$(CONFIG_CAPE_BEAGLEBONE_GEIGER)	+= cape-bone-geiger.o
+ obj-$(CONFIG_CAPE_BEAGLEBONE_ARGUS)	+= cape-bone-argus.o
+ obj-$(CONFIG_CAPE_BEAGLEBONE_NIXIE)	+= cape-bone-nixie.o
++obj-y					+= logibone/
+diff --git a/drivers/misc/cape/beaglebone/logibone/Kconfig b/drivers/misc/cape/beaglebone/logibone/Kconfig
+new file mode 100644
+index 0000000..2d2e891
+--- /dev/null
++++ b/drivers/misc/cape/beaglebone/logibone/Kconfig
+@@ -0,0 +1,6 @@
++config CAPE_LOGIBONE_R1
++	tristate "Beaglebone Logibone Cape"
++	depends on CAPE_BEAGLEBONE
++	default n
++	help
++	  Say Y here to include support for the Nixie Cape
+diff --git a/drivers/misc/cape/beaglebone/logibone/Makefile b/drivers/misc/cape/beaglebone/logibone/Makefile
+new file mode 100644
+index 0000000..9a1833f
+--- /dev/null
++++ b/drivers/misc/cape/beaglebone/logibone/Makefile
+@@ -0,0 +1,2 @@
++obj-$(CONFIG_CAPE_LOGIBONE_R1) 	+= 	logibone_r1_dma.o
++logibone_r1_dma-objs 		:= 	main_dma.o config.o ioctl.o
+diff --git a/drivers/misc/cape/beaglebone/logibone/config.c b/drivers/misc/cape/beaglebone/logibone/config.c
+new file mode 100644
+index 0000000..8064816
+--- /dev/null
++++ b/drivers/misc/cape/beaglebone/logibone/config.c
+@@ -0,0 +1,234 @@
++#include <linux/uaccess.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <asm/io.h>
++#include <linux/gpio.h>
++
++
++//SSI
++#define SSI_CLK 110
++#define SSI_DATA 112
++#define SSI_DONE 3
++#define SSI_PROG 5
++#define SSI_INIT 2
++#define MODE0	0
++#define MODE1 1
++#define SSI_DELAY 1
++
++//GPIO
++#define GPIO3_BASE 0x481AE000
++#define GPIO3_SETDATAOUT *(gpio_regs+1)
++#define GPIO3_CLEARDATAOUT *(gpio_regs)
++
++//I2C
++#define I2C_IO_EXP_CONFIG_REG	0x03
++#define I2C_IO_EXP_IN_REG	0x00
++#define I2C_IO_EXP_OUT_REG	0x01
++
++
++volatile unsigned * gpio_regs;
++
++
++static inline void __delay_cycles(unsigned long cycles)
++{
++	while (cycles != 0) {
++		cycles--;
++	}
++}
++
++static inline void ssiSetClk(void)
++{
++	//gpio_set_value(SSI_CLK, 1);
++	GPIO3_SETDATAOUT = (1 << 14);
++}
++
++static inline void ssiClearClk(void)
++{
++	//gpio_set_value(SSI_CLK, 0);
++	GPIO3_CLEARDATAOUT = (1 << 14);
++}
++
++static inline void ssiSetData(void)
++{
++	//gpio_set_value(SSI_DATA, 1);
++	GPIO3_SETDATAOUT = (1 << 16);
++}
++
++static inline void ssiClearData(void)
++{
++	//gpio_set_value(SSI_DATA, 0);
++	GPIO3_CLEARDATAOUT = (1 << 16);
++}
++
++static inline void serialConfigWriteByte(unsigned char val)
++{
++	unsigned char bitCount = 0;
++	unsigned char valBuf = val;
++
++	for (bitCount = 0; bitCount < 8; bitCount++) {
++		ssiClearClk();
++
++		if ((valBuf & 0x80) != 0) {
++			ssiSetData();
++		} else {
++			ssiClearData();
++		}
++
++		//__delay_cycles(SSI_DELAY);
++		ssiSetClk();
++		valBuf = (valBuf << 1);
++		//__delay_cycles(SSI_DELAY);
++	}
++}
++
++static inline void i2c_set_pin(struct i2c_client * io_cli, unsigned char pin, unsigned char val)
++{
++	unsigned char i2c_buffer[2];
++
++	i2c_buffer[0] = I2C_IO_EXP_OUT_REG;
++	i2c_master_send(io_cli, i2c_buffer, 1);
++	i2c_master_recv(io_cli, &i2c_buffer[1], 1);
++
++	if (val == 1) {
++		i2c_buffer[1] |= (1 << pin);
++	} else {
++		i2c_buffer[1] &= ~(1 << pin);
++	}
++
++	i2c_master_send(io_cli, i2c_buffer, 2);
++}
++
++static inline unsigned char i2c_get_pin(struct i2c_client * io_cli, unsigned char pin)
++{
++	unsigned char i2c_buffer;
++
++	i2c_buffer = I2C_IO_EXP_IN_REG;
++	i2c_master_send(io_cli, &i2c_buffer, 1);
++	i2c_master_recv(io_cli, &i2c_buffer, 1);
++	//printk("reading value %x \n", i2c_buffer);
++
++	return ((i2c_buffer >> pin) & 0x01);
++}
++
++int loadBitFile(struct i2c_client * io_cli, const unsigned char * bitBuffer_user, const unsigned int length)
++{
++	int iCfg;
++	unsigned long int i;
++	unsigned long int timer = 0;
++	unsigned char * bitBuffer;
++	unsigned char i2c_buffer[4];
++
++	//request_mem_region(GPIO3_BASE + 0x190, 8, gDrvrName);
++	gpio_regs = ioremap_nocache(GPIO3_BASE + 0x190, 2 * sizeof(int));
++
++	bitBuffer = kmalloc(length, GFP_KERNEL);
++
++	if (bitBuffer == NULL || copy_from_user(bitBuffer, bitBuffer_user, length)) {
++		printk("Failed allocate buffer for configuration file \n");
++
++		return -ENOTTY;
++	}
++
++	iCfg = gpio_request(SSI_CLK, "ssi_clk");
++
++	if (iCfg < 0) {
++		printk("Failed to take control over ssi_clk pin \n");
++
++		return -ENOTTY;
++	}
++
++	iCfg = gpio_request(SSI_DATA, "ssi_data");
++
++	if (iCfg < 0) {
++		printk("Failed to take control over ssi_data pin \n");
++
++		return -ENOTTY;
++	}
++
++	i2c_buffer[0] = I2C_IO_EXP_CONFIG_REG;
++	i2c_buffer[1] = 0xFF;
++	i2c_buffer[1] &= ~((1 << SSI_PROG) | (1 << MODE1) | (1 << MODE0));
++	i2c_master_send(io_cli, i2c_buffer, 2); // set SSI_PROG, MODE0, MODE1 as output others as inputs
++	i2c_set_pin(io_cli, MODE0, 1);
++	i2c_set_pin(io_cli, MODE1, 1);
++	i2c_set_pin(io_cli, SSI_PROG, 0);
++
++	gpio_direction_output(SSI_CLK, 0);
++	gpio_direction_output(SSI_DATA, 0);
++
++	gpio_set_value(SSI_CLK, 0);
++	i2c_set_pin(io_cli, SSI_PROG, 1);
++	__delay_cycles(10 * SSI_DELAY);
++	i2c_set_pin(io_cli, SSI_PROG, 0);
++	__delay_cycles(5 * SSI_DELAY);
++
++	while (i2c_get_pin(io_cli, SSI_INIT) > 0 && timer < 200)
++		timer++; // waiting for init pin to go down
++
++	if (timer >= 200) {
++		printk("FPGA did not answer to prog request, init pin not going low \n");
++		i2c_set_pin(io_cli, SSI_PROG, 1);
++		gpio_free(SSI_CLK);
++		gpio_free(SSI_DATA);
++
++		return -ENOTTY;
++	}
++
++	timer = 0;
++	__delay_cycles(5 * SSI_DELAY);
++	i2c_set_pin(io_cli, SSI_PROG, 1);
++
++	while (i2c_get_pin(io_cli, SSI_INIT) == 0 && timer < 256) { // need to find a better way ...
++		timer++; // waiting for init pin to go up
++	}
++
++	if (timer >= 256) {
++		printk("FPGA did not answer to prog request, init pin not going high \n");
++		gpio_free(SSI_CLK);
++		gpio_free(SSI_DATA);
++
++		return -ENOTTY;
++	}
++
++	timer = 0;
++	printk("Starting configuration of %d bits \n", length * 8);
++
++	for (i = 0; i < length; i++) {
++		serialConfigWriteByte(bitBuffer[i]);
++		schedule();
++	}
++
++	printk("Waiting for done pin to go high \n");
++
++	while (timer < 50) {
++		ssiClearClk();
++		__delay_cycles(SSI_DELAY);
++		ssiSetClk();
++		__delay_cycles(SSI_DELAY);
++		timer++;
++	}
++
++	gpio_set_value(SSI_CLK, 0);
++	gpio_set_value(SSI_DATA, 1);
++
++	if (i2c_get_pin(io_cli, SSI_DONE) == 0) {
++		printk("FPGA prog failed, done pin not going high \n");
++		gpio_free(SSI_CLK);
++		gpio_free(SSI_DATA);
++
++		return -ENOTTY;
++	}
++
++	i2c_buffer[0] = I2C_IO_EXP_CONFIG_REG;
++	i2c_buffer[1] = 0xDC;
++	i2c_master_send(io_cli, i2c_buffer, 2); // set all unused config pins as input (keeping mode pins and PROG as output)
++	gpio_direction_input(SSI_CLK);
++	gpio_direction_input(SSI_DATA);
++	gpio_free(SSI_CLK);
++	gpio_free(SSI_DATA);
++	iounmap(gpio_regs);
++	//release_mem_region(GPIO3_BASE + 0x190, 8);
++	kfree(bitBuffer);
++
++	return length;
++}
+diff --git a/drivers/misc/cape/beaglebone/logibone/config.h b/drivers/misc/cape/beaglebone/logibone/config.h
+new file mode 100644
+index 0000000..f2e3f66
+--- /dev/null
++++ b/drivers/misc/cape/beaglebone/logibone/config.h
+@@ -0,0 +1,6 @@
++#ifndef __CONFIG_H__
++#define __CONFIG_H__
++
++int loadBitFile(struct i2c_client * io_cli, const unsigned char * bitBuffer_user, const unsigned int length);
++
++#endif
+diff --git a/drivers/misc/cape/beaglebone/logibone/drvr.h b/drivers/misc/cape/beaglebone/logibone/drvr.h
+new file mode 100644
+index 0000000..2051369
+--- /dev/null
++++ b/drivers/misc/cape/beaglebone/logibone/drvr.h
+@@ -0,0 +1,35 @@
++#ifndef __DRVR_H__
++#define __DRVR_H__
++
++#include <linux/cdev.h>
++
++enum drvr_type{
++	prog,
++	mem
++};
++
++struct drvr_prog{
++	struct i2c_client * i2c_io;
++};
++
++
++struct drvr_mem{
++	unsigned short * base_addr;
++	unsigned short * virt_addr;
++	unsigned char * dma_buf;
++	int dma_chan;
++};
++
++union drvr_data{
++	struct drvr_prog prog;
++	struct drvr_mem mem;
++};
++
++struct drvr_device{
++	enum drvr_type type;
++	union drvr_data data;
++	struct cdev cdev;
++	unsigned char opened;
++};
++
++#endif
+diff --git a/drivers/misc/cape/beaglebone/logibone/generic.h b/drivers/misc/cape/beaglebone/logibone/generic.h
+new file mode 100644
+index 0000000..54a82a4
+--- /dev/null
++++ b/drivers/misc/cape/beaglebone/logibone/generic.h
+@@ -0,0 +1,11 @@
++#define DEVICE_NAME "logibone"
++#define DEVICE_NAME_MEM "logibone_mem"
++
++//I2C
++#define I2C_IO_EXP_ADDR	0x24
++
++//FPGA
++#define FPGA_BASE_ADDR	 0x01000000
++#define FPGA_MEM_SIZE	 131072
++
++#define MAX_DMA_TRANSFER_IN_BYTES   (32768)
+diff --git a/drivers/misc/cape/beaglebone/logibone/ioctl.c b/drivers/misc/cape/beaglebone/logibone/ioctl.c
+new file mode 100644
+index 0000000..84be5fd
+--- /dev/null
++++ b/drivers/misc/cape/beaglebone/logibone/ioctl.c
+@@ -0,0 +1,20 @@
++#include <linux/interrupt.h>
++#include <linux/fs.h>
++#include <linux/slab.h>
++#include <asm/uaccess.h>   /* copy_to_user */
++#include "ioctl.h"
++#include "drvr.h"
++
++
++long ioctl_init() {
++	return 0;
++}
++
++void ioctl_exit() {
++}
++
++long dm_ioctl(struct file *filp, unsigned int cmd, unsigned long arg){
++	printk("ioctl failed \n");
++
++	return -ENOTTY;
++}
+diff --git a/drivers/misc/cape/beaglebone/logibone/ioctl.h b/drivers/misc/cape/beaglebone/logibone/ioctl.h
+new file mode 100644
+index 0000000..89e2419
+--- /dev/null
++++ b/drivers/misc/cape/beaglebone/logibone/ioctl.h
+@@ -0,0 +1,13 @@
++#ifndef __IOCTL_H__
++#define __IOCTL_H__
++
++#include <linux/stddef.h>
++#include <linux/ioctl.h>
++
++#define MAJOR_NUM 100
++
++long ioctl_init(void);
++void ioctl_exit(void);
++long dm_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
++
++#endif
+diff --git a/drivers/misc/cape/beaglebone/logibone/main_dma.c b/drivers/misc/cape/beaglebone/logibone/main_dma.c
+new file mode 100644
+index 0000000..8228b33
+--- /dev/null
++++ b/drivers/misc/cape/beaglebone/logibone/main_dma.c
+@@ -0,0 +1,490 @@
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/pci.h>
++#include <linux/interrupt.h>
++#include <linux/fs.h>
++#include <linux/slab.h>
++#include <linux/ioctl.h>
++#include <linux/time.h>
++#include <asm/uaccess.h>   /* copy_to_user */
++#include <linux/cdev.h>
++#include <linux/sched.h>
++#include <linux/memory.h>
++#include <linux/dma-mapping.h>
++#include <linux/edma.h>
++#include <linux/platform_data/edma.h>
++#include <linux/delay.h>
++#include <linux/mutex.h>
++
++//device tree support
++#include <linux/of.h>
++#include <linux/of_platform.h>
++#include <linux/of_dma.h>
++#include <linux/of_gpio.h>
++#include <linux/completion.h>
++#include "generic.h"
++#include "config.h"
++#include "drvr.h"
++#include "ioctl.h"
++
++
++//#define PROFILE //uncoment to enable code profile
++
++static int dm_open(struct inode *inode, struct file *filp);
++static int dm_release(struct inode *inode, struct file *filp);
++static ssize_t dm_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos);
++static ssize_t dm_read(struct file *filp, char *buf, size_t count, loff_t *f_pos);
++static int edma_memtomemcpy(int count, unsigned long src_addr, unsigned long trgt_addr, int dma_ch);
++static void dma_callback(unsigned lch, u16 ch_status, void *data);
++
++
++static struct i2c_board_info io_exp_info= {
++	I2C_BOARD_INFO("fpga_ctrl", I2C_IO_EXP_ADDR),
++};
++
++static struct file_operations dm_ops = {
++	.read =   dm_read,
++	.write =  dm_write,
++	.compat_ioctl =  dm_ioctl,
++	.unlocked_ioctl = dm_ioctl,
++	.open =   dm_open,
++	.release =  dm_release,
++};
++
++
++static dma_addr_t dmaphysbuf = 0;
++static volatile int irqraised1 = 0;
++static unsigned char gDrvrMajor = 0;
++static struct device * prog_device;
++static struct class * drvr_class;
++static struct drvr_device * drvr_devices;
++static struct completion dma_comp;
++
++
++#ifdef PROFILE
++
++static struct timespec start_ts, end_ts ; //profile timer
++
++inline void start_profile() {
++	getnstimeofday(&start_ts);
++}
++
++inline void stop_profile() {
++	getnstimeofday(&end_ts);
++}
++
++inline void compute_bandwidth(const unsigned int nb_byte) {
++	struct timespec dt=timespec_sub(end_ts,start_ts);
++	long elapsed_u_time=dt.tv_sec*1000000+dt.tv_nsec/1000;
++
++	printk("Time=%ld us\n",elapsed_u_time);
++	printk("Bandwidth=%d kBytes/s\n",1000000*(nb_byte>>10)/elapsed_u_time);
++}
++
++#endif
++
++
++ssize_t writeMem(struct file *filp, const char *buf, size_t count, loff_t *f_pos)
++{
++	unsigned short int transfer_size;
++	ssize_t transferred = 0;
++	unsigned long src_addr, trgt_addr;
++	struct drvr_mem * mem_to_write = &(((struct drvr_device *) filp->private_data)->data.mem);
++/*
++	if (count % 2 != 0) {
++		printk("%s: write: Transfer must be 16bits aligned.\n", DEVICE_NAME);
++
++		return -1;
++	}
++*/
++	if (count < MAX_DMA_TRANSFER_IN_BYTES) {
++		transfer_size = count;
++	} else {
++		transfer_size = MAX_DMA_TRANSFER_IN_BYTES;
++	}
++
++	if (mem_to_write->dma_buf == NULL) {
++		printk("failed to allocate DMA buffer \n");
++
++		return -1;
++	}
++
++	trgt_addr = (unsigned long) &(mem_to_write->base_addr[(*f_pos)]);
++	src_addr = (unsigned long) dmaphysbuf;
++
++	if (copy_from_user(mem_to_write->dma_buf, buf, transfer_size)) {
++		return -1;
++	}
++
++	while (transferred < count) {
++
++#ifdef PROFILE
++		printk("Write \n");
++		start_profile();
++#endif
++
++		if (edma_memtomemcpy(transfer_size, src_addr, trgt_addr, mem_to_write->dma_chan) < 0) {
++			printk("%s: write: Failed to trigger EDMA transfer.\n", DEVICE_NAME);
++
++			return -1;
++		}
++
++#ifdef PROFILE
++		stop_profile();
++		compute_bandwidth(transfer_size);
++#endif
++
++		trgt_addr += transfer_size;
++		transferred += transfer_size;
++
++		if ((count - transferred) < MAX_DMA_TRANSFER_IN_BYTES) {
++			transfer_size = count - transferred;
++		} else {
++			transfer_size = MAX_DMA_TRANSFER_IN_BYTES;
++		}
++
++		if (copy_from_user(mem_to_write->dma_buf, &buf[transferred], transfer_size)) {
++			return -1;
++		}
++	}
++
++	return transferred;
++}
++
++ssize_t readMem(struct file *filp, char *buf, size_t count, loff_t *f_pos)
++{
++	unsigned short int transfer_size;
++	ssize_t transferred = 0;
++	unsigned long src_addr, trgt_addr;
++
++	struct drvr_mem * mem_to_read = &(((struct drvr_device *) filp->private_data)->data.mem);
++/*
++	if (count % 2 != 0) {
++		printk("%s: read: Transfer must be 16bits aligned.\n", DEVICE_NAME);
++
++		return -1;
++	}
++*/
++	if (count < MAX_DMA_TRANSFER_IN_BYTES) {
++		transfer_size = count;
++	} else {
++		transfer_size = MAX_DMA_TRANSFER_IN_BYTES;
++	}
++
++	if (mem_to_read->dma_buf == NULL) {
++		printk("failed to allocate DMA buffer \n");
++
++		return -1;
++	}
++
++	src_addr = (unsigned long) &(mem_to_read->base_addr[(*f_pos)]);
++	trgt_addr = (unsigned long) dmaphysbuf;
++
++	while (transferred < count) {
++
++#ifdef PROFILE
++		printk("Read \n");
++		start_profile();
++#endif
++
++		if (edma_memtomemcpy(transfer_size, src_addr, trgt_addr, mem_to_read->dma_chan) < 0) {
++
++			printk("%s: read: Failed to trigger EDMA transfer.\n", DEVICE_NAME);
++
++			return -1;
++		}
++
++		if (copy_to_user(&buf[transferred], mem_to_read->dma_buf, transfer_size)) {
++			return -1;
++		}
++
++#ifdef PROFILE
++		stop_profile();
++		compute_bandwidth(transfer_size);
++#endif
++
++		src_addr += transfer_size;
++		transferred += transfer_size;
++
++		if ((count - transferred) < MAX_DMA_TRANSFER_IN_BYTES) {
++			transfer_size = (count - transferred);
++		} else {
++			transfer_size = MAX_DMA_TRANSFER_IN_BYTES;
++		}
++	}
++
++	return transferred;
++}
++
++static int dm_open(struct inode *inode, struct file *filp)
++{
++	struct drvr_device
++	* dev = container_of(inode->i_cdev, struct drvr_device, cdev);
++
++	filp->private_data = dev; /* for other methods */
++
++	if (dev == NULL) {
++		printk("%s: Failed to retrieve driver structure !\n", DEVICE_NAME);
++
++		return -1;
++	}
++
++	if (dev->opened == 1) {
++		printk("%s: module already opened\n", DEVICE_NAME);
++
++		return 0;
++	}
++
++	if (dev->type != prog) {
++		struct drvr_mem* mem_dev = &((dev->data).mem);
++
++		request_mem_region((unsigned long) mem_dev->base_addr, FPGA_MEM_SIZE, DEVICE_NAME);
++		mem_dev->virt_addr = ioremap_nocache(((unsigned long) mem_dev->base_addr), FPGA_MEM_SIZE);
++		mem_dev->dma_chan = edma_alloc_channel(EDMA_CHANNEL_ANY, dma_callback, NULL, EVENTQ_0);
++		mem_dev->dma_buf = (unsigned char *) dma_alloc_coherent(NULL, MAX_DMA_TRANSFER_IN_BYTES, &dmaphysbuf, 0);
++		printk("EDMA channel %d reserved \n", mem_dev->dma_chan);
++
++		if (mem_dev->dma_chan < 0) {
++			printk("edma_alloc_channel failed for dma_ch, error: %d\n", mem_dev->dma_chan);
++
++			return -1;
++		}
++
++		printk("mem interface opened \n");
++	}
++
++	dev->opened = 1;
++
++	return 0;
++}
++
++static int dm_release(struct inode *inode, struct file *filp)
++{
++	struct drvr_device
++	* dev = container_of(inode->i_cdev, struct drvr_device, cdev);
++
++	if (dev->opened == 0) {
++		printk("%s: module already released\n", DEVICE_NAME);
++
++		return 0;
++	}
++
++	if (dev->type == mem) {
++		iounmap((dev->data.mem).virt_addr);
++		release_mem_region(((unsigned long) (dev->data.mem).base_addr), FPGA_MEM_SIZE);
++		printk("%s: Release: module released\n", DEVICE_NAME);
++		dma_free_coherent(NULL, MAX_DMA_TRANSFER_IN_BYTES, (dev->data.mem).dma_buf, dmaphysbuf);
++		edma_free_channel((dev->data.mem).dma_chan);
++	}
++
++	dev->opened = 0;
++
++	return 0;
++}
++
++static ssize_t dm_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos)
++{
++	struct drvr_device * dev = filp->private_data; /* for other methods */
++
++	switch (dev->type) {
++		case prog:
++			return loadBitFile((dev->data.prog.i2c_io), buf, count);
++
++		case mem:
++			return writeMem(filp, buf, count, f_pos);
++
++		default:
++			return loadBitFile((dev->data.prog.i2c_io), buf, count);
++	};
++}
++
++static ssize_t dm_read(struct file *filp, char *buf, size_t count, loff_t *f_pos)
++{
++	struct drvr_device * dev = filp->private_data; /* for other methods */
++
++	switch (dev->type) {
++		case prog:
++			return -1;
++
++		case mem:
++			return readMem(filp, buf, count, f_pos);
++
++		default:
++			return -1;
++	};
++}
++
++static void dm_exit(void)
++{
++	dev_t devno = MKDEV(gDrvrMajor, 0);
++
++	/* Get rid of our char dev entries */
++	if (drvr_devices) {
++		int i;
++
++		for (i = 0; i < 2; i++) {
++			if (i == 0) {
++				i2c_unregister_device(drvr_devices[i].data.prog.i2c_io);
++			}
++
++			device_destroy(drvr_class, MKDEV(gDrvrMajor, i));
++			cdev_del(&drvr_devices[i].cdev);
++		}
++
++		kfree(drvr_devices);
++	}
++
++	class_destroy(drvr_class);
++	/* cleanup_module is never called if registering failed */
++	unregister_chrdev_region(devno, 2);
++
++	ioctl_exit();
++}
++
++static int dm_init(void)
++{
++	int result;
++	int devno;
++	struct drvr_mem * memDev;
++	struct drvr_prog * progDev;
++	struct i2c_adapter *i2c_adap;
++
++	dev_t dev = 0;
++	result = alloc_chrdev_region(&dev, 0, 2, DEVICE_NAME);
++	gDrvrMajor = MAJOR(dev);
++
++	if (result < 0) {
++		printk(KERN_ALERT "Registering char device failed with %d\n", gDrvrMajor);
++
++		return result;
++	}
++
++	drvr_devices = kmalloc(2 * sizeof(struct drvr_device), GFP_KERNEL);
++
++	if (!drvr_devices) {
++		dm_exit();
++
++		return -ENOMEM;
++	}
++
++	drvr_class = class_create(THIS_MODULE, DEVICE_NAME);
++	memset(drvr_devices, 0, 2 * sizeof(struct drvr_device));
++
++	/*Initializing main mdevice for prog*/
++	devno = MKDEV(gDrvrMajor, 0);
++	drvr_devices[0].type = prog;
++	progDev = &(drvr_devices[0].data.prog);
++	prog_device = device_create(drvr_class, NULL, devno, NULL, DEVICE_NAME);	// should create /dev entry for main node
++	drvr_devices[0].opened = 0;
++
++	/*Do the i2c stuff*/
++	i2c_adap = i2c_get_adapter(1); // todo need to check i2c adapter id
++
++	if (i2c_adap == NULL) {
++		printk("Cannot get adapter 1 \n");
++		dm_exit();
++
++		return -1;
++	}
++
++	progDev->i2c_io = i2c_new_device(i2c_adap, &io_exp_info);
++	i2c_put_adapter(i2c_adap); //don't know what it does, seems to release the adapter ...
++
++	if (prog_device == NULL) {
++		class_destroy(drvr_class);
++		drvr_devices[0].opened = 0;
++		dm_exit();
++
++		return -ENOMEM;;
++	}
++
++	cdev_init(&(drvr_devices[0].cdev), &dm_ops);
++	drvr_devices[0].cdev.owner = THIS_MODULE;
++	drvr_devices[0].cdev.ops = &dm_ops;
++	cdev_add(&(drvr_devices[0].cdev), devno, 1);
++	//printk(KERN_INFO "'mknod /dev/%s c %d %d'.\n", DEVICE_NAME, gDrvrMajor, 0);
++	/* Initialize each device. */
++	devno = MKDEV(gDrvrMajor, 1);
++	drvr_devices[1].type = mem;
++	memDev = &(drvr_devices[1].data.mem);
++	memDev->base_addr = (unsigned short *) (FPGA_BASE_ADDR);
++	device_create(drvr_class, prog_device, devno, NULL, DEVICE_NAME_MEM);
++	cdev_init(&(drvr_devices[1].cdev), &dm_ops);
++	(drvr_devices[1].cdev).owner = THIS_MODULE;
++	(drvr_devices[1].cdev).ops = &dm_ops;
++	cdev_add(&(drvr_devices[1].cdev), devno, 1);
++	drvr_devices[1].opened = 0;
++	init_completion(&dma_comp);
++
++	return ioctl_init();
++}
++
++static int edma_memtomemcpy(int count, unsigned long src_addr, unsigned long trgt_addr, int dma_ch)
++{
++	int result = 0;
++	struct edmacc_param param_set;
++
++	edma_set_src(dma_ch, src_addr, INCR, W256BIT);
++	edma_set_dest(dma_ch, trgt_addr, INCR, W256BIT);
++	edma_set_src_index(dma_ch, 1, 1);
++	edma_set_dest_index(dma_ch, 1, 1);
++	/* A Sync Transfer Mode */
++	edma_set_transfer_params(dma_ch, count, 1, 1, 1, ASYNC); //one block of one frame of one array of count bytes
++
++	/* Enable the Interrupts on Channel 1 */
++	edma_read_slot(dma_ch, &param_set);
++	param_set.opt |= ITCINTEN;
++	param_set.opt |= TCINTEN;
++	param_set.opt |= EDMA_TCC(EDMA_CHAN_SLOT(dma_ch));
++	edma_write_slot(dma_ch, &param_set);
++	irqraised1 = 0u;
++	dma_comp.done = 0;
++	result = edma_start(dma_ch);
++
++	if (result != 0) {
++		printk("%s: edma copy failed \n", DEVICE_NAME);
++	}
++
++	wait_for_completion(&dma_comp);
++
++	/* Check the status of the completed transfer */
++	if (irqraised1 < 0) {
++		printk("%s: edma copy: Event Miss Occured!!!\n", DEVICE_NAME);
++		edma_stop(dma_ch);
++		result = -EAGAIN;
++	}
++
++	return result;
++}
++
++static void dma_callback(unsigned lch, u16 ch_status, void *data)
++{
++	switch (ch_status) {
++		case DMA_COMPLETE:
++			irqraised1 = 1;
++			break;
++
++		case DMA_CC_ERROR:
++			irqraised1 = -1;
++			break;
++
++		default:
++			irqraised1 = -1;
++			break;
++	}
++
++	complete(&dma_comp);
++}
++
++static const struct of_device_id drvr_of_match[] = {
++	{ .compatible = DEVICE_NAME, },
++	{ },
++};
++
++MODULE_DEVICE_TABLE(of, drvr_of_match);
++MODULE_LICENSE("Dual BSD/GPL");
++MODULE_AUTHOR("Jonathan Piat <piat.jonathan@gmail.com>");
++MODULE_AUTHOR("Martin Schmitt <test051102@hotmail.com>");
++
++module_init(dm_init);
++module_exit(dm_exit);
+-- 
+1.7.9.5
+
