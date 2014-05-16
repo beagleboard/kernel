@@ -1,18 +1,17 @@
-From 00b09f803f15fd0ff8d135cd83d5c3e3ef27a86c Mon Sep 17 00:00:00 2001
+From 9e6b4be7f4f8861ea4093762434d50e950923127 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 5 Jun 2013 19:48:59 +0300
-Subject: [PATCH 15/22] drm: tilcdc: Clear bits of register we're going to
- set.
+Subject: [PATCH 15/27] drm: tilcdc: Clear bits of register we're going to set.
 
 Bits weren't cleared so resolution changes didn't work.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c |   22 ++++++++++++----------
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c | 22 ++++++++++++----------
  1 file changed, 12 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index 5f5f464..8ce18ca 100644
+index 45852d7..24f2aa4 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 @@ -286,15 +286,18 @@ static int tilcdc_crtc_mode_set(struct drm_crtc *crtc,
@@ -64,5 +63,5 @@ index 5f5f464..8ce18ca 100644
  
  	/* Configure display type: */
 -- 
-1.7.9.5
+1.9.0
 

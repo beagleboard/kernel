@@ -1,42 +1,42 @@
-From 1a696f51596e19fe04ca6b38d45227cd9c75e8c1 Mon Sep 17 00:00:00 2001
+From 29b0dfe075e4f01dae630c0e3117d5c6c8777fcd Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 16 May 2013 18:13:19 +0300
-Subject: [PATCH 02/21] capes: Add resources to capes.
+Subject: [PATCH 02/24] capes: Add resources to capes.
 
 Start adding the resource list of each cape.
 ---
- firmware/capes/BB-BONE-AUDI-01-00A0.dts     |   15 ++++++++-
- firmware/capes/BB-BONE-CAM3-01-00A2.dts     |   45 +++++++++++++++++++++++++--
- firmware/capes/BB-BONE-GPEVT-00A0.dts       |    2 +-
- firmware/capes/BB-BONE-PRU-01-00A0.dts      |    7 +++++
- firmware/capes/BB-BONE-PRU-02-00A0.dts      |    7 +++++
- firmware/capes/BB-BONE-PWMT-00A0.dts        |    2 +-
- firmware/capes/BB-BONE-RST-00A0.dts         |    2 +-
- firmware/capes/BB-BONE-RST2-00A0.dts        |    2 +-
- firmware/capes/BB-BONE-eMMC1-01-00A0.dts    |    2 +-
- firmware/capes/am33xx_pwm-00A0.dts          |    2 +-
- firmware/capes/bone_pwm_P8_13-00A0.dts      |    2 +-
- firmware/capes/bone_pwm_P8_19-00A0.dts      |    2 +-
- firmware/capes/bone_pwm_P8_34-00A0.dts      |    2 +-
- firmware/capes/bone_pwm_P8_36-00A0.dts      |    2 +-
- firmware/capes/bone_pwm_P8_45-00A0.dts      |    2 +-
- firmware/capes/bone_pwm_P8_46-00A0.dts      |    2 +-
- firmware/capes/bone_pwm_P9_14-00A0.dts      |    2 +-
- firmware/capes/bone_pwm_P9_16-00A0.dts      |    2 +-
- firmware/capes/bone_pwm_P9_21-00A0.dts      |    2 +-
- firmware/capes/bone_pwm_P9_22-00A0.dts      |    2 +-
- firmware/capes/bone_pwm_P9_28-00A0.dts      |    2 +-
- firmware/capes/bone_pwm_P9_29-00A0.dts      |    2 +-
- firmware/capes/bone_pwm_P9_31-00A0.dts      |    2 +-
- firmware/capes/bone_pwm_P9_42-00A0.dts      |    2 +-
- firmware/capes/cape-bone-2g-emmc1.dts       |   18 +++++++++++
- firmware/capes/cape-bone-dvi-00A1.dts       |    2 +-
- firmware/capes/cape-bone-dvi-00A2.dts       |    2 +-
- firmware/capes/cape-bone-lcd3-00A0.dts      |   41 ++++++++++++++++++++++++
- firmware/capes/cape-bone-lcd3-00A2.dts      |   39 +++++++++++++++++++++++
- firmware/capes/cape-bone-tester-00A0.dts    |    2 +-
- firmware/capes/cape-bone-weather-00A0.dts   |   19 +++++------
- firmware/capes/cape-boneblack-hdmi-00A0.dts |   34 +++++++++++++++++++-
+ firmware/capes/BB-BONE-AUDI-01-00A0.dts     | 15 +++++++++-
+ firmware/capes/BB-BONE-CAM3-01-00A2.dts     | 45 +++++++++++++++++++++++++++--
+ firmware/capes/BB-BONE-GPEVT-00A0.dts       |  2 +-
+ firmware/capes/BB-BONE-PRU-01-00A0.dts      |  7 +++++
+ firmware/capes/BB-BONE-PRU-02-00A0.dts      |  7 +++++
+ firmware/capes/BB-BONE-PWMT-00A0.dts        |  2 +-
+ firmware/capes/BB-BONE-RST-00A0.dts         |  2 +-
+ firmware/capes/BB-BONE-RST2-00A0.dts        |  2 +-
+ firmware/capes/BB-BONE-eMMC1-01-00A0.dts    |  2 +-
+ firmware/capes/am33xx_pwm-00A0.dts          |  2 +-
+ firmware/capes/bone_pwm_P8_13-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P8_19-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P8_34-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P8_36-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P8_45-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P8_46-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_14-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_16-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_21-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_22-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_28-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_29-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_31-00A0.dts      |  2 +-
+ firmware/capes/bone_pwm_P9_42-00A0.dts      |  2 +-
+ firmware/capes/cape-bone-2g-emmc1.dts       | 18 ++++++++++++
+ firmware/capes/cape-bone-dvi-00A1.dts       |  2 +-
+ firmware/capes/cape-bone-dvi-00A2.dts       |  2 +-
+ firmware/capes/cape-bone-lcd3-00A0.dts      | 41 ++++++++++++++++++++++++++
+ firmware/capes/cape-bone-lcd3-00A2.dts      | 39 +++++++++++++++++++++++++
+ firmware/capes/cape-bone-tester-00A0.dts    |  2 +-
+ firmware/capes/cape-bone-weather-00A0.dts   | 19 ++++++------
+ firmware/capes/cape-boneblack-hdmi-00A0.dts | 34 +++++++++++++++++++++-
  32 files changed, 235 insertions(+), 36 deletions(-)
 
 diff --git a/firmware/capes/BB-BONE-AUDI-01-00A0.dts b/firmware/capes/BB-BONE-AUDI-01-00A0.dts
@@ -152,7 +152,7 @@ index 80f9016..112a6d1 100644
  	/* identification */
  	part-number = "BB-BONE-GPEVT";
 diff --git a/firmware/capes/BB-BONE-PRU-01-00A0.dts b/firmware/capes/BB-BONE-PRU-01-00A0.dts
-index 29ab671..9bf2c7a 100644
+index 618e489..92198f0 100644
 --- a/firmware/capes/BB-BONE-PRU-01-00A0.dts
 +++ b/firmware/capes/BB-BONE-PRU-01-00A0.dts
 @@ -15,6 +15,13 @@
@@ -170,7 +170,7 @@ index 29ab671..9bf2c7a 100644
  		target = <&am33xx_pinmux>;
  		__overlay__ {
 diff --git a/firmware/capes/BB-BONE-PRU-02-00A0.dts b/firmware/capes/BB-BONE-PRU-02-00A0.dts
-index ddb63f7..13389c7 100644
+index e9baa89..fe91da3 100644
 --- a/firmware/capes/BB-BONE-PRU-02-00A0.dts
 +++ b/firmware/capes/BB-BONE-PRU-02-00A0.dts
 @@ -15,6 +15,13 @@
@@ -542,7 +542,7 @@ index 1ac8462..a2f8b35 100644
  		target = <&am33xx_pinmux>;
  		__overlay__ {
 diff --git a/firmware/capes/cape-bone-lcd3-00A2.dts b/firmware/capes/cape-bone-lcd3-00A2.dts
-index 9c7bb17..c2cdedc 100644
+index 297ea2d..faaed39 100644
 --- a/firmware/capes/cape-bone-lcd3-00A2.dts
 +++ b/firmware/capes/cape-bone-lcd3-00A2.dts
 @@ -15,6 +15,45 @@
@@ -592,7 +592,7 @@ index 9c7bb17..c2cdedc 100644
  		target = <&am33xx_pinmux>;
  		__overlay__ {
 diff --git a/firmware/capes/cape-bone-tester-00A0.dts b/firmware/capes/cape-bone-tester-00A0.dts
-index 4d7dc68..b5b1be8 100644
+index e9699cd..49f2a3e 100644
 --- a/firmware/capes/cape-bone-tester-00A0.dts
 +++ b/firmware/capes/cape-bone-tester-00A0.dts
 @@ -9,7 +9,7 @@
@@ -657,15 +657,15 @@ index 76284d6..7cb479a 100644
 +	};
  };
 diff --git a/firmware/capes/cape-boneblack-hdmi-00A0.dts b/firmware/capes/cape-boneblack-hdmi-00A0.dts
-index e5f714a..5fdbd9e 100644
+index 6d5307f..821c87a 100644
 --- a/firmware/capes/cape-boneblack-hdmi-00A0.dts
 +++ b/firmware/capes/cape-boneblack-hdmi-00A0.dts
 @@ -9,10 +9,42 @@
  /plugin/;
  
  / {
--  	compatible = "ti,beaglebone";
-+  	compatible = "ti,beaglebone-black";
+-	compatible = "ti,beaglebone";
++	compatible = "ti,beaglebone-black";
  	part-number = "BB-BONELT-HDMI";
  	version = "00A0";
  
@@ -705,5 +705,5 @@ index e5f714a..5fdbd9e 100644
  		target = <&am33xx_pinmux>;
  		__overlay__ {
 -- 
-1.7.9.5
+1.9.0
 

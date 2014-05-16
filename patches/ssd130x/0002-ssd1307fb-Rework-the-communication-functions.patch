@@ -1,4 +1,4 @@
-From b0909d6b5c05e95da96e5548d52fa1ae5c2c0814 Mon Sep 17 00:00:00 2001
+From 230e699a6e0f86a21c9d2e4db4cd8f5441a09b08 Mon Sep 17 00:00:00 2001
 From: Maxime Ripard <maxime.ripard@free-electrons.com>
 Date: Tue, 26 Feb 2013 11:39:52 +0100
 Subject: [PATCH 2/5] ssd1307fb: Rework the communication functions
@@ -11,7 +11,7 @@ the type of information sent, and the raw bytes after that.
 
 Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
 ---
- drivers/video/ssd1307fb.c |   62 +++++++++++++++++++++++++--------------------
+ drivers/video/ssd1307fb.c | 62 ++++++++++++++++++++++++++---------------------
  1 file changed, 35 insertions(+), 27 deletions(-)
 
 diff --git a/drivers/video/ssd1307fb.c b/drivers/video/ssd1307fb.c
@@ -111,5 +111,5 @@ index 95f76e2..85e0860 100644
  
  static void ssd1307fb_update_display(struct ssd1307fb_par *par)
 -- 
-1.7.9.5
+1.9.0
 

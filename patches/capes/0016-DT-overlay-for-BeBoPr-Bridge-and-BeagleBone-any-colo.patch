@@ -1,7 +1,7 @@
-From 66ee1806aeee29121f2c7a7e69c1bcf73caa38ff Mon Sep 17 00:00:00 2001
+From 4ba754ffae6a42ee47296d545f580b148715ac6e Mon Sep 17 00:00:00 2001
 From: Bas Laarhoven <sjml@xs4all.nl>
 Date: Sun, 11 Aug 2013 18:05:12 +0200
-Subject: [PATCH 16/22] DT overlay for BeBoPr + Bridge and BeagleBone (any
+Subject: [PATCH 16/40] DT overlay for BeBoPr + Bridge and BeagleBone (any
  color). Loaded by "cape-bebopr-brdg" board id or via manual override.
 
 Signed-off-by: Bas Laarhoven <sjml@xs4all.nl>
@@ -25,7 +25,7 @@ index d27408f..b93c558 100644
  	cape-bone-dvi-00A0.dtbo \
 diff --git a/firmware/capes/cape-bebopr-brdg-R2.dts b/firmware/capes/cape-bebopr-brdg-R2.dts
 new file mode 100644
-index 0000000..b99e0f0
+index 0000000..c2d2f35
 --- /dev/null
 +++ b/firmware/capes/cape-bebopr-brdg-R2.dts
 @@ -0,0 +1,541 @@
@@ -50,7 +50,7 @@ index 0000000..b99e0f0
 +	part-number = "cape-bebopr-brdg";
 +	version = "R2";
 +
-+ 	exclusive-use =
++	exclusive-use =
 +	/* state the resources this cape uses */
 +
 +	/* ------ IO POWER ------ */
@@ -75,7 +75,7 @@ index 0000000..b99e0f0
 +		"P8.15",	/* gpio1.15  #Y_DIR */
 +		"P9.17",	/* gpio0.5   #Y_ENA */
 +		"P9.15",	/* gpio1.16  #Z_STP */
-+		"P9.23",	/* gpio1.17  #Z_DIR */	
++		"P9.23",	/* gpio1.17  #Z_DIR */
 +		"P9.26",	/* gpio0.14  #Z_ENA */
 +		"P9.22",	/* gpio0.2   #E_STP */
 +		"P9.21",	/* gpio0.3   #E_DIR */
@@ -103,7 +103,7 @@ index 0000000..b99e0f0
 +
 +                "P8.26";        /* gpio1.29       LED     */
 +
-+		
++
 +
 +	/* ----------- IO ENABLE ------------ */
 +
@@ -288,7 +288,7 @@ index 0000000..b99e0f0
 +					0x184 0x07	/* #E_ENA, P9_24, gpio0.15, mode7 out */
 +				>;
 +			};
-+		};	
++		};
 +	};
 +
 +	fragment@22 {
@@ -405,7 +405,7 @@ index 0000000..b99e0f0
 +					0x8c 0x2f	/* #Z_MAX, P8_18, gpio2.1,  mode7 in */
 +				>;
 +			};
-+		};	
++		};
 +	};
 +
 +	fragment@33 {
@@ -494,7 +494,7 @@ index 0000000..b99e0f0
 +		target = <&am33xx_pinmux>;
 +		__overlay__ {
 +
-+ 			bebopr_led_pins: pinmux_bebopr_led_pins {
++			bebopr_led_pins: pinmux_bebopr_led_pins {
 +				pinctrl-single,pins = <
 +					0x07c 0x07    /* P8-26 GPIO1_29   gpmc_csn0.gpio1[29]    */
 +				>;
@@ -537,33 +537,33 @@ index 0000000..b99e0f0
 +				compatible = "ti,ads1015";
 +				status = "okay";
 +
-+		           	#address-cells = <1>;
++				#address-cells = <1>;
 +				#size-cells = <0>;
 +				reg = <0x48>;
 +
 +				hi_res = <1>;
 +
 +				channel@1 {
-+			   	     	  reg = <4>;
-+				     	  ti,gain = <2>;
-+				     	  ti,datarate = <2>;
-+			   	};
++					  reg = <4>;
++					  ti,gain = <2>;
++					  ti,datarate = <2>;
++				};
 +				channel@2 {
-+			   	     	  reg = <5>;
-+				     	  ti,gain = <2>;
-+				     	  ti,datarate = <2>;
-+			   	};
++					  reg = <5>;
++					  ti,gain = <2>;
++					  ti,datarate = <2>;
++				};
 +				channel@3 {
-+			   	     	  reg = <6>;
-+				     	  ti,gain = <2>;
-+				     	  ti,datarate = <2>;
-+			   	};
++					  reg = <6>;
++					  ti,gain = <2>;
++					  ti,datarate = <2>;
++				};
 +				channel@4 {
-+			   	     	  reg = <0>;
-+				     	  ti,gain = <3>;
-+				     	  ti,datarate = <2>;
-+			   	};
-+	        	};
++					  reg = <0>;
++					  ti,gain = <3>;
++					  ti,datarate = <2>;
++				};
++			};
 +		};
 +
 +	};
@@ -571,5 +571,5 @@ index 0000000..b99e0f0
 +
 +};
 -- 
-1.8.4.2
+1.9.0
 

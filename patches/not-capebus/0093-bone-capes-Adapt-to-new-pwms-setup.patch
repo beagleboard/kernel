@@ -1,21 +1,21 @@
-From 0f8b06ea52438cf32ad274d4a8222bb216e0e2f3 Mon Sep 17 00:00:00 2001
+From a59a1f55bd9b1ee3babe7c7b20c81fd67be1eb8a Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 30 Jan 2013 16:28:59 +0200
 Subject: [PATCH 093/184] bone-capes: Adapt to new pwms setup
 
 ---
- firmware/capes/BB-BONE-LCD7-01-00A2.dts  |    1 +
- firmware/capes/cape-bone-geiger-00A0.dts |    4 ++--
- firmware/capes/cape-bone-lcd3-00A2.dts   |   19 +++++++++++++++----
+ firmware/capes/BB-BONE-LCD7-01-00A2.dts  |  1 +
+ firmware/capes/cape-bone-geiger-00A0.dts |  4 ++--
+ firmware/capes/cape-bone-lcd3-00A2.dts   | 19 +++++++++++++++----
  3 files changed, 18 insertions(+), 6 deletions(-)
 
 diff --git a/firmware/capes/BB-BONE-LCD7-01-00A2.dts b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
-index 5a9a5f9..c13fe80 100644
+index fc7f56c..b836f15 100644
 --- a/firmware/capes/BB-BONE-LCD7-01-00A2.dts
 +++ b/firmware/capes/BB-BONE-LCD7-01-00A2.dts
 @@ -83,6 +83,7 @@
  				compatible      = "pwm-backlight";
-  				pinctrl-names   = "default";
+ 				pinctrl-names   = "default";
  				pinctrl-0       = <&pwm_bl_pins>;
 +				status = "okay";
  
@@ -43,7 +43,7 @@ index 89417fb..4757ce7 100644
  		__overlay__ {
  			status = "okay";
 diff --git a/firmware/capes/cape-bone-lcd3-00A2.dts b/firmware/capes/cape-bone-lcd3-00A2.dts
-index efa2d10..ce72c17 100644
+index c14763c..c33f872 100644
 --- a/firmware/capes/cape-bone-lcd3-00A2.dts
 +++ b/firmware/capes/cape-bone-lcd3-00A2.dts
 @@ -69,6 +69,20 @@
@@ -74,18 +74,18 @@ index efa2d10..ce72c17 100644
 -			ehrpwm1 {
 -				status = "okay";
 -			};
-- 
+-
  			backlight {
  				compatible      = "pwm-backlight";
-  				pinctrl-names   = "default";
+ 				pinctrl-names   = "default";
 @@ -90,6 +100,7 @@
  				pwm-names = "LCD3";
  				brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100>;
  				default-brightness-level = <50>; /* index to the array above */
 +				status = "okay";
-  			};
+ 			};
  
  			tscadc {
 -- 
-1.7.9.5
+1.9.0
 

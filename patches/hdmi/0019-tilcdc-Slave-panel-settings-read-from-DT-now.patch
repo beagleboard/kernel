@@ -1,23 +1,23 @@
-From d437f5b73665167ed52116fbd57b5c0c44d11379 Mon Sep 17 00:00:00 2001
+From e2e4a2352788f43a561c34619ba6332a160a72ab Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 6 Jun 2013 11:45:28 +0300
-Subject: [PATCH 19/22] tilcdc: Slave panel settings read from DT now
+Subject: [PATCH 19/27] tilcdc: Slave panel settings read from DT now
 
 Turns out that we really need those panel settings.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c  |   56 +++++++++++++++++++++++++++++++++
- drivers/gpu/drm/tilcdc/tilcdc_drv.h   |    3 ++
- drivers/gpu/drm/tilcdc/tilcdc_panel.c |   49 +----------------------------
- drivers/gpu/drm/tilcdc/tilcdc_slave.c |   25 +++++++--------
- 4 files changed, 71 insertions(+), 62 deletions(-)
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c  | 55 +++++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h   |  3 ++
+ drivers/gpu/drm/tilcdc/tilcdc_panel.c | 49 +------------------------------
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c | 25 +++++++---------
+ 4 files changed, 70 insertions(+), 62 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index 8ce18ca..023092f 100644
+index 24f2aa4..206a4a0 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-@@ -721,3 +721,59 @@ fail:
+@@ -721,3 +721,58 @@ fail:
  	tilcdc_crtc_destroy(crtc);
  	return NULL;
  }
@@ -76,9 +76,8 @@ index 8ce18ca..023092f 100644
 +	of_node_put(info_np);
 +	return NULL;
 +}
-+
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.h b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
-index f3861e4..40ff5d4 100644
+index a66ac31..d661dbb 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_drv.h
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
 @@ -169,4 +169,7 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
@@ -221,5 +220,5 @@ index e454874..440de4e 100644
  
  	return 0;
 -- 
-1.7.9.5
+1.9.0
 

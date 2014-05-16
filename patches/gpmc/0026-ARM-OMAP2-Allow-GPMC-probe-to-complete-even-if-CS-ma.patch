@@ -1,4 +1,4 @@
-From 5e735aa7ed20c965bd0905a4f4c9a11bb3ce4231 Mon Sep 17 00:00:00 2001
+From 01e968baafc2838c84e48fb1eab8920998ca0bbe Mon Sep 17 00:00:00 2001
 From: Jon Hunter <jon-hunter@ti.com>
 Date: Wed, 6 Mar 2013 14:36:47 -0600
 Subject: [PATCH 26/39] ARM: OMAP2+: Allow GPMC probe to complete even if CS
@@ -22,7 +22,7 @@ then it will be.
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 ---
- arch/arm/mach-omap2/gpmc.c |   25 ++++++++-----------------
+ arch/arm/mach-omap2/gpmc.c | 25 ++++++++-----------------
  1 file changed, 8 insertions(+), 17 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
@@ -79,5 +79,5 @@ index 3f87752..5482d23 100644
  	if (IS_ERR_VALUE(gpmc_setup_irq()))
  		dev_warn(gpmc_dev, "gpmc_setup_irq failed\n");
 -- 
-1.7.9.5
+1.9.0
 

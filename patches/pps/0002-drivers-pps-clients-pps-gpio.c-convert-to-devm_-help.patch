@@ -1,15 +1,14 @@
-From fc9111a37863f500fbf9a9cb8096ac583d99755e Mon Sep 17 00:00:00 2001
+From c6260b335a52e2f2be5a3223ba5879ce5f73ca88 Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
 Date: Mon, 17 Jun 2013 20:30:29 +0000
-Subject: [PATCH 2/3] drivers/pps/clients/pps-gpio.c: convert to devm_*
- helpers
+Subject: [PATCH 2/4] drivers/pps/clients/pps-gpio.c: convert to devm_* helpers
 
 Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
 Acked-by: Rodolfo Giometti <giometti@enneenne.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Matt Ranostay <mranostay@gmail.com>
 ---
- drivers/pps/clients/pps-gpio.c |   22 +++++-----------------
+ drivers/pps/clients/pps-gpio.c | 22 +++++-----------------
  1 file changed, 5 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/pps/clients/pps-gpio.c b/drivers/pps/clients/pps-gpio.c
@@ -89,5 +88,5 @@ index 4c53c6d..7e0e93b 100644
  	pr_info("removed IRQ %d as PPS source\n", data->irq);
  	kfree(data);
 -- 
-1.7.9.5
+1.9.0
 

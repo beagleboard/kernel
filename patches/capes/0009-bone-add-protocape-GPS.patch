@@ -1,7 +1,7 @@
-From c8ff02c5e5647b9f8b21bccc87617b57e35c1423 Mon Sep 17 00:00:00 2001
+From 17420c9c64d68bcbd42dd76542e97396002bb372 Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
 Date: Sun, 4 Aug 2013 22:25:08 +0000
-Subject: [PATCH 09/22] bone: add protocape GPS
+Subject: [PATCH 09/40] bone: add protocape GPS
 
 Add prototype GPS cape with UART and pps-gpio fragments
 
@@ -14,7 +14,7 @@ Signed-off-by: Matt Ranostay <mranostay@gmail.com>
  create mode 100644 firmware/capes/BB-BONE-GPS-00A0.dts
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index a42608e..d71c578 100644
+index 1e86cd5..f144957 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
 @@ -202,6 +202,15 @@
@@ -32,7 +32,7 @@ index a42608e..d71c578 100644
 +
  			/* Beaglebone black has it soldered on */
  			 slot@100 {
- 			 	ti,cape-override;
+ 				ti,cape-override;
 @@ -366,8 +375,17 @@
  				};
  			};
@@ -130,5 +130,5 @@ index 0000000..83103d6
 +	};
 +};
 -- 
-1.8.4.2
+1.9.0
 

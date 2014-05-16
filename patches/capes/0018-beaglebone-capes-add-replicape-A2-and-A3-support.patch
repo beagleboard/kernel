@@ -1,7 +1,7 @@
-From 975e69aa49127fd468464ae8151d215b059f5658 Mon Sep 17 00:00:00 2001
+From 470b5dd94da5d05950da192463ff1504b035c197 Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Mon, 9 Sep 2013 14:24:49 +0200
-Subject: [PATCH 18/22] beaglebone capes: add replicape A2 and A3 support
+Subject: [PATCH 18/40] beaglebone capes: add replicape A2 and A3 support
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
@@ -29,7 +29,7 @@ index b93c558..bff3bb1 100644
  fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_GEIGER) += \
 diff --git a/firmware/capes/cape-bone-replicape-00A2.dts b/firmware/capes/cape-bone-replicape-00A2.dts
 new file mode 100644
-index 0000000..ca53b3b
+index 0000000..1c023f3
 --- /dev/null
 +++ b/firmware/capes/cape-bone-replicape-00A2.dts
 @@ -0,0 +1,251 @@
@@ -84,8 +84,8 @@ index 0000000..ca53b3b
 +		"P9.36", /* AIN5		*/
 +		"P9.42", /* SPI1_CS1	*/
 +		/* Hardware IP cores in use */
-+		"spi1", 
-+		"pruss"; 
++		"spi1",
++		"pruss";
 +
 +	fragment@0 {
 +		target = <&am33xx_pinmux>;
@@ -95,30 +95,30 @@ index 0000000..ca53b3b
 +					0x190 0x13	/* P9_31 = mcasp0_aclkx.spi1_sclk				 , OUTPUT_PULLUP | MODE3 */
 +					0x194 0x33	/* P9_29 = mcasp0_fsx.spi1_d0					 , INPUT_PULLUP  | MODE3 */
 +					0x198 0x13	/* P9_30 = mcasp0_axr0.spi1_d1					 , OUTPUT_PULLUP | MODE3 */
-+					0x19c 0x13	/* P9_28 = mcasp0_ahclkr.spi1_cs0				 , OUTPUT_PULLUP | MODE3 */					
++					0x19c 0x13	/* P9_28 = mcasp0_ahclkr.spi1_cs0				 , OUTPUT_PULLUP | MODE3 */
 +					0x164 0x12  /* P9_42 = GPIO0_7 =  eCAP0_in_PWM0_out.gpio0[7] , OUTPUT_PULLUP | MODE2 */
 +				>;
-+			};					
++			};
 +			pruicss_stepper_pins: pinmux_pruicss_stepper_pins{
 +				pinctrl-single,pins = <
 +					0x038 0x07 // P8_16 (3)  = DIR_EXT_2	= GPIO1_14
 +					0x03C 0x07 // P8_15 (4)  = DIR_EXT_1	= GPIO1_15
 +					0x028 0x07 // P8_14 (5)  = DIR_Z   	 	= GPIO0_26
 +					0x02C 0x07 // P8_17 (6)  = STEP_X 	 	= GPIO0_27
-+				 	0x034 0x07 // P8_11 (22) = step_ext_2 	= GPIO1_13	
++					0x034 0x07 // P8_11 (22) = step_ext_2 	= GPIO1_13
 +					0x030 0x07 // P8_12 (23) = Step_y	 	= GPIO1_12
 +					0x024 0x07 // P8_13 (24) = Step_z	 	= GPIO0_23
 +					0x020 0x07 // P8_19 (25) = Dir_y 	 	= GPIO0_22
 +					0x07C 0x07 // P8_26 	 = Dir_x		= GPIO1_29
 +					0x078 0x07 // P9_12 	 = step ext 1 	= GPIO1_28
 +				>;
-+			};		
-+		
++			};
++
 +			stepper_fault_pins: pinmux_stepper_fault_pins{
 +				pinctrl-single,pins = <
-+					0x094 0x37 // P8_8  = Fault Ext 2 	= GPIO2_2    gpmc_oen_ren.gpio2[3]  
++					0x094 0x37 // P8_8  = Fault Ext 2 	= GPIO2_2    gpmc_oen_ren.gpio2[3]
 +					0x09C 0x37 // P8_9  = FAYLT Y		= GPIO2_5
-+					0x098 0x37 // P8_10 = FAULT X     	= GPIO2_4    gpmc_wen.gpio2[4]      
++					0x098 0x37 // P8_10 = FAULT X     	= GPIO2_4    gpmc_wen.gpio2[4]
 +					0x08C 0x37 // P8_18 = Fault_ext 1	= GPIO2_1
 +					0x184 0x37 // P9_24 = Fault Z		= GPIO0_15
 +				>;
@@ -144,7 +144,7 @@ index 0000000..ca53b3b
 +			#size-cells 	= <0>;
 +			status			= "okay";
 +			pinctrl-names	= "default";
-+			pinctrl-0		= <&bone_replicape_spi1_pins>;	
++			pinctrl-0		= <&bone_replicape_spi1_pins>;
 +			cs-gpios 		= <&gpio4 17 0>, <&gpio1 7 0>;
 +
 +			stepper_control{
@@ -162,7 +162,7 @@ index 0000000..ca53b3b
 +				compatible 		  = "spidev";
 +				reg 			  = <1>;
 +				spi-max-frequency = <16000000>;
-+				   				  // Stepper current has mode 0 (CPOL = 0, CPHA = 0)
++								  // Stepper current has mode 0 (CPOL = 0, CPHA = 0)
 +			};
 +		};
 +	};
@@ -175,44 +175,44 @@ index 0000000..ca53b3b
 +			pinctrl-0 	  = <&pruicss_stepper_pins>;
 +
 +			stepper_x{
-+				pin-names 	= "Replic:pru-step_x", "Replic:pru-dir_x";		
++				pin-names 	= "Replic:pru-step_x", "Replic:pru-dir_x";
 +				gpios 		= <&gpio1 27 0
-+						 	   &gpio2 29 0>; 
-+			};			
++							   &gpio2 29 0>;
++			};
 +			stepper_y{
-+				pin-names 	= "Replic:pru-step_y", "Replic:pru-dir_y";		
++				pin-names 	= "Replic:pru-step_y", "Replic:pru-dir_y";
 +				gpios 		=<&gpio2 12 0
-+						 	  &gpio1 22 0>; 
++							  &gpio1 22 0>;
 +			};
 +			stepper_z{
-+				pin-names 	= "Replic:pru-step_z", "Replic:pru-dir_z";		
++				pin-names 	= "Replic:pru-step_z", "Replic:pru-dir_z";
 +				gpios 		= <&gpio1 23 0
-+						 	   &gpio1 26 0>; 
++							   &gpio1 26 0>;
 +			};
 +			stepper_ext_1{
-+				pin-names 	= "Replic:pru-step_ext_1", "Replic:pru-dir_ext_1";		
++				pin-names 	= "Replic:pru-step_ext_1", "Replic:pru-dir_ext_1";
 +				gpios 		= <&gpio2 28 0
-+						 	   &gpio2 15 0>; 
++							   &gpio2 15 0>;
 +			};
 +			stepper_ext_2{
-+				pin-names 	= "Replic:pru-step_ext_2", "Replic:pru-dir_ext_2";		
++				pin-names 	= "Replic:pru-step_ext_2", "Replic:pru-dir_ext_2";
 +				gpios 		= <&gpio2 13 0
-+						 	   &gpio2 14 0>; 
++							   &gpio2 14 0>;
 +			};
 +		};
 +	};
 +
 +	fragment@3 {
 +		target = <&ocp>;
-+		__overlay__ {			
++		__overlay__ {
 +			#address-cells = <1>;
-+			#size-cells = <1>;							
++			#size-cells = <1>;
 +
 +			tscadc {
 +				compatible = "ti,ti-tscadc";
 +				reg = <0x44e0d000 0x1000>;
 +
-+				interrupt-parent = <&intc>;	
++				interrupt-parent = <&intc>;
 +				interrupts = <16>;
 +				ti,hwmods = "adc_tsc";
 +				status = "okay";
@@ -244,7 +244,7 @@ index 0000000..ca53b3b
 +					linux,code = <1>;
 +					gpios = <&gpio3 2 0x5>;
 +					gpio-key,wakeup;
-+				};				
++				};
 +				switch_x2 {
 +					label = "End-stop-X2";
 +					debounce_interval = <50>;
@@ -258,35 +258,35 @@ index 0000000..ca53b3b
 +					linux,code = <3>;
 +					gpios = <&gpio1 30 0x5>;
 +					gpio-key,wakeup;
-+				};				
++				};
 +				switch_y2 {
 +					label = "End-stop-Y2";
 +					debounce_interval = <50>;
 +					linux,code = <4>;
 +					gpios = <&gpio4 21 0x5>;
 +					gpio-key,wakeup;
-+				};				
++				};
 +				switch_z1 {
 +					label = "End-stop-Z1";
 +					debounce_interval = <50>;
 +					linux,code = <5>;
 +					gpios = <&gpio1 31 0x5>;
 +					gpio-key,wakeup;
-+				};				
++				};
 +				switch_z2 {
 +					label = "End-stop-Z2";
 +					debounce_interval = <50>;
 +					linux,code = <6>;
 +					gpios = <&gpio1 4 0x5>;
 +					gpio-key,wakeup;
-+				};				
++				};
 +			};
 +		};
 +	};
 +};
 diff --git a/firmware/capes/cape-bone-replicape-00A3.dts b/firmware/capes/cape-bone-replicape-00A3.dts
 new file mode 100644
-index 0000000..76253d6
+index 0000000..8cb299f
 --- /dev/null
 +++ b/firmware/capes/cape-bone-replicape-00A3.dts
 @@ -0,0 +1,291 @@
@@ -342,8 +342,8 @@ index 0000000..76253d6
 +		"P9.36", /* AIN5		*/
 +		"P9.42", /* SPI1_CS1	*/
 +		/* Hardware IP cores in use */
-+		"spi1", 
-+		"pruss"; 
++		"spi1",
++		"pruss";
 +
 +	fragment@0 {
 +		target = <&am33xx_pinmux>;
@@ -353,30 +353,30 @@ index 0000000..76253d6
 +					0x190 0x13	/* P9_31 = mcasp0_aclkx.spi1_sclk				 , OUTPUT_PULLUP | MODE3 */
 +					0x194 0x33	/* P9_29 = mcasp0_fsx.spi1_d0					 , INPUT_PULLUP  | MODE3 */
 +					0x198 0x13	/* P9_30 = mcasp0_axr0.spi1_d1					 , OUTPUT_PULLUP | MODE3 */
-+					0x19c 0x13	/* P9_28 = mcasp0_ahclkr.spi1_cs0				 , OUTPUT_PULLUP | MODE3 */					
++					0x19c 0x13	/* P9_28 = mcasp0_ahclkr.spi1_cs0				 , OUTPUT_PULLUP | MODE3 */
 +					0x164 0x12  /* P9_42 = GPIO0_7 =  eCAP0_in_PWM0_out.gpio0[7] , OUTPUT_PULLUP | MODE2 */
 +				>;
-+			};					
++			};
 +			pruicss_stepper_pins: pinmux_pruicss_stepper_pins{
 +				pinctrl-single,pins = <
 +					0x038 0x07 // P8_16 (3)  = DIR_EXT_2	= GPIO1_14
 +					0x03C 0x07 // P8_15 (4)  = DIR_EXT_1	= GPIO1_15
 +					0x028 0x07 // P8_14 (5)  = DIR_Z   	 	= GPIO0_26
 +					0x02C 0x07 // P8_17 (6)  = STEP_X 	 	= GPIO0_27
-+				 	0x034 0x07 // P8_11 (22) = step_ext_2 	= GPIO1_13	
++					0x034 0x07 // P8_11 (22) = step_ext_2 	= GPIO1_13
 +					0x030 0x07 // P8_12 (23) = Step_y	 	= GPIO1_12
 +					0x024 0x07 // P8_13 (24) = Step_z	 	= GPIO0_23
 +					0x020 0x07 // P8_19 (25) = Dir_y 	 	= GPIO0_22
 +					0x07C 0x07 // P8_26 	 = Dir_x		= GPIO1_29
 +					0x078 0x07 // P9_12 	 = step ext 1 	= GPIO1_28
 +				>;
-+			};		
-+		
++			};
++
 +			stepper_fault_pins: pinmux_stepper_fault_pins{
 +				pinctrl-single,pins = <
-+					0x094 0x37 // P8_8  = Fault Ext 2 	= GPIO2_3    gpmc_oen_ren.gpio2[3]  
++					0x094 0x37 // P8_8  = Fault Ext 2 	= GPIO2_3    gpmc_oen_ren.gpio2[3]
 +					0x09C 0x37 // P8_9  = FAYLT Y		= GPIO2_5
-+					0x098 0x37 // P8_10 = FAULT X     	= GPIO2_4    gpmc_wen.gpio2[4]      
++					0x098 0x37 // P8_10 = FAULT X     	= GPIO2_4    gpmc_wen.gpio2[4]
 +					0x08C 0x37 // P8_18 = Fault_ext 1	= GPIO2_1
 +					0x184 0x37 // P9_24 = Fault Z		= GPIO0_15
 +				>;
@@ -407,7 +407,7 @@ index 0000000..76253d6
 +			#size-cells 	= <0>;
 +			status			= "okay";
 +			pinctrl-names	= "default";
-+			pinctrl-0		= <&bone_replicape_spi1_pins>;	
++			pinctrl-0		= <&bone_replicape_spi1_pins>;
 +			cs-gpios 		= <&gpio4 17 0>, <&gpio1 7 0>;
 +
 +			stepper_control{
@@ -425,7 +425,7 @@ index 0000000..76253d6
 +				compatible 		  = "spidev";
 +				reg 			  = <1>;
 +				spi-max-frequency = <16000000>;
-+				   				  // Stepper current has mode 0 (CPOL = 0, CPHA = 0)
++								  // Stepper current has mode 0 (CPOL = 0, CPHA = 0)
 +			};
 +		};
 +	};
@@ -438,38 +438,38 @@ index 0000000..76253d6
 +			pinctrl-0 	  = <&pruicss_stepper_pins>;
 +
 +			stepper_x{
-+				pin-names 	= "Replic:pru-step_x", "Replic:pru-dir_x";		
++				pin-names 	= "Replic:pru-step_x", "Replic:pru-dir_x";
 +				gpios 		= <&gpio1 27 0
-+						 	   &gpio2 29 0>; 
-+			};			
++							   &gpio2 29 0>;
++			};
 +			stepper_y{
-+				pin-names 	= "Replic:pru-step_y", "Replic:pru-dir_y";		
++				pin-names 	= "Replic:pru-step_y", "Replic:pru-dir_y";
 +				gpios 		=<&gpio2 12 0
-+						 	  &gpio1 22 0>; 
++							  &gpio1 22 0>;
 +			};
 +			stepper_z{
-+				pin-names 	= "Replic:pru-step_z", "Replic:pru-dir_z";		
++				pin-names 	= "Replic:pru-step_z", "Replic:pru-dir_z";
 +				gpios 		= <&gpio1 23 0
-+						 	   &gpio1 26 0>; 
++							   &gpio1 26 0>;
 +			};
 +			stepper_ext_1{
-+				pin-names 	= "Replic:pru-step_ext_1", "Replic:pru-dir_ext_1";		
++				pin-names 	= "Replic:pru-step_ext_1", "Replic:pru-dir_ext_1";
 +				gpios 		= <&gpio2 28 0
-+						 	   &gpio2 15 0>; 
++							   &gpio2 15 0>;
 +			};
 +			stepper_ext_2{
-+				pin-names 	= "Replic:pru-step_ext_2", "Replic:pru-dir_ext_2";		
++				pin-names 	= "Replic:pru-step_ext_2", "Replic:pru-dir_ext_2";
 +				gpios 		= <&gpio2 13 0
-+						 	   &gpio2 14 0>; 
++							   &gpio2 14 0>;
 +			};
 +		};
 +	};
 +
 +	fragment@3 {
 +		target = <&ocp>;
-+		__overlay__ {			
++		__overlay__ {
 +			#address-cells = <1>;
-+			#size-cells = <1>;							
++			#size-cells = <1>;
 +
 +			tscadc {
 +				compatible = "ti,ti-tscadc";
@@ -499,7 +499,7 @@ index 0000000..76253d6
 +					linux,code = <1>;
 +					gpios = <&gpio3 2 0x5>;
 +					gpio-key,wakeup;
-+				};				
++				};
 +				switch_x2 {
 +					label = "End-stop-X2";
 +					debounce_interval = <50>;
@@ -513,62 +513,62 @@ index 0000000..76253d6
 +					linux,code = <3>;
 +					gpios = <&gpio1 30 0x5>;
 +					gpio-key,wakeup;
-+				};				
++				};
 +				switch_y2 {
 +					label = "End-stop-Y2";
 +					debounce_interval = <50>;
 +					linux,code = <4>;
 +					gpios = <&gpio4 21 0x5>;
 +					gpio-key,wakeup;
-+				};				
++				};
 +				switch_z1 {
 +					label = "End-stop-Z1";
 +					debounce_interval = <50>;
 +					linux,code = <5>;
 +					gpios = <&gpio1 31 0x5>;
 +					gpio-key,wakeup;
-+				};				
++				};
 +				switch_z2 {
 +					label = "End-stop-Z2";
 +					debounce_interval = <50>;
 +					linux,code = <6>;
 +					gpios = <&gpio1 4 0x5>;
 +					gpio-key,wakeup;
-+				};				
++				};
 +				fault_x {
 +					label = "Fault-X";
 +					debounce_interval = <50>;
 +					linux,code = <7>;
 +					gpios = <&gpio3 4 0x5>;
-+					gpio-key,wakeup;	
++					gpio-key,wakeup;
 +				};
 +				fault_y {
 +					label = "Fault-Y";
 +					debounce_interval = <50>;
 +					linux,code = <8>;
 +					gpios = <&gpio3 5 0x5>;
-+					gpio-key,wakeup;	
++					gpio-key,wakeup;
 +				};
 +				fault_z {
 +					label = "Fault-Z";
 +					debounce_interval = <50>;
 +					linux,code = <9>;
 +					gpios = <&gpio1 15 0x5>;
-+					gpio-key,wakeup;	
++					gpio-key,wakeup;
 +				};
 +				fault_ext_1 {
 +					label = "Fault-Ext-1";
 +					debounce_interval = <50>;
 +					linux,code = <10>;
 +					gpios = <&gpio3 1 0x5>;
-+					gpio-key,wakeup;	
++					gpio-key,wakeup;
 +				};
 +				fault_ext_2 {
 +					label = "Fault-Ext-2";
 +					debounce_interval = <50>;
 +					linux,code = <11>;
 +					gpios = <&gpio3 3 0x5>;
-+					gpio-key,wakeup;	
++					gpio-key,wakeup;
 +				};
 +			};
 +			onewire@0 {
@@ -582,5 +582,5 @@ index 0000000..76253d6
 +	};
 +};
 -- 
-1.8.4.2
+1.9.0
 

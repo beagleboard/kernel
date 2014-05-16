@@ -1,4 +1,4 @@
-From 910391b42766e6f94143146143e884fda7fc67f8 Mon Sep 17 00:00:00 2001
+From 18cfc671f37e553377b6b3ab13ba271c4cca37cd Mon Sep 17 00:00:00 2001
 From: Alan Ott <alan@signal11.us>
 Date: Fri, 29 Mar 2013 16:49:27 -0400
 Subject: [PATCH 147/184] firmware: capes: Update MRF24J40 cape to work with
@@ -9,11 +9,11 @@ Add them to the MRF24J40 cape dts fragment
 
 Signed-off-by: Alan Ott <alan@signal11.us>
 ---
- firmware/capes/cape-bone-mrf24j40-00A0.dts |   25 ++++++++++---------------
+ firmware/capes/cape-bone-mrf24j40-00A0.dts | 25 ++++++++++---------------
  1 file changed, 10 insertions(+), 15 deletions(-)
 
 diff --git a/firmware/capes/cape-bone-mrf24j40-00A0.dts b/firmware/capes/cape-bone-mrf24j40-00A0.dts
-index cdef7e2..0fc2aea 100644
+index cdef7e2..f5f6d7f 100644
 --- a/firmware/capes/cape-bone-mrf24j40-00A0.dts
 +++ b/firmware/capes/cape-bone-mrf24j40-00A0.dts
 @@ -23,19 +23,22 @@
@@ -35,7 +35,7 @@ index cdef7e2..0fc2aea 100644
 +			bone_mrf24j40_spi1_pins: pinmux_bone_mrf24j40_spi1_pins {
 +				pinctrl-single,pins = <
 +					0x190 0x33	/* mcasp0_aclkx.spi1_sclk, RX_ENABLED | PULLUP | MODE3 */
-+	 				0x194 0x33	/* mcasp0_fsx.spi1_d0, RX_ENABLED | PULLUP | MODE3 */
++					0x194 0x33	/* mcasp0_fsx.spi1_d0, RX_ENABLED | PULLUP | MODE3 */
 +					0x198 0x33	/* mcasp0_axr0.spi1_d1, RX_ENABLED | PULLUP | MODE3 */
 +					0x19c 0x33	/* mcasp0_ahclkr.spi1_cs0, RX_ENABLED | PULLUP | MODE3 */
 +				>;
@@ -70,5 +70,5 @@ index cdef7e2..0fc2aea 100644
  				//mrf24j40-reset = <gpio21 0>;
  			};
 -- 
-1.7.9.5
+1.9.0
 

@@ -1,8 +1,7 @@
-From 3a09da27c8e1ab187d58f994058eb662c22358b6 Mon Sep 17 00:00:00 2001
+From 5b28c8efb2b598c32a5176919467e75ef2ef6d9c Mon Sep 17 00:00:00 2001
 From: "Patil, Rachna" <rachna@ti.com>
 Date: Wed, 12 Jun 2013 18:58:03 +0200
-Subject: [PATCH 02/21] input: ti_am33x_tsc: Step enable bits made
- configurable
+Subject: [PATCH 02/19] input: ti_am33x_tsc: Step enable bits made configurable
 
 Current code has hard coded value written to
 step enable bits. Now the bits are updated based
@@ -20,10 +19,10 @@ Signed-off-by: Patil, Rachna <rachna@ti.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/iio/adc/ti_am335x_adc.c           |   20 ++++++++++++++++++--
- drivers/input/touchscreen/ti_am335x_tsc.c |   12 ++++++++++--
- drivers/mfd/ti_am335x_tscadc.c            |   29 ++++++++++++++++++++++++++++-
- include/linux/mfd/ti_am335x_tscadc.h      |    8 ++++++--
+ drivers/iio/adc/ti_am335x_adc.c           | 20 ++++++++++++++++++--
+ drivers/input/touchscreen/ti_am335x_tsc.c | 12 ++++++++++--
+ drivers/mfd/ti_am335x_tscadc.c            | 29 ++++++++++++++++++++++++++++-
+ include/linux/mfd/ti_am335x_tscadc.h      |  8 ++++++--
  4 files changed, 62 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
@@ -216,5 +215,5 @@ index 8114e4e..4258627 100644
 +
  #endif
 -- 
-1.7.9.5
+1.9.0
 

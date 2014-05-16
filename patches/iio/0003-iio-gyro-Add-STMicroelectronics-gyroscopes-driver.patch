@@ -1,4 +1,4 @@
-From a58297bbfa00453138e378484316af62e0d2e1a5 Mon Sep 17 00:00:00 2001
+From b2ba6f34639002b6150753bd3a469d055a50b95f Mon Sep 17 00:00:00 2001
 From: Denis Ciocca <denis.ciocca@gmail.com>
 Date: Fri, 25 Jan 2013 23:44:00 +0000
 Subject: [PATCH 03/11] iio:gyro: Add STMicroelectronics gyroscopes driver
@@ -11,13 +11,13 @@ Signed-off-by: Denis Ciocca <denis.ciocca@st.com>
 Reviewed-by: Lars-Peter Clausen <lars@metafoo.de>
 Signed-off-by: Jonathan Cameron <jic23@kernel.org>
 ---
- drivers/iio/gyro/Kconfig          |   30 +++
- drivers/iio/gyro/Makefile         |    7 +
- drivers/iio/gyro/st_gyro.h        |   45 +++++
- drivers/iio/gyro/st_gyro_buffer.c |  114 ++++++++++++
- drivers/iio/gyro/st_gyro_core.c   |  363 +++++++++++++++++++++++++++++++++++++
- drivers/iio/gyro/st_gyro_i2c.c    |   85 +++++++++
- drivers/iio/gyro/st_gyro_spi.c    |   84 +++++++++
+ drivers/iio/gyro/Kconfig          |  30 ++++
+ drivers/iio/gyro/Makefile         |   7 +
+ drivers/iio/gyro/st_gyro.h        |  45 +++++
+ drivers/iio/gyro/st_gyro_buffer.c | 114 ++++++++++++
+ drivers/iio/gyro/st_gyro_core.c   | 363 ++++++++++++++++++++++++++++++++++++++
+ drivers/iio/gyro/st_gyro_i2c.c    |  85 +++++++++
+ drivers/iio/gyro/st_gyro_spi.c    |  84 +++++++++
  7 files changed, 728 insertions(+)
  create mode 100644 drivers/iio/gyro/st_gyro.h
  create mode 100644 drivers/iio/gyro/st_gyro_buffer.c
@@ -801,5 +801,5 @@ index 0000000..8b4dcc5
 +MODULE_DESCRIPTION("STMicroelectronics gyroscopes spi driver");
 +MODULE_LICENSE("GPL v2");
 -- 
-1.7.9.5
+1.9.0
 

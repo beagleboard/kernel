@@ -1,4 +1,4 @@
-From bbb7e8498cde77130fbb9162cced032de7bb4769 Mon Sep 17 00:00:00 2001
+From 76e686432c9f1cd041fb1cc1e3c48848a54533fb Mon Sep 17 00:00:00 2001
 From: Daniel Kurtz <djkurtz@chromium.org>
 Date: Fri, 27 Apr 2012 22:15:16 +0800
 Subject: [PATCH 03/57] CHROMIUM: Input: atmel_mxt_ts - refactor input device
@@ -20,7 +20,7 @@ Reviewed-by: Daniel Kurtz <djkurtz@chromium.org>
 Tested-by: Daniel Kurtz <djkurtz@chromium.org>
 [djkurtz: v3.8-rc3 rebase]
 ---
- drivers/input/touchscreen/atmel_mxt_ts.c |   91 ++++++++++++++++--------------
+ drivers/input/touchscreen/atmel_mxt_ts.c | 91 ++++++++++++++++++--------------
  1 file changed, 50 insertions(+), 41 deletions(-)
 
 diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
@@ -157,5 +157,5 @@ index 84f0408..9afc26e 100644
  				     pdata->irqflags | IRQF_ONESHOT,
  				     client->name, data);
 -- 
-1.7.9.5
+1.9.0
 

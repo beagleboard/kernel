@@ -1,7 +1,7 @@
-From a01f9e2ead2fcebc3dbb54488f2bc577f5fecd38 Mon Sep 17 00:00:00 2001
+From 4e5f103296c801452774086b14b5092d11c0be6c Mon Sep 17 00:00:00 2001
 From: Cody Lacey <clacey@ti.com>
 Date: Fri, 18 Oct 2013 12:42:00 -0500
-Subject: [PATCH 2/2] ASoc: McASP: Lift Reset on CLK Dividers when RX/TX
+Subject: [PATCH 3/3] ASoc: McASP: Lift Reset on CLK Dividers when RX/TX
 
 If TX/RX CLK or High Frequency TX/RX CLK are set to
 output and they use the internally generated clock.
@@ -9,11 +9,11 @@ Do not reset the tx/rx clock divider when receiving
 or sending data in case they supply the clock source
 for another device.
 ---
- sound/soc/davinci/davinci-mcasp.c |   34 ++++++++++++++++++++++++++++++++++
+ sound/soc/davinci/davinci-mcasp.c | 34 ++++++++++++++++++++++++++++++++++
  1 file changed, 34 insertions(+)
 
 diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-index 83232c6..7f36228 100644
+index 83232c6..98d559d 100644
 --- a/sound/soc/davinci/davinci-mcasp.c
 +++ b/sound/soc/davinci/davinci-mcasp.c
 @@ -347,6 +347,23 @@ static inline void mcasp_set_ctl_reg(void __iomem *regs, u32 val)
@@ -65,5 +65,5 @@ index 83232c6..7f36228 100644
  	mcasp_set_ctl_reg(dev->base + DAVINCI_MCASP_GBLCTLX_REG, TXHCLKRST);
  	mcasp_set_ctl_reg(dev->base + DAVINCI_MCASP_GBLCTLX_REG, TXCLKRST);
 -- 
-1.7.9.5
+1.9.0
 

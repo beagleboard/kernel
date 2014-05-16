@@ -1,4 +1,4 @@
-From d06744987cba99fa52b286b845d75fbcc886d654 Mon Sep 17 00:00:00 2001
+From 7cc328995f14bd29e921ccd7ed7c43b77a1d1e45 Mon Sep 17 00:00:00 2001
 From: Afzal Mohammed <afzal@ti.com>
 Date: Tue, 22 Jan 2013 20:33:56 +0530
 Subject: [PATCH 32/48] clk: divider: handle minimum divider
@@ -8,7 +8,7 @@ programmed. Modify basic clock divider to take care of this aspect.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/clk/clk-divider.c |   12 +++++++++---
+ drivers/clk/clk-divider.c | 12 +++++++++---
  1 file changed, 9 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
@@ -58,5 +58,5 @@ index 4025c5a..ee648dc 100644
  			continue;
  		parent_rate = __clk_round_rate(__clk_get_parent(hw->clk),
 -- 
-1.7.9.5
+1.9.0
 

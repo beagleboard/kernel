@@ -1,4 +1,4 @@
-From 7ef46626a6c278ff5fdfcf4024fa760152e765b5 Mon Sep 17 00:00:00 2001
+From b094d5f21e19d13effc08291fac8a642e1907c04 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Mon, 22 Apr 2013 17:11:17 +0300
 Subject: [PATCH 02/11] capemgr: Implement cape priorities
@@ -9,11 +9,11 @@ loaded.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/misc/cape/beaglebone/capemgr.c |  139 +++++++++++++++++++++++++++-----
+ drivers/misc/cape/beaglebone/capemgr.c | 139 ++++++++++++++++++++++++++++-----
  1 file changed, 119 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/misc/cape/beaglebone/capemgr.c b/drivers/misc/cape/beaglebone/capemgr.c
-index 5d87088..820852d 100644
+index 5d87088..bfce42b 100644
 --- a/drivers/misc/cape/beaglebone/capemgr.c
 +++ b/drivers/misc/cape/beaglebone/capemgr.c
 @@ -43,6 +43,7 @@
@@ -189,7 +189,7 @@ index 5d87088..820852d 100644
 +	 * Slots have priorities, so the lower priority ones
 +	 * should start loading first. So each time we end up
 +	 * here.
-+	 */ 
++	 */
 +	ret = wait_event_interruptible(info->load_wq,
 +			lowest_loading_cape(slot));
 +	if (ret < 0) {
@@ -276,5 +276,5 @@ index 5d87088..820852d 100644
  
  	bone_capemgr_info_sysfs_unregister(info);
 -- 
-1.7.9.5
+1.9.0
 

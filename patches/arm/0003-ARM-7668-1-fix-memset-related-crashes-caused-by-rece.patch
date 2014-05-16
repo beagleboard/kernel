@@ -1,7 +1,7 @@
-From 589d7bc7ef1efa5f39f63ae6136b8cafc11474a2 Mon Sep 17 00:00:00 2001
+From b61ebe1fd75fafef5f1c9b7540931652846ad68f Mon Sep 17 00:00:00 2001
 From: Ivan Djelic <ivan.djelic@parrot.com>
 Date: Wed, 6 Mar 2013 20:09:27 +0100
-Subject: [PATCH 3/4] ARM: 7668/1: fix memset-related crashes caused by recent
+Subject: [PATCH 3/5] ARM: 7668/1: fix memset-related crashes caused by recent
  GCC (4.7.2) optimizations
 
 Recent GCC versions (e.g. GCC-4.7.2) perform optimizations based on
@@ -94,7 +94,7 @@ Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Khem Raj <raj.khem@gmail.com>
 ---
- arch/arm/lib/memset.S |   85 +++++++++++++++++++++++++------------------------
+ arch/arm/lib/memset.S | 85 ++++++++++++++++++++++++++-------------------------
  1 file changed, 44 insertions(+), 41 deletions(-)
 
 diff --git a/arch/arm/lib/memset.S b/arch/arm/lib/memset.S
@@ -252,5 +252,5 @@ index 650d592..d912e73 100644
  	mov	pc, lr
  ENDPROC(memset)
 -- 
-1.7.9.5
+1.9.0
 

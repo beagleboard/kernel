@@ -1,7 +1,7 @@
-From 31f8be2da37edcb0cdc021a3e2f4d220bb5c9b3d Mon Sep 17 00:00:00 2001
+From dc145f17aa0efc329f2d67d3714ce3a4bc53f777 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 17 Jan 2013 20:18:32 +0200
-Subject: [PATCH 3/6] cpsw: Fix interrupt storm among other things
+Subject: [PATCH 3/7] cpsw: Fix interrupt storm among other things
 
 Fix interrupt storm on bone A4 cause by non-by-the-book interrupt handling.
 While at it, added a non-NAPI mode (which is easier to debug), plus
@@ -9,11 +9,11 @@ some general fixes.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- Documentation/devicetree/bindings/net/cpsw.txt |    1 +
- drivers/net/ethernet/ti/cpsw.c                 |  222 ++++++++++++++++++++----
- drivers/net/ethernet/ti/davinci_cpdma.c        |    4 +-
- drivers/net/ethernet/ti/davinci_cpdma.h        |    2 +-
- include/linux/platform_data/cpsw.h             |    1 +
+ Documentation/devicetree/bindings/net/cpsw.txt |   1 +
+ drivers/net/ethernet/ti/cpsw.c                 | 222 +++++++++++++++++++++----
+ drivers/net/ethernet/ti/davinci_cpdma.c        |   4 +-
+ drivers/net/ethernet/ti/davinci_cpdma.h        |   2 +-
+ include/linux/platform_data/cpsw.h             |   1 +
  5 files changed, 194 insertions(+), 36 deletions(-)
 
 diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
@@ -419,5 +419,5 @@ index 24368a2..be5b27e 100644
  
  #endif /* __CPSW_H__ */
 -- 
-1.7.9.5
+1.9.0
 

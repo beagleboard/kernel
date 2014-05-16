@@ -1,4 +1,4 @@
-From 575861677422afd37c87f51e1708aa7cc375e9aa Mon Sep 17 00:00:00 2001
+From c95dd24b1ee8409b69454ad95b399257e41a2697 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 8 Mar 2013 16:39:10 +0200
 Subject: [PATCH 118/184] tilcdc: Enable reduced blanking check only on
@@ -9,11 +9,11 @@ Make sure it does not activate on fixed panel timings.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c   |    7 ++++---
- drivers/gpu/drm/tilcdc/tilcdc_drv.h    |    3 ++-
- drivers/gpu/drm/tilcdc/tilcdc_panel.c  |    2 +-
- drivers/gpu/drm/tilcdc/tilcdc_slave.c  |    3 ++-
- drivers/gpu/drm/tilcdc/tilcdc_tfp410.c |    3 ++-
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c   | 7 ++++---
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h    | 3 ++-
+ drivers/gpu/drm/tilcdc/tilcdc_panel.c  | 2 +-
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c  | 3 ++-
+ drivers/gpu/drm/tilcdc/tilcdc_tfp410.c | 3 ++-
  5 files changed, 11 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
@@ -104,5 +104,5 @@ index 7065dfa..6f9d727 100644
  
  static struct drm_encoder *tfp410_connector_best_encoder(
 -- 
-1.7.9.5
+1.9.0
 

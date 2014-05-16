@@ -1,4 +1,4 @@
-From 999c16cc5e74ecc578186002e05ae5875c129cf6 Mon Sep 17 00:00:00 2001
+From 1a050f0d42c7214a620b3d2d6e052767cdc537dd Mon Sep 17 00:00:00 2001
 From: David Sterba <dsterba@suse.cz>
 Date: Tue, 24 Apr 2012 13:41:45 +0200
 Subject: [PATCH 09/11] btrfs: add lz4hc wrapper and enable it
@@ -256,7 +256,7 @@ index 6aa90a4..b9d3273 100644
 +	.decompress		= lz4_decompress_wrapper,
 +};
 diff --git a/fs/btrfs/super.c b/fs/btrfs/super.c
-index e578179..139952d 100644
+index 363148d..e3e1d50 100644
 --- a/fs/btrfs/super.c
 +++ b/fs/btrfs/super.c
 @@ -475,9 +475,6 @@ int btrfs_parse_options(struct btrfs_root *root, char *options)
@@ -270,5 +270,5 @@ index e578179..139952d 100644
  				ret = -EINVAL;
  				goto out;
 -- 
-1.8.4.2
+1.9.0
 

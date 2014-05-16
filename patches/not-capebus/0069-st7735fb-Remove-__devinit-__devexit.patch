@@ -1,4 +1,4 @@
-From bd97ccc2d48d054f95b6e0f21830d5d53b21cfec Mon Sep 17 00:00:00 2001
+From 7447293d0d1df451ba3201bea980510f2dd5650c Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Tue, 15 Jan 2013 14:14:33 +0200
 Subject: [PATCH 069/184] st7735fb: Remove __devinit/__devexit
@@ -7,11 +7,11 @@ __devinit/__devexit and the like has been purged. Remove them.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/video/st7735fb.c |   10 +++++-----
+ drivers/video/st7735fb.c | 10 +++++-----
  1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/video/st7735fb.c b/drivers/video/st7735fb.c
-index 67c2544..3a5c8a9 100644
+index 319653b..6075f2e 100644
 --- a/drivers/video/st7735fb.c
 +++ b/drivers/video/st7735fb.c
 @@ -128,7 +128,7 @@ static struct st7735_function st7735_cfg_script[] = {
@@ -20,7 +20,7 @@ index 67c2544..3a5c8a9 100644
  
 -static struct fb_fix_screeninfo st7735fb_fix __devinitdata = {
 +static struct fb_fix_screeninfo st7735fb_fix = {
- 	.id =		"ST7735", 
+ 	.id =		"ST7735",
  	.type =		FB_TYPE_PACKED_PIXELS,
  	.visual =	FB_VISUAL_DIRECTCOLOR,
 @@ -139,7 +139,7 @@ static struct fb_fix_screeninfo st7735fb_fix __devinitdata = {
@@ -60,5 +60,5 @@ index 67c2544..3a5c8a9 100644
  
  static int __init st7735fb_init(void)
 -- 
-1.7.9.5
+1.9.0
 

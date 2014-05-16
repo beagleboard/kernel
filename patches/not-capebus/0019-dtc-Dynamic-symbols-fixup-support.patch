@@ -1,4 +1,4 @@
-From 2dac5e69f83ff7b446509968b468ff234146e1e8 Mon Sep 17 00:00:00 2001
+From 65862082a20ab56a666b030f8f65399c0f66e2c2 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 6 Dec 2012 13:48:11 +0200
 Subject: [PATCH 019/184] dtc: Dynamic symbols & fixup support
@@ -17,17 +17,17 @@ This is sufficient to implement a dynamic DT object loader.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- Documentation/devicetree/00-INDEX               |    1 +
- Documentation/devicetree/dt-object-internal.txt |  295 ++++++++++
- scripts/dtc/checks.c                            |  120 +++-
- scripts/dtc/dtc-lexer.l                         |    5 +
- scripts/dtc/dtc-lexer.lex.c_shipped             |  435 ++++++++-------
- scripts/dtc/dtc-parser.tab.c_shipped            |  679 ++++++++++++-----------
- scripts/dtc/dtc-parser.tab.h_shipped            |   48 +-
- scripts/dtc/dtc-parser.y                        |   23 +-
- scripts/dtc/dtc.c                               |    9 +-
- scripts/dtc/dtc.h                               |   38 ++
- scripts/dtc/flattree.c                          |  139 +++++
+ Documentation/devicetree/00-INDEX               |   1 +
+ Documentation/devicetree/dt-object-internal.txt | 295 ++++++++++
+ scripts/dtc/checks.c                            | 120 ++++-
+ scripts/dtc/dtc-lexer.l                         |   5 +
+ scripts/dtc/dtc-lexer.lex.c_shipped             | 435 +++++++--------
+ scripts/dtc/dtc-parser.tab.c_shipped            | 679 ++++++++++++------------
+ scripts/dtc/dtc-parser.tab.h_shipped            |  48 +-
+ scripts/dtc/dtc-parser.y                        |  23 +-
+ scripts/dtc/dtc.c                               |   9 +-
+ scripts/dtc/dtc.h                               |  38 ++
+ scripts/dtc/flattree.c                          | 139 +++++
  11 files changed, 1224 insertions(+), 568 deletions(-)
  create mode 100644 Documentation/devicetree/dt-object-internal.txt
 
@@ -42,7 +42,7 @@ index b78f691..fb932e2 100644
 +dt-object-internals.txt
 diff --git a/Documentation/devicetree/dt-object-internal.txt b/Documentation/devicetree/dt-object-internal.txt
 new file mode 100644
-index 0000000..f86d054
+index 0000000..eb5d4c0
 --- /dev/null
 +++ b/Documentation/devicetree/dt-object-internal.txt
 @@ -0,0 +1,295 @@
@@ -257,10 +257,10 @@ index 0000000..f86d054
 +No __symbols__ has been generated (no label in bar.dts).
 +Note that the target's ocp label is undefined, so the phandle handle
 +value is filled with the illegal value '0xdeadbeef', while a __fixups__
-+node has been generated, which marks the location in the tree where 
++node has been generated, which marks the location in the tree where
 +the label lookup should store the runtime phandle value of the ocp node.
 +
-+The format of the __fixups__ node entry is 
++The format of the __fixups__ node entry is
 +
 +	<label> = "<local-full-path>:<property-name>:<offset>";
 +
@@ -271,7 +271,7 @@ index 0000000..f86d054
 +<offset>		The offset (in bytes) of where the property's
 +			phandle value is located.
 +
-+Doing the same with the baz peripheral's DTS format is a little bit more 
++Doing the same with the baz peripheral's DTS format is a little bit more
 +involved, since baz contains references to local labels which require
 +local fixups.
 +
@@ -309,7 +309,7 @@ index 0000000..f86d054
 +	fragment@0 {
 +		target = <0xdeadbeef>;
 +		__overlay__ {
-+			res_baz { 
++			res_baz {
 +				....
 +				linux,phandle = <0x00000001>;
 +				phandle = <0x00000001>;
@@ -2744,7 +2744,7 @@ index 3e42a07..0c8ecf6 100644
  void delete_labels(struct label **labels);
  
 diff --git a/scripts/dtc/flattree.c b/scripts/dtc/flattree.c
-index 665dad7..6237715 100644
+index 665dad7..5b2e75e 100644
 --- a/scripts/dtc/flattree.c
 +++ b/scripts/dtc/flattree.c
 @@ -262,6 +262,12 @@ static void flatten_tree(struct node *tree, struct emitter *emit,
@@ -2811,7 +2811,7 @@ index 665dad7..6237715 100644
 +				if (fullpath[0] == '\0')
 +					fullpath = "/";
 +				namesz += strlen(fullpath) + 1;
-+			      	namesz += strlen(fe->prop->name) + 1;
++				namesz += strlen(fe->prop->name) + 1;
 +				namesz += 32;	/* space for :<number> + '\0' */
 +			}
 +
@@ -2901,5 +2901,5 @@ index 665dad7..6237715 100644
  }
  
 -- 
-1.7.9.5
+1.9.0
 

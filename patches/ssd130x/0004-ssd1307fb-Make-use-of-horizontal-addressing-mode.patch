@@ -1,4 +1,4 @@
-From 2ba80bf87bc249e7a852d0553185019ec7e55519 Mon Sep 17 00:00:00 2001
+From 6c73f7ac3329c5b10cbc07387b9c982389df03b0 Mon Sep 17 00:00:00 2001
 From: Maxime Ripard <maxime.ripard@free-electrons.com>
 Date: Fri, 13 Jul 2012 15:16:12 +0200
 Subject: [PATCH 4/5] ssd1307fb: Make use of horizontal addressing mode
@@ -18,7 +18,7 @@ line, allowing to have a lower data overhead, and a simpler driver.
 
 Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
 ---
- drivers/video/ssd1307fb.c |   41 +++++++++++++++++++++++++++++------------
+ drivers/video/ssd1307fb.c | 41 +++++++++++++++++++++++++++++------------
  1 file changed, 29 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/video/ssd1307fb.c b/drivers/video/ssd1307fb.c
@@ -105,5 +105,5 @@ index 676241b..6594458 100644
  	ret = ssd1307fb_write_cmd(par->client, SSD1307FB_DISPLAY_ON);
  	if (ret < 0)
 -- 
-1.7.9.5
+1.9.0
 

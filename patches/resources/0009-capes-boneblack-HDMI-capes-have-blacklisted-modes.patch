@@ -1,29 +1,20 @@
-From d873a01d136258d4627bf1700d6a69fc61c2e696 Mon Sep 17 00:00:00 2001
+From c07c5fd72fb5864005508dc4a792c11cfda92cb7 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 12 Jun 2013 11:12:26 +0300
-Subject: [PATCH 09/21] capes: boneblack HDMI capes have blacklisted modes.
+Subject: [PATCH 09/24] capes: boneblack HDMI capes have blacklisted modes.
 
 Added a few modes that are known not to work on my end.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- firmware/capes/cape-boneblack-hdmi-00A0.dts  |   13 ++++++++++++-
- firmware/capes/cape-boneblack-hdmin-00A0.dts |   11 +++++++++++
- 2 files changed, 23 insertions(+), 1 deletion(-)
+ firmware/capes/cape-boneblack-hdmi-00A0.dts  | 11 +++++++++++
+ firmware/capes/cape-boneblack-hdmin-00A0.dts | 11 +++++++++++
+ 2 files changed, 22 insertions(+)
 
 diff --git a/firmware/capes/cape-boneblack-hdmi-00A0.dts b/firmware/capes/cape-boneblack-hdmi-00A0.dts
-index a312bc1..04b7b54 100644
+index 0cc9227..ce60528 100644
 --- a/firmware/capes/cape-boneblack-hdmi-00A0.dts
 +++ b/firmware/capes/cape-boneblack-hdmi-00A0.dts
-@@ -83,7 +83,7 @@
- 				pinctrl-single,pins = <
- 					0x1ac 0x30      /* mcasp0_ahclkx,       MODE0 | INPUT */
- 					0x19c 0x02	/* mcasp0_ahclkr, */
--					0x194 0x10      /* mcasp0_fsx,         MODE0 | OUTPUT  */ 
-+					0x194 0x10      /* mcasp0_fsx,         MODE0 | OUTPUT  */
- 					0x190 0x00      /* mcasp0_aclkr.mcasp0_aclkx,     MODE0 | OUTPUT_PULLDOWN */
- 					0x1a8 0x1f	/* mcasp0_axr1 GPIO1_27 | OUTPUT | PULLUP */
- 				>;
 @@ -111,6 +111,17 @@
  				pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
  				pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
@@ -43,7 +34,7 @@ index a312bc1..04b7b54 100644
  					bpp = <16>;
  					ac-bias = <255>;
 diff --git a/firmware/capes/cape-boneblack-hdmin-00A0.dts b/firmware/capes/cape-boneblack-hdmin-00A0.dts
-index e193426..ad55c4d 100644
+index 1feb013..b4305b0 100644
 --- a/firmware/capes/cape-boneblack-hdmin-00A0.dts
 +++ b/firmware/capes/cape-boneblack-hdmin-00A0.dts
 @@ -96,6 +96,17 @@
@@ -65,5 +56,5 @@ index e193426..ad55c4d 100644
  					bpp = <16>;
  					ac-bias = <255>;
 -- 
-1.7.9.5
+1.9.0
 

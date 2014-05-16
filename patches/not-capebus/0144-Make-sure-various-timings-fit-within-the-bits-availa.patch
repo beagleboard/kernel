@@ -1,18 +1,17 @@
-From 990be722327b162c007bdd96193a53c435604928 Mon Sep 17 00:00:00 2001
+From 296c2ec7b448abd963b87467f98976bd3f490a06 Mon Sep 17 00:00:00 2001
 From: Darren Etheridge <detheridge@ti.com>
 Date: Mon, 25 Mar 2013 16:12:14 -0500
 Subject: [PATCH 144/184] Make sure various timings fit within the bits
- available in the LCD controller, otherwise prune
- the mode. Also adjust the timing values to behave
- as the TRM indicates with 0 representing 1 in some
+ available in the LCD controller, otherwise prune the mode. Also adjust the
+ timing values to behave as the TRM indicates with 0 representing 1 in some
  cases.
 
 ---
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c |   75 +++++++++++++++++++++++++++-------
- 1 file changed, 60 insertions(+), 15 deletions(-)
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c | 73 +++++++++++++++++++++++++++++-------
+ 1 file changed, 59 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index a98b094..69675e6 100644
+index c7b41d5..5d24e0a 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 @@ -289,31 +289,38 @@ static int tilcdc_crtc_mode_set(struct drm_crtc *crtc,
@@ -46,8 +45,7 @@ index a98b094..69675e6 100644
 -		reg |= (((mode->hdisplay >> 4) - 1) & 0x40) >> 3;
 +	    reg |= (((mode->hdisplay >> 4) - 1) & 0x40) >> 3;
  	tilcdc_write(dev, LCDC_RASTER_TIMING_0_REG, reg);
--
-+	
+ 
 +	/* only the vertical sync width maps 0 as 1 so only subtract 1 from vsw */
  	reg = ((mode->vdisplay - 1) & 0x3ff) |
 -		((vbp & 0xff) << 24) |
@@ -78,14 +76,14 @@ index a98b094..69675e6 100644
  			reg |= LCDC_V2_TFT_24BPP_MODE;
 @@ -427,6 +434,7 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
  {
-   	struct tilcdc_drm_private *priv = crtc->dev->dev_private;
+ 	struct tilcdc_drm_private *priv = crtc->dev->dev_private;
  	unsigned int bandwidth;
 +	uint32_t hbp, hfp, hsw, vbp, vfp, vsw;
  
  	int rb;
  
 @@ -446,6 +454,44 @@ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode,
- 	DBG("Processing mode %dx%d@%d with pixel clock %d", 
+ 	DBG("Processing mode %dx%d@%d with pixel clock %d",
  	       mode->hdisplay, mode->vdisplay, drm_mode_vrefresh(mode), mode->clock);
  
 +
@@ -138,5 +136,5 @@ index a98b094..69675e6 100644
  		/* we only support reduced blanking modes */
  		rb = (mode->htotal - mode->hdisplay == 160) &&
 -- 
-1.7.9.5
+1.9.0
 

@@ -1,7 +1,7 @@
-From 798f8a78fc894b12c91f770fccaf16aff95f64dc Mon Sep 17 00:00:00 2001
+From f5a9ffa006e2833c6710fccdf38ad1f0325eae3d Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 26 Jul 2013 14:06:00 +0300
-Subject: [PATCH 23/23] capemgr: Retry loading when failure to find firmware
+Subject: [PATCH 23/24] capemgr: Retry loading when failure to find firmware
 
 When the rootfs device is on a device that's created via a dtbo
 and the dtbo firmware is not including in the kernel image loading
@@ -17,7 +17,7 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  1 file changed, 87 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/misc/cape/beaglebone/capemgr.c b/drivers/misc/cape/beaglebone/capemgr.c
-index b1a8b65..ee6462d 100644
+index b82a3d7..b2d5edb 100644
 --- a/drivers/misc/cape/beaglebone/capemgr.c
 +++ b/drivers/misc/cape/beaglebone/capemgr.c
 @@ -44,6 +44,8 @@
@@ -133,7 +133,7 @@ index b1a8b65..ee6462d 100644
 @@ -1775,31 +1809,68 @@ static int bone_capemgr_loader(void *data)
  	 * should start loading first. So each time we end up
  	 * here.
- 	 */ 
+ 	 */
 -	ret = wait_event_interruptible(info->load_wq,
 -			lowest_loading_cape(slot));
 +	ret = wait_event_interruptible(info->load_wq, clear_to_load_condition(slot));
@@ -209,5 +209,5 @@ index b1a8b65..ee6462d 100644
  	/* not loaded? remove */
  	if (ret != 0)
 -- 
-1.8.2.1
+1.9.0
 

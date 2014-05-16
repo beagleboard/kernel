@@ -1,8 +1,7 @@
-From b45ed989afdc02df1a7d9ea9809eccf9cba2be50 Mon Sep 17 00:00:00 2001
+From 5803997078d113a39e94010b4d9321451414bd0f Mon Sep 17 00:00:00 2001
 From: Darren Etheridge <detheridge@ti.com>
 Date: Mon, 1 Jul 2013 16:06:55 -0500
-Subject: [PATCH 28/28] Make the McASP code generic again, remove all
- hardcoding
+Subject: [PATCH 1/3] Make the McASP code generic again, remove all hardcoding
 
 After adding the HDMI audio, the McASP driver was left in
 a mess, and broken when used with other capes.  This patch
@@ -11,12 +10,12 @@ davinci-evm.c where it belongs.
 
 Signed-off-by: Darren Etheridge <detheridge@ti.com>
 ---
- sound/soc/davinci/davinci-evm.c   |   48 +++++++++++++++++++++++++++----------
- sound/soc/davinci/davinci-mcasp.c |   12 ++++------
- 2 files changed, 40 insertions(+), 20 deletions(-)
+ sound/soc/davinci/davinci-evm.c   | 42 +++++++++++++++++++++++++++++----------
+ sound/soc/davinci/davinci-mcasp.c | 12 +++++------
+ 2 files changed, 37 insertions(+), 17 deletions(-)
 
 diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/davinci/davinci-evm.c
-index 7a7fc47..421feb0 100644
+index bbae516..421feb0 100644
 --- a/sound/soc/davinci/davinci-evm.c
 +++ b/sound/soc/davinci/davinci-evm.c
 @@ -146,6 +146,32 @@ static const struct snd_soc_dapm_route audio_map[] = {
@@ -52,34 +51,27 @@ index 7a7fc47..421feb0 100644
  static int evm_aic3x_init(struct snd_soc_pcm_runtime *rtd)
  {
  	struct snd_soc_codec *codec = rtd->codec;
-@@ -380,11 +406,12 @@ static int davinci_evm_probe(struct platform_device *pdev)
+@@ -380,6 +406,7 @@ static int davinci_evm_probe(struct platform_device *pdev)
  		evm_dai.name		= "NXP TDA HDMI Chip";
  		evm_dai.stream_name	= "HDMI";
  		evm_dai.codec_dai_name	= "nxp-hdmi-hifi";
 +		evm_dai.init = evm_tda998x_init;
  
--		/* 
--		 * Move GPIO handling out of the probe, if probe gets 
-+		/*
-+		 * Move GPIO handling out of the probe, if probe gets
- 		 * deferred, the gpio will have been claimed on previous
--		 * probe and will fail on the second and susequent probes 
-+		 * probe and will fail on the second and susequent probes
- 		 */
- 		clk_gpio = of_get_named_gpio(np, "mcasp_clock_enable", 0);
- 		if (clk_gpio < 0) {
-@@ -398,11 +425,8 @@ static int davinci_evm_probe(struct platform_device *pdev)
+ 		/*
+ 		 * Move GPIO handling out of the probe, if probe gets
+@@ -398,12 +425,9 @@ static int davinci_evm_probe(struct platform_device *pdev)
  		  return -EINVAL;
  		}
  		gpio_set_value(clk_gpio, 1);
 -		evm_dai.dai_fmt = SND_SOC_DAIFMT_CBS_CFS | SND_SOC_DAIFMT_DSP_B | SND_SOC_DAIFMT_IB_NF;
  		break;
--	  
+-
  	}
--	
  
+-
  	evm_dai.codec_of_node = of_parse_phandle(np, "ti,audio-codec", 0);
  	if (!evm_dai.codec_of_node)
+ 		return -EINVAL;
 @@ -421,9 +445,9 @@ static int davinci_evm_probe(struct platform_device *pdev)
  		return ret;
  
@@ -87,7 +79,7 @@ index 7a7fc47..421feb0 100644
 -	if (ret) {
 +	if (ret)
  		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", ret);
--	} 
+-	}
 +
  	return ret;
  }
@@ -116,7 +108,7 @@ index 7a7fc47..421feb0 100644
  	evm_snd_device = platform_device_alloc("soc-audio", index);
  	if (!evm_snd_device)
 diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-index bef4e72..83232c6 100644
+index a89ece3..83232c6 100644
 --- a/sound/soc/davinci/davinci-mcasp.c
 +++ b/sound/soc/davinci/davinci-mcasp.c
 @@ -484,6 +484,10 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
@@ -134,9 +126,9 @@ index bef4e72..83232c6 100644
  	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
  	case SND_SOC_DAIFMT_CBS_CFS:
  		/* codec is clock and frame slave */
--	  	mcasp_set_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE | ACLKXDIV(7));
--	  	mcasp_set_bits(base + DAVINCI_MCASP_AHCLKXCTL_REG,  AHCLKXDIV(0));
--	  	mcasp_clr_bits(base + DAVINCI_MCASP_AHCLKXCTL_REG,  AHCLKXE);
+-		mcasp_set_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE | ACLKXDIV(7));
+-		mcasp_set_bits(base + DAVINCI_MCASP_AHCLKXCTL_REG,  AHCLKXDIV(0));
+-		mcasp_clr_bits(base + DAVINCI_MCASP_AHCLKXCTL_REG,  AHCLKXE);
 +		mcasp_set_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
  		mcasp_set_bits(base + DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
  
@@ -152,7 +144,7 @@ index bef4e72..83232c6 100644
  	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
  		/* bit stream is MSB first  with no delay */
  		/* DSP_B mode */
--	  	mcasp_clr_bits(dev->base + DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
+-		mcasp_clr_bits(dev->base + DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
  		mcasp_set_reg(dev->base + DAVINCI_MCASP_TXTDM_REG, mask);
  		mcasp_set_bits(dev->base + DAVINCI_MCASP_TXFMT_REG, TXORD);
  
@@ -166,5 +158,5 @@ index bef4e72..83232c6 100644
  		/* bit stream is MSB first with no delay */
  		/* DSP_B mode */
 -- 
-1.7.9.5
+1.9.0
 

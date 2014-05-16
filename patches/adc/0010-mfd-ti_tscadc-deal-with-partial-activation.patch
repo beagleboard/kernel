@@ -1,7 +1,7 @@
-From 893931228b0b2178fa9a3dd6f13884dc21c7f2dd Mon Sep 17 00:00:00 2001
+From b3cec152181010370807df688ff3c7c8d33b604b Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 12 Jun 2013 18:58:13 +0200
-Subject: [PATCH 10/21] mfd: ti_tscadc: deal with partial activation
+Subject: [PATCH 10/19] mfd: ti_tscadc: deal with partial activation
 
 Fix the mfd device in the case where a subdevice might not be activated.
 
@@ -9,8 +9,8 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/mfd/ti_am335x_tscadc.c       |   38 ++++++++++++++++++++++------------
- include/linux/mfd/ti_am335x_tscadc.h |    8 +++----
+ drivers/mfd/ti_am335x_tscadc.c       | 38 ++++++++++++++++++++++++------------
+ include/linux/mfd/ti_am335x_tscadc.h |  8 +++-----
  2 files changed, 28 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
@@ -110,5 +110,5 @@ index e36ae41..fe54ba4 100644
  	u32 reg_se_cache;
  	spinlock_t reg_lock;
 -- 
-1.7.9.5
+1.9.0
 

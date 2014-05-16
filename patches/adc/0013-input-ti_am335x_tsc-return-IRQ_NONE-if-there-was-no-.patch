@@ -1,7 +1,7 @@
-From bfaa3d38efbac86ef33a425fd28bf3b07fe04929 Mon Sep 17 00:00:00 2001
+From 3762590bfda489985e85f20794f1f773b7ae6805 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 12 Jun 2013 18:58:20 +0200
-Subject: [PATCH 13/21] input: ti_am335x_tsc: return IRQ_NONE if there was no
+Subject: [PATCH 13/19] input: ti_am335x_tsc: return IRQ_NONE if there was no
  IRQ for us
 
 The previous patch ("input/ti_am335x_tsc: ACK the HW_PEN irq in ISR")
@@ -12,7 +12,7 @@ actually the case.
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/input/touchscreen/ti_am335x_tsc.c |   10 ++++++----
+ drivers/input/touchscreen/ti_am335x_tsc.c | 10 ++++++----
  1 file changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
@@ -37,5 +37,5 @@ index 4b214ea..f0acdca 100644
  
  static int titsc_parse_dt(struct ti_tscadc_dev *tscadc_dev,
 -- 
-1.7.9.5
+1.9.0
 

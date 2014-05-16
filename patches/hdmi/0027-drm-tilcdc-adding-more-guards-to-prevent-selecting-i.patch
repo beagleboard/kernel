@@ -1,4 +1,4 @@
-From f9168072d46968116198cf54509467ef93baf8ae Mon Sep 17 00:00:00 2001
+From 5f27cf8e45ddc0bfa27af9fc26997720b0329e75 Mon Sep 17 00:00:00 2001
 From: Cody Lacey <clacey@ti.com>
 Date: Fri, 9 Aug 2013 14:18:48 -0500
 Subject: [PATCH 27/27] drm/tilcdc: adding more guards to prevent selecting
@@ -12,11 +12,11 @@ that will overflow the allowed sizes in the tilcdc.
 Created by: Darren Etheridge <detheridge@ti.com>
 Modified by Cody Lacey for the 3.8 kernel.
 ---
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c |   47 ++++++++++++++++++----------------
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c | 47 +++++++++++++++++++-----------------
  1 file changed, 25 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index 5495ebc..45d51c9 100644
+index 188ac07..9982a9f 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
 @@ -42,7 +42,8 @@ struct tilcdc_crtc {
@@ -121,5 +121,5 @@ index 5495ebc..45d51c9 100644
  
  	/* filter out modes that would require too much memory bandwidth: */
 -- 
-1.7.9.5
+1.9.0
 

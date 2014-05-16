@@ -1,7 +1,7 @@
-From 64c8bd5cbb640fa370dbaaee54a5914a9e92de23 Mon Sep 17 00:00:00 2001
+From dec6b9fdede53580d48c2869c6a02872042cc167 Mon Sep 17 00:00:00 2001
 From: Bas Laarhoven <sjml@xs4all.nl>
 Date: Sun, 11 Aug 2013 17:59:43 +0200
-Subject: [PATCH 13/22] DT overlay for BeBoPr and BeagleBone (white). Loaded by
+Subject: [PATCH 13/40] DT overlay for BeBoPr and BeagleBone (white). Loaded by
  new "cape-bebopr" board id.
 
 Signed-off-by: Bas Laarhoven <sjml@xs4all.nl>
@@ -25,7 +25,7 @@ index 79c7ac1..b5aec1a 100644
  	cape-bone-dvi-00A0.dtbo \
 diff --git a/firmware/capes/cape-bebopr-R2.dts b/firmware/capes/cape-bebopr-R2.dts
 new file mode 100644
-index 0000000..250c9a1
+index 0000000..531e802
 --- /dev/null
 +++ b/firmware/capes/cape-bebopr-R2.dts
 @@ -0,0 +1,563 @@
@@ -309,7 +309,7 @@ index 0000000..250c9a1
 +					0xec 5  /* #E_STP, pr1_pru1_pru_r30_11, P8_30, gpio2.25, mode5 out */
 +				>;
 +			};
-+		};  
++		};
 +	};
 +
 +	fragment@22 {
@@ -515,7 +515,7 @@ index 0000000..250c9a1
 +		target = <&am33xx_pinmux>;
 +		__overlay__ {
 +
-+ 			bebopr_led_pins: pinmux_bebopr_led_pins {
++			bebopr_led_pins: pinmux_bebopr_led_pins {
 +				pinctrl-single,pins = <
 +					0x000 0x07    /* P8-25 GPIO1_0    gpmc_ad0 .gpio1[0]     */
 +				>;
@@ -559,33 +559,33 @@ index 0000000..250c9a1
 +				compatible = "ti,ads1015";
 +				status = "okay";
 +
-+		           	#address-cells = <1>;
++				#address-cells = <1>;
 +				#size-cells = <0>;
 +				reg = <0x48>;
 +
 +				hi_res = <1>;
 +
 +				channel@1 {
-+			   	     	  reg = <4>;
-+				     	  ti,gain = <2>;
-+				     	  ti,datarate = <2>;
-+			   	};
++					  reg = <4>;
++					  ti,gain = <2>;
++					  ti,datarate = <2>;
++				};
 +				channel@2 {
-+			   	     	  reg = <5>;
-+				     	  ti,gain = <2>;
-+				     	  ti,datarate = <2>;
-+			   	};
++					  reg = <5>;
++					  ti,gain = <2>;
++					  ti,datarate = <2>;
++				};
 +				channel@3 {
-+			   	     	  reg = <6>;
-+				     	  ti,gain = <2>;
-+				     	  ti,datarate = <2>;
-+			   	};
++					  reg = <6>;
++					  ti,gain = <2>;
++					  ti,datarate = <2>;
++				};
 +				channel@4 {
-+			   	     	  reg = <0>;
-+				     	  ti,gain = <3>;
-+				     	  ti,datarate = <2>;
-+			   	};
-+	        	};
++					  reg = <0>;
++					  ti,gain = <3>;
++					  ti,datarate = <2>;
++				};
++			};
 +		};
 +
 +	};
@@ -593,5 +593,5 @@ index 0000000..250c9a1
 +
 +};
 -- 
-1.8.4.2
+1.9.0
 

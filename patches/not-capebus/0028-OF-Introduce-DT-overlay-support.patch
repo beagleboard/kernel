@@ -1,4 +1,4 @@
-From 5d767082e5f103aa7eeae354d936ace2f9a711fd Mon Sep 17 00:00:00 2001
+From 2725a61a83d752ef9e11337418c42b8631830b90 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 3 Jan 2013 12:23:07 +0200
 Subject: [PATCH 028/184] OF: Introduce DT overlay support.
@@ -10,18 +10,18 @@ It is also possible to remove node and properties.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- Documentation/devicetree/overlay-notes.txt |  179 ++++++
- drivers/of/Kconfig                         |   10 +
- drivers/of/Makefile                        |    1 +
- drivers/of/overlay.c                       |  831 ++++++++++++++++++++++++++++
- include/linux/of.h                         |  107 ++++
- 5 files changed, 1128 insertions(+)
+ Documentation/devicetree/overlay-notes.txt | 179 +++++++
+ drivers/of/Kconfig                         |  10 +
+ drivers/of/Makefile                        |   1 +
+ drivers/of/overlay.c                       | 830 +++++++++++++++++++++++++++++
+ include/linux/of.h                         | 107 ++++
+ 5 files changed, 1127 insertions(+)
  create mode 100644 Documentation/devicetree/overlay-notes.txt
  create mode 100644 drivers/of/overlay.c
 
 diff --git a/Documentation/devicetree/overlay-notes.txt b/Documentation/devicetree/overlay-notes.txt
 new file mode 100644
-index 0000000..5289cbb
+index 0000000..6b43a28e
 --- /dev/null
 +++ b/Documentation/devicetree/overlay-notes.txt
 @@ -0,0 +1,179 @@
@@ -203,7 +203,7 @@ index 0000000..5289cbb
 +It should be noted that the DT overlay format described is the one expected
 +by the of_build_overlay_info() function, which is a helper function. There
 +is nothing stopping someone coming up with his own DTS format and that will
-+end up filling in the fields of the of_overlay_info array. 
++end up filling in the fields of the of_overlay_info array.
 diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
 index f9a6193..964a1c2 100644
 --- a/drivers/of/Kconfig
@@ -234,10 +234,10 @@ index 19a8593..307ceb6 100644
 +obj-$(CONFIG_OF_OVERLAY) += overlay.o
 diff --git a/drivers/of/overlay.c b/drivers/of/overlay.c
 new file mode 100644
-index 0000000..f65c3a3
+index 0000000..b5b8841
 --- /dev/null
 +++ b/drivers/of/overlay.c
-@@ -0,0 +1,831 @@
+@@ -0,0 +1,830 @@
 +/*
 + * Functions for working with device tree overlays
 + *
@@ -1068,7 +1068,6 @@ index 0000000..f65c3a3
 +
 +	return 0;
 +}
-+
 diff --git a/include/linux/of.h b/include/linux/of.h
 index ab52243..8a908f0 100644
 --- a/include/linux/of.h
@@ -1186,5 +1185,5 @@ index ab52243..8a908f0 100644
 +
  #endif /* _LINUX_OF_H */
 -- 
-1.7.9.5
+1.9.0
 

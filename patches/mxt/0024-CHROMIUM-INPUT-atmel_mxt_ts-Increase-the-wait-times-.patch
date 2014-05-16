@@ -1,8 +1,8 @@
-From 01ceaa067a1be609ec2090844953608f271d11a5 Mon Sep 17 00:00:00 2001
+From e735ba40293be35cc1612c06d6b96de541c45229 Mon Sep 17 00:00:00 2001
 From: Iiro Valkonen <iiro.valkonen@atmel.com>
 Date: Fri, 29 Apr 2011 09:37:45 -0400
-Subject: [PATCH 24/57] CHROMIUM: INPUT: atmel_mxt_ts - Increase the wait
- times for backup and reset
+Subject: [PATCH 24/57] CHROMIUM: INPUT: atmel_mxt_ts - Increase the wait times
+ for backup and reset
 
 Increase the sleep times after backup and reset, so that we can be sure they have been completed even when the mXT cycle time is set to maximum value (254ms).
 
@@ -29,7 +29,7 @@ Change-Id: I487c75fd05d5eb7b6223b5a3b79d34076d096726
 Signed-off-by: Yufeng Shen <miletus@chromium.org>
 Reviewed-on: http://gerrit.chromium.org/gerrit/8773
 ---
- drivers/input/touchscreen/atmel_mxt_ts.c |    4 ++--
+ drivers/input/touchscreen/atmel_mxt_ts.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
@@ -48,5 +48,5 @@ index 4d67eeb..2f22ae1 100644
  
  #define MXT_FWRESET_TIME	500	/* msec */
 -- 
-1.7.9.5
+1.9.0
 

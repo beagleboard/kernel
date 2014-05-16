@@ -1,4 +1,4 @@
-From ecc71dcc6d67eca39ba6dd6ddeea20057732957e Mon Sep 17 00:00:00 2001
+From 50877cf8894c4f939925dfe34e20fd7caa002cad Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 30 May 2013 15:44:07 +0300
 Subject: [PATCH 176/184] capes: Add virtual capes serving as examples
@@ -8,16 +8,16 @@ Example capes for UART/I2C/SPI.
 Conflicts:
 	firmware/Makefile
 ---
- firmware/Makefile                 |   19 +++++++++
- firmware/capes/BB-I2C1-00A0.dts   |   65 +++++++++++++++++++++++++++++
- firmware/capes/BB-I2C1A1-00A0.dts |   65 +++++++++++++++++++++++++++++
- firmware/capes/BB-SPI0-00A0.dts   |   79 ++++++++++++++++++++++++++++++++++++
- firmware/capes/BB-SPI1-00A0.dts   |   79 ++++++++++++++++++++++++++++++++++++
- firmware/capes/BB-SPI1A1-00A0.dts |   81 +++++++++++++++++++++++++++++++++++++
- firmware/capes/BB-UART1-00A0.dts  |   48 ++++++++++++++++++++++
- firmware/capes/BB-UART2-00A0.dts  |   48 ++++++++++++++++++++++
- firmware/capes/BB-UART4-00A0.dts  |   48 ++++++++++++++++++++++
- firmware/capes/BB-UART5-00A0.dts  |   49 ++++++++++++++++++++++
+ firmware/Makefile                 | 19 +++++++++
+ firmware/capes/BB-I2C1-00A0.dts   | 65 +++++++++++++++++++++++++++++++
+ firmware/capes/BB-I2C1A1-00A0.dts | 65 +++++++++++++++++++++++++++++++
+ firmware/capes/BB-SPI0-00A0.dts   | 79 ++++++++++++++++++++++++++++++++++++++
+ firmware/capes/BB-SPI1-00A0.dts   | 79 ++++++++++++++++++++++++++++++++++++++
+ firmware/capes/BB-SPI1A1-00A0.dts | 81 +++++++++++++++++++++++++++++++++++++++
+ firmware/capes/BB-UART1-00A0.dts  | 48 +++++++++++++++++++++++
+ firmware/capes/BB-UART2-00A0.dts  | 48 +++++++++++++++++++++++
+ firmware/capes/BB-UART4-00A0.dts  | 48 +++++++++++++++++++++++
+ firmware/capes/BB-UART5-00A0.dts  | 49 +++++++++++++++++++++++
  10 files changed, 581 insertions(+)
  create mode 100644 firmware/capes/BB-I2C1-00A0.dts
  create mode 100644 firmware/capes/BB-I2C1A1-00A0.dts
@@ -61,7 +61,7 @@ index 3497631..b039188 100644
  # Directories which we _might_ need to create, so we have a rule for them.
 diff --git a/firmware/capes/BB-I2C1-00A0.dts b/firmware/capes/BB-I2C1-00A0.dts
 new file mode 100644
-index 0000000..9e74f26
+index 0000000..a3284cc
 --- /dev/null
 +++ b/firmware/capes/BB-I2C1-00A0.dts
 @@ -0,0 +1,65 @@
@@ -112,7 +112,7 @@ index 0000000..9e74f26
 +			pinctrl-0 = <&bb_i2c1_pins>;
 +
 +			/* this is the configuration part */
-+			clock-frequency = <100000>;	
++			clock-frequency = <100000>;
 +
 +			#address-cells = <1>;
 +			#size-cells = <0>;
@@ -132,7 +132,7 @@ index 0000000..9e74f26
 +};
 diff --git a/firmware/capes/BB-I2C1A1-00A0.dts b/firmware/capes/BB-I2C1A1-00A0.dts
 new file mode 100644
-index 0000000..4a2b1bd
+index 0000000..c57d19a
 --- /dev/null
 +++ b/firmware/capes/BB-I2C1A1-00A0.dts
 @@ -0,0 +1,65 @@
@@ -183,7 +183,7 @@ index 0000000..4a2b1bd
 +			pinctrl-0 = <&bb_i2c1a1_pins>;
 +
 +			/* this is the configuration part */
-+			clock-frequency = <100000>;	
++			clock-frequency = <100000>;
 +
 +			#address-cells = <1>;
 +			#size-cells = <0>;
@@ -373,14 +373,14 @@ index 0000000..e26f346
 +};
 diff --git a/firmware/capes/BB-SPI1A1-00A0.dts b/firmware/capes/BB-SPI1A1-00A0.dts
 new file mode 100644
-index 0000000..ba98e73
+index 0000000..0deb259
 --- /dev/null
 +++ b/firmware/capes/BB-SPI1A1-00A0.dts
 @@ -0,0 +1,81 @@
 +/*
 + * Copyright (C) 2013 CircuitCo
 + *
-+ * Virtual cape for SPI1 (ALT #1) on connector pins 
++ * Virtual cape for SPI1 (ALT #1) on connector pins
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -676,5 +676,5 @@ index 0000000..e067068
 +	};
 +};
 -- 
-1.7.9.5
+1.9.0
 

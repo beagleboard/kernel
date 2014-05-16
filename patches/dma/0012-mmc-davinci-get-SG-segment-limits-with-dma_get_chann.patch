@@ -1,4 +1,4 @@
-From 62275949b1e6eee0cc8d9613738ce14be4908897 Mon Sep 17 00:00:00 2001
+From ae6a3522db9a5c6f0e44b134af060cf1773831b3 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 18 Oct 2012 21:10:47 -0400
 Subject: [PATCH 12/35] mmc: davinci: get SG segment limits with
@@ -9,8 +9,8 @@ a dma_get_channel_caps() query to the dmaengine driver.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- drivers/mmc/host/davinci_mmc.c            |   66 +++++++++--------------------
- include/linux/platform_data/mmc-davinci.h |    3 --
+ drivers/mmc/host/davinci_mmc.c            | 66 ++++++++++---------------------
+ include/linux/platform_data/mmc-davinci.h |  3 --
  2 files changed, 21 insertions(+), 48 deletions(-)
 
 diff --git a/drivers/mmc/host/davinci_mmc.c b/drivers/mmc/host/davinci_mmc.c
@@ -150,5 +150,5 @@ index 5ba6b22..6910209 100644
  void davinci_setup_mmc(int module, struct davinci_mmc_config *config);
  
 -- 
-1.7.9.5
+1.9.0
 

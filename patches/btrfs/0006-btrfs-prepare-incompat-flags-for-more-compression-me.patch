@@ -1,4 +1,4 @@
-From 6738a8e0588a8077a1c3516645a42670bc245320 Mon Sep 17 00:00:00 2001
+From b6a9b6766e8748145923087cd05efb86ee29fcf6 Mon Sep 17 00:00:00 2001
 From: David Sterba <dsterba@suse.cz>
 Date: Wed, 25 Jan 2012 00:08:06 +0100
 Subject: [PATCH 06/11] btrfs: prepare incompat flags for more compression
@@ -84,7 +84,7 @@ index 338f259..2efe487 100644
  	ret = defrag_count;
  
 diff --git a/fs/btrfs/super.c b/fs/btrfs/super.c
-index d8982e9..6d70e99 100644
+index d8982e9..43c5d79 100644
 --- a/fs/btrfs/super.c
 +++ b/fs/btrfs/super.c
 @@ -461,6 +461,16 @@ int btrfs_parse_options(struct btrfs_root *root, char *options)
@@ -108,16 +108,16 @@ index d8982e9..6d70e99 100644
  	if (btrfs_test_opt(root, COMPRESS)) {
  		if (info->compress_type == BTRFS_COMPRESS_ZLIB)
  			compress_type = "zlib";
+-		else
 +		else if (info->compress_type == BTRFS_COMPRESS_LZ4)
 +			compress_type = "lz4";
-+ 		else if (info->compress_type == BTRFS_COMPRESS_LZO)
-+ 			compress_type = "lzo";
- 		else
--			compress_type = "lzo";
++		else if (info->compress_type == BTRFS_COMPRESS_LZO)
+ 			compress_type = "lzo";
++		else
 +			compress_type = "none";
  		if (btrfs_test_opt(root, FORCE_COMPRESS))
  			seq_printf(seq, ",compress-force=%s", compress_type);
  		else
 -- 
-1.8.4.2
+1.9.0
 

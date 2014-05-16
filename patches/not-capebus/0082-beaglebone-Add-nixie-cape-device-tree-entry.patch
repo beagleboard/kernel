@@ -1,4 +1,4 @@
-From a27de104b03d81138fcbb4fba3c4eb67394d5363 Mon Sep 17 00:00:00 2001
+From cee0078c455348f0b866b1fea5be6c057a6a63c8 Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
 Date: Tue, 22 Jan 2013 10:09:48 -0800
 Subject: [PATCH 082/184] beaglebone: Add nixie cape device tree entry
@@ -7,9 +7,9 @@ Added nixie dt overlays, PWM, and leds definitions to am355x-bone-common
 
 Signed-off-by: Matt Ranostay <mranostay@gmail.com>
 ---
- arch/arm/boot/dts/am335x-bone-common.dtsi |   19 +++++
- firmware/Makefile                         |    4 ++
- firmware/capes/cape-bone-nixie-00A0.dts   |  107 +++++++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone-common.dtsi |  19 ++++++
+ firmware/Makefile                         |   4 ++
+ firmware/capes/cape-bone-nixie-00A0.dts   | 107 ++++++++++++++++++++++++++++++
  3 files changed, 130 insertions(+)
  create mode 100644 firmware/capes/cape-bone-nixie-00A0.dts
 
@@ -51,7 +51,7 @@ index bf863bd..c45daa2 100644
  	};
  };
 diff --git a/firmware/Makefile b/firmware/Makefile
-index f8c4a9e..efe2b90 100644
+index f8c4a9ef..efe2b90 100644
 --- a/firmware/Makefile
 +++ b/firmware/Makefile
 @@ -150,6 +150,10 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
@@ -67,7 +67,7 @@ index f8c4a9e..efe2b90 100644
  
 diff --git a/firmware/capes/cape-bone-nixie-00A0.dts b/firmware/capes/cape-bone-nixie-00A0.dts
 new file mode 100644
-index 0000000..7ec2c46
+index 0000000..a662520
 --- /dev/null
 +++ b/firmware/capes/cape-bone-nixie-00A0.dts
 @@ -0,0 +1,107 @@
@@ -101,7 +101,7 @@ index 0000000..7ec2c46
 +			bone_nixie_cape_pins: pinmux_bone_nixie_cape_pins {
 +				pinctrl-single,pins = <
 +					0x0a0 0x03      /* lcd_data0.gpio2_6 | MODE3 */
-+					0x0a4 0x03      /* lcd_data1.gpio2_7 | MODE3 */ 
++					0x0a4 0x03      /* lcd_data1.gpio2_7 | MODE3 */
 +				>;
 +		        };
 +
@@ -112,7 +112,7 @@ index 0000000..7ec2c46
 +					0x1a4 0x05	/* mcasp0_fsr.pr1_pru1_pru_r30_5, MODE5 | CLK */
 +				>;
 +			};
-+		};	
++		};
 +	};
 +
 +	fragment@2 {
@@ -179,5 +179,5 @@ index 0000000..7ec2c46
 +	};
 +};
 -- 
-1.7.9.5
+1.9.0
 

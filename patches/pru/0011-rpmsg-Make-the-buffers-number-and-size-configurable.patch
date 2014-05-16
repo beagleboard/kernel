@@ -1,4 +1,4 @@
-From 7316e5c0152dd5eb859ce7010775a0718d0ce3df Mon Sep 17 00:00:00 2001
+From 59ef72099e7e8d6ed2838183cfaff25df0b3688d Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 23 May 2013 20:22:52 +0300
 Subject: [PATCH 11/19] rpmsg: Make the buffers number and size configurable
@@ -6,8 +6,8 @@ Subject: [PATCH 11/19] rpmsg: Make the buffers number and size configurable
 The defaults are just too much for small devices. Make them
 configurable (by a kernel config option for now).
 ---
- drivers/rpmsg/Kconfig            |   14 ++++++++++++++
- drivers/rpmsg/virtio_rpmsg_bus.c |   14 ++++++++++++--
+ drivers/rpmsg/Kconfig            | 14 ++++++++++++++
+ drivers/rpmsg/virtio_rpmsg_bus.c | 14 ++++++++++++--
  2 files changed, 26 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/rpmsg/Kconfig b/drivers/rpmsg/Kconfig
@@ -59,5 +59,5 @@ index f1e3239..1ca8700 100644
  
  /*
 -- 
-1.7.9.5
+1.9.0
 

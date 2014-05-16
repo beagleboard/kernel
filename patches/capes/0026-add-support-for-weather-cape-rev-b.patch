@@ -1,7 +1,7 @@
-From e536241681a5644be735415c6be1c0d7c1e896db Mon Sep 17 00:00:00 2001
+From d117ad3f452f179bf916209211110b648b39ec25 Mon Sep 17 00:00:00 2001
 From: Hieu Duong <me@hieuduong.com>
 Date: Thu, 20 Mar 2014 16:31:36 -0500
-Subject: [PATCH 24/24] add support for weather cape rev b
+Subject: [PATCH 26/40] add support for weather cape rev b
 
 Signed-off-by: Hieu Duong <me@hieuduong.com>
 ---
@@ -12,10 +12,10 @@ Signed-off-by: Hieu Duong <me@hieuduong.com>
  create mode 100644 firmware/capes/cape-bone-weather-00B0.dts
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index c401870..4e3c475 100644
+index 58b388d..a349b27 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -309,6 +309,10 @@
+@@ -319,6 +319,10 @@
  					version = "00A0";
  					dtbo = "cape-bone-weather-00A0.dtbo";
  				};
@@ -27,10 +27,10 @@ index c401870..4e3c475 100644
  
  			/* beaglebone black hdmi on board */
 diff --git a/firmware/Makefile b/firmware/Makefile
-index 56b0b50..01314ae 100644
+index b35d176..aa734d9 100644
 --- a/firmware/Makefile
 +++ b/firmware/Makefile
-@@ -213,7 +213,9 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_NIXIE) += \
+@@ -210,7 +210,9 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_NIXIE) += \
  	cape-bone-nixie-00A0.dtbo
  
  # the weather cape

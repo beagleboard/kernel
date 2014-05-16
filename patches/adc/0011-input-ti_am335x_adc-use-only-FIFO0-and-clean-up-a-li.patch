@@ -1,7 +1,7 @@
-From e559a1048c247ed6c194c59bfce0ecabc388f336 Mon Sep 17 00:00:00 2001
+From 70b6a93528d18bea99228bbaec68070307541d9a Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 12 Jun 2013 18:58:18 +0200
-Subject: [PATCH 11/21] input: ti_am335x_adc: use only FIFO0 and clean up a
+Subject: [PATCH 11/19] input: ti_am335x_adc: use only FIFO0 and clean up a
  little
 
 The driver programs a threshold of "coordinate_readouts" say 5. The
@@ -35,9 +35,9 @@ The patch tries to clean up the whole thing a little:
 Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/iio/adc/ti_am335x_adc.c           |    2 +-
- drivers/input/touchscreen/ti_am335x_tsc.c |   78 +++++++++++++++--------------
- include/linux/mfd/ti_am335x_tscadc.h      |    4 +-
+ drivers/iio/adc/ti_am335x_adc.c           |  2 +-
+ drivers/input/touchscreen/ti_am335x_tsc.c | 78 ++++++++++++++++---------------
+ include/linux/mfd/ti_am335x_tscadc.h      |  4 +-
  3 files changed, 44 insertions(+), 40 deletions(-)
 
 diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
@@ -262,5 +262,5 @@ index fe54ba4..9598360 100644
  #define REG_FIFO0THR		0xE8
  #define REG_FIFO1CNT		0xF0
 -- 
-1.7.9.5
+1.9.0
 

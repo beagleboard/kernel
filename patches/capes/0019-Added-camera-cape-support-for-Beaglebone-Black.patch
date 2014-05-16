@@ -1,7 +1,7 @@
-From 24a8a6d21920efba3c2f286944e148de842c7e49 Mon Sep 17 00:00:00 2001
+From 3c2a1877a1728c8880334f0d3bfc8a77c5a11c92 Mon Sep 17 00:00:00 2001
 From: vvdn <anithamol.benny@vvdntech.com>
 Date: Sat, 23 Nov 2013 08:24:37 -0500
-Subject: [PATCH 19/22] Added camera cape support for Beaglebone Black
+Subject: [PATCH 19/40] Added camera cape support for Beaglebone Black
 
 ---
  drivers/media/i2c/soc_camera/Kconfig            |    6 +
@@ -1107,7 +1107,7 @@ index 0000000..6eab204
 +MODULE_AUTHOR("Scott Jiang <Scott.Jiang.Linux@gmail.com>");
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/media/platform/soc_camera/cssp_camera.c b/drivers/media/platform/soc_camera/cssp_camera.c
-index 119c432..dffbffa 100644
+index 9cee142..743b1cd 100644
 --- a/drivers/media/platform/soc_camera/cssp_camera.c
 +++ b/drivers/media/platform/soc_camera/cssp_camera.c
 @@ -1093,9 +1093,18 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
@@ -1403,5 +1403,5 @@ index 4ee125b..210737b 100644
  	V4L2_IDENT_MT9V022IX7ATM	= 45015, /* and "lead free" IA7ATx chips */
  	V4L2_IDENT_MT9T031		= 45020,
 -- 
-1.8.4.2
+1.9.0
 

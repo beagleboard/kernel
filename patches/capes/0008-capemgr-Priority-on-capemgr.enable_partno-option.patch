@@ -1,7 +1,7 @@
-From f07e9ca5077dc877b529458d853345fbd73a2bfa Mon Sep 17 00:00:00 2001
+From f84c6f152cc5f208d34f42149ac8a62641acfbd4 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Wed, 24 Jul 2013 18:30:43 +0300
-Subject: [PATCH 08/22] capemgr: Priority on capemgr.enable_partno option
+Subject: [PATCH 08/40] capemgr: Priority on capemgr.enable_partno option
 
 When booting from a device that's providing the rootfs via a
 cape fragment, you face the following problem as it appears
@@ -34,7 +34,7 @@ Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
  1 file changed, 30 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/misc/cape/beaglebone/capemgr.c b/drivers/misc/cape/beaglebone/capemgr.c
-index ee6462d..3fcaef3 100644
+index b2d5edb..0f6673a 100644
 --- a/drivers/misc/cape/beaglebone/capemgr.c
 +++ b/drivers/misc/cape/beaglebone/capemgr.c
 @@ -178,7 +178,7 @@ static int bone_slot_fill_override(struct bone_cape_slot *slot,
@@ -135,7 +135,7 @@ index ee6462d..3fcaef3 100644
 +						prio = val;
 +				}
 +			}
- 			
+ 
 -			part_number = wbuf;
 -			version = p;
  
@@ -152,5 +152,5 @@ index ee6462d..3fcaef3 100644
  			/* we continue even in case of an error */
  			if (IS_ERR_OR_NULL(slot)) {
 -- 
-1.8.4.2
+1.9.0
 

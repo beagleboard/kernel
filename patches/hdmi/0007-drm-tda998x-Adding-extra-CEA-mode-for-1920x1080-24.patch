@@ -1,14 +1,14 @@
-From 0ada35c2245249c998c17c146bd78920ac3cb6f6 Mon Sep 17 00:00:00 2001
+From a1f00c5cbe2959a812480dda501361d1a937cbe3 Mon Sep 17 00:00:00 2001
 From: Darren Etheridge <detheridge@ti.com>
 Date: Wed, 8 May 2013 16:39:28 -0500
-Subject: [PATCH 07/22] drm: tda998x Adding extra CEA mode for 1920x1080@24
+Subject: [PATCH 07/27] drm: tda998x Adding extra CEA mode for 1920x1080@24
 
 ---
- drivers/gpu/drm/i2c/tda998x_drv.c |    8 ++++----
+ drivers/gpu/drm/i2c/tda998x_drv.c | 8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
-index 7c64696..412ba4f 100644
+index 03d58b1..4432eea 100644
 --- a/drivers/gpu/drm/i2c/tda998x_drv.c
 +++ b/drivers/gpu/drm/i2c/tda998x_drv.c
 @@ -598,14 +598,14 @@ tda998x_avi_infoframe_enable(struct drm_encoder *encoder,
@@ -16,9 +16,9 @@ index 7c64696..412ba4f 100644
  }
  
 -/* loopup table for CEA values to VIDFORMAT values taken from NXP datasheet */
--static char cea_to_nxp_mode[32] = {-1, 0, 1, 1, 2, 3, 4, 4, 5, 5, -1, -1, 
+-static char cea_to_nxp_mode[32] = {-1, 0, 1, 1, 2, 3, 4, 4, 5, 5, -1, -1,
 +/* lookup table for CEA values to VIDFORMAT values taken from NXP datasheet */
-+static char cea_to_nxp_mode[34] = {-1, 0, 1, 1, 2, 3, 4, 4, 5, 5, -1, -1, 
++static char cea_to_nxp_mode[34] = {-1, 0, 1, 1, 2, 3, 4, 4, 5, 5, -1, -1,
  		-1, -1, -1, -1, 6, 7, 7, 8, 9, 10, 10,
 -		11, 11, -1, -1, -1, -1, -1, -1, 12};
 +		11, 11, -1, -1, -1, -1, -1, -1, 12, 13};
@@ -31,5 +31,5 @@ index 7c64696..412ba4f 100644
  	}
  	return cea_to_nxp_mode[cea_mode];
 -- 
-1.7.9.5
+1.9.0
 

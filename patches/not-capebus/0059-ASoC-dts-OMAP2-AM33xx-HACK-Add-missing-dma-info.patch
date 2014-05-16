@@ -1,8 +1,7 @@
-From 167e90c8a521ef88039a3e4b75c915669d182792 Mon Sep 17 00:00:00 2001
+From 689a66ef5c9e3beb6a55907ad9c72f2f35e5dd6e Mon Sep 17 00:00:00 2001
 From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
 Date: Fri, 10 Aug 2012 20:38:09 +0530
-Subject: [PATCH 059/184] ASoC/dts: OMAP2+: AM33xx: [HACK] Add missing dma
- info
+Subject: [PATCH 059/184] ASoC/dts: OMAP2+: AM33xx: [HACK] Add missing dma info
 
 This patch adds dma related  dt entries and functions that later will be
 replaced by actual DMA porting
@@ -12,15 +11,15 @@ Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
 Conflicts:
 	arch/arm/boot/dts/am33xx.dtsi
 ---
- arch/arm/boot/dts/am33xx.dtsi     |    6 ++++++
- sound/soc/davinci/davinci-mcasp.c |   26 ++++++++++++++++++++++++--
+ arch/arm/boot/dts/am33xx.dtsi     |  6 ++++++
+ sound/soc/davinci/davinci-mcasp.c | 26 ++++++++++++++++++++++++--
  2 files changed, 30 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index cc1c013..3560959 100644
+index a5e738f..b205e94 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -679,6 +679,9 @@
+@@ -684,6 +684,9 @@
  			reg = <0x48038000 0x2000>;
  			interrupts = <80 81>;
  			status = "disabled";
@@ -30,7 +29,7 @@ index cc1c013..3560959 100644
  		};
  
  		mcasp1: mcasp@4803C000 {
-@@ -689,6 +692,9 @@
+@@ -694,6 +697,9 @@
  			reg = <0x4803C000 0x2000>;
  			interrupts = <82 83>;
  			status = "disabled";
@@ -92,5 +91,5 @@ index 83d96eb..621ce30 100644
  
  	res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
 -- 
-1.7.9.5
+1.9.0
 

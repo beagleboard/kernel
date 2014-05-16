@@ -1,4 +1,4 @@
-From 6deef07bcc02a74d2ed2a83d6d54609ef79621e4 Mon Sep 17 00:00:00 2001
+From 9f5e964c1de5982786b3ffd35edf922fedb9da66 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 12 Jul 2013 19:05:58 +0300
 Subject: [PATCH 17/19] rproc: PRU: Add downcall RPC capability.
@@ -9,7 +9,7 @@ using synchronous RPC. Much faster and easier.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/remoteproc/pru_rproc.c |  354 ++++++++++++++++++++++++++++++++++------
+ drivers/remoteproc/pru_rproc.c | 354 +++++++++++++++++++++++++++++++++++------
  1 file changed, 307 insertions(+), 47 deletions(-)
 
 diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
@@ -587,5 +587,5 @@ index e3ec63b..ad2dfc7 100644
  
  	(void)pru_d_read_u32;
 -- 
-1.7.9.5
+1.9.0
 

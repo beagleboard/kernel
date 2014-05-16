@@ -1,11 +1,11 @@
-From 1df125693a36da53bad975d4871d73f1ce6bf8a5 Mon Sep 17 00:00:00 2001
+From 39d217dd8bb7f3f2d649a3260198af3464775944 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 26 Oct 2012 15:48:00 +0300
 Subject: [PATCH 2/2] omap-hsmmc: Correct usage of of_find_node_by_name
 
 of_find_node_by_name expect to have the parent node reference taken.
 ---
- drivers/mmc/host/omap_hsmmc.c |   10 ++++++++++
+ drivers/mmc/host/omap_hsmmc.c | 10 ++++++++++
  1 file changed, 10 insertions(+)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
@@ -30,5 +30,5 @@ index f74bd69..e30c1ee 100644
  	mmc->max_blk_count = 0xFFFF;    /* No. of Blocks is 16 bits */
  	mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
 -- 
-1.7.9.5
+1.9.0
 

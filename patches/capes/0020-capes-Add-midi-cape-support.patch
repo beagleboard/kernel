@@ -1,7 +1,7 @@
-From 374f01d76e3c998c589000548a8acdcf3d15635b Mon Sep 17 00:00:00 2001
+From 58e35f17ad3b65f0261865e7204f924df4d0da99 Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
 Date: Fri, 11 Oct 2013 16:21:40 -0700
-Subject: [PATCH 20/22] capes: Add midi cape support
+Subject: [PATCH 20/40] capes: Add midi cape support
 
 Enable UART1 for MIDI cape using DT overlays.
 
@@ -14,7 +14,7 @@ Signed-off-by: Matt Ranostay <mranostay@gmail.com>
  create mode 100644 firmware/capes/BB-BONE-MIDI-00A0.dts
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 81d95306..28c056f 100644
+index f6c639a..58b388d 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
 @@ -211,6 +211,16 @@
@@ -33,7 +33,7 @@ index 81d95306..28c056f 100644
 +
  			/* Beaglebone black has it soldered on */
  			 slot@100 {
- 			 	ti,cape-override;
+ 				ti,cape-override;
 @@ -402,6 +412,15 @@
  				};
  			};
@@ -115,5 +115,5 @@ index 0000000..d2c62e4
 +	};
 +};
 -- 
-1.8.4.2
+1.9.0
 

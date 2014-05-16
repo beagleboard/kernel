@@ -1,4 +1,4 @@
-From 0038d9c3f0f25d4b2a90a617d89f62cad34be67b Mon Sep 17 00:00:00 2001
+From f78d43bf60abc89d9faa133ab2c4fca36ebe52fa Mon Sep 17 00:00:00 2001
 From: Matt Ranostay <mranostay@gmail.com>
 Date: Tue, 19 Mar 2013 17:05:44 +0000
 Subject: [PATCH 130/184] cape: vsense-scale division by zero check
@@ -8,7 +8,7 @@ in vsense-scale property from the device tree.
 
 Signed-off-by: Matt Ranostay <mranostay@gmail.com>
 ---
- drivers/misc/cape/beaglebone/cape-bone-geiger.c |   12 +++++++++++-
+ drivers/misc/cape/beaglebone/cape-bone-geiger.c | 12 +++++++++++-
  1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/misc/cape/beaglebone/cape-bone-geiger.c b/drivers/misc/cape/beaglebone/cape-bone-geiger.c
@@ -47,5 +47,5 @@ index 6be383e..fa57be0 100644
  	if (IS_ERR(info->vsense_channel)) {
  		dev_err(&pdev->dev, "Could not get %s analog input\n",
 -- 
-1.7.9.5
+1.9.0
 

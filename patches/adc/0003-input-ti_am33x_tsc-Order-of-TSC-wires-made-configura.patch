@@ -1,7 +1,7 @@
-From 38ac4835f49e91eb19e70067b7606bf6b6bc76db Mon Sep 17 00:00:00 2001
+From 0b24a42898f2655dd0acf1e85e0c3747fb3c11e3 Mon Sep 17 00:00:00 2001
 From: "Patil, Rachna" <rachna@ti.com>
 Date: Wed, 12 Jun 2013 18:58:04 +0200
-Subject: [PATCH 03/21] input: ti_am33x_tsc: Order of TSC wires, made
+Subject: [PATCH 03/19] input: ti_am33x_tsc: Order of TSC wires, made
  configurable
 
 The current driver expected touchscreen input
@@ -15,9 +15,9 @@ Signed-off-by: Patil, Rachna <rachna@ti.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/input/touchscreen/ti_am335x_tsc.c |  102 ++++++++++++++++++++++++-----
- include/linux/input/ti_am335x_tsc.h       |   12 ++++
- include/linux/mfd/ti_am335x_tscadc.h      |    3 -
+ drivers/input/touchscreen/ti_am335x_tsc.c | 102 +++++++++++++++++++++++++-----
+ include/linux/input/ti_am335x_tsc.h       |  12 ++++
+ include/linux/mfd/ti_am335x_tscadc.h      |   3 -
  3 files changed, 98 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
@@ -258,5 +258,5 @@ index 4258627..e36ae41 100644
  #define STEPCHARGE_RFM(val)	((val) << 23)
  #define STEPCHARGE_RFM_XNUR	STEPCHARGE_RFM(1)
 -- 
-1.7.9.5
+1.9.0
 

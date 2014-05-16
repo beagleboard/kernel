@@ -1,4 +1,4 @@
-From 7ac124313acd0c5476c2cc7d412478a412d356c6 Mon Sep 17 00:00:00 2001
+From aef06d00fe9f541f03e759f108c64a9066831354 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Fri, 24 May 2013 15:01:19 +0300
 Subject: [PATCH 12/19] remoteproc: Use driver ops for allocation of virtqueus
@@ -8,8 +8,8 @@ In many cases they should be placed in driver controlled areas.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/remoteproc/remoteproc_core.c |   64 ++++++++++++++++++++++++++--------
- include/linux/remoteproc.h           |    9 +++++
+ drivers/remoteproc/remoteproc_core.c | 64 ++++++++++++++++++++++++++++--------
+ include/linux/remoteproc.h           |  9 +++++
  2 files changed, 59 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
@@ -167,5 +167,5 @@ index faf3332..c8573fd 100644
  
  struct rproc *rproc_alloc(struct device *dev, const char *name,
 -- 
-1.7.9.5
+1.9.0
 

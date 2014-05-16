@@ -1,4 +1,4 @@
-From 6672be10a52cc3dcc554dba3e5239466950749b6 Mon Sep 17 00:00:00 2001
+From d9a3a8496032cec9584a5fe9d036852f11e63857 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 7 Mar 2013 17:22:40 +0200
 Subject: [PATCH 120/184] BBB tester: Introduce board DTS
@@ -8,8 +8,8 @@ the I2C2 is used for a different purpose for the tester.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- arch/arm/boot/dts/Makefile          |    3 +-
- arch/arm/boot/dts/am335x-tester.dts |  382 +++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/Makefile          |   3 +-
+ arch/arm/boot/dts/am335x-tester.dts | 382 ++++++++++++++++++++++++++++++++++++
  2 files changed, 384 insertions(+), 1 deletion(-)
  create mode 100644 arch/arm/boot/dts/am335x-tester.dts
 
@@ -29,7 +29,7 @@ index 8f8c0c8..9da016f 100644
  dtb-$(CONFIG_ARCH_U8500) += snowball.dtb \
 diff --git a/arch/arm/boot/dts/am335x-tester.dts b/arch/arm/boot/dts/am335x-tester.dts
 new file mode 100644
-index 0000000..c8d6900
+index 0000000..04dc2c1
 --- /dev/null
 +++ b/arch/arm/boot/dts/am335x-tester.dts
 @@ -0,0 +1,382 @@
@@ -174,12 +174,12 @@ index 0000000..c8d6900
 +
 +			/* Beaglebone black has it soldered on */
 +			 slot@4 {
-+			 	ti,cape-override;
-+			 	compatible = "ti,beaglebone-black";
-+			 	board-name = "Bone-LT-eMMC-2G";
-+			 	version = "00A0";
-+			 	manufacturer = "Texas Instruments";
-+			 	part-number = "BB-BONE-EMMC-2G";
++				ti,cape-override;
++				compatible = "ti,beaglebone-black";
++				board-name = "Bone-LT-eMMC-2G";
++				version = "00A0";
++				manufacturer = "Texas Instruments";
++				part-number = "BB-BONE-EMMC-2G";
 +			 };
 +
 +			/* geiger cape version A0 without an EEPROM */
@@ -416,5 +416,5 @@ index 0000000..c8d6900
 +	status = "okay";
 +};
 -- 
-1.7.9.5
+1.9.0
 

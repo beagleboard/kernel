@@ -1,7 +1,7 @@
-From 1d03c900ef504f70b9c8f28e050e1adab90ed753 Mon Sep 17 00:00:00 2001
+From 3e5587fdabc19254fbf99de85b762a92aaacadd6 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 12 Jun 2013 18:58:02 +0200
-Subject: [PATCH 01/21] mfd: input: iio: ti_am335x_adc: use one structure for
+Subject: [PATCH 01/19] mfd: input: iio: ti_am335x_adc: use one structure for
  ti_tscadc_dev
 
 The mfd driver creates platform data for the child devices and it is the
@@ -14,10 +14,10 @@ the wrong pointer for ti_tscadc_dev and this has been fixed as well.
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/iio/adc/ti_am335x_adc.c           |    5 +++--
- drivers/input/touchscreen/ti_am335x_tsc.c |   16 +++++++++-------
- drivers/mfd/ti_am335x_tscadc.c            |    8 ++++----
- include/linux/mfd/ti_am335x_tscadc.h      |    7 +++++++
+ drivers/iio/adc/ti_am335x_adc.c           |  5 +++--
+ drivers/input/touchscreen/ti_am335x_tsc.c | 16 +++++++++-------
+ drivers/mfd/ti_am335x_tscadc.c            |  8 ++++----
+ include/linux/mfd/ti_am335x_tscadc.h      |  7 +++++++
  4 files changed, 23 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
@@ -136,5 +136,5 @@ index c79ad5d..8114e4e 100644
 +
  #endif
 -- 
-1.7.9.5
+1.9.0
 

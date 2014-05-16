@@ -1,4 +1,4 @@
-From 133616c002d5b66c5b6d14b5de742d9ceb4f57e6 Mon Sep 17 00:00:00 2001
+From 0630c633bdce602d53a07d61f7f9d20366f67425 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Thu, 20 Sep 2012 09:21:16 -0400
 Subject: [PATCH 25/35] spi: omap2-mcspi: add generic DMA request support to
@@ -8,11 +8,11 @@ The binding definition is based on the generic DMA request binding.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- Documentation/devicetree/bindings/spi/omap-spi.txt |   28 +++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+ Documentation/devicetree/bindings/spi/omap-spi.txt | 27 +++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/devicetree/bindings/spi/omap-spi.txt b/Documentation/devicetree/bindings/spi/omap-spi.txt
-index 938809c..3bd8eed 100644
+index 938809c..68cb28e 100644
 --- a/Documentation/devicetree/bindings/spi/omap-spi.txt
 +++ b/Documentation/devicetree/bindings/spi/omap-spi.txt
 @@ -10,7 +10,18 @@ Required properties:
@@ -35,7 +35,7 @@ index 938809c..3bd8eed 100644
  
  mcspi1: mcspi@1 {
      #address-cells = <1>;
-@@ -20,3 +31,18 @@ mcspi1: mcspi@1 {
+@@ -20,3 +31,17 @@ mcspi1: mcspi@1 {
      ti,spi-num-cs = <4>;
  };
  
@@ -53,7 +53,6 @@ index 938809c..3bd8eed 100644
 +	    &edma 45>;
 +    dma-names = "tx0", "rx0", "tx1", "rx1";
 +};
-+
 -- 
-1.7.9.5
+1.9.0
 

@@ -1,7 +1,7 @@
-From f0b36cfcb8376c093458b225cf0d22dd304fa12e Mon Sep 17 00:00:00 2001
+From 85447d415d3fa923941edc1d928eda2cd714aa58 Mon Sep 17 00:00:00 2001
 From: Dave Chinner <dchinner@redhat.com>
 Date: Tue, 2 Jul 2013 22:38:35 +1000
-Subject: [PATCH] sync: don't block the flusher thread waiting on IO
+Subject: [PATCH 1/9] sync: don't block the flusher thread waiting on IO
 
 When sync does it's WB_SYNC_ALL writeback, it issues data Io and
 then immediately waits for IO completion. This is done in the
@@ -110,5 +110,5 @@ index b82a83a..7aa94e5 100644
  
  /*
 -- 
-1.8.2.1
+1.9.0
 

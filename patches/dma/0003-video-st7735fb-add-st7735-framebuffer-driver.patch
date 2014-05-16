@@ -1,4 +1,4 @@
-From b5861df588033c0049b2c59e5e007fe3aabca97a Mon Sep 17 00:00:00 2001
+From a03269d0d3be8d9815889ce2aea03841251b9a13 Mon Sep 17 00:00:00 2001
 From: Matt Porter <mporter@ti.com>
 Date: Tue, 11 Sep 2012 15:30:10 -0400
 Subject: [PATCH 03/35] video: st7735fb: add st7735 framebuffer driver
@@ -8,11 +8,11 @@ This driver requires that the platform support DT booting.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- .../devicetree/bindings/vendor-prefixes.txt        |    2 +
- drivers/video/Kconfig                              |   11 +
- drivers/video/Makefile                             |    1 +
- drivers/video/st7735fb.c                           |  631 ++++++++++++++++++++
- drivers/video/st7735fb.h                           |   84 +++
+ .../devicetree/bindings/vendor-prefixes.txt        |   2 +
+ drivers/video/Kconfig                              |  11 +
+ drivers/video/Makefile                             |   1 +
+ drivers/video/st7735fb.c                           | 631 +++++++++++++++++++++
+ drivers/video/st7735fb.h                           |  84 +++
  5 files changed, 729 insertions(+)
  create mode 100644 drivers/video/st7735fb.c
  create mode 100644 drivers/video/st7735fb.h
@@ -73,7 +73,7 @@ index 768a137..58dbeaf 100644
  obj-$(CONFIG_FB_UVESA)            += uvesafb.o
 diff --git a/drivers/video/st7735fb.c b/drivers/video/st7735fb.c
 new file mode 100644
-index 0000000..67c2544
+index 0000000..319653b
 --- /dev/null
 +++ b/drivers/video/st7735fb.c
 @@ -0,0 +1,631 @@
@@ -208,12 +208,12 @@ index 0000000..67c2544
 +};
 +
 +static struct fb_fix_screeninfo st7735fb_fix __devinitdata = {
-+	.id =		"ST7735", 
++	.id =		"ST7735",
 +	.type =		FB_TYPE_PACKED_PIXELS,
 +	.visual =	FB_VISUAL_DIRECTCOLOR,
 +	.xpanstep =	0,
 +	.ypanstep =	0,
-+	.ywrapstep =	0, 
++	.ywrapstep =	0,
 +	.line_length =	WIDTH*BPP/8,
 +	.accel =	FB_ACCEL_NONE,
 +};
@@ -400,14 +400,14 @@ index 0000000..67c2544
 +	st7735fb_update_display_deferred(info);
 +}
 +
-+static void st7735fb_copyarea(struct fb_info *info, const struct fb_copyarea *area) 
++static void st7735fb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 +{
 +	sys_copyarea(info, area);
 +
 +	st7735fb_update_display_deferred(info);
 +}
 +
-+static void st7735fb_imageblit(struct fb_info *info, const struct fb_image *image) 
++static void st7735fb_imageblit(struct fb_info *info, const struct fb_image *image)
 +{
 +	sys_imageblit(info, image);
 +
@@ -670,7 +670,7 @@ index 0000000..67c2544
 +		unregister_framebuffer(info);
 +		fb_dealloc_cmap(&info->cmap);
 +		kfree(info->pseudo_palette);
-+		vfree(info->screen_base);	
++		vfree(info->screen_base);
 +		framebuffer_release(info);
 +	}
 +
@@ -799,5 +799,5 @@ index 0000000..0ce5c11
 +#define ST7735_GMCTRN1	0xE1
 +#define ST7735_PWCTR6	0xFC
 -- 
-1.7.9.5
+1.9.0
 

@@ -1,8 +1,8 @@
-From 90b5db9e6f65c937303561cadd17d2665b9b93c8 Mon Sep 17 00:00:00 2001
+From 91c6ab1e25dc5288e3cae59f984da68f9e02e4de Mon Sep 17 00:00:00 2001
 From: Daniel Kurtz <djkurtz@chromium.org>
 Date: Thu, 20 Dec 2012 23:38:08 +0800
-Subject: [PATCH 06/57] CHROMIUM: Input: atmel_mxt_ts - destroy state before
- fw update and restore after
+Subject: [PATCH 06/57] CHROMIUM: Input: atmel_mxt_ts - destroy state before fw
+ update and restore after
 
 After firmware update, the device may have a completely different object
 table which corresponds to an input device with different properties.
@@ -18,7 +18,7 @@ bootloader mode and an improperly configured input device will not exist.
 Change-Id: I42e6b946e2206b4957c313be00b9b45b9dd02b60
 Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
 ---
- drivers/input/touchscreen/atmel_mxt_ts.c |   10 ++++++++--
+ drivers/input/touchscreen/atmel_mxt_ts.c | 10 ++++++++--
  1 file changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
@@ -51,5 +51,5 @@ index 76a25d3..c74f5a5 100644
  
  	enable_irq(data->irq);
 -- 
-1.7.9.5
+1.9.0
 

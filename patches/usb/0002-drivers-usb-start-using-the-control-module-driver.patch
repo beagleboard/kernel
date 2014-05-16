@@ -1,4 +1,4 @@
-From 304874e51fcfd2d87cedf56545262d968e9c1067 Mon Sep 17 00:00:00 2001
+From d8fa4dad9a3f4253af8ef6fa721a59ac0fd5d83f Mon Sep 17 00:00:00 2001
 From: Kishon Vijay Abraham I <kishon@ti.com>
 Date: Tue, 15 Jan 2013 08:42:55 +0000
 Subject: [PATCH 02/13] drivers: usb: start using the control module driver
@@ -9,15 +9,15 @@ registers on their own.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/devicetree/bindings/usb/omap-usb.txt |    4 ++
- Documentation/devicetree/bindings/usb/usb-phy.txt  |    7 +--
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   13 ----
- drivers/usb/musb/Kconfig                           |    1 +
- drivers/usb/musb/omap2430.c                        |   64 ++++++++------------
- drivers/usb/musb/omap2430.h                        |    9 ---
- drivers/usb/phy/Kconfig                            |    1 +
- drivers/usb/phy/omap-usb2.c                        |   38 +++---------
- include/linux/usb/omap_usb.h                       |    4 +-
+ Documentation/devicetree/bindings/usb/omap-usb.txt |  4 ++
+ Documentation/devicetree/bindings/usb/usb-phy.txt  |  7 +--
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         | 13 -----
+ drivers/usb/musb/Kconfig                           |  1 +
+ drivers/usb/musb/omap2430.c                        | 64 +++++++++-------------
+ drivers/usb/musb/omap2430.h                        |  9 ---
+ drivers/usb/phy/Kconfig                            |  1 +
+ drivers/usb/phy/omap-usb2.c                        | 38 +++----------
+ include/linux/usb/omap_usb.h                       |  4 +-
  9 files changed, 42 insertions(+), 99 deletions(-)
 
 diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
@@ -404,5 +404,5 @@ index 0ea17f8..3db9b53 100644
  
  #if defined(CONFIG_OMAP_USB2) || defined(CONFIG_OMAP_USB2_MODULE)
 -- 
-1.7.9.5
+1.9.0
 

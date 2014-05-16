@@ -1,8 +1,7 @@
-From 6180ebfc5530572725216ce8f38a2a013ae73045 Mon Sep 17 00:00:00 2001
+From f5b166f77214cfe4624b20e4df14a885675ad4cb Mon Sep 17 00:00:00 2001
 From: Maxime Ripard <maxime.ripard@free-electrons.com>
 Date: Tue, 26 Feb 2013 11:46:40 +0100
-Subject: [PATCH 3/5] ssd1307fb: Speed up the communication with the
- controller
+Subject: [PATCH 3/5] ssd1307fb: Speed up the communication with the controller
 
 The code until now was sending only 1pixel-wide page segment at once,
 and started a new transfer every time. It has proven very inefficient,
@@ -15,7 +14,7 @@ of this expensive overhead.
 
 Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
 ---
- drivers/video/ssd1307fb.c |   11 ++++++++---
+ drivers/video/ssd1307fb.c | 11 ++++++++---
  1 file changed, 8 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/video/ssd1307fb.c b/drivers/video/ssd1307fb.c
@@ -54,5 +53,5 @@ index 85e0860..676241b 100644
  }
  
 -- 
-1.7.9.5
+1.9.0
 

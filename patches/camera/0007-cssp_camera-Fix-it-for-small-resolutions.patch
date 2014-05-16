@@ -1,4 +1,4 @@
-From 3d2af27387ce9a7372c466be65ce5eced9a1e2cb Mon Sep 17 00:00:00 2001
+From ef350600cf4b94250f116aa21611cec410948081 Mon Sep 17 00:00:00 2001
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
 Date: Thu, 9 May 2013 23:01:53 +0300
 Subject: [PATCH 07/10] cssp_camera: Fix it for small resolutions
@@ -7,11 +7,11 @@ This should make it work reliably for resolutions up to 1024x768
 
 1280x960 and higher hang, or crash..
 ---
- drivers/media/platform/soc_camera/cssp_camera.c |  567 +++++++++++++++++------
+ drivers/media/platform/soc_camera/cssp_camera.c | 567 +++++++++++++++++-------
  1 file changed, 415 insertions(+), 152 deletions(-)
 
 diff --git a/drivers/media/platform/soc_camera/cssp_camera.c b/drivers/media/platform/soc_camera/cssp_camera.c
-index 788acc4..62d8702 100644
+index ece8b39..c0f3e6e 100644
 --- a/drivers/media/platform/soc_camera/cssp_camera.c
 +++ b/drivers/media/platform/soc_camera/cssp_camera.c
 @@ -53,13 +53,12 @@ static unsigned int vid_limit = 6;
@@ -255,7 +255,7 @@ index 788acc4..62d8702 100644
 +
 +	// dump_slot(dev, ch, "q");
 +
-+	/* 
++	/*
 +	param->a_b_cnt = ACNT(dev->dma_req_len) | BCNT(bytesperline / dev->dma_req_len);
 +	param->src_dst_bidx = SRCBIDX(0) | DSTBIDX(dev->dma_req_len);
 +	param->link_bcntrld = BCNTRLD(bytesperline / dev->dma_req_len) | LINK(0xffff);
@@ -922,7 +922,7 @@ index 788acc4..62d8702 100644
  	dev_err(&pdev->dev, "Loaded OK.\n");
  
  	return 0;
-@@ -1551,7 +1814,7 @@ module_platform_driver(cssp_cam_driver);
+@@ -1551,6 +1814,6 @@ module_platform_driver(cssp_cam_driver);
  /*
   * Macros sets license, author and description
   */
@@ -930,7 +930,6 @@ index 788acc4..62d8702 100644
 +MODULE_LICENSE("GPLv2");
  MODULE_AUTHOR("Dan Aizenstros, Damian Eppel, Przemek Szewczyk");
  MODULE_DESCRIPTION("QuickLogic Camera Interface driver");
- 
 -- 
-1.7.9.5
+1.9.0
 

@@ -1,7 +1,7 @@
-From ff3402fbe3db7249b2251ab1b3bed6c5a6ac1fec Mon Sep 17 00:00:00 2001
+From 5f6ea92cc014af1e739773bb6c08ddc43d8ca12f Mon Sep 17 00:00:00 2001
 From: Dave Lambert <dave@lambsys.com>
 Date: Thu, 12 Dec 2013 12:02:16 -0600
-Subject: [PATCH 26/26] add argus ups cape support
+Subject: [PATCH 30/40] add argus ups cape support
 
 Signed-off-by: Dave Lambert <dave@lambsys.com>
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
@@ -16,7 +16,7 @@ Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
  create mode 100644 firmware/capes/cape-bone-argus-00A0.dts
 
 diff --git a/drivers/misc/cape/beaglebone/Kconfig b/drivers/misc/cape/beaglebone/Kconfig
-index 4937577..5264f59 100644
+index 0f44f7a..ae58216 100644
 --- a/drivers/misc/cape/beaglebone/Kconfig
 +++ b/drivers/misc/cape/beaglebone/Kconfig
 @@ -31,6 +31,13 @@ config CAPE_BEAGLEBONE_GEIGER
@@ -462,10 +462,10 @@ index 0000000..b92f561
 +MODULE_ALIAS("platform:argus-ups");
 +MODULE_DEVICE_TABLE(of, argus_ups_of_ids);
 diff --git a/firmware/Makefile b/firmware/Makefile
-index 2492651..913de00 100644
+index 31941af..0fa5d8c 100644
 --- a/firmware/Makefile
 +++ b/firmware/Makefile
-@@ -205,6 +205,10 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+@@ -208,6 +208,10 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
  fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_GEIGER) += \
  	cape-bone-geiger-00A0.dtbo
  
@@ -573,5 +573,5 @@ index 0000000..26ce46e
 +	};
 +};
 -- 
-1.8.4.2
+1.9.0
 

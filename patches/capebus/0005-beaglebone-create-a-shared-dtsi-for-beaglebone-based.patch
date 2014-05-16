@@ -1,4 +1,4 @@
-From 25d97a3e1da97f73ba30721930aac71bff65069c Mon Sep 17 00:00:00 2001
+From 3579d8f963fad0a8b57008efe7409c9df1feca70 Mon Sep 17 00:00:00 2001
 From: Koen Kooi <koen@dominion.thruhere.net>
 Date: Fri, 18 Jan 2013 09:19:38 +0100
 Subject: [PATCH 5/7] beaglebone: create a shared dtsi for beaglebone based
@@ -6,11 +6,11 @@ Subject: [PATCH 5/7] beaglebone: create a shared dtsi for beaglebone based
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
- arch/arm/boot/dts/Makefile                |    3 +-
- arch/arm/boot/dts/am335x-bone-common.dtsi |  290 +++++++++++++++++++++++++++++
- arch/arm/boot/dts/am335x-bone.dts         |  281 +---------------------------
- arch/arm/boot/dts/am335x-boneblack.dts    |   20 ++
- 4 files changed, 313 insertions(+), 281 deletions(-)
+ arch/arm/boot/dts/Makefile                |   3 +-
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 290 ++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts         | 281 +----------------------------
+ arch/arm/boot/dts/am335x-boneblack.dts    |  19 ++
+ 4 files changed, 312 insertions(+), 281 deletions(-)
  create mode 100644 arch/arm/boot/dts/am335x-bone-common.dtsi
  create mode 100644 arch/arm/boot/dts/am335x-boneblack.dts
 
@@ -30,7 +30,7 @@ index 5ebb44f..8f8c0c8 100644
  dtb-$(CONFIG_ARCH_U8500) += snowball.dtb \
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
 new file mode 100644
-index 0000000..9a7be8a
+index 0000000..ae1d0a1
 --- /dev/null
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
 @@ -0,0 +1,290 @@
@@ -206,7 +206,7 @@ index 0000000..9a7be8a
 +		compatible = "at,24c256";
 +		reg = <0x50>;
 +	};
-+       
++
 +};
 +
 +&i2c2 {
@@ -325,7 +325,7 @@ index 0000000..9a7be8a
 +	status = "okay";
 +};
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index bf87ceb..9abc1f3 100644
+index 8e62bd5..9abc1f3 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
 @@ -9,283 +9,4 @@
@@ -494,7 +494,7 @@ index bf87ceb..9abc1f3 100644
 -		compatible = "at,24c256";
 -		reg = <0x50>;
 -	};
--       
+-
 -};
 -
 -&i2c2 {
@@ -615,10 +615,10 @@ index bf87ceb..9abc1f3 100644
 +/include/ "am335x-bone-common.dtsi"
 diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
 new file mode 100644
-index 0000000..cdc3dd0
+index 0000000..ab5af7f
 --- /dev/null
 +++ b/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,19 @@
 +/*
 + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
 + *
@@ -638,7 +638,6 @@ index 0000000..cdc3dd0
 +	ti,non-removable;
 +	status = "okay";
 +};
-+
 -- 
-1.7.9.5
+1.9.0
 

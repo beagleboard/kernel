@@ -1,8 +1,7 @@
-From c3bcb6021b99b73bc5eb3922df227353b36959d3 Mon Sep 17 00:00:00 2001
+From 9ca09bb89dd19eadbe3ce9feef697ea7dcfae666 Mon Sep 17 00:00:00 2001
 From: Daniel Kurtz <djkurtz@chromium.org>
 Date: Wed, 19 Dec 2012 17:48:36 +0800
-Subject: [PATCH 30/57] CHROMIUM: Input: atmel_mxt_ts - remove
- mxt_make_highchg
+Subject: [PATCH 30/57] CHROMIUM: Input: atmel_mxt_ts - remove mxt_make_highchg
 
 This function attempts to make the CHG pin high by reading a messages
 until the device queue is empty.
@@ -29,7 +28,7 @@ Reviewed-by: Benson Leung <bleung@chromium.org>
 v3.7 rebase:
 Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
 ---
- drivers/input/touchscreen/atmel_mxt_ts.c |   33 ++----------------------------
+ drivers/input/touchscreen/atmel_mxt_ts.c | 33 ++------------------------------
  1 file changed, 2 insertions(+), 31 deletions(-)
 
 diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
@@ -105,5 +104,5 @@ index 8c29fb3..8dfdba9 100644
  			goto err_free_irq;
  	}
 -- 
-1.7.9.5
+1.9.0
 

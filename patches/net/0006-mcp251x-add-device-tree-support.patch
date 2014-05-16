@@ -1,14 +1,14 @@
-From 52525721666a3128480ddd97a31233afd8de757b Mon Sep 17 00:00:00 2001
+From 5f0719744c3e5cb3c7d11d995b60eafd3d78c958 Mon Sep 17 00:00:00 2001
 From: Alessandro Zummo <a.zummo@towertech.it>
 Date: Sat, 25 May 2013 18:20:33 +0200
-Subject: [PATCH 6/6] mcp251x: add device tree support
+Subject: [PATCH 6/7] mcp251x: add device tree support
 
  drivers/net/can/mcp251x.c            |  133 +++++++++++++++++++++++++++-------
  include/linux/can/platform/mcp251x.h |    4 +
  2 files changed, 110 insertions(+), 27 deletions(-)
 ---
- drivers/net/can/mcp251x.c            |  133 +++++++++++++++++++++++++++-------
- include/linux/can/platform/mcp251x.h |    4 +
+ drivers/net/can/mcp251x.c            | 133 ++++++++++++++++++++++++++++-------
+ include/linux/can/platform/mcp251x.h |   4 ++
  2 files changed, 110 insertions(+), 27 deletions(-)
 
 diff --git a/drivers/net/can/mcp251x.c b/drivers/net/can/mcp251x.c
@@ -349,5 +349,5 @@ index 089fe43..c017922 100644
  	int (*transceiver_enable)(int enable);
  	int (*power_enable) (int enable);
 -- 
-1.7.9.5
+1.9.0
 
