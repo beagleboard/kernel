@@ -1,0 +1,35 @@
+From 84b13124727799ede19e3456e01f0a61a065fe59 Mon Sep 17 00:00:00 2001
+From: Matt Ranostay <mranostay@gmail.com>
+Date: Sun, 1 Jun 2014 15:52:08 -0700
+Subject: [PATCH 20/20] PRU 2.0.0 compiler changes for pru_rpoc
+
+Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+---
+ drivers/remoteproc/pru_rproc.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
+index 6e42db6..7b7280d 100644
+--- a/drivers/remoteproc/pru_rproc.c
++++ b/drivers/remoteproc/pru_rproc.c
+@@ -666,6 +666,8 @@ pruproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+ 		}
+ 
+ 		/* we can't use rproc_da_to_va (it relies on carveouts) */
++		if (filesz == 0)
++			continue;
+ 
+ 		/* text? to code area */
+ 		if (flags & PF_X)
+@@ -1660,7 +1662,7 @@ static int pru_downcall(struct pruproc_core *ppc,
+ 	}
+ 
+ 	/* get the actual return address */
+-	r3in = pru_read_cpu_reg(ppc, 3) << 2;
++	r3in = (pru_read_cpu_reg(ppc, 3) >> 16) << 2;
+ 
+ 	/* write the arguments */
+ 	pru_write_cpu_reg(ppc, 14, nr);
+-- 
+1.9.0
+
