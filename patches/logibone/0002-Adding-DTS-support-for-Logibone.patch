@@ -3,29 +3,29 @@ From: Jonathan Piat <piat.jonathan@gmail.com>
 Date: Mon, 28 Apr 2014 23:13:49 +0200
 Subject: [PATCH 2/3] Adding DTS support for Logibone
 
+Signed-off-by: Jonathan Piat <piat.jonathan@gmail.com>
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
- firmware/Makefile                        |    3 +-
- firmware/capes/BB-BONE-LOGIBONE-00R1.dts |  221 ++++++++++++++++++++++++++++++
- 2 files changed, 224 insertions(+), 1 deletion(-)
+ firmware/Makefile                        |   1 +
+ firmware/capes/BB-BONE-LOGIBONE-00R1.dts | 221 +++++++++++++++++++++++++++++++
+ 2 files changed, 222 insertions(+)
  create mode 100644 firmware/capes/BB-BONE-LOGIBONE-00R1.dts
 
 diff --git a/firmware/Makefile b/firmware/Makefile
-index 1a74a6d..5b49b5f 100644
+index 1a0f009..36ec8db 100644
 --- a/firmware/Makefile
 +++ b/firmware/Makefile
-@@ -206,7 +206,8 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
- 	BB-BONE-CRYPTO-00A0.dtbo \
- 	bone_eqep0-00A0.dtbo \
- 	bone_eqep1-00A0.dtbo \
--	bone_eqep2-00A0.dtbo
-+	bone_eqep2-00A0.dtbo \
-+	BB-BONE-LOGIBONE-00R1.dtbo
- 
- # the geiger cape
- fw-shipped-$(CONFIG_CAPE_BEAGLEBONE_GEIGER) += \
+@@ -182,6 +182,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	bone_pwm_P9_29-00A0.dtbo \
+ 	bone_pwm_P9_31-00A0.dtbo \
+ 	bone_pwm_P9_42-00A0.dtbo \
++	BB-BONE-LOGIBONE-00R1.dtbo \
+ 	BB-BONE-PWMT-00A0.dtbo \
+ 	BB-BONE-PRU-01-00A0.dtbo \
+ 	BB-BONE-PRU-02-00A0.dtbo \
 diff --git a/firmware/capes/BB-BONE-LOGIBONE-00R1.dts b/firmware/capes/BB-BONE-LOGIBONE-00R1.dts
 new file mode 100644
-index 0000000..87f5e6c
+index 0000000..75cd3f1
 --- /dev/null
 +++ b/firmware/capes/BB-BONE-LOGIBONE-00R1.dts
 @@ -0,0 +1,221 @@
@@ -251,5 +251,5 @@ index 0000000..87f5e6c
 +
 + };
 -- 
-1.7.9.5
+2.0.0.rc2
 
