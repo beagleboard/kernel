@@ -1,0 +1,25 @@
+From f62cf2c0518b5171c6587bd7aa1f23e24da824e7 Mon Sep 17 00:00:00 2001
+From: Kumar Abhishek <abhishek@theembeddedkitchen.net>
+Date: Wed, 25 Jun 2014 01:02:08 +0700
+Subject: [PATCH 4/4] Fix compile error with pru_rproc.c
+
+Signed-off-by: Kumar Abhishek <abhishek@theembeddedkitchen.net>
+---
+ drivers/remoteproc/pru_rproc.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
+index ff8e541..402f2ef 100644
+--- a/drivers/remoteproc/pru_rproc.c
++++ b/drivers/remoteproc/pru_rproc.c
+@@ -34,6 +34,7 @@
+ 
+ #include "remoteproc_internal.h"
+ 
++#include <linux/miscdevice.h>
+ #include "beaglelogic_glue.h"
+ 
+ /* PRU_EVTOUT0 is halt (system call) */
+-- 
+2.0.0
+

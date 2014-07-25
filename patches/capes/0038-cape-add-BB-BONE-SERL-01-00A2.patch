@@ -1,0 +1,78 @@
+From f27d8bb8d556b70b021221d70fe74a28fe1f01e0 Mon Sep 17 00:00:00 2001
+From: Tyler Baker <tyler.baker@linaro.org>
+Date: Thu, 24 Jul 2014 14:04:12 -0700
+Subject: [PATCH 38/38] cape: add BB-BONE-SERL-01-00A2
+
+Signed-off-by: Tyler Baker <tyler.baker@linaro.org>
+---
+ firmware/Makefile                       |  1 +
+ firmware/capes/BB-BONE-SERL-01-00A2.dts | 45 +++++++++++++++++++++++++++++++++
+ 2 files changed, 46 insertions(+)
+ create mode 100644 firmware/capes/BB-BONE-SERL-01-00A2.dts
+
+diff --git a/firmware/Makefile b/firmware/Makefile
+index e39df74..0e14340 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -162,6 +162,7 @@ fw-shipped-$(CONFIG_CAPE_BEAGLEBONE) += \
+ 	BB-BONE-GPS-00A0.dtbo \
+ 	BB-BONE-RS232-00A0.dtbo \
+ 	BB-BONE-SERL-01-00A1.dtbo \
++	BB-BONE-SERL-01-00A2.dtbo \
+ 	cape-bone-iio-00A0.dtbo \
+ 	cape-bone-pinmux-test-00A0.dtbo \
+ 	cape-bone-exptest-00A0.dtbo \
+diff --git a/firmware/capes/BB-BONE-SERL-01-00A2.dts b/firmware/capes/BB-BONE-SERL-01-00A2.dts
+new file mode 100644
+index 0000000..3e10116
+--- /dev/null
++++ b/firmware/capes/BB-BONE-SERL-01-00A2.dts
+@@ -0,0 +1,45 @@
++/*
++* Copyright (C) 2013 Martin Gysel <me@bearsh.org>
++*
++* This program is free software; you can redistribute it and/or modify
++* it under the terms of the GNU General Public License version 2 as
++* published by the Free Software Foundation.
++*/
++/dts-v1/;
++/plugin/;
++
++
++/ {
++	compatible = "ti,beaglebone", "ti,beaglebone-black";
++	part-number = "BB-BONE-SERL-01";
++	version = "00A2";
++
++	/* state the resources this cape uses */
++	exclusive-use =
++		/* the pin header uses */
++		"P9.26",		/* dcan1: dcan1_tx */
++		"P9.24",		/* dcan1: dcan1_rx */
++		/* the hardware IP uses */
++		"dcan1";
++
++	fragment@0 {
++		target = <&am33xx_pinmux>;
++		__overlay__ {
++			bone_serl_01_dcan1_pins: bone_serl_01_dcan1_pins {
++				pinctrl-single,pins = <
++					0x180 0x02      /* uart1_rxd.d_can1_tx", OUTPUT | MODE2 */
++					0x184 0x32      /* uart1_txd.d_can1_rx", INPUT_PULLUP | MODE2 */
++				>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&dcan1>;
++		__overlay__ {
++			status = "okay";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bone_serl_01_dcan1_pins>;
++		};
++	};
++};
+-- 
+2.0.1
+
