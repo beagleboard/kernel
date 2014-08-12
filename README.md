@@ -1,3 +1,10 @@
+This repo is now deprecated
+===========================
+
+Please see https://github.com/beagleboard/linux for the latest official kernels.
+
+
+
 kernel
 ======
 
