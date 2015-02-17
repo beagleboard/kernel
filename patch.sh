@@ -23,11 +23,11 @@ EXTRATAG=""
 PATCHSET="dirs"
 
 git_kernel_stable () {
-	git pull git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
+	git pull https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git master --tags || true
 }
 
 git_pull_torvalds () {
-	git pull git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master --tags || true
+	git pull https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master --tags || true
 	#Maybe, we need a stable tag '3.0.2'?
 	git tag | grep ${TAG} >/dev/null || git_kernel_stable
 }
@@ -39,7 +39,7 @@ fi
 cd ${DIR}/kernel
 
 if [ ! -f ./.git/config ] ; then
-	git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git .
+	git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git .
 else
 	git fetch
 fi
